@@ -76,11 +76,12 @@ namespace TheLastEmpire
             CurrentPlayerX = mapGenerator.spawnX;
             CurrentPlayerY = mapGenerator.spawnY;
 
-            // Reveal the starting location
+            // Reveal and clear the starting location (Safe Zone)
             StageData startingStage = mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY);
             if (startingStage != null)
             {
                 startingStage.isExplored = true;
+                startingStage.isCleared = true; // Make starting stage a safe zone by default!
             }
 
             // Trigger the initial stage update event so that visualizers and managers set up correctly
