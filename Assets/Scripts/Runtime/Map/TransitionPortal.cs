@@ -194,6 +194,16 @@ namespace TheLastEmpire
             if (transitioned)
             {
                 player.transform.position = pos;
+
+                // Sync Rigidbody2D position explicitly to prevent Unity's physics engine from overriding the teleportation
+                Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                if (playerRb != null)
+                {
+                    playerRb.position = pos;
+                    playerRb.linearVelocity = Vector2.zero;
+                }
+                
+                Physics2D.SyncTransforms(); // Force immediate transform update to colliders
                 Debug.Log($"[TransitionPortal] Transitioned stage {direction} via Portal!");
             }
         }
