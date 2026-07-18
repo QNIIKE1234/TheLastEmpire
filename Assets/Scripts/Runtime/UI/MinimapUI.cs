@@ -46,10 +46,10 @@ namespace TheLastEmpire
 
         private void InitTexture()
         {
-            _minimapTexture = new Texture2D(WorldMapGenerator.GridSize, WorldMapGenerator.GridSize);
+            _minimapTexture = new Texture2D(8, 8);
             _minimapTexture.filterMode = FilterMode.Point;
             _minimapTexture.wrapMode = TextureWrapMode.Clamp;
-            _pixelColors = new Color[WorldMapGenerator.GridSize * WorldMapGenerator.GridSize];
+            _pixelColors = new Color[8 * 8];
 
             if (minimapImage != null)
             {
@@ -63,34 +63,46 @@ namespace TheLastEmpire
 
             WorldMapGenerator generator = WorldMapManager.Instance.MapGenerator;
 
-            for (int y = 0; y < WorldMapGenerator.GridSize; y++)
+            for (int localY = 0; localY < 8; localY++)
             {
-                for (int x = 0; x < WorldMapGenerator.GridSize; x++)
+                for (int localX = 0; localX < 8; localX++)
                 {
-                    int index = x + y * WorldMapGenerator.GridSize;
-                    StageData stage = generator.GetStage(x, y);
+                    int index = localX + localY * 8;
+                    
+                    // Center the player on the 8x8 viewport (player is at local index X=4, Y=4)
+                    int worldX = playerX - 4 + localX;
+                    int worldY = playerY - 4 + localY;
 
-                    if (stage == null)
-                      {
-                          _pixelColors[index] = fogColor;
-                          continue;
-                      }
+                    if (worldX >= 0 && worldX < WorldMapGenerator.GridSize && worldY >= 0 && worldY < WorldMapGenerator.GridSize)
+                    {
+                        StageData stage = generator.GetStage(worldX, worldY);
+                        if (stage == null)
+                        {
+                            _pixelColors[index] = fogColor;
+                            continue;
+                        }
 
-                      // Draw player red dot
-                      if (x == playerX && y == playerY)
-                      {
-                          _pixelColors[index] = playerIndicatorColor;
-                      }
-                      // Show biome color if stage has been explored
-                      else if (stage.isExplored)
-                      {
-                          _pixelColors[index] = WorldMapGenerator.GetBiomeColor(stage.biome);
-                      }
-                      // Keep locked behind Fog of War
-                      else
-                      {
-                          _pixelColors[index] = fogColor;
-                      }
+                        // Draw player red dot in the center coordinate
+                        if (worldX == playerX && worldY == playerY)
+                        {
+                            _pixelColors[index] = playerIndicatorColor;
+                        }
+                        // Show biome color if stage has been explored
+                        else if (stage.isExplored)
+                        {
+                            _pixelColors[index] = WorldMapGenerator.GetBiomeColor(stage.biome);
+                        }
+                        // Keep locked behind Fog of War
+                        else
+                        {
+                            _pixelColors[index] = fogColor;
+                        }
+                    }
+                    else
+                    {
+                        // Out of overworld map boundaries is painted as fog
+                        _pixelColors[index] = fogColor;
+                    }
                 }
             }
 
