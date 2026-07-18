@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -25,10 +26,23 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            // Gather input
-            float moveX = Input.GetAxisRaw("Horizontal");
-            float moveY = Input.GetAxisRaw("Vertical");
-            _moveInput = new Vector2(moveX, moveY).normalized;
+            // Gather input using the New Input System direct API
+            Vector2 move = Vector2.zero;
+
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) move.y += 1f;
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) move.y -= 1f;
+                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) move.x -= 1f;
+                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) move.x += 1f;
+            }
+
+            if (Gamepad.current != null)
+            {
+                move += Gamepad.current.leftStick.ReadValue();
+            }
+
+            _moveInput = move.normalized;
 
             CheckBoundaries();
         }
