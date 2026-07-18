@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TheLastEmpire.Runtime.Map
+namespace TheLastEmpire
 {
     [CreateAssetMenu(fileName = "WorldMapGenerator", menuName = "The Last Empire/World Map Generator", order = 1)]
     public class WorldMapGenerator : ScriptableObject
@@ -30,7 +30,6 @@ namespace TheLastEmpire.Runtime.Map
             gridData = new StageData[GridSize * GridSize];
             System.Random rand = new System.Random(seed);
 
-            // Generate offset based on seed or settings
             float offsetX = noiseOffset.x + (float)(rand.NextDouble() * 200000 - 100000);
             float offsetY = noiseOffset.y + (float)(rand.NextDouble() * 200000 - 100000);
 
@@ -73,7 +72,6 @@ namespace TheLastEmpire.Runtime.Map
                 float sampleX = (x + offsetX) / noiseScale * frequency;
                 float sampleY = (y + offsetY) / noiseScale * frequency;
 
-                // Unity's Mathf.PerlinNoise returns 0.0 to 1.0
                 float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
                 noiseHeight += perlinValue * amplitude;
 
@@ -125,12 +123,12 @@ namespace TheLastEmpire.Runtime.Map
         {
             switch (biome)
             {
-                case BiomeType.Waterways: return new Color(0.12f, 0.56f, 1f); // #1E90FF (DodgeBlue)
-                case BiomeType.OvergrownForests: return new Color(0.13f, 0.55f, 0.13f); // #228B22 (ForestGreen)
-                case BiomeType.SuburbanVillages: return new Color(0.6f, 0.8f, 0.2f); // #9ACD32 (YellowGreen)
-                case BiomeType.Highways: return new Color(0.18f, 0.31f, 0.31f); // #2F4F4F (DarkSlateGray)
-                case BiomeType.UrbanRuins: return new Color(0.44f, 0.5f, 0.56f); // #708090 (SlateGray)
-                case BiomeType.Highlands: return new Color(0.55f, 0.27f, 0.07f); // #8B4513 (SaddleBrown)
+                case BiomeType.Waterways: return new Color(0.12f, 0.56f, 1f);
+                case BiomeType.OvergrownForests: return new Color(0.13f, 0.55f, 0.13f);
+                case BiomeType.SuburbanVillages: return new Color(0.6f, 0.8f, 0.2f);
+                case BiomeType.Highways: return new Color(0.18f, 0.31f, 0.31f);
+                case BiomeType.UrbanRuins: return new Color(0.44f, 0.5f, 0.56f);
+                case BiomeType.Highlands: return new Color(0.55f, 0.27f, 0.07f);
                 default: return Color.black;
             }
         }

@@ -1,6 +1,6 @@
 using System;
 
-namespace TheLastEmpire.Runtime.Map
+namespace TheLastEmpire
 {
     [Serializable]
     public class StageData

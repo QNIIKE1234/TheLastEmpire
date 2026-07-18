@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TheLastEmpire.Runtime.Map
+namespace TheLastEmpire
 {
     [RequireComponent(typeof(SpriteRenderer))]
     public class WorldMapVisualizer : MonoBehaviour
@@ -12,14 +12,14 @@ namespace TheLastEmpire.Runtime.Map
 
         public WorldMapGenerator MapGenerator
         {
-            get => mapGenerator;
-            set => mapGenerator = value;
+            get { return mapGenerator; }
+            set { mapGenerator = value; }
         }
 
         public float PixelsPerUnit
         {
-            get => pixelsPerUnit;
-            set => pixelsPerUnit = value;
+            get { return pixelsPerUnit; }
+            set { pixelsPerUnit = value; }
         }
 
         private void Start()
@@ -32,13 +32,9 @@ namespace TheLastEmpire.Runtime.Map
                 return;
             }
 
-            // Generate map data at runtime
             mapGenerator.GenerateMap();
-
-            // Create a preview texture based on generated grid data
             Texture2D texture = mapGenerator.GeneratePreviewTexture();
 
-            // Instantiate a new Sprite using the texture
             Sprite mapSprite = Sprite.Create(
                 texture,
                 new Rect(0, 0, texture.width, texture.height),
@@ -47,8 +43,7 @@ namespace TheLastEmpire.Runtime.Map
             );
 
             _spriteRenderer.sprite = mapSprite;
-            
-            Debug.Log("WorldMapVisualizer: Successfully rendered the 64x64 Grid World Map at runtime.");
+            Debug.Log("WorldMapVisualizer: Successfully rendered the 64x64 Grid World Map.");
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace TheLastEmpire.Runtime.Map
+namespace TheLastEmpire
 {
     public enum BiomeType
     {

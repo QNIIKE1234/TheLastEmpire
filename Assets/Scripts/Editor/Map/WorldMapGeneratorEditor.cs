@@ -1,11 +1,10 @@
 using UnityEditor;
 using UnityEngine;
-using TheLastEmpire.Runtime.Map;
 
-namespace TheLastEmpire.Editor.Map
+namespace TheLastEmpire
 {
     [CustomEditor(typeof(WorldMapGenerator))]
-    public class WorldMapGeneratorEditor : UnityEditor.Editor
+    public class WorldMapGeneratorEditor : Editor
     {
         private Texture2D _cachedPreviewTexture;
 
@@ -21,7 +20,6 @@ namespace TheLastEmpire.Editor.Map
                 generator.GenerateMap();
                 _cachedPreviewTexture = generator.GeneratePreviewTexture();
 
-                // Save to PNG next to the ScriptableObject asset
                 byte[] bytes = _cachedPreviewTexture.EncodeToPNG();
                 string assetPath = AssetDatabase.GetAssetPath(generator);
                 if (!string.IsNullOrEmpty(assetPath))
@@ -46,9 +44,8 @@ namespace TheLastEmpire.Editor.Map
                 GUILayout.Space(15);
                 GUILayout.Label("Map Preview (64x64 Grid):", EditorStyles.boldLabel);
 
-                // Maintain square aspect ratio in the Inspector preview
                 float width = EditorGUIUtility.currentViewWidth - 40;
-                width = Mathf.Min(width, 256); // clamp size to a reasonable visual limit
+                width = Mathf.Min(width, 256);
 
                 Rect rect = GUILayoutUtility.GetRect(width, width);
                 GUI.DrawTexture(rect, _cachedPreviewTexture, ScaleMode.ScaleToFit);
