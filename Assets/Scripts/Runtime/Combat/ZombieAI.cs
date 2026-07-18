@@ -28,6 +28,12 @@ namespace TheLastEmpire
 
         [Header("Leader Settings")]
         [SerializeField] private float buffRadius = 6f;
+        [SerializeField] private GameObject childZombiePrefab;
+        [SerializeField] private float spawnCooldown = 10f;
+        [SerializeField] private int maxChildSpawns = 3;
+
+        private float _spawnCooldownTimer = 0f;
+        private int _currentChildSpawns = 0;
 
         private float _leapCooldownTimer = 0f;
         private float _leapActiveTimer = 0f;
@@ -113,6 +119,13 @@ namespace TheLastEmpire
 
             // Apply leader speed buff if Leader Zombie is nearby
             ApplyLeaderBuffChecks();
+
+            // Handle Leader minion spawning
+            if (zombieType == ZombieType.Leader && health != null && !health.IsDead)
+            {
+                if (_spawnCooldownTimer > 0f) _spawnCooldownTimer -= Time.fixedDeltaTime;
+                HandleLeaderSpawning();
+            }
 
             base.FixedUpdate();
         }
@@ -263,6 +276,62 @@ namespace TheLastEmpire
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawWireSphere(transform.position, buffRadius);
+            }
+        }
+
+        private void HandleLeaderSpawning()
+        {
+            if (_spawnCooldownTimer > 0f || _currentChildSpawns >= maxChildSpawns) return;
+            if (!IsPlayerInDetectionRange()) return; // only spawn when player is near!
+
+            _spawnCooldownTimer = spawnCooldown;
+
+            Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0f);
+            Vector3 spawnPos = transform.position + spawnOffset;
+
+            GameObject babyZombie = null;
+            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(poolKey))
+            {
+                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(poolKey, spawnPos, Quaternion.identity);
+            }
+            else if (childZombiePrefab != null)
+            {
+                babyZombie = Instantiate(childZombiePrefab, spawnPos, Quaternion.identity);
+            }
+            else
+            {
+                // Procedural fallback
+                babyZombie = new GameObject("SpawnedZombieNormal");
+                babyZombie.transform.position = spawnPos;
+
+                SpriteRenderer sr = babyZombie.AddComponent<SpriteRenderer>();
+                sr.sprite = _spriteRenderer != null ? _spriteRenderer.sprite : null;
+                sr.color = Color.white;
+
+                CircleCollider2D col = babyZombie.AddComponent<CircleCollider2D>();
+                
+                // Set tag and setup component
+                babyZombie.tag = "Enemy";
+                babyZombie.AddComponent<ZombieAI>();
+            }
+
+            if (babyZombie != null)
+            {
+                // Force spawned zombie to be a Normal type so it doesn't spawn more leaders!
+                ZombieAI babyAI = babyZombie.GetComponent<ZombieAI>();
+                if (babyAI != null)
+                {
+                    babyAI.zombieType = ZombieType.Normal;
+                }
+
+                _currentChildSpawns++;
+
+                // Track child death to clear counter slot
+                Health babyHealth = babyZombie.GetComponent<Health>();
+                if (babyHealth != null)
+                {
+                    babyHealth.onDeath.AddListener(() => _currentChildSpawns = Mathf.Max(0, _currentChildSpawns - 1));
+                }
             }
         }
     }
