@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 namespace TheLastEmpire
 {
@@ -13,6 +14,9 @@ namespace TheLastEmpire
         [Header("Visual Feedback (Camera Tint)")]
         [SerializeField] private Color dayCameraColor = new Color(0.15f, 0.3f, 0.45f, 1f);
         [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.05f, 0.12f, 1f);
+
+        [Header("UI Reference")]
+        [SerializeField] private TextMeshProUGUI timeText;
 
         private float _phaseTimer = 0f;
         private bool _isNight = false;
@@ -52,6 +56,17 @@ namespace TheLastEmpire
             {
                 Color targetColor = _isNight ? nightCameraColor : dayCameraColor;
                 Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, targetColor, Time.deltaTime * 2f);
+            }
+
+            // Update TMPro UI text dynamically
+            if (timeText != null)
+            {
+                float remainingTime = Mathf.Max(0f, currentDuration - _phaseTimer);
+                string phaseLabel = _isNight ? "NIGHT" : "DAY";
+                timeText.text = $"{phaseLabel} ({Mathf.CeilToInt(remainingTime)}s)";
+                
+                // Light yellow for day, neon blue for night
+                timeText.color = _isNight ? new Color(0.4f, 0.8f, 1f) : new Color(1f, 0.85f, 0.2f);
             }
 
             if (_phaseTimer >= currentDuration)
