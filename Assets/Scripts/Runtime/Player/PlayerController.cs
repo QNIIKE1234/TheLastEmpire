@@ -197,18 +197,21 @@ namespace TheLastEmpire
             _fireCooldownTimer = fireRate;
             Vector2 spawnPos = (Vector2)transform.position + _aimDirection * 0.6f;
 
-            GameObject bullet;
+            GameObject bullet = null;
             if (projectilePrefab != null && !string.IsNullOrEmpty(projectilePrefab.PoolKey) && ObjectPoolManager.Instance != null)
             {
                 bullet = ObjectPoolManager.Instance.SpawnFromPool(projectilePrefab.PoolKey, spawnPos, Quaternion.identity);
             }
-            else if (projectilePrefab != null)
+
+            // Fallback if pool lookup fails, key does not exist, or manager is null
+            if (bullet == null && projectilePrefab != null)
             {
                 bullet = Instantiate(projectilePrefab.gameObject, spawnPos, Quaternion.identity);
             }
-            else
+
+            // Final fallback: dynamic placeholder bullet if no prefab is assigned at all
+            if (bullet == null)
             {
-                // Dynamic bullet fallback if no prefab is assigned
                 bullet = new GameObject("DynamicBullet");
                 bullet.transform.position = spawnPos;
                 bullet.transform.localScale = new Vector3(0.2f, 0.2f, 1f);
@@ -224,7 +227,10 @@ namespace TheLastEmpire
             }
 
             Projectile proj = bullet.GetComponent<Projectile>();
-            proj.Setup(_aimDirection, gameObject);
+            if (proj != null)
+            {
+                proj.Setup(_aimDirection, gameObject);
+            }
         }
 
         private void MeleeAttack()
