@@ -18,9 +18,9 @@ namespace TheLastEmpire
         [Tooltip("How far the player is spawned from the center on entry in the new stage.")]
         [SerializeField] private float entryOffset = 1.5f;
 
-        [Header("Random Spawn Settings")]
-        [SerializeField] private float minSpawnOffset = -50f;
-        [SerializeField] private float maxSpawnOffset = 50f;
+        [Header("Random Portal Layout Settings")]
+        [SerializeField] private float minSpawnOffset = -5.0f;
+        [SerializeField] private float maxSpawnOffset = 5.0f;
 
         private bool _playerInRange = false;
 
@@ -118,6 +118,32 @@ namespace TheLastEmpire
                 col.enabled = pathExists;
             }
 
+            // 3. Randomize this portal's own position along the secondary axis based on current stage seed
+            if (pathExists)
+            {
+                StageData currentStage = WorldMapManager.Instance.MapGenerator.GetStage(x, y);
+                if (currentStage != null)
+                {
+                    Random.State oldState = Random.state;
+                    Random.InitState(currentStage.stageSeed + (int)direction * 999);
+
+                    float randomVal = Random.Range(minSpawnOffset, maxSpawnOffset);
+                    Vector3 localPos = transform.localPosition;
+
+                    if (direction == TransitionDirection.North || direction == TransitionDirection.South)
+                    {
+                        localPos.x = randomVal;
+                    }
+                    else
+                    {
+                        localPos.y = randomVal;
+                    }
+
+                    transform.localPosition = localPos;
+                    Random.state = oldState;
+                }
+            }
+
             Debug.Log($"[TransitionPortal] {direction} portal visibility set to: {pathExists} (Stage: {x}, {y})");
         }
 
@@ -150,9 +176,18 @@ namespace TheLastEmpire
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                        // Teleport Y to bottom edge, randomize X
+                        // Teleport Y to bottom edge
                         pos.y = camPos.y - calculatedYLimit + entryOffset;
-                        pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
+                        
+                        // Align X with the target South portal's randomized position in the new stage
+                        StageData nextStage = WorldMapManager.Instance.MapGenerator.GetStage(playerX, playerY + 1);
+                        if (nextStage != null)
+                        {
+                            Random.State oldState = Random.state;
+                            Random.InitState(nextStage.stageSeed + (int)TransitionDirection.South * 999);
+                            pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
+                            Random.state = oldState;
+                        }
                         transitioned = true;
                     }
                     break;
@@ -161,9 +196,18 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                        // Teleport Y to top edge, randomize X
+                        // Teleport Y to top edge
                         pos.y = camPos.y + calculatedYLimit - entryOffset;
-                        pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
+
+                        // Align X with the target North portal's randomized position in the new stage
+                        StageData nextStage = WorldMapManager.Instance.MapGenerator.GetStage(playerX, playerY - 1);
+                        if (nextStage != null)
+                        {
+                            Random.State oldState = Random.state;
+                            Random.InitState(nextStage.stageSeed + (int)TransitionDirection.North * 999);
+                            pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
+                            Random.state = oldState;
+                        }
                         transitioned = true;
                     }
                     break;
@@ -172,9 +216,18 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                        // Teleport X to left edge, randomize Y
+                        // Teleport X to left edge
                         pos.x = camPos.x - calculatedXLimit + entryOffset;
-                        pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
+
+                        // Align Y with the target West portal's randomized position in the new stage
+                        StageData nextStage = WorldMapManager.Instance.MapGenerator.GetStage(playerX + 1, playerY);
+                        if (nextStage != null)
+                        {
+                            Random.State oldState = Random.state;
+                            Random.InitState(nextStage.stageSeed + (int)TransitionDirection.West * 999);
+                            pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
+                            Random.state = oldState;
+                        }
                         transitioned = true;
                     }
                     break;
@@ -183,9 +236,18 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                        // Teleport X to right edge, randomize Y
+                        // Teleport X to right edge
                         pos.x = camPos.x + calculatedXLimit - entryOffset;
-                        pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
+
+                        // Align Y with the target East portal's randomized position in the new stage
+                        StageData nextStage = WorldMapManager.Instance.MapGenerator.GetStage(playerX - 1, playerY);
+                        if (nextStage != null)
+                        {
+                            Random.State oldState = Random.state;
+                            Random.InitState(nextStage.stageSeed + (int)TransitionDirection.East * 999);
+                            pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
+                            Random.state = oldState;
+                        }
                         transitioned = true;
                     }
                     break;
@@ -204,7 +266,7 @@ namespace TheLastEmpire
                 }
                 
                 Physics2D.SyncTransforms(); // Force immediate transform update to colliders
-                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported to edge and randomized secondary axis: {pos}");
+                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported player to randomized opposite portal: {pos}");
             }
         }
     }
