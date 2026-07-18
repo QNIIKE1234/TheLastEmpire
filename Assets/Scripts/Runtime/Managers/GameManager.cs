@@ -7,9 +7,16 @@ namespace TheLastEmpire
     {
         public static GameManager Instance { get; private set; }
 
-        [Header("Enemy Spawning")]
-        [SerializeField] private GameObject zombiePrefab;
-        [SerializeField] private string zombiePoolKey = "Zombie001";
+        [System.Serializable]
+        public struct BiomeSpawnConfig
+        {
+            public BiomeType biome;
+            public GameObject enemyPrefab;
+            public string poolKey;
+        }
+
+        [Header("Procedural Spawning Configurations")]
+        [SerializeField] private List<BiomeSpawnConfig> spawnConfigs;
 
         private List<GameObject> _activeEnemies = new List<GameObject>();
 
@@ -68,12 +75,15 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
-            // 1. Clear any active enemies from the previous stage
+            // 1. Clear any active enemies from the previous stage dynamically
             foreach (GameObject enemy in _activeEnemies)
             {
                 if (enemy == null) continue;
 
-                if (!string.IsNullOrEmpty(zombiePoolKey) && ObjectPoolManager.Instance != null)
+                EnemyAI ai = enemy.GetComponent<EnemyAI>();
+                string activePoolKey = ai != null ? ai.PoolKey : "";
+
+                if (!string.IsNullOrEmpty(activePoolKey) && ObjectPoolManager.Instance != null)
                 {
                     // Reset its health before returning it to the pool
                     Health enemyHealth = enemy.GetComponent<Health>();
@@ -82,7 +92,7 @@ namespace TheLastEmpire
                         enemyHealth.ResetHealth();
                     }
 
-                    ObjectPoolManager.Instance.ReturnToPool(zombiePoolKey, enemy);
+                    ObjectPoolManager.Instance.ReturnToPool(activePoolKey, enemy);
                 }
                 else
                 {
@@ -95,11 +105,28 @@ namespace TheLastEmpire
             // This guarantees the exact same items/enemies spawn if player returns to this stage coordinates
             Random.InitState(stage.stageSeed);
 
-            // 3. Spawning local stage enemies (0-3 Zombies) if not on deep water
-            if (stage.biome != BiomeType.Waterways && zombiePrefab != null)
+            // 3. Find the spawn configuration for the current biome
+            BiomeSpawnConfig currentConfig = new BiomeSpawnConfig();
+            bool configFound = false;
+
+            if (spawnConfigs != null)
+            {
+                foreach (BiomeSpawnConfig config in spawnConfigs)
+                {
+                    if (config.biome == stage.biome)
+                    {
+                        currentConfig = config;
+                        configFound = true;
+                        break;
+                    }
+                }
+            }
+
+            // 4. Spawning local stage enemies (0-3 Enemies) based on configuration
+            if (configFound && currentConfig.enemyPrefab != null)
             {
                 int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
-                Debug.Log($"[GameManager] Spawning {spawnCount} Zombies on {stage.biome} stage using seed {stage.stageSeed}.");
+                Debug.Log($"[GameManager] Spawning {spawnCount} enemies of type '{currentConfig.enemyPrefab.name}' on {stage.biome} stage using seed {stage.stageSeed}.");
 
                 for (int i = 0; i < spawnCount; i++)
                 {
@@ -117,13 +144,13 @@ namespace TheLastEmpire
                     Vector3 spawnPos = new Vector3(spawnX, spawnY, 0f);
 
                     GameObject enemy;
-                    if (!string.IsNullOrEmpty(zombiePoolKey) && ObjectPoolManager.Instance != null)
+                    if (!string.IsNullOrEmpty(currentConfig.poolKey) && ObjectPoolManager.Instance != null)
                     {
-                        enemy = ObjectPoolManager.Instance.SpawnFromPool(zombiePoolKey, spawnPos, Quaternion.identity);
+                        enemy = ObjectPoolManager.Instance.SpawnFromPool(currentConfig.poolKey, spawnPos, Quaternion.identity);
                     }
                     else
                     {
-                        enemy = Instantiate(zombiePrefab, spawnPos, Quaternion.identity);
+                        enemy = Instantiate(currentConfig.enemyPrefab, spawnPos, Quaternion.identity);
                     }
 
                     if (enemy != null)

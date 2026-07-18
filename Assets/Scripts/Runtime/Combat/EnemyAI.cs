@@ -14,6 +14,8 @@ namespace TheLastEmpire
         private Transform _playerTransform;
         private Health _health;
 
+        public string PoolKey => poolKey;
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody2D>();
