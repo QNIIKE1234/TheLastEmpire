@@ -66,6 +66,12 @@ namespace TheLastEmpire
             {
                 Debug.LogWarning("GameManager: WorldMapManager.Instance is null at startup!");
             }
+
+            // Register to listen to the Day/Night manager to reset cleared rooms at new day phase
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.OnTimePhaseChanged += OnTimePhaseChanged;
+            }
         }
 
         private void OnDestroy()
@@ -75,6 +81,15 @@ namespace TheLastEmpire
             {
                 WorldMapManager.Instance.OnStageChanged -= OnPlayerEnteredNewStage;
             }
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.OnTimePhaseChanged -= OnTimePhaseChanged;
+            }
+        }
+
+        private void Update()
+        {
+            CheckStageClearedStatus();
         }
 
         // Called automatically whenever the player transitions coordinates
@@ -120,11 +135,18 @@ namespace TheLastEmpire
             }
             _activeEnemies.Clear();
 
-            // 2. Reset Unity's random state using the deterministic stageSeed
+            // 2. GDD: If this biome/stage has already been cleared today, DO NOT spawn enemies!
+            if (stage.isCleared)
+            {
+                Debug.Log($"[GameManager] Stage ({stage.x}, {stage.y}) is already cleared. Skipping enemy spawn.");
+                return;
+            }
+
+            // 3. Reset Unity's random state using the deterministic stageSeed
             // This guarantees the exact same items/enemies spawn if player returns to this stage coordinates
             Random.InitState(stage.stageSeed);
 
-            // 3. Map stage BiomeType to BiomeGroup Flags
+            // 4. Map stage BiomeType to BiomeGroup Flags
             BiomeGroup stageGroup = stage.biome switch
             {
                 BiomeType.UrbanRuins => BiomeGroup.UrbanRuins,
@@ -137,7 +159,7 @@ namespace TheLastEmpire
                 _ => BiomeGroup.None
             };
 
-            // 4. Find all matching configurations (including 'All' flag or direct match)
+            // 5. Find all matching configurations (including 'All' flag or direct match)
             List<BiomeSpawnConfig> configsToSpawn = new List<BiomeSpawnConfig>();
 
             if (spawnConfigs != null)
@@ -163,10 +185,10 @@ namespace TheLastEmpire
                 configsToSpawn.Add(fallbackConfig);
             }
 
-            // 5. Day/Night phase
+            // 6. Day/Night phase
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
 
-            // 6. Spawn enemies for each matching configuration
+            // 7. Spawn enemies for each matching configuration
             foreach (BiomeSpawnConfig currentConfig in configsToSpawn)
             {
                 // Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)
@@ -212,6 +234,58 @@ namespace TheLastEmpire
                     if (enemy != null)
                     {
                         _activeEnemies.Add(enemy);
+                    }
+                }
+            }
+        }
+
+        private void CheckStageClearedStatus()
+        {
+            // If we have active enemies spawned but no player coordinates, skip
+            if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
+            if (_activeEnemies.Count == 0) return;
+
+            // Check if current stage is already cleared to avoid redundant calls
+            int x = WorldMapManager.Instance.CurrentPlayerX;
+            int y = WorldMapManager.Instance.CurrentPlayerY;
+            StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(x, y);
+            if (stage == null || stage.isCleared) return;
+
+            // Check if all spawned enemies in the current room are defeated
+            bool allEnemiesDead = true;
+            foreach (GameObject enemy in _activeEnemies)
+            {
+                if (enemy != null)
+                {
+                    Health enemyHealth = enemy.GetComponent<Health>();
+                    if (enemyHealth != null && !enemyHealth.IsDead)
+                    {
+                        allEnemiesDead = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allEnemiesDead)
+            {
+                stage.isCleared = true;
+                Debug.Log($"[GameManager] Stage ({x}, {y}) has been successfully CLEARED! Enemies will not respawn until a new Day begins.");
+            }
+        }
+
+        private void OnTimePhaseChanged(bool isNight)
+        {
+            // Transitioning from Night to Day (isNight is false) indicates a "new Day starts"!
+            if (!isNight && WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+            {
+                Debug.Log("[GameManager] A new Day has started! Resetting all cleared stages so enemies can spawn again.");
+                
+                // Reset isCleared status of all map stages to allow respawning
+                foreach (StageData stage in WorldMapManager.Instance.MapGenerator.gridData)
+                {
+                    if (stage != null)
+                    {
+                        stage.isCleared = false;
                     }
                 }
             }
