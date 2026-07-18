@@ -366,6 +366,26 @@ namespace TheLastEmpire
             float relX = pos.x - camPos.x;
             float relY = pos.y - camPos.y;
 
+            // If player is NOT dashing, prevent them from going past the boundaries (clamp them slightly inside)
+            if (!_isDashing)
+            {
+                float clampMargin = 0.25f;
+                float maxX = calculatedXLimit - clampMargin;
+                float maxY = calculatedYLimit - clampMargin;
+
+                if (relX > maxX) pos.x = camPos.x + maxX;
+                else if (relX < -maxX) pos.x = camPos.x - maxX;
+
+                if (relY > maxY) pos.y = camPos.y + maxY;
+                else if (relY < -maxY) pos.y = camPos.y - maxY;
+
+                transform.position = pos;
+                return; // Do not check transitions since player is not dashing!
+            }
+
+            // If player IS dashing, perform standard boundary transition checks
+            bool transitioned = false;
+
             // East boundary (Exit Right)
             if (relX > calculatedXLimit)
             {

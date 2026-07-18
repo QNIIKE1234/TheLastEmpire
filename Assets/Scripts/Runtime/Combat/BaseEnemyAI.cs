@@ -34,6 +34,13 @@ namespace TheLastEmpire
         public string PoolKey => poolKey;
         public AIState CurrentState => currentState;
 
+        protected float transitionDelayTimer = 2.0f;
+
+        protected virtual void OnEnable()
+        {
+            transitionDelayTimer = 2.0f; // Lock actions for 2s on spawn/activation
+        }
+
         protected virtual void Start()
         {
             rb = GetComponent<Rigidbody2D>();
@@ -54,6 +61,14 @@ namespace TheLastEmpire
         protected virtual void FixedUpdate()
         {
             if (health != null && health.IsDead) return;
+
+            if (transitionDelayTimer > 0f)
+            {
+                transitionDelayTimer -= Time.fixedDeltaTime;
+                rb.linearVelocity = Vector2.zero;
+                currentState = AIState.Idle;
+                return;
+            }
 
             UpdateAIBehavior();
         }
