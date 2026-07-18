@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TheLastEmpire
@@ -5,6 +6,12 @@ namespace TheLastEmpire
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
+
+        [Header("Enemy Spawning")]
+        [SerializeField] private GameObject zombiePrefab;
+        [SerializeField] private string zombiePoolKey = "Zombie001";
+
+        private List<GameObject> _activeEnemies = new List<GameObject>();
 
         private void Awake()
         {
@@ -61,34 +68,69 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
-            // Reset Unity's random state using the deterministic stageSeed
+            // 1. Clear any active enemies from the previous stage
+            foreach (GameObject enemy in _activeEnemies)
+            {
+                if (enemy == null) continue;
+
+                if (!string.IsNullOrEmpty(zombiePoolKey) && ObjectPoolManager.Instance != null)
+                {
+                    // Reset its health before returning it to the pool
+                    Health enemyHealth = enemy.GetComponent<Health>();
+                    if (enemyHealth != null)
+                    {
+                        enemyHealth.ResetHealth();
+                    }
+
+                    ObjectPoolManager.Instance.ReturnToPool(zombiePoolKey, enemy);
+                }
+                else
+                {
+                    Destroy(enemy);
+                }
+            }
+            _activeEnemies.Clear();
+
+            // 2. Reset Unity's random state using the deterministic stageSeed
             // This guarantees the exact same items/enemies spawn if player returns to this stage coordinates
             Random.InitState(stage.stageSeed);
 
-            // Placeholder logs representing procedural spawning
-            switch (stage.biome)
+            // 3. Spawning local stage enemies (0-3 Zombies) if not on deep water
+            if (stage.biome != BiomeType.Waterways && zombiePrefab != null)
             {
-                case BiomeType.UrbanRuins:
-                    Debug.Log($"[GameManager] Spawning Urban Ruins zombies and debris at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.Highways:
-                    Debug.Log($"[GameManager] Spawning Highway robot runners and road obstacles at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.OvergrownForests:
-                    Debug.Log($"[GameManager] Spawning Overgrown Forest alien beasts and trees at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.SuburbanVillages:
-                    Debug.Log($"[GameManager] Spawning Suburban Village safe shelters or minor threats at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.Highlands:
-                    Debug.Log($"[GameManager] Spawning Highland rocky terrains and high-tier loot at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.Waterways:
-                    Debug.Log($"[GameManager] Spawning Waterways bridges or aquatic obstacles at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
-                case BiomeType.SpecialEvent:
-                    Debug.Log($"[GameManager] Spawning SPECIAL EVENT boss or rare supply drop at ({stage.x}, {stage.y}) using seed {stage.stageSeed}.");
-                    break;
+                int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
+                Debug.Log($"[GameManager] Spawning {spawnCount} Zombies on {stage.biome} stage using seed {stage.stageSeed}.");
+
+                for (int i = 0; i < spawnCount; i++)
+                {
+                    // Select a random position within viewport limits (padding borders)
+                    float spawnX = Random.Range(-6f, 6f);
+                    float spawnY = Random.Range(-3.5f, 3.5f);
+
+                    // Prevent spawning directly on top of the player at (0, 0)
+                    if (Mathf.Abs(spawnX) < 1.5f && Mathf.Abs(spawnY) < 1.5f)
+                    {
+                        spawnX += Mathf.Sign(spawnX) * 2f;
+                        spawnY += Mathf.Sign(spawnY) * 2f;
+                    }
+
+                    Vector3 spawnPos = new Vector3(spawnX, spawnY, 0f);
+
+                    GameObject enemy;
+                    if (!string.IsNullOrEmpty(zombiePoolKey) && ObjectPoolManager.Instance != null)
+                    {
+                        enemy = ObjectPoolManager.Instance.SpawnFromPool(zombiePoolKey, spawnPos, Quaternion.identity);
+                    }
+                    else
+                    {
+                        enemy = Instantiate(zombiePrefab, spawnPos, Quaternion.identity);
+                    }
+
+                    if (enemy != null)
+                    {
+                        _activeEnemies.Add(enemy);
+                    }
+                }
             }
         }
 
