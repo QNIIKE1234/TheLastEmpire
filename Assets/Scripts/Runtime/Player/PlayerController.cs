@@ -222,6 +222,82 @@ namespace TheLastEmpire
 
         private void TryInteract()
         {
+            if (WorldMapManager.Instance == null) return;
+
+            // Check if player is near any screen edge to transition stage coordinates
+            Vector3 pos = transform.position;
+            int playerX = WorldMapManager.Instance.CurrentPlayerX;
+            int playerY = WorldMapManager.Instance.CurrentPlayerY;
+
+            float calculatedXLimit = xLimit;
+            float calculatedYLimit = yLimit;
+            Vector3 camPos = Vector3.zero;
+
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                camPos = cam.transform.position;
+                if (cam.orthographic)
+                {
+                    calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
+                    calculatedXLimit = Mathf.Max(4f, calculatedYLimit * cam.aspect);
+                }
+            }
+
+            float relX = pos.x - camPos.x;
+            float relY = pos.y - camPos.y;
+            float interactThreshold = 0.6f; // check if close enough to boundary
+            bool transitioned = false;
+
+            // East (Exit Right)
+            if (relX > calculatedXLimit - interactThreshold)
+            {
+                if (playerX < WorldMapGenerator.GridSize - 1)
+                {
+                    WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
+                    pos.x = camPos.x - calculatedXLimit + entryOffset;
+                    transitioned = true;
+                }
+            }
+            // West (Exit Left)
+            else if (relX < -calculatedXLimit + interactThreshold)
+            {
+                if (playerX > 0)
+                {
+                    WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
+                    pos.x = camPos.x + calculatedXLimit - entryOffset;
+                    transitioned = true;
+                }
+            }
+            // North (Exit Up)
+            else if (relY > calculatedYLimit - interactThreshold)
+            {
+                if (playerY < WorldMapGenerator.GridSize - 1)
+                {
+                    WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
+                    pos.y = camPos.y - calculatedYLimit + entryOffset;
+                    transitioned = true;
+                }
+            }
+            // South (Exit Down)
+            else if (relY < -calculatedYLimit + interactThreshold)
+            {
+                if (playerY > 0)
+                {
+                    WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
+                    pos.y = camPos.y + calculatedYLimit - entryOffset;
+                    transitioned = true;
+                }
+            }
+
+            if (transitioned)
+            {
+                transform.position = pos;
+                Debug.Log($"[PlayerController] Transitioned stage via E key at boundary!");
+                return; // successfully transitioned!
+            }
+
+            // Standard item collect fallback if not transitioning
             CollectibleItem[] collectibles = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
             CollectibleItem closestItem = null;
             float closestDist = float.MaxValue;
@@ -355,9 +431,6 @@ namespace TheLastEmpire
             if (WorldMapManager.Instance == null) return;
 
             Vector3 pos = transform.position;
-            int playerX = WorldMapManager.Instance.CurrentPlayerX;
-            int playerY = WorldMapManager.Instance.CurrentPlayerY;
-
             float calculatedXLimit = xLimit;
             float calculatedYLimit = yLimit;
             Vector3 camPos = Vector3.zero;
@@ -373,96 +446,21 @@ namespace TheLastEmpire
                 }
             }
 
-            bool transitioned = false;
-
             float relX = pos.x - camPos.x;
             float relY = pos.y - camPos.y;
 
-            // If player is NOT dashing, prevent them from going past the boundaries (clamp them slightly inside)
-            if (!_isDashing)
-            {
-                float clampMargin = 0.25f;
-                float maxX = calculatedXLimit - clampMargin;
-                float maxY = calculatedYLimit - clampMargin;
+            // Constantly clamp player position inside screen limits
+            float clampMargin = 0.25f;
+            float maxX = calculatedXLimit - clampMargin;
+            float maxY = calculatedYLimit - clampMargin;
 
-                if (relX > maxX) pos.x = camPos.x + maxX;
-                else if (relX < -maxX) pos.x = camPos.x - maxX;
+            if (relX > maxX) pos.x = camPos.x + maxX;
+            else if (relX < -maxX) pos.x = camPos.x - maxX;
 
-                if (relY > maxY) pos.y = camPos.y + maxY;
-                else if (relY < -maxY) pos.y = camPos.y - maxY;
+            if (relY > maxY) pos.y = camPos.y + maxY;
+            else if (relY < -maxY) pos.y = camPos.y - maxY;
 
-                transform.position = pos;
-                return; // Do not check transitions since player is not dashing!
-            }
-
-            // If player IS dashing, perform standard boundary transition checks
-
-            // East boundary (Exit Right)
-            if (relX > calculatedXLimit)
-            {
-                if (playerX < WorldMapGenerator.GridSize - 1)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                    pos.x = camPos.x - calculatedXLimit + entryOffset;
-                    transitioned = true;
-                }
-                else
-                {
-                    Debug.LogWarning("[PlayerController] Reached East edge of the World Map (Grid X = 127). Cannot transition East.");
-                    pos.x = camPos.x + calculatedXLimit;
-                }
-            }
-            // West boundary (Exit Left)
-            else if (relX < -calculatedXLimit)
-            {
-                if (playerX > 0)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                    pos.x = camPos.x + calculatedXLimit - entryOffset;
-                    transitioned = true;
-                }
-                else
-                {
-                    Debug.LogWarning("[PlayerController] Reached West edge of the World Map (Grid X = 0). Cannot transition West.");
-                    pos.x = camPos.x - calculatedXLimit;
-                }
-            }
-
-            // North boundary (Exit Up)
-            if (relY > calculatedYLimit)
-            {
-                if (playerY < WorldMapGenerator.GridSize - 1)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                    pos.y = camPos.y - calculatedYLimit + entryOffset;
-                    transitioned = true;
-                }
-                else
-                {
-                    Debug.LogWarning("[PlayerController] Reached North edge of the World Map (Grid Y = 127). Cannot transition North.");
-                    pos.y = camPos.y + calculatedYLimit;
-                }
-            }
-            // South boundary (Exit Down)
-            else if (relY < -calculatedYLimit)
-            {
-                if (playerY > 0)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                    pos.y = camPos.y + calculatedYLimit - entryOffset;
-                    transitioned = true;
-                }
-                else
-                {
-                    Debug.LogWarning("[PlayerController] Reached South edge of the World Map (Grid Y = 0). Cannot transition South.");
-                    pos.y = camPos.y - calculatedYLimit;
-                }
-            }
-
-            if (transitioned)
-            {
-                transform.position = pos;
-            }
+            transform.position = pos;
         }
 
         private void OnDrawGizmosSelected()
