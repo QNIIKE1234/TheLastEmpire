@@ -255,7 +255,7 @@ namespace TheLastEmpire
             bool allEnemiesDead = true;
             foreach (GameObject enemy in _activeEnemies)
             {
-                if (enemy != null)
+                if (enemy != null && enemy.activeSelf)
                 {
                     Health enemyHealth = enemy.GetComponent<Health>();
                     if (enemyHealth != null && !enemyHealth.IsDead)
