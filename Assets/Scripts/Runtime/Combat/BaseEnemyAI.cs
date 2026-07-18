@@ -23,6 +23,13 @@ namespace TheLastEmpire
         [SerializeField] protected float wanderTime = 2f;
         [SerializeField] protected float idleTime = 1.5f;
 
+        [Header("Stagger Settings")]
+        [SerializeField] protected float staggerDuration = 0.3f;
+        protected float staggerTimer = 0f;
+        protected bool isStaggered = false;
+
+        public bool IsStaggered => isStaggered;
+
         protected Rigidbody2D rb;
         protected Transform playerTransform;
         protected Health health;
@@ -53,6 +60,7 @@ namespace TheLastEmpire
                 health = gameObject.AddComponent<Health>();
             }
             health.onDeath.AddListener(HandleDeath);
+            health.onDamageTaken.AddListener(OnDamageTaken);
 
             FindPlayer();
             ChooseNextWanderState();
@@ -61,6 +69,18 @@ namespace TheLastEmpire
         protected virtual void FixedUpdate()
         {
             if (health != null && health.IsDead) return;
+
+            if (isStaggered)
+            {
+                staggerTimer -= Time.fixedDeltaTime;
+                rb.linearVelocity = Vector2.zero;
+                if (staggerTimer <= 0f)
+                {
+                    isStaggered = false;
+                    currentState = AIState.Chase;
+                }
+                return;
+            }
 
             if (transitionDelayTimer > 0f)
             {
@@ -166,7 +186,18 @@ namespace TheLastEmpire
             if (health != null)
             {
                 health.onDeath.RemoveListener(HandleDeath);
+                health.onDamageTaken.RemoveListener(OnDamageTaken);
             }
+        }
+
+        protected virtual void OnDamageTaken(float damageAmount)
+        {
+            if (health != null && health.IsDead) return;
+
+            isStaggered = true;
+            staggerTimer = staggerDuration;
+            currentState = AIState.Stagger;
+            rb.linearVelocity = Vector2.zero;
         }
     }
 }

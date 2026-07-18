@@ -223,7 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e9f931a02e94884f8ef7ca940f652c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ZombieAI
-  moveSpeed: 3
+  moveSpeed: 1.5
   detectionRange: 5
   poolKey: ZombieBoomer
   wanderTime: 2
@@ -236,3 +236,7 @@ MonoBehaviour:
   explosionDamage: 45
   fuseDuration: 0.8
   buffRadius: 6
+  childZombiePrefab: {fileID: 0}
+  spawnCooldown: 10
+  maxChildSpawns: 3
+  childPoolKey: Zombie001
