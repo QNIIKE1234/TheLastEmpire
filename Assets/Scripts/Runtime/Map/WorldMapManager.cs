@@ -53,7 +53,7 @@ namespace TheLastEmpire
             mapGenerator.seed = seed;
             mapGenerator.GenerateMap();
 
-            // Pick a random walkable starting location (not on Waterways or SpecialEvent) based on the seed
+            // Pick a random walkable starting location (not on Waterways or SpecialEvent, and not isolated in water) based on the seed
             System.Random rand = new System.Random(seed);
             int attempts = 0;
             do
@@ -65,7 +65,24 @@ namespace TheLastEmpire
                 StageData stage = mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY);
                 if (stage != null && stage.biome != BiomeType.Waterways && stage.biome != BiomeType.SpecialEvent)
                 {
-                    break;
+                    // Check neighbors to make sure we are not on a tiny island/flooded city surrounded by water
+                    int waterNeighbors = 0;
+                    int[] dx = { 0, 0, 1, -1 };
+                    int[] dy = { 1, -1, 0, 0 };
+                    for (int i = 0; i < 4; i++)
+                    {
+                        StageData neighbor = mapGenerator.GetStage(CurrentPlayerX + dx[i], CurrentPlayerY + dy[i]);
+                        if (neighbor != null && neighbor.biome == BiomeType.Waterways)
+                        {
+                            waterNeighbors++;
+                        }
+                    }
+
+                    // Only spawn if at most 1 neighbor is water (ensures it is connected to main land mass)
+                    if (waterNeighbors <= 1)
+                    {
+                        break;
+                    }
                 }
             } 
             while (attempts < 100);
