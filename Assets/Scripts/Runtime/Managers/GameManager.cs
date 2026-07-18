@@ -18,6 +18,10 @@ namespace TheLastEmpire
         [Header("Procedural Spawning Configurations")]
         [SerializeField] private List<BiomeSpawnConfig> spawnConfigs;
 
+        [Header("Default Fallback Spawner (Spawns on unconfigured biomes)")]
+        [SerializeField] private GameObject defaultEnemyPrefab;
+        [SerializeField] private string defaultPoolKey;
+
         private List<GameObject> _activeEnemies = new List<GameObject>();
 
         private void Awake()
@@ -120,6 +124,14 @@ namespace TheLastEmpire
                         break;
                     }
                 }
+            }
+
+            // Fall back to default spawner if no biome configuration exists
+            if (!configFound && defaultEnemyPrefab != null)
+            {
+                currentConfig.enemyPrefab = defaultEnemyPrefab;
+                currentConfig.poolKey = defaultPoolKey;
+                configFound = true;
             }
 
             // 4. Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)

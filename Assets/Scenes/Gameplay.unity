@@ -1891,12 +1891,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ObjectPoolManager
   pools:
-  - key: Zombie001
+  - key: ZombieNormal
     prefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
-    size: 5
-  - key: Zombie002
+    size: 10
+  - key: ZombieDog
     prefab: {fileID: 5020151313939889713, guid: 320257d2bc67378498b8d32e8acb2c99, type: 3}
-    size: 5
+    size: 10
+  - key: ZombieRunner
+    prefab: {fileID: 5020151313939889713, guid: 8e9c44a49cf812a4b8262c91f3dffb0a, type: 3}
+    size: 10
+  - key: ZombieBoomer
+    prefab: {fileID: 558046142472870746, guid: e9a39ff27e36a7646a81e435a4c2ff9f, type: 3}
+    size: 10
+  - key: ZombieLeader
+    prefab: {fileID: 5020151313939889713, guid: 6d07d001757ed0f4f804509afba6dee6, type: 3}
+    size: 3
   - key: Bullet001
     prefab: {fileID: 558046142472870746, guid: d2987ed20067a51498c56e074c78952c, type: 3}
     size: 30
