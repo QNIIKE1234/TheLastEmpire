@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 6204268814981396000}
   - component: {fileID: 4838994549734026228}
   m_Layer: 5
-  m_Name: BulletPrefabs
+  m_Name: PostalBulletPrefabs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8be393a8a3685048b204518ee85a721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Projectile
-  speed: 20
+  speed: 25
   damage: 20
   lifetime: 1
   poolKey: 'Bullet001 '

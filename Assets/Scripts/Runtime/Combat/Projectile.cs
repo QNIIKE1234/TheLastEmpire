@@ -8,6 +8,7 @@ namespace TheLastEmpire
         [Header("Settings")]
         [SerializeField] private float speed = 12f;
         [SerializeField] private float damage = 20;
+        [SerializeField] private float decreseMulti = 0.1f;
         [SerializeField] private float lifetime = 3f;
         [SerializeField] private string poolKey = "";
 
@@ -42,13 +43,15 @@ namespace TheLastEmpire
         private void Update()
         {
             _lifeTimer -= Time.deltaTime;
+            //damage -= decreseMulti;
+            if (damage<=0)
+            {
+                damage = 1f;
+            }
+            //UnityEngine.Debug.Log("DMG : "+damage);
             if (_lifeTimer <= 0f)
             {
                 DeactivateProjectile();
-
-                damage -= 0.01f*Time.deltaTime;
-
-                UnityEngine.Debug.Log("DMG : "+damage);
             }
         }
 
