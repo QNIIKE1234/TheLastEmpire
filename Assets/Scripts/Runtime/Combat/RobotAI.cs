@@ -364,7 +364,7 @@ namespace TheLastEmpire
 
         // --- IDamageable Implementation for Frontal Shield ---
 
-        public void TakeDamage(int damageAmount)
+        public void TakeDamage(float damageAmount)
         {
             if (IsDead) return;
 
