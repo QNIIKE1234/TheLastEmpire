@@ -440,13 +440,22 @@ namespace TheLastEmpire
             _playerCollider = GetComponent<Collider2D>();
             if (_playerCollider == null) return;
 
+            Camera cam = Camera.main;
             GameObject boundaryContainer = new GameObject("ScreenBoundaries");
-            // Set parent to camera target or keep in scene root at position (0,0)
-            boundaryContainer.transform.position = Vector3.zero;
+            
+            // Parent to camera to handle any camera position offset dynamically (e.g. Camera.y = 1f)
+            if (cam != null)
+            {
+                boundaryContainer.transform.parent = cam.transform;
+                boundaryContainer.transform.localPosition = new Vector3(0f, 0f, 10f); // Center at camera view
+            }
+            else
+            {
+                boundaryContainer.transform.position = Vector3.zero;
+            }
 
             float calculatedYLimit = yLimit;
             float calculatedXLimit = xLimit;
-            Camera cam = Camera.main;
             if (cam != null && cam.orthographic)
             {
                 calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
