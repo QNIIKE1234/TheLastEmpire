@@ -1,12 +1,12 @@
 using UnityEngine;
-
+using TMPro;
 namespace TheLastEmpire
 {
     public class LocalStageVisualizer : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private SpriteRenderer backgroundRenderer;
-        [SerializeField] private TextMesh infoText;
+        [SerializeField] private TMP_Text infoText;
 
         public SpriteRenderer BackgroundRenderer
         {
@@ -14,7 +14,7 @@ namespace TheLastEmpire
             set { backgroundRenderer = value; }
         }
 
-        public TextMesh InfoText
+        public TMP_Text InfoText
         {
             get { return infoText; }
             set { infoText = value; }
