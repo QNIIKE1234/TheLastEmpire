@@ -11,16 +11,11 @@ namespace TheLastEmpire
         {
             var newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-            GameObject visualizerObj = new GameObject("WorldMapVisualizer");
-            WorldMapVisualizer visualizer = visualizerObj.AddComponent<WorldMapVisualizer>();
-            
-            SpriteRenderer spriteRenderer = visualizerObj.GetComponent<SpriteRenderer>();
-            spriteRenderer.drawMode = SpriteDrawMode.Simple;
-
-            string directory = "Assets/Settings";
-            if (!System.IO.Directory.Exists(directory))
+            // 1. Create WorldMapGenerator Asset if it doesn't exist
+            string settingsDir = "Assets/Settings";
+            if (!System.IO.Directory.Exists(settingsDir))
             {
-                System.IO.Directory.CreateDirectory(directory);
+                System.IO.Directory.CreateDirectory(settingsDir);
             }
             
             string assetPath = "Assets/Settings/WorldMapGenerator_Default.asset";
@@ -33,9 +28,75 @@ namespace TheLastEmpire
                 Debug.Log("Created default WorldMapGenerator asset at: " + assetPath);
             }
 
-            visualizer.MapGenerator = generator;
-            visualizer.PixelsPerUnit = 10f;
+            // 2. Create WorldMapManager
+            GameObject managerObj = new GameObject("WorldMapManager");
+            WorldMapManager manager = managerObj.AddComponent<WorldMapManager>();
+            manager.MapGenerator = generator;
 
+            // 3. Create a dynamic 16x16 white sprite texture for placeholders
+            Texture2D whiteTexture = new Texture2D(16, 16);
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    whiteTexture.SetPixel(x, y, Color.white);
+                }
+            }
+            whiteTexture.Apply();
+
+            // Save the texture to an asset so we can reference it in Editor
+            string texturePath = "Assets/Settings/PlaceholderWhite.png";
+            byte[] bytes = whiteTexture.EncodeToPNG();
+            System.IO.File.WriteAllBytes(texturePath, bytes);
+            AssetDatabase.ImportAsset(texturePath);
+            Sprite placeholderSprite = AssetDatabase.LoadAssetAtPath<Sprite>(texturePath);
+
+            // 4. Create Background (LocalStageVisualizer)
+            GameObject bgObj = new GameObject("BackgroundVisualizer");
+            bgObj.transform.position = Vector3.zero;
+            bgObj.transform.localScale = new Vector3(20f, 12f, 1f); // Cover orthographic camera viewport
+            
+            SpriteRenderer bgRenderer = bgObj.AddComponent<SpriteRenderer>();
+            bgRenderer.sprite = placeholderSprite;
+            bgRenderer.color = Color.gray;
+            bgRenderer.sortingOrder = -10; // Draw in background
+
+            LocalStageVisualizer stageVisualizer = bgObj.AddComponent<LocalStageVisualizer>();
+            stageVisualizer.BackgroundRenderer = bgRenderer;
+
+            // 5. Create UI Text overlay
+            GameObject textObj = new GameObject("StageInfoText");
+            textObj.transform.position = new Vector3(-8.5f, 4.5f, 0f);
+            
+            TextMesh textMesh = textObj.AddComponent<TextMesh>();
+            textMesh.characterSize = 0.15f;
+            textMesh.fontSize = 42;
+            textMesh.color = Color.yellow;
+            textMesh.text = "Loading Stage...";
+            
+            stageVisualizer.InfoText = textMesh;
+
+            // 6. Create Player
+            GameObject playerObj = new GameObject("Player");
+            playerObj.transform.position = Vector3.zero;
+
+            SpriteRenderer playerRenderer = playerObj.AddComponent<SpriteRenderer>();
+            playerRenderer.sprite = placeholderSprite;
+            playerRenderer.color = Color.red; // Red square player
+            playerRenderer.sortingOrder = 5;  // Draw on top of background
+
+            // Add Collider & Rigidbody
+            BoxCollider2D playerCollider = playerObj.AddComponent<BoxCollider2D>();
+            playerCollider.size = Vector2.one;
+
+            Rigidbody2D playerRb = playerObj.GetComponent<Rigidbody2D>();
+            playerRb.bodyType = RigidbodyType2D.Dynamic;
+            playerRb.gravityScale = 0f;
+            playerRb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+            playerObj.AddComponent<PlayerController>();
+
+            // 7. Configure Camera
             Camera mainCamera = Camera.main;
             if (mainCamera != null)
             {
@@ -44,8 +105,7 @@ namespace TheLastEmpire
                 mainCamera.transform.position = new Vector3(0, 0, -10);
             }
 
-            EditorUtility.SetDirty(visualizerObj);
-
+            // Save Scene
             string sceneDir = "Assets/Scenes";
             if (!System.IO.Directory.Exists(sceneDir))
             {
@@ -56,7 +116,7 @@ namespace TheLastEmpire
             EditorSceneManager.SaveScene(newScene, scenePath);
             Debug.Log("Successfully created and saved MapTestScene at: " + scenePath);
 
-            Selection.activeGameObject = visualizerObj;
+            Selection.activeGameObject = playerObj;
             AssetDatabase.Refresh();
         }
     }

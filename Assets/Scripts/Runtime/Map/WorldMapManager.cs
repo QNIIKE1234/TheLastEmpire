@@ -12,6 +12,9 @@ namespace TheLastEmpire
         public int CurrentPlayerX { get; private set; }
         public int CurrentPlayerY { get; private set; }
 
+        public delegate void StageChangedHandler(int newX, int newY);
+        public event StageChangedHandler OnStageChanged;
+
         public WorldMapGenerator MapGenerator
         {
             get { return mapGenerator; }
@@ -28,6 +31,14 @@ namespace TheLastEmpire
             else
             {
                 Destroy(gameObject);
+            }
+        }
+
+        private void Start()
+        {
+            if (mapGenerator != null && (mapGenerator.gridData == null || mapGenerator.gridData.Length == 0))
+            {
+                StartNewGame(mapGenerator.seed);
             }
         }
 
@@ -52,6 +63,8 @@ namespace TheLastEmpire
             {
                 startingStage.isExplored = true;
             }
+
+            OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);
         }
 
         public void SaveGame()
@@ -126,6 +139,7 @@ namespace TheLastEmpire
             }
 
             Debug.Log("WorldMapManager: Game state successfully loaded and restored.");
+            OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);
             return true;
         }
 
@@ -145,6 +159,8 @@ namespace TheLastEmpire
                 {
                     newStage.isExplored = true;
                 }
+
+                OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);
             }
         }
     }
