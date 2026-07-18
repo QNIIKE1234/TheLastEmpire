@@ -119,6 +119,20 @@ namespace TheLastEmpire
 
             CheckBoundaries();
 
+            // Diagnostic: Print what the player is colliding with
+            if (_playerCollider != null)
+            {
+                Collider2D[] results = new Collider2D[10];
+                int contactCount = _playerCollider.GetContacts(results);
+                for (int i = 0; i < contactCount; i++)
+                {
+                    if (results[i] != null)
+                    {
+                        Debug.LogWarning($"[COLLISION] Player is colliding with object: '{results[i].gameObject.name}' at position: {results[i].transform.position} | Collider type: {results[i].GetType().Name}");
+                    }
+                }
+            }
+
             if (_isDashing)
             {
                 _dashTimer -= Time.deltaTime;
@@ -491,6 +505,11 @@ namespace TheLastEmpire
             _boundaryBottom = bottomObj.AddComponent<BoxCollider2D>();
             _boundaryBottom.size = new Vector2(calculatedXLimit * 2 + thickness * 2, thickness);
             _boundaryBottom.offset = new Vector2(0, -calculatedYLimit - thickness / 2);
+
+            // Log diagnostic configuration values
+            Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] Cam: {cam != null}, CamName: {(cam != null ? cam.gameObject.name : "null")}, orthographicSize: {(cam != null ? cam.orthographicSize : 0f)}, aspect: {(cam != null ? cam.aspect : 0f)}");
+            Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] calculatedYLimit: {calculatedYLimit}, calculatedXLimit: {calculatedXLimit}");
+            Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] Top boundary world position (approx): {topObj.transform.position + (Vector3)_boundaryTop.offset}");
         }
 
         private void IgnoreCollisionWithBoundaries(bool ignore)
