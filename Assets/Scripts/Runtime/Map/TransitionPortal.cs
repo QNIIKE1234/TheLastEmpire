@@ -128,6 +128,19 @@ namespace TheLastEmpire
             int playerX = WorldMapManager.Instance.CurrentPlayerX;
             int playerY = WorldMapManager.Instance.CurrentPlayerY;
             
+            Camera cam = Camera.main;
+            Vector3 camPos = cam != null ? cam.transform.position : Vector3.zero;
+            
+            // Get screen bounds
+            float calculatedYLimit = 5f;
+            float calculatedXLimit = 8.5f;
+
+            if (cam != null && cam.orthographic)
+            {
+                calculatedYLimit = cam.orthographicSize;
+                calculatedXLimit = calculatedYLimit * cam.aspect;
+            }
+
             Vector3 pos = player.transform.position;
             bool transitioned = false;
 
@@ -137,6 +150,9 @@ namespace TheLastEmpire
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
+                        // Teleport Y to bottom edge, randomize X
+                        pos.y = camPos.y - calculatedYLimit + entryOffset;
+                        pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
                         transitioned = true;
                     }
                     break;
@@ -145,6 +161,9 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
+                        // Teleport Y to top edge, randomize X
+                        pos.y = camPos.y + calculatedYLimit - entryOffset;
+                        pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
                         transitioned = true;
                     }
                     break;
@@ -153,6 +172,9 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
+                        // Teleport X to left edge, randomize Y
+                        pos.x = camPos.x - calculatedXLimit + entryOffset;
+                        pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
                         transitioned = true;
                     }
                     break;
@@ -161,6 +183,9 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
+                        // Teleport X to right edge, randomize Y
+                        pos.x = camPos.x + calculatedXLimit - entryOffset;
+                        pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
                         transitioned = true;
                     }
                     break;
@@ -168,10 +193,6 @@ namespace TheLastEmpire
 
             if (transitioned)
             {
-                // Randomize player coordinates on both X and Y axes between min/max spawn offsets (e.g. -50 to 50)
-                pos.x = Random.Range(minSpawnOffset, maxSpawnOffset);
-                pos.y = Random.Range(minSpawnOffset, maxSpawnOffset);
-
                 player.transform.position = pos;
 
                 // Sync Rigidbody2D position explicitly to prevent Unity's physics engine from overriding the teleportation
@@ -183,7 +204,7 @@ namespace TheLastEmpire
                 }
                 
                 Physics2D.SyncTransforms(); // Force immediate transform update to colliders
-                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Spawned player at random pos: {pos}");
+                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported to edge and randomized secondary axis: {pos}");
             }
         }
     }
