@@ -117,6 +117,8 @@ namespace TheLastEmpire
             if (_fireCooldownTimer > 0f) _fireCooldownTimer -= Time.deltaTime;
             if (_meleeCooldownTimer > 0f) _meleeCooldownTimer -= Time.deltaTime;
 
+            CheckBoundaries();
+
             if (_isDashing)
             {
                 _dashTimer -= Time.deltaTime;
@@ -129,7 +131,6 @@ namespace TheLastEmpire
 
             UpdateAimDirection();
             HandleDirectInput();
-            CheckBoundaries();
         }
 
         private void FixedUpdate()
