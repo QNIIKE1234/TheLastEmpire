@@ -194,6 +194,7 @@ namespace TheLastEmpire
                 {
                     stage.isExplored = false;
                     stage.isCleared = false;
+                    stage.remainingEnemyPrefabNames = null;
                 }
             }
         }
