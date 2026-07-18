@@ -166,6 +166,12 @@ namespace TheLastEmpire
             // Set current stage pointer
             _currentStage = stage;
 
+            // Generate stage-specific environment obstacles and props dynamically
+            if (EnvironmentManager.Instance != null)
+            {
+                EnvironmentManager.Instance.GenerateStageEnvironment(stage);
+            }
+
             // 3. GDD: If this biome/stage has already been cleared today, DO NOT spawn enemies!
             if (stage.isCleared)
             {
