@@ -14,12 +14,14 @@ namespace TheLastEmpire
 
         public event System.Action<int> OnMoneyChanged;
         public event System.Action<string> OnItemCollected;
+        public event System.Action OnInventoryChanged;
 
         public void AddMoney(int amount)
         {
             money += amount;
             Debug.Log($"[PlayerInventory] Earned ${amount}! Total Wallet: ${money}");
             OnMoneyChanged?.Invoke(money);
+            OnInventoryChanged?.Invoke();
         }
 
         public void AddItem(string itemName)
@@ -27,6 +29,7 @@ namespace TheLastEmpire
             items.Add(itemName);
             Debug.Log($"[PlayerInventory] Picked up item: {itemName}! Inventory size: {items.Count}");
             OnItemCollected?.Invoke(itemName);
+            OnInventoryChanged?.Invoke();
         }
 
         public bool RemoveItem(string itemName)
@@ -34,6 +37,7 @@ namespace TheLastEmpire
             if (items.Contains(itemName))
             {
                 items.Remove(itemName);
+                OnInventoryChanged?.Invoke();
                 return true;
             }
             return false;
@@ -43,6 +47,25 @@ namespace TheLastEmpire
         {
             items.Clear();
             money = 0;
+            OnInventoryChanged?.Invoke();
+        }
+
+        public Dictionary<string, int> GetItemQuantities()
+        {
+            Dictionary<string, int> quantities = new Dictionary<string, int>();
+            foreach (string item in items)
+            {
+                if (string.IsNullOrEmpty(item)) continue;
+                if (quantities.ContainsKey(item))
+                {
+                    quantities[item]++;
+                }
+                else
+                {
+                    quantities[item] = 1;
+                }
+            }
+            return quantities;
         }
     }
 }

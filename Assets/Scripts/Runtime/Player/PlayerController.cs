@@ -105,6 +105,30 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            // Allow opening/closing the inventory with I or Escape even when game timescale is paused
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.iKey.wasPressedThisFrame)
+                {
+                    ToggleInventoryMenu();
+                    return;
+                }
+                if (Keyboard.current.escapeKey.wasPressedThisFrame && InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
+                {
+                    ToggleInventoryMenu();
+                    return;
+                }
+            }
+
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
+            {
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector2.zero;
+                }
+                return; // Suppress normal movements, aiming, and updates when inventory panel is open
+            }
+
             if (_startupDelay > 0f)
             {
                 _startupDelay -= Time.deltaTime;
@@ -199,11 +223,18 @@ namespace TheLastEmpire
         // Called by PlayerInput component via SendMessages
         private void OnMove(InputValue value)
         {
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
+            {
+                _moveInput = Vector2.zero;
+                return;
+            }
             _moveInput = value.Get<Vector2>();
         }
 
         private void OnAttack(InputValue value)
         {
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+
             // Attack action maps to left click / shooting
             if (value.isPressed && _fireCooldownTimer <= 0f && !_isDashing)
             {
@@ -213,9 +244,19 @@ namespace TheLastEmpire
 
         private void OnInteract(InputValue value)
         {
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+
             if (value.isPressed)
             {
                 TryInteract();
+            }
+        }
+
+        private void ToggleInventoryMenu()
+        {
+            if (InventoryUI.Instance != null)
+            {
+                InventoryUI.Instance.ToggleInventory();
             }
         }
 
