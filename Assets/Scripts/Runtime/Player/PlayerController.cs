@@ -16,6 +16,7 @@ namespace TheLastEmpire
 
         private Rigidbody2D _rb;
         private Vector2 _moveInput;
+        private float _startupDelay = 0.5f;
 
         private void Start()
         {
@@ -56,6 +57,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (_startupDelay > 0f)
+            {
+                _startupDelay -= Time.deltaTime;
+                return;
+            }
+
             CheckBoundaries();
         }
 
@@ -90,8 +97,8 @@ namespace TheLastEmpire
                 camPos = cam.transform.position;
                 if (cam.orthographic)
                 {
-                    calculatedYLimit = cam.orthographicSize;
-                    calculatedXLimit = calculatedYLimit * cam.aspect;
+                    calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
+                    calculatedXLimit = Mathf.Max(4f, calculatedYLimit * cam.aspect);
                 }
             }
 
