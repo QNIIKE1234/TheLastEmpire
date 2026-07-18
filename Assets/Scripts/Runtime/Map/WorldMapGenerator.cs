@@ -28,6 +28,9 @@ namespace TheLastEmpire
         [Header("Event Settings")]
         [Range(0f, 0.1f)] public float eventProbability = 0.015f;
 
+        [Header("Flooded City Settings")]
+        [Range(0f, 0.3f)] public float floodedCityChance = 0.08f;
+
         [HideInInspector]
         public StageData[] gridData;
 
@@ -49,6 +52,12 @@ namespace TheLastEmpire
                 {
                     float noiseValue = GetOctaveNoise(x, y, offsetX, offsetY);
                     BiomeType biome = GetBiomeFromNoise(noiseValue);
+
+                    // Roll for Flooded City (Urban Ruins in the middle of Waterways)
+                    if (biome == BiomeType.Waterways && rand.NextDouble() < floodedCityChance)
+                    {
+                        biome = BiomeType.UrbanRuins;
+                    }
 
                     // Overlay winding highways if the base biome is not Waterways
                     if (biome != BiomeType.Waterways)
