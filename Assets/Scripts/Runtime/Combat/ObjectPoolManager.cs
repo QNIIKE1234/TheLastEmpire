@@ -44,9 +44,11 @@ namespace TheLastEmpire
             {
                 if (pool.prefab == null || string.IsNullOrEmpty(pool.key)) continue;
 
-                if (!_prefabDictionary.ContainsKey(pool.key))
+                string trimmedKey = pool.key.Trim();
+
+                if (!_prefabDictionary.ContainsKey(trimmedKey))
                 {
-                    _prefabDictionary.Add(pool.key, pool.prefab);
+                    _prefabDictionary.Add(trimmedKey, pool.prefab);
                 }
 
                 Queue<GameObject> objectPool = new Queue<GameObject>();
@@ -59,25 +61,32 @@ namespace TheLastEmpire
                     objectPool.Enqueue(obj);
                 }
 
-                _poolDictionary.Add(pool.key, objectPool);
+                if (!_poolDictionary.ContainsKey(trimmedKey))
+                {
+                    _poolDictionary.Add(trimmedKey, objectPool);
+                }
             }
         }
 
         public GameObject SpawnFromPool(string key, Vector3 position, Quaternion rotation)
         {
-            if (string.IsNullOrEmpty(key) || _poolDictionary == null || !_poolDictionary.ContainsKey(key))
+            if (string.IsNullOrEmpty(key)) return null;
+            
+            string trimmedKey = key.Trim();
+
+            if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
             {
-                Debug.LogWarning($"[ObjectPoolManager] Pool with key '{key}' does not exist or has not been initialized.");
+                Debug.LogWarning($"[ObjectPoolManager] Pool with key '{trimmedKey}' does not exist or has not been initialized.");
                 return null;
             }
 
-            Queue<GameObject> poolQueue = _poolDictionary[key];
+            Queue<GameObject> poolQueue = _poolDictionary[trimmedKey];
             GameObject objectToSpawn;
 
             // Dynamically grow the pool if it runs out of items
             if (poolQueue.Count == 0)
             {
-                if (_prefabDictionary.TryGetValue(key, out GameObject prefab))
+                if (_prefabDictionary.TryGetValue(trimmedKey, out GameObject prefab))
                 {
                     objectToSpawn = Instantiate(prefab);
                 }
@@ -100,16 +109,24 @@ namespace TheLastEmpire
 
         public void ReturnToPool(string key, GameObject obj)
         {
-            if (string.IsNullOrEmpty(key) || _poolDictionary == null || !_poolDictionary.ContainsKey(key))
+            if (string.IsNullOrEmpty(key))
             {
-                Debug.LogWarning($"[ObjectPoolManager] Pool with key '{key}' does not exist. Destroying object instead.");
+                Destroy(obj);
+                return;
+            }
+
+            string trimmedKey = key.Trim();
+
+            if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
+            {
+                Debug.LogWarning($"[ObjectPoolManager] Pool with key '{trimmedKey}' does not exist. Destroying object instead.");
                 Destroy(obj);
                 return;
             }
 
             obj.SetActive(false);
             obj.transform.SetParent(transform);
-            _poolDictionary[key].Enqueue(obj);
+            _poolDictionary[trimmedKey].Enqueue(obj);
         }
     }
 }

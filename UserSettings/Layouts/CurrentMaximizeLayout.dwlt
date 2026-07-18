@@ -24,7 +24,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 112}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 133085
+  controlID: 142994
   draggingID: 0
 --- !u!114 &2
 MonoBehaviour:
@@ -153,7 +153,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 112}
   m_MaxSize: {x: 16192, y: 16192}
   vertical: 1
-  controlID: 133086
+  controlID: 142995
   draggingID: 0
 --- !u!114 &4
 MonoBehaviour:
@@ -179,7 +179,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 56}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
-  controlID: 133087
+  controlID: 142996
   draggingID: 0
 --- !u!114 &5
 MonoBehaviour:
@@ -249,9 +249,9 @@ MonoBehaviour:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs:
-      - m_Data: -307010
+      - m_Data: 69578
       m_LastClickedID:
-        m_Data: -307010
+        m_Data: 69578
       m_ExpandedIDs:
       - m_Data: -306510
       - m_Data: -275722
@@ -279,6 +279,7 @@ MonoBehaviour:
       - m_Data: -1292
       - m_Data: -12
       - m_Data: 50098
+      - m_Data: 69506
       - m_Data: 69516
       - m_Data: 69550
       - m_Data: 69608
@@ -957,9 +958,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: -3.1433694, y: 0.35775647, z: 1009.0846}
+    m_Target: {x: -22.040752, y: -6.218126, z: -0.25552636}
     speed: 2
-    m_Value: {x: -3.1433694, y: 0.35775647, z: 1009.0846}
+    m_Value: {x: -22.040752, y: -6.218126, z: -0.25552636}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1009,9 +1010,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 10.148336
+    m_Target: 26.576838
     speed: 2
-    m_Value: 10.148336
+    m_Value: 26.576838
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1387,7 +1388,7 @@ MonoBehaviour:
     m_ControlHash: -371814159
     m_PrefName: Preview_InspectorPreview
   m_LastInspectedObjectInstanceID: -1
-  m_LastVerticalScrollValue: 574.39996
+  m_LastVerticalScrollValue: 0
   m_GlobalObjectId: 
   m_InspectorMode: 0
   m_LockTracker:
