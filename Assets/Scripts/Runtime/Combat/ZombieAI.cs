@@ -31,6 +31,7 @@ namespace TheLastEmpire
         [SerializeField] private GameObject childZombiePrefab;
         [SerializeField] private float spawnCooldown = 10f;
         [SerializeField] private int maxChildSpawns = 3;
+        [SerializeField] private string childPoolKey = "Zombie001";
 
         private float _spawnCooldownTimer = 0f;
         private int _currentChildSpawns = 0;
@@ -290,9 +291,9 @@ namespace TheLastEmpire
             Vector3 spawnPos = transform.position + spawnOffset;
 
             GameObject babyZombie = null;
-            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(poolKey))
+            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(childPoolKey))
             {
-                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(poolKey, spawnPos, Quaternion.identity);
+                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(childPoolKey, spawnPos, Quaternion.identity);
             }
             else if (childZombiePrefab != null)
             {

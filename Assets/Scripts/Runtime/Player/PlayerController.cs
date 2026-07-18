@@ -246,43 +246,39 @@ namespace TheLastEmpire
 
             float relX = pos.x - camPos.x;
             float relY = pos.y - camPos.y;
-            float interactThreshold = 0.6f; // check if close enough to boundary
+            
+            // Calculate distances to each screen edge
+            float distToEast = calculatedXLimit - relX;
+            float distToWest = relX - (-calculatedXLimit);
+            float distToNorth = calculatedYLimit - relY;
+            float distToSouth = relY - (-calculatedYLimit);
+
+            // Find the closest edge
+            float minDist = Mathf.Min(distToEast, distToWest, distToNorth, distToSouth);
+            float interactThreshold = 1.1f; // generous margin to make transitions easy near screen walls
             bool transitioned = false;
 
-            // East (Exit Right)
-            if (relX > calculatedXLimit - interactThreshold)
+            if (minDist < interactThreshold)
             {
-                if (playerX < WorldMapGenerator.GridSize - 1)
+                if (minDist == distToEast && playerX < WorldMapGenerator.GridSize - 1)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
                     pos.x = camPos.x - calculatedXLimit + entryOffset;
                     transitioned = true;
                 }
-            }
-            // West (Exit Left)
-            else if (relX < -calculatedXLimit + interactThreshold)
-            {
-                if (playerX > 0)
+                else if (minDist == distToWest && playerX > 0)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
                     pos.x = camPos.x + calculatedXLimit - entryOffset;
                     transitioned = true;
                 }
-            }
-            // North (Exit Up)
-            else if (relY > calculatedYLimit - interactThreshold)
-            {
-                if (playerY < WorldMapGenerator.GridSize - 1)
+                else if (minDist == distToNorth && playerY < WorldMapGenerator.GridSize - 1)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
                     pos.y = camPos.y - calculatedYLimit + entryOffset;
                     transitioned = true;
                 }
-            }
-            // South (Exit Down)
-            else if (relY < -calculatedYLimit + interactThreshold)
-            {
-                if (playerY > 0)
+                else if (minDist == distToSouth && playerY > 0)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
                     pos.y = camPos.y + calculatedYLimit - entryOffset;

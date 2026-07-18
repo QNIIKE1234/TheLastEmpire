@@ -29,6 +29,7 @@ namespace TheLastEmpire
         [SerializeField] private GameObject childAlienPrefab;
         [SerializeField] private float spawnCooldown = 7f;
         [SerializeField] private int maxChildSpawns = 2;
+        [SerializeField] private string childPoolKey = "Alien001";
 
         private float _hookCooldownTimer = 0f;
         private float _spawnCooldownTimer = 0f;
@@ -196,10 +197,10 @@ namespace TheLastEmpire
             Vector3 spawnPos = transform.position + spawnOffset;
 
             GameObject babyAlien;
-            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(poolKey))
+            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(childPoolKey))
             {
                 // Can spawn child from the same pool
-                babyAlien = ObjectPoolManager.Instance.SpawnFromPool(poolKey, spawnPos, Quaternion.identity);
+                babyAlien = ObjectPoolManager.Instance.SpawnFromPool(childPoolKey, spawnPos, Quaternion.identity);
             }
             else if (childAlienPrefab != null)
             {
@@ -221,6 +222,13 @@ namespace TheLastEmpire
 
             if (babyAlien != null)
             {
+                // Force spawned alien to be Normal type so it doesn't duplicate leaders
+                AlienAI babyAI = babyAlien.GetComponent<AlienAI>();
+                if (babyAI != null)
+                {
+                    babyAI.alienType = AlienType.Normal;
+                }
+
                 _currentChildSpawns++;
                 // Track child's life to decrement counter when it dies
                 Health babyHealth = babyAlien.GetComponent<Health>();
