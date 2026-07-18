@@ -68,9 +68,8 @@ namespace TheLastEmpire
             GameObject textObj = new GameObject("StageInfoText");
             textObj.transform.position = new Vector3(-8.5f, 4.5f, 0f);
             
-            TextMesh textMesh = textObj.AddComponent<TextMesh>();
-            textMesh.characterSize = 0.15f;
-            textMesh.fontSize = 42;
+            TMPro.TextMeshPro textMesh = textObj.AddComponent<TMPro.TextMeshPro>();
+            textMesh.fontSize = 6;
             textMesh.color = Color.yellow;
             textMesh.text = "Loading Stage...";
             
