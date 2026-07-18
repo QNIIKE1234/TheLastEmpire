@@ -126,8 +126,8 @@ namespace TheLastEmpire
                 case BiomeType.Waterways: return new Color(0.12f, 0.56f, 1f);
                 case BiomeType.OvergrownForests: return new Color(0.13f, 0.55f, 0.13f);
                 case BiomeType.SuburbanVillages: return new Color(0.6f, 0.8f, 0.2f);
-                case BiomeType.Highways: return new Color(0.18f, 0.31f, 0.31f);
-                case BiomeType.UrbanRuins: return new Color(0.44f, 0.5f, 0.56f);
+                case BiomeType.Highways: return Color.white;
+                case BiomeType.UrbanRuins: return Color.black;
                 case BiomeType.Highlands: return new Color(0.55f, 0.27f, 0.07f);
                 default: return Color.black;
             }
