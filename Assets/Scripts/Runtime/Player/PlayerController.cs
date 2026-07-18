@@ -22,28 +22,40 @@ namespace TheLastEmpire
             _rb = GetComponent<Rigidbody2D>();
             _rb.gravityScale = 0f;
             _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+            // Automatically setup PlayerInput component
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput == null)
+            {
+                playerInput = gameObject.AddComponent<PlayerInput>();
+            }
+
+            // Set notification behavior to SendMessages
+            playerInput.notificationBehavior = PlayerNotifications.SendMessages;
+
+            // Load and link the default Input Actions asset
+#if UNITY_EDITOR
+            if (playerInput.actions == null)
+            {
+                InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+                if (defaultActions != null)
+                {
+                    playerInput.actions = defaultActions;
+                    // Enable the default Player action map
+                    playerInput.currentActionMap = defaultActions.FindActionMap("Player");
+                    playerInput.currentActionMap?.Enable();
+                    Debug.Log("PlayerController: Automatically linked InputSystem_Actions asset.");
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerController: Could not find default InputSystem_Actions asset at 'Assets/InputSystem_Actions.inputactions'. Please assign it manually in the PlayerInput component.");
+                }
+            }
+#endif
         }
 
         private void Update()
         {
-            // Gather input using the New Input System direct API
-            Vector2 move = Vector2.zero;
-
-            if (Keyboard.current != null)
-            {
-                if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) move.y += 1f;
-                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) move.y -= 1f;
-                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) move.x -= 1f;
-                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) move.x += 1f;
-            }
-
-            if (Gamepad.current != null)
-            {
-                move += Gamepad.current.leftStick.ReadValue();
-            }
-
-            _moveInput = move.normalized;
-
             CheckBoundaries();
         }
 
@@ -51,6 +63,12 @@ namespace TheLastEmpire
         {
             // Apply movement
             _rb.linearVelocity = _moveInput * moveSpeed;
+        }
+
+        // Called automatically by PlayerInput component (via SendMessages) when movement input changes
+        private void OnMove(InputValue value)
+        {
+            _moveInput = value.Get<Vector2>();
         }
 
         private void CheckBoundaries()
