@@ -384,7 +384,6 @@ namespace TheLastEmpire
             }
 
             // If player IS dashing, perform standard boundary transition checks
-            bool transitioned = false;
 
             // East boundary (Exit Right)
             if (relX > calculatedXLimit)
