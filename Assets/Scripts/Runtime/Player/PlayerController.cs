@@ -112,6 +112,7 @@ namespace TheLastEmpire
                 }
                 else
                 {
+                    Debug.LogWarning("[PlayerController] Reached East edge of the World Map (Grid X = 63). Cannot transition East.");
                     pos.x = camPos.x + calculatedXLimit;
                 }
             }
@@ -126,6 +127,7 @@ namespace TheLastEmpire
                 }
                 else
                 {
+                    Debug.LogWarning("[PlayerController] Reached West edge of the World Map (Grid X = 0). Cannot transition West.");
                     pos.x = camPos.x - calculatedXLimit;
                 }
             }
@@ -141,6 +143,7 @@ namespace TheLastEmpire
                 }
                 else
                 {
+                    Debug.LogWarning("[PlayerController] Reached North edge of the World Map (Grid Y = 63). Cannot transition North.");
                     pos.y = camPos.y + calculatedYLimit;
                 }
             }
@@ -155,6 +158,7 @@ namespace TheLastEmpire
                 }
                 else
                 {
+                    Debug.LogWarning("[PlayerController] Reached South edge of the World Map (Grid Y = 0). Cannot transition South.");
                     pos.y = camPos.y - calculatedYLimit;
                 }
             }
