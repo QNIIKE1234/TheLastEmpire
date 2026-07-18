@@ -42,6 +42,41 @@ namespace TheLastEmpire
 
         private void Start()
         {
+            // 1. Ensure we have a collider trigger zone
+            Collider2D col = GetComponent<Collider2D>();
+            if (col == null)
+            {
+                BoxCollider2D box = gameObject.AddComponent<BoxCollider2D>();
+                box.isTrigger = true;
+            }
+
+            // 2. Procedural placeholder visualization if there is no sprite asset
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr == null)
+            {
+                sr = gameObject.AddComponent<SpriteRenderer>();
+            }
+            if (sr.sprite == null)
+            {
+                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                sr.color = new Color(0.5f, 0.5f, 0.5f, 0.35f); // Faint semi-transparent gray
+                sr.sortingOrder = 2; // Render above background
+
+                // Set default rectangular scales based on direction
+                if (transform.localScale == Vector3.one)
+                {
+                    if (direction == TransitionDirection.North || direction == TransitionDirection.South)
+                    {
+                        transform.localScale = new Vector3(2.2f, 0.6f, 1f); // horizontal portal block
+                    }
+                    else
+                    {
+                        transform.localScale = new Vector3(0.6f, 2.2f, 1f); // vertical portal block
+                    }
+                }
+            }
+
+            // 3. Register to stage change updates
             if (WorldMapManager.Instance != null)
             {
                 WorldMapManager.Instance.OnStageChanged += UpdatePortalVisibility;
