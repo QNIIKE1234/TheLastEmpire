@@ -7,10 +7,25 @@ namespace TheLastEmpire
     {
         public static GameManager Instance { get; private set; }
 
+        [System.Flags]
+        public enum BiomeGroup
+        {
+            None = 0,
+            UrbanRuins = 1 << 0,
+            Highways = 1 << 1,
+            OvergrownForests = 1 << 2,
+            Highlands = 1 << 3,
+            Waterways = 1 << 4,
+            SuburbanVillages = 1 << 5,
+            SpecialEvent = 1 << 6,
+            All = ~0
+        }
+
         [System.Serializable]
         public struct BiomeSpawnConfig
         {
-            public BiomeType biome;
+            [Tooltip("Select one or more biomes where this enemy type can spawn (Flags dropdown).")]
+            public BiomeGroup biomes;
             public GameObject enemyPrefab;
             public string poolKey;
         }
@@ -109,35 +124,52 @@ namespace TheLastEmpire
             // This guarantees the exact same items/enemies spawn if player returns to this stage coordinates
             Random.InitState(stage.stageSeed);
 
-            // 3. Find the spawn configuration for the current biome
-            BiomeSpawnConfig currentConfig = new BiomeSpawnConfig();
-            bool configFound = false;
+            // 3. Map stage BiomeType to BiomeGroup Flags
+            BiomeGroup stageGroup = stage.biome switch
+            {
+                BiomeType.UrbanRuins => BiomeGroup.UrbanRuins,
+                BiomeType.Highways => BiomeGroup.Highways,
+                BiomeType.OvergrownForests => BiomeGroup.OvergrownForests,
+                BiomeType.Highlands => BiomeGroup.Highlands,
+                BiomeType.Waterways => BiomeGroup.Waterways,
+                BiomeType.SuburbanVillages => BiomeGroup.SuburbanVillages,
+                BiomeType.SpecialEvent => BiomeGroup.SpecialEvent,
+                _ => BiomeGroup.None
+            };
+
+            // 4. Find all matching configurations (including 'All' flag or direct match)
+            List<BiomeSpawnConfig> configsToSpawn = new List<BiomeSpawnConfig>();
 
             if (spawnConfigs != null)
             {
                 foreach (BiomeSpawnConfig config in spawnConfigs)
                 {
-                    if (config.biome == stage.biome)
+                    if (config.enemyPrefab != null && (config.biomes & stageGroup) != 0)
                     {
-                        currentConfig = config;
-                        configFound = true;
-                        break;
+                        configsToSpawn.Add(config);
                     }
                 }
             }
 
-            // Fall back to default spawner if no biome configuration exists
-            if (!configFound && defaultEnemyPrefab != null)
+            // Fall back to default spawner if no matching configurations exist
+            if (configsToSpawn.Count == 0 && defaultEnemyPrefab != null)
             {
-                currentConfig.enemyPrefab = defaultEnemyPrefab;
-                currentConfig.poolKey = defaultPoolKey;
-                configFound = true;
+                BiomeSpawnConfig fallbackConfig = new BiomeSpawnConfig
+                {
+                    biomes = stageGroup,
+                    enemyPrefab = defaultEnemyPrefab,
+                    poolKey = defaultPoolKey
+                };
+                configsToSpawn.Add(fallbackConfig);
             }
 
-            // 4. Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)
+            // 5. Day/Night phase
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
-            if (configFound && currentConfig.enemyPrefab != null)
+
+            // 6. Spawn enemies for each matching configuration
+            foreach (BiomeSpawnConfig currentConfig in configsToSpawn)
             {
+                // Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)
                 AlienAI alienCheck = currentConfig.enemyPrefab.GetComponent<AlienAI>();
                 if (alienCheck != null)
                 {
@@ -145,14 +177,10 @@ namespace TheLastEmpire
                     if (Random.value > spawnProbability)
                     {
                         Debug.Log($"[GameManager] Skipped spawning Aliens due to day/night probability (Is Night: {isNight})");
-                        return; // Skip spawning for this stage
+                        continue; // Skip this particular enemy type, keep others!
                     }
                 }
-            }
 
-            // 5. Spawning local stage enemies (0-3 Enemies) based on configuration
-            if (configFound && currentConfig.enemyPrefab != null)
-            {
                 int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
                 Debug.Log($"[GameManager] Spawning {spawnCount} enemies of type '{currentConfig.enemyPrefab.name}' on {stage.biome} stage using seed {stage.stageSeed}. (Is Night: {isNight})");
 

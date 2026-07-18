@@ -8,6 +8,7 @@ namespace TheLastEmpire
         Highlands,
         Waterways,
         SuburbanVillages,
-        SpecialEvent
+        SpecialEvent,
+        All
     }
 }
