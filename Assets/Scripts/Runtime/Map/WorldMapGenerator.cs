@@ -122,7 +122,6 @@ namespace TheLastEmpire
             } 
             while (attempts < 100);
         }
-        }
 
         public StageData GetStage(int x, int y)
         {
