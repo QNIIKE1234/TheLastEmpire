@@ -25,6 +25,9 @@ namespace TheLastEmpire
         public float highwayScale = 12f;
         [Range(0.01f, 0.1f)] public float highwayWidth = 0.035f;
 
+        [Header("Event Settings")]
+        [Range(0f, 0.1f)] public float eventProbability = 0.015f;
+
         [HideInInspector]
         public StageData[] gridData;
 
@@ -55,6 +58,12 @@ namespace TheLastEmpire
                         {
                             biome = BiomeType.Highways;
                         }
+                    }
+
+                    // Sprinkle special events randomly on walkable ground
+                    if (biome != BiomeType.Waterways && rand.NextDouble() < eventProbability)
+                    {
+                        biome = BiomeType.SpecialEvent;
                     }
 
                     int stageSeed = rand.Next();
@@ -150,6 +159,7 @@ namespace TheLastEmpire
                 case BiomeType.Highways: return Color.white;
                 case BiomeType.UrbanRuins: return Color.black;
                 case BiomeType.Highlands: return new Color(0.55f, 0.27f, 0.07f);
+                case BiomeType.SpecialEvent: return new Color(0.6f, 0.1f, 0.8f); // Vibrant purple
                 default: return Color.black;
             }
         }

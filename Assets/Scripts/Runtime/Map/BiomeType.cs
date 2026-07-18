@@ -7,6 +7,7 @@ namespace TheLastEmpire
         OvergrownForests,
         Highlands,
         Waterways,
-        SuburbanVillages
+        SuburbanVillages,
+        SpecialEvent
     }
 }

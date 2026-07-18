@@ -58,6 +58,7 @@ namespace TheLastEmpire
                 DrawLegend("Highways", WorldMapGenerator.GetBiomeColor(BiomeType.Highways));
                 DrawLegend("Urban Ruins", WorldMapGenerator.GetBiomeColor(BiomeType.UrbanRuins));
                 DrawLegend("Highlands", WorldMapGenerator.GetBiomeColor(BiomeType.Highlands));
+                DrawLegend("Special Events", WorldMapGenerator.GetBiomeColor(BiomeType.SpecialEvent));
             }
         }
 
