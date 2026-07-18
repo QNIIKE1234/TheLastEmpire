@@ -104,6 +104,52 @@ namespace TheLastEmpire
                 mainCamera.transform.position = new Vector3(0, 0, -10);
             }
 
+            // 8. Create Canvas and Minimap UI
+            GameObject canvasObj = new GameObject("HUDCanvas");
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+            canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            // Create EventSystem if missing
+            if (Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+            {
+                GameObject esObj = new GameObject("EventSystem");
+                esObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                esObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            }
+
+            // Create Minimap UI Container anchored to Top-Right
+            GameObject minimapObj = new GameObject("MinimapUI");
+            minimapObj.transform.SetParent(canvasObj.transform, false);
+
+            RectTransform minimapRect = minimapObj.AddComponent<RectTransform>();
+            minimapRect.anchorMin = new Vector2(1, 1);
+            minimapRect.anchorMax = new Vector2(1, 1);
+            minimapRect.pivot = new Vector2(1, 1);
+            minimapRect.anchoredPosition = new Vector2(-20f, -20f); // 20px padding from top-right
+            minimapRect.sizeDelta = new Vector2(180f, 180f); // 180x180 pixels
+
+            // Add background border to the minimap
+            UnityEngine.UI.RawImage borderImage = minimapObj.AddComponent<UnityEngine.UI.RawImage>();
+            borderImage.color = new Color(0.12f, 0.12f, 0.12f, 0.85f); // Semi-transparent dark border
+
+            // Create inner raw image for actual map texture
+            GameObject mapTextureObj = new GameObject("MapTexture");
+            mapTextureObj.transform.SetParent(minimapObj.transform, false);
+
+            RectTransform mapTextureRect = mapTextureObj.AddComponent<RectTransform>();
+            mapTextureRect.anchorMin = Vector2.zero;
+            mapTextureRect.anchorMax = Vector2.one;
+            mapTextureRect.sizeDelta = new Vector2(-10f, -10f); // 5px padding all around
+            mapTextureRect.anchoredPosition = Vector2.zero;
+
+            UnityEngine.UI.RawImage rawImage = mapTextureObj.AddComponent<UnityEngine.UI.RawImage>();
+            
+            // Add MinimapUI script and wire up the RawImage reference
+            MinimapUI minimapUI = mapTextureObj.AddComponent<MinimapUI>();
+            minimapUI.MinimapImage = rawImage;
+
             // Save Scene
             string sceneDir = "Assets/Scenes";
             if (!System.IO.Directory.Exists(sceneDir))
