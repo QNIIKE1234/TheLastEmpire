@@ -36,9 +36,19 @@ namespace TheLastEmpire
 
         private void Start()
         {
-            if (mapGenerator != null && (mapGenerator.gridData == null || mapGenerator.gridData.Length == 0))
+            if (mapGenerator != null)
             {
-                StartNewGame(mapGenerator.seed);
+                // If map is not generated yet, generate it
+                if (mapGenerator.gridData == null || mapGenerator.gridData.Length != WorldMapGenerator.GridSize * WorldMapGenerator.GridSize)
+                {
+                    StartNewGame(mapGenerator.seed);
+                }
+                else
+                {
+                    // Map is already generated (persisted on the ScriptableObject asset),
+                    // but we still need to pick player starting coordinates at runtime startup!
+                    InitializePlayerCoordinates(mapGenerator.seed);
+                }
             }
         }
 
@@ -53,6 +63,11 @@ namespace TheLastEmpire
             mapGenerator.seed = seed;
             mapGenerator.GenerateMap();
 
+            InitializePlayerCoordinates(seed);
+        }
+
+        private void InitializePlayerCoordinates(int seed)
+        {
             // Pick a random walkable starting location (not on Waterways or SpecialEvent, and not isolated in water) based on the seed
             System.Random rand = new System.Random(seed);
             int attempts = 0;
@@ -94,6 +109,7 @@ namespace TheLastEmpire
                 startingStage.isExplored = true;
             }
 
+            // Trigger the initial stage update event so that visualizers and managers set up correctly
             OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);
         }
 
