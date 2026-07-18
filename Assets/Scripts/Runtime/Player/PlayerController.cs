@@ -45,6 +45,12 @@ namespace TheLastEmpire
         private SpriteRenderer _spriteRenderer;
         private PlayerInventory _inventory;
 
+        private Collider2D _playerCollider;
+        private BoxCollider2D _boundaryLeft;
+        private BoxCollider2D _boundaryRight;
+        private BoxCollider2D _boundaryTop;
+        private BoxCollider2D _boundaryBottom;
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody2D>();
@@ -95,6 +101,7 @@ namespace TheLastEmpire
                 }
             }
 #endif
+            SetupScreenBoundaries();
         }
 
         private void Update()
@@ -325,6 +332,8 @@ namespace TheLastEmpire
             {
                 _spriteRenderer.color = new Color(0.3f, 0.8f, 1f, 0.6f); // Light blue tint
             }
+
+            IgnoreCollisionWithBoundaries(true);
         }
 
         private void EndDash()
@@ -336,6 +345,8 @@ namespace TheLastEmpire
             {
                 _spriteRenderer.color = _originalColor;
             }
+
+            IgnoreCollisionWithBoundaries(false);
         }
 
         private void CheckBoundaries()
@@ -459,6 +470,64 @@ namespace TheLastEmpire
             Gizmos.color = Color.red;
             Vector2 attackPoint = (Vector2)transform.position + _aimDirection * 0.8f;
             Gizmos.DrawWireSphere(attackPoint, meleeRadius);
+        }
+
+        private void SetupScreenBoundaries()
+        {
+            _playerCollider = GetComponent<Collider2D>();
+            if (_playerCollider == null) return;
+
+            GameObject boundaryContainer = new GameObject("ScreenBoundaries");
+            // Set parent to camera target or keep in scene root at position (0,0)
+            boundaryContainer.transform.position = Vector3.zero;
+
+            float calculatedYLimit = yLimit;
+            float calculatedXLimit = xLimit;
+            Camera cam = Camera.main;
+            if (cam != null && cam.orthographic)
+            {
+                calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
+                calculatedXLimit = Mathf.Max(4f, calculatedYLimit * cam.aspect);
+            }
+
+            float thickness = 2f; // prevent tunneling
+
+            // Left
+            GameObject leftObj = new GameObject("Boundary_Left");
+            leftObj.transform.parent = boundaryContainer.transform;
+            _boundaryLeft = leftObj.AddComponent<BoxCollider2D>();
+            _boundaryLeft.size = new Vector2(thickness, calculatedYLimit * 2 + thickness * 2);
+            _boundaryLeft.offset = new Vector2(-calculatedXLimit - thickness / 2, 0);
+
+            // Right
+            GameObject rightObj = new GameObject("Boundary_Right");
+            rightObj.transform.parent = boundaryContainer.transform;
+            _boundaryRight = rightObj.AddComponent<BoxCollider2D>();
+            _boundaryRight.size = new Vector2(thickness, calculatedYLimit * 2 + thickness * 2);
+            _boundaryRight.offset = new Vector2(calculatedXLimit + thickness / 2, 0);
+
+            // Top
+            GameObject topObj = new GameObject("Boundary_Top");
+            topObj.transform.parent = boundaryContainer.transform;
+            _boundaryTop = topObj.AddComponent<BoxCollider2D>();
+            _boundaryTop.size = new Vector2(calculatedXLimit * 2 + thickness * 2, thickness);
+            _boundaryTop.offset = new Vector2(0, calculatedYLimit + thickness / 2);
+
+            // Bottom
+            GameObject bottomObj = new GameObject("Boundary_Bottom");
+            bottomObj.transform.parent = boundaryContainer.transform;
+            _boundaryBottom = bottomObj.AddComponent<BoxCollider2D>();
+            _boundaryBottom.size = new Vector2(calculatedXLimit * 2 + thickness * 2, thickness);
+            _boundaryBottom.offset = new Vector2(0, -calculatedYLimit - thickness / 2);
+        }
+
+        private void IgnoreCollisionWithBoundaries(bool ignore)
+        {
+            if (_playerCollider == null) return;
+            if (_boundaryLeft != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryLeft, ignore);
+            if (_boundaryRight != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryRight, ignore);
+            if (_boundaryTop != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryTop, ignore);
+            if (_boundaryBottom != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryBottom, ignore);
         }
     }
 }
