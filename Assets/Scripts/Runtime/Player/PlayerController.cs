@@ -36,7 +36,7 @@ namespace TheLastEmpire
         private void FixedUpdate()
         {
             // Apply movement
-            _rb.velocity = _moveInput * moveSpeed;
+            _rb.linearVelocity = _moveInput * moveSpeed;
         }
 
         private void CheckBoundaries()
