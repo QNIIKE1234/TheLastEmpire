@@ -47,7 +47,7 @@ namespace TheLastEmpire
                 {
                     // Map is already generated (persisted on the ScriptableObject asset),
                     // but we still need to pick player starting coordinates at runtime startup!
-                    InitializePlayerCoordinates(mapGenerator.seed);
+                    InitializePlayerCoordinates();
                 }
             }
         }
@@ -63,44 +63,15 @@ namespace TheLastEmpire
             mapGenerator.seed = seed;
             mapGenerator.GenerateMap();
 
-            InitializePlayerCoordinates(seed);
+            InitializePlayerCoordinates();
         }
 
-        private void InitializePlayerCoordinates(int seed)
+        private void InitializePlayerCoordinates()
         {
-            // Pick a random walkable starting location (not on Waterways or SpecialEvent, and not isolated in water) based on the seed
-            System.Random rand = new System.Random(seed);
-            int attempts = 0;
-            do
-            {
-                CurrentPlayerX = rand.Next(0, WorldMapGenerator.GridSize);
-                CurrentPlayerY = rand.Next(0, WorldMapGenerator.GridSize);
-                attempts++;
+            if (mapGenerator == null) return;
 
-                StageData stage = mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY);
-                if (stage != null && stage.biome != BiomeType.Waterways && stage.biome != BiomeType.SpecialEvent)
-                {
-                    // Check neighbors to make sure we are not on a tiny island/flooded city surrounded by water
-                    int waterNeighbors = 0;
-                    int[] dx = { 0, 0, 1, -1 };
-                    int[] dy = { 1, -1, 0, 0 };
-                    for (int i = 0; i < 4; i++)
-                    {
-                        StageData neighbor = mapGenerator.GetStage(CurrentPlayerX + dx[i], CurrentPlayerY + dy[i]);
-                        if (neighbor != null && neighbor.biome == BiomeType.Waterways)
-                        {
-                            waterNeighbors++;
-                        }
-                    }
-
-                    // Only spawn if at most 1 neighbor is water (ensures it is connected to main land mass)
-                    if (waterNeighbors <= 1)
-                    {
-                        break;
-                    }
-                }
-            } 
-            while (attempts < 100);
+            CurrentPlayerX = mapGenerator.spawnX;
+            CurrentPlayerY = mapGenerator.spawnY;
 
             // Reveal the starting location
             StageData startingStage = mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY);

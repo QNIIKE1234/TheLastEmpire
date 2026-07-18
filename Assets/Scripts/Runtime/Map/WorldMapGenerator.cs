@@ -34,6 +34,10 @@ namespace TheLastEmpire
         [HideInInspector]
         public StageData[] gridData;
 
+        [Header("Starting Location (Generated)")]
+        public int spawnX;
+        public int spawnY;
+
         public void GenerateMap()
         {
             gridData = new StageData[GridSize * GridSize];
@@ -79,6 +83,45 @@ namespace TheLastEmpire
                     gridData[x + y * GridSize] = new StageData(x, y, biome, stageSeed);
                 }
             }
+
+            CalculateSpawnLocation(seed);
+        }
+
+        private void CalculateSpawnLocation(int seed)
+        {
+            System.Random rand = new System.Random(seed);
+            int attempts = 0;
+            do
+            {
+                spawnX = rand.Next(0, GridSize);
+                spawnY = rand.Next(0, GridSize);
+                attempts++;
+
+                StageData stage = GetStage(spawnX, spawnY);
+                if (stage != null && stage.biome != BiomeType.Waterways && stage.biome != BiomeType.SpecialEvent)
+                {
+                    // Check neighbors to make sure we are not on a tiny island/flooded city surrounded by water
+                    int waterNeighbors = 0;
+                    int[] dx = { 0, 0, 1, -1 };
+                    int[] dy = { 1, -1, 0, 0 };
+                    for (int i = 0; i < 4; i++)
+                    {
+                        StageData neighbor = GetStage(spawnX + dx[i], spawnY + dy[i]);
+                        if (neighbor != null && neighbor.biome == BiomeType.Waterways)
+                        {
+                            waterNeighbors++;
+                        }
+                    }
+
+                    // Only spawn if at most 1 neighbor is water (ensures it is connected to main land mass)
+                    if (waterNeighbors <= 1)
+                    {
+                        break;
+                    }
+                }
+            } 
+            while (attempts < 100);
+        }
         }
 
         public StageData GetStage(int x, int y)

@@ -42,7 +42,11 @@ namespace TheLastEmpire
             if (_cachedPreviewTexture != null)
             {
                 GUILayout.Space(15);
-                GUILayout.Label("Map Preview (64x64 Grid):", EditorStyles.boldLabel);
+                GUILayout.Label($"Map Preview ({WorldMapGenerator.GridSize}x{WorldMapGenerator.GridSize} Grid):", EditorStyles.boldLabel);
+                
+                StageData spawnStage = generator.GetStage(generator.spawnX, generator.spawnY);
+                string spawnBiomeName = spawnStage != null ? spawnStage.biome.ToString() : "Unknown";
+                EditorGUILayout.HelpBox($"Spawn Coordinate: ({generator.spawnX}, {generator.spawnY})\nStarting Biome: {spawnBiomeName}", MessageType.Info);
 
                 float width = EditorGUIUtility.currentViewWidth - 40;
                 width = Mathf.Min(width, 256);
