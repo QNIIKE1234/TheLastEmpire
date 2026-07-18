@@ -587,18 +587,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.GameManager
   spawnConfigs:
-  - biome: 2
+  - biomes: 111
     enemyPrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
-    poolKey: Zombie001
-  - biome: 1
+    poolKey: ZombieNormal
+  - biomes: 111
     enemyPrefab: {fileID: 5020151313939889713, guid: 320257d2bc67378498b8d32e8acb2c99, type: 3}
-    poolKey: Zombie002
-  - biome: 5
-    enemyPrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
-    poolKey: Zombie001
-  - biome: 0
-    enemyPrefab: {fileID: 5020151313939889713, guid: 320257d2bc67378498b8d32e8acb2c99, type: 3}
-    poolKey: Zombie002
+    poolKey: ZombieDog
+  - biomes: -1
+    enemyPrefab: {fileID: 5020151313939889713, guid: 8a8146696e1c31f44afc068661e5a49f, type: 3}
+    poolKey: ZombieBoomer
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: 8e9c44a49cf812a4b8262c91f3dffb0a, type: 3}
+    poolKey: ZombieRunner
+  - biomes: 64
+    enemyPrefab: {fileID: 5020151313939889713, guid: 6d07d001757ed0f4f804509afba6dee6, type: 3}
+    poolKey: ZombieLeader
+  defaultEnemyPrefab: {fileID: 0}
+  defaultPoolKey: 
 --- !u!4 &596243805
 Transform:
   m_ObjectHideFlags: 0
