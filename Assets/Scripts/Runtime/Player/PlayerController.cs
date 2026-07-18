@@ -119,20 +119,6 @@ namespace TheLastEmpire
 
             CheckBoundaries();
 
-            // Diagnostic: Print what the player is colliding with
-            if (_playerCollider != null)
-            {
-                Collider2D[] results = new Collider2D[10];
-                int contactCount = _playerCollider.GetContacts(results);
-                for (int i = 0; i < contactCount; i++)
-                {
-                    if (results[i] != null)
-                    {
-                        Debug.LogWarning($"[COLLISION] Player is colliding with object: '{results[i].gameObject.name}' at position: {results[i].transform.position} | Collider type: {results[i].GetType().Name}");
-                    }
-                }
-            }
-
             if (_isDashing)
             {
                 _dashTimer -= Time.deltaTime;
@@ -454,7 +440,7 @@ namespace TheLastEmpire
             _playerCollider = GetComponent<Collider2D>();
             if (_playerCollider == null) return;
 
-            Camera cam = Camera.main;
+            Camera cam = Camera.main ?? Object.FindFirstObjectByType<Camera>();
             GameObject boundaryContainer = new GameObject("ScreenBoundaries");
             
             // Parent to camera to handle any camera position offset dynamically (e.g. Camera.y = 1f)
@@ -468,8 +454,10 @@ namespace TheLastEmpire
                 boundaryContainer.transform.position = Vector3.zero;
             }
 
-            float calculatedYLimit = yLimit;
-            float calculatedXLimit = xLimit;
+            // Fallback to safe defaults if yLimit or xLimit is set to 0 in the Inspector
+            float calculatedYLimit = yLimit > 0.1f ? yLimit : 5f;
+            float calculatedXLimit = xLimit > 0.1f ? xLimit : 8.5f;
+
             if (cam != null && cam.orthographic)
             {
                 calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
