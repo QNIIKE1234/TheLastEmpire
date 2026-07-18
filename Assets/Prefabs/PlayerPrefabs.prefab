@@ -185,11 +185,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.PlayerController
   moveSpeed: 2.5
-  dashSpeed: 5
-  dashDuration: 0.25
-  dashCooldown: 1
+  dashSpeed: 10
+  dashDuration: 0.5
+  dashCooldown: 1.5
   projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
-  fireRate: 0.2
+  fireRate: 0.5
   meleeRadius: 1.2
   meleeDamage: 35
   meleeRate: 0.4
