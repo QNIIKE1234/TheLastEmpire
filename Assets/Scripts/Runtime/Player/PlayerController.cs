@@ -101,7 +101,6 @@ namespace TheLastEmpire
                 }
             }
 #endif
-            SetupScreenBoundaries();
         }
 
         private void Update()
@@ -224,73 +223,15 @@ namespace TheLastEmpire
         {
             if (WorldMapManager.Instance == null) return;
 
-            // Check if player is near any screen edge to transition stage coordinates
-            Vector3 pos = transform.position;
-            int playerX = WorldMapManager.Instance.CurrentPlayerX;
-            int playerY = WorldMapManager.Instance.CurrentPlayerY;
-
-            float calculatedXLimit = xLimit;
-            float calculatedYLimit = yLimit;
-            Vector3 camPos = Vector3.zero;
-
-            Camera cam = Camera.main;
-            if (cam != null)
+            // 1. Check if standing in any TransitionPortal trigger zone
+            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            foreach (TransitionPortal portal in portals)
             {
-                camPos = cam.transform.position;
-                if (cam.orthographic)
+                if (portal != null && portal.IsPlayerInRange())
                 {
-                    calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
-                    calculatedXLimit = Mathf.Max(4f, calculatedYLimit * cam.aspect);
+                    portal.TriggerTransition(this);
+                    return; // successfully transitioned via portal, skip normal interactions!
                 }
-            }
-
-            float relX = pos.x - camPos.x;
-            float relY = pos.y - camPos.y;
-            
-            // Calculate distances to each screen edge
-            float distToEast = calculatedXLimit - relX;
-            float distToWest = relX - (-calculatedXLimit);
-            float distToNorth = calculatedYLimit - relY;
-            float distToSouth = relY - (-calculatedYLimit);
-
-            // Find the closest edge
-            float minDist = Mathf.Min(distToEast, distToWest, distToNorth, distToSouth);
-            float interactThreshold = 1.1f; // generous margin to make transitions easy near screen walls
-            bool transitioned = false;
-
-            if (minDist < interactThreshold)
-            {
-                if (minDist == distToEast && playerX < WorldMapGenerator.GridSize - 1)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                    pos.x = camPos.x - calculatedXLimit + entryOffset;
-                    transitioned = true;
-                }
-                else if (minDist == distToWest && playerX > 0)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                    pos.x = camPos.x + calculatedXLimit - entryOffset;
-                    transitioned = true;
-                }
-                else if (minDist == distToNorth && playerY < WorldMapGenerator.GridSize - 1)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                    pos.y = camPos.y - calculatedYLimit + entryOffset;
-                    transitioned = true;
-                }
-                else if (minDist == distToSouth && playerY > 0)
-                {
-                    WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                    pos.y = camPos.y + calculatedYLimit - entryOffset;
-                    transitioned = true;
-                }
-            }
-
-            if (transitioned)
-            {
-                transform.position = pos;
-                Debug.Log($"[PlayerController] Transitioned stage via E key at boundary!");
-                return; // successfully transitioned!
             }
 
             // Standard item collect fallback if not transitioning
