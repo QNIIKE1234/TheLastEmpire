@@ -25,6 +25,7 @@ namespace TheLastEmpire
 
         [Header("Stagger Settings")]
         [SerializeField] protected float staggerDuration = 0.3f;
+        [SerializeField] protected float knockbackForce = 6f;
         protected float staggerTimer = 0f;
         protected bool isStaggered = false;
 
@@ -73,10 +74,12 @@ namespace TheLastEmpire
             if (isStaggered)
             {
                 staggerTimer -= Time.fixedDeltaTime;
-                rb.linearVelocity = Vector2.zero;
+                // Apply friction decay to make knockback slide smoothly to a halt
+                rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, Vector2.zero, Time.fixedDeltaTime * 10f);
                 if (staggerTimer <= 0f)
                 {
                     isStaggered = false;
+                    rb.linearVelocity = Vector2.zero;
                     currentState = AIState.Chase;
                 }
                 return;
@@ -197,7 +200,17 @@ namespace TheLastEmpire
             isStaggered = true;
             staggerTimer = staggerDuration;
             currentState = AIState.Stagger;
-            rb.linearVelocity = Vector2.zero;
+
+            // Apply knockback force away from the player's position
+            if (playerTransform != null)
+            {
+                Vector2 knockbackDir = ((Vector2)transform.position - (Vector2)playerTransform.position).normalized;
+                rb.linearVelocity = knockbackDir * knockbackForce;
+            }
+            else
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
         }
     }
 }
