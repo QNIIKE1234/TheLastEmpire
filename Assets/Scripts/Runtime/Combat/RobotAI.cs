@@ -1,8 +1,9 @@
+using System.Collections;
 using UnityEngine;
 
 namespace TheLastEmpire
 {
-    public class RobotAI : BaseEnemyAI
+    public class RobotAI : BaseEnemyAI, IDamageable
     {
         public enum RobotType
         {
@@ -19,9 +20,31 @@ namespace TheLastEmpire
         [SerializeField] private float telegraphDuration = 0.8f;
         [SerializeField] private LayerMask obstacleLayer;
 
+        [Header("Robot Gunner / Shooting Settings")]
+        [SerializeField] private Projectile enemyBulletPrefab;
+        [SerializeField] private float fireRate = 1.2f;
+        [SerializeField] private float shootingDistance = 5f;
+
+        [Header("Robot Blade / Dash Settings")]
+        [SerializeField] private float bladeDashSpeed = 15f;
+        [SerializeField] private float bladeDashDuration = 0.25f;
+        [SerializeField] private float bladeDashCooldown = 3f;
+
+        [Header("Robot Laser Settings")]
+        [SerializeField] private float laserChargeDuration = 1.5f;
+        [SerializeField] private float laserFireDuration = 1f;
+        [SerializeField] private float laserRange = 10f;
+        [SerializeField] private int laserDamage = 5; // Damage per tick
+
         private float _telegraphTimer = 0f;
+        private float _actionCooldownTimer = 0f;
+        private bool _isActionActive = false;
+
         private SpriteRenderer _spriteRenderer;
         private Color _originalColor;
+        private LineRenderer _laserLine;
+
+        public bool IsDead => health != null && health.IsDead;
 
         protected override void Start()
         {
@@ -32,7 +55,20 @@ namespace TheLastEmpire
                 _originalColor = _spriteRenderer.color;
             }
 
-            // Specialize Robot stats
+            // Programmatically add LineRenderer for laser types
+            if (robotType == RobotType.Laser)
+            {
+                _laserLine = gameObject.AddComponent<LineRenderer>();
+                _laserLine.startWidth = 0.05f;
+                _laserLine.endWidth = 0.05f;
+                _laserLine.material = new Material(Shader.Find("Sprites/Default"));
+                _laserLine.startColor = Color.red;
+                _laserLine.endColor = Color.red;
+                _laserLine.positionCount = 2;
+                _laserLine.enabled = false;
+            }
+
+            // Define Robot stats
             switch (robotType)
             {
                 case RobotType.Tanker:
@@ -51,10 +87,24 @@ namespace TheLastEmpire
             }
         }
 
+        protected override void FixedUpdate()
+        {
+            if (health != null && health.IsDead) return;
+
+            if (_actionCooldownTimer > 0f) _actionCooldownTimer -= Time.fixedDeltaTime;
+
+            if (_isActionActive)
+            {
+                return; // Let active action coroutines handle movement/physics
+            }
+
+            base.FixedUpdate();
+        }
+
         protected override void UpdateAIBehavior()
         {
-            // Robot Vision Check: Detects player using Raycast in facing direction (transform.right)
-            // and ONLY if player is currently moving!
+            if (_isActionActive) return;
+
             bool playerDetected = CheckRobotVision();
 
             switch (currentState)
@@ -63,13 +113,10 @@ namespace TheLastEmpire
                 case AIState.Wander:
                     if (playerDetected)
                     {
-                        // Transition to Telegraph state (stagger/charging)
                         currentState = AIState.Telegraph;
                         _telegraphTimer = telegraphDuration;
                         rb.linearVelocity = Vector2.zero;
-                        Debug.Log($"[RobotAI] {gameObject.name} spotted player! Charging attack...");
 
-                        // Flash Red color for visual telegraph warning
                         if (_spriteRenderer != null)
                         {
                             _spriteRenderer.color = Color.red;
@@ -87,7 +134,6 @@ namespace TheLastEmpire
 
                     if (_telegraphTimer <= 0f)
                     {
-                        // Restore color and transition to Chase
                         if (_spriteRenderer != null)
                         {
                             _spriteRenderer.color = _originalColor;
@@ -97,7 +143,36 @@ namespace TheLastEmpire
                     break;
 
                 case AIState.Chase:
-                    // Once in chase mode, it keeps chasing the player
+                    if (playerTransform == null)
+                    {
+                        currentState = AIState.Idle;
+                        return;
+                    }
+
+                    float dist = Vector2.Distance(transform.position, playerTransform.position);
+
+                    // Gunner Robot Shooting Action
+                    if (robotType == RobotType.Gunner && dist <= shootingDistance && _actionCooldownTimer <= 0f)
+                    {
+                        StartCoroutine(ExecuteGunnerShot());
+                        return;
+                    }
+
+                    // Blade Robot Dash Slash Action
+                    if (robotType == RobotType.Blade && dist <= 3f && _actionCooldownTimer <= 0f)
+                    {
+                        StartCoroutine(ExecuteBladeDash());
+                        return;
+                    }
+
+                    // Laser Robot Laser Firing Action
+                    if (robotType == RobotType.Laser && dist <= laserRange && _actionCooldownTimer <= 0f)
+                    {
+                        StartCoroutine(ExecuteLaserFire());
+                        return;
+                    }
+
+                    // Normal pursuit movement
                     ChasePlayer();
                     break;
             }
@@ -107,28 +182,23 @@ namespace TheLastEmpire
         {
             if (playerTransform == null) return false;
 
-            // 1. Distance check
             float dist = Vector2.Distance(transform.position, playerTransform.position);
             if (dist > detectionRange) return false;
 
-            // 2. Check if player is moving
+            // Detects player ONLY when player is currently moving
             Rigidbody2D playerRb = playerTransform.GetComponent<Rigidbody2D>();
             if (playerRb == null || playerRb.linearVelocity.sqrMagnitude < 0.05f)
             {
-                // Player is standing still - Robot doesn't see them!
                 return false;
             }
 
-            // 3. Raycast in facing direction to see if player is in sight
-            // (Uses transform.right since rotation points positive X axis to targets)
+            // Raycast line of sight check
             Vector2 facingDir = transform.right;
             Vector2 toPlayer = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
 
-            // Check if player is generally in front of the robot (FOV check ~60 degrees)
-            float dotProduct = Vector2.Dot(facingDir, toPlayer);
-            if (dotProduct < 0.5f) return false; // Not in front
+            float dot = Vector2.Dot(facingDir, toPlayer);
+            if (dot < 0.5f) return false; // FOV limit
 
-            // Check for line of sight blockages (walls/obstacles)
             RaycastHit2D hit = Physics2D.Raycast(transform.position, toPlayer, detectionRange, ~obstacleLayer);
             if (hit.collider != null && hit.collider.CompareTag("Player"))
             {
@@ -136,6 +206,199 @@ namespace TheLastEmpire
             }
 
             return false;
+        }
+
+        // --- ROBOT ACTIONS ---
+
+        private IEnumerator ExecuteGunnerShot()
+        {
+            _isActionActive = true;
+            _actionCooldownTimer = fireRate;
+            rb.linearVelocity = Vector2.zero;
+            currentState = AIState.Telegraph;
+
+            // Lock rotation towards player
+            Vector2 dir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+            yield return new WaitForSeconds(0.4f); // brief aim delay
+
+            if (playerTransform != null)
+            {
+                Vector2 spawnPos = (Vector2)transform.position + dir * 0.6f;
+                GameObject bullet;
+
+                if (enemyBulletPrefab != null)
+                {
+                    bullet = Instantiate(enemyBulletPrefab.gameObject, spawnPos, Quaternion.identity);
+                }
+                else
+                {
+                    // Fallback procedural projectile
+                    bullet = new GameObject("RobotBullet");
+                    bullet.transform.position = spawnPos;
+                    bullet.transform.localScale = new Vector3(0.15f, 0.15f, 1f);
+
+                    SpriteRenderer sr = bullet.AddComponent<SpriteRenderer>();
+                    sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                    sr.color = Color.red;
+
+                    CircleCollider2D col = bullet.AddComponent<CircleCollider2D>();
+                    col.isTrigger = true;
+
+                    bullet.AddComponent<Projectile>();
+                }
+
+                Projectile proj = bullet.GetComponent<Projectile>();
+                proj.Setup(dir, gameObject);
+            }
+
+            _isActionActive = false;
+            currentState = AIState.Chase;
+        }
+
+        private IEnumerator ExecuteBladeDash()
+        {
+            _isActionActive = true;
+            _actionCooldownTimer = bladeDashCooldown;
+            rb.linearVelocity = Vector2.zero;
+            currentState = AIState.Telegraph;
+
+            // Flash red warning
+            if (_spriteRenderer != null) _spriteRenderer.color = Color.red;
+            yield return new WaitForSeconds(0.3f);
+            if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+
+            // Dash forward
+            if (playerTransform != null)
+            {
+                Vector2 dashDir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                float dashTimer = bladeDashDuration;
+
+                while (dashTimer > 0f && playerTransform != null)
+                {
+                    dashTimer -= Time.deltaTime;
+                    rb.linearVelocity = dashDir * bladeDashSpeed;
+                    yield return null;
+                }
+            }
+
+            rb.linearVelocity = Vector2.zero;
+            _isActionActive = false;
+            currentState = AIState.Chase;
+        }
+
+        private IEnumerator ExecuteLaserFire()
+        {
+            _isActionActive = true;
+            _actionCooldownTimer = 3f;
+            rb.linearVelocity = Vector2.zero;
+            currentState = AIState.Telegraph;
+
+            // Enable Warning Laser Guide
+            if (_laserLine != null)
+            {
+                _laserLine.enabled = true;
+                _laserLine.startWidth = 0.03f;
+                _laserLine.endWidth = 0.03f;
+                _laserLine.startColor = new Color(1f, 0f, 0f, 0.3f); // faint red
+            }
+
+            float chargeTimer = laserChargeDuration;
+            while (chargeTimer > 0f && playerTransform != null)
+            {
+                chargeTimer -= Time.deltaTime;
+                Vector2 dir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                
+                // Align rotation to player
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+                if (_laserLine != null)
+                {
+                    _laserLine.SetPosition(0, transform.position);
+                    _laserLine.SetPosition(1, transform.position + (Vector3)dir * laserRange);
+                }
+                yield return null;
+            }
+
+            // Fire Laser Beam
+            if (_laserLine != null)
+            {
+                _laserLine.startWidth = 0.25f; // thick beam
+                _laserLine.endWidth = 0.25f;
+                _laserLine.startColor = Color.red;
+                _laserLine.endColor = Color.red;
+            }
+
+            float fireTimer = laserFireDuration;
+            while (fireTimer > 0f && playerTransform != null)
+            {
+                fireTimer -= Time.deltaTime;
+                Vector2 dir = transform.right;
+
+                if (_laserLine != null)
+                {
+                    _laserLine.SetPosition(0, transform.position);
+                    _laserLine.SetPosition(1, transform.position + (Vector3)dir * laserRange);
+                }
+
+                // Laser Raycast Damage Tick check
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, laserRange, ~obstacleLayer);
+                if (hit.collider != null && hit.collider.CompareTag("Player"))
+                {
+                    IDamageable damageable = hit.collider.GetComponent<IDamageable>();
+                    if (damageable != null)
+                    {
+                        damageable.TakeDamage(laserDamage);
+                    }
+                }
+                yield return null;
+            }
+
+            if (_laserLine != null) _laserLine.enabled = false;
+            _isActionActive = false;
+            currentState = AIState.Chase;
+        }
+
+        // --- IDamageable Implementation for Frontal Shield ---
+
+        public void TakeDamage(int damageAmount)
+        {
+            if (IsDead) return;
+
+            // Tanker Frontal Shield logic
+            if (robotType == RobotType.Tanker && playerTransform != null)
+            {
+                Vector2 facingDir = transform.right;
+                Vector2 toPlayer = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+
+                // Dot product > 0 means the player (instigator) is standing in front of the shield!
+                float dot = Vector2.Dot(facingDir, toPlayer);
+                if (dot > 0f)
+                {
+                    Debug.Log($"[RobotAI] Frontal Shield blocked {damageAmount} damage!");
+                    
+                    // Flash gray color to indicate blocked damage feedback
+                    StartCoroutine(FlashColorFeedback(Color.gray, 0.15f));
+                    return; // Damage blocked!
+                }
+            }
+
+            // Normal damage forwarding to health
+            if (health != null)
+            {
+                health.TakeDamage(damageAmount);
+            }
+        }
+
+        private IEnumerator FlashColorFeedback(Color color, float duration)
+        {
+            if (_spriteRenderer == null) yield break;
+            _spriteRenderer.color = color;
+            yield return new WaitForSeconds(duration);
+            _spriteRenderer.color = _originalColor;
         }
     }
 }
