@@ -15,12 +15,15 @@ namespace TheLastEmpire
         public float lacunarity = 2.0f;
         public Vector2 noiseOffset = Vector2.zero;
 
-        [Header("Biome Thresholds")]
-        [Range(0f, 1f)] public float waterThreshold = 0.15f;
-        [Range(0f, 1f)] public float forestThreshold = 0.40f;
-        [Range(0f, 1f)] public float suburbanThreshold = 0.55f;
-        [Range(0f, 1f)] public float highwayThreshold = 0.68f;
+        [Header("Biome Thresholds (Base Map)")]
+        [Range(0f, 1f)] public float waterThreshold = 0.12f;
+        [Range(0f, 1f)] public float forestThreshold = 0.32f;
+        [Range(0f, 1f)] public float suburbanThreshold = 0.45f;
         [Range(0f, 1f)] public float urbanThreshold = 0.85f;
+
+        [Header("Highway Winding Settings")]
+        public float highwayScale = 12f;
+        [Range(0.01f, 0.1f)] public float highwayWidth = 0.035f;
 
         [HideInInspector]
         public StageData[] gridData;
@@ -33,14 +36,28 @@ namespace TheLastEmpire
             float offsetX = noiseOffset.x + (float)(rand.NextDouble() * 200000 - 100000);
             float offsetY = noiseOffset.y + (float)(rand.NextDouble() * 200000 - 100000);
 
+            // Generate separate offsets for winding highways
+            float roadOffsetX = noiseOffset.x + (float)(rand.NextDouble() * 200000 - 100000);
+            float roadOffsetY = noiseOffset.y + (float)(rand.NextDouble() * 200000 - 100000);
+
             for (int y = 0; y < GridSize; y++)
             {
                 for (int x = 0; x < GridSize; x++)
                 {
                     float noiseValue = GetOctaveNoise(x, y, offsetX, offsetY);
                     BiomeType biome = GetBiomeFromNoise(noiseValue);
-                    int stageSeed = rand.Next();
 
+                    // Overlay winding highways if the base biome is not Waterways
+                    if (biome != BiomeType.Waterways)
+                    {
+                        float roadNoise = GetOctaveNoise(x, y, roadOffsetX, roadOffsetY, highwayScale, noiseOctaves, persistence, lacunarity);
+                        if (Mathf.Abs(roadNoise - 0.5f) < highwayWidth)
+                        {
+                            biome = BiomeType.Highways;
+                        }
+                    }
+
+                    int stageSeed = rand.Next();
                     gridData[x + y * GridSize] = new StageData(x, y, biome, stageSeed);
                 }
             }
@@ -62,22 +79,27 @@ namespace TheLastEmpire
 
         private float GetOctaveNoise(int x, int y, float offsetX, float offsetY)
         {
+            return GetOctaveNoise(x, y, offsetX, offsetY, noiseScale, noiseOctaves, persistence, lacunarity);
+        }
+
+        private float GetOctaveNoise(int x, int y, float offsetX, float offsetY, float scale, int octaves, float pers, float lacun)
+        {
             float amplitude = 1f;
             float frequency = 1f;
             float noiseHeight = 0f;
             float maxPossibleHeight = 0f;
 
-            for (int i = 0; i < noiseOctaves; i++)
+            for (int i = 0; i < octaves; i++)
             {
-                float sampleX = (x + offsetX) / noiseScale * frequency;
-                float sampleY = (y + offsetY) / noiseScale * frequency;
+                float sampleX = (x + offsetX) / scale * frequency;
+                float sampleY = (y + offsetY) / scale * frequency;
 
                 float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
                 noiseHeight += perlinValue * amplitude;
 
                 maxPossibleHeight += amplitude;
-                amplitude *= persistence;
-                frequency *= lacunarity;
+                amplitude *= pers;
+                frequency *= lacun;
             }
 
             return Mathf.Clamp01(noiseHeight / maxPossibleHeight);
@@ -88,7 +110,6 @@ namespace TheLastEmpire
             if (val < waterThreshold) return BiomeType.Waterways;
             if (val < forestThreshold) return BiomeType.OvergrownForests;
             if (val < suburbanThreshold) return BiomeType.SuburbanVillages;
-            if (val < highwayThreshold) return BiomeType.Highways;
             if (val < urbanThreshold) return BiomeType.UrbanRuins;
             return BiomeType.Highlands;
         }
