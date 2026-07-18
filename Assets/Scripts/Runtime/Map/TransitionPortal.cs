@@ -135,22 +135,6 @@ namespace TheLastEmpire
 
             int playerX = WorldMapManager.Instance.CurrentPlayerX;
             int playerY = WorldMapManager.Instance.CurrentPlayerY;
-            
-            Camera cam = Camera.main;
-            Vector3 camPos = cam != null ? cam.transform.position : Vector3.zero;
-            
-            // Default boundaries if camera calculation is missing
-            float calculatedYLimit = 5f;
-            float calculatedXLimit = 8.5f;
-
-            if (cam != null && cam.orthographic)
-            {
-                calculatedYLimit = cam.orthographicSize;
-                calculatedXLimit = calculatedYLimit * cam.aspect;
-            }
-
-            Vector3 pos = player.transform.position;
-            bool transitioned = false;
 
             switch (direction)
             {
@@ -158,8 +142,7 @@ namespace TheLastEmpire
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                        pos.y = camPos.y - calculatedYLimit + entryOffset;
-                        transitioned = true;
+                        Debug.Log($"[TransitionPortal] Move player North to Stage ({playerX}, {playerY + 1})");
                     }
                     break;
 
@@ -167,8 +150,7 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                        pos.y = camPos.y + calculatedYLimit - entryOffset;
-                        transitioned = true;
+                        Debug.Log($"[TransitionPortal] Move player South to Stage ({playerX}, {playerY - 1})");
                     }
                     break;
 
@@ -176,8 +158,7 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                        pos.x = camPos.x - calculatedXLimit + entryOffset;
-                        transitioned = true;
+                        Debug.Log($"[TransitionPortal] Move player East to Stage ({playerX + 1}, {playerY})");
                     }
                     break;
 
@@ -185,26 +166,9 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                        pos.x = camPos.x + calculatedXLimit - entryOffset;
-                        transitioned = true;
+                        Debug.Log($"[TransitionPortal] Move player West to Stage ({playerX - 1}, {playerY})");
                     }
                     break;
-            }
-
-            if (transitioned)
-            {
-                player.transform.position = pos;
-
-                // Sync Rigidbody2D position explicitly to prevent Unity's physics engine from overriding the teleportation
-                Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
-                if (playerRb != null)
-                {
-                    playerRb.position = pos;
-                    playerRb.linearVelocity = Vector2.zero;
-                }
-                
-                Physics2D.SyncTransforms(); // Force immediate transform update to colliders
-                Debug.Log($"[TransitionPortal] Transitioned stage {direction} via Portal!");
             }
         }
     }
