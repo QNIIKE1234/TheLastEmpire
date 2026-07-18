@@ -228,6 +228,7 @@ MonoBehaviour:
   poolKey: ZombieBoomer
   wanderTime: 2
   idleTime: 1.5
+  staggerDuration: 0
   zombieType: 2
   leapCooldown: 4
   leapSpeed: 12
@@ -236,7 +237,7 @@ MonoBehaviour:
   explosionDamage: 45
   fuseDuration: 0.8
   buffRadius: 6
-  childZombiePrefab: {fileID: 0}
+  childZombiePrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
   spawnCooldown: 10
   maxChildSpawns: 3
   childPoolKey: Zombie001

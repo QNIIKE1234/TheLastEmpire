@@ -228,10 +228,11 @@ MonoBehaviour:
   poolKey: ZombieDog
   wanderTime: 2
   idleTime: 1.5
+  staggerDuration: 0.3
   zombieType: 1
   leapCooldown: 4
   leapSpeed: 12
-  leapDuration: 0.3
+  leapDuration: 0.1
   explosionRadius: 3
   explosionDamage: 45
   fuseDuration: 0.8

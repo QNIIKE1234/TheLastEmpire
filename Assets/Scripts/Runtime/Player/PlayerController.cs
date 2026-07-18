@@ -424,39 +424,7 @@ namespace TheLastEmpire
 
         private void CheckBoundaries()
         {
-            if (WorldMapManager.Instance == null) return;
-
-            Vector3 pos = transform.position;
-            float calculatedXLimit = xLimit;
-            float calculatedYLimit = yLimit;
-            Vector3 camPos = Vector3.zero;
-
-            Camera cam = Camera.main;
-            if (cam != null)
-            {
-                camPos = cam.transform.position;
-                if (cam.orthographic)
-                {
-                    calculatedYLimit = Mathf.Max(3f, cam.orthographicSize);
-                    calculatedXLimit = Mathf.Max(4f, calculatedYLimit * cam.aspect);
-                }
-            }
-
-            float relX = pos.x - camPos.x;
-            float relY = pos.y - camPos.y;
-
-            // Constantly clamp player position inside screen limits
-            float clampMargin = 0.25f;
-            float maxX = calculatedXLimit - clampMargin;
-            float maxY = calculatedYLimit - clampMargin;
-
-            if (relX > maxX) pos.x = camPos.x + maxX;
-            else if (relX < -maxX) pos.x = camPos.x - maxX;
-
-            if (relY > maxY) pos.y = camPos.y + maxY;
-            else if (relY < -maxY) pos.y = camPos.y - maxY;
-
-            transform.position = pos;
+            // Clamping is now handled physically by the screen boundary colliders generated in SetupScreenBoundaries()!
         }
 
         private void OnDrawGizmosSelected()
