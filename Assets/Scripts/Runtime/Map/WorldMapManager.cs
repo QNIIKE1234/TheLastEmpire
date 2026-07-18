@@ -53,9 +53,16 @@ namespace TheLastEmpire
             mapGenerator.seed = seed;
             mapGenerator.GenerateMap();
 
-            // Start in the center of the grid map
-            CurrentPlayerX = WorldMapGenerator.GridSize / 2;
-            CurrentPlayerY = WorldMapGenerator.GridSize / 2;
+            // Pick a random walkable starting location (not on Waterways) based on the seed
+            System.Random rand = new System.Random(seed);
+            int attempts = 0;
+            do
+            {
+                CurrentPlayerX = rand.Next(0, WorldMapGenerator.GridSize);
+                CurrentPlayerY = rand.Next(0, WorldMapGenerator.GridSize);
+                attempts++;
+            } 
+            while (mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY)?.biome == BiomeType.Waterways && attempts < 100);
 
             // Reveal the starting location
             StageData startingStage = mapGenerator.GetStage(CurrentPlayerX, CurrentPlayerY);
