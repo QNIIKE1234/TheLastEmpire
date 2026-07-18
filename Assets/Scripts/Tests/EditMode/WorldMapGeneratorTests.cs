@@ -20,14 +20,14 @@ namespace TheLastEmpire
         }
 
         [Test]
-        public void GenerateMap_Populates4096Cells()
+        public void GenerateMap_PopulatesExpectedCells()
         {
             Assert.IsNull(_generator.gridData);
 
             _generator.GenerateMap();
 
             Assert.IsNotNull(_generator.gridData);
-            Assert.AreEqual(4096, _generator.gridData.Length);
+            Assert.AreEqual(WorldMapGenerator.GridSize * WorldMapGenerator.GridSize, _generator.gridData.Length);
         }
 
         [Test]

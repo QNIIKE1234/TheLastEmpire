@@ -5,7 +5,7 @@ namespace TheLastEmpire
     [CreateAssetMenu(fileName = "WorldMapGenerator", menuName = "The Last Empire/World Map Generator", order = 1)]
     public class WorldMapGenerator : ScriptableObject
     {
-        public const int GridSize = 64;
+        public const int GridSize = 128;
 
         [Header("Generation Settings")]
         public int seed = 1337;
