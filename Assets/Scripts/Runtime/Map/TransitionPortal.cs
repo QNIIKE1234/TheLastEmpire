@@ -124,19 +124,6 @@ namespace TheLastEmpire
             int playerX = WorldMapManager.Instance.CurrentPlayerX;
             int playerY = WorldMapManager.Instance.CurrentPlayerY;
             
-            Camera cam = Camera.main;
-            Vector3 camPos = cam != null ? cam.transform.position : Vector3.zero;
-            
-            // Default boundaries if camera calculation is missing
-            float calculatedYLimit = 5f;
-            float calculatedXLimit = 8.5f;
-
-            if (cam != null && cam.orthographic)
-            {
-                calculatedYLimit = cam.orthographicSize;
-                calculatedXLimit = calculatedYLimit * cam.aspect;
-            }
-
             Vector3 pos = player.transform.position;
             bool transitioned = false;
 
@@ -146,7 +133,7 @@ namespace TheLastEmpire
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                        pos.y = camPos.y - calculatedYLimit + entryOffset;
+                        pos.y += 30f;
                         transitioned = true;
                     }
                     break;
@@ -155,7 +142,7 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                        pos.y = camPos.y + calculatedYLimit - entryOffset;
+                        pos.y -= 30f;
                         transitioned = true;
                     }
                     break;
@@ -164,7 +151,7 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                        pos.x = camPos.x - calculatedXLimit + entryOffset;
+                        pos.x += 30f;
                         transitioned = true;
                     }
                     break;
@@ -173,7 +160,7 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                        pos.x = camPos.x + calculatedXLimit - entryOffset;
+                        pos.x -= 30f;
                         transitioned = true;
                     }
                     break;
@@ -192,7 +179,7 @@ namespace TheLastEmpire
                 }
                 
                 Physics2D.SyncTransforms(); // Force immediate transform update to colliders
-                Debug.Log($"[TransitionPortal] Transitioned stage {direction} via Portal!");
+                Debug.Log($"[TransitionPortal] Transitioned stage {direction} via flat 30m offset!");
             }
         }
     }
