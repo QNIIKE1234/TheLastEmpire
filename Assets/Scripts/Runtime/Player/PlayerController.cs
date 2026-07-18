@@ -198,7 +198,11 @@ namespace TheLastEmpire
             Vector2 spawnPos = (Vector2)transform.position + _aimDirection * 0.6f;
 
             GameObject bullet;
-            if (projectilePrefab != null)
+            if (projectilePrefab != null && !string.IsNullOrEmpty(projectilePrefab.PoolKey) && ObjectPoolManager.Instance != null)
+            {
+                bullet = ObjectPoolManager.Instance.SpawnFromPool(projectilePrefab.PoolKey, spawnPos, Quaternion.identity);
+            }
+            else if (projectilePrefab != null)
             {
                 bullet = Instantiate(projectilePrefab.gameObject, spawnPos, Quaternion.identity);
             }

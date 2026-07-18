@@ -71,5 +71,11 @@ namespace TheLastEmpire
             if (IsDead) return;
             CurrentHealth += healAmount;
         }
+
+        public void ResetHealth()
+        {
+            CurrentHealth = maxHealth;
+            _invulnerabilityTimer = 0f; // Clear any active I-frames on reset
+        }
     }
 }

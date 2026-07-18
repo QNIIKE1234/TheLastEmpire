@@ -9,9 +9,17 @@ namespace TheLastEmpire
         [SerializeField] private float speed = 12f;
         [SerializeField] private int damage = 20;
         [SerializeField] private float lifetime = 3f;
+        [SerializeField] private string poolKey = "";
 
         private Rigidbody2D _rb;
         private GameObject _owner;
+        private float _lifeTimer;
+
+        public string PoolKey
+        {
+            get => poolKey;
+            set => poolKey = value;
+        }
 
         private void Awake()
         {
@@ -26,10 +34,18 @@ namespace TheLastEmpire
             }
         }
 
-        private void Start()
+        private void OnEnable()
         {
-            // Destroy after lifetime ends
-            Destroy(gameObject, lifetime);
+            _lifeTimer = lifetime;
+        }
+
+        private void Update()
+        {
+            _lifeTimer -= Time.deltaTime;
+            if (_lifeTimer <= 0f)
+            {
+                DeactivateProjectile();
+            }
         }
 
         public void Setup(Vector2 direction, GameObject owner)
@@ -52,12 +68,25 @@ namespace TheLastEmpire
             if (damageable != null)
             {
                 damageable.TakeDamage(damage);
-                Destroy(gameObject);
+                DeactivateProjectile();
                 return;
             }
 
             // Hit solid wall or obstacle (except triggers)
             if (!collision.isTrigger)
+            {
+                DeactivateProjectile();
+            }
+        }
+
+        private void DeactivateProjectile()
+        {
+            if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
+            {
+                _rb.linearVelocity = Vector2.zero;
+                ObjectPoolManager.Instance.ReturnToPool(poolKey, gameObject);
+            }
+            else
             {
                 Destroy(gameObject);
             }

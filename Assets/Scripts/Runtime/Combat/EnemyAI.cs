@@ -8,6 +8,7 @@ namespace TheLastEmpire
         [Header("Settings")]
         [SerializeField] private float moveSpeed = 3f;
         [SerializeField] private float detectionRange = 15f;
+        [SerializeField] private string poolKey = "";
 
         private Rigidbody2D _rb;
         private Transform _playerTransform;
@@ -70,8 +71,15 @@ namespace TheLastEmpire
         {
             Debug.Log($"[EnemyAI] Enemy {gameObject.name} has been defeated!");
             
-            // Re-route clean-up (could spawn loot, trigger particles, etc.)
-            Destroy(gameObject);
+            if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
+            {
+                _health.ResetHealth();
+                ObjectPoolManager.Instance.ReturnToPool(poolKey, gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         private void OnDestroy()
