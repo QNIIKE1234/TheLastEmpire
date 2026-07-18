@@ -5,12 +5,12 @@ namespace TheLastEmpire.Runtime.Map
     [RequireComponent(typeof(SpriteRenderer))]
     public class WorldMapVisualizer : MonoBehaviour
     {
-        [SerializeField] private TheLastEmpire.Runtime.Map.WorldMapGenerator mapGenerator;
+        [SerializeField] private WorldMapGenerator mapGenerator;
         [SerializeField] private float pixelsPerUnit = 10f;
 
         private SpriteRenderer _spriteRenderer;
 
-        public TheLastEmpire.Runtime.Map.WorldMapGenerator MapGenerator
+        public WorldMapGenerator MapGenerator
         {
             get => mapGenerator;
             set => mapGenerator = value;
