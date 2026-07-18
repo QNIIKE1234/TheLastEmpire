@@ -79,63 +79,83 @@ namespace TheLastEmpire
             int playerX = WorldMapManager.Instance.CurrentPlayerX;
             int playerY = WorldMapManager.Instance.CurrentPlayerY;
 
+            // Dynamically calculate limits based on the camera's current setup
+            float calculatedXLimit = xLimit;
+            float calculatedYLimit = yLimit;
+            Vector3 camPos = Vector3.zero;
+
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                camPos = cam.transform.position;
+                if (cam.orthographic)
+                {
+                    calculatedYLimit = cam.orthographicSize;
+                    calculatedXLimit = calculatedYLimit * cam.aspect;
+                }
+            }
+
             bool transitioned = false;
 
+            // Coordinates relative to camera position
+            float relX = pos.x - camPos.x;
+            float relY = pos.y - camPos.y;
+
             // East boundary (Exit Right)
-            if (pos.x > xLimit)
+            if (relX > calculatedXLimit)
             {
                 if (playerX < WorldMapGenerator.GridSize - 1)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                    pos.x = -xLimit + entryOffset;
+                    pos.x = camPos.x - calculatedXLimit + entryOffset;
                     transitioned = true;
                 }
                 else
                 {
-                    pos.x = xLimit;
+                    pos.x = camPos.x + calculatedXLimit;
                 }
             }
             // West boundary (Exit Left)
-            else if (pos.x < -xLimit)
+            else if (relX < -calculatedXLimit)
             {
                 if (playerX > 0)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                    pos.x = xLimit - entryOffset;
+                    pos.x = camPos.x + calculatedXLimit - entryOffset;
                     transitioned = true;
                 }
                 else
                 {
-                    pos.x = -xLimit;
+                    pos.x = camPos.x - calculatedXLimit;
                 }
             }
 
             // North boundary (Exit Up)
-            if (pos.y > yLimit)
+            if (relY > calculatedYLimit)
             {
                 if (playerY < WorldMapGenerator.GridSize - 1)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                    pos.y = -yLimit + entryOffset;
+                    pos.y = camPos.y - calculatedYLimit + entryOffset;
                     transitioned = true;
                 }
                 else
                 {
-                    pos.y = yLimit;
+                    pos.y = camPos.y + calculatedYLimit;
                 }
             }
             // South boundary (Exit Down)
-            else if (pos.y < -yLimit)
+            else if (relY < -calculatedYLimit)
             {
                 if (playerY > 0)
                 {
                     WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                    pos.y = yLimit - entryOffset;
+                    pos.y = camPos.y + calculatedYLimit - entryOffset;
                     transitioned = true;
                 }
                 else
                 {
-                    pos.y = -yLimit;
+                    pos.y = camPos.y - calculatedYLimit;
                 }
             }
 
