@@ -2,7 +2,7 @@ namespace TheLastEmpire
 {
     public interface IDamageable
     {
-        void TakeDamage(int damageAmount);
+        void TakeDamage(float damageAmount);
         bool IsDead { get; }
     }
 }

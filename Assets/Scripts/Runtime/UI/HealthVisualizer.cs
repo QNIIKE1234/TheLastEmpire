@@ -48,7 +48,7 @@ namespace TheLastEmpire
             }
         }
 
-        private void UpdateHPText(int currentHealth)
+        private void UpdateHPText(float currentHealth)
         {
             if (hpText == null || health == null) return;
 

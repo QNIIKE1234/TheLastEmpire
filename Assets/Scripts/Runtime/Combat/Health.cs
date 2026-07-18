@@ -6,20 +6,20 @@ namespace TheLastEmpire
     public class Health : MonoBehaviour, IDamageable
     {
         [Header("Settings")]
-        [SerializeField] private int maxHealth = 100;
-        [SerializeField] private int currentHealth = 100;
+        [SerializeField] private float maxHealth = 100;
+        [SerializeField] private float currentHealth = 100;
         [SerializeField] private float defaultInvulnerabilityDuration = 0.25f;
 
         [Header("Events")]
-        public UnityEvent<int> onHealthChanged;
-        public UnityEvent<int> onDamageTaken;
+        public UnityEvent<float> onHealthChanged;
+        public UnityEvent<float> onDamageTaken;
         public UnityEvent onDeath;
 
         private float _invulnerabilityTimer = 0f;
 
-        public int MaxHealth => maxHealth;
+        public float MaxHealth => maxHealth;
         
-        public int CurrentHealth
+        public float CurrentHealth
         {
             get => currentHealth;
             private set
@@ -49,7 +49,7 @@ namespace TheLastEmpire
             _invulnerabilityTimer = Mathf.Max(_invulnerabilityTimer, duration);
         }
 
-        public void TakeDamage(int damageAmount)
+        public void TakeDamage(float damageAmount)
         {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
@@ -66,7 +66,7 @@ namespace TheLastEmpire
             }
         }
 
-        public void Heal(int healAmount)
+        public void Heal(float healAmount)
         {
             if (IsDead) return;
             CurrentHealth += healAmount;
