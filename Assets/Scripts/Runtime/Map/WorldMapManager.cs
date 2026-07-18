@@ -38,6 +38,9 @@ namespace TheLastEmpire
         {
             if (mapGenerator != null)
             {
+                // Reset persistent editor memory at startup so it doesn't auto-save exploration
+                ResetMapProgression();
+
                 // If map is not generated yet, generate it
                 if (mapGenerator.gridData == null || mapGenerator.gridData.Length != WorldMapGenerator.GridSize * WorldMapGenerator.GridSize)
                 {
@@ -178,6 +181,20 @@ namespace TheLastEmpire
                 }
 
                 OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);
+            }
+        }
+
+        [ContextMenu("Reset Map Exploration")]
+        public void ResetMapProgression()
+        {
+            if (mapGenerator == null || mapGenerator.gridData == null) return;
+            foreach (var stage in mapGenerator.gridData)
+            {
+                if (stage != null)
+                {
+                    stage.isExplored = false;
+                    stage.isCleared = false;
+                }
             }
         }
     }
