@@ -40,6 +40,60 @@ namespace TheLastEmpire
             }
         }
 
+        private void Start()
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged += UpdatePortalVisibility;
+                UpdatePortalVisibility(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged -= UpdatePortalVisibility;
+            }
+        }
+
+        private void UpdatePortalVisibility(int x, int y)
+        {
+            if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
+
+            bool pathExists = false;
+            switch (direction)
+            {
+                case TransitionDirection.North:
+                    pathExists = y < WorldMapGenerator.GridSize - 1 && WorldMapManager.Instance.MapGenerator.GetStage(x, y + 1) != null;
+                    break;
+                case TransitionDirection.South:
+                    pathExists = y > 0 && WorldMapManager.Instance.MapGenerator.GetStage(x, y - 1) != null;
+                    break;
+                case TransitionDirection.East:
+                    pathExists = x < WorldMapGenerator.GridSize - 1 && WorldMapManager.Instance.MapGenerator.GetStage(x + 1, y) != null;
+                    break;
+                case TransitionDirection.West:
+                    pathExists = x > 0 && WorldMapManager.Instance.MapGenerator.GetStage(x - 1, y) != null;
+                    break;
+            }
+
+            // Clean up: Disable visual sprite renderer and collision trigger so player cannot see/enter invalid directions
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.enabled = pathExists;
+            }
+
+            Collider2D col = GetComponent<Collider2D>();
+            if (col != null)
+            {
+                col.enabled = pathExists;
+            }
+
+            Debug.Log($"[TransitionPortal] {direction} portal visibility set to: {pathExists} (Stage: {x}, {y})");
+        }
+
         public void TriggerTransition(PlayerController player)
         {
             if (WorldMapManager.Instance == null) return;
