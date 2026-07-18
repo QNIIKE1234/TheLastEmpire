@@ -77,7 +77,7 @@ namespace TheLastEmpire
 #if UNITY_EDITOR
             if (playerInput.actions == null)
             {
-                InputActionAsset defaultActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+                InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
                 if (defaultActions != null)
                 {
                     playerInput.actions = defaultActions;
