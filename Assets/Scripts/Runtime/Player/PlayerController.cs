@@ -43,6 +43,7 @@ namespace TheLastEmpire
         private Vector2 _dashDirection;
         private Color _originalColor = Color.white;
         private SpriteRenderer _spriteRenderer;
+        private PlayerInventory _inventory;
 
         private void Start()
         {
@@ -61,6 +62,13 @@ namespace TheLastEmpire
             if (_health == null)
             {
                 _health = gameObject.AddComponent<Health>();
+            }
+
+            // Bind Inventory component or dynamically attach it
+            _inventory = GetComponent<PlayerInventory>();
+            if (_inventory == null)
+            {
+                _inventory = gameObject.AddComponent<PlayerInventory>();
             }
 
             // Automatically setup PlayerInput component
@@ -174,6 +182,10 @@ namespace TheLastEmpire
                 {
                     StartDash();
                 }
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    TryInteract();
+                }
             }
         }
 
@@ -189,6 +201,45 @@ namespace TheLastEmpire
             if (value.isPressed && _fireCooldownTimer <= 0f && !_isDashing)
             {
                 ShootWeapon();
+            }
+        }
+
+        private void OnInteract(InputValue value)
+        {
+            if (value.isPressed)
+            {
+                TryInteract();
+            }
+        }
+
+        private void TryInteract()
+        {
+            CollectibleItem[] collectibles = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+            CollectibleItem closestItem = null;
+            float closestDist = float.MaxValue;
+
+            foreach (var item in collectibles)
+            {
+                if (item == null) continue;
+                float dist = Vector2.Distance(transform.position, item.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestItem = item;
+                }
+            }
+
+            if (closestItem != null && closestItem.IsPlayerInRange())
+            {
+                if (closestItem.IsMoney)
+                {
+                    _inventory.AddMoney(closestItem.MoneyAmount);
+                }
+                else
+                {
+                    _inventory.AddItem(closestItem.ItemName);
+                }
+                closestItem.Collect();
             }
         }
 

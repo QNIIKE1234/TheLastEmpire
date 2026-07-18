@@ -80,7 +80,7 @@ namespace TheLastEmpire
             {
                 if (enemy == null) continue;
 
-                EnemyAI ai = enemy.GetComponent<EnemyAI>();
+                BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
                 string activePoolKey = ai != null ? ai.PoolKey : "";
 
                 if (!string.IsNullOrEmpty(activePoolKey) && ObjectPoolManager.Instance != null)
@@ -122,11 +122,27 @@ namespace TheLastEmpire
                 }
             }
 
-            // 4. Spawning local stage enemies (0-3 Enemies) based on configuration
+            // 4. Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
+            if (configFound && currentConfig.enemyPrefab != null)
+            {
+                AlienAI alienCheck = currentConfig.enemyPrefab.GetComponent<AlienAI>();
+                if (alienCheck != null)
+                {
+                    float spawnProbability = isNight ? 0.8f : 0.2f;
+                    if (Random.value > spawnProbability)
+                    {
+                        Debug.Log($"[GameManager] Skipped spawning Aliens due to day/night probability (Is Night: {isNight})");
+                        return; // Skip spawning for this stage
+                    }
+                }
+            }
+
+            // 5. Spawning local stage enemies (0-3 Enemies) based on configuration
             if (configFound && currentConfig.enemyPrefab != null)
             {
                 int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
-                Debug.Log($"[GameManager] Spawning {spawnCount} enemies of type '{currentConfig.enemyPrefab.name}' on {stage.biome} stage using seed {stage.stageSeed}.");
+                Debug.Log($"[GameManager] Spawning {spawnCount} enemies of type '{currentConfig.enemyPrefab.name}' on {stage.biome} stage using seed {stage.stageSeed}. (Is Night: {isNight})");
 
                 for (int i = 0; i < spawnCount; i++)
                 {
