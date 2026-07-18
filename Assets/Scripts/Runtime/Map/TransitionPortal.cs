@@ -62,18 +62,6 @@ namespace TheLastEmpire
                 sr.color = new Color(0.5f, 0.5f, 0.5f, 0.35f); // Faint semi-transparent gray
                 sr.sortingOrder = 2; // Render above background
 
-                // Set default rectangular scales based on direction
-                if (transform.localScale == Vector3.one)
-                {
-                    if (direction == TransitionDirection.North || direction == TransitionDirection.South)
-                    {
-                        transform.localScale = new Vector3(2.2f, 0.6f, 1f); // horizontal portal block
-                    }
-                    else
-                    {
-                        transform.localScale = new Vector3(0.6f, 2.2f, 1f); // vertical portal block
-                    }
-                }
             }
 
             // 3. Register to stage change updates
