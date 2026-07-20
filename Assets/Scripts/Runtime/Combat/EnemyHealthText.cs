@@ -27,9 +27,24 @@ namespace TheLastEmpire
             // Use the standard Arial font that is bundled with Unity
             _textMesh.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             MeshRenderer mr = textObj.GetComponent<MeshRenderer>();
-            if (mr != null && _textMesh.font != null)
+            if (mr != null)
             {
-                mr.material = _textMesh.font.material;
+                if (_textMesh.font != null)
+                {
+                    mr.material = _textMesh.font.material;
+                }
+
+                // Copy parent's sorting layer to stay in the same layer space but draw on top
+                SpriteRenderer parentSr = GetComponent<SpriteRenderer>();
+                if (parentSr != null)
+                {
+                    mr.sortingLayerID = parentSr.sortingLayerID;
+                    mr.sortingOrder = parentSr.sortingOrder + 10;
+                }
+                else
+                {
+                    mr.sortingOrder = 100;
+                }
             }
 
             if (_health != null)
