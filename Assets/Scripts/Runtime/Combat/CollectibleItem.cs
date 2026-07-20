@@ -114,6 +114,17 @@ namespace TheLastEmpire
                         sr.sprite = data.icon;
                         // Reset tint to white so custom textures render properly
                         sr.color = Color.white; 
+
+                        // Normalize scale so large sprites don't take up the whole screen
+                        float spriteWidth = data.icon.rect.width / data.icon.pixelsPerUnit;
+                        float spriteHeight = data.icon.rect.height / data.icon.pixelsPerUnit;
+                        float maxDimension = Mathf.Max(spriteWidth, spriteHeight);
+                        if (maxDimension > 0f)
+                        {
+                            // Target world size: 0.45 meters
+                            float targetScale = 0.45f / maxDimension;
+                            transform.localScale = new Vector3(targetScale, targetScale, 1f);
+                        }
                     }
                     else
                     {
