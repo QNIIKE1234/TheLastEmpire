@@ -19,6 +19,11 @@ namespace TheLastEmpire
         [SerializeField] private int minMoney = 5;
         [SerializeField] private int maxMoney = 20;
 
+        [Header("Boss Configs")]
+        [SerializeField] private bool isBoss = false;
+
+        public bool IsBoss { get => isBoss; set => isBoss = value; }
+
         private Health _health;
 
         private void Start()
@@ -44,55 +49,63 @@ namespace TheLastEmpire
 
         private void DropLoot()
         {
-            // 1. Roll for Item Drop (Guaranteed Ammo, Potion, or ETC on kill)
-            if (itemPrefab != null)
+            int dropCount = isBoss ? 5 : 1;
+
+            for (int i = 0; i < dropCount; i++)
             {
-                float p = Random.value;
-                string dropName;
-                int dropQty;
+                // 1. Roll for Item Drop (Guaranteed Ammo, Potion, or ETC on kill)
+                if (itemPrefab != null)
+                {
+                    float p = Random.value;
+                    string dropName;
+                    int dropQty;
 
-                if (p < 0.35f)
-                {
-                    dropName = "Ammo";
-                    dropQty = Random.Range(3, 8); // 3 to 7
-                }
-                else if (p < 0.70f)
-                {
-                    dropName = "Potion";
-                    dropQty = Random.Range(1, 3); // 1 to 2
-                }
-                else
-                {
-                    dropName = "ETC";
-                    dropQty = Random.Range(1, 6); // 1 to 5
+                    if (p < 0.35f)
+                    {
+                        dropName = "Ammo";
+                        dropQty = Random.Range(3, 8); // 3 to 7
+                    }
+                    else if (p < 0.70f)
+                    {
+                        dropName = "Potion";
+                        dropQty = Random.Range(1, 3); // 1 to 2
+                    }
+                    else
+                    {
+                        dropName = "ETC";
+                        dropQty = Random.Range(1, 6); // 1 to 5
+                    }
+
+                    // Spread the physical loot drops around the boss's coordinate
+                    Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f), 0f);
+                    CollectibleItem spawned = Instantiate(itemPrefab, transform.position + offset, Quaternion.identity);
+                    if (spawned != null)
+                    {
+                        spawned.SetItemDetails(dropName, dropQty);
+                    }
                 }
 
-                CollectibleItem spawned = Instantiate(itemPrefab, transform.position, Quaternion.identity);
-                if (spawned != null)
+                // 2. Roll for Money Drop (Zombies only!)
+                if (canDropMoney && moneyPrefab != null && Random.value <= moneyDropChance)
                 {
-                    spawned.SetItemDetails(dropName, dropQty);
+                    Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f), 0f);
+                    CollectibleItem spawnedMoney = Instantiate(moneyPrefab, transform.position + offset, Quaternion.identity);
+                    if (spawnedMoney != null)
+                    {
+                        int moneyAmount = Random.Range(minMoney, maxMoney + 1);
+                        spawnedMoney.SetMoneyDetails(moneyAmount);
+                    }
                 }
-            }
 
-            // 2. Roll for Money Drop (Zombies only!)
-            if (canDropMoney && moneyPrefab != null && Random.value <= moneyDropChance)
-            {
-                CollectibleItem spawnedMoney = Instantiate(moneyPrefab, transform.position, Quaternion.identity);
-                if (spawnedMoney != null)
+                // 3. Roll for Bread Drop (25% chance for all enemies)
+                if (itemPrefab != null && Random.value <= 0.25f)
                 {
-                    int moneyAmount = Random.Range(minMoney, maxMoney + 1);
-                    spawnedMoney.SetMoneyDetails(moneyAmount);
-                }
-            }
-
-            // 3. Roll for Bread Drop (25% chance for all enemies)
-            if (itemPrefab != null && Random.value <= 0.25f)
-            {
-                Vector3 offset = new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(-0.4f, 0.4f), 0f);
-                CollectibleItem spawnedBread = Instantiate(itemPrefab, transform.position + offset, Quaternion.identity);
-                if (spawnedBread != null)
-                {
-                    spawnedBread.SetItemDetails("Bread", 1);
+                    Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f), 0f);
+                    CollectibleItem spawnedBread = Instantiate(itemPrefab, transform.position + offset, Quaternion.identity);
+                    if (spawnedBread != null)
+                    {
+                        spawnedBread.SetItemDetails("Bread", 1);
+                    }
                 }
             }
         }
