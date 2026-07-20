@@ -64,6 +64,10 @@ namespace TheLastEmpire
         public float MaxHunger => maxHunger;
         public float CurrentHunger => currentHunger;
         public event System.Action OnHungerChanged;
+
+        private bool _isSprinting = false;
+        public bool IsSprinting => _isSprinting;
+
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
         private float _meleeCooldownTimer = 0f;
@@ -162,6 +166,7 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            _isSprinting = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
@@ -226,8 +231,9 @@ namespace TheLastEmpire
             }
             else
             {
-                // Normal 8-directional movement
-                _rb.linearVelocity = _moveInput * moveSpeed;
+                // Normal 8-directional movement (1.5x speed if sprinting)
+                float currentSpeed = _isSprinting ? (moveSpeed * 1.5f) : moveSpeed;
+                _rb.linearVelocity = _moveInput * currentSpeed;
             }
         }
 
@@ -598,7 +604,9 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * 0.5f);
+            // Sprinting depletes hunger at 2x rate (1.0f instead of 0.5f per second)
+            float depletionRate = _isSprinting ? 1.0f : 0.5f;
+            currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 
             if (currentHunger <= 0f)
