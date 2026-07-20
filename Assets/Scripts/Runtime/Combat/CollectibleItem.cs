@@ -163,6 +163,35 @@ namespace TheLastEmpire
         {
             isMoney = true;
             moneyAmount = amount;
+
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            ItemData data = (ItemDatabase.Instance != null) ? ItemDatabase.Instance.GetItemByName("Money") : null;
+            if (data != null && data.icon != null)
+            {
+                if (sr != null)
+                {
+                    sr.sprite = data.icon;
+                    sr.color = Color.white;
+
+                    // Normalize scale so large sprites don't take up the whole screen
+                    float spriteWidth = data.icon.rect.width / data.icon.pixelsPerUnit;
+                    float spriteHeight = data.icon.rect.height / data.icon.pixelsPerUnit;
+                    float maxDimension = Mathf.Max(spriteWidth, spriteHeight);
+                    if (maxDimension > 0f)
+                    {
+                        float targetScale = 0.4f / maxDimension; // Slightly smaller for coins
+                        transform.localScale = new Vector3(targetScale, targetScale, 1f);
+                    }
+                }
+            }
+            else
+            {
+                if (sr != null)
+                {
+                    sr.color = Color.yellow;
+                }
+            }
+
             UpdatePromptText();
         }
 
