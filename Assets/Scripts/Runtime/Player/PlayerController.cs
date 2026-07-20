@@ -9,6 +9,14 @@ namespace TheLastEmpire
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
 
+        [Header("Input")]
+        [SerializeField] private InputActionAsset inputActions;
+
+        [Header("Ammo & Reloading")]
+        [SerializeField] private int startingReserveAmmo = 120;
+        [SerializeField] private int magazineSize = 12;
+        [SerializeField] private float reloadDuration = 1.0f;
+
         [Header("Dash / Dodge Roll")]
         [SerializeField] private float dashSpeed = 15f;
         [SerializeField] private float dashDuration = 0.25f;
@@ -35,6 +43,27 @@ namespace TheLastEmpire
 
         private float _startupDelay = 0.5f;
         private float _dashTimer = 0f;
+
+        private int _currentMagazine;
+        private int _currentReserveAmmo;
+        private bool _isReloading = false;
+
+        // Public properties and events for HUD mapping
+        public Health PlayerHealth => _health;
+        public int CurrentMagazine => _currentMagazine;
+        public int CurrentReserveAmmo => _currentReserveAmmo;
+        public bool IsReloading => _isReloading;
+        public event System.Action OnAmmoChanged;
+
+        [Header("Hunger System")]
+        [SerializeField] private float maxHunger = 100f;
+        [SerializeField] private float currentHunger = 100f;
+
+        private float _hungerDamageTimer = 0f;
+
+        public float MaxHunger => maxHunger;
+        public float CurrentHunger => currentHunger;
+        public event System.Action OnHungerChanged;
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
         private float _meleeCooldownTimer = 0f;
@@ -88,23 +117,52 @@ namespace TheLastEmpire
             playerInput.notificationBehavior = PlayerNotifications.SendMessages;
 
             // Load and link the default Input Actions asset
-#if UNITY_EDITOR
             if (playerInput.actions == null)
             {
-                InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
-                if (defaultActions != null)
+                if (inputActions != null)
                 {
-                    playerInput.actions = defaultActions;
-                    playerInput.currentActionMap = defaultActions.FindActionMap("Player");
-                    playerInput.currentActionMap?.Enable();
-                    Debug.Log("PlayerController: Linked default InputActions asset.");
+                    playerInput.actions = inputActions;
                 }
-            }
+                else
+                {
+                    // Fallback to loading from Resources (for builds)
+                    playerInput.actions = Resources.Load<InputActionAsset>("InputSystem_Actions");
+                }
+
+#if UNITY_EDITOR
+                if (playerInput.actions == null)
+                {
+                    InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+                    if (defaultActions != null)
+                    {
+                        playerInput.actions = defaultActions;
+                        inputActions = defaultActions;
+                    }
+                }
 #endif
+            }
+
+            if (playerInput.actions != null)
+            {
+                playerInput.currentActionMap = playerInput.actions.FindActionMap("Player");
+                playerInput.currentActionMap?.Enable();
+                Debug.Log($"PlayerController: Linked InputActions asset: {playerInput.actions.name}");
+            }
+            else
+            {
+                Debug.LogError("PlayerController: InputActions asset is NOT linked! Player input will not work in standalone builds. Please assign inputActions in the Inspector or place the asset in a Resources folder.");
+            }
+
+            _currentReserveAmmo = startingReserveAmmo;
+            _currentMagazine = magazineSize;
+            OnAmmoChanged?.Invoke();
+
+            SetupScreenBoundaries();
         }
 
         private void Update()
         {
+            UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
             {
@@ -117,6 +175,10 @@ namespace TheLastEmpire
                 {
                     ToggleInventoryMenu();
                     return;
+                }
+                if (Keyboard.current.rKey.wasPressedThisFrame)
+                {
+                    TryStartReload();
                 }
             }
 
@@ -297,9 +359,15 @@ namespace TheLastEmpire
                 {
                     _inventory.AddMoney(closestItem.MoneyAmount);
                 }
+                else if (closestItem.ItemName == "Ammo")
+                {
+                    _currentReserveAmmo += closestItem.Quantity;
+                    Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo. Total reserve: {_currentReserveAmmo}");
+                    OnAmmoChanged?.Invoke();
+                }
                 else
                 {
-                    _inventory.AddItem(closestItem.ItemName);
+                    _inventory.AddItem(closestItem.ItemName, closestItem.Quantity);
                 }
                 closestItem.Collect();
             }
@@ -307,6 +375,16 @@ namespace TheLastEmpire
 
         private void ShootWeapon()
         {
+            if (_isReloading) return;
+            if (_currentMagazine <= 0)
+            {
+                TryStartReload();
+                return;
+            }
+
+            _currentMagazine--;
+            OnAmmoChanged?.Invoke();
+
             _fireCooldownTimer = fireRate;
             Vector2 spawnPos = (Vector2)transform.position + _aimDirection * 0.6f;
 
@@ -489,6 +567,64 @@ namespace TheLastEmpire
             if (_boundaryRight != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryRight, ignore);
             if (_boundaryTop != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryTop, ignore);
             if (_boundaryBottom != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryBottom, ignore);
+        }
+
+        private void TryStartReload()
+        {
+            if (_isReloading || _currentMagazine == magazineSize || _currentReserveAmmo <= 0)
+            {
+                return;
+            }
+            StartCoroutine(ReloadCoroutine());
+        }
+
+        private System.Collections.IEnumerator ReloadCoroutine()
+        {
+            _isReloading = true;
+            OnAmmoChanged?.Invoke();
+
+            yield return new WaitForSeconds(reloadDuration);
+
+            int needed = magazineSize - _currentMagazine;
+            int toLoad = Mathf.Min(needed, _currentReserveAmmo);
+            _currentMagazine += toLoad;
+            _currentReserveAmmo -= toLoad;
+
+            _isReloading = false;
+            OnAmmoChanged?.Invoke();
+        }
+
+        private void UpdateHunger()
+        {
+            if (_health != null && _health.IsDead) return;
+
+            currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * 0.5f);
+            OnHungerChanged?.Invoke();
+
+            if (currentHunger <= 0f)
+            {
+                _hungerDamageTimer += Time.deltaTime;
+                if (_hungerDamageTimer >= 2f)
+                {
+                    _hungerDamageTimer = 0f;
+                    if (_health != null)
+                    {
+                        _health.TakeDamage(5f); // Starving damage
+                        Debug.Log("[PlayerController] Starving! Took 5 damage.");
+                    }
+                }
+            }
+            else
+            {
+                _hungerDamageTimer = 0f;
+            }
+        }
+
+        public void EatBread(float amount)
+        {
+            currentHunger = Mathf.Clamp(currentHunger + amount, 0f, maxHunger);
+            Debug.Log($"[PlayerController] Ate bread! Restored {amount} hunger. Current hunger: {currentHunger}");
+            OnHungerChanged?.Invoke();
         }
     }
 }

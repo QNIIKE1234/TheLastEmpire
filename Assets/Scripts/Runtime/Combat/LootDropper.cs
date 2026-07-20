@@ -44,20 +44,56 @@ namespace TheLastEmpire
 
         private void DropLoot()
         {
-            // 1. Roll for Item Drop
-            if (itemPrefab != null && Random.value <= itemDropChance)
+            // 1. Roll for Item Drop (Guaranteed Ammo, Potion, or ETC on kill)
+            if (itemPrefab != null)
             {
-                Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                float p = Random.value;
+                string dropName;
+                int dropQty;
+
+                if (p < 0.35f)
+                {
+                    dropName = "Ammo";
+                    dropQty = Random.Range(3, 8); // 3 to 7
+                }
+                else if (p < 0.70f)
+                {
+                    dropName = "Potion";
+                    dropQty = Random.Range(1, 3); // 1 to 2
+                }
+                else
+                {
+                    dropName = "ETC";
+                    dropQty = Random.Range(1, 6); // 1 to 5
+                }
+
+                CollectibleItem spawned = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                if (spawned != null)
+                {
+                    spawned.SetItemDetails(dropName, dropQty);
+                }
             }
 
             // 2. Roll for Money Drop (Zombies only!)
             if (canDropMoney && moneyPrefab != null && Random.value <= moneyDropChance)
             {
                 CollectibleItem spawnedMoney = Instantiate(moneyPrefab, transform.position, Quaternion.identity);
-                // Assign a randomized money value
-                int moneyAmount = Random.Range(minMoney, maxMoney + 1);
-                // We'll set the amount on the spawned money script
-                // We should make sure the spawned money script is set to isMoney = true
+                if (spawnedMoney != null)
+                {
+                    int moneyAmount = Random.Range(minMoney, maxMoney + 1);
+                    spawnedMoney.SetMoneyDetails(moneyAmount);
+                }
+            }
+
+            // 3. Roll for Bread Drop (25% chance for all enemies)
+            if (itemPrefab != null && Random.value <= 0.25f)
+            {
+                Vector3 offset = new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(-0.4f, 0.4f), 0f);
+                CollectibleItem spawnedBread = Instantiate(itemPrefab, transform.position + offset, Quaternion.identity);
+                if (spawnedBread != null)
+                {
+                    spawnedBread.SetItemDetails("Bread", 1);
+                }
             }
         }
     }

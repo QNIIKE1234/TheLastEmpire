@@ -63,7 +63,7 @@ namespace TheLastEmpire
             if (sr.sprite == null)
             {
                 sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                sr.color = new Color(0.5f, 0.5f, 0.5f, 0.35f); // Faint semi-transparent gray
+                sr.color = Color.clear; // Make invisible so it doesn't block the view
                 sr.sortingOrder = 2; // Render above background
 
             }

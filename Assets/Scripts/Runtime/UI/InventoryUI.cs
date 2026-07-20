@@ -13,9 +13,16 @@ namespace TheLastEmpire
         [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f); // Sleek slate dark mode
         [SerializeField] private Color accentColor = new Color(0.95f, 0.75f, 0.2f, 1f);   // Bright yellow accent
 
+        [Header("UI References (Optional)")]
+        [SerializeField] private GameObject inventoryPanel;
+        [SerializeField] private TMPro.TMP_Text moneyTextHUD;
+        [SerializeField] private TMPro.TMP_Text healthTextHUD;
+        [SerializeField] private GameObject itemSlotsContainer;
+
         private GameObject _canvasObject;
         private GameObject _panelObject;
         private TMP_Text _moneyText;
+        private TMP_Text _healthText;
         private GameObject _itemContainer;
         private PlayerInventory _playerInventory;
         private bool _isOpen = false;
@@ -28,7 +35,21 @@ namespace TheLastEmpire
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                CreateProceduralUI();
+
+                if (inventoryPanel != null)
+                {
+                    _canvasObject = inventoryPanel;
+                    _moneyText = moneyTextHUD;
+                    _healthText = healthTextHUD;
+                    _itemContainer = itemSlotsContainer;
+
+                    // Ensure the custom panel is hidden initially
+                    _canvasObject.SetActive(false);
+                }
+                else
+                {
+                    CreateProceduralUI();
+                }
             }
             else
             {
@@ -98,10 +119,18 @@ namespace TheLastEmpire
         {
             if (_playerInventory == null) return;
 
-            // 1. Update currency
+            // 1. Update currency and health status
             if (_moneyText != null)
             {
                 _moneyText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>";
+            }
+            if (_healthText != null)
+            {
+                Health health = _playerInventory.GetComponent<Health>();
+                if (health != null)
+                {
+                    _healthText.text = $"HP: <color=#1bff33>{Mathf.RoundToInt(health.CurrentHealth)}</color> / {Mathf.RoundToInt(health.MaxHealth)}";
+                }
             }
 
             // 2. Clear old item slots
@@ -116,19 +145,41 @@ namespace TheLastEmpire
                 Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
                 if (quantities.Count == 0)
                 {
-                    CreateItemRow("<i>- Inventory Empty -</i>", Color.gray);
+                    CreateItemRow("", "<i>- Inventory Empty -</i>", Color.gray, false);
                 }
                 else
                 {
                     foreach (var pair in quantities)
                     {
-                        CreateItemRow($"{pair.Key} <color=#90A4AE>x{pair.Value}</color>", Color.white);
+                        bool isUsable = (pair.Key == "Potion" || pair.Key == "Bread");
+                        string displayName = pair.Key;
+                        if (pair.Key == "Potion")
+                        {
+                            displayName = "<color=#1bff33>[USABLE]</color> Potion <color=green>(Click to Use)</color>";
+                        }
+                        else if (pair.Key == "Bread")
+                        {
+                            displayName = "<color=#ffeb3b>[USABLE]</color> Bread <color=yellow>(Click to Eat)</color>";
+                        }
+                        else if (pair.Key == "Ammo")
+                        {
+                            displayName = "<color=#00e5ff>[AMMO]</color> Ammo";
+                        }
+                        else if (pair.Key == "ETC")
+                        {
+                            displayName = "<color=#ff9a00>[ETC]</color> ETC";
+                        }
+                        else
+                        {
+                            displayName = $"<color=#ff9a00>[ETC]</color> {pair.Key}";
+                        }
+                        CreateItemRow(pair.Key, $"{displayName} <color=#90A4AE>x{pair.Value}</color>", Color.white, isUsable);
                     }
                 }
             }
         }
 
-        private void CreateItemRow(string textContent, Color textColor)
+        private void CreateItemRow(string itemName, string textContent, Color textColor, bool isUsable)
         {
             GameObject row = new GameObject("ItemRow");
             row.transform.SetParent(_itemContainer.transform, false);
@@ -139,6 +190,51 @@ namespace TheLastEmpire
 
             RectTransform rect = row.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500f, 50f);
+
+            if (isUsable)
+            {
+                Button btn = row.AddComponent<Button>();
+                
+                // Color configuration for hover/click transitions
+                ColorBlock colors = btn.colors;
+                colors.normalColor = new Color(1f, 1f, 1f, 0.04f);
+                colors.highlightedColor = new Color(1f, 1f, 1f, 0.12f);
+                colors.pressedColor = new Color(1f, 1f, 1f, 0.2f);
+                colors.selectedColor = new Color(1f, 1f, 1f, 0.04f);
+                btn.colors = colors;
+
+                btn.onClick.AddListener(() =>
+                {
+                    if (_playerInventory != null)
+                    {
+                        if (_playerInventory.UseItem(itemName))
+                        {
+                            RefreshUI();
+                        }
+                    }
+                });
+            }
+
+            // Draw icon if available in Database
+            bool hasIcon = false;
+            ItemData data = (ItemDatabase.Instance != null) ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+            if (data != null && data.icon != null)
+            {
+                GameObject iconObj = new GameObject("ItemIcon");
+                iconObj.transform.SetParent(row.transform, false);
+                Image iconImg = iconObj.AddComponent<Image>();
+                iconImg.sprite = data.icon;
+                iconImg.preserveAspect = true;
+
+                RectTransform iconRect = iconObj.GetComponent<RectTransform>();
+                iconRect.anchorMin = new Vector2(0f, 0.5f);
+                iconRect.anchorMax = new Vector2(0f, 0.5f);
+                iconRect.pivot = new Vector2(0f, 0.5f);
+                iconRect.anchoredPosition = new Vector2(12f, 0f);
+                iconRect.sizeDelta = new Vector2(32f, 32f);
+
+                hasIcon = true;
+            }
 
             // Add row text
             GameObject textObj = new GameObject("ItemText");
@@ -153,7 +249,7 @@ namespace TheLastEmpire
             RectTransform textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = new Vector2(0f, 0f);
             textRect.anchorMax = new Vector2(1f, 1f);
-            textRect.offsetMin = new Vector2(15f, 5f);
+            textRect.offsetMin = new Vector2(hasIcon ? 56f : 15f, 5f);
             textRect.offsetMax = new Vector2(-15f, -5f);
         }
 
@@ -219,21 +315,36 @@ namespace TheLastEmpire
             titleRect.anchoredPosition = new Vector3(0f, -40f, 0f);
             titleRect.sizeDelta = new Vector2(500f, 50f);
 
-            // 4. Money/Wallet Text
+            // 4. Money/Wallet Text & Health Text (Side-by-Side)
             GameObject moneyObj = new GameObject("MoneyText");
             moneyObj.transform.SetParent(_panelObject.transform, false);
 
             _moneyText = moneyObj.AddComponent<TextMeshProUGUI>();
             _moneyText.text = "Wallet: <color=yellow>$0</color>";
-            _moneyText.fontSize = 26;
-            _moneyText.alignment = TextAlignmentOptions.Center;
+            _moneyText.fontSize = 24;
+            _moneyText.alignment = TextAlignmentOptions.Left;
 
             RectTransform moneyRect = moneyObj.GetComponent<RectTransform>();
-            moneyRect.anchorMin = new Vector2(0.5f, 1f);
+            moneyRect.anchorMin = new Vector2(0f, 1f);
             moneyRect.anchorMax = new Vector2(0.5f, 1f);
-            moneyRect.pivot = new Vector2(0.5f, 1f);
-            moneyRect.anchoredPosition = new Vector3(0f, -95f, 0f);
-            moneyRect.sizeDelta = new Vector2(500f, 40f);
+            moneyRect.pivot = new Vector2(0f, 1f);
+            moneyRect.anchoredPosition = new Vector3(30f, -95f, 0f);
+            moneyRect.sizeDelta = new Vector2(250f, 40f);
+
+            GameObject healthObj = new GameObject("HealthText");
+            healthObj.transform.SetParent(_panelObject.transform, false);
+
+            _healthText = healthObj.AddComponent<TextMeshProUGUI>();
+            _healthText.text = "HP: <color=red>100/100</color>";
+            _healthText.fontSize = 24;
+            _healthText.alignment = TextAlignmentOptions.Right;
+
+            RectTransform healthRect = healthObj.GetComponent<RectTransform>();
+            healthRect.anchorMin = new Vector2(0.5f, 1f);
+            healthRect.anchorMax = new Vector2(1f, 1f);
+            healthRect.pivot = new Vector2(1f, 1f);
+            healthRect.anchoredPosition = new Vector3(-30f, -95f, 0f);
+            healthRect.sizeDelta = new Vector2(250f, 40f);
 
             // 5. Scroll Rect / List Container
             GameObject scrollObj = new GameObject("ItemScrollView");

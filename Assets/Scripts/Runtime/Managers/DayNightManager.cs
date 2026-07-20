@@ -22,6 +22,7 @@ namespace TheLastEmpire
         private bool _isNight = false;
 
         public bool IsNight => _isNight;
+        public int DayCount { get; private set; } = 1;
         
         public float PhaseProgress => Mathf.Clamp01(_phaseTimer / (_isNight ? nightDuration : dayDuration));
 
@@ -44,6 +45,19 @@ namespace TheLastEmpire
         {
             _phaseTimer = 0f;
             _isNight = false;
+            DayCount = 1;
+        }
+
+        public void ResetDayCount()
+        {
+            DayCount = 1;
+            _phaseTimer = 0f;
+            _isNight = false;
+            if (timeText != null)
+            {
+                timeText.text = "DAY (30s)";
+                timeText.color = new Color(1f, 0.85f, 0.2f);
+            }
         }
 
         private void Update()
@@ -73,8 +87,12 @@ namespace TheLastEmpire
             {
                 _phaseTimer = 0f;
                 _isNight = !_isNight;
+                if (!_isNight)
+                {
+                    DayCount++;
+                }
                 OnTimePhaseChanged?.Invoke(_isNight);
-                Debug.Log($"[DayNightManager] Time Phase Changed! Is Night: {_isNight}");
+                Debug.Log($"[DayNightManager] Time Phase Changed! Is Night: {_isNight}. Day: {DayCount}");
             }
         }
 
@@ -82,8 +100,12 @@ namespace TheLastEmpire
         {
             _phaseTimer = 0f;
             _isNight = !_isNight;
+            if (!_isNight)
+            {
+                DayCount++;
+            }
             OnTimePhaseChanged?.Invoke(_isNight);
-            Debug.Log($"[DayNightManager] Time Phase Toggled! Is Night: {_isNight}");
+            Debug.Log($"[DayNightManager] Time Phase Toggled! Is Night: {_isNight}. Day: {DayCount}");
         }
     }
 }

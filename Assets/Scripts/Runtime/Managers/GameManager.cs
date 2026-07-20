@@ -37,6 +37,10 @@ namespace TheLastEmpire
         [SerializeField] private GameObject defaultEnemyPrefab;
         [SerializeField] private string defaultPoolKey;
 
+        [Header("Item Drop Prefabs")]
+        [SerializeField] private CollectibleItem itemDropPrefab;
+        [SerializeField] private CollectibleItem moneyDropPrefab;
+
         private List<GameObject> _activeEnemies = new List<GameObject>();
         private StageData _currentStage;
 
@@ -110,9 +114,30 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
-            // 1. Save the remaining alive enemies from the PREVIOUS stage before clearing
+            // 1. Save the remaining alive enemies and items from the PREVIOUS stage before clearing
             if (_currentStage != null)
             {
+                // Save remaining dropped items on the ground
+                _currentStage.droppedItems.Clear();
+                CollectibleItem[] itemsInScene = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+                foreach (CollectibleItem item in itemsInScene)
+                {
+                    if (item != null && item.gameObject.activeInHierarchy)
+                    {
+                        DroppedItemData itemData = new DroppedItemData
+                        {
+                            itemName = item.ItemName,
+                            quantity = item.Quantity,
+                            isMoney = item.IsMoney,
+                            moneyAmount = item.MoneyAmount,
+                            posX = item.transform.position.x,
+                            posY = item.transform.position.y
+                        };
+                        _currentStage.droppedItems.Add(itemData);
+                    }
+                }
+                Debug.Log($"[GameManager] Saved {_currentStage.droppedItems.Count} dropped items on the ground for previous Stage ({_currentStage.x}, {_currentStage.y})");
+
                 if (_currentStage.isCleared)
                 {
                     _currentStage.remainingEnemyPrefabNames = new List<string>();
@@ -163,6 +188,16 @@ namespace TheLastEmpire
             }
             _activeEnemies.Clear();
 
+            // Clear any active collectible items from the previous stage dynamically
+            CollectibleItem[] oldItems = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+            foreach (CollectibleItem item in oldItems)
+            {
+                if (item != null)
+                {
+                    Destroy(item.gameObject);
+                }
+            }
+
             // Set current stage pointer
             _currentStage = stage;
 
@@ -170,6 +205,38 @@ namespace TheLastEmpire
             if (EnvironmentManager.Instance != null)
             {
                 EnvironmentManager.Instance.GenerateStageEnvironment(stage);
+            }
+
+            // Spawn saved dropped items back into the scene
+            if (stage.droppedItems != null && stage.droppedItems.Count > 0)
+            {
+                Debug.Log($"[GameManager] Respawning {stage.droppedItems.Count} dropped items for Stage ({stage.x}, {stage.y})");
+                foreach (DroppedItemData itemData in stage.droppedItems)
+                {
+                    CollectibleItem prefabToUse = itemData.isMoney ? moneyDropPrefab : itemDropPrefab;
+                    if (prefabToUse != null)
+                    {
+                        Vector3 pos = new Vector3(itemData.posX, itemData.posY, 0f);
+                        CollectibleItem spawnedItem = Instantiate(prefabToUse, pos, Quaternion.identity);
+                        if (spawnedItem != null)
+                        {
+                            if (itemData.isMoney)
+                            {
+                                spawnedItem.SetMoneyDetails(itemData.moneyAmount);
+                            }
+                            else
+                            {
+                                spawnedItem.SetItemDetails(itemData.itemName, itemData.quantity);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[GameManager] Cannot respawn dropped item {itemData.itemName} because appropriate prefab is not assigned.");
+                    }
+                }
+                // Clear the list after spawning to avoid duplicating if we exit again
+                stage.droppedItems.Clear();
             }
 
             // 3. GDD: If this biome/stage has already been cleared today, DO NOT spawn enemies!
@@ -385,15 +452,16 @@ namespace TheLastEmpire
             // Transitioning from Night to Day (isNight is false) indicates a "new Day starts"!
             if (!isNight && WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
-                Debug.Log("[GameManager] A new Day has started! Resetting all cleared stages and remaining enemy counts.");
+                Debug.Log("[GameManager] A new Day has started! Resetting all cleared stages, remaining enemy counts, and dropped items.");
                 
-                // Reset isCleared status and clear saved enemy lists of all map stages to allow fresh respawning
+                // Reset isCleared status, clear saved enemy lists, and clear persistent dropped items of all map stages to allow fresh respawning
                 foreach (StageData stage in WorldMapManager.Instance.MapGenerator.gridData)
                 {
                     if (stage != null)
                     {
                         stage.isCleared = false;
                         stage.remainingEnemyPrefabNames = null; // resets to trigger fresh spawning
+                        stage.droppedItems.Clear(); // clear any items that were left on the ground
                     }
                 }
             }

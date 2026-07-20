@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 6718964597154747248}
   - component: {fileID: 723479366027410212}
   - component: {fileID: 3923264468014418795}
+  - component: {fileID: -3226789295938813819}
   m_Layer: 5
   m_Name: ZombieDog
   m_TagString: Enemy
@@ -229,6 +230,7 @@ MonoBehaviour:
   wanderTime: 2
   idleTime: 1.5
   staggerDuration: 0.3
+  knockbackForce: 6
   zombieType: 1
   leapCooldown: 4
   leapSpeed: 12
@@ -241,3 +243,22 @@ MonoBehaviour:
   spawnCooldown: 10
   maxChildSpawns: 3
   childPoolKey: Zombie001
+--- !u!114 &-3226789295938813819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5020151313939889713}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bc66814b3217634cb39f0b75342a7e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootDropper
+  itemPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
+  moneyPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
+  itemDropChance: 0.5
+  canDropMoney: 0
+  moneyDropChance: 0.8
+  minMoney: 5
+  maxMoney: 20

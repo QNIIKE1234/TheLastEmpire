@@ -31,6 +31,13 @@ namespace TheLastEmpire
 
         private GameObject _currentEnvContainer;
 
+        private struct GridCell
+        {
+            public int row;
+            public int col;
+            public Vector3 center;
+        }
+
         private void Awake()
         {
             if (Instance == null)
@@ -75,13 +82,74 @@ namespace TheLastEmpire
                 playerPos = player.transform.position;
             }
 
-            // 5. Generate Obstacles (solid blockers)
-            int obstacleCount = Random.Range(config.minObstacles, config.maxObstacles + 1);
-            for (int i = 0; i < obstacleCount; i++)
-            {
-                Vector3 spawnPos = GetRandomSafePosition(playerPos, 1.8f);
-                GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
+            // Define grid parameters (6 rows x 9 columns)
+            int rows = 6;
+            int cols = 9;
+            float totalWidth = 14f;  // X from -7 to 7
+            float totalHeight = 8f;  // Y from -4 to 4
+            float cellWidth = totalWidth / cols;
+            float cellHeight = totalHeight / rows;
 
+            List<GridCell> allCells = new List<GridCell>();
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    float x = -7f + c * cellWidth + cellWidth * 0.5f;
+                    float y = -4f + r * cellHeight + cellHeight * 0.5f;
+                    allCells.Add(new GridCell { row = r, col = c, center = new Vector3(x, y, 0f) });
+                }
+            }
+
+            // Filter cells to only include safe cells
+            List<GridCell> safeCells = new List<GridCell>();
+            float safeRadius = 1.8f;
+            foreach (GridCell cell in allCells)
+            {
+                // Check player safety zone
+                if (Vector3.Distance(cell.center, playerPos) < safeRadius)
+                {
+                    continue;
+                }
+
+                // Check transition gate safety zone
+                if (IsNearTransitionGates(cell.center))
+                {
+                    continue;
+                }
+
+                safeCells.Add(cell);
+            }
+
+            // Shuffle safe cells deterministically using stage seed
+            for (int i = 0; i < safeCells.Count; i++)
+            {
+                GridCell temp = safeCells[i];
+                int randomIndex = Random.Range(i, safeCells.Count);
+                safeCells[i] = safeCells[randomIndex];
+                safeCells[randomIndex] = temp;
+            }
+
+            int obstacleCount = Random.Range(config.minObstacles, config.maxObstacles + 1);
+            int decorationCount = Random.Range(config.minDecorations, config.maxDecorations + 1);
+
+            int totalToSpawn = Mathf.Min(obstacleCount + decorationCount, safeCells.Count);
+            int spawnObstacles = Mathf.Min(obstacleCount, totalToSpawn);
+            int spawnDecorations = totalToSpawn - spawnObstacles;
+
+            int cellIndex = 0;
+
+            // 5. Generate Obstacles (solid blockers)
+            for (int i = 0; i < spawnObstacles; i++)
+            {
+                GridCell cell = safeCells[cellIndex++];
+                
+                // Add organic jitter within cell boundaries (up to 20% cell size)
+                float jitterX = Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
+                float jitterY = Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
+                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
+
+                GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
                 if (prefab != null)
                 {
                     GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity, _currentEnvContainer.transform);
@@ -89,18 +157,21 @@ namespace TheLastEmpire
                 }
                 else if (useProceduralFallbacks)
                 {
-                    // Generate a nice procedural rock/tree box obstacle
                     CreateProceduralObstacle(spawnPos, stage.biome);
                 }
             }
 
             // 6. Generate Decorations (visuals only)
-            int decorationCount = Random.Range(config.minDecorations, config.maxDecorations + 1);
-            for (int i = 0; i < decorationCount; i++)
+            for (int i = 0; i < spawnDecorations; i++)
             {
-                Vector3 spawnPos = GetRandomSafePosition(playerPos, 0.8f);
-                GameObject prefab = GetRandomPrefab(config.decorationPrefabs);
+                GridCell cell = safeCells[cellIndex++];
 
+                // Add organic jitter within cell boundaries
+                float jitterX = Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
+                float jitterY = Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
+                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
+
+                GameObject prefab = GetRandomPrefab(config.decorationPrefabs);
                 if (prefab != null)
                 {
                     GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity, _currentEnvContainer.transform);
@@ -108,12 +179,11 @@ namespace TheLastEmpire
                 }
                 else if (useProceduralFallbacks)
                 {
-                    // Generate a nice procedural grass/debris prop
                     CreateProceduralDecoration(spawnPos, stage.biome);
                 }
             }
 
-            Debug.Log($"[EnvironmentManager] Generated {obstacleCount} obstacles and {decorationCount} decorations for Biome {stage.biome} using seed {stage.stageSeed}");
+            Debug.Log($"[EnvironmentManager] Grid generated {spawnObstacles} obstacles and {spawnDecorations} decorations (out of safe cells: {safeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
         }
 
         private BiomeEnvConfig GetConfigForBiome(BiomeType biome)

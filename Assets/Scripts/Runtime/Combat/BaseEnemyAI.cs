@@ -63,6 +63,9 @@ namespace TheLastEmpire
             health.onDeath.AddListener(HandleDeath);
             health.onDamageTaken.AddListener(OnDamageTaken);
 
+            // Dynamically attach the health text to render above the head
+            gameObject.AddComponent<EnemyHealthText>();
+
             FindPlayer();
             ChooseNextWanderState();
         }

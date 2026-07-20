@@ -24,10 +24,13 @@ namespace TheLastEmpire
             OnInventoryChanged?.Invoke();
         }
 
-        public void AddItem(string itemName)
+        public void AddItem(string itemName, int quantity = 1)
         {
-            items.Add(itemName);
-            Debug.Log($"[PlayerInventory] Picked up item: {itemName}! Inventory size: {items.Count}");
+            for (int i = 0; i < quantity; i++)
+            {
+                items.Add(itemName);
+            }
+            Debug.Log($"[PlayerInventory] Picked up item: {itemName} x{quantity}! Inventory size: {items.Count}");
             OnItemCollected?.Invoke(itemName);
             OnInventoryChanged?.Invoke();
         }
@@ -39,6 +42,44 @@ namespace TheLastEmpire
                 items.Remove(itemName);
                 OnInventoryChanged?.Invoke();
                 return true;
+            }
+            return false;
+        }
+
+        public bool UseItem(string itemName)
+        {
+            if (itemName == "Potion")
+            {
+                Health health = GetComponent<Health>();
+                if (health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth)
+                {
+                    if (RemoveItem(itemName))
+                    {
+                        health.Heal(100f);
+                        Debug.Log($"[PlayerInventory] Used Potion! Healed 100 HP. Current Health: {health.CurrentHealth}");
+                        return true;
+                    }
+                }
+                else
+                {
+                    Debug.Log("[PlayerInventory] Health is already full or player is dead.");
+                }
+            }
+            else if (itemName == "Bread")
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && !player.PlayerHealth.IsDead && player.CurrentHunger < player.MaxHunger)
+                {
+                    if (RemoveItem(itemName))
+                    {
+                        player.EatBread(25f);
+                        return true;
+                    }
+                }
+                else
+                {
+                    Debug.Log("[PlayerInventory] Hunger is already full or player is dead.");
+                }
             }
             return false;
         }

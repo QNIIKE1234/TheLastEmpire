@@ -3,6 +3,17 @@ using System;
 namespace TheLastEmpire
 {
     [Serializable]
+    public struct DroppedItemData
+    {
+        public string itemName;
+        public int quantity;
+        public bool isMoney;
+        public int moneyAmount;
+        public float posX;
+        public float posY;
+    }
+
+    [Serializable]
     public class StageData
     {
         public int x;
@@ -12,6 +23,7 @@ namespace TheLastEmpire
         public bool isCleared;
         public int stageSeed;
         public System.Collections.Generic.List<string> remainingEnemyPrefabNames;
+        public System.Collections.Generic.List<DroppedItemData> droppedItems = new System.Collections.Generic.List<DroppedItemData>();
 
         public StageData(int x, int y, BiomeType biome, int stageSeed)
         {
