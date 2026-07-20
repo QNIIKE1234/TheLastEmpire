@@ -327,6 +327,14 @@ namespace TheLastEmpire
                 }
 
                 int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
+
+                // If this is a Boss, limit spawn to exactly 1
+                LootDropper loot = currentConfig.enemyPrefab.GetComponent<LootDropper>();
+                if (loot != null && loot.IsBoss)
+                {
+                    spawnCount = 1;
+                }
+
                 Debug.Log($"[GameManager] Spawning {spawnCount} enemies of type '{currentConfig.enemyPrefab.name}' on {stage.biome} stage using seed {stage.stageSeed}. (Is Night: {isNight})");
 
                 for (int i = 0; i < spawnCount; i++)
