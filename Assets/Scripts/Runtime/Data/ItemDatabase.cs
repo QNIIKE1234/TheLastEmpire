@@ -41,9 +41,19 @@ namespace TheLastEmpire
             string trimmed = name.Trim();
             foreach (ItemData item in allItems)
             {
-                if (item != null && string.Equals(item.itemName.Trim(), trimmed, System.StringComparison.OrdinalIgnoreCase))
+                if (item != null)
                 {
-                    return item;
+                    // 1. Match by explicit itemName field in Inspector (exact match)
+                    if (!string.IsNullOrEmpty(item.itemName) && string.Equals(item.itemName.Trim(), trimmed, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        return item;
+                    }
+                    
+                    // 2. Fallback: Match if the asset file name contains the target name (e.g., "ITEM0001_Potion" contains "Potion")
+                    if (item.name.IndexOf(trimmed, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return item;
+                    }
                 }
             }
             return null;
