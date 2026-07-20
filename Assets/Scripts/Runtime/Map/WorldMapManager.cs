@@ -41,17 +41,9 @@ namespace TheLastEmpire
                 // Reset persistent editor memory at startup so it doesn't auto-save exploration
                 ResetMapProgression();
 
-                // If map is not generated yet, generate it
-                if (mapGenerator.gridData == null || mapGenerator.gridData.Length != WorldMapGenerator.GridSize * WorldMapGenerator.GridSize)
-                {
-                    StartNewGame(mapGenerator.seed);
-                }
-                else
-                {
-                    // Map is already generated (persisted on the ScriptableObject asset),
-                    // but we still need to pick player starting coordinates at runtime startup!
-                    InitializePlayerCoordinates();
-                }
+                // Always generate a fresh randomized map seed at startup
+                int randomSeed = Random.Range(1000, 99999);
+                StartNewGame(randomSeed);
             }
         }
 
