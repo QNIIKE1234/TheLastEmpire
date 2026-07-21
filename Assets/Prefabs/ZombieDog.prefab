@@ -530,11 +530,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootDropper
   itemPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
   moneyPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
-  itemDropChance: 0.5
+  itemDropChance: 0.227
   canDropMoney: 0
   moneyDropChance: 0.8
-  minMoney: 5
-  maxMoney: 20
+  minMoney: 20
+  maxMoney: 25
   isBoss: 0
 --- !u!136 &386716661756454907
 CapsuleCollider:

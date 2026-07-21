@@ -219,7 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e9f931a02e94884f8ef7ca940f652c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ZombieAI
-  moveSpeed: 4
+  moveSpeed: 7
   detectionRange: 5
   poolKey: ZombieRunner
   wanderTime: 2
@@ -234,13 +234,13 @@ MonoBehaviour:
   leapCooldown: 4
   leapSpeed: 12
   leapDuration: 0.3
-  explosionRadius: 3
-  explosionDamage: 45
+  explosionRadius: 4
+  explosionDamage: 100
   fuseDuration: 0.8
   buffRadius: 6
   childZombiePrefab: {fileID: 0}
   spawnCooldown: 10
-  maxChildSpawns: 3
+  maxChildSpawns: 5
   childPoolKey: Zombie001
 --- !u!114 &-3562698751807467864
 MonoBehaviour:
@@ -256,11 +256,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootDropper
   itemPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
   moneyPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
-  itemDropChance: 0.5
+  itemDropChance: 0.204
   canDropMoney: 0
   moneyDropChance: 0.8
-  minMoney: 5
-  maxMoney: 20
+  minMoney: 10
+  maxMoney: 40
   isBoss: 0
 --- !u!136 &7754587566264665410
 CapsuleCollider:

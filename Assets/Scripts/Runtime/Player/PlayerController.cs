@@ -724,8 +724,8 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // Sprinting depletes hunger at 2x rate (1.0f instead of 0.5f per second)
-            float depletionRate = _isSprinting ? 1.0f : 0.5f;
+            // Sprinting depletes hunger at 4x rate (2.0f instead of 0.5f per second)
+            float depletionRate = _isSprinting ? 2.0f : 0.5f;
             currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 
