@@ -16,16 +16,23 @@ namespace TheLastEmpire
         private GameObject _owner;
         private float _lifeTimer;
 
+        // Dynamic overrides set by Weapon stats
+        private float _activeDamage;
+        private float _activeLifetime;
+        private bool _canPierce = false;
+        private System.Collections.Generic.List<IDamageable> _hitTargets = new System.Collections.Generic.List<IDamageable>();
+
         public string PoolKey
         {
             get => poolKey;
             set => poolKey = value;
         }
 
+        public float Speed => speed;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            // Ensure projectile uses trigger and has no gravity
             _rb.useGravity = false;
             
             Collider col = GetComponent<Collider>();
@@ -33,22 +40,25 @@ namespace TheLastEmpire
             {
                 col.isTrigger = true;
             }
+
+            // Set initial defaults
+            _activeDamage = damage;
+            _activeLifetime = lifetime;
         }
 
         private void OnEnable()
         {
-            _lifeTimer = lifetime;
+            _lifeTimer = _activeLifetime;
+            if (_hitTargets == null)
+            {
+                _hitTargets = new System.Collections.Generic.List<IDamageable>();
+            }
+            _hitTargets.Clear();
         }
 
         private void Update()
         {
             _lifeTimer -= Time.deltaTime;
-            //damage -= decreseMulti;
-            if (damage<=0)
-            {
-                damage = 1f;
-            }
-            //UnityEngine.Debug.Log("DMG : "+damage);
             if (_lifeTimer <= 0f)
             {
                 DeactivateProjectile();
@@ -60,24 +70,41 @@ namespace TheLastEmpire
             _owner = owner;
             _rb.linearVelocity = direction.normalized * speed;
 
-            // Rotate projectile to match flight direction
             if (direction.sqrMagnitude > 0.01f)
             {
                 transform.forward = direction.normalized;
             }
         }
 
+        public void SetStats(float damageVal, float lifetimeVal, bool pierceVal)
+        {
+            _activeDamage = damageVal;
+            _activeLifetime = lifetimeVal;
+            _canPierce = pierceVal;
+            _lifeTimer = lifetimeVal; // Update active timer
+        }
+
         private void OnTriggerEnter(Collider collision)
         {
-            // Ignore owner collisions (so shooter doesn't hit themselves)
             if (_owner != null && collision.gameObject == _owner) return;
+
+            // Ignore Item Drops completely
+            if (collision.GetComponent<CollectibleItem>() != null) return;
 
             // Check if object is damageable
             IDamageable damageable = collision.GetComponent<IDamageable>();
             if (damageable != null)
             {
-                damageable.TakeDamage(damage);
-                DeactivateProjectile();
+                if (!_hitTargets.Contains(damageable))
+                {
+                    _hitTargets.Add(damageable);
+                    damageable.TakeDamage(_activeDamage);
+                }
+
+                if (!_canPierce)
+                {
+                    DeactivateProjectile();
+                }
                 return;
             }
 

@@ -85,7 +85,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &7308984272846373610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,11 +230,11 @@ MonoBehaviour:
   interactRange: 2
   shopItems:
   - item: {fileID: 11400000, guid: 994b8a468fb719744bf6cb1e0d620037, type: 2}
-    price: 0
+    price: 2400
   - item: {fileID: 11400000, guid: 29748bd8c38e2734e9a328da32e89353, type: 2}
-    price: 0
+    price: 6700
   - item: {fileID: 11400000, guid: 561922f3be8b4874d865a5c039258817, type: 2}
-    price: 0
+    price: 30
   - item: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
     price: 100
   - item: {fileID: 11400000, guid: 99259f2e874f60343bc28d427eb691cb, type: 2}

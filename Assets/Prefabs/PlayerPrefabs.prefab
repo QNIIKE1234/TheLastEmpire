@@ -35,8 +35,8 @@ RectTransform:
   - {fileID: 6313702600227914010}
   m_Father: {fileID: 1499705149031448608}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 2}
   m_SizeDelta: {x: 200, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -85,7 +85,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!114 &7308984272846373610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,11 +257,50 @@ MonoBehaviour:
   magazineSize: 12
   reloadDuration: 1
   dashSpeed: 20
-  dashDuration: 0.25
+  dashDuration: 0.15
   dashCooldown: 1.5
   projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
   fireRate: 0.5
-  weapons: []
+  weapons:
+  - weaponName: Pistal
+    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
+    fireRate: 0.4
+    magazineSize: 12
+    reloadDuration: 1
+    damage: 25
+    range: 0.4
+    canPierce: 0
+    spreadAngle: 5
+    pelletsPerShot: 1
+    isAutomatic: 0
+    currentMagazine: 0
+    currentReserveAmmo: 0
+  - weaponName: Shotgun
+    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
+    fireRate: 0.7
+    magazineSize: 7
+    reloadDuration: 3
+    damage: 40
+    range: 0.2
+    canPierce: 1
+    spreadAngle: 20
+    pelletsPerShot: 5
+    isAutomatic: 0
+    currentMagazine: 0
+    currentReserveAmmo: 0
+  - weaponName: Rifle
+    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
+    fireRate: 0.12
+    magazineSize: 30
+    reloadDuration: 2
+    damage: 35
+    range: 0.6
+    canPierce: 0
+    spreadAngle: 15
+    pelletsPerShot: 1
+    isAutomatic: 1
+    currentMagazine: 0
+    currentReserveAmmo: 0
   meleeRadius: 1.2
   meleeDamage: 35
   meleeRate: 0.4
@@ -304,7 +343,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7164168260703087331
@@ -369,8 +408,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1

@@ -155,7 +155,8 @@ namespace TheLastEmpire
                     foreach (var pair in quantities)
                     {
                         string key = pair.Key;
-                        bool isWeapon = (key == "Rifle" || key == "Shotgun" || key == "Pistol");
+                        string cleanKey = (key ?? "").ToLower().Trim();
+                        bool isWeapon = cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist");
                         bool isUsable = (key == "Potion" || key == "Bread" || isWeapon);
                         string displayName = key;
 
@@ -169,7 +170,8 @@ namespace TheLastEmpire
                         }
                         else if (isWeapon)
                         {
-                            bool isEquipped = string.Equals(key, equippedWeaponName, System.StringComparison.OrdinalIgnoreCase);
+                            string cleanEquipped = (equippedWeaponName ?? "").ToLower().Trim();
+                            bool isEquipped = cleanKey.Contains(cleanEquipped) || cleanEquipped.Contains(cleanKey) || (cleanKey.Contains("pist") && cleanEquipped.Contains("pist"));
                             if (isEquipped)
                             {
                                 displayName = $"<color=#00e5ff>[EQUIPPED]</color> {key} <color=#111111>(Active)</color>";

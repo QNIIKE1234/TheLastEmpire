@@ -527,6 +527,11 @@ namespace TheLastEmpire
                 Projectile proj = bullet.GetComponent<Projectile>();
                 if (proj != null)
                 {
+                    if (activeWeapon != null)
+                    {
+                        proj.SetStats(activeWeapon.damage, activeWeapon.range, activeWeapon.canPierce);
+                        Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Speed: {proj.Speed} m/s | Lifetime: {activeWeapon.range}s | Calculated Distance: {proj.Speed * activeWeapon.range} meters");
+                    }
                     proj.Setup(bulletDir, gameObject);
                 }
             }
@@ -767,6 +772,9 @@ namespace TheLastEmpire
                     fireRate = fireRate > 0f ? fireRate : 0.4f,
                     magazineSize = magazineSize > 0 ? magazineSize : 12,
                     reloadDuration = reloadDuration > 0f ? reloadDuration : 1.0f,
+                    damage = 15f,
+                    range = 1.5f,
+                    canPierce = false,
                     spreadAngle = 0f,
                     pelletsPerShot = 1,
                     isAutomatic = false
@@ -782,6 +790,9 @@ namespace TheLastEmpire
                     fireRate = 0.12f,
                     magazineSize = 30,
                     reloadDuration = 1.5f,
+                    damage = 25f,
+                    range = 3f,
+                    canPierce = false,
                     spreadAngle = 5f,
                     pelletsPerShot = 1,
                     isAutomatic = true
@@ -797,6 +808,9 @@ namespace TheLastEmpire
                     fireRate = 0.7f,
                     magazineSize = 6,
                     reloadDuration = 2.0f,
+                    damage = 12f,
+                    range = 0.8f,
+                    canPierce = true,
                     spreadAngle = 15f,
                     pelletsPerShot = 5,
                     isAutomatic = false
@@ -852,6 +866,9 @@ namespace TheLastEmpire
         public float fireRate = 0.2f;
         public int magazineSize = 12;
         public float reloadDuration = 1.0f;
+        public float damage = 20f;
+        public float range = 3f; // Projectile lifetime (range)
+        public bool canPierce = false; // Bullet penetration
         
         [Header("Spread & Pellets (Shotgun)")]
         public float spreadAngle = 0f;
@@ -864,6 +881,19 @@ namespace TheLastEmpire
 
         public void Initialize(int startingReserve)
         {
+            string lowerName = (weaponName ?? "").ToLower().Trim();
+            bool isRifle = lowerName.Contains("rifl");
+            bool isShotgun = lowerName.Contains("shot");
+            bool isPistol = lowerName.Contains("pist") || (!isRifle && !isShotgun);
+
+            // Apply default fallbacks if stats are unassigned (0) in Inspector
+            if (fireRate <= 0f) fireRate = isRifle ? 0.12f : (isShotgun ? 0.7f : 0.4f);
+            if (magazineSize <= 0) magazineSize = isRifle ? 30 : (isShotgun ? 6 : 12);
+            if (reloadDuration <= 0f) reloadDuration = isRifle ? 1.5f : (isShotgun ? 2.0f : 1.0f);
+            if (damage <= 0f) damage = isRifle ? 25f : (isShotgun ? 12f : 15f);
+            if (range <= 0f) range = isRifle ? 3.0f : (isShotgun ? 0.8f : 1.5f);
+            if (pelletsPerShot <= 0) pelletsPerShot = isShotgun ? 5 : 1;
+
             currentMagazine = magazineSize;
             currentReserveAmmo = startingReserve;
         }

@@ -60,12 +60,18 @@ namespace TheLastEmpire
 
         public bool UseItem(string itemName)
         {
-            if (itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol")
+            string cleanItem = (itemName ?? "").ToLower().Trim();
+            bool isWeaponItem = cleanItem.Contains("rifl") || cleanItem.Contains("shot") || cleanItem.Contains("pist");
+
+            if (isWeaponItem)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead)
                 {
-                    int idx = player.WeaponsList.FindIndex(w => string.Equals(w.weaponName, itemName, System.StringComparison.OrdinalIgnoreCase));
+                    int idx = player.WeaponsList.FindIndex(w => {
+                        string wName = (w.weaponName ?? "").ToLower().Trim();
+                        return wName.Contains(cleanItem) || cleanItem.Contains(wName) || (wName.Contains("pist") && cleanItem.Contains("pist"));
+                    });
                     if (idx >= 0)
                     {
                         player.SwitchToWeapon(idx);
