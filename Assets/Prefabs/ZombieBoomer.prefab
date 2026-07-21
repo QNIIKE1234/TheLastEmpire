@@ -255,8 +255,8 @@ MonoBehaviour:
   leapCooldown: 4
   leapSpeed: 12
   leapDuration: 0.3
-  explosionRadius: 3
-  explosionDamage: 45
+  explosionRadius: 1
+  explosionDamage: 120
   fuseDuration: 0.8
   buffRadius: 6
   childZombiePrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}

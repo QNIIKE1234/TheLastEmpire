@@ -59,6 +59,32 @@ namespace TheLastEmpire
                 _originalColor = _spriteRenderer.color;
             }
 
+            // Auto-correct ZombieType based on prefab/GameObject name if left as default/Normal
+            if (zombieType == ZombieType.Normal)
+            {
+                string lowerName = gameObject.name.ToLower();
+                if (lowerName.Contains("boomer"))
+                {
+                    zombieType = ZombieType.Boomer;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Boomer from GameObject name: {gameObject.name}");
+                }
+                else if (lowerName.Contains("leader"))
+                {
+                    zombieType = ZombieType.Leader;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Leader from GameObject name: {gameObject.name}");
+                }
+                else if (lowerName.Contains("dog") || lowerName.Contains("leap"))
+                {
+                    zombieType = ZombieType.Dog;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Dog from GameObject name: {gameObject.name}");
+                }
+                else if (lowerName.Contains("runner") || lowerName.Contains("fast"))
+                {
+                    zombieType = ZombieType.Runner;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Runner from GameObject name: {gameObject.name}");
+                }
+            }
+
             // Define stats depending on ZombieType
             switch (zombieType)
             {
