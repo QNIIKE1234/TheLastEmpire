@@ -44,6 +44,10 @@ namespace TheLastEmpire
         private List<GameObject> _activeEnemies = new List<GameObject>();
         private StageData _currentStage;
 
+        [Header("NPC Spawning Settings")]
+        [SerializeField] private GameObject npcPrefab;
+        private GameObject _activeNPC;
+
         private void Awake()
         {
             if (Instance == null)
@@ -114,6 +118,13 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
+            // Clear active NPC if it exists
+            if (_activeNPC != null)
+            {
+                Destroy(_activeNPC);
+                _activeNPC = null;
+            }
+
             // 1. Save the remaining alive enemies and items from the PREVIOUS stage before clearing
             if (_currentStage != null)
             {
@@ -131,7 +142,7 @@ namespace TheLastEmpire
                             isMoney = item.IsMoney,
                             moneyAmount = item.MoneyAmount,
                             posX = item.transform.position.x,
-                            posY = item.transform.position.y
+                            posY = item.transform.position.z
                         };
                         _currentStage.droppedItems.Add(itemData);
                     }
@@ -216,7 +227,7 @@ namespace TheLastEmpire
                     CollectibleItem prefabToUse = itemData.isMoney ? moneyDropPrefab : itemDropPrefab;
                     if (prefabToUse != null)
                     {
-                        Vector3 pos = new Vector3(itemData.posX, itemData.posY, 0f);
+                        Vector3 pos = new Vector3(itemData.posX, 0.5f, itemData.posY);
                         CollectibleItem spawnedItem = Instantiate(prefabToUse, pos, Quaternion.identity);
                         if (spawnedItem != null)
                         {
@@ -240,6 +251,23 @@ namespace TheLastEmpire
             }
 
             // 3. GDD: If this biome/stage has already been cleared today, DO NOT spawn enemies!
+            if (stage.biome == BiomeType.SpecialEvent && stage.isShopStage)
+            {
+                SpawnNPCInstance(NPCType.Shop, new Vector3(0f, 2.0f, 0f));
+                return; // Skip spawning enemies entirely!
+            }
+
+            // For instant testing/debugging: Spawn the Shop NPC in the starting room
+            if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+            {
+                int startX = WorldMapManager.Instance.MapGenerator.spawnX;
+                int startY = WorldMapManager.Instance.MapGenerator.spawnY;
+                if (stage.x == startX && stage.y == startY)
+                {
+                    SpawnNPCInstance(NPCType.Shop, new Vector3(0f, 2.0f, 3f));
+                }
+            }
+
             if (stage.isCleared)
             {
                 Debug.Log($"[GameManager] Stage ({stage.x}, {stage.y}) is already cleared today. Skipping spawn.");
@@ -471,6 +499,64 @@ namespace TheLastEmpire
                         stage.remainingEnemyPrefabNames = null; // resets to trigger fresh spawning
                         stage.droppedItems.Clear(); // clear any items that were left on the ground
                     }
+                }
+            }
+        }
+
+        private void SpawnNPCInstance(NPCType type, Vector3 spawnPos)
+        {
+            if (npcPrefab != null)
+            {
+                _activeNPC = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
+                NPCController npc = _activeNPC.GetComponent<NPCController>();
+                if (npc == null)
+                {
+                    npc = _activeNPC.AddComponent<NPCController>();
+                }
+                npc.SetNPCType(type);
+
+                if (type == NPCType.Shop && _currentStage != null)
+                {
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    {
+                        npc.SetShopItems(_currentStage.savedShopItems);
+                    }
+                    else
+                    {
+                        _currentStage.savedShopItems = npc.ShopItems;
+                    }
+                }
+            }
+            else
+            {
+                // Fallback: Create a clean programmatic capsule for NPC
+                _activeNPC = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                _activeNPC.name = $"{type}NPC_Fallback";
+                _activeNPC.transform.position = spawnPos;
+                _activeNPC.transform.localScale = new Vector3(1f, 1f, 1f);
+
+                // Add NPCController component
+                NPCController npc = _activeNPC.AddComponent<NPCController>();
+                npc.SetNPCType(type);
+
+                if (type == NPCType.Shop && _currentStage != null)
+                {
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    {
+                        npc.SetShopItems(_currentStage.savedShopItems);
+                    }
+                    else
+                    {
+                        _currentStage.savedShopItems = npc.ShopItems;
+                    }
+                }
+
+                // Color it a nice cyan to distinguish it
+                Renderer rend = _activeNPC.GetComponent<Renderer>();
+                if (rend != null)
+                {
+                    rend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                    rend.material.color = new Color(0f, 0.9f, 1f); // Cool cyan
                 }
             }
         }

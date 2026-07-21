@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
-    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Rigidbody))]
     public class PlayerController : MonoBehaviour
     {
         [Header("Movement")]
@@ -25,6 +25,7 @@ namespace TheLastEmpire
         [Header("Combat - Ranged")]
         [SerializeField] private Projectile projectilePrefab;
         [SerializeField] private float fireRate = 0.2f;
+        [SerializeField] private System.Collections.Generic.List<Weapon> weapons = new System.Collections.Generic.List<Weapon>();
 
         [Header("Combat - Melee")]
         [SerializeField] private float meleeRadius = 1.2f;
@@ -36,10 +37,10 @@ namespace TheLastEmpire
         [SerializeField] private float yLimit = 5f;
         [SerializeField] private float entryOffset = 0.5f;
 
-        private Rigidbody2D _rb;
+        private Rigidbody _rb;
         private Health _health;
         private Vector2 _moveInput;
-        private Vector2 _aimDirection = Vector2.right;
+        private Vector3 _aimDirection = Vector3.right;
 
         private float _startupDelay = 0.5f;
         private float _dashTimer = 0f;
@@ -47,12 +48,16 @@ namespace TheLastEmpire
         private int _currentMagazine;
         private int _currentReserveAmmo;
         private bool _isReloading = false;
+        private int _currentWeaponIndex = 0;
 
         // Public properties and events for HUD mapping
         public Health PlayerHealth => _health;
-        public int CurrentMagazine => _currentMagazine;
-        public int CurrentReserveAmmo => _currentReserveAmmo;
+        public int CurrentMagazine => CurrentWeapon != null ? CurrentWeapon.currentMagazine : _currentMagazine;
+        public int CurrentReserveAmmo => CurrentWeapon != null ? CurrentWeapon.currentReserveAmmo : _currentReserveAmmo;
         public bool IsReloading => _isReloading;
+        public Weapon CurrentWeapon => (weapons != null && weapons.Count > 0 && _currentWeaponIndex >= 0 && _currentWeaponIndex < weapons.Count) ? weapons[_currentWeaponIndex] : null;
+        public string CurrentWeaponName => CurrentWeapon != null ? CurrentWeapon.weaponName : "Pistol";
+        public System.Collections.Generic.List<Weapon> WeaponsList => weapons;
         public event System.Action OnAmmoChanged;
 
         [Header("Hunger System")]
@@ -73,22 +78,23 @@ namespace TheLastEmpire
         private float _meleeCooldownTimer = 0f;
         
         private bool _isDashing = false;
-        private Vector2 _dashDirection;
+        private Vector3 _dashDirection;
         private Color _originalColor = Color.white;
         private SpriteRenderer _spriteRenderer;
         private PlayerInventory _inventory;
 
-        private Collider2D _playerCollider;
-        private BoxCollider2D _boundaryLeft;
-        private BoxCollider2D _boundaryRight;
-        private BoxCollider2D _boundaryTop;
-        private BoxCollider2D _boundaryBottom;
+        private Collider _playerCollider;
+        private BoxCollider _boundaryLeft;
+        private BoxCollider _boundaryRight;
+        private BoxCollider _boundaryTop;
+        private BoxCollider _boundaryBottom;
+        private GameObject _boundaryContainer;
 
         private void Start()
         {
-            _rb = GetComponent<Rigidbody2D>();
-            _rb.gravityScale = 0f;
-            _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _rb = GetComponent<Rigidbody>();
+            _rb.useGravity = true;
+            _rb.constraints = RigidbodyConstraints.FreezeRotation;
 
             _spriteRenderer = GetComponent<SpriteRenderer>();
             if (_spriteRenderer != null)
@@ -159,9 +165,10 @@ namespace TheLastEmpire
 
             _currentReserveAmmo = startingReserveAmmo;
             _currentMagazine = magazineSize;
+            InitializeDefaultWeapons();
             OnAmmoChanged?.Invoke();
 
-            SetupScreenBoundaries();
+            // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
         }
 
         private void Update()
@@ -191,7 +198,7 @@ namespace TheLastEmpire
             {
                 if (_rb != null)
                 {
-                    _rb.linearVelocity = Vector2.zero;
+                    _rb.linearVelocity = Vector3.zero;
                 }
                 return; // Suppress normal movements, aiming, and updates when inventory panel is open
             }
@@ -221,6 +228,13 @@ namespace TheLastEmpire
 
             UpdateAimDirection();
             HandleDirectInput();
+
+            // Sync unrotated screen boundaries container to camera position on the X/Z plane
+            if (_boundaryContainer != null && Camera.main != null)
+            {
+                Vector3 camPos = Camera.main.transform.position;
+                _boundaryContainer.transform.position = new Vector3(camPos.x, 0f, camPos.z);
+            }
         }
 
         private void FixedUpdate()
@@ -232,8 +246,8 @@ namespace TheLastEmpire
             else
             {
                 // Normal 8-directional movement (1.5x speed if sprinting)
-                float currentSpeed = _isSprinting ? (moveSpeed * 1.5f) : moveSpeed;
-                _rb.linearVelocity = _moveInput * currentSpeed;
+                float currentSpeed = _isSprinting ? (moveSpeed * 2.5f) : moveSpeed;
+                _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }
 
@@ -241,18 +255,22 @@ namespace TheLastEmpire
         {
             if (Camera.main == null) return;
 
-            // Aim towards mouse position in world space
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            mousePos.z = 0f;
-
-            Vector2 direction = ((Vector2)mousePos - (Vector2)transform.position).normalized;
-            if (direction.sqrMagnitude > 0.01f)
+            // Aim towards mouse position in world space using 3D raycast on X/Z plane
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            if (groundPlane.Raycast(ray, out float rayDistance))
             {
-                _aimDirection = direction;
+                Vector3 targetPoint = ray.GetPoint(rayDistance);
+                Vector3 direction = (targetPoint - transform.position);
+                direction.y = 0f;
+                direction.Normalize();
 
-                // Rotate the player to face aiming direction (optional visual feedback)
-                float angle = Mathf.Atan2(_aimDirection.y, _aimDirection.x) * Mathf.Rad2Deg;
-                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                if (direction.sqrMagnitude > 0.01f)
+                {
+                    _aimDirection = direction;
+                    // Rotate the player to face aiming direction
+                    transform.forward = _aimDirection;
+                }
             }
         }
 
@@ -261,7 +279,17 @@ namespace TheLastEmpire
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
             {
-                if (Mouse.current.leftButton.isPressed && _fireCooldownTimer <= 0f)
+                bool wantToShoot = false;
+                if (CurrentWeapon != null && CurrentWeapon.isAutomatic)
+                {
+                    wantToShoot = Mouse.current.leftButton.isPressed;
+                }
+                else
+                {
+                    wantToShoot = Mouse.current.leftButton.wasPressedThisFrame;
+                }
+
+                if (wantToShoot && _fireCooldownTimer <= 0f)
                 {
                     ShootWeapon();
                 }
@@ -269,10 +297,25 @@ namespace TheLastEmpire
                 {
                     MeleeAttack();
                 }
+
+                // Scroll wheel weapon cycling
+                Vector2 scrollValue = Mouse.current.scroll.ReadValue();
+                if (scrollValue.y > 0.1f)
+                {
+                    SwitchToWeapon((_currentWeaponIndex - 1 + weapons.Count) % weapons.Count);
+                }
+                else if (scrollValue.y < -0.1f)
+                {
+                    SwitchToWeapon((_currentWeaponIndex + 1) % weapons.Count);
+                }
             }
 
             if (Keyboard.current != null)
             {
+                if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToWeapon(0);
+                if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToWeapon(1);
+                if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToWeapon(2);
+
                 if (Keyboard.current.fKey.wasPressedThisFrame && _meleeCooldownTimer <= 0f)
                 {
                     MeleeAttack();
@@ -343,6 +386,17 @@ namespace TheLastEmpire
                 }
             }
 
+            // 2. Check if standing near an NPCController
+            NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            foreach (NPCController npc in npcs)
+            {
+                if (npc != null && npc.IsPlayerInRange(transform.position))
+                {
+                    npc.Interact();
+                    return; // Interacted with NPC, skip other interactions!
+                }
+            }
+
             // Standard item collect fallback if not transitioning
             CollectibleItem[] collectibles = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
             CollectibleItem closestItem = null;
@@ -367,8 +421,16 @@ namespace TheLastEmpire
                 }
                 else if (closestItem.ItemName == "Ammo")
                 {
-                    _currentReserveAmmo += closestItem.Quantity;
-                    Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo. Total reserve: {_currentReserveAmmo}");
+                    if (CurrentWeapon != null)
+                    {
+                        CurrentWeapon.currentReserveAmmo += closestItem.Quantity;
+                        Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo for {CurrentWeapon.weaponName}. Total reserve: {CurrentWeapon.currentReserveAmmo}");
+                    }
+                    else
+                    {
+                        _currentReserveAmmo += closestItem.Quantity;
+                        Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo. Total reserve: {_currentReserveAmmo}");
+                    }
                     OnAmmoChanged?.Invoke();
                 }
                 else
@@ -382,63 +444,103 @@ namespace TheLastEmpire
         private void ShootWeapon()
         {
             if (_isReloading) return;
-            if (_currentMagazine <= 0)
+
+            Weapon activeWeapon = CurrentWeapon;
+            int magCount = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
+
+            if (magCount <= 0)
             {
                 TryStartReload();
                 return;
             }
 
-            _currentMagazine--;
+            // Decrement ammo
+            if (activeWeapon != null)
+            {
+                activeWeapon.currentMagazine--;
+            }
+            else
+            {
+                _currentMagazine--;
+            }
             OnAmmoChanged?.Invoke();
 
-            _fireCooldownTimer = fireRate;
-            Vector2 spawnPos = (Vector2)transform.position + _aimDirection * 0.6f;
+            // Set cooldown
+            float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
+            _fireCooldownTimer = rate;
 
-            GameObject bullet = null;
-            if (projectilePrefab != null && !string.IsNullOrEmpty(projectilePrefab.PoolKey) && ObjectPoolManager.Instance != null)
+            // Spawning positions
+            Vector3 spawnPos = transform.position + _aimDirection * 0.6f;
+            Projectile weaponProjectilePrefab = activeWeapon != null ? activeWeapon.projectilePrefab : projectilePrefab;
+
+            int pellets = (activeWeapon != null && activeWeapon.pelletsPerShot > 0) ? activeWeapon.pelletsPerShot : 1;
+            float spread = (activeWeapon != null) ? activeWeapon.spreadAngle : 0f;
+
+            for (int i = 0; i < pellets; i++)
             {
-                bullet = ObjectPoolManager.Instance.SpawnFromPool(projectilePrefab.PoolKey, spawnPos, Quaternion.identity);
-            }
+                // Calculate direction with spread (around Vector3.up axis)
+                Vector3 bulletDir = _aimDirection;
+                if (spread > 0f && pellets > 1)
+                {
+                    // Map pellets across the spread arc symmetrically
+                    float angleOffset = Mathf.Lerp(-spread * 0.5f, spread * 0.5f, (float)i / (pellets - 1));
+                    bulletDir = Quaternion.Euler(0f, angleOffset, 0f) * _aimDirection;
+                }
+                else if (spread > 0f)
+                {
+                    // Random spread for small rifle recoil
+                    float randomAngle = Random.Range(-spread * 0.5f, spread * 0.5f);
+                    bulletDir = Quaternion.Euler(0f, randomAngle, 0f) * _aimDirection;
+                }
 
-            // Fallback if pool lookup fails, key does not exist, or manager is null
-            if (bullet == null && projectilePrefab != null)
-            {
-                bullet = Instantiate(projectilePrefab.gameObject, spawnPos, Quaternion.identity);
-            }
+                GameObject bullet = null;
+                if (weaponProjectilePrefab != null && !string.IsNullOrEmpty(weaponProjectilePrefab.PoolKey) && ObjectPoolManager.Instance != null)
+                {
+                    bullet = ObjectPoolManager.Instance.SpawnFromPool(weaponProjectilePrefab.PoolKey, spawnPos, Quaternion.LookRotation(bulletDir));
+                }
 
-            // Final fallback: dynamic placeholder bullet if no prefab is assigned at all
-            if (bullet == null)
-            {
-                bullet = new GameObject("DynamicBullet");
-                bullet.transform.position = spawnPos;
-                bullet.transform.localScale = new Vector3(0.2f, 0.2f, 1f);
+                if (bullet == null && weaponProjectilePrefab != null)
+                {
+                    bullet = Instantiate(weaponProjectilePrefab.gameObject, spawnPos, Quaternion.LookRotation(bulletDir));
+                }
 
-                SpriteRenderer sr = bullet.AddComponent<SpriteRenderer>();
-                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                sr.color = Color.yellow;
+                if (bullet == null)
+                {
+                    // Dynamic bullet fallback
+                    bullet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    bullet.name = "DynamicBullet";
+                    bullet.transform.position = spawnPos;
+                    bullet.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
 
-                CircleCollider2D col = bullet.AddComponent<CircleCollider2D>();
-                col.isTrigger = true;
+                    Collider col = bullet.GetComponent<Collider>();
+                    if (col != null) col.isTrigger = true;
 
-                bullet.AddComponent<Projectile>();
-            }
+                    Renderer rend = bullet.GetComponent<Renderer>();
+                    if (rend != null)
+                    {
+                        rend.material.color = Color.yellow;
+                    }
 
-            Projectile proj = bullet.GetComponent<Projectile>();
-            if (proj != null)
-            {
-                proj.Setup(_aimDirection, gameObject);
+                    bullet.AddComponent<Projectile>();
+                }
+
+                Projectile proj = bullet.GetComponent<Projectile>();
+                if (proj != null)
+                {
+                    proj.Setup(bulletDir, gameObject);
+                }
             }
         }
 
         private void MeleeAttack()
         {
             _meleeCooldownTimer = meleeRate;
-            Vector2 attackPoint = (Vector2)transform.position + _aimDirection * 0.8f;
+            Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
 
             // Visual swing debug
-            Debug.Log("[PlayerController] Melee Swing Swung!");
+            Debug.Log("[PlayerController] Melee Swing Swung (Area Attack)!");
 
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(attackPoint, meleeRadius);
+            Collider[] hitColliders = Physics.OverlapSphere(attackPoint, meleeRadius);
             foreach (var col in hitColliders)
             {
                 if (col.gameObject == gameObject) continue;
@@ -458,7 +560,7 @@ namespace TheLastEmpire
             _dashCooldownTimer = dashCooldown;
 
             // Dash towards movement input, or aim direction if standing still
-            _dashDirection = _moveInput.sqrMagnitude > 0.01f ? _moveInput.normalized : _aimDirection;
+            _dashDirection = _moveInput.sqrMagnitude > 0.01f ? new Vector3(_moveInput.x, 0f, _moveInput.y).normalized : _aimDirection;
 
             // Trigger Invulnerability Frames (I-Frames)
             if (_health != null)
@@ -497,28 +599,22 @@ namespace TheLastEmpire
         {
             // Draw melee attack radius in editor
             Gizmos.color = Color.red;
-            Vector2 attackPoint = (Vector2)transform.position + _aimDirection * 0.8f;
+            Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
             Gizmos.DrawWireSphere(attackPoint, meleeRadius);
         }
 
         private void SetupScreenBoundaries()
         {
-            _playerCollider = GetComponent<Collider2D>();
+            _playerCollider = GetComponent<Collider>();
             if (_playerCollider == null) return;
 
             Camera cam = Camera.main ?? Object.FindFirstObjectByType<Camera>();
-            GameObject boundaryContainer = new GameObject("ScreenBoundaries");
+            _boundaryContainer = new GameObject("ScreenBoundaries");
             
-            // Parent to camera to handle any camera position offset dynamically (e.g. Camera.y = 1f)
-            if (cam != null)
-            {
-                boundaryContainer.transform.parent = cam.transform;
-                boundaryContainer.transform.localPosition = new Vector3(0f, 0f, 10f); // Center at camera view
-            }
-            else
-            {
-                boundaryContainer.transform.position = Vector3.zero;
-            }
+            // Set unrotated World Space position matching camera X/Z
+            Vector3 camPos = cam != null ? cam.transform.position : Vector3.zero;
+            _boundaryContainer.transform.position = new Vector3(camPos.x, 0f, camPos.z);
+            _boundaryContainer.transform.rotation = Quaternion.identity;
 
             // Fallback to safe defaults if yLimit or xLimit is set to 0 in the Inspector
             float calculatedYLimit = yLimit > 0.1f ? yLimit : 5f;
@@ -534,50 +630,54 @@ namespace TheLastEmpire
 
             // Left
             GameObject leftObj = new GameObject("Boundary_Left");
-            leftObj.transform.parent = boundaryContainer.transform;
-            _boundaryLeft = leftObj.AddComponent<BoxCollider2D>();
-            _boundaryLeft.size = new Vector2(thickness, calculatedYLimit * 2 + thickness * 2);
-            _boundaryLeft.offset = new Vector2(-calculatedXLimit - thickness / 2, 0);
+            leftObj.transform.parent = _boundaryContainer.transform;
+            _boundaryLeft = leftObj.AddComponent<BoxCollider>();
+            _boundaryLeft.center = new Vector3(-calculatedXLimit - thickness / 2, 0, 0);
+            _boundaryLeft.size = new Vector3(thickness, 10f, calculatedYLimit * 2 + thickness * 2);
 
             // Right
             GameObject rightObj = new GameObject("Boundary_Right");
-            rightObj.transform.parent = boundaryContainer.transform;
-            _boundaryRight = rightObj.AddComponent<BoxCollider2D>();
-            _boundaryRight.size = new Vector2(thickness, calculatedYLimit * 2 + thickness * 2);
-            _boundaryRight.offset = new Vector2(calculatedXLimit + thickness / 2, 0);
+            rightObj.transform.parent = _boundaryContainer.transform;
+            _boundaryRight = rightObj.AddComponent<BoxCollider>();
+            _boundaryRight.center = new Vector3(calculatedXLimit + thickness / 2, 0, 0);
+            _boundaryRight.size = new Vector3(thickness, 10f, calculatedYLimit * 2 + thickness * 2);
 
             // Top
             GameObject topObj = new GameObject("Boundary_Top");
-            topObj.transform.parent = boundaryContainer.transform;
-            _boundaryTop = topObj.AddComponent<BoxCollider2D>();
-            _boundaryTop.size = new Vector2(calculatedXLimit * 2 + thickness * 2, thickness);
-            _boundaryTop.offset = new Vector2(0, calculatedYLimit + thickness / 2);
+            topObj.transform.parent = _boundaryContainer.transform;
+            _boundaryTop = topObj.AddComponent<BoxCollider>();
+            _boundaryTop.center = new Vector3(0, 0, calculatedYLimit + thickness / 2);
+            _boundaryTop.size = new Vector3(calculatedXLimit * 2 + thickness * 2, 10f, thickness);
 
             // Bottom
             GameObject bottomObj = new GameObject("Boundary_Bottom");
-            bottomObj.transform.parent = boundaryContainer.transform;
-            _boundaryBottom = bottomObj.AddComponent<BoxCollider2D>();
-            _boundaryBottom.size = new Vector2(calculatedXLimit * 2 + thickness * 2, thickness);
-            _boundaryBottom.offset = new Vector2(0, -calculatedYLimit - thickness / 2);
+            bottomObj.transform.parent = _boundaryContainer.transform;
+            _boundaryBottom = bottomObj.AddComponent<BoxCollider>();
+            _boundaryBottom.center = new Vector3(0, 0, -calculatedYLimit - thickness / 2);
+            _boundaryBottom.size = new Vector3(calculatedXLimit * 2 + thickness * 2, 10f, thickness);
 
             // Log diagnostic configuration values
             Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] Cam: {cam != null}, CamName: {(cam != null ? cam.gameObject.name : "null")}, orthographicSize: {(cam != null ? cam.orthographicSize : 0f)}, aspect: {(cam != null ? cam.aspect : 0f)}");
             Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] calculatedYLimit: {calculatedYLimit}, calculatedXLimit: {calculatedXLimit}");
-            Debug.LogWarning($"[SETUP SCREEN BOUNDARIES] Top boundary world position (approx): {topObj.transform.position + (Vector3)_boundaryTop.offset}");
         }
 
         private void IgnoreCollisionWithBoundaries(bool ignore)
         {
             if (_playerCollider == null) return;
-            if (_boundaryLeft != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryLeft, ignore);
-            if (_boundaryRight != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryRight, ignore);
-            if (_boundaryTop != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryTop, ignore);
-            if (_boundaryBottom != null) Physics2D.IgnoreCollision(_playerCollider, _boundaryBottom, ignore);
+            if (_boundaryLeft != null) Physics.IgnoreCollision(_playerCollider, _boundaryLeft, ignore);
+            if (_boundaryRight != null) Physics.IgnoreCollision(_playerCollider, _boundaryRight, ignore);
+            if (_boundaryTop != null) Physics.IgnoreCollision(_playerCollider, _boundaryTop, ignore);
+            if (_boundaryBottom != null) Physics.IgnoreCollision(_playerCollider, _boundaryBottom, ignore);
         }
 
         private void TryStartReload()
         {
-            if (_isReloading || _currentMagazine == magazineSize || _currentReserveAmmo <= 0)
+            Weapon activeWeapon = CurrentWeapon;
+            int mag = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
+            int magSize = activeWeapon != null ? activeWeapon.magazineSize : magazineSize;
+            int reserve = activeWeapon != null ? activeWeapon.currentReserveAmmo : _currentReserveAmmo;
+
+            if (_isReloading || mag == magSize || reserve <= 0)
             {
                 return;
             }
@@ -589,12 +689,27 @@ namespace TheLastEmpire
             _isReloading = true;
             OnAmmoChanged?.Invoke();
 
-            yield return new WaitForSeconds(reloadDuration);
+            Weapon activeWeapon = CurrentWeapon;
+            float duration = activeWeapon != null ? activeWeapon.reloadDuration : reloadDuration;
 
-            int needed = magazineSize - _currentMagazine;
-            int toLoad = Mathf.Min(needed, _currentReserveAmmo);
-            _currentMagazine += toLoad;
-            _currentReserveAmmo -= toLoad;
+            yield return new WaitForSeconds(duration);
+
+            // Re-fetch current weapon status in case it swapped during reload (though we block swap, it's safer)
+            activeWeapon = CurrentWeapon;
+            if (activeWeapon != null)
+            {
+                int needed = activeWeapon.magazineSize - activeWeapon.currentMagazine;
+                int toLoad = Mathf.Min(needed, activeWeapon.currentReserveAmmo);
+                activeWeapon.currentMagazine += toLoad;
+                activeWeapon.currentReserveAmmo -= toLoad;
+            }
+            else
+            {
+                int needed = magazineSize - _currentMagazine;
+                int toLoad = Mathf.Min(needed, _currentReserveAmmo);
+                _currentMagazine += toLoad;
+                _currentReserveAmmo -= toLoad;
+            }
 
             _isReloading = false;
             OnAmmoChanged?.Invoke();
@@ -633,6 +748,124 @@ namespace TheLastEmpire
             currentHunger = Mathf.Clamp(currentHunger + amount, 0f, maxHunger);
             Debug.Log($"[PlayerController] Ate bread! Restored {amount} hunger. Current hunger: {currentHunger}");
             OnHungerChanged?.Invoke();
+        }
+
+        private void InitializeDefaultWeapons()
+        {
+            if (weapons == null)
+            {
+                weapons = new System.Collections.Generic.List<Weapon>();
+            }
+
+            if (weapons.Count == 0)
+            {
+                // 1. Pistol
+                Weapon pistol = new Weapon
+                {
+                    weaponName = "Pistol",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = fireRate > 0f ? fireRate : 0.4f,
+                    magazineSize = magazineSize > 0 ? magazineSize : 12,
+                    reloadDuration = reloadDuration > 0f ? reloadDuration : 1.0f,
+                    spreadAngle = 0f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false
+                };
+                pistol.Initialize(startingReserveAmmo);
+                weapons.Add(pistol);
+
+                // 2. Rifle
+                Weapon rifle = new Weapon
+                {
+                    weaponName = "Rifle",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 0.12f,
+                    magazineSize = 30,
+                    reloadDuration = 1.5f,
+                    spreadAngle = 5f,
+                    pelletsPerShot = 1,
+                    isAutomatic = true
+                };
+                rifle.Initialize(120);
+                weapons.Add(rifle);
+
+                // 3. Shotgun
+                Weapon shotgun = new Weapon
+                {
+                    weaponName = "Shotgun",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 0.7f,
+                    magazineSize = 6,
+                    reloadDuration = 2.0f,
+                    spreadAngle = 15f,
+                    pelletsPerShot = 5,
+                    isAutomatic = false
+                };
+                shotgun.Initialize(24);
+                weapons.Add(shotgun);
+            }
+            else
+            {
+                // Initialize custom inspector configured weapons
+                foreach (var w in weapons)
+                {
+                    w.Initialize(w.currentReserveAmmo > 0 ? w.currentReserveAmmo : startingReserveAmmo);
+                }
+            }
+        }
+
+        public void SwitchToWeapon(int index)
+        {
+            if (weapons == null || weapons.Count == 0) return;
+            if (index < 0 || index >= weapons.Count) return;
+            if (_isReloading) return; // Block switching while reloading
+            
+            _currentWeaponIndex = index;
+            Debug.Log($"[PlayerController] Switched to weapon: {CurrentWeapon.weaponName}");
+            
+            // Short equip delay
+            _fireCooldownTimer = 0.15f; 
+            
+            OnAmmoChanged?.Invoke();
+        }
+
+        public void AddReserveAmmo(int amount)
+        {
+            if (CurrentWeapon != null)
+            {
+                CurrentWeapon.currentReserveAmmo += amount;
+            }
+            else
+            {
+                _currentReserveAmmo += amount;
+            }
+            OnAmmoChanged?.Invoke();
+            Debug.Log($"[PlayerController] Added {amount} reserve ammo. Total: {(CurrentWeapon != null ? CurrentWeapon.currentReserveAmmo : _currentReserveAmmo)}");
+        }
+    }
+
+    [System.Serializable]
+    public class Weapon
+    {
+        public string weaponName;
+        public Projectile projectilePrefab;
+        public float fireRate = 0.2f;
+        public int magazineSize = 12;
+        public float reloadDuration = 1.0f;
+        
+        [Header("Spread & Pellets (Shotgun)")]
+        public float spreadAngle = 0f;
+        public int pelletsPerShot = 1;
+        public bool isAutomatic = false;
+
+        [Header("Runtime State")]
+        public int currentMagazine;
+        public int currentReserveAmmo;
+
+        public void Initialize(int startingReserve)
+        {
+            currentMagazine = magazineSize;
+            currentReserveAmmo = startingReserve;
         }
     }
 }

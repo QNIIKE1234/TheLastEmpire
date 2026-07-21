@@ -1,8 +1,9 @@
 using UnityEngine;
+using TMPro;
 
 namespace TheLastEmpire
 {
-    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Rigidbody))]
     public abstract class BaseEnemyAI : MonoBehaviour
     {
         public enum AIState
@@ -31,29 +32,37 @@ namespace TheLastEmpire
 
         public bool IsStaggered => isStaggered;
 
-        protected Rigidbody2D rb;
+        protected Rigidbody rb;
         protected Transform playerTransform;
         protected Health health;
         protected AIState currentState = AIState.Idle;
 
         protected float stateTimer = 0f;
-        protected Vector2 wanderDirection;
+        protected Vector3 wanderDirection;
+        protected bool hasBeenAttacked = false;
 
         public string PoolKey => poolKey;
         public AIState CurrentState => currentState;
 
         protected float transitionDelayTimer = 2.0f;
 
+        [Header("UI Reference")]
+        [SerializeField] protected string enemyName = "Enemy";
+        [SerializeField] protected TMP_Text nameText;
+        [SerializeField] protected TMP_Text healthText;
+        [SerializeField] protected UnityEngine.UI.Slider healthSlider;
+
         protected virtual void OnEnable()
         {
             transitionDelayTimer = 2.0f; // Lock actions for 2s on spawn/activation
+            hasBeenAttacked = false;
         }
 
         protected virtual void Start()
         {
-            rb = GetComponent<Rigidbody2D>();
-            rb.gravityScale = 0f;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb = GetComponent<Rigidbody>();
+            rb.useGravity = true;
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
 
             health = GetComponent<Health>();
             if (health == null)
@@ -63,8 +72,13 @@ namespace TheLastEmpire
             health.onDeath.AddListener(HandleDeath);
             health.onDamageTaken.AddListener(OnDamageTaken);
 
-            // Dynamically attach the health text to render above the head
-            gameObject.AddComponent<EnemyHealthText>();
+            if (nameText != null)
+            {
+                nameText.text = enemyName;
+            }
+
+            health.onHealthChanged.AddListener((h) => UpdateHealthUI());
+            UpdateHealthUI();
 
             FindPlayer();
             ChooseNextWanderState();
@@ -78,11 +92,11 @@ namespace TheLastEmpire
             {
                 staggerTimer -= Time.fixedDeltaTime;
                 // Apply friction decay to make knockback slide smoothly to a halt
-                rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, Vector2.zero, Time.fixedDeltaTime * 10f);
+                rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
                 if (staggerTimer <= 0f)
                 {
                     isStaggered = false;
-                    rb.linearVelocity = Vector2.zero;
+                    rb.linearVelocity = Vector3.zero;
                     currentState = AIState.Chase;
                 }
                 return;
@@ -91,7 +105,7 @@ namespace TheLastEmpire
             if (transitionDelayTimer > 0f)
             {
                 transitionDelayTimer -= Time.fixedDeltaTime;
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
                 currentState = AIState.Idle;
                 return;
             }
@@ -124,13 +138,12 @@ namespace TheLastEmpire
                 // Rotate visual to wander direction
                 if (wanderDirection.sqrMagnitude > 0.01f)
                 {
-                    float angle = Mathf.Atan2(wanderDirection.y, wanderDirection.x) * Mathf.Rad2Deg;
-                    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                    transform.forward = wanderDirection;
                 }
             }
             else
             {
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
             }
         }
 
@@ -140,13 +153,13 @@ namespace TheLastEmpire
             {
                 currentState = AIState.Wander;
                 stateTimer = Random.Range(wanderTime * 0.5f, wanderTime * 1.5f);
-                wanderDirection = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
+                wanderDirection = new Vector3(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f)).normalized;
             }
             else
             {
                 currentState = AIState.Idle;
                 stateTimer = Random.Range(idleTime * 0.5f, idleTime * 1.5f);
-                wanderDirection = Vector2.zero;
+                wanderDirection = Vector3.zero;
             }
         }
 
@@ -155,21 +168,26 @@ namespace TheLastEmpire
             if (playerTransform == null)
             {
                 FindPlayer();
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
                 return;
             }
 
-            Vector2 direction = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
-            rb.linearVelocity = direction * (moveSpeed * speedMultiplier);
+            Vector3 direction = (playerTransform.position - transform.position);
+            direction.y = 0f;
+            direction.Normalize();
+            rb.linearVelocity = new Vector3(direction.x * (moveSpeed * speedMultiplier), rb.linearVelocity.y, direction.z * (moveSpeed * speedMultiplier));
 
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                transform.forward = direction;
+            }
         }
 
         protected bool IsPlayerInDetectionRange()
         {
             if (playerTransform == null) return false;
-            return Vector2.Distance(transform.position, playerTransform.position) <= detectionRange;
+            if (hasBeenAttacked) return true; // Aggro locked on player after taking damage
+            return Vector3.Distance(transform.position, playerTransform.position) <= detectionRange;
         }
 
         protected virtual void HandleDeath()
@@ -200,6 +218,7 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
+            hasBeenAttacked = true;
             isStaggered = true;
             staggerTimer = staggerDuration;
             currentState = AIState.Stagger;
@@ -207,12 +226,45 @@ namespace TheLastEmpire
             // Apply knockback force away from the player's position
             if (playerTransform != null)
             {
-                Vector2 knockbackDir = ((Vector2)transform.position - (Vector2)playerTransform.position).normalized;
+                Vector3 knockbackDir = (transform.position - playerTransform.position);
+                knockbackDir.y = 0f;
+                knockbackDir.Normalize();
                 rb.linearVelocity = knockbackDir * knockbackForce;
             }
             else
             {
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
+            }
+        }
+
+        protected void UpdateHealthUI()
+        {
+            if (health == null) return;
+
+            if (healthText != null)
+            {
+                if (health.IsDead)
+                {
+                    healthText.text = "";
+                }
+                else
+                {
+                    healthText.text = $"{Mathf.RoundToInt(health.CurrentHealth)} / {Mathf.RoundToInt(health.MaxHealth)}";
+                }
+            }
+
+            if (healthSlider != null)
+            {
+                if (health.IsDead)
+                {
+                    healthSlider.gameObject.SetActive(false);
+                }
+                else
+                {
+                    healthSlider.gameObject.SetActive(true);
+                    healthSlider.maxValue = health.MaxHealth;
+                    healthSlider.value = health.CurrentHealth;
+                }
             }
         }
     }

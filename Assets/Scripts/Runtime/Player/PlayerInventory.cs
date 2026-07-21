@@ -16,6 +16,18 @@ namespace TheLastEmpire
         public event System.Action<string> OnItemCollected;
         public event System.Action OnInventoryChanged;
 
+        private void Start()
+        {
+            if (items == null)
+            {
+                items = new List<string>();
+            }
+            if (items.Count == 0)
+            {
+                items.Add("Pistol");
+            }
+        }
+
         public void AddMoney(int amount)
         {
             money += amount;
@@ -48,7 +60,25 @@ namespace TheLastEmpire
 
         public bool UseItem(string itemName)
         {
-            if (itemName == "Potion")
+            if (itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol")
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && !player.PlayerHealth.IsDead)
+                {
+                    int idx = player.WeaponsList.FindIndex(w => string.Equals(w.weaponName, itemName, System.StringComparison.OrdinalIgnoreCase));
+                    if (idx >= 0)
+                    {
+                        player.SwitchToWeapon(idx);
+                        OnInventoryChanged?.Invoke();
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[PlayerInventory] Weapon '{itemName}' is not defined on the player!");
+                    }
+                }
+            }
+            else if (itemName == "Potion")
             {
                 Health health = GetComponent<Health>();
                 if (health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth)

@@ -87,11 +87,13 @@ namespace TheLastEmpire
             // Handle player pulling force
             if (_isPullingPlayer && playerTransform != null)
             {
-                Rigidbody2D playerRb = playerTransform.GetComponent<Rigidbody2D>();
+                Rigidbody playerRb = playerTransform.GetComponent<Rigidbody>();
                 if (playerRb != null)
                 {
-                    Vector2 pullDirection = ((Vector2)transform.position - (Vector2)playerTransform.position).normalized;
-                    playerRb.linearVelocity = pullDirection * pullForce;
+                    Vector3 pullDirection = (transform.position - playerTransform.position);
+                    pullDirection.y = 0f;
+                    pullDirection.Normalize();
+                    playerRb.linearVelocity = new Vector3(pullDirection.x * pullForce, playerRb.linearVelocity.y, pullDirection.z * pullForce);
                 }
             }
 
@@ -108,7 +110,7 @@ namespace TheLastEmpire
 
             if (detected && playerTransform != null)
             {
-                float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+                float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
                 // Alien Hook: periodic grapple pull
                 if (alienType == AlienType.Hook && _hookCooldownTimer <= 0f && distanceToPlayer <= hookRange && !_isPullingPlayer)
@@ -121,16 +123,20 @@ namespace TheLastEmpire
                 {
                     // Alien Smart: strafe / circle around player
                     currentState = AIState.Chase;
-                    Vector2 toPlayer = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
-                    // Circle vector (perpendicular to player direction)
-                    Vector2 strafeDirection = new Vector2(-toPlayer.y, toPlayer.x);
+                    Vector3 toPlayer = (playerTransform.position - transform.position);
+                    toPlayer.y = 0f;
+                    toPlayer.Normalize();
+                    // Circle vector (perpendicular to player direction on X/Z plane)
+                    Vector3 strafeDirection = new Vector3(-toPlayer.z, 0f, toPlayer.x);
                     
                     // Blend walking towards player and walking sideways
-                    Vector2 finalDirection = (toPlayer * 0.4f + strafeDirection * 0.6f).normalized;
-                    rb.linearVelocity = finalDirection * moveSpeed;
+                    Vector3 finalDirection = (toPlayer * 0.4f + strafeDirection * 0.6f).normalized;
+                    rb.linearVelocity = new Vector3(finalDirection.x * moveSpeed, rb.linearVelocity.y, finalDirection.z * moveSpeed);
 
-                    float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg;
-                    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                    if (toPlayer.sqrMagnitude > 0.01f)
+                    {
+                        transform.forward = toPlayer;
+                    }
                 }
                 else
                 {
@@ -160,7 +166,7 @@ namespace TheLastEmpire
 
             if (playerTransform != null)
             {
-                float dist = Vector2.Distance(transform.position, playerTransform.position);
+                float dist = Vector3.Distance(transform.position, playerTransform.position);
                 float targetAlpha = dist <= fadeDistance ? 1f : 0.08f; // nearly invisible if far
                 
                 Color col = _spriteRenderer.color;
@@ -174,7 +180,7 @@ namespace TheLastEmpire
             _isPullingPlayer = true;
             _hookCooldownTimer = hookCooldown;
             currentState = AIState.Telegraph;
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity = Vector3.zero;
 
             Debug.Log($"[AlienAI] {gameObject.name} casted hook on player!");
 
@@ -193,7 +199,7 @@ namespace TheLastEmpire
             _spawnCooldownTimer = spawnCooldown;
 
             // Instantiate baby Alien Normal unit nearby
-            Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0f);
+            Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), 0f, Random.Range(-1.5f, 1.5f));
             Vector3 spawnPos = transform.position + spawnOffset;
 
             GameObject babyAlien;
@@ -216,7 +222,7 @@ namespace TheLastEmpire
                 sr.sprite = _spriteRenderer != null ? _spriteRenderer.sprite : null;
                 sr.color = Color.green;
                 
-                CircleCollider2D col = babyAlien.AddComponent<CircleCollider2D>();
+                SphereCollider col = babyAlien.AddComponent<SphereCollider>();
                 babyAlien.AddComponent<AlienAI>();
             }
 

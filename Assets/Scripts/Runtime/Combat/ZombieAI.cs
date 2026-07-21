@@ -39,7 +39,7 @@ namespace TheLastEmpire
         private float _leapCooldownTimer = 0f;
         private float _leapActiveTimer = 0f;
         private bool _isLeaping = false;
-        private Vector2 _leapDirection;
+        private Vector3 _leapDirection;
 
         private bool _isExploding = false;
         private float _fuseTimer = 0f;
@@ -101,7 +101,7 @@ namespace TheLastEmpire
             // Handle Boomer Fuse Countdown
             if (_isExploding)
             {
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
                 _fuseTimer -= Time.fixedDeltaTime;
 
                 // Flash red color visually to indicate fuse explosion warning
@@ -140,7 +140,7 @@ namespace TheLastEmpire
 
             if (detected)
             {
-                float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+                float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
                 // Boomer triggers explosion when very close to player
                 if (zombieType == ZombieType.Boomer && distanceToPlayer <= 2f && !_isExploding)
@@ -165,7 +165,7 @@ namespace TheLastEmpire
                 {
                     // Zombie will not wander during the night (stands still / idle)
                     currentState = AIState.Idle;
-                    rb.linearVelocity = Vector2.zero;
+                    rb.linearVelocity = Vector3.zero;
                 }
                 else
                 {
@@ -183,11 +183,13 @@ namespace TheLastEmpire
             
             if (playerTransform != null)
             {
-                _leapDirection = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                _leapDirection = (playerTransform.position - transform.position);
+                _leapDirection.y = 0f;
+                _leapDirection.Normalize();
             }
             else
             {
-                _leapDirection = transform.right;
+                _leapDirection = transform.forward;
             }
         }
 
@@ -203,7 +205,7 @@ namespace TheLastEmpire
             Debug.Log($"[ZombieAI] Boomer exploded at {transform.position}!");
 
             // Perform circular overlap check for damage targets
-            Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+            Collider[] targets = Physics.OverlapSphere(transform.position, explosionRadius);
             foreach (var target in targets)
             {
                 // Boomer explosion damages player and obstacles (ignores other enemies)
@@ -242,7 +244,7 @@ namespace TheLastEmpire
             {
                 if (zombie != null && zombie.zombieType == ZombieType.Leader && zombie != this)
                 {
-                    float dist = Vector2.Distance(transform.position, zombie.transform.position);
+                    float dist = Vector3.Distance(transform.position, zombie.transform.position);
                     if (dist <= buffRadius)
                     {
                         _hasLeaderBuff = true;
@@ -287,7 +289,7 @@ namespace TheLastEmpire
 
             _spawnCooldownTimer = spawnCooldown;
 
-            Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0f);
+            Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), 0f, Random.Range(-1.5f, 1.5f));
             Vector3 spawnPos = transform.position + spawnOffset;
 
             GameObject babyZombie = null;
@@ -309,7 +311,7 @@ namespace TheLastEmpire
                 sr.sprite = _spriteRenderer != null ? _spriteRenderer.sprite : null;
                 sr.color = Color.white;
 
-                CircleCollider2D col = babyZombie.AddComponent<CircleCollider2D>();
+                SphereCollider col = babyZombie.AddComponent<SphereCollider>();
                 
                 // Set tag and setup component
                 babyZombie.tag = "Enemy";

@@ -24,12 +24,12 @@ namespace TheLastEmpire
             set => tagToIgnore = value;
         }
 
-        private void OnTriggerEnter2D(Collider2D collision)
+        private void OnTriggerEnter(Collider collision)
         {
             HandleDamage(collision.gameObject);
         }
 
-        private void OnCollisionEnter2D(Collision2D collision)
+        private void OnCollisionEnter(Collision collision)
         {
             HandleDamage(collision.gameObject);
         }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace TheLastEmpire
 {
-    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Rigidbody))]
     public class Projectile : MonoBehaviour
     {
         [Header("Settings")]
@@ -12,7 +12,7 @@ namespace TheLastEmpire
         [SerializeField] private float lifetime = 3f;
         [SerializeField] private string poolKey = "";
 
-        private Rigidbody2D _rb;
+        private Rigidbody _rb;
         private GameObject _owner;
         private float _lifeTimer;
 
@@ -24,11 +24,11 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            _rb = GetComponent<Rigidbody2D>();
+            _rb = GetComponent<Rigidbody>();
             // Ensure projectile uses trigger and has no gravity
-            _rb.gravityScale = 0f;
+            _rb.useGravity = false;
             
-            Collider2D col = GetComponent<Collider2D>();
+            Collider col = GetComponent<Collider>();
             if (col != null)
             {
                 col.isTrigger = true;
@@ -55,17 +55,19 @@ namespace TheLastEmpire
             }
         }
 
-        public void Setup(Vector2 direction, GameObject owner)
+        public void Setup(Vector3 direction, GameObject owner)
         {
             _owner = owner;
             _rb.linearVelocity = direction.normalized * speed;
 
             // Rotate projectile to match flight direction
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                transform.forward = direction.normalized;
+            }
         }
 
-        private void OnTriggerEnter2D(Collider2D collision)
+        private void OnTriggerEnter(Collider collision)
         {
             // Ignore owner collisions (so shooter doesn't hit themselves)
             if (_owner != null && collision.gameObject == _owner) return;
@@ -90,7 +92,7 @@ namespace TheLastEmpire
         {
             if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
             {
-                _rb.linearVelocity = Vector2.zero;
+                _rb.linearVelocity = Vector3.zero;
                 ObjectPoolManager.Instance.ReturnToPool(poolKey, gameObject);
             }
             else

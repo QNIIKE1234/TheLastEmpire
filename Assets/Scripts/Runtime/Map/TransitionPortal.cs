@@ -26,7 +26,7 @@ namespace TheLastEmpire
 
         public bool IsPlayerInRange() => _playerInRange;
 
-        private void OnTriggerEnter2D(Collider2D other)
+        private void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {
@@ -35,7 +35,7 @@ namespace TheLastEmpire
             }
         }
 
-        private void OnTriggerExit2D(Collider2D other)
+        private void OnTriggerExit(Collider other)
         {
             if (other.CompareTag("Player"))
             {
@@ -47,10 +47,10 @@ namespace TheLastEmpire
         private void Start()
         {
             // 1. Ensure we have a collider trigger zone
-            Collider2D col = GetComponent<Collider2D>();
+            Collider col = GetComponent<Collider>();
             if (col == null)
             {
-                BoxCollider2D box = gameObject.AddComponent<BoxCollider2D>();
+                BoxCollider box = gameObject.AddComponent<BoxCollider>();
                 box.isTrigger = true;
             }
 
@@ -112,7 +112,7 @@ namespace TheLastEmpire
                 sr.enabled = pathExists;
             }
 
-            Collider2D col = GetComponent<Collider2D>();
+            Collider col = GetComponent<Collider>();
             if (col != null)
             {
                 col.enabled = pathExists;
@@ -136,7 +136,7 @@ namespace TheLastEmpire
                     }
                     else
                     {
-                        localPos.y = randomVal;
+                        localPos.z = randomVal;
                     }
 
                     transform.localPosition = localPos;
@@ -168,6 +168,8 @@ namespace TheLastEmpire
             }
 
             Vector3 pos = player.transform.position;
+            // Ensure player spawn Y height is safe above the ground (minimum 0.5) to avoid clipping under the floor
+            pos.y = Mathf.Max(pos.y, 0.5f);
             bool transitioned = false;
 
             switch (direction)
@@ -176,8 +178,8 @@ namespace TheLastEmpire
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                        // Teleport Y to bottom edge, keep X unchanged
-                        pos.y = camPos.y - calculatedYLimit + entryOffset;
+                        // Teleport Z to bottom edge (Z relative to room center 0f)
+                        pos.z = -calculatedYLimit + entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -186,8 +188,8 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                        // Teleport Y to top edge, keep X unchanged
-                        pos.y = camPos.y + calculatedYLimit - entryOffset;
+                        // Teleport Z to top edge (Z relative to room center 0f)
+                        pos.z = calculatedYLimit - entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -196,8 +198,8 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                        // Teleport X to left edge, keep Y unchanged
-                        pos.x = camPos.x - calculatedXLimit + entryOffset;
+                        // Teleport X to left edge (X relative to room center 0f)
+                        pos.x = -calculatedXLimit + entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -206,8 +208,8 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                        // Teleport X to right edge, keep Y unchanged
-                        pos.x = camPos.x + calculatedXLimit - entryOffset;
+                        // Teleport X to right edge (X relative to room center 0f)
+                        pos.x = calculatedXLimit - entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -217,15 +219,15 @@ namespace TheLastEmpire
             {
                 player.transform.position = pos;
 
-                // Sync Rigidbody2D position explicitly to prevent Unity's physics engine from overriding the teleportation
-                Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                // Sync Rigidbody position explicitly to prevent Unity's physics engine from overriding the teleportation
+                Rigidbody playerRb = player.GetComponent<Rigidbody>();
                 if (playerRb != null)
                 {
                     playerRb.position = pos;
-                    playerRb.linearVelocity = Vector2.zero;
+                    playerRb.linearVelocity = Vector3.zero;
                 }
                 
-                Physics2D.SyncTransforms(); // Force immediate transform update to colliders
+                Physics.SyncTransforms(); // Force immediate transform update to colliders
                 Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported player to randomized opposite portal: {pos}");
             }
         }

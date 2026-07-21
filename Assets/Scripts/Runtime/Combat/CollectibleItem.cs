@@ -15,7 +15,8 @@ namespace TheLastEmpire
         public int Quantity => quantity;
 
         private Transform _playerTransform;
-        private TextMeshPro _promptText;
+        [SerializeField] private TMP_Text promptText;
+        [SerializeField] private MeshRenderer itemMeshRenderer;
 
         public string ItemName => itemName;
         public int MoneyAmount => moneyAmount;
@@ -24,37 +25,30 @@ namespace TheLastEmpire
         private void Start()
         {
             // Pop/hop force on spawn for aesthetic feel
-            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.gravityScale = 1f; // temporary gravity to fall back down
-                Vector2 hopForce = new Vector2(Random.Range(-1f, 1f), Random.Range(3f, 5f));
+                rb.useGravity = true; // temporary gravity to fall back down
+                Vector3 hopForce = new Vector3(Random.Range(-1f, 1f), Random.Range(3f, 5f), Random.Range(-1f, 1f));
                 rb.linearVelocity = hopForce; // using Unity 6 linearVelocity
                 StartCoroutine(DisableGravityDelayed(rb, 0.6f));
             }
 
-            // Programmatically build TextMeshPro prompt so user doesn't have to manually configure UI
-            GameObject textObj = new GameObject("InteractPrompt");
-            textObj.transform.SetParent(transform);
-            textObj.transform.localPosition = new Vector3(0f, 0.6f, 0f);
-
-            _promptText = textObj.AddComponent<TextMeshPro>();
-            _promptText.fontSize = 2.5f;
-            _promptText.alignment = TextAlignmentOptions.Center;
-            _promptText.color = Color.yellow;
-            _promptText.gameObject.SetActive(false);
+            if (promptText != null)
+            {
+                promptText.gameObject.SetActive(false);
+            }
 
             UpdatePromptText();
             FindPlayer();
         }
 
-        private System.Collections.IEnumerator DisableGravityDelayed(Rigidbody2D rb, float delay)
+        private System.Collections.IEnumerator DisableGravityDelayed(Rigidbody rb, float delay)
         {
             yield return new WaitForSeconds(delay);
             if (rb != null)
             {
-                rb.gravityScale = 0f;
-                rb.linearVelocity = Vector2.zero;
+                rb.linearVelocity = Vector3.zero;
             }
         }
 
@@ -66,12 +60,12 @@ namespace TheLastEmpire
                 return;
             }
 
-            float dist = Vector2.Distance(transform.position, _playerTransform.position);
+            float dist = Vector3.Distance(transform.position, _playerTransform.position);
             bool inRange = dist <= interactRange;
 
-            if (_promptText != null)
+            if (promptText != null)
             {
-                _promptText.gameObject.SetActive(inRange);
+                promptText.gameObject.SetActive(inRange);
             }
         }
 
@@ -87,7 +81,7 @@ namespace TheLastEmpire
         public bool IsPlayerInRange()
         {
             if (_playerTransform == null) return false;
-            return Vector2.Distance(transform.position, _playerTransform.position) <= interactRange;
+            return Vector3.Distance(transform.position, _playerTransform.position) <= interactRange;
         }
 
         public void Collect()
@@ -107,6 +101,37 @@ namespace TheLastEmpire
             ItemData data = (ItemDatabase.Instance != null) ? ItemDatabase.Instance.GetItemByName(name) : null;
             if (data != null)
             {
+                Debug.Log($"[CollectibleItem] SetItemDetails: data found for '{name}'. Material is {(data.dropMaterial != null ? data.dropMaterial.name : "null")}");
+                // Apply 3D Material if available
+                if (data.dropMaterial != null)
+                {
+                    MeshRenderer mr = itemMeshRenderer != null ? itemMeshRenderer : (GetComponent<MeshRenderer>() ?? GetComponentInChildren<MeshRenderer>(true));
+                    if (mr != null)
+                    {
+                        mr.sharedMaterial = data.dropMaterial;
+                        Debug.Log($"[CollectibleItem] Applied material '{data.dropMaterial.name}' to {mr.gameObject.name}");
+                    }
+                    else
+                    {
+                        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                        sb.AppendLine($"[CollectibleItem] MeshRenderer not found on self or children for '{name}'!");
+                        sb.AppendLine("Components on self:");
+                        foreach (Component c in GetComponents<Component>())
+                        {
+                            if (c != null) sb.AppendLine($"- {c.GetType().Name}");
+                        }
+                        sb.AppendLine("Children hierarchy:");
+                        foreach (Transform child in transform)
+                        {
+                            sb.AppendLine($"- Child: {child.name} (Active: {child.gameObject.activeSelf})");
+                            foreach (Component comp in child.GetComponents<Component>())
+                            {
+                                if (comp != null) sb.AppendLine($"  * Comp: {comp.GetType().Name}");
+                            }
+                        }
+                        Debug.LogWarning(sb.ToString());
+                    }
+                }
                 if (sr != null)
                 {
                     if (data.icon != null)
@@ -166,9 +191,41 @@ namespace TheLastEmpire
 
             SpriteRenderer sr = GetComponent<SpriteRenderer>();
             ItemData data = (ItemDatabase.Instance != null) ? ItemDatabase.Instance.GetItemByName("Money") : null;
-            if (data != null && data.icon != null)
+            if (data != null)
             {
-                if (sr != null)
+                Debug.Log($"[CollectibleItem] SetMoneyDetails: data found for 'Money'. Material is {(data.dropMaterial != null ? data.dropMaterial.name : "null")}");
+                // Apply 3D Material if available
+                if (data.dropMaterial != null)
+                {
+                    MeshRenderer mr = itemMeshRenderer != null ? itemMeshRenderer : (GetComponent<MeshRenderer>() ?? GetComponentInChildren<MeshRenderer>(true));
+                    if (mr != null)
+                    {
+                        mr.sharedMaterial = data.dropMaterial;
+                        Debug.Log($"[CollectibleItem] Applied material '{data.dropMaterial.name}' to {mr.gameObject.name}");
+                    }
+                    else
+                    {
+                        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                        sb.AppendLine("[CollectibleItem] MeshRenderer not found on self or children for 'Money'!");
+                        sb.AppendLine("Components on self:");
+                        foreach (Component c in GetComponents<Component>())
+                        {
+                            if (c != null) sb.AppendLine($"- {c.GetType().Name}");
+                        }
+                        sb.AppendLine("Children hierarchy:");
+                        foreach (Transform child in transform)
+                        {
+                            sb.AppendLine($"- Child: {child.name} (Active: {child.gameObject.activeSelf})");
+                            foreach (Component comp in child.GetComponents<Component>())
+                            {
+                                if (comp != null) sb.AppendLine($"  * Comp: {comp.GetType().Name}");
+                            }
+                        }
+                        Debug.LogWarning(sb.ToString());
+                    }
+                }
+
+                if (data.icon != null && sr != null)
                 {
                     sr.sprite = data.icon;
                     sr.color = Color.white;
@@ -197,15 +254,15 @@ namespace TheLastEmpire
 
         private void UpdatePromptText()
         {
-            if (_promptText != null)
+            if (promptText != null)
             {
                 if (isMoney)
                 {
-                    _promptText.text = $"Press [E] (${moneyAmount})";
+                    promptText.text = $"Press [E] (${moneyAmount})";
                 }
                 else
                 {
-                    _promptText.text = $"Press [E] ({itemName} x{quantity})";
+                    promptText.text = $"Press [E] ({itemName} x{quantity})";
                 }
             }
         }

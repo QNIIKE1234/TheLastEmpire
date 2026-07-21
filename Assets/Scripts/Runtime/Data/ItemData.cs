@@ -8,7 +8,8 @@ namespace TheLastEmpire
         Ammo,
         Bread,
         ETC,
-        Money
+        Money,
+        Weapon
     }
 
     [CreateAssetMenu(fileName = "NewItemData", menuName = "TheLastEmpire/Item Data")]
@@ -25,5 +26,6 @@ namespace TheLastEmpire
         public float restorationValue; // HP healed or Hunger restored
         public int defaultQuantity = 1;
         public Color themeColor = Color.white; // Theme color for drops/prompts
+        public Material dropMaterial;
     }
 }

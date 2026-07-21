@@ -13,7 +13,7 @@ namespace TheLastEmpire
 
             if (detected)
             {
-                float dist = Vector2.Distance(transform.position, playerTransform.position);
+                float dist = Vector3.Distance(transform.position, playerTransform.position);
                 if (dist > fireDistance)
                 {
                     currentState = AIState.Chase;
@@ -23,12 +23,16 @@ namespace TheLastEmpire
                 {
                     // Stand still and fire / cover
                     currentState = AIState.Idle;
-                    rb.linearVelocity = Vector2.zero;
+                    rb.linearVelocity = Vector3.zero;
                     
                     // Aim at player
-                    Vector2 direction = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
-                    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                    Vector3 direction = (playerTransform.position - transform.position);
+                    direction.y = 0f;
+                    direction.Normalize();
+                    if (direction.sqrMagnitude > 0.01f)
+                    {
+                        transform.forward = direction;
+                    }
                 }
             }
             else

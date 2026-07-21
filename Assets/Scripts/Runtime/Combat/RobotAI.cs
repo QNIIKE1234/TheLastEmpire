@@ -115,7 +115,7 @@ namespace TheLastEmpire
                     {
                         currentState = AIState.Telegraph;
                         _telegraphTimer = telegraphDuration;
-                        rb.linearVelocity = Vector2.zero;
+                        rb.linearVelocity = Vector3.zero;
 
                         if (_spriteRenderer != null)
                         {
@@ -129,7 +129,7 @@ namespace TheLastEmpire
                     break;
 
                 case AIState.Telegraph:
-                    rb.linearVelocity = Vector2.zero;
+                    rb.linearVelocity = Vector3.zero;
                     _telegraphTimer -= Time.fixedDeltaTime;
 
                     if (_telegraphTimer <= 0f)
@@ -149,7 +149,7 @@ namespace TheLastEmpire
                         return;
                     }
 
-                    float dist = Vector2.Distance(transform.position, playerTransform.position);
+                    float dist = Vector3.Distance(transform.position, playerTransform.position);
 
                     // Gunner Robot Shooting Action
                     if (robotType == RobotType.Gunner && dist <= shootingDistance && _actionCooldownTimer <= 0f)
@@ -182,27 +182,32 @@ namespace TheLastEmpire
         {
             if (playerTransform == null) return false;
 
-            float dist = Vector2.Distance(transform.position, playerTransform.position);
+            float dist = Vector3.Distance(transform.position, playerTransform.position);
             if (dist > detectionRange) return false;
 
             // Detects player ONLY when player is currently moving
-            Rigidbody2D playerRb = playerTransform.GetComponent<Rigidbody2D>();
+            Rigidbody playerRb = playerTransform.GetComponent<Rigidbody>();
             if (playerRb == null || playerRb.linearVelocity.sqrMagnitude < 0.05f)
             {
                 return false;
             }
 
             // Raycast line of sight check
-            Vector2 facingDir = transform.right;
-            Vector2 toPlayer = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+            Vector3 facingDir = transform.forward;
+            Vector3 toPlayer = (playerTransform.position - transform.position);
+            toPlayer.y = 0f;
+            toPlayer.Normalize();
 
-            float dot = Vector2.Dot(facingDir, toPlayer);
+            float dot = Vector3.Dot(facingDir, toPlayer);
             if (dot < 0.5f) return false; // FOV limit
 
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, toPlayer, detectionRange, ~obstacleLayer);
-            if (hit.collider != null && hit.collider.CompareTag("Player"))
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, toPlayer, out hit, detectionRange, ~obstacleLayer))
             {
-                return true;
+                if (hit.collider != null && hit.collider.CompareTag("Player"))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -214,19 +219,23 @@ namespace TheLastEmpire
         {
             _isActionActive = true;
             _actionCooldownTimer = fireRate;
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
             // Lock rotation towards player
-            Vector2 dir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            Vector3 dir = (playerTransform.position - transform.position);
+            dir.y = 0f;
+            dir.Normalize();
+            if (dir.sqrMagnitude > 0.01f)
+            {
+                transform.forward = dir;
+            }
 
             yield return new WaitForSeconds(0.4f); // brief aim delay
 
             if (playerTransform != null)
             {
-                Vector2 spawnPos = (Vector2)transform.position + dir * 0.6f;
+                Vector3 spawnPos = transform.position + dir * 0.6f;
                 GameObject bullet;
 
                 if (enemyBulletPrefab != null)
@@ -238,13 +247,13 @@ namespace TheLastEmpire
                     // Fallback procedural projectile
                     bullet = new GameObject("RobotBullet");
                     bullet.transform.position = spawnPos;
-                    bullet.transform.localScale = new Vector3(0.15f, 0.15f, 1f);
+                    bullet.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
 
                     SpriteRenderer sr = bullet.AddComponent<SpriteRenderer>();
                     sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
                     sr.color = Color.red;
 
-                    CircleCollider2D col = bullet.AddComponent<CircleCollider2D>();
+                    SphereCollider col = bullet.AddComponent<SphereCollider>();
                     col.isTrigger = true;
 
                     bullet.AddComponent<Projectile>();
@@ -262,7 +271,7 @@ namespace TheLastEmpire
         {
             _isActionActive = true;
             _actionCooldownTimer = bladeDashCooldown;
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
             // Flash red warning
@@ -273,7 +282,9 @@ namespace TheLastEmpire
             // Dash forward
             if (playerTransform != null)
             {
-                Vector2 dashDir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                Vector3 dashDir = (playerTransform.position - transform.position);
+                dashDir.y = 0f;
+                dashDir.Normalize();
                 float dashTimer = bladeDashDuration;
 
                 while (dashTimer > 0f && playerTransform != null)
@@ -284,7 +295,7 @@ namespace TheLastEmpire
                 }
             }
 
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity = Vector3.zero;
             _isActionActive = false;
             currentState = AIState.Chase;
         }
@@ -293,7 +304,7 @@ namespace TheLastEmpire
         {
             _isActionActive = true;
             _actionCooldownTimer = 3f;
-            rb.linearVelocity = Vector2.zero;
+            rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
             // Enable Warning Laser Guide
@@ -309,16 +320,20 @@ namespace TheLastEmpire
             while (chargeTimer > 0f && playerTransform != null)
             {
                 chargeTimer -= Time.deltaTime;
-                Vector2 dir = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                Vector3 dir = (playerTransform.position - transform.position);
+                dir.y = 0f;
+                dir.Normalize();
                 
                 // Align rotation to player
-                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                if (dir.sqrMagnitude > 0.01f)
+                {
+                    transform.forward = dir;
+                }
 
                 if (_laserLine != null)
                 {
                     _laserLine.SetPosition(0, transform.position);
-                    _laserLine.SetPosition(1, transform.position + (Vector3)dir * laserRange);
+                    _laserLine.SetPosition(1, transform.position + dir * laserRange);
                 }
                 yield return null;
             }
@@ -336,22 +351,25 @@ namespace TheLastEmpire
             while (fireTimer > 0f && playerTransform != null)
             {
                 fireTimer -= Time.deltaTime;
-                Vector2 dir = transform.right;
+                Vector3 dir = transform.forward;
 
                 if (_laserLine != null)
                 {
                     _laserLine.SetPosition(0, transform.position);
-                    _laserLine.SetPosition(1, transform.position + (Vector3)dir * laserRange);
+                    _laserLine.SetPosition(1, transform.position + dir * laserRange);
                 }
 
                 // Laser Raycast Damage Tick check
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, laserRange, ~obstacleLayer);
-                if (hit.collider != null && hit.collider.CompareTag("Player"))
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, dir, out hit, laserRange, ~obstacleLayer))
                 {
-                    IDamageable damageable = hit.collider.GetComponent<IDamageable>();
-                    if (damageable != null)
+                    if (hit.collider != null && hit.collider.CompareTag("Player"))
                     {
-                        damageable.TakeDamage(laserDamage);
+                        IDamageable damageable = hit.collider.GetComponent<IDamageable>();
+                        if (damageable != null)
+                        {
+                            damageable.TakeDamage(laserDamage);
+                        }
                     }
                 }
                 yield return null;
@@ -371,11 +389,13 @@ namespace TheLastEmpire
             // Tanker Frontal Shield logic
             if (robotType == RobotType.Tanker && playerTransform != null)
             {
-                Vector2 facingDir = transform.right;
-                Vector2 toPlayer = ((Vector2)playerTransform.position - (Vector2)transform.position).normalized;
+                Vector3 facingDir = transform.forward;
+                Vector3 toPlayer = (playerTransform.position - transform.position);
+                toPlayer.y = 0f;
+                toPlayer.Normalize();
 
                 // Dot product > 0 means the player (instigator) is standing in front of the shield!
-                float dot = Vector2.Dot(facingDir, toPlayer);
+                float dot = Vector3.Dot(facingDir, toPlayer);
                 if (dot > 0f)
                 {
                     Debug.Log($"[RobotAI] Frontal Shield blocked {damageAmount} damage!");

@@ -149,31 +149,49 @@ namespace TheLastEmpire
                 }
                 else
                 {
+                    PlayerController player = _playerInventory.GetComponent<PlayerController>();
+                    string equippedWeaponName = player != null ? player.CurrentWeaponName : "";
+
                     foreach (var pair in quantities)
                     {
-                        bool isUsable = (pair.Key == "Potion" || pair.Key == "Bread");
-                        string displayName = pair.Key;
-                        if (pair.Key == "Potion")
+                        string key = pair.Key;
+                        bool isWeapon = (key == "Rifle" || key == "Shotgun" || key == "Pistol");
+                        bool isUsable = (key == "Potion" || key == "Bread" || isWeapon);
+                        string displayName = key;
+
+                        if (key == "Potion")
                         {
-                            displayName = "<color=#1bff33>[USABLE]</color> Potion <color=green>(Click to Use)</color>";
+                            displayName = "<color=#1bff33>[USABLE]</color> Potion <color=#111111>(Click to Use)</color>";
                         }
-                        else if (pair.Key == "Bread")
+                        else if (key == "Bread")
                         {
-                            displayName = "<color=#ffeb3b>[USABLE]</color> Bread <color=yellow>(Click to Eat)</color>";
+                            displayName = "<color=#ffeb3b>[USABLE]</color> Bread <color=#111111>(Click to Eat)</color>";
                         }
-                        else if (pair.Key == "Ammo")
+                        else if (isWeapon)
+                        {
+                            bool isEquipped = string.Equals(key, equippedWeaponName, System.StringComparison.OrdinalIgnoreCase);
+                            if (isEquipped)
+                            {
+                                displayName = $"<color=#00e5ff>[EQUIPPED]</color> {key} <color=#111111>(Active)</color>";
+                            }
+                            else
+                            {
+                                displayName = $"<color=#111111>[WEAPON]</color> {key} <color=#111111>(Click to Equip)</color>";
+                            }
+                        }
+                        else if (key == "Ammo")
                         {
                             displayName = "<color=#00e5ff>[AMMO]</color> Ammo";
                         }
-                        else if (pair.Key == "ETC")
+                        else if (key == "ETC")
                         {
                             displayName = "<color=#ff9a00>[ETC]</color> ETC";
                         }
                         else
                         {
-                            displayName = $"<color=#ff9a00>[ETC]</color> {pair.Key}";
+                            displayName = $"<color=#ff9a00>[ETC]</color> {key}";
                         }
-                        CreateItemRow(pair.Key, $"{displayName} <color=#90A4AE>x{pair.Value}</color>", Color.white, isUsable);
+                        CreateItemRow(key, $"{displayName} <color=#90A4AE>x{pair.Value}</color>", Color.white, isUsable);
                     }
                 }
             }

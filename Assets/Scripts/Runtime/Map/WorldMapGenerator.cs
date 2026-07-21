@@ -80,7 +80,12 @@ namespace TheLastEmpire
                     }
 
                     int stageSeed = rand.Next();
-                    gridData[x + y * GridSize] = new StageData(x, y, biome, stageSeed);
+                    StageData stage = new StageData(x, y, biome, stageSeed);
+                    if (biome == BiomeType.SpecialEvent)
+                    {
+                        stage.isShopStage = (rand.Next(0, 2) == 0);
+                    }
+                    gridData[x + y * GridSize] = stage;
                 }
             }
 

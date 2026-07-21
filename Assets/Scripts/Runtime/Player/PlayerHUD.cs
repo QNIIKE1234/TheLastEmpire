@@ -12,6 +12,11 @@ namespace TheLastEmpire
         [SerializeField] private TMPro.TMP_Text ammoTextHUD;
         [SerializeField] private TMPro.TMP_Text hpTextHUD;
 
+        [Header("Game Over References")]
+        [SerializeField] private GameObject gameOverPanel;
+        [SerializeField] private TMPro.TMP_Text daysSurvivedText;
+        [SerializeField] private UnityEngine.UI.Button retryButton;
+
         [Header("Player Reference (Optional)")]
         [SerializeField] private PlayerController player;
 
@@ -57,6 +62,11 @@ namespace TheLastEmpire
             {
                 Debug.LogWarning("[PlayerHUD] PlayerController reference not found. HUD will not receive state updates.");
             }
+
+            if (retryButton != null)
+            {
+                retryButton.onClick.AddListener(RetryGame);
+            }
         }
 
         private void OnDestroy()
@@ -72,6 +82,11 @@ namespace TheLastEmpire
                     pHealth.onHealthChanged.RemoveListener((hp) => UpdateHUD());
                     pHealth.onDeath.RemoveListener(ShowDeathResultScreen);
                 }
+            }
+
+            if (retryButton != null)
+            {
+                retryButton.onClick.RemoveListener(RetryGame);
             }
         }
 
@@ -282,13 +297,14 @@ namespace TheLastEmpire
             // 3. Update Ammo Text
             if (_ammoText != null)
             {
+                string weaponName = player.CurrentWeaponName.ToUpper();
                 if (player.IsReloading)
                 {
-                    _ammoText.text = $"AMMO: <color=yellow>RELOADING...</color> (<color=#cfd8dc>{player.CurrentReserveAmmo}</color>)";
+                    _ammoText.text = $"{weaponName}: <color=yellow>RELOADING...</color> (<color=#cfd8dc>{player.CurrentReserveAmmo}</color>)";
                 }
                 else
                 {
-                    _ammoText.text = $"AMMO: <color=#00e5ff>{player.CurrentMagazine}</color> / <color=#cfd8dc>{player.CurrentReserveAmmo}</color>";
+                    _ammoText.text = $"{weaponName}: <color=#00e5ff>{player.CurrentMagazine}</color> / <color=#cfd8dc>{player.CurrentReserveAmmo}</color>";
                 }
             }
         }
@@ -297,6 +313,19 @@ namespace TheLastEmpire
         {
             // Pause the game mechanics
             Time.timeScale = 0f;
+
+            // Use custom UI panel if assigned in the Inspector
+            if (gameOverPanel != null)
+            {
+                gameOverPanel.SetActive(true);
+
+                if (daysSurvivedText != null)
+                {
+                    int survivedDays = DayNightManager.Instance != null ? DayNightManager.Instance.DayCount : 1;
+                    daysSurvivedText.text = $"You survived: <color=yellow>{survivedDays}</color> Days";
+                }
+                return;
+            }
 
             Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
             if (hudCanvas == null) return;
@@ -380,7 +409,7 @@ namespace TheLastEmpire
             btnTextRect.offsetMax = Vector2.zero;
         }
 
-        private void RetryGame()
+        public void RetryGame()
         {
             // Restore normal game speed
             Time.timeScale = 1f;

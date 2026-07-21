@@ -265,91 +265,100 @@ namespace TheLastEmpire
 
         private void CreateProceduralObstacle(Vector3 pos, BiomeType biome)
         {
-            GameObject obstacle = new GameObject("ProceduralObstacle");
+            GameObject obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
             obstacle.transform.parent = _currentEnvContainer.transform;
-            obstacle.transform.position = pos;
-
-            // Add SpriteRenderer
-            SpriteRenderer sr = obstacle.AddComponent<SpriteRenderer>();
-            sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-            sr.sortingOrder = 3; // Render on top of background and decorations
-
-            // Setup sizes and colors depending on biome
+            
+            float height = Random.Range(0.8f, 1.5f);
             float scaleX = Random.Range(0.6f, 1.2f);
-            float scaleY = Random.Range(0.6f, 1.2f);
-            obstacle.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+            float scaleZ = Random.Range(0.6f, 1.2f);
+            
+            obstacle.transform.localScale = new Vector3(scaleX, height, scaleZ);
+            obstacle.transform.position = new Vector3(pos.x, height / 2f, pos.y);
+
+            Renderer rend = obstacle.GetComponent<Renderer>();
+            Color themeColor = Color.gray;
 
             switch (biome)
             {
                 case BiomeType.UrbanRuins:
-                    sr.color = new Color(0.35f, 0.35f, 0.35f); // Gray Concrete Ruin
+                    themeColor = new Color(0.35f, 0.35f, 0.35f); // Gray Concrete Ruin
                     obstacle.name = "ConcreteRuin";
                     break;
                 case BiomeType.Highways:
-                    sr.color = new Color(0.7f, 0.25f, 0.05f); // Rusted orange barrier
+                    themeColor = new Color(0.7f, 0.25f, 0.05f); // Rusted orange barrier
                     obstacle.name = "RoadBarrier";
                     break;
                 case BiomeType.OvergrownForests:
-                    sr.color = new Color(0.12f, 0.28f, 0.08f); // Deep forest green pine tree
+                    themeColor = new Color(0.12f, 0.28f, 0.08f); // Deep forest green pine tree
                     obstacle.name = "ForestPineTree";
                     break;
                 case BiomeType.Highlands:
-                    sr.color = new Color(0.48f, 0.44f, 0.4f); // Mountain stone boulder
+                    themeColor = new Color(0.48f, 0.44f, 0.4f); // Mountain stone boulder
                     obstacle.name = "Boulder";
                     break;
                 case BiomeType.Waterways:
-                    sr.color = new Color(0.2f, 0.4f, 0.35f); // Mossy water rock
+                    themeColor = new Color(0.2f, 0.4f, 0.35f); // Mossy water rock
                     obstacle.name = "MossyRock";
                     break;
                 case BiomeType.SuburbanVillages:
-                    sr.color = new Color(0.55f, 0.38f, 0.22f); // Wooden box crate
+                    themeColor = new Color(0.55f, 0.38f, 0.22f); // Wooden box crate
                     obstacle.name = "WoodCrate";
                     break;
                 default:
-                    sr.color = new Color(0.4f, 0.4f, 0.4f); // General rock
+                    themeColor = new Color(0.4f, 0.4f, 0.4f); // General rock
                     obstacle.name = "StoneObstacle";
                     break;
             }
 
-            // Add collider to block physics
-            BoxCollider2D col = obstacle.AddComponent<BoxCollider2D>();
-            col.size = Vector2.one;
+            if (rend != null)
+            {
+                rend.material.color = themeColor;
+            }
         }
 
         private void CreateProceduralDecoration(Vector3 pos, BiomeType biome)
         {
-            GameObject decor = new GameObject("ProceduralDecoration");
+            GameObject decor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             decor.transform.parent = _currentEnvContainer.transform;
-            decor.transform.position = pos;
-
-            // Add SpriteRenderer
-            SpriteRenderer sr = decor.AddComponent<SpriteRenderer>();
-            sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-            sr.sortingOrder = 1; // Under player and obstacles
-
-            // Random rotation and sizing
-            decor.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+            
             float size = Random.Range(0.2f, 0.5f);
-            decor.transform.localScale = new Vector3(size, size, 1f);
+            decor.transform.localScale = new Vector3(size, 0.02f, size);
+            decor.transform.position = new Vector3(pos.x, 0.01f, pos.y);
+
+            Collider col = decor.GetComponent<Collider>();
+            if (col != null)
+            {
+                Destroy(col);
+            }
+
+            decor.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+
+            Renderer rend = decor.GetComponent<Renderer>();
+            Color themeColor = Color.gray;
 
             switch (biome)
             {
                 case BiomeType.UrbanRuins:
-                    sr.color = new Color(0.2f, 0.2f, 0.2f, 0.6f); // Dust/debris ash pile
+                    themeColor = new Color(0.2f, 0.2f, 0.2f, 0.6f); // Dust/debris ash pile
                     decor.name = "AshDebris";
                     break;
                 case BiomeType.OvergrownForests:
-                    sr.color = new Color(0.4f, 0.8f, 0.2f, 0.7f); // Bright wild leaf prop
+                    themeColor = new Color(0.4f, 0.8f, 0.2f, 0.7f); // Bright wild leaf prop
                     decor.name = "WildGrass";
                     break;
                 case BiomeType.Waterways:
-                    sr.color = new Color(0.1f, 0.6f, 0.8f, 0.4f); // Water puddle
+                    themeColor = new Color(0.1f, 0.6f, 0.8f, 0.4f); // Water puddle
                     decor.name = "Puddle";
                     break;
                 default:
-                    sr.color = new Color(0.45f, 0.4f, 0.35f, 0.7f); // Pebble / Sand patch
+                    themeColor = new Color(0.45f, 0.4f, 0.35f, 0.7f); // Pebble / Sand patch
                     decor.name = "Pebble";
                     break;
+            }
+
+            if (rend != null)
+            {
+                rend.material.color = themeColor;
             }
         }
     }
