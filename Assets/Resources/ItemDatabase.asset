@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f5e3d4937f4cfd42b848f41e74e3f3d, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemDatabase
+  allItems:
+  - {fileID: 11400000, guid: 99259f2e874f60343bc28d427eb691cb, type: 2}
+  - {fileID: 11400000, guid: 561922f3be8b4874d865a5c039258817, type: 2}
+  - {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
+  - {fileID: 11400000, guid: d154e9c79a08ee640a2c7a2e64bd9777, type: 2}
+  - {fileID: 11400000, guid: 0ef27a5537be62543bd247f172f26a7e, type: 2}

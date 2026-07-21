@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 853d1d05b6be81e45a145df8c6eb9430
+guid: d760af430e32cf549bd715462fcebd74
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -21,7 +21,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-  isReadable: 1
+  isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -34,7 +34,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -72,7 +72,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_directional_spritesheet_0
+      name: money_icon_0
       rect:
         serializedVersion: 2
-        x: 131
-        y: 584
-        width: 246
-        height: 380
+        x: 130
+        y: 218
+        width: 754
+        height: 566
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,74 +112,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 899a7faedb313dc48a53a258b424470b
-      internalID: 666940318
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player_directional_spritesheet_1
-      rect:
-        serializedVersion: 2
-        x: 521
-        y: 520
-        width: 493
-        height: 494
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d90ebb7cb3dde6b428144d7b91b30d63
-      internalID: 504184033
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player_directional_spritesheet_2
-      rect:
-        serializedVersion: 2
-        x: 10
-        y: 10
-        width: 493
-        height: 494
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 595f2f0a1dc2feb44b8b961620427b91
-      internalID: -1723809562
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player_directional_spritesheet_3
-      rect:
-        serializedVersion: 2
-        x: 521
-        y: 10
-        width: 493
-        height: 494
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 683eb7754e51d0841a63849dc7e0405c
-      internalID: 318889819
+      spriteID: 0e529d5fc779c094096e1bbcca7c5a58
+      internalID: 1510167904
       vertices: []
       indices: 
       edges: []
@@ -188,7 +122,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: ee39307253162b041929a9ac1529f472
+    spriteID: 433b0e2f4592ba44a91436ef378e84a9
     internalID: 0
     vertices: []
     indices: 
@@ -200,10 +134,7 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      player_directional_spritesheet_0: 666940318
-      player_directional_spritesheet_1: 504184033
-      player_directional_spritesheet_2: -1723809562
-      player_directional_spritesheet_3: 318889819
+      money_icon_0: 1510167904
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
