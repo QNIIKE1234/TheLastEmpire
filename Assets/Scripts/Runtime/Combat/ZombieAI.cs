@@ -244,14 +244,11 @@ namespace TheLastEmpire
                 }
             }
 
-            // Kill ourselves cleanly (we skip returning to pool or trigger it as pool return)
+            // Kill ourselves cleanly
             _isExploding = false;
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            if (health != null)
-            {
-                health.TakeDamage(health.MaxHealth * 2); // deal fatal damage to trigger clean death
-            }
+            base.HandleDeath();
         }
 
         private void ApplyLeaderBuffChecks()
