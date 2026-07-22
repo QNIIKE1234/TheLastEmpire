@@ -377,18 +377,54 @@ namespace TheLastEmpire
 
         private void SpawnEnemyInstance(GameObject prefab, string pKey)
         {
-            // Select a random position within viewport limits (padding borders)
-            float spawnX = Random.Range(-6f, 6f);
-            float spawnY = Random.Range(-3.5f, 3.5f);
+            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
-            // Prevent spawning directly on top of the player at (0, 0)
-            if (Mathf.Abs(spawnX) < 1.5f && Mathf.Abs(spawnY) < 1.5f)
+            Vector3 spawnPos = Vector3.zero;
+            bool foundSafe = false;
+            int maxAttempts = 15;
+
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
-                spawnX += Mathf.Sign(spawnX) * 2f;
-                spawnY += Mathf.Sign(spawnY) * 2f;
+                // Select a random position within viewport limits (padding borders)
+                float spawnX = Random.Range(-6f, 6f);
+                float spawnY = Random.Range(-3.5f, 3.5f);
+                Vector3 candidatePos = new Vector3(spawnX, 0.2f, spawnY);
+
+                // 1. Prevent spawning directly on top of or too close to the player
+                if (Vector3.Distance(candidatePos, playerPos) < 2.2f)
+                {
+                    continue;
+                }
+
+                // 2. Prevent spawning inside solid environment obstacles
+                Collider[] colliders = Physics.OverlapSphere(candidatePos, 0.8f);
+                bool overlapsObstacle = false;
+                foreach (Collider col in colliders)
+                {
+                    if (col != null && !col.isTrigger && !col.CompareTag("Player") && !col.CompareTag("Enemy"))
+                    {
+                        overlapsObstacle = true;
+                        break;
+                    }
+                }
+
+                if (!overlapsObstacle)
+                {
+                    spawnPos = candidatePos;
+                    foundSafe = true;
+                    break;
+                }
             }
 
-            Vector3 spawnPos = new Vector3(spawnX, spawnY, 0f);
+            if (!foundSafe)
+            {
+                // Fallback if no safe position found: place it away from player on the X/Z plane
+                float spawnX = Random.Range(-6f, 6f);
+                float spawnY = Random.Range(-3.5f, 3.5f);
+                if (Mathf.Abs(spawnX - playerPos.x) < 2f) spawnX += 3f * (spawnX - playerPos.x == 0f ? 1f : Mathf.Sign(spawnX - playerPos.x));
+                spawnPos = new Vector3(spawnX, 0.2f, spawnY);
+            }
 
             GameObject enemy;
             if (!string.IsNullOrEmpty(pKey) && ObjectPoolManager.Instance != null)

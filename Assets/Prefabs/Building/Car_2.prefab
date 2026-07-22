@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8953665308892604569}
   - component: {fileID: 8432360286192608345}
   - component: {fileID: 492455234253517262}
+  - component: {fileID: 4519673343443669563}
   m_Layer: 0
   m_Name: Car_2
   m_TagString: Untagged
@@ -112,3 +113,40 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4519673343443669563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6929918662279242570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
+  containerName: Broken Car
+  moneyAmount: 0
+  itemsInside: []
+  randomizeLoot: 1
+  minRandomCash: 10
+  maxRandomCash: 300
+  possibleLoot:
+  - itemName: Shotgun
+    minQuantity: 1
+    maxQuantity: 1
+    dropProbability: 0.05
+  - itemName: Ammo
+    minQuantity: 1
+    maxQuantity: 20
+    dropProbability: 0.2
+  - itemName: Potion
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  - itemName: Bread
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  isSearched: 0
+  interactionRadius: 2

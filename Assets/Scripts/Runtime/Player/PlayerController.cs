@@ -96,12 +96,20 @@ namespace TheLastEmpire
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            // Automatically attach CameraFollow component to main camera if not present
+            // Automatically attach CameraFollow and CameraObstacleFader components to main camera if not present
             Camera mainCam = Camera.main;
-            if (mainCam != null && mainCam.GetComponent<CameraFollow>() == null)
+            if (mainCam != null)
             {
-                mainCam.gameObject.AddComponent<CameraFollow>();
-                Debug.Log("[PlayerController] Dynamically added CameraFollow component to Main Camera.");
+                if (mainCam.GetComponent<CameraFollow>() == null)
+                {
+                    mainCam.gameObject.AddComponent<CameraFollow>();
+                    Debug.Log("[PlayerController] Dynamically added CameraFollow component to Main Camera.");
+                }
+                if (mainCam.GetComponent<CameraObstacleFader>() == null)
+                {
+                    mainCam.gameObject.AddComponent<CameraObstacleFader>();
+                    Debug.Log("[PlayerController] Dynamically added CameraObstacleFader component to Main Camera.");
+                }
             }
 
             _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -202,13 +210,19 @@ namespace TheLastEmpire
                 }
             }
 
-            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
+            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            if (isMenuOpen)
             {
                 if (_rb != null)
                 {
                     _rb.linearVelocity = Vector3.zero;
                 }
-                return; // Suppress normal movements, aiming, and updates when inventory panel is open
+                if (LootUI.Instance != null)
+                {
+                    LootUI.Instance.HidePrompt();
+                }
+                return; // Suppress normal movements, aiming, and updates when inventory or loot panel is open
             }
 
             if (_startupDelay > 0f)
@@ -243,6 +257,8 @@ namespace TheLastEmpire
                 Vector3 camPos = Camera.main.transform.position;
                 _boundaryContainer.transform.position = new Vector3(camPos.x, 0f, camPos.z);
             }
+
+            UpdateInteractionPrompt();
         }
 
         private void FixedUpdate()
@@ -287,6 +303,13 @@ namespace TheLastEmpire
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
             {
+                // Ignore attacks if clicking over a UI element
+                if (UnityEngine.EventSystems.EventSystem.current != null && 
+                    UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                {
+                    return;
+                }
+
                 bool wantToShoot = false;
                 if (CurrentWeapon != null && CurrentWeapon.isAutomatic)
                 {
@@ -342,7 +365,9 @@ namespace TheLastEmpire
         // Called by PlayerInput component via SendMessages
         private void OnMove(InputValue value)
         {
-            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
+            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            if (isMenuOpen)
             {
                 _moveInput = Vector2.zero;
                 return;
@@ -352,7 +377,15 @@ namespace TheLastEmpire
 
         private void OnAttack(InputValue value)
         {
-            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+            if (UnityEngine.EventSystems.EventSystem.current != null && 
+                UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
+            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            if (isMenuOpen) return;
 
             // Attack action maps to left click / shooting
             if (value.isPressed && _fireCooldownTimer <= 0f && !_isDashing)
@@ -363,7 +396,9 @@ namespace TheLastEmpire
 
         private void OnInteract(InputValue value)
         {
-            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            if (isMenuOpen) return;
 
             if (value.isPressed)
             {
@@ -402,6 +437,30 @@ namespace TheLastEmpire
                 {
                     npc.Interact();
                     return; // Interacted with NPC, skip other interactions!
+                }
+            }
+
+            // 3. Check if standing near a LootContainer
+            LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
+            LootContainer closestContainer = null;
+            float minContainerDist = float.MaxValue;
+            foreach (LootContainer container in containers)
+            {
+                if (container == null) continue;
+                float dist = Vector3.Distance(transform.position, container.transform.position);
+                if (dist <= container.interactionRadius && dist < minContainerDist)
+                {
+                    minContainerDist = dist;
+                    closestContainer = container;
+                }
+            }
+            if (closestContainer != null)
+            {
+                PlayerInventory inv = GetComponent<PlayerInventory>();
+                if (inv != null && LootUI.Instance != null)
+                {
+                    LootUI.Instance.Open(closestContainer, inv);
+                    return; // Opened Loot UI, skip other interactions!
                 }
             }
 
@@ -863,6 +922,65 @@ namespace TheLastEmpire
             }
             OnAmmoChanged?.Invoke();
             Debug.Log($"[PlayerController] Added {amount} reserve ammo. Total: {(CurrentWeapon != null ? CurrentWeapon.currentReserveAmmo : _currentReserveAmmo)}");
+        }
+
+        private void UpdateInteractionPrompt()
+        {
+            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            if (isMenuOpen)
+            {
+                if (LootUI.Instance != null) LootUI.Instance.HidePrompt();
+                return;
+            }
+
+            LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
+            LootContainer closestContainer = null;
+            float minContainerDist = float.MaxValue;
+            foreach (LootContainer container in containers)
+            {
+                if (container == null || container.isSearched) continue;
+                float dist = Vector3.Distance(transform.position, container.transform.position);
+                if (dist <= container.interactionRadius && dist < minContainerDist)
+                {
+                    minContainerDist = dist;
+                    closestContainer = container;
+                }
+            }
+
+            if (closestContainer != null && LootUI.Instance != null)
+            {
+                LootUI.Instance.ShowPrompt("Search " + closestContainer.containerName);
+            }
+            else
+            {
+                // Fallback to check if near an NPC Merchant to show interaction prompt!
+                NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+                NPCController closestNpc = null;
+                float minNpcDist = float.MaxValue;
+                foreach (NPCController npc in npcs)
+                {
+                    if (npc != null && npc.IsPlayerInRange(transform.position))
+                    {
+                        float dist = Vector3.Distance(transform.position, npc.transform.position);
+                        if (dist < minNpcDist)
+                        {
+                            minNpcDist = dist;
+                            closestNpc = npc;
+                        }
+                    }
+                }
+
+                if (closestNpc != null && LootUI.Instance != null)
+                {
+                    string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Talk";
+                    LootUI.Instance.ShowPrompt($"{action} with {closestNpc.gameObject.name}");
+                }
+                else if (LootUI.Instance != null)
+                {
+                    LootUI.Instance.HidePrompt();
+                }
+            }
         }
     }
 

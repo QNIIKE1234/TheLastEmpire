@@ -1091,15 +1091,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.EnvironmentManager
   biomeConfigs:
-  - biome: 7
+  - biome: 0
     obstaclePrefabs:
-    - {fileID: 214653534920181359, guid: 56d616cd9655c4f49bf4b3eb87e9e5ba, type: 3}
+    - {fileID: 6929918662279242570, guid: ccc611fee8350b4479575a6c538267a7, type: 3}
+    - {fileID: 6166731534045168341, guid: d6e3df03b7e6e7343b78f916ddf26021, type: 3}
     decorationPrefabs:
     - {fileID: 214653534920181359, guid: 56d616cd9655c4f49bf4b3eb87e9e5ba, type: 3}
-    minObstacles: 5
+    - {fileID: 595044969426105152, guid: c41a5ae2dabb92447922fbe04a80113c, type: 3}
+    streetPrefabs:
+    - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
+    minObstacles: 10
+    maxObstacles: 10
+    minDecorations: 13
+    maxDecorations: 13
+  - biome: 7
+    obstaclePrefabs:
+    - {fileID: 6929918662279242570, guid: ccc611fee8350b4479575a6c538267a7, type: 3}
+    - {fileID: 6166731534045168341, guid: d6e3df03b7e6e7343b78f916ddf26021, type: 3}
+    decorationPrefabs:
+    - {fileID: 214653534920181359, guid: 56d616cd9655c4f49bf4b3eb87e9e5ba, type: 3}
+    - {fileID: 595044969426105152, guid: c41a5ae2dabb92447922fbe04a80113c, type: 3}
+    streetPrefabs:
+    - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
+    minObstacles: 3
     maxObstacles: 3
-    minDecorations: 7
-    maxDecorations: 9
+    minDecorations: 2
+    maxDecorations: 7
   useProceduralFallbacks: 0
   propBaseMaterial: {fileID: 0}
   snapToGrid: 1
@@ -1108,6 +1125,8 @@ MonoBehaviour:
   gridCenterOffset: {x: 0, y: 0}
   gridRows: 9
   gridCols: 12
+  prefabSpawnOffsetHeight: 0
+  clearMiddleStreet: 1
   useInspectorGrid: 0
   customGrid:
   - columns: 000000000000000000000000

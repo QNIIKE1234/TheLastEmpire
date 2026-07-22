@@ -26,6 +26,7 @@ namespace TheLastEmpire
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
 
         public System.Collections.Generic.List<ShopItemConfig> ShopItems => shopItems;
+        public NPCType NpcType => npcType;
 
         private Transform _playerTransform;
 

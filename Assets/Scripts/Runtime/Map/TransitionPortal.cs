@@ -84,7 +84,7 @@ namespace TheLastEmpire
             }
         }
 
-        private void UpdatePortalVisibility(int x, int y)
+        public void UpdatePortalVisibility(int x, int y)
         {
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
 

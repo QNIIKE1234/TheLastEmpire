@@ -15,6 +15,8 @@ namespace TheLastEmpire
             public List<GameObject> obstaclePrefabs;
             [Tooltip("Prefabs that are purely visual decoration without colliders (e.g. grass patches, dirt, debris, pebbles).")]
             public List<GameObject> decorationPrefabs;
+            [Tooltip("Walkway or road tile prefabs that will be spawned along portal paths (e.g. asphalt tiles, dirt trails, wood bridge tiles).")]
+            public List<GameObject> streetPrefabs;
 
             [Range(0, 15)] public int minObstacles;
             [Range(0, 15)] public int maxObstacles;
@@ -117,6 +119,16 @@ namespace TheLastEmpire
         {
             if (stage == null) return;
 
+            // Force update all portals in the scene to align with the new stage coordinate before environment calculations
+            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            foreach (TransitionPortal portal in portals)
+            {
+                if (portal != null)
+                {
+                    portal.UpdatePortalVisibility(stage.x, stage.y);
+                }
+            }
+
             // 1. Find matching config for this biome first (used in both custom and normal spawner)
             BiomeEnvConfig config = GetConfigForBiome(stage.biome);
 
@@ -131,6 +143,7 @@ namespace TheLastEmpire
             float startY = -totalHeight * 0.5f + gridCenterOffset.y;
 
             // 2. Clean up old stage environment props safely in both Play and Edit modes
+            var activePathSegments = GetActivePathSegments(stage);
             if (_currentEnvContainer != null)
             {
                 if (Application.isPlaying) Destroy(_currentEnvContainer);
@@ -144,6 +157,51 @@ namespace TheLastEmpire
             // 3b. Custom grid spawner override
             if (useInspectorGrid)
             {
+                // Generate visual street tiles on cells that lie on portal paths
+                for (int r = 0; r < rows; r++)
+                {
+                    for (int c = 0; c < cols; c++)
+                    {
+                        float x = startX + c * cellWidth + cellWidth * 0.5f;
+                        float y = startY + r * cellHeight + cellHeight * 0.5f;
+                        Vector2 cellCenter = new Vector2(x, y);
+
+                        if (IsPointOnWalkablePath(cellCenter, activePathSegments, 2.0f))
+                        {
+                            GameObject streetPrefab = GetRandomPrefab(config.streetPrefabs);
+                            if (streetPrefab != null)
+                            {
+                                float spawnY = streetPrefab.transform.position.y;
+                                Vector3 worldPos = new Vector3(cellCenter.x, spawnY, cellCenter.y);
+                                GameObject tile = Instantiate(streetPrefab, worldPos, Quaternion.identity, _currentEnvContainer.transform);
+                                tile.name = streetPrefab.name;
+                            }
+                            else if (useProceduralFallbacks)
+                            {
+                                GameObject road = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                                road.name = "ProceduralRoadTile";
+                                road.transform.parent = _currentEnvContainer.transform;
+                                road.transform.position = new Vector3(cellCenter.x, 0.02f, cellCenter.y);
+                                road.transform.localScale = new Vector3(cellWidth * 0.98f, 0.01f, cellHeight * 0.98f);
+                                
+                                Collider col = road.GetComponent<Collider>();
+                                if (col != null)
+                                {
+                                    if (Application.isPlaying) Destroy(col);
+                                    else DestroyImmediate(col);
+                                }
+
+                                Renderer rend = road.GetComponent<Renderer>();
+                                if (rend != null)
+                                {
+                                    rend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                                    rend.material.color = new Color(0.18f, 0.18f, 0.2f);
+                                    ApplyCardboardTextureToChildren(road);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 for (int r = 0; r < rows; r++)
                 {
@@ -158,11 +216,35 @@ namespace TheLastEmpire
                         {
                             float x = startX + c * cellWidth + cellWidth * 0.5f;
                             float y = startY + r * cellHeight + cellHeight * 0.5f;
-                            Vector3 spawnPos = new Vector3(x, y, 0f);
+                            Vector2 spawnPos = new Vector2(x, y);
+
+                            // Skip spawning obstacles near active transition portals to keep doorway exits clear
+                            if (IsNearTransitionGates(spawnPos))
+                            {
+                                continue;
+                            }
+
+                            bool isOnPath = IsPointOnWalkablePath(spawnPos, activePathSegments, 2.0f);
 
                             GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
+                            if (isOnPath && IsLargeBuilding(prefab))
+                            {
+                                // Swap with a smaller prefab if on a street path
+                                prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                            }
+
                             if (prefab != null)
                             {
+                                if (isOnPath && IsLargeBuilding(prefab))
+                                {
+                                    // If still a building, skip it or fallback to a smaller procedural obstacle
+                                    if (useProceduralFallbacks)
+                                    {
+                                        CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, false);
+                                    }
+                                    continue;
+                                }
+
                                 // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                                 float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                                 Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
@@ -172,7 +254,7 @@ namespace TheLastEmpire
                             }
                             else if (useProceduralFallbacks)
                             {
-                                CreateProceduralObstacle(spawnPos, stage.biome);
+                                CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, !isOnPath);
                             }
                         }
                     }
@@ -203,11 +285,58 @@ namespace TheLastEmpire
                 }
             }
 
+            // 4b. Generate visual street tiles on cells that lie on portal paths
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    float x = startX + c * cellWidth + cellWidth * 0.5f;
+                    float y = startY + r * cellHeight + cellHeight * 0.5f;
+                    Vector2 cellCenter = new Vector2(x, y);
+
+                    if (IsPointOnWalkablePath(cellCenter, activePathSegments, 2.0f))
+                    {
+                        GameObject streetPrefab = GetRandomPrefab(config.streetPrefabs);
+                        if (streetPrefab != null)
+                        {
+                            float spawnY = streetPrefab.transform.position.y;
+                            Vector3 worldPos = new Vector3(cellCenter.x, spawnY, cellCenter.y);
+                            GameObject tile = Instantiate(streetPrefab, worldPos, Quaternion.identity, _currentEnvContainer.transform);
+                            tile.name = streetPrefab.name;
+                        }
+                        else if (useProceduralFallbacks)
+                        {
+                            GameObject road = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                            road.name = "ProceduralRoadTile";
+                            road.transform.parent = _currentEnvContainer.transform;
+                            road.transform.position = new Vector3(cellCenter.x, 0.02f, cellCenter.y);
+                            road.transform.localScale = new Vector3(cellWidth * 0.98f, 0.01f, cellHeight * 0.98f);
+                            
+                            Collider col = road.GetComponent<Collider>();
+                            if (col != null)
+                            {
+                                if (Application.isPlaying) Destroy(col);
+                                else DestroyImmediate(col);
+                            }
+
+                            Renderer rend = road.GetComponent<Renderer>();
+                            if (rend != null)
+                            {
+                                rend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                                rend.material.color = new Color(0.18f, 0.18f, 0.2f);
+                                ApplyCardboardTextureToChildren(road);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Filter cells to only include safe cells
-            List<GridCell> obstacleSafeCells = new List<GridCell>();
+            List<GridCell> buildingSafeCells = new List<GridCell>();
+            List<GridCell> pathObstacleSafeCells = new List<GridCell>();
             List<GridCell> decorationSafeCells = new List<GridCell>();
             float safeRadius = 1.8f;
-            
+
             foreach (GridCell cell in allCells)
             {
                 // Check player safety zone mapping to 3D ground plane coords (X and Z)
@@ -224,23 +353,40 @@ namespace TheLastEmpire
                     continue;
                 }
 
-                // All safe cells are eligible for visual decorations (pebbles, leaves, puddles)
-                decorationSafeCells.Add(cell);
+                // Check if the cell lies on a street path
+                bool isOnPath = IsPointOnWalkablePath(cell.center, activePathSegments, 2.0f);
 
-                // Only non-middle-street cells are eligible for solid obstacles (buildings, props)
-                if (!IsInMiddleStreet(cell.row, rows))
+                // Only off-path cells are eligible for visual decorations (pebbles, leaves, puddles) to keep the streets clean
+                if (!isOnPath)
                 {
-                    obstacleSafeCells.Add(cell);
+                    decorationSafeCells.Add(cell);
+                }
+
+                if (isOnPath)
+                {
+                    pathObstacleSafeCells.Add(cell);
+                }
+                else
+                {
+                    buildingSafeCells.Add(cell);
                 }
             }
 
             // Shuffle safe cells deterministically using stage seed
-            for (int i = 0; i < obstacleSafeCells.Count; i++)
+            for (int i = 0; i < buildingSafeCells.Count; i++)
             {
-                GridCell temp = obstacleSafeCells[i];
-                int randomIndex = Random.Range(i, obstacleSafeCells.Count);
-                obstacleSafeCells[i] = obstacleSafeCells[randomIndex];
-                obstacleSafeCells[randomIndex] = temp;
+                GridCell temp = buildingSafeCells[i];
+                int randomIndex = Random.Range(i, buildingSafeCells.Count);
+                buildingSafeCells[i] = buildingSafeCells[randomIndex];
+                buildingSafeCells[randomIndex] = temp;
+            }
+
+            for (int i = 0; i < pathObstacleSafeCells.Count; i++)
+            {
+                GridCell temp = pathObstacleSafeCells[i];
+                int randomIndex = Random.Range(i, pathObstacleSafeCells.Count);
+                pathObstacleSafeCells[i] = pathObstacleSafeCells[randomIndex];
+                pathObstacleSafeCells[randomIndex] = temp;
             }
 
             for (int i = 0; i < decorationSafeCells.Count; i++)
@@ -254,13 +400,14 @@ namespace TheLastEmpire
             int obstacleCount = Random.Range(config.minObstacles, config.maxObstacles + 1);
             int decorationCount = Random.Range(config.minDecorations, config.maxDecorations + 1);
 
-            int spawnObstacles = Mathf.Min(obstacleCount, obstacleSafeCells.Count);
+            int buildingSpawnCount = Mathf.Min(Mathf.RoundToInt(obstacleCount * 0.7f), buildingSafeCells.Count);
+            int pathSpawnCount = Mathf.Min(obstacleCount - buildingSpawnCount, pathObstacleSafeCells.Count);
             int spawnDecorations = Mathf.Min(decorationCount, decorationSafeCells.Count);
 
-            // 5. Generate Obstacles (solid blockers)
-            for (int i = 0; i < spawnObstacles; i++)
+            // 5a. Generate off-path buildings
+            for (int i = 0; i < buildingSpawnCount; i++)
             {
-                GridCell cell = obstacleSafeCells[i];
+                GridCell cell = buildingSafeCells[i];
                 
                 // Add organic jitter within cell boundaries (only if not snapped to grid)
                 float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
@@ -279,7 +426,33 @@ namespace TheLastEmpire
                 }
                 else if (useProceduralFallbacks)
                 {
-                    CreateProceduralObstacle(spawnPos, stage.biome);
+                    CreateProceduralObstacle(spawnPos, stage.biome, true);
+                }
+            }
+
+            // 5b. Generate on-path small obstacles
+            for (int i = 0; i < pathSpawnCount; i++)
+            {
+                GridCell cell = pathObstacleSafeCells[i];
+                
+                // Add organic jitter within cell boundaries (only if not snapped to grid)
+                float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
+                float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
+                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
+
+                GameObject prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                if (prefab != null)
+                {
+                    // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
+                    float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
+                    Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
+                    Quaternion rotation = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
+                    obj.name = prefab.name;
+                }
+                else if (useProceduralFallbacks)
+                {
+                    CreateProceduralObstacle(spawnPos, stage.biome, false);
                 }
             }
 
@@ -311,7 +484,7 @@ namespace TheLastEmpire
 
             // Skip global texture application to preserve user prefab materials
 
-            Debug.Log($"[EnvironmentManager] Grid generated {spawnObstacles} obstacles and {spawnDecorations} decorations (out of safe cells: {decorationSafeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
+            Debug.Log($"[EnvironmentManager] Grid generated {buildingSpawnCount + pathSpawnCount} obstacles and {spawnDecorations} decorations (out of safe cells: {decorationSafeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
         }
 
         private BiomeEnvConfig GetConfigForBiome(BiomeType biome)
@@ -374,17 +547,41 @@ namespace TheLastEmpire
 
         private bool IsNearTransitionGates(Vector3 pos)
         {
-            // Top Gate Safe Zone: X is near 0, Y (depth Z) is near the top edge of grid boundary
-            if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y > (gridHeight * 0.5f + gridCenterOffset.y - 1.2f)) return true;
+            return IsNearTransitionGates(new Vector2(pos.x, pos.y));
+        }
 
-            // Bottom Gate Safe Zone: X is near 0, Y is near the bottom edge of grid boundary
-            if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y < (-gridHeight * 0.5f + gridCenterOffset.y + 1.2f)) return true;
+        private bool IsNearTransitionGates(Vector2 pos)
+        {
+            // Find all transition portals in the scene dynamically
+            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            foreach (TransitionPortal portal in portals)
+            {
+                if (portal != null)
+                {
+                    // Check if the portal is enabled (only check col.enabled in play mode, assume active in editor preview)
+                    Collider col = portal.GetComponent<Collider>();
+                    if (Application.isPlaying && col != null && !col.enabled)
+                    {
+                        continue; // Path is walled off, safe to spawn obstacles here
+                    }
 
-            // Left Gate Safe Zone: X is near the left edge, Y is near 0
-            if (pos.x < (-gridWidth * 0.5f + gridCenterOffset.x + 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
+                    // Check distance on the X/Z plane (portal's 3D transform Z coordinate corresponds to pos.y in 2D)
+                    Vector2 portalPos = new Vector2(portal.transform.position.x, portal.transform.position.z);
+                    if (Vector2.Distance(pos, portalPos) < 2.0f) // Maintain a safe 2.0-meter clear zone around active portals
+                    {
+                        return true;
+                    }
+                }
+            }
 
-            // Right Gate Safe Zone: X is near the right edge, Y is near 0
-            if (pos.x > (gridWidth * 0.5f + gridCenterOffset.x - 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
+            // Fallback to static boundary checks if no portals are present in the scene
+            if (portals.Length == 0)
+            {
+                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y > (gridHeight * 0.5f + gridCenterOffset.y - 1.2f)) return true;
+                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y < (-gridHeight * 0.5f + gridCenterOffset.y + 1.2f)) return true;
+                if (pos.x < (-gridWidth * 0.5f + gridCenterOffset.x + 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
+                if (pos.x > (gridWidth * 0.5f + gridCenterOffset.x - 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
+            }
 
             return false;
         }
@@ -399,10 +596,22 @@ namespace TheLastEmpire
 
         private void CreateProceduralObstacle(Vector3 pos, BiomeType biome)
         {
+            CreateProceduralObstacle(pos, biome, true);
+        }
+
+        private void CreateProceduralObstacle(Vector3 pos, BiomeType biome, bool allowBuildings)
+        {
             // Spawn unique Bangkok-themed 3D miniature obstacles in urban biomes
             if (biome == BiomeType.UrbanRuins || biome == BiomeType.Highways || biome == BiomeType.SuburbanVillages)
             {
-                int r = Random.Range(0, 6);
+                // In Bangkok biomes:
+                // r = 0: TukTuk (small cover)
+                // r = 1: SpiritHouse (small cover)
+                // r = 2: FoodCart (small cover)
+                // r = 3: UtilityPole (small cover)
+                // r = 4: Shophouse (large building)
+                // r = 5: ThaiWoodenHouse (large building)
+                int r = allowBuildings ? Random.Range(0, 6) : Random.Range(0, 4);
                 Vector3 worldPos = new Vector3(pos.x, 0.0f, pos.y); // Spawn at Y = 0.0f so custom procedural structures sit flush with floor
                 if (r == 0)
                 {
@@ -440,46 +649,53 @@ namespace TheLastEmpire
             obstacle.transform.parent = _currentEnvContainer.transform;
             obstacle.transform.rotation = Quaternion.Euler(0f, snapToGrid ? Random.Range(0, 4) * 90f : Random.Range(0f, 360f), 0f);
             
-            float height = 2.0f; // Make default Cube obstacles exactly 2.0 units tall
-            float scaleX = Random.Range(0.6f, 1.2f);
-            float scaleZ = Random.Range(0.6f, 1.2f);
+            float height = allowBuildings ? 2.0f : 0.6f; // Flat crate/box if on a road corridor
+            float scaleX = allowBuildings ? Random.Range(0.6f, 1.2f) : Random.Range(0.6f, 0.9f);
+            float scaleZ = allowBuildings ? Random.Range(0.6f, 1.2f) : Random.Range(0.6f, 0.9f);
             
             obstacle.transform.localScale = new Vector3(scaleX, height, scaleZ);
-            obstacle.transform.position = new Vector3(pos.x, height / 2f, pos.y); // Center position Y = height/2 so bottom sits perfectly flush at Y = 0.0f
+            
+            // Adjust position Y so that the bottom of the Cube sits flush on Y = 0.0f
+            float spawnY = height * 0.5f; 
+            obstacle.transform.position = new Vector3(pos.x, spawnY, pos.y);
 
             Renderer rend = obstacle.GetComponent<Renderer>();
             Color themeColor = Color.gray;
 
-            switch (biome)
+            if (!allowBuildings)
             {
-                case BiomeType.UrbanRuins:
-                    themeColor = new Color(0.35f, 0.35f, 0.35f); // Gray Concrete Ruin
-                    obstacle.name = "ConcreteRuin";
-                    break;
-                case BiomeType.Highways:
-                    themeColor = new Color(0.7f, 0.25f, 0.05f); // Rusted orange barrier
-                    obstacle.name = "RoadBarrier";
-                    break;
-                case BiomeType.OvergrownForests:
-                    themeColor = new Color(0.12f, 0.28f, 0.08f); // Deep forest green pine tree
-                    obstacle.name = "ForestPineTree";
-                    break;
-                case BiomeType.Highlands:
-                    themeColor = new Color(0.48f, 0.44f, 0.4f); // Mountain stone boulder
-                    obstacle.name = "Boulder";
-                    break;
-                case BiomeType.Waterways:
-                    themeColor = new Color(0.2f, 0.4f, 0.35f); // Mossy water rock
-                    obstacle.name = "MossyRock";
-                    break;
-                case BiomeType.SuburbanVillages:
-                    themeColor = new Color(0.55f, 0.38f, 0.22f); // Wooden box crate
-                    obstacle.name = "WoodCrate";
-                    break;
-                default:
-                    themeColor = new Color(0.4f, 0.4f, 0.4f); // General rock
-                    obstacle.name = "StoneObstacle";
-                    break;
+                themeColor = new Color(0.85f, 0.65f, 0.1f); // Yellow obstacle block
+                obstacle.name = "YellowObstacleCrate";
+            }
+            else
+            {
+                switch (biome)
+                {
+                    case BiomeType.UrbanRuins:
+                        themeColor = new Color(0.35f, 0.35f, 0.35f); // Grey concrete rubble
+                        obstacle.name = "ConcreteDebris";
+                        break;
+                    case BiomeType.OvergrownForests:
+                        themeColor = new Color(0.2f, 0.35f, 0.15f); // Mossy log wood
+                        obstacle.name = "MossyLog";
+                        break;
+                    case BiomeType.Highlands:
+                        themeColor = new Color(0.48f, 0.44f, 0.4f); // Mountain stone boulder
+                        obstacle.name = "Boulder";
+                        break;
+                    case BiomeType.Waterways:
+                        themeColor = new Color(0.2f, 0.4f, 0.35f); // Mossy water rock
+                        obstacle.name = "MossyRock";
+                        break;
+                    case BiomeType.SuburbanVillages:
+                        themeColor = new Color(0.55f, 0.38f, 0.22f); // Wooden box crate
+                        obstacle.name = "WoodCrate";
+                        break;
+                    default:
+                        themeColor = new Color(0.4f, 0.4f, 0.4f); // General rock
+                        obstacle.name = "StoneObstacle";
+                        break;
+                }
             }
 
             if (rend != null)
@@ -988,6 +1204,147 @@ namespace TheLastEmpire
                 return row == totalRows / 2;
             }
             return (row == middleMin || row == middleMax);
+        }
+
+        private List<KeyValuePair<Vector2, Vector2>> GetActivePathSegments(StageData stage)
+        {
+            List<KeyValuePair<Vector2, Vector2>> segments = new List<KeyValuePair<Vector2, Vector2>>();
+            
+            // Deterministic seed matching for map consistency
+            Random.State oldState = Random.state;
+            Random.InitState(stage.stageSeed + 54321);
+
+            // 1. Randomize the junction point in the center area to create diagonal bends/curves
+            Vector2 junctionPoint = new Vector2(
+                gridCenterOffset.x + Random.Range(-4f, 4f),
+                gridCenterOffset.y + Random.Range(-2f, 2f)
+            );
+
+            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            List<TransitionPortal> activePortals = new List<TransitionPortal>();
+
+            foreach (TransitionPortal portal in portals)
+            {
+                if (portal != null)
+                {
+                    Collider col = portal.GetComponent<Collider>();
+                    if (Application.isPlaying && col != null && !col.enabled)
+                    {
+                        continue;
+                    }
+                    activePortals.Add(portal);
+                }
+            }
+
+            // 2. Connect portals to the central junction
+            bool hasHorizontalRoad = false;
+            bool hasVerticalRoad = false;
+
+            foreach (TransitionPortal portal in activePortals)
+            {
+                Vector2 portalPos = new Vector2(portal.transform.position.x, portal.transform.position.z);
+                segments.Add(new KeyValuePair<Vector2, Vector2>(portalPos, junctionPoint));
+
+                if (Mathf.Abs(portal.transform.position.x) > gridWidth * 0.4f)
+                {
+                    hasHorizontalRoad = true;
+                }
+                else
+                {
+                    hasVerticalRoad = true;
+                }
+            }
+
+            // 3. Spawn a vertical side-alley if there's only a horizontal main road (T-junction!)
+            if (hasHorizontalRoad && !hasVerticalRoad && Random.value < 0.85f)
+            {
+                float targetZ = Random.value < 0.5f ? (gridHeight * 0.43f) : (-gridHeight * 0.43f);
+                Vector2 sideAlleyEnd = new Vector2(junctionPoint.x, targetZ);
+                segments.Add(new KeyValuePair<Vector2, Vector2>(junctionPoint, sideAlleyEnd));
+            }
+            // 4. Spawn a horizontal side-alley if there's only a vertical main road!
+            else if (hasVerticalRoad && !hasHorizontalRoad && Random.value < 0.85f)
+            {
+                float targetX = Random.value < 0.5f ? (gridWidth * 0.43f) : (-gridWidth * 0.43f);
+                Vector2 sideAlleyEnd = new Vector2(targetX, junctionPoint.y);
+                segments.Add(new KeyValuePair<Vector2, Vector2>(junctionPoint, sideAlleyEnd));
+            }
+            // 5. Default crossroad fallback if no portals exist in the scene (e.g. testing)
+            else if (activePortals.Count == 0)
+            {
+                segments.Add(new KeyValuePair<Vector2, Vector2>(new Vector2(-gridWidth * 0.45f, 0f), new Vector2(gridWidth * 0.45f, 0f)));
+                segments.Add(new KeyValuePair<Vector2, Vector2>(new Vector2(0f, -gridHeight * 0.45f), new Vector2(0f, gridHeight * 0.45f)));
+            }
+
+            Random.state = oldState;
+            return segments;
+        }
+
+        private bool IsPointOnWalkablePath(Vector2 pt, List<KeyValuePair<Vector2, Vector2>> segments, float pathWidth = 2.0f)
+        {
+            if (segments.Count == 0) return false;
+
+            foreach (var segment in segments)
+            {
+                if (DistanceToSegment(pt, segment.Key, segment.Value) < pathWidth)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private float DistanceToSegment(Vector2 t, Vector2 p, Vector2 c)
+        {
+            Vector2 pc = c - p;
+            Vector2 pt = t - p;
+            float pcLengthSq = pc.sqrMagnitude;
+            if (pcLengthSq == 0f) return pt.magnitude;
+
+            float projection = Vector2.Dot(pt, pc) / pcLengthSq;
+            float tParam = Mathf.Clamp01(projection);
+            Vector2 projectionPoint = p + tParam * pc;
+            return Vector2.Distance(t, projectionPoint);
+        }
+
+        private bool IsLargeBuilding(GameObject prefab)
+        {
+            if (prefab == null) return false;
+            string name = prefab.name.ToLower();
+            if (name.Contains("house") || name.Contains("shophouse") || name.Contains("building") || name.Contains("tower") || name.Contains("home") || name.Contains("structure"))
+            {
+                return true;
+            }
+            Collider col = prefab.GetComponentInChildren<Collider>();
+            if (col != null)
+            {
+                Vector3 size = col.bounds.size;
+                if (size.x > 1.4f || size.z > 1.4f)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private GameObject GetRandomSmallerPrefab(List<GameObject> prefabs)
+        {
+            if (prefabs == null || prefabs.Count == 0) return null;
+            
+            List<GameObject> smallerPrefabs = new List<GameObject>();
+            foreach (var p in prefabs)
+            {
+                if (!IsLargeBuilding(p))
+                {
+                    smallerPrefabs.Add(p);
+                }
+            }
+            
+            if (smallerPrefabs.Count > 0)
+            {
+                return smallerPrefabs[Random.Range(0, smallerPrefabs.Count)];
+            }
+            return null; // Return null if all are large
         }
     }
 }
