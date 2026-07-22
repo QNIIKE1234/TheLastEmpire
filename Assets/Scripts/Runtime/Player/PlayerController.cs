@@ -440,19 +440,13 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. Check if standing near an active LootContainer (skip already searched/empty ones)
+            // 3. Check if standing near a LootContainer
             LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
             LootContainer closestContainer = null;
             float minContainerDist = float.MaxValue;
             foreach (LootContainer container in containers)
             {
-                if (container == null || container.isSearched) continue;
-                if (container.moneyAmount <= 0 && (container.itemsInside == null || container.itemsInside.Count == 0))
-                {
-                    container.isSearched = true;
-                    continue;
-                }
-
+                if (container == null) continue;
                 float dist = Vector3.Distance(transform.position, container.transform.position);
                 if (dist <= container.interactionRadius && dist < minContainerDist)
                 {
@@ -977,7 +971,7 @@ namespace TheLastEmpire
             float minContainerDist = float.MaxValue;
             foreach (LootContainer container in containers)
             {
-                if (container == null || container.isSearched) continue;
+                if (container == null) continue;
                 float dist = Vector3.Distance(transform.position, container.transform.position);
                 if (dist <= container.interactionRadius && dist < minContainerDist)
                 {
