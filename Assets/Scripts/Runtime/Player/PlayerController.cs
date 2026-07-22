@@ -623,10 +623,25 @@ namespace TheLastEmpire
             {
                 if (col.gameObject == gameObject) continue;
 
+                // 1. Deal damage
                 IDamageable damageable = col.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
                     damageable.TakeDamage(meleeDamage);
+                }
+
+                // 2. Apply high-impact melee knockback to enemies
+                BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>();
+                if (enemy != null)
+                {
+                    Vector3 pushDir = (enemy.transform.position - transform.position);
+                    pushDir.y = 0f;
+                    pushDir.Normalize();
+                    if (pushDir.sqrMagnitude < 0.01f)
+                    {
+                        pushDir = _aimDirection;
+                    }
+                    enemy.ApplyMeleeKnockback(pushDir, 10f, 0.4f); // Strong push force (10f) and longer stagger duration (0.4s)
                 }
             }
         }

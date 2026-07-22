@@ -318,13 +318,15 @@ namespace TheLastEmpire
             GameObject babyZombie = null;
             if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(childPoolKey))
             {
-                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(childPoolKey, spawnPos, Quaternion.identity);
+                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(childPoolKey.Trim(), spawnPos, Quaternion.identity);
             }
-            else if (childZombiePrefab != null)
+            
+            if (babyZombie == null && childZombiePrefab != null)
             {
                 babyZombie = Instantiate(childZombiePrefab, spawnPos, Quaternion.identity);
             }
-            else
+            
+            if (babyZombie == null)
             {
                 // Procedural fallback
                 babyZombie = new GameObject("SpawnedZombieNormal");

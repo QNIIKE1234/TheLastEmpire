@@ -244,6 +244,22 @@ namespace TheLastEmpire
             currentState = AIState.Chase;
         }
 
+        public void ApplyMeleeKnockback(Vector3 direction, float force, float duration)
+        {
+            if (health != null && health.IsDead) return;
+
+            hasBeenAttacked = true;
+            isStaggered = true;
+            staggerTimer = duration;
+            currentState = AIState.Stagger;
+
+            if (rb != null)
+            {
+                rb.linearVelocity = direction * force;
+            }
+            Debug.Log($"[BaseEnemyAI] Melee Knockback applied: {direction * force}");
+        }
+
         protected void UpdateHealthUI()
         {
             if (health == null) return;
