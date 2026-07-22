@@ -436,8 +436,8 @@ namespace TheLastEmpire
             bottomPanel.transform.SetParent(_panelObject.transform, false);
 
             RectTransform bottomRect = bottomPanel.AddComponent<RectTransform>();
-            bottomRect.anchorMin = new Vector2(0f, 0f);
-            bottomRect.anchorMax = new Vector2(1f, 0f);
+            bottomRect.anchorMin = new Vector2(0.5f, 0f);
+            bottomRect.anchorMax = new Vector2(0.5f, 0f);
             bottomRect.pivot = new Vector2(0.5f, 0f);
             bottomRect.anchoredPosition = new Vector3(0f, 30f, 0f);
             bottomRect.sizeDelta = new Vector2(500f, 60f);

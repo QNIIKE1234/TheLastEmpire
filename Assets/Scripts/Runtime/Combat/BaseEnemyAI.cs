@@ -237,6 +237,13 @@ namespace TheLastEmpire
             }
         }
 
+        public void AlertToPlayer()
+        {
+            if (health != null && health.IsDead) return;
+            hasBeenAttacked = true;
+            currentState = AIState.Chase;
+        }
+
         protected void UpdateHealthUI()
         {
             if (health == null) return;

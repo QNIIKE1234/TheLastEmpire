@@ -157,7 +157,7 @@ namespace TheLastEmpire
             Camera cam = Camera.main;
             Vector3 camPos = cam != null ? cam.transform.position : Vector3.zero;
             
-            // Get screen bounds
+            // Get screen bounds (used as fallback if target portal is not found in the scene)
             float calculatedYLimit = 5f;
             float calculatedXLimit = 8.5f;
 
@@ -172,14 +172,14 @@ namespace TheLastEmpire
             pos.y = Mathf.Max(pos.y, 0.5f);
             bool transitioned = false;
 
+            TransitionDirection oppositeDir = GetOppositeDirection(direction);
+
             switch (direction)
             {
                 case TransitionDirection.North:
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
-                        // Teleport Z to bottom edge (Z relative to room center 0f)
-                        pos.z = -calculatedYLimit + entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -188,8 +188,6 @@ namespace TheLastEmpire
                     if (playerY > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
-                        // Teleport Z to top edge (Z relative to room center 0f)
-                        pos.z = calculatedYLimit - entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -198,8 +196,6 @@ namespace TheLastEmpire
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
-                        // Teleport X to left edge (X relative to room center 0f)
-                        pos.x = -calculatedXLimit + entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -208,8 +204,6 @@ namespace TheLastEmpire
                     if (playerX > 0)
                     {
                         WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
-                        // Teleport X to right edge (X relative to room center 0f)
-                        pos.x = calculatedXLimit - entryOffset;
                         transitioned = true;
                     }
                     break;
@@ -217,6 +211,64 @@ namespace TheLastEmpire
 
             if (transitioned)
             {
+                // Try to find the target portal in the newly generated room to spawn directly at it
+                TransitionPortal[] targetPortals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+                TransitionPortal targetPortal = null;
+                foreach (var tp in targetPortals)
+                {
+                    if (tp != null && tp.direction == oppositeDir)
+                    {
+                        targetPortal = tp;
+                        break;
+                    }
+                }
+
+                if (targetPortal != null)
+                {
+                    // Spawn player relative to the target portal's actual position
+                    Vector3 portalPos = targetPortal.transform.position;
+                    pos.y = Mathf.Max(portalPos.y, 0.5f);
+
+                    switch (oppositeDir)
+                    {
+                        case TransitionDirection.North: // Player entered from North, spawn slightly south of North portal
+                            pos.x = portalPos.x;
+                            pos.z = portalPos.z - entryOffset;
+                            break;
+                        case TransitionDirection.South: // Player entered from South, spawn slightly north of South portal
+                            pos.x = portalPos.x;
+                            pos.z = portalPos.z + entryOffset;
+                            break;
+                        case TransitionDirection.East:  // Player entered from East, spawn slightly west of East portal
+                            pos.x = portalPos.x - entryOffset;
+                            pos.z = portalPos.z;
+                            break;
+                        case TransitionDirection.West:  // Player entered from West, spawn slightly east of West portal
+                            pos.x = portalPos.x + entryOffset;
+                            pos.z = portalPos.z;
+                            break;
+                    }
+                }
+                else
+                {
+                    // Fallback to screen boundary calculation if portal not found
+                    switch (direction)
+                    {
+                        case TransitionDirection.North:
+                            pos.z = -calculatedYLimit + entryOffset;
+                            break;
+                        case TransitionDirection.South:
+                            pos.z = calculatedYLimit - entryOffset;
+                            break;
+                        case TransitionDirection.East:
+                            pos.x = -calculatedXLimit + entryOffset;
+                            break;
+                        case TransitionDirection.West:
+                            pos.x = calculatedXLimit - entryOffset;
+                            break;
+                    }
+                }
+
                 player.transform.position = pos;
 
                 // Sync Rigidbody position explicitly to prevent Unity's physics engine from overriding the teleportation
@@ -228,7 +280,19 @@ namespace TheLastEmpire
                 }
                 
                 Physics.SyncTransforms(); // Force immediate transform update to colliders
-                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported player to randomized opposite portal: {pos}");
+                Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported player to target portal: {pos}");
+            }
+        }
+
+        private TransitionDirection GetOppositeDirection(TransitionDirection dir)
+        {
+            switch (dir)
+            {
+                case TransitionDirection.North: return TransitionDirection.South;
+                case TransitionDirection.South: return TransitionDirection.North;
+                case TransitionDirection.East: return TransitionDirection.West;
+                case TransitionDirection.West: return TransitionDirection.East;
+                default: return dir;
             }
         }
     }

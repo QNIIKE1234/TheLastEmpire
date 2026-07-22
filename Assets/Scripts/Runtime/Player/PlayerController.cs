@@ -76,6 +76,9 @@ namespace TheLastEmpire
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
         private float _meleeCooldownTimer = 0f;
+
+        [Header("Gunshot Noise Settings")]
+        [SerializeField] private float gunshotAlertRange = 5f;
         
         private bool _isDashing = false;
         private Vector3 _dashDirection;
@@ -536,6 +539,9 @@ namespace TheLastEmpire
             float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
             _fireCooldownTimer = rate;
 
+            // Alert nearby enemies to the gunshot noise
+            AlertEnemiesToGunshot();
+
             // Spawning positions
             Vector3 spawnPos = transform.position + _aimDirection * 0.6f;
             Projectile weaponProjectilePrefab = activeWeapon != null ? activeWeapon.projectilePrefab : projectilePrefab;
@@ -938,6 +944,20 @@ namespace TheLastEmpire
                 {
                     SwitchToWeapon(nextIndex);
                     return;
+                }
+            }
+        }
+
+        private void AlertEnemiesToGunshot()
+        {
+            BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
+            foreach (BaseEnemyAI enemy in enemies)
+            {
+                if (enemy == null) continue;
+                float dist = Vector3.Distance(transform.position, enemy.transform.position);
+                if (dist <= gunshotAlertRange)
+                {
+                    enemy.AlertToPlayer();
                 }
             }
         }
