@@ -37,6 +37,7 @@ namespace TheLastEmpire
         private LootContainer _currentContainer;
         private PlayerInventory _playerInventory;
         private bool _isOpen = false;
+        private int _justOpenedFrame = -1;
 
         public bool IsOpen => _isOpen;
 
@@ -58,8 +59,9 @@ namespace TheLastEmpire
         {
             if (_isOpen && Keyboard.current != null)
             {
-                // Toggle loot UI closed if player presses ESC or E again
-                if (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.eKey.wasPressedThisFrame)
+                // Toggle loot UI closed if player presses ESC or E again (prevent closing on the same frame it was opened)
+                if (Keyboard.current.escapeKey.wasPressedThisFrame || 
+                    (Keyboard.current.eKey.wasPressedThisFrame && Time.frameCount > _justOpenedFrame))
                 {
                     Close();
                 }
@@ -112,6 +114,7 @@ namespace TheLastEmpire
             _currentContainer = container;
             _playerInventory = inventory;
             _isOpen = true;
+            _justOpenedFrame = Time.frameCount;
 
             // Pause game timescale during looting interaction
             Time.timeScale = 0f;
@@ -209,6 +212,7 @@ namespace TheLastEmpire
                 // 5. Empty Status Fallback
                 if (!hasLoot)
                 {
+                    _currentContainer.isSearched = true;
                     CreateEmptyPlaceholder();
                 }
             }

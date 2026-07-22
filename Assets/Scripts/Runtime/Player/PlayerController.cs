@@ -333,11 +333,11 @@ namespace TheLastEmpire
                 Vector2 scrollValue = Mouse.current.scroll.ReadValue();
                 if (scrollValue.y > 0.1f)
                 {
-                    SwitchToWeapon((_currentWeaponIndex - 1 + weapons.Count) % weapons.Count);
+                    CycleWeapon(-1);
                 }
                 else if (scrollValue.y < -0.1f)
                 {
-                    SwitchToWeapon((_currentWeaponIndex + 1) % weapons.Count);
+                    CycleWeapon(1);
                 }
             }
 
@@ -440,13 +440,19 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. Check if standing near a LootContainer
+            // 3. Check if standing near an active LootContainer (skip already searched/empty ones)
             LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
             LootContainer closestContainer = null;
             float minContainerDist = float.MaxValue;
             foreach (LootContainer container in containers)
             {
-                if (container == null) continue;
+                if (container == null || container.isSearched) continue;
+                if (container.moneyAmount <= 0 && (container.itemsInside == null || container.itemsInside.Count == 0))
+                {
+                    container.isSearched = true;
+                    continue;
+                }
+
                 float dist = Vector3.Distance(transform.position, container.transform.position);
                 if (dist <= container.interactionRadius && dist < minContainerDist)
                 {
@@ -901,6 +907,17 @@ namespace TheLastEmpire
             if (index < 0 || index >= weapons.Count) return;
             if (_isReloading) return; // Block switching while reloading
             
+            // Check weapon ownership from inventory
+            string wName = weapons[index].weaponName;
+            bool isPistol = (wName ?? "").ToLower().Trim().Contains("pist");
+            bool hasWeapon = isPistol || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+
+            if (!hasWeapon)
+            {
+                Debug.LogWarning($"[PlayerController] Cannot switch to {wName}. You do not own this weapon!");
+                return;
+            }
+
             _currentWeaponIndex = index;
             Debug.Log($"[PlayerController] Switched to weapon: {CurrentWeapon.weaponName}");
             
@@ -908,6 +925,27 @@ namespace TheLastEmpire
             _fireCooldownTimer = 0.15f; 
             
             OnAmmoChanged?.Invoke();
+        }
+
+        private void CycleWeapon(int direction)
+        {
+            if (weapons == null || weapons.Count == 0) return;
+            if (_isReloading) return;
+
+            int nextIndex = _currentWeaponIndex;
+            for (int i = 0; i < weapons.Count; i++)
+            {
+                nextIndex = (nextIndex + direction + weapons.Count) % weapons.Count;
+                string wName = weapons[nextIndex].weaponName;
+                bool isPistol = (wName ?? "").ToLower().Trim().Contains("pist");
+                bool hasWeapon = isPistol || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+
+                if (hasWeapon)
+                {
+                    SwitchToWeapon(nextIndex);
+                    return;
+                }
+            }
         }
 
         public void AddReserveAmmo(int amount)
