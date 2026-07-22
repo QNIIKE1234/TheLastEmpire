@@ -96,6 +96,14 @@ namespace TheLastEmpire
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
 
+            // Automatically attach CameraFollow component to main camera if not present
+            Camera mainCam = Camera.main;
+            if (mainCam != null && mainCam.GetComponent<CameraFollow>() == null)
+            {
+                mainCam.gameObject.AddComponent<CameraFollow>();
+                Debug.Log("[PlayerController] Dynamically added CameraFollow component to Main Camera.");
+            }
+
             _spriteRenderer = GetComponent<SpriteRenderer>();
             if (_spriteRenderer != null)
             {
