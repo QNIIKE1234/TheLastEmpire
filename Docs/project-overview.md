@@ -85,3 +85,99 @@ graph TD
 *   **เพิ่มประเภทสิ่งกีดขวางและกับดัก (Hazards & Trap Barriers):** บล็อกหนาม, ท่อนซุงแกว่ง หรือหลุมพิษที่สร้างดาเมจแบบ Real-time ให้ผู้เล่นในด่าน
 *   **เพิ่มประเภทของปืนใหม่ (New Weapon Classes):** อาวุธไฟพ่น (Flame Thrower) หรืออาวุธระเบิดวงกว้าง (Rocket Launcher)
 *   **บอสอารีน่า (Boss Arenas):** ปิดทางออกของพอร์ทัลบังคับเผชิญหน้ากับซอมบี้ระดับบอสยักษ์ก่อนเคลียร์ Biome เพื่อสลับไปสู่ Biome ระดับความยากถัดไป
+
+---
+
+## 📁 5. โครงสร้าง Scripts ทั้งหมด (Scripts Directory Reference)
+
+Scripts ทั้งหมดอยู่ภายใต้ `Assets/Scripts/Runtime/` แบ่งออกเป็น 7 โฟลเดอร์หลัก รวม **43 ไฟล์**
+
+### 👤 `Player/` — ระบบตัวละครผู้เล่น
+
+| Script | หน้าที่ |
+|---|---|
+| [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs) | **หัวใจหลัก** — ควบคุมการเคลื่อนที่, ยิงปืน, ฟันระยะประชิด, แดช, ความหิว, รีโหลด |
+| [PlayerInventory.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerInventory.cs) | จัดการกระเป๋าเป้ — เพิ่ม/ลบไอเทม, กดใช้ไอเทม, นับเงิน |
+| [PlayerHUD.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerHUD.cs) | แสดง HP บาร์, ความหิว, จำนวนกระสุนบนหน้าจอ |
+| [CameraFollow.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/CameraFollow.cs) | กล้องติดตามตัวละครผู้เล่น |
+| [CameraObstacleFader.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/CameraObstacleFader.cs) | ทำให้สิ่งกีดขวางระหว่างกล้องกับผู้เล่นกลายเป็นโปร่งใส |
+| [LootContainer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/LootContainer.cs) | จัดการกล่องสมบัติที่ผู้เล่นสามารถเปิดเก็บไอเทมได้ |
+
+---
+
+### ⚔️ `Combat/` — ระบบศัตรูและการต่อสู้
+
+| Script | หน้าที่ |
+|---|---|
+| [BaseEnemyAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BaseEnemyAI.cs) | **คลาสหลักของศัตรูทุกตัว** — ไล่ผู้เล่น, รับดาเมจ, Knockback, Stagger, OOB Rescue |
+| [ZombieAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/ZombieAI.cs) | ซอมบี้ทั่วไป — extends BaseEnemyAI |
+| [BanditAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BanditAI.cs) | ศัตรูประเภท Bandit |
+| [AlienAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/AlienAI.cs) | ศัตรูประเภท Alien |
+| [BeastAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BeastAI.cs) | ศัตรูประเภทสัตว์ร้าย |
+| [RobotAI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/RobotAI.cs) | ศัตรูประเภท Robot |
+| [Health.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Health.cs) | คอมโพเนนต์ HP ใช้ทั้งผู้เล่นและศัตรู — รับดาเมจ, ฟื้นฟู, I-Frame |
+| [IDamageable.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/IDamageable.cs) | Interface บังคับให้มี `TakeDamage()` เป็นมาตรฐาน |
+| [DamageDealer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/DamageDealer.cs) | คอมโพเนนต์ Trigger ที่ดีลดาเมจเมื่อสัมผัส |
+| [Projectile.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Projectile.cs) | พฤติกรรมกระสุน — บินไปตรงๆ, ชน, คืนสู่ Pool |
+| [ObjectPoolManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/ObjectPoolManager.cs) | ระบบ Pool กระสุน/ศัตรู ประหยัด RAM, เคลียร์เมื่อ Retry |
+| [LootDropper.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/LootDropper.cs) | ดรอปไอเทมเมื่อศัตรูตาย ตาม Custom Loot Table |
+| [CollectibleItem.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/CollectibleItem.cs) | พฤติกรรมของไอเทมที่ตกพื้น — รอเก็บ, แสงกระพริบ |
+| [NPCController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/NPCController.cs) | NPC พ่อค้า — เปิด ShopUI, รองรับ `Is Free` Test Mode |
+| [EnemyHealthText.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/EnemyHealthText.cs) | ตัวเลข Pop-up บอก HP ที่หายเหนือหัวศัตรู |
+
+---
+
+### 🗺️ `Map/` — ระบบแผนที่และสลับฉาก
+
+| Script | หน้าที่ |
+|---|---|
+| [WorldMapManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapManager.cs) | ตัวจัดการแผนที่กลาง — เก็บตำแหน่งปัจจุบัน X/Y |
+| [WorldMapGenerator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapGenerator.cs) | สุ่มสร้างข้อมูลห้อง/Biome บนกริดทั้งหมด |
+| [WorldMapVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapVisualizer.cs) | แสดงผลแผนที่ Mini-map บนหน้าจอ |
+| [TransitionPortal.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs) | ประตูวาร์ปสลับห้อง — Fade, เทเลพอร์ต, ซ่อนตัวถ้าไม่มีห้องข้างๆ |
+| [StageData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) | โครงสร้างข้อมูลของแต่ละห้อง (Seed, Biome, พิกัด) |
+| [BiomeType.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/BiomeType.cs) | Enum ประเภทไบโอม เช่น Desert, Forest, City |
+| [LocalStageVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/LocalStageVisualizer.cs) | แสดงข้อมูลด่านปัจจุบัน (ชื่อ Biome, พิกัด) บนหน้าจอ |
+| [GroundBiomeMaterialController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/GroundBiomeMaterialContro...) | สลับ Material พื้นดินตาม Biome ของห้องนั้น |
+
+---
+
+### 🏗️ `Managers/` — ระบบควบคุมกลาง
+
+| Script | หน้าที่ |
+|---|---|
+| [GameManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) | Spawn ศัตรู, ควบคุม Game State (Playing/Dead/Retry), ป้องกัน Spawn ทับกัน |
+| [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs) | สุ่มวาง Prop/อุปสรรคในห้อง ตาม Seed ป้องกัน Spawn ใกล้ประตู/ผู้เล่น |
+| [DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs) | วงรอบกลางวัน/กลางคืน ปรับแสงไฟ |
+
+---
+
+### 🗃️ `Data/` — ฐานข้อมูลไอเทม
+
+| Script | หน้าที่ |
+|---|---|
+| [ItemData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/ItemData.cs) | ScriptableObject เก็บสถิติของไอเทมแต่ละชิ้น (ชื่อ, ราคา, ดาเมจ, ระยะ) |
+| [ItemDatabase.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/ItemDatabase.cs) | รวม ItemData ทุกชิ้น, เมธอด `GetItemByName()` ค้นหา Recursive ทุกโฟลเดอร์ |
+| [ShopDatabase.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/ShopDatabase.cs) | เก็บราคากลางของไอเทมทุกชิ้นสำหรับร้านค้า |
+
+---
+
+### 🖥️ `UI/` — ระบบหน้าจอ
+
+| Script | หน้าที่ |
+|---|---|
+| [InventoryUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryUI.cs) | หน้าต่างกระเป๋าเป้ (กด `I`) แสดงไอเทม, ปุ่มใช้/สวมใส่ |
+| [ShopUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ShopUI.cs) | หน้าต่างร้านค้า แท็บ BUY/SELL |
+| [LootUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LootUI.cs) | UI แสดงสิ่งของในกล่องสมบัติ |
+| [MinimapUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/MinimapUI.cs) | แสดง Mini-map มุมหน้าจอ |
+| [HealthVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/HealthVisualizer.cs) | แถบ HP ลอยเหนือหัวศัตรู |
+| [BillboardUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/BillboardUI.cs) | ทำให้ UI 3D หันหน้าเข้าหากล้องเสมอ |
+
+---
+
+### 💾 `Save/` — ระบบบันทึกเกม
+
+| Script | หน้าที่ |
+|---|---|
+| [SaveSystem.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Save/SaveSystem.cs) | บันทึก/โหลดข้อมูลเกมลงดิสก์ |
+| [SaveData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Save/SaveData.cs) | โครงสร้างข้อมูลที่ต้องการบันทึก (Serializable) |
