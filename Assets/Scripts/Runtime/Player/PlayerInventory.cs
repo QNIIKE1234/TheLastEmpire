@@ -26,6 +26,12 @@ namespace TheLastEmpire
             {
                 items.Add("Pistol");
                 items.Add("Knife");
+                
+                // Initial 60 Pistol Ammo
+                for (int i = 0; i < 60; i++)
+                {
+                    items.Add("Pistol Ammo");
+                }
             }
         }
 

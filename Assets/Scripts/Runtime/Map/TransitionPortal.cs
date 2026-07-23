@@ -58,21 +58,7 @@ namespace TheLastEmpire
                 box.isTrigger = true;
             }
 
-            // 2. Procedural placeholder visualization if there is no sprite asset
-            SpriteRenderer sr = GetComponent<SpriteRenderer>();
-            if (sr == null)
-            {
-                sr = gameObject.AddComponent<SpriteRenderer>();
-            }
-            if (sr.sprite == null)
-            {
-                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                sr.color = Color.clear; // Make invisible so it doesn't block the view
-                sr.sortingOrder = 2; // Render above background
-
-            }
-
-            // 3. Register to stage change updates
+            // 2. Register to stage change updates
             if (WorldMapManager.Instance != null)
             {
                 WorldMapManager.Instance.OnStageChanged += UpdatePortalVisibility;
@@ -109,11 +95,11 @@ namespace TheLastEmpire
                     break;
             }
 
-            // Clean up: Disable visual sprite renderer and collision trigger so player cannot see/enter invalid directions
-            SpriteRenderer sr = GetComponent<SpriteRenderer>();
-            if (sr != null)
+            // Clean up: Disable visual renderers (supporting both 3D MeshRenderers, SpriteRenderers, etc. in children)
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer r in renderers)
             {
-                sr.enabled = pathExists;
+                r.enabled = pathExists;
             }
 
             Collider col = GetComponent<Collider>();
@@ -166,17 +152,19 @@ namespace TheLastEmpire
                     c.a = 0f;
                     img.color = c;
 
-                    // Fade in to solid color (black) over 0.5 seconds
-                    img.DOFade(1f, 0.5f).OnComplete(() =>
+                    // Fade in to solid color (black) over 0.5 seconds using safe DOTween.To
+                    DOTween.To(() => img.color, x => img.color = x, new Color(c.r, c.g, c.b, 1f), 0.5f).OnComplete(() =>
                     {
                         // Teleport the player while screen is black
                         ExecuteTeleport(player);
 
-                        // Fade out back to transparent over 0.5 seconds
-                        img.DOFade(0f, 0.5f).OnComplete(() =>
-                        {
-                            transitionScreen.SetActive(false);
-                        });
+                        // Fade out back to transparent over 0.5 seconds after a 0.5s delay
+                        DOTween.To(() => img.color, x => img.color = x, new Color(c.r, c.g, c.b, 0f), 0.5f)
+                            .SetDelay(0.5f)
+                            .OnComplete(() =>
+                            {
+                                transitionScreen.SetActive(false);
+                            });
                     });
                 }
                 else
