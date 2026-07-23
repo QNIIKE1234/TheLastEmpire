@@ -10,13 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f66e274d5d4a559448705b384dc143eb, type: 3}
-  m_Name: ITEM0007_Shotgun
+  m_Name: ITEM0014_Machete
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
-  itemName: Shotgun
-  description: 
-  icon: {fileID: 21300000, guid: 1c7c252f53b9c554c8e1b147b7531265, type: 3}
+  itemName: Machete
+  description: A heavy machete blade for high damage slashes.
+  icon: {fileID: 21300000, guid: 210712ffb49e29a4fb033d9094c91324, type: 3}
   type: 5
   restorationValue: 0
   defaultQuantity: 1
-  themeColor: {r: 1, g: 1, b: 1, a: 1}
+  themeColor: {r: 0.85, g: 0.15, b: 0.15, a: 1}
   dropMaterial: {fileID: 0}
+  damage: 55
+  attackRadius: 1.5
+  attackRate: 1
+  knockbackForce: 10
+  staggerDuration: 0.2

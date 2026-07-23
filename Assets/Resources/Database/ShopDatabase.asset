@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f092f694e9f7cfd42b848f41e74e3f3d, type: 3}
+  m_Name: ShopDatabase
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ShopDatabase
+  itemPrices:
+  - itemName: Rifle
+    defaultPrice: 6500
+  - itemName: Shotgun
+    defaultPrice: 2500
+  - itemName: Pistol
+    defaultPrice: 1000
+  - itemName: Pistol Ammo
+    defaultPrice: 30
+  - itemName: Shotgun Ammo
+    defaultPrice: 40
+  - itemName: Rifle Ammo
+    defaultPrice: 60
+  - itemName: Potion
+    defaultPrice: 100
+  - itemName: Bread
+    defaultPrice: 50
+  - itemName: ETC
+    defaultPrice: 20
+  - itemName: Knife
+    defaultPrice: 500
+  - itemName: Baseball Bat
+    defaultPrice: 800
+  - itemName: Machete
+    defaultPrice: 1200

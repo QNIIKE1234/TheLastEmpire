@@ -62,7 +62,14 @@ namespace TheLastEmpire
 
                     if (p < 0.35f)
                     {
-                        dropName = "Ammo";
+                        dropName = "Pistol Ammo"; // default
+                        PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+                        if (player != null && player.CurrentWeapon != null)
+                        {
+                            string lowerName = (player.CurrentWeapon.weaponName ?? "").ToLower().Trim();
+                            if (lowerName.Contains("rifl")) dropName = "Rifle Ammo";
+                            else if (lowerName.Contains("shot")) dropName = "Shotgun Ammo";
+                        }
                         dropQty = Random.Range(3, 8); // 3 to 7
                     }
                     else if (p < 0.70f)

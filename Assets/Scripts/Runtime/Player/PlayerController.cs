@@ -50,14 +50,37 @@ namespace TheLastEmpire
         private bool _isReloading = false;
         private int _currentWeaponIndex = 0;
 
+        [Header("Combat - Melee Weapons")]
+        [SerializeField] private System.Collections.Generic.List<MeleeWeapon> meleeWeapons = new System.Collections.Generic.List<MeleeWeapon>();
+        private int _currentMeleeWeaponIndex = 0;
+
         // Public properties and events for HUD mapping
         public Health PlayerHealth => _health;
         public int CurrentMagazine => CurrentWeapon != null ? CurrentWeapon.currentMagazine : _currentMagazine;
-        public int CurrentReserveAmmo => CurrentWeapon != null ? CurrentWeapon.currentReserveAmmo : _currentReserveAmmo;
+        
+        public int CurrentReserveAmmo
+        {
+            get
+            {
+                if (_inventory == null) return 0;
+                string ammoType = "Pistol Ammo";
+                if (CurrentWeapon != null)
+                {
+                    ammoType = CurrentWeapon.ammoType;
+                }
+                return _inventory.GetItemCount(ammoType);
+            }
+        }
+
         public bool IsReloading => _isReloading;
         public Weapon CurrentWeapon => (weapons != null && weapons.Count > 0 && _currentWeaponIndex >= 0 && _currentWeaponIndex < weapons.Count) ? weapons[_currentWeaponIndex] : null;
         public string CurrentWeaponName => CurrentWeapon != null ? CurrentWeapon.weaponName : "Pistol";
         public System.Collections.Generic.List<Weapon> WeaponsList => weapons;
+
+        public MeleeWeapon CurrentMeleeWeapon => (meleeWeapons != null && meleeWeapons.Count > 0 && _currentMeleeWeaponIndex >= 0 && _currentMeleeWeaponIndex < meleeWeapons.Count) ? meleeWeapons[_currentMeleeWeaponIndex] : null;
+        public string CurrentMeleeWeaponName => CurrentMeleeWeapon != null ? CurrentMeleeWeapon.weaponName : "Knife";
+        public System.Collections.Generic.List<MeleeWeapon> MeleeWeaponsList => meleeWeapons;
+
         public event System.Action OnAmmoChanged;
 
         [Header("Hunger System")]
@@ -185,6 +208,7 @@ namespace TheLastEmpire
             _currentReserveAmmo = startingReserveAmmo;
             _currentMagazine = magazineSize;
             InitializeDefaultWeapons();
+            InitializeDefaultMeleeWeapons();
             OnAmmoChanged?.Invoke();
 
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
@@ -489,25 +513,12 @@ namespace TheLastEmpire
                 {
                     _inventory.AddMoney(closestItem.MoneyAmount);
                 }
-                else if (closestItem.ItemName == "Ammo")
-                {
-                    if (CurrentWeapon != null)
-                    {
-                        CurrentWeapon.currentReserveAmmo += closestItem.Quantity;
-                        Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo for {CurrentWeapon.weaponName}. Total reserve: {CurrentWeapon.currentReserveAmmo}");
-                    }
-                    else
-                    {
-                        _currentReserveAmmo += closestItem.Quantity;
-                        Debug.Log($"[PlayerController] Picked up {closestItem.Quantity} ammo. Total reserve: {_currentReserveAmmo}");
-                    }
-                    OnAmmoChanged?.Invoke();
-                }
                 else
                 {
                     _inventory.AddItem(closestItem.ItemName, closestItem.Quantity);
                 }
                 closestItem.Collect();
+                OnAmmoChanged?.Invoke();
             }
         }
 
@@ -602,8 +613,29 @@ namespace TheLastEmpire
                 {
                     if (activeWeapon != null)
                     {
-                        proj.SetStats(activeWeapon.damage, activeWeapon.range, activeWeapon.canPierce);
-                        Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Speed: {proj.Speed} m/s | Lifetime: {activeWeapon.range}s | Calculated Distance: {proj.Speed * activeWeapon.range} meters");
+                        // Base player damage is 10, plus the damage specified in ItemData of the equipped weapon
+                        float basePlayerDamage = 10f;
+                        int itemDamage = 0;
+                        float weaponRange = activeWeapon.range; // fallback to default weapon range/lifetime
+
+                        if (ItemDatabase.Instance != null)
+                        {
+                            ItemData item = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                            if (item != null)
+                            {
+                                itemDamage = item.damage;
+
+                                // If attackRadius is configured in ItemData, calculate bullet lifetime based on projectile speed
+                                if (item.attackRadius > 0.01f && proj.Speed > 0.01f)
+                                {
+                                    weaponRange = item.attackRadius / proj.Speed;
+                                }
+                            }
+                        }
+                        float finalDamage = basePlayerDamage + itemDamage;
+
+                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce);
+                        Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
                     proj.Setup(bulletDir, gameObject);
                 }
@@ -612,13 +644,38 @@ namespace TheLastEmpire
 
         private void MeleeAttack()
         {
-            _meleeCooldownTimer = meleeRate;
+            MeleeWeapon activeMelee = CurrentMeleeWeapon;
+            float activeRadius = activeMelee != null ? activeMelee.attackRadius : meleeRadius;
+            float activeRate = activeMelee != null ? activeMelee.attackRate : meleeRate;
+            float activeKnockback = activeMelee != null ? activeMelee.knockbackForce : 10f;
+            float activeStagger = activeMelee != null ? activeMelee.staggerDuration : 0.4f;
+
+            // Base player damage is 10, plus the damage specified in ItemData of the equipped weapon
+            float basePlayerDamage = 10f;
+            int itemDamage = 0;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData item = ItemDatabase.Instance.GetItemByName(CurrentMeleeWeaponName);
+                if (item != null)
+                {
+                    itemDamage = item.damage;
+                    
+                    // Override stats dynamically from ScriptableObject if configured
+                    if (item.attackRadius > 0.01f) activeRadius = item.attackRadius;
+                    if (item.attackRate > 0.01f) activeRate = item.attackRate;
+                    if (item.knockbackForce > 0.01f) activeKnockback = item.knockbackForce;
+                    if (item.staggerDuration > 0.01f) activeStagger = item.staggerDuration;
+                }
+            }
+            float activeDamage = basePlayerDamage + itemDamage;
+
+            _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
 
             // Visual swing debug
-            Debug.Log("[PlayerController] Melee Swing Swung (Area Attack)!");
+            Debug.Log($"[PlayerController] Melee Swing Swung using {CurrentMeleeWeaponName}!");
 
-            Collider[] hitColliders = Physics.OverlapSphere(attackPoint, meleeRadius);
+            Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
             foreach (var col in hitColliders)
             {
                 if (col.gameObject == gameObject) continue;
@@ -627,7 +684,7 @@ namespace TheLastEmpire
                 IDamageable damageable = col.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    damageable.TakeDamage(meleeDamage);
+                    damageable.TakeDamage((int)activeDamage);
                 }
 
                 // 2. Apply high-impact melee knockback to enemies
@@ -641,7 +698,7 @@ namespace TheLastEmpire
                     {
                         pushDir = _aimDirection;
                     }
-                    enemy.ApplyMeleeKnockback(pushDir, 10f, 0.4f); // Strong push force (10f) and longer stagger duration (0.4s)
+                    enemy.ApplyMeleeKnockback(pushDir, activeKnockback, activeStagger);
                 }
             }
         }
@@ -768,7 +825,13 @@ namespace TheLastEmpire
             Weapon activeWeapon = CurrentWeapon;
             int mag = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
             int magSize = activeWeapon != null ? activeWeapon.magazineSize : magazineSize;
-            int reserve = activeWeapon != null ? activeWeapon.currentReserveAmmo : _currentReserveAmmo;
+            
+            string ammoType = "Pistol Ammo";
+            if (activeWeapon != null)
+            {
+                ammoType = activeWeapon.ammoType;
+            }
+            int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
 
             if (_isReloading || mag == magSize || reserve <= 0)
             {
@@ -787,21 +850,41 @@ namespace TheLastEmpire
 
             yield return new WaitForSeconds(duration);
 
-            // Re-fetch current weapon status in case it swapped during reload (though we block swap, it's safer)
+            // Re-fetch current weapon status
             activeWeapon = CurrentWeapon;
+            string ammoType = "Pistol Ammo";
+            if (activeWeapon != null)
+            {
+                ammoType = activeWeapon.ammoType;
+            }
+
             if (activeWeapon != null)
             {
                 int needed = activeWeapon.magazineSize - activeWeapon.currentMagazine;
-                int toLoad = Mathf.Min(needed, activeWeapon.currentReserveAmmo);
+                int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
+                int toLoad = Mathf.Min(needed, reserve);
                 activeWeapon.currentMagazine += toLoad;
-                activeWeapon.currentReserveAmmo -= toLoad;
+                if (_inventory != null)
+                {
+                    for (int i = 0; i < toLoad; i++)
+                    {
+                        _inventory.RemoveItem(ammoType);
+                    }
+                }
             }
             else
             {
                 int needed = magazineSize - _currentMagazine;
-                int toLoad = Mathf.Min(needed, _currentReserveAmmo);
+                int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
+                int toLoad = Mathf.Min(needed, reserve);
                 _currentMagazine += toLoad;
-                _currentReserveAmmo -= toLoad;
+                if (_inventory != null)
+                {
+                    for (int i = 0; i < toLoad; i++)
+                    {
+                        _inventory.RemoveItem(ammoType);
+                    }
+                }
             }
 
             _isReloading = false;
@@ -914,6 +997,70 @@ namespace TheLastEmpire
                     w.Initialize(w.currentReserveAmmo > 0 ? w.currentReserveAmmo : startingReserveAmmo);
                 }
             }
+        }
+
+        private void InitializeDefaultMeleeWeapons()
+        {
+            if (meleeWeapons == null)
+            {
+                meleeWeapons = new System.Collections.Generic.List<MeleeWeapon>();
+            }
+
+            if (meleeWeapons.Count == 0)
+            {
+                // 1. Knife
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Knife",
+                    damage = 25f,
+                    attackRate = 0.25f,
+                    attackRadius = 1.0f,
+                    knockbackForce = 5f,
+                    staggerDuration = 0.2f
+                });
+
+                // 2. Baseball Bat
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Baseball Bat",
+                    damage = 40f,
+                    attackRate = 0.5f,
+                    attackRadius = 1.4f,
+                    knockbackForce = 15f,
+                    staggerDuration = 0.5f
+                });
+
+                // 3. Machete
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Machete",
+                    damage = 55f,
+                    attackRate = 0.6f,
+                    attackRadius = 1.3f,
+                    knockbackForce = 10f,
+                    staggerDuration = 0.3f
+                });
+            }
+        }
+
+        public void SwitchToMeleeWeapon(int index)
+        {
+            if (meleeWeapons == null || meleeWeapons.Count == 0) return;
+            if (index < 0 || index >= meleeWeapons.Count) return;
+            
+            // Check weapon ownership from inventory (Knife is default, others require ownership)
+            string wName = meleeWeapons[index].weaponName;
+            bool isKnife = (wName ?? "").ToLower().Trim().Contains("knife");
+            bool hasWeapon = isKnife || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+
+            if (!hasWeapon)
+            {
+                Debug.LogWarning($"[PlayerController] Cannot switch to {wName}. You do not own this melee weapon!");
+                return;
+            }
+
+            _currentMeleeWeaponIndex = index;
+            Debug.Log($"[PlayerController] Equipped melee weapon: {wName}");
         }
 
         public void SwitchToWeapon(int index)
@@ -1067,6 +1214,7 @@ namespace TheLastEmpire
         public float spreadAngle = 0f;
         public int pelletsPerShot = 1;
         public bool isAutomatic = false;
+        public string ammoType;
 
         [Header("Runtime State")]
         public int currentMagazine;
@@ -1079,6 +1227,13 @@ namespace TheLastEmpire
             bool isShotgun = lowerName.Contains("shot");
             bool isPistol = lowerName.Contains("pist") || (!isRifle && !isShotgun);
 
+            if (string.IsNullOrEmpty(ammoType))
+            {
+                if (isRifle) ammoType = "Rifle Ammo";
+                else if (isShotgun) ammoType = "Shotgun Ammo";
+                else ammoType = "Pistol Ammo";
+            }
+
             // Apply default fallbacks if stats are unassigned (0) in Inspector
             if (fireRate <= 0f) fireRate = isRifle ? 0.12f : (isShotgun ? 0.7f : 0.4f);
             if (magazineSize <= 0) magazineSize = isRifle ? 30 : (isShotgun ? 6 : 12);
@@ -1090,5 +1245,16 @@ namespace TheLastEmpire
             currentMagazine = magazineSize;
             currentReserveAmmo = startingReserve;
         }
+    }
+
+    [System.Serializable]
+    public class MeleeWeapon
+    {
+        public string weaponName;
+        public float damage = 35f;
+        public float attackRate = 0.4f;
+        public float attackRadius = 1.2f;
+        public float knockbackForce = 10f;
+        public float staggerDuration = 0.4f;
     }
 }

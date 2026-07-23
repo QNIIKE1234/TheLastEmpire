@@ -397,16 +397,16 @@ namespace TheLastEmpire
                     continue;
                 }
 
-                // 2. Prevent spawning inside solid environment obstacles
+                // 2. Prevent spawning inside solid environment obstacles or on top of players/enemies
                 Collider[] colliders = Physics.OverlapSphere(candidatePos, 0.8f);
                 bool overlapsObstacle = false;
                 foreach (Collider col in colliders)
                 {
-                    if (col != null && !col.isTrigger && !col.CompareTag("Player") && !col.CompareTag("Enemy"))
-                    {
-                        overlapsObstacle = true;
-                        break;
-                    }
+                    if (col == null || col.isTrigger) continue;
+                    if (col.CompareTag("Ground")) continue;
+
+                    overlapsObstacle = true;
+                    break;
                 }
 
                 if (!overlapsObstacle)

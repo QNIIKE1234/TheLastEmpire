@@ -7,7 +7,19 @@ namespace TheLastEmpire
 {
     public class InventoryUI : MonoBehaviour
     {
-        public static InventoryUI Instance { get; private set; }
+        public static InventoryUI Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("InventoryUIManager");
+                    _instance = go.AddComponent<InventoryUI>();
+                }
+                return _instance;
+            }
+        }
+        private static InventoryUI _instance;
 
         [Header("UI Customization")]
         [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f); // Sleek slate dark mode
@@ -31,9 +43,9 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
+                _instance = this;
                 DontDestroyOnLoad(gameObject);
 
                 if (inventoryPanel != null)
@@ -51,7 +63,7 @@ namespace TheLastEmpire
                     CreateProceduralUI();
                 }
             }
-            else
+            else if (_instance != this)
             {
                 Destroy(gameObject);
             }
@@ -151,12 +163,13 @@ namespace TheLastEmpire
                 {
                     PlayerController player = _playerInventory.GetComponent<PlayerController>();
                     string equippedWeaponName = player != null ? player.CurrentWeaponName : "";
+                    string equippedMeleeName = player != null ? player.CurrentMeleeWeaponName : "";
 
                     foreach (var pair in quantities)
                     {
                         string key = pair.Key;
                         string cleanKey = (key ?? "").ToLower().Trim();
-                        bool isWeapon = cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist");
+                        bool isWeapon = cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist") || cleanKey.Contains("knife") || cleanKey.Contains("bat") || cleanKey.Contains("machete");
                         bool isUsable = (key == "Potion" || key == "Bread" || isWeapon);
                         string displayName = key;
 
@@ -170,9 +183,13 @@ namespace TheLastEmpire
                         }
                         else if (isWeapon)
                         {
-                            string cleanEquipped = (equippedWeaponName ?? "").ToLower().Trim();
-                            bool isEquipped = cleanKey.Contains(cleanEquipped) || cleanEquipped.Contains(cleanKey) || (cleanKey.Contains("pist") && cleanEquipped.Contains("pist"));
-                            if (isEquipped)
+                            string cleanEquippedRanged = (equippedWeaponName ?? "").ToLower().Trim();
+                            string cleanEquippedMelee = (equippedMeleeName ?? "").ToLower().Trim();
+                            
+                            bool isRangedEquipped = cleanKey.Contains(cleanEquippedRanged) || cleanEquippedRanged.Contains(cleanKey) || (cleanKey.Contains("pist") && cleanEquippedRanged.Contains("pist"));
+                            bool isMeleeEquipped = cleanKey.Contains(cleanEquippedMelee) || cleanEquippedMelee.Contains(cleanKey);
+
+                            if (isRangedEquipped || isMeleeEquipped)
                             {
                                 displayName = $"<color=#00e5ff>[EQUIPPED]</color> {key} <color=#111111>(Active)</color>";
                             }
@@ -181,9 +198,9 @@ namespace TheLastEmpire
                                 displayName = $"<color=#111111>[WEAPON]</color> {key} <color=#111111>(Click to Equip)</color>";
                             }
                         }
-                        else if (key == "Ammo")
+                        else if (cleanKey.Contains("ammo"))
                         {
-                            displayName = "<color=#00e5ff>[AMMO]</color> Ammo";
+                            displayName = $"<color=#00e5ff>[AMMO]</color> {key}";
                         }
                         else if (key == "ETC")
                         {

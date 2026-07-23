@@ -24,6 +24,7 @@ namespace TheLastEmpire
 
         [Header("Merchant Inventory Settings")]
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
+        [SerializeField] private bool isFree = false;
 
         public System.Collections.Generic.List<ShopItemConfig> ShopItems => shopItems;
         public NPCType NpcType => npcType;
@@ -54,20 +55,30 @@ namespace TheLastEmpire
 
             if (ItemDatabase.Instance != null)
             {
-                AddDefaultShopItem("Rifle", 100);
-                AddDefaultShopItem("Shotgun", 150);
-                AddDefaultShopItem("Potion", 20);
-                AddDefaultShopItem("Bread", 15);
-                AddDefaultShopItem("Ammo", 10);
+                AddDefaultShopItem("Rifle");
+                AddDefaultShopItem("Shotgun");
+                AddDefaultShopItem("Potion");
+                AddDefaultShopItem("Bread");
+                AddDefaultShopItem("Pistol Ammo");
+                AddDefaultShopItem("Shotgun Ammo");
+                AddDefaultShopItem("Rifle Ammo");
+                AddDefaultShopItem("Knife");
+                AddDefaultShopItem("Baseball Bat");
+                AddDefaultShopItem("Machete");
             }
         }
 
-        private void AddDefaultShopItem(string name, int price)
+        private void AddDefaultShopItem(string name, int price = -1)
         {
             ItemData data = ItemDatabase.Instance.GetItemByName(name);
             if (data != null)
             {
-                shopItems.Add(new ShopItemConfig { item = data, price = price });
+                int finalPrice = price;
+                if (finalPrice < 0)
+                {
+                    finalPrice = ShopDatabase.Instance != null ? ShopDatabase.Instance.GetDefaultPrice(name) : 10;
+                }
+                shopItems.Add(new ShopItemConfig { item = data, price = finalPrice });
             }
         }
 
@@ -93,7 +104,7 @@ namespace TheLastEmpire
                 case NPCType.Shop:
                     if (ShopUI.Instance != null)
                     {
-                        ShopUI.Instance.OpenShopMenu(shopItems);
+                        ShopUI.Instance.OpenShopMenu(shopItems, isFree);
                     }
                     else
                     {

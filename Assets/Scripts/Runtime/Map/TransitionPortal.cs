@@ -1,4 +1,5 @@
 using UnityEngine;
+using DG.Tweening;
 
 namespace TheLastEmpire
 {
@@ -21,6 +22,9 @@ namespace TheLastEmpire
         [Header("Random Portal Layout Settings")]
         [SerializeField] private float minSpawnOffset = -5.0f;
         [SerializeField] private float maxSpawnOffset = 5.0f;
+
+        [Header("Transition UI (Optional)")]
+        [SerializeField] private GameObject transitionScreen;
 
         private bool _playerInRange = false;
 
@@ -151,6 +155,46 @@ namespace TheLastEmpire
         {
             if (WorldMapManager.Instance == null) return;
 
+            if (transitionScreen != null)
+            {
+                transitionScreen.SetActive(true);
+                UnityEngine.UI.Image img = transitionScreen.GetComponent<UnityEngine.UI.Image>();
+                if (img != null)
+                {
+                    // Ensure the screen starts completely transparent
+                    Color c = img.color;
+                    c.a = 0f;
+                    img.color = c;
+
+                    // Fade in to solid color (black) over 0.5 seconds
+                    img.DOFade(1f, 0.5f).OnComplete(() =>
+                    {
+                        // Teleport the player while screen is black
+                        ExecuteTeleport(player);
+
+                        // Fade out back to transparent over 0.5 seconds
+                        img.DOFade(0f, 0.5f).OnComplete(() =>
+                        {
+                            transitionScreen.SetActive(false);
+                        });
+                    });
+                }
+                else
+                {
+                    // Fallback if no Image component is present
+                    ExecuteTeleport(player);
+                    transitionScreen.SetActive(false);
+                }
+            }
+            else
+            {
+                // Fallback if no transition screen is assigned
+                ExecuteTeleport(player);
+            }
+        }
+
+        private void ExecuteTeleport(PlayerController player)
+        {
             int playerX = WorldMapManager.Instance.CurrentPlayerX;
             int playerY = WorldMapManager.Instance.CurrentPlayerY;
             

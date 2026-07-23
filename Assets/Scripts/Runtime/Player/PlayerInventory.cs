@@ -25,6 +25,7 @@ namespace TheLastEmpire
             if (items.Count == 0)
             {
                 items.Add("Pistol");
+                items.Add("Knife");
             }
         }
 
@@ -38,13 +39,42 @@ namespace TheLastEmpire
 
         public void AddItem(string itemName, int quantity = 1)
         {
+            string finalName = itemName;
+            if (string.Equals(itemName, "Ammo", System.StringComparison.OrdinalIgnoreCase))
+            {
+                // Auto-resolve generic ammo into weapon specific ammo
+                finalName = "Pistol Ammo"; // default fallback
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && player.CurrentWeapon != null)
+                {
+                    string lowerName = (player.CurrentWeapon.weaponName ?? "").ToLower().Trim();
+                    if (lowerName.Contains("rifl")) finalName = "Rifle Ammo";
+                    else if (lowerName.Contains("shot")) finalName = "Shotgun Ammo";
+                }
+            }
+
             for (int i = 0; i < quantity; i++)
             {
-                items.Add(itemName);
+                items.Add(finalName);
             }
-            Debug.Log($"[PlayerInventory] Picked up item: {itemName} x{quantity}! Inventory size: {items.Count}");
-            OnItemCollected?.Invoke(itemName);
+            Debug.Log($"[PlayerInventory] Picked up item: {finalName} x{quantity}! Inventory size: {items.Count}");
+            OnItemCollected?.Invoke(finalName);
             OnInventoryChanged?.Invoke();
+        }
+
+        public int GetItemCount(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName) || items == null) return 0;
+            string cleanTarget = itemName.Trim().ToLower();
+            int count = 0;
+            foreach (string item in items)
+            {
+                if (item != null && item.Trim().ToLower() == cleanTarget)
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
         public bool RemoveItem(string itemName)
@@ -61,9 +91,10 @@ namespace TheLastEmpire
         public bool UseItem(string itemName)
         {
             string cleanItem = (itemName ?? "").ToLower().Trim();
-            bool isWeaponItem = cleanItem.Contains("rifl") || cleanItem.Contains("shot") || cleanItem.Contains("pist");
+            bool isRangedWeapon = cleanItem.Contains("rifl") || cleanItem.Contains("shot") || cleanItem.Contains("pist");
+            bool isMeleeWeapon = cleanItem.Contains("knife") || cleanItem.Contains("bat") || cleanItem.Contains("machete");
 
-            if (isWeaponItem)
+            if (isRangedWeapon)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead)
@@ -81,6 +112,27 @@ namespace TheLastEmpire
                     else
                     {
                         Debug.LogWarning($"[PlayerInventory] Weapon '{itemName}' is not defined on the player!");
+                    }
+                }
+            }
+            else if (isMeleeWeapon)
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && !player.PlayerHealth.IsDead)
+                {
+                    int idx = player.MeleeWeaponsList.FindIndex(w => {
+                        string wName = (w.weaponName ?? "").ToLower().Trim();
+                        return wName.Contains(cleanItem) || cleanItem.Contains(wName);
+                    });
+                    if (idx >= 0)
+                    {
+                        player.SwitchToMeleeWeapon(idx);
+                        OnInventoryChanged?.Invoke();
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[PlayerInventory] Melee weapon '{itemName}' is not defined on the player!");
                     }
                 }
             }

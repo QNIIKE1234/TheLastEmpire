@@ -35,6 +35,36 @@ namespace TheLastEmpire
             }
         }
 
+        private void OnEnable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            CleanAndRebuildPools();
+        }
+
+        private void CleanAndRebuildPools()
+        {
+            // Destroy all currently pooled child objects
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(transform.GetChild(i).gameObject);
+            }
+
+            if (_poolDictionary != null) _poolDictionary.Clear();
+            if (_prefabDictionary != null) _prefabDictionary.Clear();
+
+            InitializePools();
+            Debug.Log("[ObjectPoolManager] Pools successfully cleaned and rebuilt for the new scene.");
+        }
+
         private void InitializePools()
         {
             _poolDictionary = new Dictionary<string, Queue<GameObject>>();

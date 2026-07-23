@@ -88,6 +88,17 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
+            // Fall-out-of-world safeguard: teleport back to center of stage if they fall too low
+            if (transform.position.y < -5.0f)
+            {
+                Debug.LogWarning($"[BaseEnemyAI] {gameObject.name} fell out of the world! Teleporting back to safe ground.");
+                transform.position = new Vector3(Random.Range(-5f, 5f), 0.2f, Random.Range(-3f, 3f));
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector3.zero;
+                }
+            }
+
             if (isStaggered)
             {
                 staggerTimer -= Time.fixedDeltaTime;

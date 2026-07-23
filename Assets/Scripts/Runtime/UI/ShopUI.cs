@@ -8,7 +8,19 @@ namespace TheLastEmpire
 {
     public class ShopUI : MonoBehaviour
     {
-        public static ShopUI Instance { get; private set; }
+        public static ShopUI Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("ShopUIManager");
+                    _instance = go.AddComponent<ShopUI>();
+                }
+                return _instance;
+            }
+        }
+        private static ShopUI _instance;
 
         [Header("UI Customization")]
         [SerializeField] private Color panelColor = new Color(0.05f, 0.05f, 0.08f, 0.96f); // Slick dark mode
@@ -21,18 +33,24 @@ namespace TheLastEmpire
         private PlayerInventory _playerInventory;
         private System.Collections.Generic.List<ShopItemConfig> _activeShopItems = new System.Collections.Generic.List<ShopItemConfig>();
         private bool _isOpen = false;
+        private Image _buyTabImg;
+        private TMP_Text _buyTabText;
+        private Image _sellTabImg;
+        private TMP_Text _sellTabText;
+        private bool _isSellMode = false;
+        private bool _isFreeMode = false;
 
         public bool IsOpen => _isOpen;
 
         private void Awake()
         {
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
+                _instance = this;
                 DontDestroyOnLoad(gameObject);
                 CreateProceduralUI();
             }
-            else
+            else if (_instance != this)
             {
                 Destroy(gameObject);
             }
@@ -55,7 +73,7 @@ namespace TheLastEmpire
             }
         }
 
-        public void OpenShopMenu(System.Collections.Generic.List<ShopItemConfig> itemsForSale)
+        public void OpenShopMenu(System.Collections.Generic.List<ShopItemConfig> itemsForSale, bool isFreeMode = false)
         {
             if (_playerInventory == null)
             {
@@ -65,6 +83,15 @@ namespace TheLastEmpire
             _activeShopItems = itemsForSale ?? new System.Collections.Generic.List<ShopItemConfig>();
 
             _isOpen = true;
+            _isSellMode = false;
+            _isFreeMode = isFreeMode;
+
+            // Reset Tab UI colors to buy mode
+            if (_buyTabImg != null) _buyTabImg.color = accentColor;
+            if (_buyTabText != null) _buyTabText.color = Color.black;
+            if (_sellTabImg != null) _sellTabImg.color = new Color(0.2f, 0.2f, 0.25f, 1f);
+            if (_sellTabText != null) _sellTabText.color = Color.white;
+
             if (_canvasObject != null)
             {
                 _canvasObject.SetActive(true);
@@ -117,14 +144,42 @@ namespace TheLastEmpire
                     Destroy(child.gameObject);
                 }
 
-                // Render shop items dynamically
-                if (_activeShopItems != null)
+                if (!_isSellMode)
                 {
-                    foreach (ShopItemConfig config in _activeShopItems)
+                    // Render buyable shop items dynamically
+                    if (_activeShopItems != null)
                     {
-                        if (config.item != null)
+                        foreach (ShopItemConfig config in _activeShopItems)
                         {
-                            RenderShopItem(config.item, config.price);
+                            if (config.item != null)
+                            {
+                                RenderShopItem(config.item, config.price);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Render sellable inventory items dynamically
+                    Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
+                    if (quantities.Count == 0)
+                    {
+                        GameObject emptyObj = new GameObject("EmptyLabel");
+                        emptyObj.transform.SetParent(_itemContainer.transform, false);
+                        TMP_Text emptyText = emptyObj.AddComponent<TextMeshProUGUI>();
+                        emptyText.text = "<i>- No Items to Sell -</i>";
+                        emptyText.fontSize = 22;
+                        emptyText.color = Color.gray;
+                        emptyText.alignment = TextAlignmentOptions.Center;
+
+                        RectTransform emptyRect = emptyObj.GetComponent<RectTransform>();
+                        emptyRect.sizeDelta = new Vector2(650f, 40f);
+                    }
+                    else
+                    {
+                        foreach (var pair in quantities)
+                        {
+                            RenderSellItem(pair.Key, pair.Value);
                         }
                     }
                 }
@@ -204,7 +259,8 @@ namespace TheLastEmpire
             GameObject btnTextObj = new GameObject("BuyText");
             btnTextObj.transform.SetParent(btnObj.transform, false);
             TMP_Text btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
-            btnText.text = $"Buy <color=yellow>${price}</color>";
+            int finalPrice = _isFreeMode ? 0 : price;
+            btnText.text = $"Buy <color=yellow>${finalPrice}</color>";
             btnText.fontSize = 20;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.white;
@@ -221,31 +277,32 @@ namespace TheLastEmpire
             {
                 if (_playerInventory != null)
                 {
-                    // Check if already owns weapon
-                    if ((itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol") && _playerInventory.Items.Contains(itemName))
+                    // Check if already owns weapon (ranged or melee)
+                    bool isWeaponType = itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol" || itemName == "Knife" || itemName == "Baseball Bat" || itemName == "Machete";
+                    if (isWeaponType && _playerInventory.Items.Contains(itemName))
                     {
                         Debug.LogWarning($"[ShopUI] You already own the {itemName}!");
                         return;
                     }
 
-                    if (_playerInventory.Money >= price)
+                    int buyCost = _isFreeMode ? 0 : price;
+                    if (_playerInventory.Money >= buyCost)
                     {
-                        if (itemName == "Ammo")
+                        _playerInventory.AddMoney(-buyCost);
+
+                        int purchaseQty = 1;
+                        ItemData data = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+                        if (data != null)
                         {
-                            _playerInventory.AddMoney(-price);
-                            PlayerController player = _playerInventory.GetComponent<PlayerController>();
-                            if (player != null)
-                            {
-                                player.AddReserveAmmo(30); // Add 30 reserve bullets directly
-                            }
-                            Debug.Log("[ShopUI] Purchased Ammo! Added 30 bullets to reserves.");
+                            purchaseQty = data.defaultQuantity;
                         }
-                        else
+                        if (itemName == "Ammo" && purchaseQty == 1)
                         {
-                            _playerInventory.AddMoney(-price);
-                            _playerInventory.AddItem(itemName, 1);
-                            Debug.Log($"[ShopUI] Purchased {itemName}!");
+                            purchaseQty = 30; // default generic ammo quantity fallback
                         }
+
+                        _playerInventory.AddItem(itemName, purchaseQty);
+                        Debug.Log($"[ShopUI] Purchased {itemName} x{purchaseQty}!");
                         
                         // Refresh both Shop and Inventory UI
                         RefreshUI();
@@ -261,12 +318,155 @@ namespace TheLastEmpire
                 }
             });
 
-            // Disable button if gun is already owned
-            if ((itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol") && _playerInventory != null && _playerInventory.Items.Contains(itemName))
+            // Disable button if gun or melee weapon is already owned
+            bool isWeaponTypeSetup = itemName == "Rifle" || itemName == "Shotgun" || itemName == "Pistol" || itemName == "Knife" || itemName == "Baseball Bat" || itemName == "Machete";
+            if (isWeaponTypeSetup && _playerInventory != null && _playerInventory.Items.Contains(itemName))
             {
                 btnText.text = "<color=grey>Owned</color>";
                 btn.interactable = false;
             }
+        }
+
+        private void RenderSellItem(string itemName, int count)
+        {
+            GameObject row = new GameObject("SellItemRow");
+            row.transform.SetParent(_itemContainer.transform, false);
+
+            Image rowBg = row.AddComponent<Image>();
+            rowBg.color = new Color(1f, 1f, 1f, 0.04f);
+
+            RectTransform rect = row.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(650f, 60f);
+
+            // Icon support
+            bool hasIcon = false;
+            ItemData item = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+            if (item != null && item.icon != null)
+            {
+                GameObject iconObj = new GameObject("ItemIcon");
+                iconObj.transform.SetParent(row.transform, false);
+                Image iconImg = iconObj.AddComponent<Image>();
+                iconImg.sprite = item.icon;
+                iconImg.preserveAspect = true;
+
+                RectTransform iconRect = iconObj.GetComponent<RectTransform>();
+                iconRect.anchorMin = new Vector2(0f, 0.5f);
+                iconRect.anchorMax = new Vector2(0f, 0.5f);
+                iconRect.pivot = new Vector2(0f, 0.5f);
+                iconRect.anchoredPosition = new Vector2(15f, 0f);
+                iconRect.sizeDelta = new Vector2(38f, 38f);
+                hasIcon = true;
+            }
+
+            // Text info (Name & count)
+            GameObject textObj = new GameObject("ItemTextInfo");
+            textObj.transform.SetParent(row.transform, false);
+            TMP_Text rowText = textObj.AddComponent<TextMeshProUGUI>();
+
+            string desc = item != null ? item.description : "";
+            rowText.text = $"<b>{itemName}</b> <color=#90A4AE>x{count}</color>\n<size=20><color=grey>{desc}</color></size>";
+            rowText.fontSize = 24;
+            rowText.color = Color.white;
+            rowText.alignment = TextAlignmentOptions.Left;
+
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0f, 0f);
+            textRect.anchorMax = new Vector2(1f, 1f);
+            textRect.offsetMin = new Vector2(hasIcon ? 65f : 20f, 5f);
+            textRect.offsetMax = new Vector2(-200f, -5f);
+
+            // Calculate selling price: 30% of default buy price (min $1)
+            int buyPrice = 0;
+            if (ShopDatabase.Instance != null)
+            {
+                buyPrice = ShopDatabase.Instance.GetDefaultPrice(itemName);
+            }
+            if (buyPrice <= 0)
+            {
+                string lower = itemName.ToLower();
+                if (lower.Contains("potion")) buyPrice = 20;
+                else if (lower.Contains("bread")) buyPrice = 15;
+                else if (lower.Contains("ammo")) buyPrice = 10;
+                else if (lower.Contains("pistol")) buyPrice = 50;
+                else if (lower.Contains("shotgun")) buyPrice = 150;
+                else if (lower.Contains("rifle")) buyPrice = 100;
+                else if (lower.Contains("knife")) buyPrice = 50;
+                else if (lower.Contains("baseball")) buyPrice = 80;
+                else if (lower.Contains("machete")) buyPrice = 120;
+                else buyPrice = 10;
+            }
+            int sellPrice = Mathf.Max(1, Mathf.RoundToInt(buyPrice * 0.3f));
+
+            // Sell Button
+            GameObject btnObj = new GameObject("SellButton");
+            btnObj.transform.SetParent(row.transform, false);
+
+            RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(1f, 0.5f);
+            btnRect.anchorMax = new Vector2(1f, 0.5f);
+            btnRect.pivot = new Vector2(1f, 0.5f);
+            btnRect.anchoredPosition = new Vector2(-15f, 0f);
+            btnRect.sizeDelta = new Vector2(150f, 40f);
+
+            Image btnImg = btnObj.AddComponent<Image>();
+            btnImg.color = new Color(0.12f, 0.12f, 0.16f, 1f);
+
+            Button btn = btnObj.AddComponent<Button>();
+            ColorBlock colors = btn.colors;
+            colors.normalColor = new Color(0.12f, 0.16f, 0.12f, 1f); // Dark green normal tint
+            colors.highlightedColor = new Color(0f, 0.9f, 0.1f, 0.25f);
+            colors.pressedColor = new Color(0f, 0.9f, 0.1f, 0.5f);
+            btn.colors = colors;
+
+            GameObject btnTextObj = new GameObject("SellText");
+            btnTextObj.transform.SetParent(btnObj.transform, false);
+            TMP_Text btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
+            btnText.text = $"Sell <color=#1bff33>${sellPrice}</color>";
+            btnText.fontSize = 20;
+            btnText.fontStyle = FontStyles.Bold;
+            btnText.color = Color.white;
+            btnText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform btnTextRect = btnTextObj.GetComponent<RectTransform>();
+            btnTextRect.anchorMin = Vector2.zero;
+            btnTextRect.anchorMax = Vector2.one;
+            btnTextRect.offsetMin = Vector2.zero;
+            btnTextRect.offsetMax = Vector2.zero;
+
+            btn.onClick.AddListener(() =>
+            {
+                if (_playerInventory != null)
+                {
+                    // Check equipped status to prevent selling active weapon
+                    PlayerController player = _playerInventory.GetComponent<PlayerController>();
+                    if (player != null)
+                    {
+                        string cleanName = itemName.ToLower().Trim();
+                        string cleanRanged = (player.CurrentWeaponName ?? "").ToLower().Trim();
+                        string cleanMelee = (player.CurrentMeleeWeaponName ?? "").ToLower().Trim();
+                        bool isEquippedRanged = cleanName.Contains(cleanRanged) || cleanRanged.Contains(cleanName) || (cleanName.Contains("pist") && cleanRanged.Contains("pist"));
+                        bool isEquippedMelee = cleanName.Contains(cleanMelee) || cleanMelee.Contains(cleanName);
+
+                        if (isEquippedRanged || isEquippedMelee)
+                        {
+                            Debug.LogWarning($"[ShopUI] Cannot sell equipped weapon {itemName}! Unequip or switch weapons first.");
+                            return;
+                        }
+                    }
+
+                    if (_playerInventory.RemoveItem(itemName))
+                    {
+                        _playerInventory.AddMoney(sellPrice);
+                        Debug.Log($"[ShopUI] Sold {itemName} for ${sellPrice}!");
+
+                        RefreshUI();
+                        if (InventoryUI.Instance != null)
+                        {
+                            InventoryUI.Instance.RefreshUI();
+                        }
+                    }
+                }
+            });
         }
 
         private void CreateProceduralUI()
@@ -343,6 +543,96 @@ namespace TheLastEmpire
             moneyRect.anchoredPosition = new Vector2(0f, -75f);
             moneyRect.sizeDelta = new Vector2(600f, 40f);
 
+            // 4b. Tabs Container Setup (Buy / Sell toggle)
+            GameObject tabsObj = new GameObject("TabsContainer");
+            tabsObj.transform.SetParent(_panelObject.transform, false);
+
+            RectTransform tabsRect = tabsObj.AddComponent<RectTransform>();
+            tabsRect.anchorMin = new Vector2(0.5f, 1f);
+            tabsRect.anchorMax = new Vector2(0.5f, 1f);
+            tabsRect.pivot = new Vector2(0.5f, 1f);
+            tabsRect.anchoredPosition = new Vector2(0f, -115f);
+            tabsRect.sizeDelta = new Vector2(600f, 40f);
+
+            // Buy Tab
+            GameObject buyTabObj = new GameObject("BuyTabButton");
+            buyTabObj.transform.SetParent(tabsObj.transform, false);
+            _buyTabImg = buyTabObj.AddComponent<Image>();
+            _buyTabImg.color = accentColor;
+
+            Button buyTabBtn = buyTabObj.AddComponent<Button>();
+            RectTransform buyTabRect = buyTabObj.GetComponent<RectTransform>();
+            buyTabRect.anchorMin = new Vector2(0f, 0f);
+            buyTabRect.anchorMax = new Vector2(0.5f, 1f);
+            buyTabRect.offsetMin = Vector2.zero;
+            buyTabRect.offsetMax = new Vector2(-5f, 0f);
+
+            GameObject buyTabTextObj = new GameObject("BuyTabText");
+            buyTabTextObj.transform.SetParent(buyTabObj.transform, false);
+            _buyTabText = buyTabTextObj.AddComponent<TextMeshProUGUI>();
+            _buyTabText.text = "BUY ITEMS";
+            _buyTabText.fontSize = 20;
+            _buyTabText.fontStyle = FontStyles.Bold;
+            _buyTabText.color = Color.black;
+            _buyTabText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform buyTextRect = buyTabTextObj.GetComponent<RectTransform>();
+            buyTextRect.anchorMin = Vector2.zero;
+            buyTextRect.anchorMax = Vector2.one;
+            buyTextRect.offsetMin = Vector2.zero;
+            buyTextRect.offsetMax = Vector2.zero;
+
+            // Sell Tab
+            GameObject sellTabObj = new GameObject("SellTabButton");
+            sellTabObj.transform.SetParent(tabsObj.transform, false);
+            _sellTabImg = sellTabObj.AddComponent<Image>();
+            _sellTabImg.color = new Color(0.2f, 0.2f, 0.25f, 1f);
+
+            Button sellTabBtn = sellTabObj.AddComponent<Button>();
+            RectTransform sellTabRect = sellTabObj.GetComponent<RectTransform>();
+            sellTabRect.anchorMin = new Vector2(0.5f, 0f);
+            sellTabRect.anchorMax = new Vector2(1f, 1f);
+            sellTabRect.offsetMin = new Vector2(5f, 0f);
+            sellTabRect.offsetMax = Vector2.zero;
+
+            GameObject sellTabTextObj = new GameObject("SellTabText");
+            sellTabTextObj.transform.SetParent(sellTabObj.transform, false);
+            _sellTabText = sellTabTextObj.AddComponent<TextMeshProUGUI>();
+            _sellTabText.text = "SELL ITEMS";
+            _sellTabText.fontSize = 20;
+            _sellTabText.fontStyle = FontStyles.Bold;
+            _sellTabText.color = Color.white;
+            _sellTabText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform sellTextRect = sellTabTextObj.GetComponent<RectTransform>();
+            sellTextRect.anchorMin = Vector2.zero;
+            sellTextRect.anchorMax = Vector2.one;
+            sellTextRect.offsetMin = Vector2.zero;
+            sellTextRect.offsetMax = Vector2.zero;
+
+            // Tab Event Handlers
+            buyTabBtn.onClick.AddListener(() =>
+            {
+                if (!_isSellMode) return;
+                _isSellMode = false;
+                _buyTabImg.color = accentColor;
+                _buyTabText.color = Color.black;
+                _sellTabImg.color = new Color(0.2f, 0.2f, 0.25f, 1f);
+                _sellTabText.color = Color.white;
+                RefreshUI();
+            });
+
+            sellTabBtn.onClick.AddListener(() =>
+            {
+                if (_isSellMode) return;
+                _isSellMode = true;
+                _sellTabImg.color = accentColor;
+                _sellTabText.color = Color.black;
+                _buyTabImg.color = new Color(0.2f, 0.2f, 0.25f, 1f);
+                _buyTabText.color = Color.white;
+                RefreshUI();
+            });
+
             // 5. Scroll Rect container for shop items
             GameObject scrollObj = new GameObject("ItemsScrollArea");
             scrollObj.transform.SetParent(_panelObject.transform, false);
@@ -351,8 +641,8 @@ namespace TheLastEmpire
             scrollRect.anchorMin = new Vector2(0.5f, 0.5f);
             scrollRect.anchorMax = new Vector2(0.5f, 0.5f);
             scrollRect.pivot = new Vector2(0.5f, 0.5f);
-            scrollRect.anchoredPosition = new Vector2(0f, -10f);
-            scrollRect.sizeDelta = new Vector2(720f, 420f);
+            scrollRect.anchoredPosition = new Vector2(0f, -30f);
+            scrollRect.sizeDelta = new Vector2(720f, 380f);
 
             ScrollRect sRect = scrollObj.AddComponent<ScrollRect>();
             sRect.horizontal = false;
