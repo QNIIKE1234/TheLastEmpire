@@ -13,11 +13,24 @@ namespace TheLastEmpire
             {
                 if (_instance == null)
                 {
-                    // Attempt to load from Resources
-                    _instance = Resources.Load<ItemDatabase>("ItemDatabase");
+                    // Attempt to load from Resources (exact path)
+                    _instance = Resources.Load<ItemDatabase>("Database/ItemDatabase");
                     if (_instance == null)
                     {
-                        // Fallback search in memory/database
+                        _instance = Resources.Load<ItemDatabase>("ItemDatabase");
+                    }
+                    if (_instance == null)
+                    {
+                        // Fallback: search anywhere in Resources folders
+                        ItemDatabase[] databases = Resources.LoadAll<ItemDatabase>("");
+                        if (databases.Length > 0)
+                        {
+                            _instance = databases[0];
+                        }
+                    }
+                    if (_instance == null)
+                    {
+                        // Fallback search in memory
                         ItemDatabase[] databases = Resources.FindObjectsOfTypeAll<ItemDatabase>();
                         if (databases.Length > 0)
                         {
