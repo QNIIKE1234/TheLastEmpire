@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Last Empire — Project Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0a0c10;
+      --surface:   #111318;
+      --card:      #161a22;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #6c63ff;
+      --accent2:   #ff6584;
+      --accent3:   #43e97b;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --glow:      rgba(108,99,255,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated gradient noise background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(108,99,255,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,101,132,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 60% at 50% 50%, rgba(67,233,123,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 100px 0 70px;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 999px;
+      padding: 4px 16px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      margin-top: 20px;
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin-inline: auto;
+    }
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    /* ── Section ── */
+    section { margin-top: 80px; }
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .section-label .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      opacity: 0.6;
+    }
+    .section-label h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Gameplay loop cards ── */
+    .loop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+    }
+    .loop-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      cursor: default;
+    }
+    .loop-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(108,99,255,0.4);
+      box-shadow: 0 12px 40px var(--glow);
+    }
+    .loop-card .icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .loop-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .loop-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── System cards ── */
+    .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .system-grid { grid-template-columns: 1fr; } }
+
+    .sys-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .sys-card:hover { transform: translateY(-3px); border-color: rgba(108,99,255,0.35); }
+    .sys-card .sys-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .sys-card .sys-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .sys-card .sys-title { font-size: 1rem; font-weight: 700; }
+    .sys-card .sys-sub { font-size: 0.75rem; color: var(--muted); }
+    .sys-card ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .sys-card ul li {
+      font-size: 0.84rem;
+      color: #a1afc9;
+      padding-left: 16px;
+      position: relative;
+    }
+    .sys-card ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.7rem;
+      top: 2px;
+    }
+
+    /* ── Scripts table ── */
+    .folder-block { margin-bottom: 36px; }
+    .folder-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .folder-title .ftag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(108,99,255,0.1);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 6px;
+      padding: 2px 10px;
+    }
+    .folder-title .fdesc { font-size: 0.85rem; color: var(--muted); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    thead th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 12px 10px;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 10px 12px; font-size: 0.84rem; vertical-align: top; }
+    td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #7dd3fc;
+      white-space: nowrap;
+    }
+    td:last-child { color: #94a3b8; }
+
+    /* ── Formula box ── */
+    .formula-box {
+      background: rgba(108,99,255,0.08);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: #c4b5fd;
+      text-align: center;
+      margin: 16px 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Roadmap ── */
+    .roadmap { display: flex; flex-direction: column; gap: 14px; }
+    .road-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .road-item:hover { border-color: rgba(108,99,255,0.35); transform: translateX(4px); }
+    .road-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 6px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .road-item h4 { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .road-item p { font-size: 0.82rem; color: var(--muted); }
+
+    /* ── Tech highlights ── */
+    .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .tech-grid { grid-template-columns: 1fr; } }
+    .tech-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .tech-card:hover { border-color: rgba(67,233,123,0.3); }
+    .tech-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--accent3); margin-bottom: 8px; }
+    .tech-card p { font-size: 0.82rem; color: var(--muted); }
+    .code-inline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.07);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #7dd3fc;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 100px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding-bottom: 40px;
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+    }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); margin: 40px 0; }
+
+    /* ── Fade-in animation ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero, section { animation: fadeUp 0.7s ease both; }
+    section:nth-child(2) { animation-delay: 0.1s; }
+    section:nth-child(3) { animation-delay: 0.15s; }
+    section:nth-child(4) { animation-delay: 0.2s; }
+    section:nth-child(5) { animation-delay: 0.25s; }
+    section:nth-child(6) { animation-delay: 0.3s; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ══════════════════════════════ HERO ══════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-eyebrow">Unity · C# · 3D Top-Down</div>
+    <h1>The Last Empire</h1>
+    <p class="hero-sub">เอกสารสรุปภาพรวมระบบ, การทำงานของโค้ด, และแผนพัฒนาต่อยอดสำหรับโปรเจกต์</p>
+    <div class="hero-badges">
+      <span class="badge">Action Survival</span>
+      <span class="badge">Procedural Maps</span>
+      <span class="badge">Top-Down 3D</span>
+      <span class="badge">Object Pooling</span>
+      <span class="badge">DOTween</span>
+      <span class="badge">ScriptableObjects</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════ 1. GAMEPLAY LOOP ══════════════════════════════ -->
+  <section>
+    <div class="section-label">
+      <span class="num">01</span>
+      <h2>Core Gameplay Loop</h2>
+    </div>
+    <div class="loop-grid">
+      <div class="loop-card">
+        <div class="icon">🗺️</div>
+        <h3>สำรวจ (Exploration)</h3>
+        <p>เดินผ่านประตูพอร์ทัล 4 ทิศบนแผนที่กริดที่สุ่มสร้างไดนามิก ทุกห้องมี Seed ของตัวเองทำให้รูปแบบไม่ซ้ำกัน</p>
+      </div>
+      <div class="loop-card">
+        <div class="icon">💀</div>
+        <h3>เอาชีวิตรอด (Survival)</h3>
+        <p>ความหิวลดตลอดเวลา วิ่งเร็วหิวเร็ว x2 ถ้าหิวสุดจะเริ่มกิน HP แทน ต้องหาขนมปัง/โพชั่นมากินให้ทัน</p>
+      </div>
+      <div class="loop-card">
+        <div class="icon">⚔️</div>
+        <h3>ต่อสู้ (Combat)</h3>
+        <p>ยิงปืนระยะไกลหรือฟันอาวุธประชิด ศัตรูมีหลายประเภท ฆ่าแล้วได้รับเงินและไอเทมดรอปตาม Loot Table</p>
+      </div>
+      <div class="loop-card">
+        <div class="icon">💰</div>
+        <h3>เศรษฐกิจ (Economy)</h3>
+        <p>ขายไอเทมเหลือใช้ให้พ่อค้า NPC ในราคา 30% แล้วซื้อปืน, กระสุน, หรือโพชั่นเตรียมลุยด่านต่อไป</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════ 2. SYSTEMS ══════════════════════════════ -->
+  <section>
+    <div class="section-label">
+      <span class="num">02</span>
+      <h2>ระบบหลักและการทำงาน</h2>
+    </div>
+    <div class="system-grid">
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(108,99,255,0.15)">🎮</div>
+          <div>
+            <div class="sys-title">Player Controller</div>
+            <div class="sys-sub">PlayerController.cs + PlayerInventory.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>WASD / Joystick เดินทุกทิศ</li>
+          <li>กด <strong>Shift</strong> วิ่งเร็ว 1.5× (หิวเร็ว ×2)</li>
+          <li>กด <strong>Spacebar</strong> แดชหลบพร้อม I-Frames</li>
+          <li>กด <strong>R</strong> รีโหลดหักกระสุนจากเป้จริง</li>
+          <li>กด <strong>I / ESC</strong> เปิดกระเป๋า หยุดเวลา</li>
+        </ul>
+      </div>
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(67,233,123,0.12)">🗺️</div>
+          <div>
+            <div class="sys-title">Procedural Map & Portals</div>
+            <div class="sys-sub">WorldMapManager.cs + TransitionPortal.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>กริดแผนที่สุ่มตาม Seed ไม่ซ้ำทุกรอบ</li>
+          <li>ประตูซ่อนตัวอัตโนมัติหากไม่มีห้องข้างๆ</li>
+          <li>ประตูสลับตำแหน่งแกนรองตาม Seed</li>
+          <li>DOTween Fade ดำ → วาร์ป → รอ 0.5s → สว่าง</li>
+        </ul>
+      </div>
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(255,101,132,0.12)">🔫</div>
+          <div>
+            <div class="sys-title">Combat System</div>
+            <div class="sys-sub">PlayerController.cs + BaseEnemyAI.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>ปืนหักกระสุนจาก Inventory จริงทุกนัด</li>
+          <li>กระสุนคำนวณระยะจาก Attack Radius ÷ Speed</li>
+          <li>Object Pool จัดการกระสุน ประหยัด RAM</li>
+          <li>ระยะประชิด: Knife / Baseball Bat / Machete</li>
+          <li>ฟันแล้ว Knockback + Stagger 0.3s ตาม Stat</li>
+        </ul>
+      </div>
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(251,191,36,0.12)">🎒</div>
+          <div>
+            <div class="sys-title">Inventory & Shop</div>
+            <div class="sys-sub">InventoryUI.cs + ShopUI.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>UI Dark Mode Glassmorphism สวยงาม</li>
+          <li>สแต็คไอเทมรวมกัน แสดงจำนวนได้</li>
+          <li>แท็บ BUY / SELL ที่พ่อค้า NPC</li>
+          <li>ขายได้ 30% ของราคากลาง</li>
+          <li>โหมด <strong>Is Free</strong> สำหรับทดสอบ Dev</li>
+        </ul>
+      </div>
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(52,211,153,0.12)">🎯</div>
+          <div>
+            <div class="sys-title">Enemy AI & Loot</div>
+            <div class="sys-sub">BaseEnemyAI.cs + LootDropper.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>ศัตรู 5 ประเภท: Zombie, Bandit, Alien, Beast, Robot</li>
+          <li>Stagger 0.3s + Knockback เมื่อรับดาเมจ</li>
+          <li>OOB Rescue: เทเลพอร์ตกลับถ้าตกนอกฉาก</li>
+          <li>Custom Loot Table แยกตาม Prefab</li>
+          <li>สุ่มอิสระทุกชิ้น ดรอปได้หลายชิ้นพร้อมกัน</li>
+        </ul>
+      </div>
+
+      <div class="sys-card">
+        <div class="sys-head">
+          <div class="sys-icon" style="background:rgba(139,92,246,0.12)">🧠</div>
+          <div>
+            <div class="sys-title">Data & ScriptableObjects</div>
+            <div class="sys-sub">ItemData.cs + ItemDatabase.cs</div>
+          </div>
+        </div>
+        <ul>
+          <li>ItemData เก็บสถิติทุกไอเทมแบบ Data-Driven</li>
+          <li>ItemDatabase โหลด Recursive ทุกโฟลเดอร์</li>
+          <li>ShopDatabase ราคากลางไอเทมทุกชิ้น</li>
+          <li>Custom Editor ซ่อน/แสดง Weapon Fields</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="formula-box" style="margin-top:24px">
+      ⚔️ &nbsp; Damage&nbsp;=&nbsp;Base&nbsp;Player&nbsp;Damage&nbsp;(10)&nbsp;+&nbsp;Weapon&nbsp;Bonus&nbsp;Damage&nbsp;(ItemData)
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════ 3. SCRIPTS ══════════════════════════════ -->
+  <section>
+    <div class="section-label">
+      <span class="num">03</span>
+      <h2>Scripts Directory (43 Files)</h2>
+    </div>
+
+    <!-- Player -->
+    <div class="folder-block">
+      <div class="folder-title">
+        <span class="ftag">👤 Player/</span>
+        <span class="fdesc">ระบบตัวละครผู้เล่น</span>
+      </div>
+      <table>
+        <thead><tr><th>Script</th><th>หน้าที่</th></tr></thead>
+        <tbody>
+          <tr><td>PlayerController.cs</td><td>หัวใจหลัก — ควบคุมการเคลื่อนที่, ยิงปืน, ฟันระยะประชิด, แดช, ความหิว, รีโหลด</td></tr>
+          <tr><td>PlayerInventory.cs</td><td>จัดการกระเป๋าเป้ — เพิ่ม/ลบไอเทม, กดใช้ไอเทม, นับเงิน</td></tr>
+          <tr><td>PlayerHUD.cs</td><td>แสดง HP บาร์, ความหิว, จำนวนกระสุนบนหน้าจอ</td></tr>
+          <tr><td>CameraFollow.cs</td><td>กล้องติดตามตัวละครผู้เล่น Smooth Damp</td></tr>
+          <tr><td>CameraObstacleFader.cs</td><td>ทำให้สิ่งกีดขวางระหว่างกล้องกับผู้เล่นกลายเป็นโปร่งใส</td></tr>
+          <tr><td>LootContainer.cs</td><td>จัดการกล่องสมบัติที่ผู้เล่นสามารถเปิดเก็บไอเทมได้</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Combat -->
+    <div class="folder-block">
+      <div class="folder-title">
+        <span class="ftag">⚔️ Combat/</span>
+        <span class="fdesc">ระบบศัตรูและการต่อสู้</span>
+      </div>
+      <table>
+        <thead><tr><th>Script</th><th>หน้าที่</th></tr></thead>
+        <tbody>
+          <tr><td>BaseEnemyAI.cs</td><td>คลาสหลักของศัตรูทุกตัว — ไล่ผู้เล่น, รับดาเมจ, Knockback, Stagger, OOB Rescue</td></tr>
+          <tr><td>ZombieAI.cs</td><td>ซอมบี้ทั่วไป — extends BaseEnemyAI</td></tr>
+          <tr><td>BanditAI.cs</td><td>ศัตรูประเภท Bandit ยิงระยะไกล</td></tr>
+          <tr><td>AlienAI.cs</td><td>ศัตรูประเภท Alien ความเร็วสูง</td></tr>
+          <tr><td>BeastAI.cs</td><td>ศัตรูสัตว์ร้าย ดาเมจระยะประชิดสูง</td></tr>
+          <tr><td>RobotAI.cs</td><td>ศัตรูหุ่นยนต์ HP หนา</td></tr>
+          <tr><td>Health.cs</td><td>คอมโพเนนต์ HP — รับดาเมจ, ฟื้นฟู, I-Frame</td></tr>
+          <tr><td>IDamageable.cs</td><td>Interface บังคับให้มี TakeDamage() เป็นมาตรฐาน</td></tr>
+          <tr><td>DamageDealer.cs</td><td>Trigger ดีลดาเมจเมื่อสัมผัส</td></tr>
+          <tr><td>Projectile.cs</td><td>พฤติกรรมกระสุน — บินตรง, ชน, คืนสู่ Pool</td></tr>
+          <tr><td>ObjectPoolManager.cs</td><td>ระบบ Pool กระสุน/ศัตรู ประหยัด RAM, เคลียร์เมื่อ Retry</td></tr>
+          <tr><td>LootDropper.cs</td><td>ดรอปไอเทมเมื่อศัตรูตาย ตาม Custom Loot Table</td></tr>
+          <tr><td>CollectibleItem.cs</td><td>พฤติกรรมไอเทมที่ตกพื้น — รอเก็บ, แสงกระพริบ</td></tr>
+          <tr><td>NPCController.cs</td><td>NPC พ่อค้า — เปิด ShopUI, รองรับ Is Free Test Mode</td></tr>
+          <tr><td>EnemyHealthText.cs</td><td>ตัวเลข Pop-up HP ที่หายเหนือหัวศัตรู</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Map -->
+    <div class="folder-block">
+      <div class="folder-title">
+        <span class="ftag">🗺️ Map/</span>
+        <span class="fdesc">ระบบแผนที่และสลับฉาก</span>
+      </div>
+      <table>
+        <thead><tr><th>Script</th><th>หน้าที่</th></tr></thead>
+        <tbody>
+          <tr><td>WorldMapManager.cs</td><td>ตัวจัดการแผนที่กลาง — เก็บตำแหน่งปัจจุบัน X/Y</td></tr>
+          <tr><td>WorldMapGenerator.cs</td><td>สุ่มสร้างข้อมูลห้อง/Biome บนกริดทั้งหมด</td></tr>
+          <tr><td>WorldMapVisualizer.cs</td><td>แสดงผลแผนที่ Mini-map บนหน้าจอ</td></tr>
+          <tr><td>TransitionPortal.cs</td><td>ประตูวาร์ปสลับห้อง — Fade, เทเลพอร์ต, ซ่อนตัวถ้าไม่มีห้องข้างๆ</td></tr>
+          <tr><td>StageData.cs</td><td>โครงสร้างข้อมูลของแต่ละห้อง (Seed, Biome, พิกัด)</td></tr>
+          <tr><td>BiomeType.cs</td><td>Enum ประเภทไบโอม เช่น Desert, Forest, City</td></tr>
+          <tr><td>LocalStageVisualizer.cs</td><td>แสดงข้อมูลด่านปัจจุบัน (ชื่อ Biome, พิกัด) บนหน้าจอ</td></tr>
+          <tr><td>GroundBiomeMaterialController.cs</td><td>สลับ Material พื้นดินตาม Biome ของห้องนั้น</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Managers -->
+    <div class="folder-block">
+      <div class="folder-title">
+        <span class="ftag">🏗️ Managers/</span>
+        <span class="fdesc">ระบบควบคุมกลาง</span>
+      </div>
+      <table>
+        <thead><tr><th>Script</th><th>หน้าที่</th></tr></thead>
+        <tbody>
+          <tr><td>GameManager.cs</td><td>Spawn ศัตรู, ควบคุม Game State (Playing/Dead/Retry), ป้องกัน Spawn ทับกัน</td></tr>
+          <tr><td>EnvironmentManager.cs</td><td>สุ่มวาง Prop/อุปสรรคตาม Seed ป้องกัน Spawn ใกล้ประตู/ผู้เล่น</td></tr>
+          <tr><td>DayNightManager.cs</td><td>วงรอบกลางวัน/กลางคืน ปรับแสงไฟ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Data / UI / Save -->
+    <div class="folder-block">
+      <div class="folder-title">
+        <span class="ftag">🗃️ Data/</span>
+        <span class="fdesc">ฐานข้อมูลไอเทม</span>
+        &nbsp;&nbsp;
+        <span class="ftag">🖥️ UI/</span>
+        <span class="fdesc">ระบบหน้าจอ</span>
+        &nbsp;&nbsp;
+        <span class="ftag">💾 Save/</span>
+        <span class="fdesc">บันทึกเกม</span>
+      </div>
+      <table>
+        <thead><tr><th>Script</th><th>หน้าที่</th></tr></thead>
+        <tbody>
+          <tr><td>ItemData.cs</td><td>ScriptableObject เก็บสถิติไอเทมแต่ละชิ้น (ชื่อ, ราคา, ดาเมจ, ระยะ)</td></tr>
+          <tr><td>ItemDatabase.cs</td><td>รวม ItemData, GetItemByName() ค้นหา Recursive ทุกโฟลเดอร์</td></tr>
+          <tr><td>ShopDatabase.cs</td><td>ราคากลางสำหรับร้านค้า</td></tr>
+          <tr><td>InventoryUI.cs</td><td>หน้าต่างกระเป๋าเป้ (กด I) แสดงไอเทม, ปุ่มใช้/สวมใส่</td></tr>
+          <tr><td>ShopUI.cs</td><td>หน้าต่างร้านค้า แท็บ BUY/SELL</td></tr>
+          <tr><td>LootUI.cs</td><td>UI แสดงสิ่งของในกล่องสมบัติ</td></tr>
+          <tr><td>MinimapUI.cs</td><td>แสดง Mini-map มุมหน้าจอ</td></tr>
+          <tr><td>HealthVisualizer.cs</td><td>แถบ HP ลอยเหนือหัวศัตรู</td></tr>
+          <tr><td>BillboardUI.cs</td><td>ทำให้ UI 3D หันหน้าเข้าหากล้องเสมอ</td></tr>
+          <tr><td>SaveSystem.cs</td><td>บันทึก/โหลดข้อมูลเกมลงดิสก์</td></tr>
+          <tr><td>SaveData.cs</td><td>โครงสร้างข้อมูลที่ต้องการบันทึก (Serializable)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════ 4. TECH ══════════════════════════════ -->
+  <section>
+    <div class="section-label">
+      <span class="num">04</span>
+      <h2>Technical Highlights</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <h4>🔄 Clean Scene Reloading</h4>
+        <p>เมื่อกด Retry, <span class="code-inline">ObjectPoolManager</span> ดักจับ <span class="code-inline">sceneLoaded</span> event ทำลาย Objects เก่าทั้งหมดและสร้าง Pool ใหม่ ป้องกันบั๊ก AI เป้าหมายเสีย</p>
+      </div>
+      <div class="tech-card">
+        <h4>📦 Recursive Resources Load</h4>
+        <p>ใช้ <span class="code-inline">Resources.LoadAll&lt;T&gt;("")</span> ทำให้ <span class="code-inline">ItemDatabase</span> ค้นหาไฟล์ไอเทมได้ทุกโฟลเดอร์ใน Resources ไม่ติดปัญหาย้ายโฟลเดอร์</p>
+      </div>
+      <div class="tech-card">
+        <h4>🎬 DOTween Screen Transition</h4>
+        <p>ใช้ <span class="code-inline">DOTween.To()</span> ทำ Fade ดำ → วาร์ป → รอ 0.5s → Fade สว่าง แทน <span class="code-inline">DOFade()</span> เพื่อหลีกเลี่ยงปัญหา Extension ไม่ถูก Setup</p>
+      </div>
+      <div class="tech-card">
+        <h4>🎯 Data-Driven Design</h4>
+        <p>สถิติอาวุธ, ราคาไอเทม, และ Loot Table ล้วนแก้ไขจาก <span class="code-inline">ScriptableObject</span> ใน Inspector โดยไม่ต้องแก้ไขโค้ด</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════ 5. ROADMAP ══════════════════════════════ -->
+  <section>
+    <div class="section-label">
+      <span class="num">05</span>
+      <h2>Planned Features Roadmap</h2>
+    </div>
+    <div class="roadmap">
+      <div class="road-item">
+        <div class="road-dot"></div>
+        <div>
+          <h4>⭐ Player Stats & Leveling System</h4>
+          <p>ระบบ XP, เลเวลอัพ, และนำแต้มไปอัพเกรดสถานะหลัก เช่น ความอึด, ดาเมจพื้นฐาน, ความเร็วแดช</p>
+        </div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
+        <div>
+          <h4>🔧 Weapon Upgrade Station</h4>
+          <p>ตู้อัพเกรดปืนในด่าน เพิ่มพลังดาเมจ, ลดเวลารีโหลด หรือเพิ่มจำนวน Pellet ของปืนลูกซอง</p>
+        </div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--accent3);box-shadow:0 0 8px var(--accent3)"></div>
+        <div>
+          <h4>🪤 Hazards & Traps</h4>
+          <p>เพิ่มสิ่งกีดขวางอันตราย เช่น บล็อกหนาม, หลุมพิษ, ที่สร้างดาเมจ Real-time ในด่าน</p>
+        </div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot"></div>
+        <div>
+          <h4>🚀 New Weapon Classes</h4>
+          <p>อาวุธประเภทใหม่ เช่น Flame Thrower ยิงระยะสั้นแต่ต่อเนื่อง หรือ Rocket Launcher ระเบิดวงกว้าง</p>
+        </div>
+      </div>
+      <div class="road-item">
+        <div class="road-dot" style="background:#f59e0b;box-shadow:0 0 8px #f59e0b"></div>
+        <div>
+          <h4>👹 Boss Arenas</h4>
+          <p>ล็อคพอร์ทัลทุกทิศบังคับเผชิญหน้ากับ Boss ยักษ์ก่อนสลับ Biome ระดับความยากถัดไป</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <footer>
+    <p>The Last Empire &nbsp;·&nbsp; Unity 6 &nbsp;·&nbsp; C# &nbsp;·&nbsp; อัปเดตล่าสุด: 24 กรกฎาคม 2026</p>
+  </footer>
+
+</div>
+</body>
+</html>
