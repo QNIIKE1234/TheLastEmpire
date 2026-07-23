@@ -169,7 +169,7 @@ namespace TheLastEmpire
                     {
                         string key = pair.Key;
                         string cleanKey = (key ?? "").ToLower().Trim();
-                        bool isWeapon = cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist") || cleanKey.Contains("knife") || cleanKey.Contains("bat") || cleanKey.Contains("machete");
+                        bool isWeapon = (cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist") || cleanKey.Contains("knife") || cleanKey.Contains("bat") || cleanKey.Contains("machete")) && !cleanKey.Contains("ammo");
                         bool isUsable = (key == "Potion" || key == "Bread" || isWeapon);
                         string displayName = key;
 

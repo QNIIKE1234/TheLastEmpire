@@ -535,23 +535,23 @@ MonoBehaviour:
   - itemName: Bread
     minQuantity: 1
     maxQuantity: 3
-    probability: 0.15
+    probability: 0.486
   - itemName: Pistol Ammo
     minQuantity: 1
     maxQuantity: 12
-    probability: 0.07
+    probability: 0.88
   - itemName: Potion
     minQuantity: 1
     maxQuantity: 2
-    probability: 0.1
+    probability: 0.819
   - itemName: Shotgun Ammo
     minQuantity: 1
     maxQuantity: 7
-    probability: 0.02
+    probability: 0.134
   - itemName: Rifle Ammo
     minQuantity: 5
     maxQuantity: 30
-    probability: 0.01
+    probability: 0.139
 --- !u!136 &386716661756454907
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -255,7 +255,7 @@ MonoBehaviour:
   leapCooldown: 4
   leapSpeed: 12
   leapDuration: 0.3
-  explosionRadius: 15
+  explosionRadius: 5
   explosionDamage: 120
   fuseDuration: 0.8
   buffRadius: 6
@@ -281,24 +281,24 @@ MonoBehaviour:
   customLootTable:
   - itemName: Bread
     minQuantity: 1
-    maxQuantity: 3
-    probability: 0.15
+    maxQuantity: 5
+    probability: 0.611
   - itemName: Pistol Ammo
     minQuantity: 1
     maxQuantity: 12
-    probability: 0.4
+    probability: 0.704
   - itemName: Potion
     minQuantity: 1
     maxQuantity: 2
-    probability: 0.2
+    probability: 0.681
   - itemName: Shotgun Ammo
     minQuantity: 1
     maxQuantity: 7
-    probability: 0.05
+    probability: 0.204
   - itemName: Rifle Ammo
     minQuantity: 5
     maxQuantity: 30
-    probability: 0.05
+    probability: 0.125
   - itemName: Money
     minQuantity: 100
     maxQuantity: 500

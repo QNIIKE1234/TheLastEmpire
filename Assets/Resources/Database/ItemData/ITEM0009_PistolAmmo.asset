@@ -16,7 +16,12 @@ MonoBehaviour:
   description: Low caliber pistol ammunition.
   icon: {fileID: 21300000, guid: c319a0b1d54de7e4bb9d7c74fce64708, type: 3}
   type: 1
-  restorationValue: 0
+  restorationValue: 12
   defaultQuantity: 12
   themeColor: {r: 0.95, g: 0.75, b: 0.2, a: 1}
   dropMaterial: {fileID: 2100000, guid: 0bbe3c9c07460734a9c44e9112da9749, type: 2}
+  damage: 0
+  attackRadius: 0
+  attackRate: 0
+  knockbackForce: 0
+  staggerDuration: 0
