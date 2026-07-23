@@ -57,12 +57,9 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. Fallback dynamic load from Resources/database
-            ItemData loadedDirectly = Resources.Load<ItemData>("database/" + trimmed);
-            if (loadedDirectly != null) return loadedDirectly;
-
-            ItemData[] allInFolder = Resources.LoadAll<ItemData>("database");
-            foreach (ItemData item in allInFolder)
+            // 3. Fallback dynamic load: recursively load all ItemData assets from all Resources folders
+            ItemData[] allInResources = Resources.LoadAll<ItemData>("");
+            foreach (ItemData item in allInResources)
             {
                 if (item != null)
                 {

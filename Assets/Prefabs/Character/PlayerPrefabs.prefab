@@ -273,6 +273,7 @@ MonoBehaviour:
     spreadAngle: 5
     pelletsPerShot: 1
     isAutomatic: 0
+    ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
   - weaponName: Shotgun
@@ -286,6 +287,7 @@ MonoBehaviour:
     spreadAngle: 20
     pelletsPerShot: 5
     isAutomatic: 0
+    ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
   - weaponName: Rifle
@@ -299,16 +301,19 @@ MonoBehaviour:
     spreadAngle: 15
     pelletsPerShot: 1
     isAutomatic: 1
+    ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
-  meleeRadius: 1.2
-  meleeDamage: 35
-  meleeRate: 0.4
+  meleeRadius: 1
+  meleeDamage: 10
+  meleeRate: 0.2
   xLimit: 8.5
   yLimit: 5
   entryOffset: 0.5
+  meleeWeapons: []
   maxHunger: 100
   currentHunger: 100
+  gunshotAlertRange: 5
 --- !u!1 &4234281916798538622
 GameObject:
   m_ObjectHideFlags: 0
