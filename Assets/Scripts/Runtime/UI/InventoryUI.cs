@@ -5,7 +5,7 @@ using TMPro;
 
 namespace TheLastEmpire
 {
-    public class InventoryUI : MonoBehaviour
+    public class InventoryUI : MonoBehaviour, IPopUp
     {
         public static InventoryUI Instance
         {
@@ -22,14 +22,37 @@ namespace TheLastEmpire
         private static InventoryUI _instance;
 
         [Header("UI Customization")]
-        [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f); // Sleek slate dark mode
-        [SerializeField] private Color accentColor = new Color(0.95f, 0.75f, 0.2f, 1f);   // Bright yellow accent
+        [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f);
+        [SerializeField] private Color accentColor = new Color(0.95f, 0.75f, 0.2f, 1f);
 
         [Header("UI References (Optional)")]
         [SerializeField] private GameObject inventoryPanel;
         [SerializeField] private TMPro.TMP_Text moneyTextHUD;
         [SerializeField] private TMPro.TMP_Text healthTextHUD;
+        [Tooltip("Content GameObject — วาง InventoryItemSlot ลูกไว้ข้างในได้เลย")]
         [SerializeField] private GameObject itemSlotsContainer;
+
+        [Header("Pagination")]
+        [Tooltip("จำนวน Slot ต่อหน้า — ควรตรงกับจำนวน InventoryItemSlot ที่วางใน Editor")]
+        [SerializeField] private int slotsPerPage = 8;
+        [Tooltip("ปุ่มไปหน้าก่อนหน้า")]
+        [SerializeField] private UnityEngine.UI.Button prevPageButton;
+        [Tooltip("ปุ่มไปหน้าถัดไป")]
+        [SerializeField] private UnityEngine.UI.Button nextPageButton;
+        [Tooltip("TMP_Text แสดง '1 / 3'")]
+        [SerializeField] private TMPro.TMP_Text pageIndicatorText;
+
+
+
+        // ===== Internal Pool (built-in) =====
+        private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
+        private int _activeSlotCount = 0;
+
+        // ===== Pagination State =====
+        private int _currentPage = 0;   // 0-indexed
+        private int _totalPages  = 1;
+
+
 
         private GameObject _canvasObject;
         private GameObject _panelObject;
@@ -41,6 +64,10 @@ namespace TheLastEmpire
 
         public bool IsOpen => _isOpen;
 
+        // =====================================================
+        //  Unity Lifecycle
+        // =====================================================
+
         private void Awake()
         {
             if (_instance == null)
@@ -50,12 +77,21 @@ namespace TheLastEmpire
 
                 if (inventoryPanel != null)
                 {
-                    _canvasObject = inventoryPanel;
-                    _moneyText = moneyTextHUD;
-                    _healthText = healthTextHUD;
+                    _canvasObject  = inventoryPanel;
+                    _moneyText     = moneyTextHUD;
+                    _healthText    = healthTextHUD;
                     _itemContainer = itemSlotsContainer;
 
-                    // Ensure the custom panel is hidden initially
+                    // Auto-discover InventoryItemSlot children ที่วางไว้ใน Editor แล้วใส่ Pool
+                    if (_itemContainer != null)
+                        ScanExistingSlots();
+
+                    // Hook pagination buttons
+                    if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
+                    if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
+
+
+
                     _canvasObject.SetActive(false);
                 }
                 else
@@ -74,6 +110,83 @@ namespace TheLastEmpire
             FindInventory();
         }
 
+        private void OnDestroy()
+        {
+            if (_playerInventory != null)
+                _playerInventory.OnInventoryChanged -= RefreshUI;
+        }
+
+        // =====================================================
+        //  Slot Pool — Built-in, ไม่ต้องแยก Component
+        // =====================================================
+
+        /// <summary>
+        /// สแกน InventoryItemSlot ที่มีอยู่แล้วใน itemSlotsContainer ใส่เข้า Pool
+        /// วางหลาย ๆ ตัวไว้ใน Editor → Pool จะ reuse พวกมันแทน Instantiate
+        /// </summary>
+        private void ScanExistingSlots()
+        {
+            _slotPool.Clear();
+            foreach (Transform child in _itemContainer.transform)
+            {
+                InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
+                if (slot != null)
+                {
+                    slot.gameObject.SetActive(false);
+                    _slotPool.Add(slot);
+                }
+            }
+        }
+
+        /// <summary>
+        /// ดึง Slot ถัดไปจาก Pool ถ้าหมดจะ Instantiate ตัวแรกใน pool มาเพิ่ม (expand ครั้งเดียว)
+        /// </summary>
+        private InventoryItemSlot GetSlot()
+        {
+            if (_activeSlotCount >= _slotPool.Count)
+            {
+                // Pool หมด — clone จาก slot แรกที่มีอยู่ (ถ้ามี) หรือ bail
+                if (_slotPool.Count == 0)
+                {
+                    Debug.LogWarning("[InventoryUI] No InventoryItemSlot found in container. Place at least one in the Editor.");
+                    return null;
+                }
+                InventoryItemSlot clone = Instantiate(_slotPool[0], _itemContainer.transform);
+                clone.name = $"ItemSlot_{_slotPool.Count:00}";
+                _slotPool.Add(clone);
+                Debug.LogWarning($"[InventoryUI] Slot pool expanded to {_slotPool.Count}. Consider placing more slots in the Editor.");
+            }
+
+            InventoryItemSlot s = _slotPool[_activeSlotCount];
+            s.gameObject.SetActive(true);
+            _activeSlotCount++;
+            return s;
+        }
+
+        /// <summary>
+        /// เรียกก่อน Refresh ทุกครั้ง — reset ตัวนับ
+        /// </summary>
+        private void PoolBeginFrame() => _activeSlotCount = 0;
+
+        /// <summary>
+        /// เรียกหลัง Refresh ทุกครั้ง — ซ่อน Slot ที่ไม่ได้ใช้
+        /// </summary>
+        private void PoolEndFrame()
+        {
+            for (int i = _activeSlotCount; i < _slotPool.Count; i++)
+            {
+                if (_slotPool[i].gameObject.activeSelf)
+                {
+                    _slotPool[i].Clear();
+                    _slotPool[i].gameObject.SetActive(false);
+                }
+            }
+        }
+
+        // =====================================================
+        //  Public API
+        // =====================================================
+
         private void FindInventory()
         {
             if (_playerInventory == null)
@@ -83,18 +196,8 @@ namespace TheLastEmpire
                 {
                     _playerInventory = player.GetComponent<PlayerInventory>();
                     if (_playerInventory != null)
-                    {
                         _playerInventory.OnInventoryChanged += RefreshUI;
-                    }
                 }
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (_playerInventory != null)
-            {
-                _playerInventory.OnInventoryChanged -= RefreshUI;
             }
         }
 
@@ -103,23 +206,61 @@ namespace TheLastEmpire
         /// </summary>
         public void ToggleInventory()
         {
-            if (_playerInventory == null)
-            {
-                FindInventory();
-            }
+            if (_playerInventory == null) FindInventory();
 
             _isOpen = !_isOpen;
 
             if (_canvasObject != null)
-            {
                 _canvasObject.SetActive(_isOpen);
-            }
 
             // Pause game when inventory is open, resume when closed
             Time.timeScale = _isOpen ? 0f : 1f;
 
             if (_isOpen)
             {
+                _currentPage = 0;
+                
+                if (_itemContainer != null)
+                {
+                    ScanExistingSlots();
+                }
+                RefreshUI();
+
+                if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);
+            }
+            else
+            {
+                if (PopUpManager.Instance != null) PopUpManager.Instance.Remove(this);
+            }
+        }
+
+        public void ClosePopUp()
+        {
+            if (_isOpen)
+            {
+                ToggleInventory();
+            }
+        }
+
+
+
+
+        /// <summary>ไปหน้าถัดไป</summary>
+        public void NextPage()
+        {
+            if (_currentPage < _totalPages - 1)
+            {
+                _currentPage++;
+                RefreshUI();
+            }
+        }
+
+        /// <summary>ไปหน้าก่อนหน้า</summary>
+        public void PrevPage()
+        {
+            if (_currentPage > 0)
+            {
+                _currentPage--;
                 RefreshUI();
             }
         }
@@ -133,97 +274,115 @@ namespace TheLastEmpire
 
             // 1. Update currency and health status
             if (_moneyText != null)
-            {
                 _moneyText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>";
-            }
+
             if (_healthText != null)
             {
                 Health health = _playerInventory.GetComponent<Health>();
                 if (health != null)
-                {
                     _healthText.text = $"HP: <color=#1bff33>{Mathf.RoundToInt(health.CurrentHealth)}</color> / {Mathf.RoundToInt(health.MaxHealth)}";
-                }
             }
 
-            // 2. Clear old item slots
-            if (_itemContainer != null)
-            {
-                foreach (Transform child in _itemContainer.transform)
-                {
-                    Destroy(child.gameObject);
-                }
+            if (_itemContainer == null) return;
 
-                // 3. Render grouped items with quantities
-                Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
-                if (quantities.Count == 0)
+            // รวบ item ทั้งหมดเป็น list เพื่อ slice ตาม page
+            Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
+            var itemList = new List<KeyValuePair<string, int>>(quantities);
+
+            // คำนวณ totalPages
+            int pageSize = Mathf.Max(1, slotsPerPage);
+            _totalPages  = Mathf.Max(1, Mathf.CeilToInt((float)itemList.Count / pageSize));
+            _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
+
+            // ซ่อน indicator และปุ่มทั้งหมดถ้ามีแค่หน้าเดียว
+            bool multiPage = _totalPages > 1;
+            if (pageIndicatorText != null)
+            {
+                pageIndicatorText.gameObject.SetActive(multiPage);
+                if (multiPage) pageIndicatorText.text = $"{_currentPage + 1} / {_totalPages}";
+            }
+            if (prevPageButton != null) { prevPageButton.gameObject.SetActive(multiPage); prevPageButton.interactable = _currentPage > 0; }
+            if (nextPageButton != null) { nextPageButton.gameObject.SetActive(multiPage); nextPageButton.interactable = _currentPage < _totalPages - 1; }
+
+            // slice items ตาม page
+            int startIdx = _currentPage * pageSize;
+            int endIdx   = Mathf.Min(startIdx + pageSize, itemList.Count);
+
+            // 2. ใช้ Pool path ถ้ามี slot อยู่ใน pool, fallback ถ้าไม่มี
+            if (_slotPool.Count > 0)
+            {
+                // ===== Pool Path (Zero GC) =====
+                PlayerController player = _playerInventory.GetComponent<PlayerController>();
+                string equippedWeapon = player != null ? (player.CurrentWeaponName  ?? "").ToLower().Trim() : "";
+                string equippedMelee  = player != null ? (player.CurrentMeleeWeaponName ?? "").ToLower().Trim() : "";
+
+                PoolBeginFrame();
+
+                if (itemList.Count == 0)
                 {
-                    CreateItemRow("", "<i>- Inventory Empty -</i>", Color.gray, false);
+                    InventoryItemSlot emptySlot = GetSlot();
+                    if (emptySlot != null)
+                        emptySlot.SetData("- Empty -", 0, null, false, null);
                 }
                 else
                 {
-                    PlayerController player = _playerInventory.GetComponent<PlayerController>();
-                    string equippedWeaponName = player != null ? player.CurrentWeaponName : "";
-                    string equippedMeleeName = player != null ? player.CurrentMeleeWeaponName : "";
-
-                    foreach (var pair in quantities)
+                    // แสดงเฉพาะ item ในหน้านี้
+                    for (int i = startIdx; i < endIdx; i++)
                     {
-                        string key = pair.Key;
+                        var pair    = itemList[i];
+                        string key      = pair.Key;
                         string cleanKey = (key ?? "").ToLower().Trim();
-                        bool isWeapon = (cleanKey.Contains("rifl") || cleanKey.Contains("shot") || cleanKey.Contains("pist") || cleanKey.Contains("knife") || cleanKey.Contains("bat") || cleanKey.Contains("machete")) && !cleanKey.Contains("ammo");
-                        bool isUsable = (key == "Potion" || key == "Bread" || isWeapon);
-                        string displayName = key;
 
-                        if (key == "Potion")
-                        {
-                            displayName = "<color=#1bff33>[USABLE]</color> Potion <color=#111111>(Click to Use)</color>";
-                        }
-                        else if (key == "Bread")
-                        {
-                            displayName = "<color=#ffeb3b>[USABLE]</color> Bread <color=#111111>(Click to Eat)</color>";
-                        }
-                        else if (isWeapon)
-                        {
-                            string cleanEquippedRanged = (equippedWeaponName ?? "").ToLower().Trim();
-                            string cleanEquippedMelee = (equippedMeleeName ?? "").ToLower().Trim();
-                            
-                            bool isRangedEquipped = cleanKey.Contains(cleanEquippedRanged) || cleanEquippedRanged.Contains(cleanKey) || (cleanKey.Contains("pist") && cleanEquippedRanged.Contains("pist"));
-                            bool isMeleeEquipped = cleanKey.Contains(cleanEquippedMelee) || cleanEquippedMelee.Contains(cleanKey);
+                        bool isWeapon = !cleanKey.Contains("ammo") &&
+                                        (cleanKey.Contains("rifl")  || cleanKey.Contains("shot") ||
+                                         cleanKey.Contains("pist")  || cleanKey.Contains("knife") ||
+                                         cleanKey.Contains("bat")   || cleanKey.Contains("machete"));
 
-                            if (isRangedEquipped || isMeleeEquipped)
-                            {
-                                displayName = $"<color=#00e5ff>[EQUIPPED]</color> {key} <color=#111111>(Active)</color>";
-                            }
-                            else
-                            {
-                                displayName = $"<color=#111111>[WEAPON]</color> {key} <color=#111111>(Click to Equip)</color>";
-                            }
-                        }
-                        else if (cleanKey.Contains("ammo"))
-                        {
-                            displayName = $"<color=#00e5ff>[AMMO]</color> {key}";
-                        }
-                        else if (key == "ETC")
-                        {
-                            displayName = "<color=#ff9a00>[ETC]</color> ETC";
-                        }
-                        else
-                        {
-                            displayName = $"<color=#ff9a00>[ETC]</color> {key}";
-                        }
-                        CreateItemRow(key, $"{displayName} <color=#90A4AE>x{pair.Value}</color>", Color.white, isUsable);
+                        bool isUsable = key == "Potion" || key == "Bread" || isWeapon;
+
+                        bool isEquipped = isWeapon &&
+                                          (cleanKey.Contains(equippedWeapon) || equippedWeapon.Contains(cleanKey) ||
+                                           cleanKey.Contains(equippedMelee)  || equippedMelee.Contains(cleanKey) ||
+                                           (cleanKey.Contains("pist") && equippedWeapon.Contains("pist")));
+
+                        ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
+                        Sprite icon = itemData != null ? itemData.icon : null;
+
+                        InventoryItemSlot slot = GetSlot();
+                        if (slot == null) break;
+
+                        slot.SetData(
+                            itemName:   key,
+                            quantity:   pair.Value,
+                            icon:       icon,
+                            isEquipped: isEquipped,
+                            onClickUse: isUsable
+                                ? (name) => { _playerInventory.UseItem(name); RefreshUI(); }
+                                : (System.Action<string>)null
+                        );
                     }
                 }
+
+                PoolEndFrame();
+            }
+            else
+            {
+                // ===== Fallback Path =====
+                Debug.LogWarning("[InventoryUI] ไม่พบ InventoryItemSlot ใน _itemContainer เลย! กรุณาเพิ่มสคริปต์ InventoryItemSlot ใส่ UI ของคุณ หรือเช็คว่าลาก Content มาถูกช่องหรือไม่");
             }
         }
+
+        // =====================================================
+        //  Legacy fallback row builder (ใช้เมื่อไม่มี slot ใน pool)
+        // =====================================================
 
         private void CreateItemRow(string itemName, string textContent, Color textColor, bool isUsable)
         {
             GameObject row = new GameObject("ItemRow");
             row.transform.SetParent(_itemContainer.transform, false);
 
-            // Add panel background for each item row
             Image rowBg = row.AddComponent<Image>();
-            rowBg.color = new Color(1f, 1f, 1f, 0.04f); // Subtle background highlights
+            rowBg.color = new Color(1f, 1f, 1f, 0.04f);
 
             RectTransform rect = row.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(500f, 50f);
@@ -231,30 +390,21 @@ namespace TheLastEmpire
             if (isUsable)
             {
                 Button btn = row.AddComponent<Button>();
-                
-                // Color configuration for hover/click transitions
                 ColorBlock colors = btn.colors;
-                colors.normalColor = new Color(1f, 1f, 1f, 0.04f);
+                colors.normalColor      = new Color(1f, 1f, 1f, 0.04f);
                 colors.highlightedColor = new Color(1f, 1f, 1f, 0.12f);
-                colors.pressedColor = new Color(1f, 1f, 1f, 0.2f);
-                colors.selectedColor = new Color(1f, 1f, 1f, 0.04f);
+                colors.pressedColor     = new Color(1f, 1f, 1f, 0.2f);
+                colors.selectedColor    = new Color(1f, 1f, 1f, 0.04f);
                 btn.colors = colors;
-
                 btn.onClick.AddListener(() =>
                 {
-                    if (_playerInventory != null)
-                    {
-                        if (_playerInventory.UseItem(itemName))
-                        {
-                            RefreshUI();
-                        }
-                    }
+                    if (_playerInventory != null && _playerInventory.UseItem(itemName))
+                        RefreshUI();
                 });
             }
 
-            // Draw icon if available in Database
             bool hasIcon = false;
-            ItemData data = (ItemDatabase.Instance != null) ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+            ItemData data = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
             if (data != null && data.icon != null)
             {
                 GameObject iconObj = new GameObject("ItemIcon");
@@ -266,21 +416,19 @@ namespace TheLastEmpire
                 RectTransform iconRect = iconObj.GetComponent<RectTransform>();
                 iconRect.anchorMin = new Vector2(0f, 0.5f);
                 iconRect.anchorMax = new Vector2(0f, 0.5f);
-                iconRect.pivot = new Vector2(0f, 0.5f);
+                iconRect.pivot     = new Vector2(0f, 0.5f);
                 iconRect.anchoredPosition = new Vector2(12f, 0f);
                 iconRect.sizeDelta = new Vector2(32f, 32f);
-
                 hasIcon = true;
             }
 
-            // Add row text
             GameObject textObj = new GameObject("ItemText");
             textObj.transform.SetParent(row.transform, false);
 
             TMP_Text rowText = textObj.AddComponent<TextMeshProUGUI>();
-            rowText.text = textContent;
-            rowText.fontSize = 24;
-            rowText.color = textColor;
+            rowText.text      = textContent;
+            rowText.fontSize  = 24;
+            rowText.color     = textColor;
             rowText.alignment = TextAlignmentOptions.Left;
 
             RectTransform textRect = textObj.GetComponent<RectTransform>();
@@ -290,25 +438,24 @@ namespace TheLastEmpire
             textRect.offsetMax = new Vector2(-15f, -5f);
         }
 
-        /// <summary>
-        /// Builds the Canvas and the main inventory panel procedurally at runtime.
-        /// </summary>
+        // =====================================================
+        //  Procedural UI (fallback เมื่อไม่ assign inventoryPanel)
+        // =====================================================
+
         private void CreateProceduralUI()
         {
-            // 1. Canvas Setup
             _canvasObject = new GameObject("InventoryCanvas");
             DontDestroyOnLoad(_canvasObject);
             Canvas canvas = _canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 99; // Top visual sorting index
+            canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 99;
 
             CanvasScaler scaler = _canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.uiScaleMode       = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
 
             _canvasObject.AddComponent<GraphicRaycaster>();
 
-            // 2. Central Panel Setup
             _panelObject = new GameObject("InventoryPanel");
             _panelObject.transform.SetParent(_canvasObject.transform, false);
 
@@ -318,10 +465,9 @@ namespace TheLastEmpire
             RectTransform panelRect = _panelObject.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.pivot     = new Vector2(0.5f, 0.5f);
             panelRect.sizeDelta = new Vector2(560f, 680f);
 
-            // Add a thin border line to make it look premium
             GameObject borderObj = new GameObject("Border");
             borderObj.transform.SetParent(_panelObject.transform, false);
             Image borderImg = borderObj.AddComponent<Image>();
@@ -331,104 +477,86 @@ namespace TheLastEmpire
             borderRect.anchorMax = Vector2.one;
             borderRect.offsetMin = new Vector2(-3f, -3f);
             borderRect.offsetMax = new Vector2(3f, 3f);
-            // Put border behind panel contents
             borderObj.transform.SetAsFirstSibling();
 
-            // 3. Title Text
             GameObject titleObj = new GameObject("TitleText");
             titleObj.transform.SetParent(_panelObject.transform, false);
-
             TMP_Text titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "SURVIVAL GEAR / INVENTORY";
-            titleText.fontSize = 28;
+            titleText.text      = "SURVIVAL GEAR / INVENTORY";
+            titleText.fontSize  = 28;
             titleText.fontStyle = FontStyles.Bold;
-            titleText.color = accentColor;
+            titleText.color     = accentColor;
             titleText.alignment = TextAlignmentOptions.Center;
-
             RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.5f, 1f);
-            titleRect.anchorMax = new Vector2(0.5f, 1f);
-            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchorMin        = new Vector2(0.5f, 1f);
+            titleRect.anchorMax        = new Vector2(0.5f, 1f);
+            titleRect.pivot            = new Vector2(0.5f, 1f);
             titleRect.anchoredPosition = new Vector3(0f, -40f, 0f);
-            titleRect.sizeDelta = new Vector2(500f, 50f);
+            titleRect.sizeDelta        = new Vector2(500f, 50f);
 
-            // 4. Money/Wallet Text & Health Text (Side-by-Side)
             GameObject moneyObj = new GameObject("MoneyText");
             moneyObj.transform.SetParent(_panelObject.transform, false);
-
-            _moneyText = moneyObj.AddComponent<TextMeshProUGUI>();
-            _moneyText.text = "Wallet: <color=yellow>$0</color>";
-            _moneyText.fontSize = 24;
+            _moneyText           = moneyObj.AddComponent<TextMeshProUGUI>();
+            _moneyText.text      = "Wallet: <color=yellow>$0</color>";
+            _moneyText.fontSize  = 24;
             _moneyText.alignment = TextAlignmentOptions.Left;
-
             RectTransform moneyRect = moneyObj.GetComponent<RectTransform>();
-            moneyRect.anchorMin = new Vector2(0f, 1f);
-            moneyRect.anchorMax = new Vector2(0.5f, 1f);
-            moneyRect.pivot = new Vector2(0f, 1f);
+            moneyRect.anchorMin        = new Vector2(0f, 1f);
+            moneyRect.anchorMax        = new Vector2(0.5f, 1f);
+            moneyRect.pivot            = new Vector2(0f, 1f);
             moneyRect.anchoredPosition = new Vector3(30f, -95f, 0f);
-            moneyRect.sizeDelta = new Vector2(250f, 40f);
+            moneyRect.sizeDelta        = new Vector2(250f, 40f);
 
             GameObject healthObj = new GameObject("HealthText");
             healthObj.transform.SetParent(_panelObject.transform, false);
-
-            _healthText = healthObj.AddComponent<TextMeshProUGUI>();
-            _healthText.text = "HP: <color=red>100/100</color>";
-            _healthText.fontSize = 24;
+            _healthText           = healthObj.AddComponent<TextMeshProUGUI>();
+            _healthText.text      = "HP: <color=red>100/100</color>";
+            _healthText.fontSize  = 24;
             _healthText.alignment = TextAlignmentOptions.Right;
-
             RectTransform healthRect = healthObj.GetComponent<RectTransform>();
-            healthRect.anchorMin = new Vector2(0.5f, 1f);
-            healthRect.anchorMax = new Vector2(1f, 1f);
-            healthRect.pivot = new Vector2(1f, 1f);
+            healthRect.anchorMin        = new Vector2(0.5f, 1f);
+            healthRect.anchorMax        = new Vector2(1f, 1f);
+            healthRect.pivot            = new Vector2(1f, 1f);
             healthRect.anchoredPosition = new Vector3(-30f, -95f, 0f);
-            healthRect.sizeDelta = new Vector2(250f, 40f);
+            healthRect.sizeDelta        = new Vector2(250f, 40f);
 
-            // 5. Scroll Rect / List Container
             GameObject scrollObj = new GameObject("ItemScrollView");
             scrollObj.transform.SetParent(_panelObject.transform, false);
-            
             RectTransform scrollRectTrans = scrollObj.AddComponent<RectTransform>();
-            scrollRectTrans.anchorMin = new Vector2(0.5f, 0.5f);
-            scrollRectTrans.anchorMax = new Vector2(0.5f, 0.5f);
-            scrollRectTrans.pivot = new Vector2(0.5f, 0.5f);
+            scrollRectTrans.anchorMin        = new Vector2(0.5f, 0.5f);
+            scrollRectTrans.anchorMax        = new Vector2(0.5f, 0.5f);
+            scrollRectTrans.pivot            = new Vector2(0.5f, 0.5f);
             scrollRectTrans.anchoredPosition = new Vector3(0f, -60f, 0f);
-            scrollRectTrans.sizeDelta = new Vector2(500f, 440f);
+            scrollRectTrans.sizeDelta        = new Vector2(500f, 440f);
 
-            // Item slot list parent (with Vertical Layout Group)
             _itemContainer = new GameObject("ItemListContent");
             _itemContainer.transform.SetParent(scrollObj.transform, false);
-
             VerticalLayoutGroup layout = _itemContainer.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 8f;
-            layout.childControlHeight = false;
-            layout.childControlWidth = true;
+            layout.spacing              = 8f;
+            layout.childControlHeight   = false;
+            layout.childControlWidth    = true;
             layout.childForceExpandHeight = false;
-            layout.childForceExpandWidth = true;
-
+            layout.childForceExpandWidth  = true;
             RectTransform containerRect = _itemContainer.GetComponent<RectTransform>();
             containerRect.anchorMin = new Vector2(0f, 0f);
             containerRect.anchorMax = new Vector2(1f, 1f);
             containerRect.offsetMin = Vector2.zero;
             containerRect.offsetMax = Vector2.zero;
 
-            // 6. Close Button hint text at the bottom
             GameObject hintObj = new GameObject("HintText");
             hintObj.transform.SetParent(_panelObject.transform, false);
-
             TMP_Text hintText = hintObj.AddComponent<TextMeshProUGUI>();
-            hintText.text = "Press [ I ] or [ ESC ] to Close";
-            hintText.fontSize = 20;
-            hintText.color = new Color(0.7f, 0.7f, 0.7f, 0.8f);
+            hintText.text      = "Press [ I ] or [ ESC ] to Close";
+            hintText.fontSize  = 20;
+            hintText.color     = new Color(0.7f, 0.7f, 0.7f, 0.8f);
             hintText.alignment = TextAlignmentOptions.Center;
-
             RectTransform hintRect = hintObj.GetComponent<RectTransform>();
-            hintRect.anchorMin = new Vector2(0.5f, 0f);
-            hintRect.anchorMax = new Vector2(0.5f, 0f);
-            hintRect.pivot = new Vector2(0.5f, 0f);
+            hintRect.anchorMin        = new Vector2(0.5f, 0f);
+            hintRect.anchorMax        = new Vector2(0.5f, 0f);
+            hintRect.pivot            = new Vector2(0.5f, 0f);
             hintRect.anchoredPosition = new Vector3(0f, 25f, 0f);
-            hintRect.sizeDelta = new Vector2(500f, 30f);
+            hintRect.sizeDelta        = new Vector2(500f, 30f);
 
-            // Default state: Hidden
             _canvasObject.SetActive(false);
         }
     }

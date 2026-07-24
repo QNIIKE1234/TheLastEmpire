@@ -31,6 +31,15 @@ namespace TheLastEmpire
 
         public bool IsDead => CurrentHealth <= 0;
 
+        public void SetMaxHealth(float newMax, bool healToFull = true)
+        {
+            maxHealth = newMax;
+            if (healToFull)
+            {
+                CurrentHealth = maxHealth;
+            }
+        }
+
         private void Start()
         {
             CurrentHealth = maxHealth;

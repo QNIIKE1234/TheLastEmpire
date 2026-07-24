@@ -8,6 +8,12 @@ namespace TheLastEmpire
         [Header("Inventory Status")]
         [SerializeField] private int money = 0;
         [SerializeField] private List<string> items = new List<string>();
+        [Header("Starting Loadout")]
+        [SerializeField] private PlayerConfigSO playerConfig;
+        
+        [Tooltip("รายการไอเทมที่จะได้รับตอนเริ่มเกม (ถ้าไม่ใช้ Config)")]
+        [SerializeField] private List<string> defaultStartingItems = new List<string> { "Pistol", "Knife" };
+        [SerializeField] private int defaultPistolAmmo = 60;
 
         public int Money => money;
         public List<string> Items => items;
@@ -22,13 +28,26 @@ namespace TheLastEmpire
             {
                 items = new List<string>();
             }
+            
+            // ล้างค่า empty string ที่อาจเผลอกด + ค้างไว้ใน Inspector ออกก่อน
+            items.RemoveAll(string.IsNullOrWhiteSpace);
+
             if (items.Count == 0)
             {
-                items.Add("Pistol");
-                items.Add("Knife");
+                // ดึงจากค่า PlayerConfigSO ถ้ามีการเชื่อมไว้
+                List<string> startItems = playerConfig != null ? playerConfig.startingItems : defaultStartingItems;
+                int startAmmo = playerConfig != null ? playerConfig.startingPistolAmmo : defaultPistolAmmo;
                 
-                // Initial 60 Pistol Ammo
-                for (int i = 0; i < 60; i++)
+                if (playerConfig != null) money = playerConfig.startingMoney;
+
+                foreach (string item in startItems)
+                {
+                    if (!string.IsNullOrWhiteSpace(item))
+                        items.Add(item.Trim());
+                }
+                
+                // กระสุนปืนพกเริ่มต้น
+                for (int i = 0; i < startAmmo; i++)
                 {
                     items.Add("Pistol Ammo");
                 }
@@ -42,6 +61,23 @@ namespace TheLastEmpire
             OnMoneyChanged?.Invoke(money);
             OnInventoryChanged?.Invoke();
         }
+
+        public bool CanAfford(int price) => money >= price;
+
+        public bool SpendMoney(int amount)
+        {
+            if (money < amount)
+            {
+                Debug.LogWarning($"[PlayerInventory] Not enough money! Need ${amount}, have ${money}");
+                return false;
+            }
+            money -= amount;
+            Debug.Log($"[PlayerInventory] Spent ${amount}. Remaining: ${money}");
+            OnMoneyChanged?.Invoke(money);
+            OnInventoryChanged?.Invoke();
+            return true;
+        }
+
 
         public void AddItem(string itemName, int quantity = 1)
         {
@@ -66,6 +102,31 @@ namespace TheLastEmpire
             Debug.Log($"[PlayerInventory] Picked up item: {finalName} x{quantity}! Inventory size: {items.Count}");
             OnItemCollected?.Invoke(finalName);
             OnInventoryChanged?.Invoke();
+        }
+
+        public bool RemoveItem(string itemName, int quantity = 1)
+        {
+            if (string.IsNullOrEmpty(itemName) || items == null) return false;
+
+            int currentCount = GetItemCount(itemName);
+            if (currentCount < quantity) return false;
+
+            string cleanTarget = itemName.Trim().ToLower();
+            int removed = 0;
+
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                if (items[i] != null && items[i].Trim().ToLower() == cleanTarget)
+                {
+                    items.RemoveAt(i);
+                    removed++;
+                    if (removed >= quantity) break;
+                }
+            }
+
+            Debug.Log($"[PlayerInventory] Removed item: {itemName} x{removed}! Inventory size: {items.Count}");
+            OnInventoryChanged?.Invoke();
+            return true;
         }
 
         public int GetItemCount(string itemName)
@@ -111,7 +172,15 @@ namespace TheLastEmpire
                     });
                     if (idx >= 0)
                     {
-                        player.SwitchToWeapon(idx);
+                        if (player.CurrentWeapon != null && player.CurrentWeaponName != null &&
+                            player.WeaponsList[idx].weaponName.ToLower().Trim() == player.CurrentWeaponName.ToLower().Trim())
+                        {
+                            player.SwitchToWeapon(-1); // Unequip
+                        }
+                        else
+                        {
+                            player.SwitchToWeapon(idx);
+                        }
                         OnInventoryChanged?.Invoke();
                         return true;
                     }
@@ -132,7 +201,15 @@ namespace TheLastEmpire
                     });
                     if (idx >= 0)
                     {
-                        player.SwitchToMeleeWeapon(idx);
+                        if (player.CurrentMeleeWeapon != null && player.CurrentMeleeWeaponName != null &&
+                            player.MeleeWeaponsList[idx].weaponName.ToLower().Trim() == player.CurrentMeleeWeaponName.ToLower().Trim())
+                        {
+                            player.SwitchToMeleeWeapon(-1); // Unequip
+                        }
+                        else
+                        {
+                            player.SwitchToMeleeWeapon(idx);
+                        }
                         OnInventoryChanged?.Invoke();
                         return true;
                     }

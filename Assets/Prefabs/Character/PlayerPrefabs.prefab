@@ -251,6 +251,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3481b6d20fccd75499547e32c787cb9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.PlayerController
+  playerConfig: {fileID: 11400000, guid: aaf71c175b2ae0b41a1b35f90bd26f72, type: 2}
   moveSpeed: 2.5
   inputActions: {fileID: 0}
   startingReserveAmmo: 120

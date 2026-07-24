@@ -6,6 +6,9 @@ namespace TheLastEmpire
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerController : MonoBehaviour
     {
+        [Header("Config")]
+        [SerializeField] private PlayerConfigSO playerConfig;
+
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
 
@@ -116,6 +119,29 @@ namespace TheLastEmpire
         private BoxCollider _boundaryBottom;
         private GameObject _boundaryContainer;
 
+        private void Awake()
+        {
+            ApplyPlayerConfig();
+        }
+
+        private void ApplyPlayerConfig()
+        {
+            if (playerConfig != null)
+            {
+                moveSpeed = playerConfig.moveSpeed;
+                dashSpeed = playerConfig.dashSpeed;
+                dashDuration = playerConfig.dashDuration;
+                dashCooldown = playerConfig.dashCooldown;
+                maxHunger = playerConfig.maxHunger;
+
+                _health = GetComponent<Health>();
+                if (_health != null)
+                {
+                    _health.SetMaxHealth(playerConfig.maxHealth, true);
+                }
+            }
+        }
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -145,7 +171,6 @@ namespace TheLastEmpire
             }
 
             // Bind Health component or dynamically attach it
-            _health = GetComponent<Health>();
             if (_health == null)
             {
                 _health = gameObject.AddComponent<Health>();
@@ -226,11 +251,7 @@ namespace TheLastEmpire
                     ToggleInventoryMenu();
                     return;
                 }
-                if (Keyboard.current.escapeKey.wasPressedThisFrame && InventoryUI.Instance != null && InventoryUI.Instance.IsOpen)
-                {
-                    ToggleInventoryMenu();
-                    return;
-                }
+
                 if (Keyboard.current.rKey.wasPressedThisFrame)
                 {
                     TryStartReload();
@@ -1046,7 +1067,15 @@ namespace TheLastEmpire
         public void SwitchToMeleeWeapon(int index)
         {
             if (meleeWeapons == null || meleeWeapons.Count == 0) return;
-            if (index < 0 || index >= meleeWeapons.Count) return;
+
+            if (index < 0)
+            {
+                _currentMeleeWeaponIndex = -1;
+                Debug.Log($"[PlayerController] Unequipped melee weapon.");
+                return;
+            }
+
+            if (index >= meleeWeapons.Count) return;
             
             // Check weapon ownership from inventory (Knife is default, others require ownership)
             string wName = meleeWeapons[index].weaponName;
@@ -1066,8 +1095,17 @@ namespace TheLastEmpire
         public void SwitchToWeapon(int index)
         {
             if (weapons == null || weapons.Count == 0) return;
-            if (index < 0 || index >= weapons.Count) return;
             if (_isReloading) return; // Block switching while reloading
+
+            if (index < 0)
+            {
+                _currentWeaponIndex = -1;
+                Debug.Log($"[PlayerController] Unequipped weapon.");
+                OnAmmoChanged?.Invoke();
+                return;
+            }
+
+            if (index >= weapons.Count) return;
             
             // Check weapon ownership from inventory
             string wName = weapons[index].weaponName;

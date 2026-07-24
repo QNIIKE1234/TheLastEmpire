@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
-    public class LootUI : MonoBehaviour
+    public class LootUI : MonoBehaviour, IPopUp
     {
         public static LootUI Instance
         {
@@ -57,15 +57,6 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (_isOpen && Keyboard.current != null)
-            {
-                // Toggle loot UI closed if player presses ESC or E again (prevent closing on the same frame it was opened)
-                if (Keyboard.current.escapeKey.wasPressedThisFrame || 
-                    (Keyboard.current.eKey.wasPressedThisFrame && Time.frameCount > _justOpenedFrame))
-                {
-                    Close();
-                }
-            }
         }
 
         public void ShowPrompt(string actionText)
@@ -127,6 +118,8 @@ namespace TheLastEmpire
                 _panelObject.SetActive(true);
             }
 
+            if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);
+
             // Save and unlock mouse cursor for UI clicks
             _savedCursorVisible = Cursor.visible;
             _savedCursorLockState = Cursor.lockState;
@@ -154,6 +147,16 @@ namespace TheLastEmpire
             _currentContainer = null;
             _playerInventory = null;
             Debug.Log("[LootUI] Loot menu closed.");
+
+            if (PopUpManager.Instance != null) PopUpManager.Instance.Remove(this);
+        }
+
+        public void ClosePopUp()
+        {
+            if (_isOpen)
+            {
+                Close();
+            }
         }
 
         public void RefreshUI()
