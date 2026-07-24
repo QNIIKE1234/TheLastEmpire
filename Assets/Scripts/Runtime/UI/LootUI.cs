@@ -108,7 +108,7 @@ namespace TheLastEmpire
             _justOpenedFrame = Time.frameCount;
 
             // Pause game timescale during looting interaction
-            Time.timeScale = 0f;
+            // ไม่หยุดเวลาแล้ว
 
             // Hide the interaction prompt when menu opens
             HidePrompt();
@@ -133,7 +133,7 @@ namespace TheLastEmpire
         public void Close()
         {
             _isOpen = false;
-            Time.timeScale = 1f; // Resume normal timescale
+            // ไม่คืนค่าเวลาแล้ว
 
             if (_panelObject != null)
             {

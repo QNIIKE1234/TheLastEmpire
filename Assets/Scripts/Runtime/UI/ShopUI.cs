@@ -190,7 +190,7 @@ namespace TheLastEmpire
             SwitchTab(ShopMode.Buy);
 
             if (shopPanel != null) shopPanel.SetActive(true);
-            Time.timeScale = 0f;
+            // ไม่หยุดเวลาแล้ว
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);
         }
@@ -216,7 +216,7 @@ namespace TheLastEmpire
         {
             _isOpen = false;
             if (shopPanel != null) shopPanel.SetActive(false);
-            Time.timeScale = 1f;
+            // ไม่คืนค่าเวลาแล้ว
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Remove(this);
         }
@@ -315,7 +315,8 @@ namespace TheLastEmpire
                             icon:       item.item.icon,
                             isEquipped: false,
                             onClickUse: canAfford ? (name) => BuyItem(item.item.itemName) : (Action<string>)null,
-                            customButtonText: "Buy"
+                            customButtonText: "Buy",
+                            customQuantityText: $"<color=yellow>${displayPrice}</color>"
                         );
                     }
                     else // Sell Mode

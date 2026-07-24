@@ -213,8 +213,7 @@ namespace TheLastEmpire
             if (_canvasObject != null)
                 _canvasObject.SetActive(_isOpen);
 
-            // Pause game when inventory is open, resume when closed
-            Time.timeScale = _isOpen ? 0f : 1f;
+            // เอา Time.timeScale ออกตามที่ผู้เล่นต้องการ ไม่ให้หยุดเวลา
 
             if (_isOpen)
             {
@@ -340,10 +339,18 @@ namespace TheLastEmpire
 
                         bool isUsable = key == "Potion" || key == "Bread" || isWeapon;
 
-                        bool isEquipped = isWeapon &&
-                                          (cleanKey.Contains(equippedWeapon) || equippedWeapon.Contains(cleanKey) ||
-                                           cleanKey.Contains(equippedMelee)  || equippedMelee.Contains(cleanKey) ||
-                                           (cleanKey.Contains("pist") && equippedWeapon.Contains("pist")));
+                        bool isEquipped = false;
+                        if (isWeapon)
+                        {
+                            bool eqW = !string.IsNullOrEmpty(equippedWeapon) && 
+                                       (cleanKey.Contains(equippedWeapon) || equippedWeapon.Contains(cleanKey) || 
+                                       (cleanKey.Contains("pist") && equippedWeapon.Contains("pist")));
+                            
+                            bool eqM = !string.IsNullOrEmpty(equippedMelee) && 
+                                       (cleanKey.Contains(equippedMelee) || equippedMelee.Contains(cleanKey));
+                            
+                            isEquipped = eqW || eqM;
+                        }
 
                         ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
                         Sprite icon = itemData != null ? itemData.icon : null;
