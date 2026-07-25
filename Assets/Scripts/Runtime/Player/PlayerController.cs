@@ -548,6 +548,7 @@ namespace TheLastEmpire
             if (_isReloading) return;
 
             Weapon activeWeapon = CurrentWeapon;
+            if (activeWeapon == null) return; // ถ้าไม่ใส่ปืน ห้ามยิง
             int magCount = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
 
             if (magCount <= 0)
@@ -844,6 +845,8 @@ namespace TheLastEmpire
         private void TryStartReload()
         {
             Weapon activeWeapon = CurrentWeapon;
+            if (activeWeapon == null) return; // ถ้าไม่ใส่ปืน ห้ามรีโหลด
+            
             int mag = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
             int magSize = activeWeapon != null ? activeWeapon.magazineSize : magazineSize;
             

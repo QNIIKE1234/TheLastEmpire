@@ -188,7 +188,7 @@ namespace TheLastEmpire
         {
             return type switch
             {
-                ItemType.Weapon => isEquipped ? "UnEquip" : "Equip",
+                ItemType.Weapon => isEquipped ? "Unequip" : "Equip",
                 ItemType.Potion => "Use",
                 ItemType.Food   => "Eat",
                 _               => "Use",
