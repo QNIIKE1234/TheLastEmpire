@@ -52,6 +52,9 @@ namespace TheLastEmpire
                 _invulnerabilityTimer -= Time.deltaTime;
             }
         }
+        [Header("Effects")]
+        [Tooltip("ชื่อ Pool Key สำหรับเล่นเอฟเฟกต์ตอนโดนโจมตี (เช่น GreenBlood)")]
+        [SerializeField] private string hitEffectPoolKey;
 
         public void TriggerInvulnerability(float duration)
         {
@@ -65,6 +68,14 @@ namespace TheLastEmpire
 
             CurrentHealth -= damageAmount;
             onDamageTaken?.Invoke(damageAmount);
+
+            // 🟢 เล่นเอฟเฟกต์เลือด/โดนตี ถ้ามีการตั้งค่า Pool Key ไว้
+            if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                // เลื่อนจุดเกิดขึ้นมาเหนือพื้นดินหน่อย (เช่นสูง 1.5 เมตร)
+                Vector3 spawnPos = transform.position + (Vector3.up * 1.5f);
+                ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
+            }
 
             // Grant brief temporary immunity to prevent rapid multi-hits
             TriggerInvulnerability(defaultInvulnerabilityDuration);

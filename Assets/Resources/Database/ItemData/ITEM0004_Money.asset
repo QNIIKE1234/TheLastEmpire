@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f66e274d5d4a559448705b384dc143eb, type: 3}
   m_Name: ITEM0004_Money
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
-  itemName: ETC
+  itemName: Cash
   description: 
   icon: {fileID: 21300000, guid: 9f016fa3d41083e4a9a1663a9e9380c0, type: 3}
   type: 4
@@ -20,3 +20,8 @@ MonoBehaviour:
   defaultQuantity: 1
   themeColor: {r: 1, g: 0.8477756, b: 0, a: 1}
   dropMaterial: {fileID: 2100000, guid: 019ccc32bc20ebc47be04547caba1a01, type: 2}
+  damage: 0
+  attackRadius: 0
+  attackRate: 0
+  knockbackForce: 0
+  staggerDuration: 0

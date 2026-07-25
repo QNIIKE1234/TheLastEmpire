@@ -326,6 +326,7 @@ namespace TheLastEmpire
         private void UpdateAimDirection()
         {
             if (Camera.main == null) return;
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
 
             // Aim towards mouse position in world space using 3D raycast on X/Z plane
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -348,6 +349,8 @@ namespace TheLastEmpire
 
         private void HandleDirectInput()
         {
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
             {
@@ -413,9 +416,7 @@ namespace TheLastEmpire
         // Called by PlayerInput component via SendMessages
         private void OnMove(InputValue value)
         {
-            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
-            if (isMenuOpen)
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps)
             {
                 _moveInput = Vector2.zero;
                 return;
@@ -431,9 +432,7 @@ namespace TheLastEmpire
                 return;
             }
 
-            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
-            if (isMenuOpen) return;
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
 
             // Attack action maps to left click / shooting
             if (value.isPressed && _fireCooldownTimer <= 0f && !_isDashing)
@@ -444,9 +443,7 @@ namespace TheLastEmpire
 
         private void OnInteract(InputValue value)
         {
-            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
-            if (isMenuOpen) return;
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
 
             if (value.isPressed)
             {
