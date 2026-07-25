@@ -98,7 +98,8 @@ namespace TheLastEmpire
                 if (!_hitTargets.Contains(damageable))
                 {
                     _hitTargets.Add(damageable);
-                    damageable.TakeDamage(_activeDamage);
+                    Vector3 exactHitPoint = collision.ClosestPoint(transform.position);
+                    damageable.TakeDamage(_activeDamage, exactHitPoint);
                 }
 
                 if (!_canPierce)

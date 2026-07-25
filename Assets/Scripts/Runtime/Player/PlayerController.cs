@@ -1257,6 +1257,10 @@ namespace TheLastEmpire
         public int currentMagazine;
         public int currentReserveAmmo;
 
+        [Header("Visuals")]
+        [Tooltip("ชื่อ Pool Key สำหรับ Muzzle Flash (ตอนยิง)")]
+        public string vfxPoolKey;
+
         public void Initialize(int startingReserve)
         {
             string lowerName = (weaponName ?? "").ToLower().Trim();

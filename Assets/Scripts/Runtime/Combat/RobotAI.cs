@@ -382,7 +382,7 @@ namespace TheLastEmpire
 
         // --- IDamageable Implementation for Frontal Shield ---
 
-        public void TakeDamage(float damageAmount)
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null)
         {
             if (IsDead) return;
 

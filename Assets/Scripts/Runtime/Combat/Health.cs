@@ -61,7 +61,7 @@ namespace TheLastEmpire
             _invulnerabilityTimer = Mathf.Max(_invulnerabilityTimer, duration);
         }
 
-        public void TakeDamage(float damageAmount)
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null)
         {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
@@ -72,8 +72,8 @@ namespace TheLastEmpire
             // 🟢 เล่นเอฟเฟกต์เลือด/โดนตี ถ้ามีการตั้งค่า Pool Key ไว้
             if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)
             {
-                // เลื่อนจุดเกิดขึ้นมาเหนือพื้นดินหน่อย (เช่นสูง 1.5 เมตร)
-                Vector3 spawnPos = transform.position + (Vector3.up * 1.5f);
+                // ถ้ามีตำแหน่งที่ชนส่งมา ให้ใช้ตำแหน่งนั้น ถ้าไม่มีให้ดึงตำแหน่งตัวละคร + ความสูง 1.5 เมตร
+                Vector3 spawnPos = hitPoint ?? (transform.position + (Vector3.up * 1.5f));
                 ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
             }
 
