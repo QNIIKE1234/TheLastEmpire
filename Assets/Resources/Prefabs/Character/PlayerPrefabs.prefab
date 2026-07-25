@@ -278,6 +278,7 @@ MonoBehaviour:
     ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
+    vfxPoolKey: PistolFlash
   - weaponName: Shotgun
     projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
     fireRate: 0.7
@@ -292,6 +293,7 @@ MonoBehaviour:
     ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
+    vfxPoolKey: PistolFlash
   - weaponName: Rifle
     projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
     fireRate: 0.12
@@ -306,6 +308,7 @@ MonoBehaviour:
     ammoType: 
     currentMagazine: 0
     currentReserveAmmo: 0
+    vfxPoolKey: PistolFlash
   meleeRadius: 1
   meleeDamage: 10
   meleeRate: 0.2

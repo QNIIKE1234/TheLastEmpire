@@ -574,6 +574,21 @@ namespace TheLastEmpire
 
             // Spawning positions
             Vector3 spawnPos = transform.position + _aimDirection * 0.6f;
+            
+            // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
+            if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.vfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject muzzleFlash = ObjectPoolManager.Instance.SpawnFromPool(activeWeapon.vfxPoolKey, spawnPos, Quaternion.LookRotation(_aimDirection));
+                if (muzzleFlash != null)
+                {
+                    PooledParticle pooledParticle = muzzleFlash.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        pooledParticle.SetPoolKey(activeWeapon.vfxPoolKey);
+                    }
+                }
+            }
+
             Projectile weaponProjectilePrefab = activeWeapon != null ? activeWeapon.projectilePrefab : projectilePrefab;
 
             int pellets = (activeWeapon != null && activeWeapon.pelletsPerShot > 0) ? activeWeapon.pelletsPerShot : 1;
@@ -690,6 +705,31 @@ namespace TheLastEmpire
 
             _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
+
+            // ⚔️ เล่นเอฟเฟกต์ฟัน ถ้าระบุไว้ในอาวุธ
+            if (activeMelee != null && !string.IsNullOrEmpty(activeMelee.vfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject slashVFX = ObjectPoolManager.Instance.SpawnFromPool(activeMelee.vfxPoolKey, attackPoint, Quaternion.LookRotation(_aimDirection));
+                if (slashVFX != null)
+                {
+                    PooledParticle pooledParticle = slashVFX.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        // อัปเดต Pool Key ให้ตรงกัน
+                        pooledParticle.SetPoolKey(activeMelee.vfxPoolKey);
+
+                        // ขยายขนาด VFX โดยอิงจาก Scale ต้นฉบับของ Prefab
+                        float multiplier = activeMelee.vfxScaleMultiplier > 0 ? activeMelee.vfxScaleMultiplier : 1.0f;
+                        pooledParticle.ApplyScaleMultiplier(activeRadius * multiplier);
+                    }
+                    else
+                    {
+                        // Fallback กรณีไม่ได้ใส่สคริปต์ PooledParticle
+                        float multiplier = activeMelee.vfxScaleMultiplier > 0 ? activeMelee.vfxScaleMultiplier : 1.0f;
+                        slashVFX.transform.localScale = Vector3.one * (activeRadius * multiplier);
+                    }
+                }
+            }
 
             // Visual swing debug
             Debug.Log($"[PlayerController] Melee Swing Swung using {CurrentMeleeWeaponName}!");
@@ -969,7 +1009,8 @@ namespace TheLastEmpire
                     canPierce = false,
                     spreadAngle = 0f,
                     pelletsPerShot = 1,
-                    isAutomatic = false
+                    isAutomatic = false,
+                    vfxPoolKey = "PistolFlash"
                 };
                 pistol.Initialize(startingReserveAmmo);
                 weapons.Add(pistol);
@@ -987,7 +1028,8 @@ namespace TheLastEmpire
                     canPierce = false,
                     spreadAngle = 5f,
                     pelletsPerShot = 1,
-                    isAutomatic = true
+                    isAutomatic = true,
+                    vfxPoolKey = "PistolFlash"
                 };
                 rifle.Initialize(120);
                 weapons.Add(rifle);
@@ -1005,7 +1047,8 @@ namespace TheLastEmpire
                     canPierce = true,
                     spreadAngle = 15f,
                     pelletsPerShot = 5,
-                    isAutomatic = false
+                    isAutomatic = false,
+                    vfxPoolKey = "PistolFlash"
                 };
                 shotgun.Initialize(24);
                 weapons.Add(shotgun);
@@ -1037,7 +1080,8 @@ namespace TheLastEmpire
                     attackRate = 0.25f,
                     attackRadius = 1.0f,
                     knockbackForce = 5f,
-                    staggerDuration = 0.2f
+                    staggerDuration = 0.2f,
+                    vfxPoolKey = "SwordSlash"
                 });
 
                 // 2. Baseball Bat
@@ -1048,7 +1092,8 @@ namespace TheLastEmpire
                     attackRate = 0.5f,
                     attackRadius = 1.4f,
                     knockbackForce = 15f,
-                    staggerDuration = 0.5f
+                    staggerDuration = 0.5f,
+                    vfxPoolKey = "SwordSlash"
                 });
 
                 // 3. Machete
@@ -1059,7 +1104,8 @@ namespace TheLastEmpire
                     attackRate = 0.6f,
                     attackRadius = 1.3f,
                     knockbackForce = 10f,
-                    staggerDuration = 0.3f
+                    staggerDuration = 0.3f,
+                    vfxPoolKey = "SwordSlash"
                 });
             }
         }
@@ -1297,5 +1343,11 @@ namespace TheLastEmpire
         public float attackRadius = 1.2f;
         public float knockbackForce = 10f;
         public float staggerDuration = 0.4f;
+
+        [Header("Visuals")]
+        [Tooltip("ชื่อ Pool Key สำหรับเอฟเฟกต์ตอนฟัน (เช่น MeleeSlash)")]
+        public string vfxPoolKey;
+        [Tooltip("ตัวคูณขนาดของ VFX")]
+        public float vfxScaleMultiplier = 1.0f;
     }
 }

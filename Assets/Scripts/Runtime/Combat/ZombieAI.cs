@@ -25,6 +25,9 @@ namespace TheLastEmpire
         [SerializeField] private float explosionRadius = 3f;
         [SerializeField] private int explosionDamage = 45;
         [SerializeField] private float fuseDuration = 0.8f;
+        [SerializeField] private string explosionVfxPoolKey = "EnemyExplosion";
+        [Tooltip("ตัวคูณขนาดของ VFX ระเบิด")]
+        [SerializeField] private float explosionVfxScaleMultiplier = 1.0f;
 
         [Header("Leader Settings")]
         [SerializeField] private float buffRadius = 6f;
@@ -229,6 +232,29 @@ namespace TheLastEmpire
         private void ExplodeAndDie()
         {
             Debug.Log($"[ZombieAI] Boomer exploded at {transform.position}!");
+
+            // 💥 เสกเอฟเฟกต์ระเบิด
+            if (!string.IsNullOrEmpty(explosionVfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject explosionVFX = ObjectPoolManager.Instance.SpawnFromPool(explosionVfxPoolKey, transform.position, Quaternion.identity);
+                if (explosionVFX != null)
+                {
+                    PooledParticle pooledParticle = explosionVFX.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        // อัปเดตชื่อ Pool Key ป้องกันลืมทางกลับ Pool
+                        pooledParticle.SetPoolKey(explosionVfxPoolKey);
+
+                        // ถ้าอยากให้ขนาดระเบิดสอดคล้องกับรัศมีดาเมจ ก็จับคูณได้เลย
+                        pooledParticle.ApplyScaleMultiplier(explosionRadius);
+                    }
+                    else
+                    {
+                        // Fallback กรณีไม่ได้แปะสคริปต์
+                        explosionVFX.transform.localScale = Vector3.one * explosionRadius;
+                    }
+                }
+            }
 
             // Perform circular overlap check for damage targets
             Collider[] targets = Physics.OverlapSphere(transform.position, explosionRadius);

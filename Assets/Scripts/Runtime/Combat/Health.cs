@@ -74,7 +74,16 @@ namespace TheLastEmpire
             {
                 // ถ้ามีตำแหน่งที่ชนส่งมา ให้ใช้ตำแหน่งนั้น ถ้าไม่มีให้ดึงตำแหน่งตัวละคร + ความสูง 1.5 เมตร
                 Vector3 spawnPos = hitPoint ?? (transform.position + (Vector3.up * 1.5f));
-                ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
+                GameObject hitEffect = ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
+                
+                if (hitEffect != null)
+                {
+                    PooledParticle pooledParticle = hitEffect.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        pooledParticle.SetPoolKey(hitEffectPoolKey);
+                    }
+                }
             }
 
             // Grant brief temporary immunity to prevent rapid multi-hits

@@ -10,9 +10,12 @@ namespace TheLastEmpire
 
         private ParticleSystem _particleSystem;
 
+        private Vector3 _originalScale;
+
         private void Awake()
         {
             _particleSystem = GetComponent<ParticleSystem>();
+            _originalScale = transform.localScale;
         }
 
         private void OnEnable()
@@ -45,6 +48,11 @@ namespace TheLastEmpire
         public void SetPoolKey(string key)
         {
             poolKey = key;
+        }
+
+        public void ApplyScaleMultiplier(float multiplier)
+        {
+            transform.localScale = _originalScale * multiplier;
         }
     }
 }
