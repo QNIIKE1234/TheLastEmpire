@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -26,13 +25,30 @@ namespace TheLastEmpire
         [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f); // Sleek slate dark mode
         [SerializeField] private Color accentColor = new Color(0.95f, 0.75f, 0.2f, 1f);   // Bright yellow accent
 
+        [Header("UI References (Optional)")]
+        [SerializeField] private GameObject lootPanel;
+        [SerializeField] private TMP_Text titleTextHUD;
+        [Tooltip("Content GameObject — วาง InventoryItemSlot ลูกไว้ข้างในได้เลย")]
+        [SerializeField] private GameObject itemSlotsContainer;
+        [SerializeField] private Button lootAllButton;
+        [SerializeField] private Button closeButton;
+
+        [Header("Interaction Prompt")]
+        [SerializeField] private GameObject promptPanel;
+        [SerializeField] private TMP_Text promptText;
+
+        // ===== Internal Pool (built-in) =====
+        private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
+        private int _activeSlotCount = 0;
+
         private GameObject _canvasObject;
         private GameObject _panelObject;
         private TMP_Text _titleText;
         private GameObject _itemContainer;
 
-        private GameObject _promptPanel;
-        private TMP_Text _promptText;
+        private Transform _promptTarget;
+        private Vector2 _originalPromptAnchoredPos;
+        private bool _hasOriginalPromptPos = false;
 
         private LootContainer _currentContainer;
         private PlayerInventory _playerInventory;
@@ -47,7 +63,38 @@ namespace TheLastEmpire
             {
                 _instance = this;
                 DontDestroyOnLoad(gameObject);
-                CreateProceduralUI();
+
+                if (lootPanel != null)
+                {
+                    _canvasObject = lootPanel; // Using the provided prefab's root canvas/panel
+                    _panelObject = lootPanel;
+                    _titleText = titleTextHUD;
+                    _itemContainer = itemSlotsContainer;
+
+                    if (_itemContainer != null)
+                    {
+                        ScanExistingSlots();
+                    }
+
+                    if (lootAllButton != null) lootAllButton.onClick.AddListener(LootAll);
+                    if (closeButton != null) closeButton.onClick.AddListener(Close);
+
+                    _canvasObject.SetActive(false);
+                    if (promptPanel != null) 
+                    {
+                        promptPanel.SetActive(false);
+                        RectTransform r = promptPanel.GetComponent<RectTransform>();
+                        if (r != null)
+                        {
+                            _originalPromptAnchoredPos = r.anchoredPosition;
+                            _hasOriginalPromptPos = true;
+                        }
+                    }
+                }
+                else
+                {
+                    CreateProceduralUI();
+                }
             }
             else if (_instance != this)
             {
@@ -57,42 +104,96 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (promptPanel != null && promptPanel.activeSelf && _promptTarget != null)
+            {
+                if (Camera.main != null)
+                {
+                    // Project the target's 3D position to the screen (+2 meters offset upwards)
+                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_promptTarget.position + Vector3.up * 2.0f);
+                    if (screenPos.z > 0)
+                    {
+                        promptPanel.transform.position = screenPos;
+                    }
+                }
+            }
         }
 
-        public void ShowPrompt(string actionText)
+        private void ScanExistingSlots()
         {
-            if (_promptPanel == null || _promptText == null) return;
+            _slotPool.Clear();
+            foreach (Transform child in _itemContainer.transform)
+            {
+                InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
+                if (slot != null)
+                {
+                    slot.gameObject.SetActive(false);
+                    _slotPool.Add(slot);
+                }
+            }
+        }
 
-            // Don't show prompt if UI is open or canvas is disabled
+        private InventoryItemSlot GetSlot()
+        {
+            if (_activeSlotCount >= _slotPool.Count)
+            {
+                if (_slotPool.Count == 0)
+                {
+                    Debug.LogWarning("[LootUI] No InventoryItemSlot found in container. Place at least one in the Editor.");
+                    return null;
+                }
+                InventoryItemSlot clone = Instantiate(_slotPool[0], _itemContainer.transform);
+                clone.name = $"LootSlot_{_slotPool.Count:00}";
+                _slotPool.Add(clone);
+            }
+
+            InventoryItemSlot s = _slotPool[_activeSlotCount];
+            s.gameObject.SetActive(true);
+            _activeSlotCount++;
+            return s;
+        }
+
+        private void PoolBeginFrame() => _activeSlotCount = 0;
+
+        private void PoolEndFrame()
+        {
+            for (int i = _activeSlotCount; i < _slotPool.Count; i++)
+            {
+                if (_slotPool[i].gameObject.activeSelf)
+                {
+                    _slotPool[i].Clear();
+                    _slotPool[i].gameObject.SetActive(false);
+                }
+            }
+        }
+
+        public void ShowPrompt(string actionText, Transform targetTransform = null)
+        {
+            if (promptPanel == null || promptText == null) return;
+
             if (_isOpen)
             {
                 HidePrompt();
                 return;
             }
 
-            _promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
-            
-            // Ensure canvas is active to render prompt even when looting UI itself is closed
-            if (_canvasObject != null && !_canvasObject.activeSelf)
-            {
-                _canvasObject.SetActive(true);
-            }
+            _promptTarget = targetTransform;
 
-            _promptPanel.SetActive(true);
+            promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
+            promptPanel.SetActive(true);
         }
 
         public void HidePrompt()
         {
-            if (_promptPanel != null)
+            if (promptPanel != null)
             {
-                _promptPanel.SetActive(false);
+                promptPanel.SetActive(false);
+                if (_hasOriginalPromptPos)
+                {
+                    RectTransform r = promptPanel.GetComponent<RectTransform>();
+                    if (r != null) r.anchoredPosition = _originalPromptAnchoredPos;
+                }
             }
-
-            // Hide the canvas entirely if the main loot menu is also closed
-            if (!_isOpen && _canvasObject != null && _canvasObject.activeSelf)
-            {
-                _canvasObject.SetActive(false);
-            }
+            _promptTarget = null;
         }
 
         private bool _savedCursorVisible;
@@ -107,10 +208,6 @@ namespace TheLastEmpire
             _isOpen = true;
             _justOpenedFrame = Time.frameCount;
 
-            // Pause game timescale during looting interaction
-            // ไม่หยุดเวลาแล้ว
-
-            // Hide the interaction prompt when menu opens
             HidePrompt();
 
             if (_panelObject != null)
@@ -120,7 +217,6 @@ namespace TheLastEmpire
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);
 
-            // Save and unlock mouse cursor for UI clicks
             _savedCursorVisible = Cursor.visible;
             _savedCursorLockState = Cursor.lockState;
             Cursor.visible = true;
@@ -133,14 +229,12 @@ namespace TheLastEmpire
         public void Close()
         {
             _isOpen = false;
-            // ไม่คืนค่าเวลาแล้ว
 
             if (_panelObject != null)
             {
                 _panelObject.SetActive(false);
             }
 
-            // Restore mouse cursor state
             Cursor.visible = _savedCursorVisible;
             Cursor.lockState = _savedCursorLockState;
 
@@ -163,23 +257,102 @@ namespace TheLastEmpire
         {
             if (_currentContainer == null || _playerInventory == null) return;
 
-            // 1. Update Title Name
             if (_titleText != null)
             {
                 _titleText.text = $"SEARCHING: {_currentContainer.containerName.ToUpper()}";
             }
 
-            // 2. Clear old list slots
-            if (_itemContainer != null)
+            if (_itemContainer == null) return;
+
+            bool hasLoot = false;
+
+            // Use Pool System
+            if (_slotPool.Count > 0)
             {
+                PoolBeginFrame();
+
+                // 1. Money Slot
+                if (_currentContainer.moneyAmount > 0)
+                {
+                    hasLoot = true;
+                    InventoryItemSlot moneySlot = GetSlot();
+                    if (moneySlot != null)
+                    {
+                        ItemData cashData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName("Cash") : null;
+                        Sprite dynamicMoneyIcon = cashData != null ? cashData.icon : null;
+
+                        moneySlot.SetData(
+                            itemName: "Wallet Cash", 
+                            quantity: _currentContainer.moneyAmount, 
+                            icon: dynamicMoneyIcon, 
+                            isEquipped: false,
+                            onClickUse: (name) => {
+                                if (_playerInventory != null && _currentContainer != null)
+                                {
+                                    _playerInventory.AddMoney(_currentContainer.moneyAmount);
+                                    _currentContainer.moneyAmount = 0;
+                                    RefreshUI();
+                                }
+                            },
+                            customButtonText: "TAKE",
+                            customQuantityText: $"<color=yellow>${_currentContainer.moneyAmount}</color>"
+                        );
+                    }
+                }
+
+                // 2. Item Slots
+                for (int i = 0; i < _currentContainer.itemsInside.Count; i++)
+                {
+                    hasLoot = true;
+                    int index = i;
+                    LootSlot slotData = _currentContainer.itemsInside[index];
+
+                    ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(slotData.itemName) : null;
+                    Sprite icon = itemData != null ? itemData.icon : null;
+
+                    InventoryItemSlot uiSlot = GetSlot();
+                    if (uiSlot != null)
+                    {
+                        uiSlot.SetData(
+                            itemName: slotData.itemName,
+                            quantity: slotData.quantity,
+                            icon: icon, 
+                            isEquipped: false,
+                            onClickUse: (name) => {
+                                if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
+                                {
+                                    LootSlot innerSlot = _currentContainer.itemsInside[index];
+                                    _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
+                                    _currentContainer.itemsInside.RemoveAt(index);
+                                    RefreshUI();
+                                }
+                            },
+                            customButtonText: "TAKE"
+                        );
+                    }
+                }
+
+                // 3. Empty Fallback
+                if (!hasLoot)
+                {
+                    _currentContainer.isSearched = true;
+                    InventoryItemSlot emptySlot = GetSlot();
+                    if (emptySlot != null)
+                    {
+                        emptySlot.SetData("- Container Empty -", 0, null, false, null, "---");
+                    }
+                }
+
+                PoolEndFrame();
+            }
+            else
+            {
+                // Legacy / Procedural Render Path (Clear & Create)
                 foreach (Transform child in _itemContainer.transform)
                 {
                     Destroy(child.gameObject);
                 }
 
-                bool hasLoot = false;
-
-                // 3. Render Money Slot (if any)
                 if (_currentContainer.moneyAmount > 0)
                 {
                     hasLoot = true;
@@ -193,13 +366,12 @@ namespace TheLastEmpire
                     });
                 }
 
-                // 4. Render Item Slots
                 for (int i = 0; i < _currentContainer.itemsInside.Count; i++)
                 {
                     hasLoot = true;
                     int index = i;
-                    LootSlot slot = _currentContainer.itemsInside[index];
-                    string dispText = $"{slot.itemName} x{slot.quantity}";
+                    LootSlot slotData = _currentContainer.itemsInside[index];
+                    string dispText = $"{slotData.itemName} x{slotData.quantity}";
 
                     CreateLootRow(dispText, () => {
                         if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
@@ -212,7 +384,6 @@ namespace TheLastEmpire
                     });
                 }
 
-                // 5. Empty Status Fallback
                 if (!hasLoot)
                 {
                     _currentContainer.isSearched = true;
@@ -225,14 +396,12 @@ namespace TheLastEmpire
         {
             if (_currentContainer == null || _playerInventory == null) return;
 
-            // 1. Collect Cash
             if (_currentContainer.moneyAmount > 0)
             {
                 _playerInventory.AddMoney(_currentContainer.moneyAmount);
                 _currentContainer.moneyAmount = 0;
             }
 
-            // 2. Collect Items
             foreach (LootSlot slot in _currentContainer.itemsInside)
             {
                 _playerInventory.AddItem(slot.itemName, slot.quantity);
@@ -243,19 +412,21 @@ namespace TheLastEmpire
             Close();
         }
 
+        // =====================================================
+        //  Procedural / Legacy Methods
+        // =====================================================
+
         private void CreateLootRow(string textContent, UnityEngine.Events.UnityAction onLootClick)
         {
-            // Row parent
             GameObject row = new GameObject("LootRow");
             row.transform.SetParent(_itemContainer.transform, false);
 
             Image rowBg = row.AddComponent<Image>();
-            rowBg.color = new Color(1f, 1f, 1f, 0.05f); // Subtle slot background highlights
+            rowBg.color = new Color(1f, 1f, 1f, 0.05f); 
 
             RectTransform rowRect = row.GetComponent<RectTransform>();
             rowRect.sizeDelta = new Vector2(500f, 60f);
 
-            // Row Text
             GameObject textObj = new GameObject("ItemText");
             textObj.transform.SetParent(row.transform, false);
 
@@ -271,7 +442,6 @@ namespace TheLastEmpire
             textRect.offsetMin = new Vector2(15f, 5f);
             textRect.offsetMax = new Vector2(-5f, -5f);
 
-            // Loot Button
             GameObject btnObj = new GameObject("LootButton");
             btnObj.transform.SetParent(row.transform, false);
 
@@ -279,7 +449,7 @@ namespace TheLastEmpire
             btnImg.color = new Color(accentColor.r, accentColor.g, accentColor.b, 0.2f);
 
             Button btn = btnObj.AddComponent<Button>();
-            btn.targetGraphic = btnImg; // Explicitly link graphic for raycast detection
+            btn.targetGraphic = btnImg; 
             btn.onClick.AddListener(onLootClick);
 
             RectTransform btnRect = btnObj.GetComponent<RectTransform>();
@@ -289,7 +459,6 @@ namespace TheLastEmpire
             btnRect.anchoredPosition = new Vector2(-15f, 0f);
             btnRect.sizeDelta = new Vector2(120f, 40f);
 
-            // Button Text
             GameObject btnTextObj = new GameObject("BtnText");
             btnTextObj.transform.SetParent(btnObj.transform, false);
 
@@ -333,7 +502,6 @@ namespace TheLastEmpire
 
         private void CreateProceduralUI()
         {
-            // Ensure EventSystem exists in the scene so UI click events can be processed
             if (UnityEngine.EventSystems.EventSystem.current == null)
             {
                 GameObject eventSystemObj = new GameObject("EventSystem");
@@ -341,12 +509,11 @@ namespace TheLastEmpire
                 eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
             }
 
-            // 1. Canvas Setup
             _canvasObject = new GameObject("LootCanvas");
             DontDestroyOnLoad(_canvasObject);
             Canvas canvas = _canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100; // Render above standard Inventory UI
+            canvas.sortingOrder = 100;
 
             CanvasScaler scaler = _canvasObject.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -354,10 +521,8 @@ namespace TheLastEmpire
 
             _canvasObject.AddComponent<GraphicRaycaster>();
 
-            // 2. Central Panel Setup
             _panelObject = new GameObject("LootPanel");
             _panelObject.transform.SetParent(_canvasObject.transform, false);
-
             Image panelImage = _panelObject.AddComponent<Image>();
             panelImage.color = panelColor;
 
@@ -367,7 +532,6 @@ namespace TheLastEmpire
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.sizeDelta = new Vector2(560f, 680f);
 
-            // Border Line
             GameObject borderObj = new GameObject("Border");
             borderObj.transform.SetParent(_panelObject.transform, false);
             Image borderImg = borderObj.AddComponent<Image>();
@@ -379,10 +543,8 @@ namespace TheLastEmpire
             borderRect.offsetMax = new Vector2(3f, 3f);
             borderObj.transform.SetAsFirstSibling();
 
-            // 3. Title Text
             GameObject titleObj = new GameObject("TitleText");
             titleObj.transform.SetParent(_panelObject.transform, false);
-
             _titleText = titleObj.AddComponent<TextMeshProUGUI>();
             _titleText.text = "SEARCHING CONTAINER";
             _titleText.fontSize = 28;
@@ -397,10 +559,8 @@ namespace TheLastEmpire
             titleRect.anchoredPosition = new Vector3(0f, -40f, 0f);
             titleRect.sizeDelta = new Vector2(500f, 50f);
 
-            // 4. Scroll List Container
             GameObject scrollObj = new GameObject("LootScrollView");
             scrollObj.transform.SetParent(_panelObject.transform, false);
-
             RectTransform scrollRectTrans = scrollObj.AddComponent<RectTransform>();
             scrollRectTrans.anchorMin = new Vector2(0.5f, 0.5f);
             scrollRectTrans.anchorMax = new Vector2(0.5f, 0.5f);
@@ -434,10 +594,8 @@ namespace TheLastEmpire
             scrollRect.vertical = true;
             scrollRect.viewport = scrollRectTrans;
 
-            // 5. Bottom Buttons (Loot All & Close)
             GameObject bottomPanel = new GameObject("BottomButtons");
             bottomPanel.transform.SetParent(_panelObject.transform, false);
-
             RectTransform bottomRect = bottomPanel.AddComponent<RectTransform>();
             bottomRect.anchorMin = new Vector2(0.5f, 0f);
             bottomRect.anchorMax = new Vector2(0.5f, 0f);
@@ -445,13 +603,10 @@ namespace TheLastEmpire
             bottomRect.anchoredPosition = new Vector3(0f, 30f, 0f);
             bottomRect.sizeDelta = new Vector2(500f, 60f);
 
-            // Loot All Button
             GameObject lootAllObj = new GameObject("LootAllButton");
             lootAllObj.transform.SetParent(bottomPanel.transform, false);
-
             Image lootAllImg = lootAllObj.AddComponent<Image>();
             lootAllImg.color = accentColor;
-
             Button lootAllBtn = lootAllObj.AddComponent<Button>();
             lootAllBtn.targetGraphic = lootAllImg;
             lootAllBtn.onClick.AddListener(LootAll);
@@ -476,13 +631,10 @@ namespace TheLastEmpire
             latRect.offsetMin = Vector2.zero;
             latRect.offsetMax = Vector2.zero;
 
-            // Close Button
             GameObject closeObj = new GameObject("CloseButton");
             closeObj.transform.SetParent(bottomPanel.transform, false);
-
             Image closeImg = closeObj.AddComponent<Image>();
             closeImg.color = new Color(0.2f, 0.2f, 0.22f, 1f);
-
             Button closeBtn = closeObj.AddComponent<Button>();
             closeBtn.targetGraphic = closeImg;
             closeBtn.onClick.AddListener(Close);
@@ -507,26 +659,22 @@ namespace TheLastEmpire
             ctRect.offsetMin = Vector2.zero;
             ctRect.offsetMax = Vector2.zero;
 
-            // Disable Loot panel by default, prompt will control visibility separately
             _panelObject.SetActive(false);
 
-            // 6. Interaction Prompt Panel Setup (Centered bottom of screen)
-            _promptPanel = new GameObject("InteractionPrompt");
-            _promptPanel.transform.SetParent(_canvasObject.transform, false);
-
-            Image promptBg = _promptPanel.AddComponent<Image>();
+            promptPanel = new GameObject("InteractionPrompt");
+            promptPanel.transform.SetParent(_canvasObject.transform, false);
+            Image promptBg = promptPanel.AddComponent<Image>();
             promptBg.color = new Color(0.08f, 0.08f, 0.1f, 0.9f);
 
-            RectTransform promptRect = _promptPanel.GetComponent<RectTransform>();
+            RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
             promptRect.anchorMin = new Vector2(0.5f, 0f);
             promptRect.anchorMax = new Vector2(0.5f, 0f);
             promptRect.pivot = new Vector2(0.5f, 0f);
             promptRect.anchoredPosition = new Vector3(0f, 120f, 0f);
             promptRect.sizeDelta = new Vector2(400f, 60f);
 
-            // Gold border overlay
             GameObject pBorder = new GameObject("PromptBorder");
-            pBorder.transform.SetParent(_promptPanel.transform, false);
+            pBorder.transform.SetParent(promptPanel.transform, false);
             Image pbImg = pBorder.AddComponent<Image>();
             pbImg.color = new Color(accentColor.r, accentColor.g, accentColor.b, 0.4f);
             RectTransform pbRect = pBorder.GetComponent<RectTransform>();
@@ -536,15 +684,14 @@ namespace TheLastEmpire
             pbRect.offsetMax = new Vector2(2f, 2f);
             pBorder.transform.SetAsFirstSibling();
 
-            // Prompt text
             GameObject pTextObj = new GameObject("PromptText");
-            pTextObj.transform.SetParent(_promptPanel.transform, false);
-            _promptText = pTextObj.AddComponent<TextMeshProUGUI>();
-            _promptText.text = "Press [E] to Interact";
-            _promptText.fontSize = 20;
-            _promptText.fontStyle = FontStyles.Bold;
-            _promptText.color = Color.white;
-            _promptText.alignment = TextAlignmentOptions.Center;
+            pTextObj.transform.SetParent(promptPanel.transform, false);
+            promptText = pTextObj.AddComponent<TextMeshProUGUI>();
+            promptText.text = "Press [E] to Interact";
+            promptText.fontSize = 20;
+            promptText.fontStyle = FontStyles.Bold;
+            promptText.color = Color.white;
+            promptText.alignment = TextAlignmentOptions.Center;
 
             RectTransform ptRect = pTextObj.GetComponent<RectTransform>();
             ptRect.anchorMin = Vector2.zero;
@@ -552,7 +699,10 @@ namespace TheLastEmpire
             ptRect.offsetMin = Vector2.zero;
             ptRect.offsetMax = Vector2.zero;
 
-            _promptPanel.SetActive(false); // Hidden by default
+            _originalPromptAnchoredPos = promptRect.anchoredPosition;
+            _hasOriginalPromptPos = true;
+
+            promptPanel.SetActive(false);
         }
     }
 }

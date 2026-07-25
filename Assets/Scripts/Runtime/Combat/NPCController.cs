@@ -19,6 +19,7 @@ namespace TheLastEmpire
     public class NPCController : MonoBehaviour
     {
         [Header("NPC Configuration")]
+        [SerializeField] private string npcName = "Merchant";
         [SerializeField] private NPCType npcType = NPCType.Shop;
         [SerializeField] private float interactRange = 2.0f;
 
@@ -28,11 +29,21 @@ namespace TheLastEmpire
 
         public System.Collections.Generic.List<ShopItemConfig> ShopItems => shopItems;
         public NPCType NpcType => npcType;
+        public string NpcName => npcName;
 
         private Transform _playerTransform;
 
+        [SerializeField] private TMPro.TMP_Text nameTextHUD;
+
         private void Start()
         {
+            // Auto-update the 3D floating text above the NPC if it exists
+            TMPro.TMP_Text textToUpdate = nameTextHUD != null ? nameTextHUD : GetComponentInChildren<TMPro.TMP_Text>();
+            if (textToUpdate != null)
+            {
+                textToUpdate.text = npcName;
+            }
+
             PlayerController player = Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {

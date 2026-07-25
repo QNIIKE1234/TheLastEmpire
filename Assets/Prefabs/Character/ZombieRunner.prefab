@@ -157,7 +157,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 2}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3601811197188943179
@@ -232,7 +232,7 @@ MonoBehaviour:
   healthSlider: {fileID: 0}
   zombieType: 4
   leapCooldown: 4
-  leapSpeed: 12
+  leapSpeed: 10
   leapDuration: 0.3
   explosionRadius: 4
   explosionDamage: 100

@@ -10,6 +10,8 @@ namespace TheLastEmpire
 
         private Stack<IPopUp> _popUpStack = new Stack<IPopUp>();
 
+        public bool HasActivePopUps => _popUpStack.Count > 0;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)

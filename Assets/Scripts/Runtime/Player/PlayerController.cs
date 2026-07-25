@@ -1181,8 +1181,7 @@ namespace TheLastEmpire
 
         private void UpdateInteractionPrompt()
         {
-            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+            bool isMenuOpen = PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps;
             if (isMenuOpen)
             {
                 if (LootUI.Instance != null) LootUI.Instance.HidePrompt();
@@ -1205,7 +1204,7 @@ namespace TheLastEmpire
 
             if (closestContainer != null && LootUI.Instance != null)
             {
-                LootUI.Instance.ShowPrompt("Search " + closestContainer.containerName);
+                LootUI.Instance.ShowPrompt("Search " + closestContainer.containerName, closestContainer.transform);
             }
             else
             {
@@ -1229,7 +1228,7 @@ namespace TheLastEmpire
                 if (closestNpc != null && LootUI.Instance != null)
                 {
                     string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Talk";
-                    LootUI.Instance.ShowPrompt($"{action} with {closestNpc.gameObject.name}");
+                    LootUI.Instance.ShowPrompt($"{action} with {closestNpc.NpcName}", closestNpc.transform);
                 }
                 else if (LootUI.Instance != null)
                 {
