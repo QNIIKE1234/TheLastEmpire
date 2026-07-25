@@ -10,30 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f66e274d5d4a559448705b384dc143eb, type: 3}
-  m_Name: ITEM0006_Pistol
+  m_Name: ITEM0015_Grenade
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
-  itemName: Pistol
+  itemName: Grenade
   description: 
-  icon: {fileID: 21300000, guid: 463f5d526dd18bb45ab32544082543b7, type: 3}
-  type: 5
-  restorationValue: 0
+  icon: {fileID: 21300000, guid: 4b40fc0f65c85f14fbc9c7c5f40ca686, type: 3}
+  type: 7
+  restorationValue: 1
   defaultQuantity: 1
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   dropMaterial: {fileID: 0}
-  damage: 25
-  attackRadius: 0
+  damage: 200
+  attackRadius: 5
   attackRate: 0
-  knockbackForce: 0.2
-  staggerDuration: 0.1
+  knockbackForce: 2
+  staggerDuration: 2
   weaponConfig:
-    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
-    fireRate: 0.4
+    projectilePrefab: {fileID: 4838994549734026228, guid: e9a39ff27e36a7646a81e435a4c2ff9f, type: 3}
+    fireRate: 0.2
     magazineSize: 12
     reloadDuration: 1
-    range: 0.4
+    range: 5
     canPierce: 0
-    spreadAngle: 5
+    spreadAngle: 0
     pelletsPerShot: 1
     isAutomatic: 0
-    ammoType: Pistol Ammo
-    vfxPoolKey: PistalFlash
+    ammoType: Grenade
+    vfxPoolKey: EnemyExplosion

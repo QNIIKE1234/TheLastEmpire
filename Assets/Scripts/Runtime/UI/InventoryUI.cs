@@ -332,12 +332,19 @@ namespace TheLastEmpire
                         string key      = pair.Key;
                         string cleanKey = (key ?? "").ToLower().Trim();
 
-                        bool isWeapon = !cleanKey.Contains("ammo") &&
-                                        (cleanKey.Contains("rifl")  || cleanKey.Contains("shot") ||
-                                         cleanKey.Contains("pist")  || cleanKey.Contains("knife") ||
-                                         cleanKey.Contains("bat")   || cleanKey.Contains("machete"));
+                        ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
+                        
+                        bool isWeapon = false;
+                        bool isUsable = false;
 
-                        bool isUsable = key == "Potion" || key == "Bread" || isWeapon;
+                        if (itemData != null)
+                        {
+                            isWeapon = itemData.type == ItemType.RangedWeapon || 
+                                       itemData.type == ItemType.MeleeWeapon || 
+                                       itemData.type == ItemType.ThrowingWeapon;
+                            
+                            isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread;
+                        }
 
                         bool isEquipped = false;
                         if (isWeapon)
@@ -352,7 +359,6 @@ namespace TheLastEmpire
                             isEquipped = eqW || eqM;
                         }
 
-                        ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
                         Sprite icon = itemData != null ? itemData.icon : null;
 
                         InventoryItemSlot slot = GetSlot();

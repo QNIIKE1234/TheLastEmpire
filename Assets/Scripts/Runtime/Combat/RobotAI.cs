@@ -260,7 +260,9 @@ namespace TheLastEmpire
                 }
 
                 Projectile proj = bullet.GetComponent<Projectile>();
-                proj.Setup(dir, gameObject);
+                // ถ้ามีเป้าหมาย (ผู้เล่น) ให้ส่งพิกัดไปเผื่อว่ากระสุนเป็นแบบวิถีโค้ง
+                Vector3 targetPoint = playerTransform != null ? playerTransform.position : transform.position + dir * 10f;
+                proj.Setup(dir, targetPoint, gameObject);
             }
 
             _isActionActive = false;

@@ -45,10 +45,6 @@ namespace TheLastEmpire
         // Palette สีตามประเภทไอเทม
         // =====================================================
         private static readonly Color ColorWeapon  = new Color(0f,    0.898f, 1f,    1f); // Cyan
-        private static readonly Color ColorAmmo    = new Color(0.557f, 0.557f, 0.557f, 1f); // Gray
-        private static readonly Color ColorUsable  = new Color(0.106f, 1f,    0.2f,  1f); // Green
-        private static readonly Color ColorFood    = new Color(1f,    0.922f, 0.231f, 1f); // Yellow
-        private static readonly Color ColorEtc     = new Color(1f,    0.604f, 0f,    1f); // Orange
         private static readonly Color ColorEquipped= new Color(0f,    0.898f, 1f,    1f); // Same as weapon equipped
 
         // =====================================================
@@ -70,8 +66,14 @@ namespace TheLastEmpire
             _currentItemName = itemName;
             _onClickCallback = onClickUse;
 
-            string cleanName = (itemName ?? "").ToLower().Trim();
-            ItemType type = ResolveItemType(cleanName);
+            ItemType type = ItemType.ETC;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData itemData = ItemDatabase.Instance.GetItemByName(itemName);
+                if (itemData != null) type = itemData.type;
+            }
+
+            bool isWeapon = type == ItemType.RangedWeapon || type == ItemType.MeleeWeapon || type == ItemType.ThrowingWeapon;
 
             // --- Icon ---
             if (itemIcon != null)
@@ -92,7 +94,7 @@ namespace TheLastEmpire
             {
                 if (!string.IsNullOrEmpty(customQuantityText))
                     itemQuantityText.text = customQuantityText;
-                else if (isEquipped && type == ItemType.Weapon)
+                else if (isEquipped && isWeapon)
                     itemQuantityText.text = "[ON]"; // Weapon แสดงเป็น "Equipped" แทน xN ถ้ากำลัง Equip
                 else
                     itemQuantityText.text = $"x{quantity}";
@@ -100,26 +102,34 @@ namespace TheLastEmpire
                 itemQuantityText.color = new Color(0.565f, 0.643f, 0.682f, 1f);
             }
 
-            // --- Badge Label & สี ---
-            ApplyBadge(type, isEquipped);
+            ApplyBadge(type, isEquipped, isWeapon);
 
             // --- Equipped Highlight ---
             if (equippedHighlight != null)
                 equippedHighlight.SetActive(isEquipped);
 
             // --- Use Button ---
-            bool canUse = onClickUse != null;
             if (useButton != null)
             {
-                useButton.gameObject.SetActive(canUse);
-                useButton.onClick.RemoveAllListeners();
-                if (canUse)
+                if (onClickUse != null)
                 {
-                    useButton.onClick.AddListener(OnUseClicked);
+                    useButton.gameObject.SetActive(true);
+                    useButton.onClick.RemoveAllListeners();
+                    useButton.onClick.AddListener(OnButtonClicked);
                     if (useButtonLabel != null)
-                        useButtonLabel.text = !string.IsNullOrEmpty(customButtonText) ? customButtonText : ResolveButtonLabel(type, isEquipped);
+                        useButtonLabel.text = !string.IsNullOrEmpty(customButtonText) ? customButtonText : ResolveButtonLabel(type, isEquipped, isWeapon);
+                }
+                else
+                {
+                    useButton.gameObject.SetActive(false);
                 }
             }
+
+        }
+
+        public void Deselect()
+        {
+            if (equippedHighlight != null) equippedHighlight.SetActive(false);
         }
 
         /// <summary>
@@ -130,7 +140,7 @@ namespace TheLastEmpire
             _currentItemName = null;
             _onClickCallback = null;
 
-            if (itemIcon != null)        { itemIcon.sprite = null; itemIcon.gameObject.SetActive(false); }
+            if (itemIcon != null)        itemIcon.gameObject.SetActive(false);
             if (itemNameText != null)    itemNameText.text = "";
             if (itemQuantityText != null) itemQuantityText.text = "";
             if (itemTypeBadgeText != null) itemTypeBadgeText.text = "";
@@ -142,20 +152,22 @@ namespace TheLastEmpire
         //  Private Helpers
         // =====================================================
 
-        private void OnUseClicked()
+        private void OnButtonClicked()
         {
-            if (!string.IsNullOrEmpty(_currentItemName))
-                _onClickCallback?.Invoke(_currentItemName);
+            if (_onClickCallback != null)
+            {
+                _onClickCallback.Invoke(_currentItemName);
+            }
         }
 
-        private void ApplyBadge(ItemType type, bool isEquipped)
+        private void ApplyBadge(ItemType type, bool isEquipped, bool isWeapon)
         {
             if (itemTypeBadgeText == null) return;
 
-            string label;
-            Color color;
+            string label = "";
+            Color color = Color.white;
 
-            if (isEquipped && type == ItemType.Weapon)
+            if (isEquipped && isWeapon)
             {
                 label = "EQUIPPED";
                 color = ColorEquipped;
@@ -164,51 +176,50 @@ namespace TheLastEmpire
             {
                 switch (type)
                 {
-                    case ItemType.Weapon:
-                        label = "WEAPON";  color = ColorWeapon;  break;
+                    case ItemType.RangedWeapon:
+                    case ItemType.ThrowingWeapon:
+                    case ItemType.MeleeWeapon:
+                        label = "WEAPON";
+                        color = new Color(1f, 0.443f, 0.368f, 1f);
+                        break;
                     case ItemType.Ammo:
-                        label = "AMMO";    color = ColorAmmo;    break;
+                        label = "AMMO";
+                        color = new Color(1f, 0.843f, 0f, 1f);
+                        break;
                     case ItemType.Potion:
-                        label = "USABLE";  color = ColorUsable;  break;
-                    case ItemType.Food:
-                        label = "FOOD";    color = ColorFood;    break;
+                        label = "POTION";
+                        color = new Color(0.368f, 1f, 0.584f, 1f);
+                        break;
+                    case ItemType.Bread:
+                        label = "FOOD";
+                        color = new Color(1f, 0.647f, 0.235f, 1f);
+                        break;
                     default:
-                        label = "ITEM";    color = ColorEtc;     break;
+                        label = "ETC";
+                        color = new Color(0.7f, 0.7f, 0.7f, 1f);
+                        break;
                 }
             }
 
             itemTypeBadgeText.text = label;
             itemTypeBadgeText.color = color;
-
             if (badgeBackground != null)
-                badgeBackground.color = new Color(color.r, color.g, color.b, 0.15f);
+            {
+                badgeBackground.color = new Color(color.r, color.g, color.b, 0.2f);
+            }
         }
 
-        private static string ResolveButtonLabel(ItemType type, bool isEquipped)
+        private static string ResolveButtonLabel(ItemType type, bool isEquipped, bool isWeapon)
         {
+            if (isWeapon) return isEquipped ? "Unequip" : "Equip";
+            
             return type switch
             {
-                ItemType.Weapon => isEquipped ? "Unequip" : "Equip",
                 ItemType.Potion => "Use",
-                ItemType.Food   => "Eat",
-                _               => "Use",
+                ItemType.Bread   => "Eat",
+                _ => "Select"
             };
         }
-
-        private static ItemType ResolveItemType(string cleanName)
-        {
-            if (cleanName.Contains("ammo"))                                              return ItemType.Ammo;
-            if (cleanName.Contains("potion"))                                            return ItemType.Potion;
-            if (cleanName.Contains("bread") || cleanName.Contains("food"))              return ItemType.Food;
-            if (cleanName.Contains("pist") || cleanName.Contains("rifl") ||
-                cleanName.Contains("shot") || cleanName.Contains("knife") ||
-                cleanName.Contains("bat")  || cleanName.Contains("machete"))             return ItemType.Weapon;
-            return ItemType.Etc;
-        }
-
-        // =====================================================
-        //  Inner Enum
-        // =====================================================
-        private enum ItemType { Weapon, Ammo, Potion, Food, Etc }
+        // Removed inner enum and resolve methods
     }
 }

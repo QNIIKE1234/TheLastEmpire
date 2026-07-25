@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -157,77 +158,96 @@ namespace TheLastEmpire
 
         public bool UseItem(string itemName)
         {
-            string cleanItem = (itemName ?? "").ToLower().Trim();
-            bool isRangedWeapon = cleanItem.Contains("rifl") || cleanItem.Contains("shot") || cleanItem.Contains("pist");
-            bool isMeleeWeapon = cleanItem.Contains("knife") || cleanItem.Contains("bat") || cleanItem.Contains("machete");
+            if (string.IsNullOrEmpty(itemName)) return false;
 
-            if (isRangedWeapon)
+            ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+            if (itemData == null)
+            {
+                Debug.LogWarning($"[PlayerInventory] Item '{itemName}' not found in ItemDatabase!");
+                return false;
+            }
+
+            if (itemData.type == ItemType.RangedWeapon || itemData.type == ItemType.ThrowingWeapon)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead)
                 {
-                    int idx = player.WeaponsList.FindIndex(w => {
-                        string wName = (w.weaponName ?? "").ToLower().Trim();
-                        return wName.Contains(cleanItem) || cleanItem.Contains(wName) || (wName.Contains("pist") && cleanItem.Contains("pist"));
-                    });
-                    if (idx >= 0)
+                    string cleanItem = itemName.Trim().ToLower();
+                    // Ensure list has at least 2 slots for Primary (0) and Throwable (1)
+                    while (player.WeaponsList.Count < 2)
                     {
-                        if (player.CurrentWeapon != null && player.CurrentWeaponName != null &&
-                            player.WeaponsList[idx].weaponName.ToLower().Trim() == player.CurrentWeaponName.ToLower().Trim())
-                        {
-                            player.SwitchToWeapon(-1); // Unequip
-                        }
-                        else
-                        {
-                            player.SwitchToWeapon(idx);
-                        }
-                        OnInventoryChanged?.Invoke();
-                        return true;
+                        player.WeaponsList.Add(new Weapon());
+                    }
+
+                    int targetSlot = (itemData.type == ItemType.ThrowingWeapon) ? 1 : 0;
+                    
+                    // If the current slot doesn't match the item we want to equip, overwrite it
+                    if (string.IsNullOrEmpty(player.WeaponsList[targetSlot].weaponName) || 
+                        !player.WeaponsList[targetSlot].weaponName.Equals(itemName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        player.WeaponsList[targetSlot] = new Weapon(itemData);
+                        Debug.Log($"[PlayerInventory] Dynamically mapped '{itemName}' to Slot {targetSlot + 1}.");
+                    }
+
+                    int idx = targetSlot;
+
+                    if (player.CurrentWeapon != null && player.CurrentWeaponName != null &&
+                        player.WeaponsList[idx].weaponName.Equals(player.CurrentWeaponName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        player.SwitchToWeapon(-1); // Unequip
                     }
                     else
                     {
-                        Debug.LogWarning($"[PlayerInventory] Weapon '{itemName}' is not defined on the player!");
+                        player.SwitchToWeapon(idx);
                     }
+                    OnInventoryChanged?.Invoke();
+                    return true;
                 }
             }
-            else if (isMeleeWeapon)
+            else if (itemData.type == ItemType.MeleeWeapon)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead)
                 {
-                    int idx = player.MeleeWeaponsList.FindIndex(w => {
-                        string wName = (w.weaponName ?? "").ToLower().Trim();
-                        return wName.Contains(cleanItem) || cleanItem.Contains(wName);
-                    });
-                    if (idx >= 0)
+                    string cleanItem = itemName.Trim().ToLower();
+                    int idx = player.MeleeWeaponsList.FindIndex(w => 
                     {
-                        if (player.CurrentMeleeWeapon != null && player.CurrentMeleeWeaponName != null &&
-                            player.MeleeWeaponsList[idx].weaponName.ToLower().Trim() == player.CurrentMeleeWeaponName.ToLower().Trim())
-                        {
-                            player.SwitchToMeleeWeapon(-1); // Unequip
-                        }
-                        else
-                        {
-                            player.SwitchToMeleeWeapon(idx);
-                        }
-                        OnInventoryChanged?.Invoke();
-                        return true;
+                        if (string.IsNullOrEmpty(w.weaponName)) return false;
+                        string cleanWName = w.weaponName.Trim().ToLower();
+                        return cleanWName.Contains(cleanItem) || cleanItem.Contains(cleanWName);
+                    });
+                    if (idx < 0)
+                    {
+                        // Dynamically add the melee weapon
+                        MeleeWeapon newMelee = new MeleeWeapon(itemData);
+                        player.MeleeWeaponsList.Add(newMelee);
+                        idx = player.MeleeWeaponsList.Count - 1;
+                        Debug.Log($"[PlayerInventory] Dynamically added melee weapon '{itemName}' to loadout.");
+                    }
+
+                    if (player.CurrentMeleeWeapon != null && player.CurrentMeleeWeaponName != null &&
+                        player.MeleeWeaponsList[idx].weaponName.Equals(player.CurrentMeleeWeaponName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        player.SwitchToMeleeWeapon(-1); // Unequip
                     }
                     else
                     {
-                        Debug.LogWarning($"[PlayerInventory] Melee weapon '{itemName}' is not defined on the player!");
+                        player.SwitchToMeleeWeapon(idx);
                     }
+                    OnInventoryChanged?.Invoke();
+                    return true;
                 }
             }
-            else if (itemName == "Potion")
+            else if (itemData.type == ItemType.Potion)
             {
                 Health health = GetComponent<Health>();
                 if (health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth)
                 {
                     if (RemoveItem(itemName))
                     {
-                        health.Heal(100f);
-                        Debug.Log($"[PlayerInventory] Used Potion! Healed 100 HP. Current Health: {health.CurrentHealth}");
+                        float healAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 100f;
+                        health.Heal(healAmount);
+                        Debug.Log($"[PlayerInventory] Used {itemName}! Healed {healAmount} HP. Current Health: {health.CurrentHealth}");
                         return true;
                     }
                 }
@@ -236,14 +256,15 @@ namespace TheLastEmpire
                     Debug.Log("[PlayerInventory] Health is already full or player is dead.");
                 }
             }
-            else if (itemName == "Bread")
+            else if (itemData.type == ItemType.Bread)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead && player.CurrentHunger < player.MaxHunger)
                 {
                     if (RemoveItem(itemName))
                     {
-                        player.EatBread(25f);
+                        float restoreAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 25f;
+                        player.EatBread(restoreAmount);
                         return true;
                     }
                 }
@@ -252,6 +273,7 @@ namespace TheLastEmpire
                     Debug.Log("[PlayerInventory] Hunger is already full or player is dead.");
                 }
             }
+
             return false;
         }
 

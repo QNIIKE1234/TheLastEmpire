@@ -25,3 +25,15 @@ MonoBehaviour:
   attackRate: 0
   knockbackForce: 0.25
   staggerDuration: 0.1
+  weaponConfig:
+    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
+    fireRate: 0.12
+    magazineSize: 30
+    reloadDuration: 2
+    range: 0.6
+    canPierce: 0
+    spreadAngle: 10
+    pelletsPerShot: 1
+    isAutomatic: 1
+    ammoType: Rifle Ammo
+    vfxPoolKey: PistalFlash

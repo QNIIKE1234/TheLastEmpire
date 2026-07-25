@@ -20,8 +20,20 @@ MonoBehaviour:
   defaultQuantity: 1
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   dropMaterial: {fileID: 0}
-  damage: 40
+  damage: 50
   attackRadius: 0
   attackRate: 0
   knockbackForce: 2
   staggerDuration: 0.2
+  weaponConfig:
+    projectilePrefab: {fileID: 4838994549734026228, guid: d2987ed20067a51498c56e074c78952c, type: 3}
+    fireRate: 0.7
+    magazineSize: 7
+    reloadDuration: 3
+    range: 0.2
+    canPierce: 1
+    spreadAngle: 5
+    pelletsPerShot: 5
+    isAutomatic: 0
+    ammoType: Shotgun Ammo
+    vfxPoolKey: PistalFlash

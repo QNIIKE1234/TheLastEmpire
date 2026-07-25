@@ -122,6 +122,7 @@ namespace TheLastEmpire
         private void Awake()
         {
             ApplyPlayerConfig();
+            InitIndicators();
         }
 
         private void ApplyPlayerConfig()
@@ -307,6 +308,24 @@ namespace TheLastEmpire
             }
 
             UpdateInteractionPrompt();
+            UpdateIndicators();
+        }
+
+        private void UpdateIndicators()
+        {
+            if (CurrentWeapon != null && CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced)
+            {
+                if (_throwRangeIndicator != null && !_throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(true);
+                if (_aoeIndicator != null && !_aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(true);
+
+                DrawCircle(_throwRangeIndicator, transform.position, CurrentWeapon.range);
+                DrawCircle(_aoeIndicator, _aimTargetPoint, CurrentWeapon.projectilePrefab.ExplosionRadius);
+            }
+            else
+            {
+                if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
+                if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
+            }
         }
 
         private void FixedUpdate()
@@ -323,6 +342,12 @@ namespace TheLastEmpire
             }
         }
 
+        private Vector3 _aimTargetPoint;
+        
+        // Grenade Aim Indicators
+        private LineRenderer _throwRangeIndicator;
+        private LineRenderer _aoeIndicator;
+
         private void UpdateAimDirection()
         {
             if (Camera.main == null) return;
@@ -333,8 +358,23 @@ namespace TheLastEmpire
             Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
             if (groundPlane.Raycast(ray, out float rayDistance))
             {
-                Vector3 targetPoint = ray.GetPoint(rayDistance);
-                Vector3 direction = (targetPoint - transform.position);
+                _aimTargetPoint = ray.GetPoint(rayDistance);
+
+                // Clamp throwing range if using a Grenade
+                if (CurrentWeapon != null && CurrentWeapon.projectilePrefab != null)
+                {
+                    if (CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced)
+                    {
+                        float distance = Vector3.Distance(transform.position, _aimTargetPoint);
+                        if (distance > CurrentWeapon.range)
+                        {
+                            Vector3 dirToTarget = (_aimTargetPoint - transform.position).normalized;
+                            _aimTargetPoint = transform.position + dirToTarget * CurrentWeapon.range;
+                        }
+                    }
+                }
+
+                Vector3 direction = (_aimTargetPoint - transform.position);
                 direction.y = 0f;
                 direction.Normalize();
 
@@ -671,7 +711,9 @@ namespace TheLastEmpire
                         proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce);
                         Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
-                    proj.Setup(bulletDir, gameObject);
+                    
+                    // Pass the aim target point for Arced trajectories
+                    proj.Setup(bulletDir, _aimTargetPoint, gameObject);
                 }
             }
         }
@@ -1279,6 +1321,48 @@ namespace TheLastEmpire
                 }
             }
         }
+
+        private void InitIndicators()
+        {
+            _throwRangeIndicator = CreateLineRenderer("ThrowRangeIndicator", Color.white, 0.05f);
+            _aoeIndicator = CreateLineRenderer("AOEIndicator", Color.red, 0.05f);
+        }
+
+        private LineRenderer CreateLineRenderer(string objName, Color color, float width)
+        {
+            GameObject obj = new GameObject(objName);
+            obj.transform.SetParent(transform);
+            obj.transform.localPosition = Vector3.zero;
+            
+            LineRenderer lr = obj.AddComponent<LineRenderer>();
+            lr.startWidth = width;
+            lr.endWidth = width;
+            lr.useWorldSpace = true;
+            lr.loop = true;
+            lr.positionCount = 36;
+            
+            // Basic material setup
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.startColor = color;
+            lr.endColor = color;
+            
+            lr.gameObject.SetActive(false);
+            return lr;
+        }
+
+        private void DrawCircle(LineRenderer lr, Vector3 center, float radius)
+        {
+            if (lr == null) return;
+            int segments = lr.positionCount;
+            float angle = 0f;
+            for (int i = 0; i < segments; i++)
+            {
+                float x = Mathf.Sin(Mathf.Deg2Rad * angle) * radius;
+                float z = Mathf.Cos(Mathf.Deg2Rad * angle) * radius;
+                lr.SetPosition(i, new Vector3(center.x + x, 0.1f, center.z + z)); // slightly above ground
+                angle += (360f / segments);
+            }
+        }
     }
 
     [System.Serializable]
@@ -1332,6 +1416,32 @@ namespace TheLastEmpire
             currentMagazine = magazineSize;
             currentReserveAmmo = startingReserve;
         }
+
+        public Weapon() {}
+
+        public Weapon(ItemData data)
+        {
+            if (data == null) return;
+            weaponName = data.itemName;
+            damage = data.damage;
+            
+            if (data.weaponConfig != null)
+            {
+                projectilePrefab = data.weaponConfig.projectilePrefab;
+                fireRate = data.weaponConfig.fireRate;
+                magazineSize = data.weaponConfig.magazineSize;
+                reloadDuration = data.weaponConfig.reloadDuration;
+                range = data.weaponConfig.range;
+                canPierce = data.weaponConfig.canPierce;
+                spreadAngle = data.weaponConfig.spreadAngle;
+                pelletsPerShot = data.weaponConfig.pelletsPerShot;
+                isAutomatic = data.weaponConfig.isAutomatic;
+                ammoType = data.weaponConfig.ammoType;
+                vfxPoolKey = data.weaponConfig.vfxPoolKey;
+            }
+            
+            Initialize(0);
+        }
     }
 
     [System.Serializable]
@@ -1349,5 +1459,22 @@ namespace TheLastEmpire
         public string vfxPoolKey;
         [Tooltip("ตัวคูณขนาดของ VFX")]
         public float vfxScaleMultiplier = 1.0f;
+
+        public MeleeWeapon() {}
+
+        public MeleeWeapon(ItemData data)
+        {
+            if (data == null) return;
+            weaponName = data.itemName;
+            damage = data.damage;
+            attackRate = data.attackRate;
+            attackRadius = data.attackRadius;
+            knockbackForce = data.knockbackForce;
+            staggerDuration = data.staggerDuration;
+            
+            // Default VFX if not set
+            vfxPoolKey = "MeleeSlash";
+            vfxScaleMultiplier = 1.0f;
+        }
     }
 }

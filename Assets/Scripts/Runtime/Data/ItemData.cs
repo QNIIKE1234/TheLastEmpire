@@ -9,7 +9,34 @@ namespace TheLastEmpire
         Bread,
         ETC,
         Money,
-        Weapon
+        RangedWeapon,
+        MeleeWeapon,
+        ThrowingWeapon
+    }
+
+    [System.Serializable]
+    public class WeaponConfig
+    {
+        [Tooltip("The bullet or grenade prefab to spawn")]
+        public Projectile projectilePrefab;
+        public float fireRate = 0.2f;
+        public int magazineSize = 12;
+        public float reloadDuration = 1.0f;
+        [Tooltip("Projectile lifetime or range")]
+        public float range = 3f;
+        public bool canPierce = false;
+        
+        [Header("Spread & Pellets (Shotgun)")]
+        public float spreadAngle = 0f;
+        public int pelletsPerShot = 1;
+        public bool isAutomatic = false;
+        
+        [Tooltip("Type of ammo this weapon consumes (e.g. Pistol Ammo)")]
+        public string ammoType;
+
+        [Header("Visuals")]
+        [Tooltip("Muzzle flash VFX pool key")]
+        public string vfxPoolKey;
     }
 
     [CreateAssetMenu(fileName = "NewItemData", menuName = "TheLastEmpire/Item Data")]
@@ -32,6 +59,9 @@ namespace TheLastEmpire
         public float attackRate; // Attack rate/cooldown
         public float knockbackForce; // Knockback force
         public float staggerDuration; // Stagger duration on hits
+
+        [Header("Ranged/Throwing Weapon Config")]
+        public WeaponConfig weaponConfig;
     }
 }
 
@@ -60,6 +90,7 @@ namespace TheLastEmpire
             SerializedProperty attackRate = serializedObject.FindProperty("attackRate");
             SerializedProperty knockbackForce = serializedObject.FindProperty("knockbackForce");
             SerializedProperty staggerDuration = serializedObject.FindProperty("staggerDuration");
+            SerializedProperty weaponConfig = serializedObject.FindProperty("weaponConfig");
 
             EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(itemName);
@@ -74,16 +105,29 @@ namespace TheLastEmpire
             EditorGUILayout.PropertyField(themeColor);
             EditorGUILayout.PropertyField(dropMaterial);
 
-            // Conditionally show weapon fields only if item type is Weapon (ItemType index 5)
-            if (type.enumValueIndex == (int)ItemType.Weapon)
+            // Conditionally show weapon fields if item type is a weapon
+            bool isWeapon = type.enumValueIndex == (int)ItemType.RangedWeapon || 
+                            type.enumValueIndex == (int)ItemType.MeleeWeapon || 
+                            type.enumValueIndex == (int)ItemType.ThrowingWeapon;
+
+            if (isWeapon)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Weapon Specific Stats", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Base Weapon Stats", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(damage);
                 EditorGUILayout.PropertyField(attackRadius);
                 EditorGUILayout.PropertyField(attackRate);
                 EditorGUILayout.PropertyField(knockbackForce);
                 EditorGUILayout.PropertyField(staggerDuration);
+            }
+
+            bool isRangedOrThrowing = type.enumValueIndex == (int)ItemType.RangedWeapon || 
+                                      type.enumValueIndex == (int)ItemType.ThrowingWeapon;
+            
+            if (isRangedOrThrowing)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.PropertyField(weaponConfig);
             }
 
             serializedObject.ApplyModifiedProperties();
