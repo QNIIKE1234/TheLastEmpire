@@ -77,11 +77,11 @@ namespace TheLastEmpire
 
         public bool IsReloading => _isReloading;
         public Weapon CurrentWeapon => (weapons != null && weapons.Count > 0 && _currentWeaponIndex >= 0 && _currentWeaponIndex < weapons.Count) ? weapons[_currentWeaponIndex] : null;
-        public string CurrentWeaponName => CurrentWeapon != null ? CurrentWeapon.weaponName : "Pistol";
+        public string CurrentWeaponName => CurrentWeapon != null ? CurrentWeapon.weaponName : "";
         public System.Collections.Generic.List<Weapon> WeaponsList => weapons;
 
         public MeleeWeapon CurrentMeleeWeapon => (meleeWeapons != null && meleeWeapons.Count > 0 && _currentMeleeWeaponIndex >= 0 && _currentMeleeWeaponIndex < meleeWeapons.Count) ? meleeWeapons[_currentMeleeWeaponIndex] : null;
-        public string CurrentMeleeWeaponName => CurrentMeleeWeapon != null ? CurrentMeleeWeapon.weaponName : "Knife";
+        public string CurrentMeleeWeaponName => CurrentMeleeWeapon != null ? CurrentMeleeWeapon.weaponName : "";
         public System.Collections.Generic.List<MeleeWeapon> MeleeWeaponsList => meleeWeapons;
 
         public event System.Action OnAmmoChanged;
@@ -318,7 +318,7 @@ namespace TheLastEmpire
             else
             {
                 // Normal 8-directional movement (1.5x speed if sprinting)
-                float currentSpeed = _isSprinting ? (moveSpeed * 2.5f) : moveSpeed;
+                float currentSpeed = _isSprinting ? (moveSpeed * 1.5f) : moveSpeed;
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }

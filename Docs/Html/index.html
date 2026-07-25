@@ -603,8 +603,10 @@
           <tr><td>ItemDatabase.cs</td><td>รวม ItemData, GetItemByName() ค้นหา Recursive ทุกโฟลเดอร์</td></tr>
           <tr><td>ShopDatabase.cs</td><td>ราคากลางสำหรับร้านค้า</td></tr>
           <tr><td>InventoryUI.cs</td><td>หน้าต่างกระเป๋าเป้ (กด I) แสดงไอเทม, ปุ่มใช้/สวมใส่</td></tr>
-          <tr><td>ShopUI.cs</td><td>หน้าต่างร้านค้า แท็บ BUY/SELL</td></tr>
+          <tr><td>ShopUI.cs</td><td>หน้าต่างร้านค้า (ซื้อ/ขาย)</td></tr>
           <tr><td>LootUI.cs</td><td>UI แสดงสิ่งของในกล่องสมบัติ</td></tr>
+          <tr><td>PopUpManager.cs</td><td>ระบบจัดการคิวหน้าต่าง UI แบบ Stack กด ESC ปิดทีละชั้น</td></tr>
+          <tr><td>IPopUp.cs</td><td>Interface สำหรับหน้าต่าง UI ที่ต้องการรองรับ PopUpManager</td></tr>
           <tr><td>MinimapUI.cs</td><td>แสดง Mini-map มุมหน้าจอ</td></tr>
           <tr><td>HealthVisualizer.cs</td><td>แถบ HP ลอยเหนือหัวศัตรู</td></tr>
           <tr><td>BillboardUI.cs</td><td>ทำให้ UI 3D หันหน้าเข้าหากล้องเสมอ</td></tr>
@@ -637,6 +639,10 @@
       <div class="tech-card">
         <h4>🎯 Data-Driven Design</h4>
         <p>สถิติอาวุธ, ราคาไอเทม, และ Loot Table ล้วนแก้ไขจาก <span class="code-inline">ScriptableObject</span> ใน Inspector โดยไม่ต้องแก้ไขโค้ด</p>
+      </div>
+      <div class="tech-card">
+        <h4>🗂️ UI Stack Management</h4>
+        <p>ใช้ <span class="code-inline">PopUpManager</span> ร่วมกับ <span class="code-inline">Stack&lt;IPopUp&gt;</span> จัดการหน้าต่างที่เปิดซ้อนกัน ทำให้กดปุ่ม ESC ถอยกลับได้ทีละชั้นอย่างเป็นธรรมชาติ</p>
       </div>
     </div>
   </section>
