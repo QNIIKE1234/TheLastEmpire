@@ -28,12 +28,12 @@ MonoBehaviour:
   weaponConfig:
     projectilePrefab: {fileID: 4838994549734026228, guid: e9a39ff27e36a7646a81e435a4c2ff9f, type: 3}
     fireRate: 0.2
-    magazineSize: 12
-    reloadDuration: 1
-    range: 5
+    magazineSize: 1
+    reloadDuration: 0.5
+    range: 15
     canPierce: 0
     spreadAngle: 0
     pelletsPerShot: 1
     isAutomatic: 0
     ammoType: Grenade
-    vfxPoolKey: EnemyExplosion
+    vfxPoolKey: 

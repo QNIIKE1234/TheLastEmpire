@@ -154,17 +154,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8be393a8a3685048b204518ee85a721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Projectile
-  speed: 20
+  speed: 15
   damage: 100
   decreseMulti: 0
   lifetime: 0.15
   poolKey: ThrowingWeapon
   isExplosive: 1
   explosionRadius: 2.5
-  explosionVfxPoolKey: EnemyExplosion
+  explosionVfxPoolKey: Explosion
   explosionVfxScaleMultiplier: 1
   trajectoryMode: 1
-  arcHeight: 5
+  arcHeight: 3
 --- !u!54 &1171653004360083845
 Rigidbody:
   m_ObjectHideFlags: 0

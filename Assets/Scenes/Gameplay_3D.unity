@@ -8356,7 +8356,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 155.00002, y: 49}
+  m_AnchoredPosition: {x: 155.00002, y: 48.99994}
   m_SizeDelta: {x: 250, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1243525789
@@ -14197,6 +14197,9 @@ MonoBehaviour:
   - key: EnemyExplosion
     prefab: {fileID: 358637981425055526, guid: 55b8fce188b85b54083b6d5ee64758cb, type: 3}
     size: 5
+  - key: Explosion
+    prefab: {fileID: 7888301319306864682, guid: 1e860615f7e6018469d218070b23119e, type: 3}
+    size: 2
 --- !u!4 &2113889935
 Transform:
   m_ObjectHideFlags: 0

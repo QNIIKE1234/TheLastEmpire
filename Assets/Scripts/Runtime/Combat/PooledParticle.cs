@@ -53,6 +53,14 @@ namespace TheLastEmpire
         public void ApplyScaleMultiplier(float multiplier)
         {
             transform.localScale = _originalScale * multiplier;
+            
+            // บังคับให้ Particle System ทุกตัวใน Prefab นี้ยืดหดตาม Transform Scale
+            ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
+            foreach (ParticleSystem ps in systems)
+            {
+                var main = ps.main;
+                main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            }
         }
     }
 }
