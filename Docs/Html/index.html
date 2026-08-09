@@ -423,16 +423,16 @@
         <div class="sys-head">
           <div class="sys-icon" style="background:rgba(255,101,132,0.12)">🔫</div>
           <div>
-            <div class="sys-title">Combat System</div>
-            <div class="sys-sub">PlayerController.cs + BaseEnemyAI.cs</div>
+            <div class="sys-title">Combat & VFX System</div>
+            <div class="sys-sub">PlayerController.cs + Projectile.cs</div>
           </div>
         </div>
         <ul>
-          <li>ปืนหักกระสุนจาก Inventory จริงทุกนัด</li>
+          <li>ปืนหักกระสุนจาก Inventory, ขว้างระเบิด (Grenades) มีวงแหวนเล็ง</li>
           <li>กระสุนคำนวณระยะจาก Attack Radius ÷ Speed</li>
-          <li>Object Pool จัดการกระสุน ประหยัด RAM</li>
-          <li>ระยะประชิด: Knife / Baseball Bat / Machete</li>
-          <li>ฟันแล้ว Knockback + Stagger 0.3s ตาม Stat</li>
+          <li>Object Pool จัดการกระสุนและ Particle VFX แบบสมบูรณ์</li>
+          <li>อาวุธประชิดแสดงเอฟเฟกต์ฟัน (Slash) ย่อขยายตามสเกล</li>
+          <li>ระเบิดและศัตรูเล่น Explosion VFX ตอนตกกระทบ/ตาย</li>
         </ul>
       </div>
 
@@ -637,8 +637,8 @@
         <p>ใช้ <span class="code-inline">DOTween.To()</span> ทำ Fade ดำ → วาร์ป → รอ 0.5s → Fade สว่าง แทน <span class="code-inline">DOFade()</span> เพื่อหลีกเลี่ยงปัญหา Extension ไม่ถูก Setup</p>
       </div>
       <div class="tech-card">
-        <h4>🎯 Data-Driven Design</h4>
-        <p>สถิติอาวุธ, ราคาไอเทม, และ Loot Table ล้วนแก้ไขจาก <span class="code-inline">ScriptableObject</span> ใน Inspector โดยไม่ต้องแก้ไขโค้ด</p>
+        <h4>🎯 Data-Driven Design & VFX</h4>
+        <p>สถิติอาวุธ, ราคาไอเทม, รูปแบบระเบิด และคีย์ของ VFX ควบคุมได้เบ็ดเสร็จผ่าน <span class="code-inline">ScriptableObject</span> ใน Inspector โดยไม่ต้องแก้โค้ด</p>
       </div>
       <div class="tech-card">
         <h4>🗂️ UI Stack Management</h4>
@@ -695,7 +695,7 @@
   <div class="divider"></div>
 
   <footer>
-    <p>The Last Empire &nbsp;·&nbsp; Unity 6 &nbsp;·&nbsp; C# &nbsp;·&nbsp; อัปเดตล่าสุด: 24 กรกฎาคม 2026</p>
+    <p>The Last Empire &nbsp;·&nbsp; Unity 6 &nbsp;·&nbsp; C# &nbsp;·&nbsp; อัปเดตล่าสุด: 26 กรกฎาคม 2026</p>
   </footer>
 
 </div>

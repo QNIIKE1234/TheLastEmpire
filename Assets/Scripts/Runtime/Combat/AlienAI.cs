@@ -31,6 +31,9 @@ namespace TheLastEmpire
         [SerializeField] private int maxChildSpawns = 2;
         [SerializeField] private string childPoolKey = "Alien001";
 
+        [Header("Leader Throw Settings")]
+        [SerializeField] private bool throwMinionAtPlayer = true;
+
         private float _hookCooldownTimer = 0f;
         private float _spawnCooldownTimer = 0f;
         private int _currentChildSpawns = 0;
@@ -241,6 +244,21 @@ namespace TheLastEmpire
                 if (babyHealth != null)
                 {
                     babyHealth.onDeath.AddListener(() => _currentChildSpawns = Mathf.Max(0, _currentChildSpawns - 1));
+                }
+
+                // Throw mechanic
+                if (throwMinionAtPlayer && playerTransform != null)
+                {
+                    if (babyAI != null) babyAI.enabled = false;
+                    Collider col = babyAlien.GetComponent<Collider>();
+                    if (col != null) col.enabled = false;
+
+                    ThrownEntity thrown = babyAlien.AddComponent<ThrownEntity>();
+                    thrown.Setup(playerTransform.position, 1.2f, 4f, () => 
+                    {
+                        if (babyAI != null) babyAI.enabled = true;
+                        if (col != null) col.enabled = true;
+                    });
                 }
             }
         }

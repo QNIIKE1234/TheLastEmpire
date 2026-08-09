@@ -11,7 +11,7 @@ namespace TheLastEmpire
 
         [Header("Movement")]
         public float moveSpeed = 5f;
-        public float dashSpeed = 15f;
+        public float dashSpeed = 10f;
         public float dashDuration = 0.25f;
         public float dashCooldown = 0.8f;
 
