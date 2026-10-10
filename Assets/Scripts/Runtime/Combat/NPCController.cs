@@ -23,6 +23,9 @@ namespace TheLastEmpire
         [SerializeField] private NPCType npcType = NPCType.Shop;
         [SerializeField] private float interactRange = 2.0f;
 
+        [Header("Story Settings")]
+        [SerializeField] private TheLastEmpire.Story.DialogueTreeSO dialogueTree;
+
         [Header("Merchant Inventory Settings")]
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
         [SerializeField] private bool isFree = false;
@@ -48,6 +51,12 @@ namespace TheLastEmpire
             if (player != null)
             {
                 _playerTransform = player.transform;
+            }
+
+            Animator animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                animator.applyRootMotion = false;
             }
 
             // Populate default merchant items if none are set
@@ -110,21 +119,40 @@ namespace TheLastEmpire
 
         public void Interact()
         {
-            switch (npcType)
+            // If the NPC has a shop or is specifically a Shop type, open the shop menu
+            if (npcType == NPCType.Shop || (shopItems != null && shopItems.Count > 0))
             {
-                case NPCType.Shop:
-                    if (ShopUI.Instance != null)
-                    {
-                        ShopUI.Instance.OpenShopMenu(shopItems, isFree);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("[NPCController] ShopUI instance is null in the scene!");
-                    }
-                    break;
-                default:
-                    Debug.Log($"[NPCController] Interacted with NPC of type {npcType}, but no behavior is defined yet.");
-                    break;
+                if (ShopUI.Instance != null)
+                {
+                    ShopUI.Instance.OpenShopMenu(shopItems, isFree);
+                }
+                else
+                {
+                    Debug.LogWarning("[NPCController] ShopUI instance is null in the scene!");
+                }
+            }
+            else
+            {
+                Debug.Log($"[NPCController] NPC {npcName} has no interactable shop or items.");
+            }
+        }
+
+        public void Talk()
+        {
+            if (dialogueTree != null)
+            {
+                if (TheLastEmpire.UI.DialogueUI.Instance != null)
+                {
+                    TheLastEmpire.UI.DialogueUI.Instance.StartDialogue(dialogueTree);
+                }
+                else
+                {
+                    Debug.LogWarning("[NPCController] DialogueUI instance is null in the scene!");
+                }
+            }
+            else
+            {
+                Debug.Log($"[NPCController] NPC {npcName} has no dialogue tree assigned.");
             }
         }
     }

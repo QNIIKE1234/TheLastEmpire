@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TheLastEmpire
 {
     [CustomEditor(typeof(WorldMapGenerator))]
-    public class WorldMapGeneratorEditor : Editor
+    public class WorldMapGeneratorEditor : UnityEditor.Editor
     {
         private Texture2D _cachedPreviewTexture;
 

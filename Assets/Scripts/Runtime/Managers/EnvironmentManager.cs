@@ -173,7 +173,8 @@ namespace TheLastEmpire
                             {
                                 float spawnY = streetPrefab.transform.position.y;
                                 Vector3 worldPos = new Vector3(cellCenter.x, spawnY, cellCenter.y);
-                                GameObject tile = Instantiate(streetPrefab, worldPos, Quaternion.identity, _currentEnvContainer.transform);
+                                Quaternion streetRot = streetPrefab.transform.rotation;
+                                GameObject tile = Instantiate(streetPrefab, worldPos, streetRot, _currentEnvContainer.transform);
                                 tile.name = streetPrefab.name;
                             }
                             else if (useProceduralFallbacks)
@@ -248,7 +249,8 @@ namespace TheLastEmpire
                                 // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                                 float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                                 Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                                Quaternion rotation = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                                Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                                Quaternion rotation = randomYaw * prefab.transform.rotation;
                                 GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                                 obj.name = prefab.name;
                             }
@@ -301,7 +303,8 @@ namespace TheLastEmpire
                         {
                             float spawnY = streetPrefab.transform.position.y;
                             Vector3 worldPos = new Vector3(cellCenter.x, spawnY, cellCenter.y);
-                            GameObject tile = Instantiate(streetPrefab, worldPos, Quaternion.identity, _currentEnvContainer.transform);
+                            Quaternion streetRot = streetPrefab.transform.rotation;
+                            GameObject tile = Instantiate(streetPrefab, worldPos, streetRot, _currentEnvContainer.transform);
                             tile.name = streetPrefab.name;
                         }
                         else if (useProceduralFallbacks)
@@ -420,7 +423,8 @@ namespace TheLastEmpire
                     // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                     Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                    Quaternion rotation = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion rotation = randomYaw * prefab.transform.rotation;
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
                 }
@@ -446,7 +450,8 @@ namespace TheLastEmpire
                     // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                     Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                    Quaternion rotation = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion rotation = randomYaw * prefab.transform.rotation;
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
                 }
@@ -472,7 +477,8 @@ namespace TheLastEmpire
                     // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                     Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                    Quaternion rotation = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                    Quaternion rotation = randomYaw * prefab.transform.rotation;
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
                 }

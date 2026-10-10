@@ -40,6 +40,10 @@ namespace TheLastEmpire
         [SerializeField] private float yLimit = 5f;
         [SerializeField] private float entryOffset = 0.5f;
 
+        [Header("Visual & Animation")]
+        [SerializeField] private Animator animator;
+        private Animator _animator;
+
         private Rigidbody _rb;
         private Health _health;
         private Vector2 _moveInput;
@@ -148,6 +152,12 @@ namespace TheLastEmpire
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+            _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                _animator.applyRootMotion = false;
+            }
 
             // Automatically attach CameraFollow and CameraObstacleFader components to main camera if not present
             Camera mainCam = Camera.main;
@@ -267,6 +277,11 @@ namespace TheLastEmpire
                 {
                     _rb.linearVelocity = Vector3.zero;
                 }
+                if (_animator != null)
+                {
+                    _animator.SetFloat("Speed", 0f);
+                    _animator.SetBool("IsRunning", false);
+                }
                 if (LootUI.Instance != null)
                 {
                     LootUI.Instance.HidePrompt();
@@ -309,6 +324,22 @@ namespace TheLastEmpire
 
             UpdateInteractionPrompt();
             UpdateIndicators();
+            UpdateAnimation();
+        }
+
+        private void UpdateAnimation()
+        {
+            if (_animator == null)
+            {
+                _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+                if (_animator == null) return;
+            }
+
+            float moveMagnitude = _moveInput.magnitude;
+            _animator.SetFloat("Speed", moveMagnitude);
+            _animator.SetBool("IsRunning", _isSprinting && moveMagnitude > 0.1f);
+            _animator.SetBool("HasGun", CurrentWeapon != null);
+            _animator.SetBool("IsDashing", _isDashing);
         }
 
         private void UpdateIndicators()

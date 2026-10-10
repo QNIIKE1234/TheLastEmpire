@@ -2604,11 +2604,35 @@ MonoBehaviour:
   biomeConfigs:
   - biome: 0
     obstaclePrefabs:
-    - {fileID: 6929918662279242570, guid: ccc611fee8350b4479575a6c538267a7, type: 3}
-    - {fileID: 6166731534045168341, guid: d6e3df03b7e6e7343b78f916ddf26021, type: 3}
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}
+    - {fileID: 6692907033503816029, guid: 08531d9e60c5fa541a395f74dea404eb, type: 3}
+    - {fileID: 8157337793685357177, guid: 1d17537be5f1a5c468644ec8f108d43b, type: 3}
+    - {fileID: 5661903787960213412, guid: 4d9816d519d539e4daad1911267ea396, type: 3}
+    - {fileID: 3793395306775473550, guid: 0d84f9b09c05ec64ab869d45c6a71edc, type: 3}
+    - {fileID: 3963649533660054913, guid: 6ac5dda0f4bb9b74ba036f86db98d38a, type: 3}
     decorationPrefabs:
-    - {fileID: 214653534920181359, guid: 56d616cd9655c4f49bf4b3eb87e9e5ba, type: 3}
-    - {fileID: 595044969426105152, guid: c41a5ae2dabb92447922fbe04a80113c, type: 3}
+    - {fileID: 7108560873184603299, guid: 202c25754d4d01041929af0ed0d69b1e, type: 3}
+    - {fileID: 2350121671736316151, guid: b97b8c584b3878b4dbea9ef449b04fce, type: 3}
+    - {fileID: 9159210271525439359, guid: 37513c80895abf34cae38698a8db96c4, type: 3}
+    - {fileID: 6231080895862880033, guid: 94afea871e9caf94e8f7de95bf3c6279, type: 3}
+    - {fileID: 9170967294660820131, guid: 20290a8e15a55c64ba4a91b08525184b, type: 3}
+    - {fileID: 2319496033843633720, guid: 5dc47874b82e8f84b89cbda4c02d6640, type: 3}
+    - {fileID: 8223115891223181465, guid: 96549b1097fe21c40a3a24742b774a7a, type: 3}
+    - {fileID: 4401880665568269341, guid: 500ed1a2348f0b247b2045d391d67176, type: 3}
+    - {fileID: 5218757425190262907, guid: d0d9a80444277f741bc1a6787e8ccc6a, type: 3}
+    - {fileID: 3093555597949459182, guid: 0e96757b9e89cd440bce320a83e0e101, type: 3}
+    - {fileID: 5090274247912332986, guid: 86e5277865b3ad24eaecd6e91ac1c51f, type: 3}
+    - {fileID: 263421900335196046, guid: 95a9f67dfe539334ca24644ce7881d93, type: 3}
+    - {fileID: 3471266897832539031, guid: 3a16b0eda2bed664f9290bb0d8d29ec6, type: 3}
+    - {fileID: 1439924229690910095, guid: 1d88c95e81622944db40e2b10f1ba468, type: 3}
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 6433954617877645930, guid: e2dafd4470c666a48b8ed072d7f825b2, type: 3}
+    - {fileID: 9187497745971441478, guid: e0a12b570aab31248a003bc3be07054b, type: 3}
+    - {fileID: 3949916494162747498, guid: 49e794313ed6fe34a9e720a4376bd1a9, type: 3}
+    - {fileID: 1823946344444929611, guid: b7844f7fa27e4604da14053b2e38c384, type: 3}
+    - {fileID: 3288608938212174190, guid: f5a454cd3d630404d9b67a24d6648744, type: 3}
+    - {fileID: 192898508905197384, guid: 419aedbd54efe46488b7222ee0083261, type: 3}
     streetPrefabs:
     - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
     minObstacles: 10
@@ -2617,17 +2641,41 @@ MonoBehaviour:
     maxDecorations: 13
   - biome: 7
     obstaclePrefabs:
-    - {fileID: 6929918662279242570, guid: ccc611fee8350b4479575a6c538267a7, type: 3}
-    - {fileID: 6166731534045168341, guid: d6e3df03b7e6e7343b78f916ddf26021, type: 3}
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}
+    - {fileID: 6692907033503816029, guid: 08531d9e60c5fa541a395f74dea404eb, type: 3}
+    - {fileID: 8157337793685357177, guid: 1d17537be5f1a5c468644ec8f108d43b, type: 3}
+    - {fileID: 5661903787960213412, guid: 4d9816d519d539e4daad1911267ea396, type: 3}
+    - {fileID: 3793395306775473550, guid: 0d84f9b09c05ec64ab869d45c6a71edc, type: 3}
+    - {fileID: 3963649533660054913, guid: 6ac5dda0f4bb9b74ba036f86db98d38a, type: 3}
     decorationPrefabs:
-    - {fileID: 214653534920181359, guid: 56d616cd9655c4f49bf4b3eb87e9e5ba, type: 3}
-    - {fileID: 595044969426105152, guid: c41a5ae2dabb92447922fbe04a80113c, type: 3}
+    - {fileID: 7108560873184603299, guid: 202c25754d4d01041929af0ed0d69b1e, type: 3}
+    - {fileID: 2350121671736316151, guid: b97b8c584b3878b4dbea9ef449b04fce, type: 3}
+    - {fileID: 9159210271525439359, guid: 37513c80895abf34cae38698a8db96c4, type: 3}
+    - {fileID: 6231080895862880033, guid: 94afea871e9caf94e8f7de95bf3c6279, type: 3}
+    - {fileID: 9170967294660820131, guid: 20290a8e15a55c64ba4a91b08525184b, type: 3}
+    - {fileID: 2319496033843633720, guid: 5dc47874b82e8f84b89cbda4c02d6640, type: 3}
+    - {fileID: 8223115891223181465, guid: 96549b1097fe21c40a3a24742b774a7a, type: 3}
+    - {fileID: 4401880665568269341, guid: 500ed1a2348f0b247b2045d391d67176, type: 3}
+    - {fileID: 5218757425190262907, guid: d0d9a80444277f741bc1a6787e8ccc6a, type: 3}
+    - {fileID: 3093555597949459182, guid: 0e96757b9e89cd440bce320a83e0e101, type: 3}
+    - {fileID: 5090274247912332986, guid: 86e5277865b3ad24eaecd6e91ac1c51f, type: 3}
+    - {fileID: 263421900335196046, guid: 95a9f67dfe539334ca24644ce7881d93, type: 3}
+    - {fileID: 3471266897832539031, guid: 3a16b0eda2bed664f9290bb0d8d29ec6, type: 3}
+    - {fileID: 1439924229690910095, guid: 1d88c95e81622944db40e2b10f1ba468, type: 3}
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 6433954617877645930, guid: e2dafd4470c666a48b8ed072d7f825b2, type: 3}
+    - {fileID: 9187497745971441478, guid: e0a12b570aab31248a003bc3be07054b, type: 3}
+    - {fileID: 3949916494162747498, guid: 49e794313ed6fe34a9e720a4376bd1a9, type: 3}
+    - {fileID: 1823946344444929611, guid: b7844f7fa27e4604da14053b2e38c384, type: 3}
+    - {fileID: 3288608938212174190, guid: f5a454cd3d630404d9b67a24d6648744, type: 3}
+    - {fileID: 192898508905197384, guid: 419aedbd54efe46488b7222ee0083261, type: 3}
     streetPrefabs:
     - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
-    minObstacles: 3
-    maxObstacles: 3
-    minDecorations: 2
-    maxDecorations: 7
+    minObstacles: 10
+    maxObstacles: 10
+    minDecorations: 13
+    maxDecorations: 13
   useProceduralFallbacks: 0
   propBaseMaterial: {fileID: 0}
   snapToGrid: 1
@@ -3914,7 +3962,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000061035156}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: -0.000030518}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &589335459
@@ -8356,7 +8404,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 155.00002, y: 48.99994}
+  m_AnchoredPosition: {x: 155.00002, y: 49}
   m_SizeDelta: {x: 250, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1243525789
@@ -14701,8 +14749,8 @@ PrefabInstance:
       value: PlayerPrefabs
       objectReference: {fileID: 0}
     - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: gunshotAlertRange
-      value: 15
+      propertyPath: moveSpeed
+      value: 1.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

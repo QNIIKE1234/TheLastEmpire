@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5685935047827960579
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      propertyPath: m_Name
+      value: Apoc_Vehicle_03_Abandoned_Bus
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5248929812939038709}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -2235465968292029241}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -578378614846723732}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8089271283768861075}
+  m_SourcePrefab: {fileID: 100100000, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+--- !u!1 &4767365994655485522 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: b0edcb94cc61413b8c402dd74da45c68, type: 3}
+  m_PrefabInstance: {fileID: 5685935047827960579}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-5248929812939038709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4767365994655485522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
+  containerName: Broken Bike
+  moneyAmount: 0
+  itemsInside: []
+  randomizeLoot: 1
+  minRandomCash: 10
+  maxRandomCash: 300
+  possibleLoot:
+  - itemName: Shotgun
+    minQuantity: 1
+    maxQuantity: 1
+    dropProbability: 0.05
+  - itemName: Ammo
+    minQuantity: 1
+    maxQuantity: 20
+    dropProbability: 0.2
+  - itemName: Potion
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  - itemName: Bread
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  isSearched: 0
+  interactionRadius: 2
+--- !u!114 &-2235465968292029241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4767365994655485522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15d932a97bfe0804fba98654508c44ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.AutoCollider
+  colliderType: 0
+  isTrigger: 0
+  physicMaterial: {fileID: 0}
+  sizeMultiplier: {x: 1, y: 1, z: 1}
+  centerOffset: {x: 0, y: 0, z: 0}
+  capsuleDirection: 1
+  convexMeshCollider: 0
+  includeInactive: 0
+  ignoreTriggerColliders: 1
+  fitOnAwake: 0
+--- !u!65 &-578378614846723732
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4767365994655485522}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8.368535, y: 2.5000007, z: 2.9100006}
+  m_Center: {x: 0.084267616, y: -0.00000011920929, z: 1.4550003}
+--- !u!65 &-8089271283768861075
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4767365994655485522}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8.368535, y: 2.5000007, z: 2.9100006}
+  m_Center: {x: 0.084267616, y: -0.00000011920929, z: 1.4550003}
