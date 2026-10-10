@@ -174,6 +174,7 @@ RectTransform:
   m_Children:
   - {fileID: 7861954115729961477}
   - {fileID: 5020895269003700054}
+  - {fileID: 4740730126071147928}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -259,11 +260,14 @@ MonoBehaviour:
   explosionRadius: 5
   explosionDamage: 120
   fuseDuration: 0.8
+  explosionVfxPoolKey: EnemyExplosion
+  explosionVfxScaleMultiplier: 1
   buffRadius: 6
   childZombiePrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
   spawnCooldown: 10
   maxChildSpawns: 3
   childPoolKey: Zombie001
+  throwMinionAtPlayer: 1
 --- !u!114 &-5781105677173290729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,7 +663,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7683872188222677984}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -701,3 +705,77 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &5062272016079112819
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2278688315463160727}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+      propertyPath: m_Name
+      value: ChibiStickBase
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+--- !u!4 &4740730126071147928 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 363d4427b96c5644eacfb330aa0c6452, type: 3}
+  m_PrefabInstance: {fileID: 5062272016079112819}
+  m_PrefabAsset: {fileID: 0}

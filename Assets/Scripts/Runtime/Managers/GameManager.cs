@@ -42,6 +42,7 @@ namespace TheLastEmpire
         [SerializeField] private CollectibleItem moneyDropPrefab;
 
         private List<GameObject> _activeEnemies = new List<GameObject>();
+        private readonly HashSet<int> _usedSectorIndices = new HashSet<int>();
         private StageData _currentStage;
 
         [Header("NPC Spawning Settings")]
@@ -198,6 +199,7 @@ namespace TheLastEmpire
                 }
             }
             _activeEnemies.Clear();
+            _usedSectorIndices.Clear();
 
             // Clear any active collectible items from the previous stage dynamically
             CollectibleItem[] oldItems = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
@@ -277,6 +279,8 @@ namespace TheLastEmpire
             // 4. GDD: Check if stage has previously saved remaining enemies
             if (stage.remainingEnemyPrefabNames != null)
             {
+                Random.InitState(stage.stageSeed + 777);
+                _usedSectorIndices.Clear();
                 Debug.Log($"[GameManager] Respawning {stage.remainingEnemyPrefabNames.Count} remaining saved enemies for Stage ({stage.x}, {stage.y})");
                 foreach (string prefabName in stage.remainingEnemyPrefabNames)
                 {
@@ -338,6 +342,7 @@ namespace TheLastEmpire
 
             // Initialize remaining enemies list to start tracking
             stage.remainingEnemyPrefabNames = new List<string>();
+            _usedSectorIndices.Clear();
 
             // 9. Spawn enemies for each matching configuration
             foreach (BiomeSpawnConfig currentConfig in configsToSpawn)
@@ -375,56 +380,60 @@ namespace TheLastEmpire
             }
         }
 
+        private struct SpawnSector
+        {
+            public string name;
+            public float minX;
+            public float maxX;
+            public float minZ;
+            public float maxZ;
+            public Vector3 center;
+
+            public SpawnSector(string name, float minX, float maxX, float minZ, float maxZ)
+            {
+                this.name = name;
+                this.minX = minX;
+                this.maxX = maxX;
+                this.minZ = minZ;
+                this.maxZ = maxZ;
+                this.center = new Vector3((minX + maxX) * 0.5f, 0.2f, (minZ + maxZ) * 0.5f);
+            }
+        }
+
+        // 12 distinct spatial sectors across the 32x18m stage ensuring enemies spawn widely dispersed across corners & edges
+        private static readonly SpawnSector[] StageSectors = new SpawnSector[]
+        {
+            // Row 0: North / Top side (Z: 3.2 to 6.2)
+            new SpawnSector("Top-Left (NW)",       -12.0f, -6.5f,   3.2f,  6.2f),
+            new SpawnSector("Top-Mid-Left",         -6.0f, -1.0f,   3.2f,  6.2f),
+            new SpawnSector("Top-Mid-Right",         1.0f,  6.0f,   3.2f,  6.2f),
+            new SpawnSector("Top-Right (NE)",        6.5f, 12.0f,   3.2f,  6.2f),
+
+            // Row 1: Middle band (Z: -1.8 to 1.8)
+            new SpawnSector("Far-West",            -12.0f, -7.0f,  -1.8f,  1.8f),
+            new SpawnSector("Inner-West",           -6.0f, -1.5f,  -1.8f,  1.8f),
+            new SpawnSector("Inner-East",            1.5f,  6.0f,  -1.8f,  1.8f),
+            new SpawnSector("Far-East",              7.0f, 12.0f,  -1.8f,  1.8f),
+
+            // Row 2: South / Bottom side (Z: -6.2 to -3.2)
+            new SpawnSector("Bottom-Left (SW)",    -12.0f, -6.5f,  -6.2f, -3.2f),
+            new SpawnSector("Bottom-Mid-Left",      -6.0f, -1.0f,  -6.2f, -3.2f),
+            new SpawnSector("Bottom-Mid-Right",      1.0f,  6.0f,  -6.2f, -3.2f),
+            new SpawnSector("Bottom-Right (SE)",     6.5f, 12.0f,  -6.2f, -3.2f),
+        };
+
         private void SpawnEnemyInstance(GameObject prefab, string pKey)
         {
             PlayerController player = Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
-            Vector3 spawnPos = Vector3.zero;
-            bool foundSafe = false;
-            int maxAttempts = 15;
+            // Remove null or inactive enemies from tracking list
+            _activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
 
-            for (int attempt = 0; attempt < maxAttempts; attempt++)
-            {
-                // Select a random position within viewport limits (padding borders)
-                float spawnX = Random.Range(-6f, 6f);
-                float spawnY = Random.Range(-3.5f, 3.5f);
-                Vector3 candidatePos = new Vector3(spawnX, 0.2f, spawnY);
+            // Sync physics transforms so newly instantiated obstacles have up-to-date colliders
+            Physics.SyncTransforms();
 
-                // 1. Prevent spawning directly on top of or too close to the player
-                if (Vector3.Distance(candidatePos, playerPos) < 2.2f)
-                {
-                    continue;
-                }
-
-                // 2. Prevent spawning inside solid environment obstacles or on top of players/enemies
-                Collider[] colliders = Physics.OverlapSphere(candidatePos, 0.8f);
-                bool overlapsObstacle = false;
-                foreach (Collider col in colliders)
-                {
-                    if (col == null || col.isTrigger) continue;
-                    if (col.CompareTag("Ground")) continue;
-
-                    overlapsObstacle = true;
-                    break;
-                }
-
-                if (!overlapsObstacle)
-                {
-                    spawnPos = candidatePos;
-                    foundSafe = true;
-                    break;
-                }
-            }
-
-            if (!foundSafe)
-            {
-                // Fallback if no safe position found: place it away from player on the X/Z plane
-                float spawnX = Random.Range(-6f, 6f);
-                float spawnY = Random.Range(-3.5f, 3.5f);
-                if (Mathf.Abs(spawnX - playerPos.x) < 2f) spawnX += 3f * (spawnX - playerPos.x == 0f ? 1f : Mathf.Sign(spawnX - playerPos.x));
-                spawnPos = new Vector3(spawnX, 0.2f, spawnY);
-            }
+            Vector3 spawnPos = FindDistributedSpawnPosition(playerPos);
 
             GameObject enemy;
             if (!string.IsNullOrEmpty(pKey) && ObjectPoolManager.Instance != null)
@@ -439,6 +448,197 @@ namespace TheLastEmpire
             if (enemy != null)
             {
                 _activeEnemies.Add(enemy);
+            }
+        }
+
+        private Vector3 FindDistributedSpawnPosition(Vector3 playerPos)
+        {
+            // 1. Gather all sectors that haven't been claimed yet in this stage
+            List<int> availableSectorIndices = new List<int>();
+            for (int i = 0; i < StageSectors.Length; i++)
+            {
+                if (!_usedSectorIndices.Contains(i))
+                {
+                    availableSectorIndices.Add(i);
+                }
+            }
+
+            // If all sectors were used (e.g. >12 enemies), reset so all sectors are available again
+            if (availableSectorIndices.Count == 0)
+            {
+                _usedSectorIndices.Clear();
+                for (int i = 0; i < StageSectors.Length; i++)
+                {
+                    availableSectorIndices.Add(i);
+                }
+            }
+
+            // 2. Prioritize sectors that maintain generous distance from player (>= 4.5m) and existing enemies (>= 4.5m)
+            List<int> preferredSectors = new List<int>();
+            List<int> acceptableSectors = new List<int>();
+
+            foreach (int idx in availableSectorIndices)
+            {
+                SpawnSector sector = StageSectors[idx];
+                float distToPlayer = Vector3.Distance(sector.center, playerPos);
+
+                float minDistToEnemy = float.MaxValue;
+                foreach (GameObject enemy in _activeEnemies)
+                {
+                    if (enemy != null && enemy.activeInHierarchy)
+                    {
+                        float d = Vector3.Distance(sector.center, enemy.transform.position);
+                        if (d < minDistToEnemy) minDistToEnemy = d;
+                    }
+                }
+
+                if (distToPlayer >= 4.5f && minDistToEnemy >= 4.5f)
+                {
+                    preferredSectors.Add(idx);
+                }
+                else if (distToPlayer >= 3.2f && minDistToEnemy >= 3.2f)
+                {
+                    acceptableSectors.Add(idx);
+                }
+            }
+
+            List<int> candidateSectors = preferredSectors.Count > 0 ? preferredSectors :
+                                        (acceptableSectors.Count > 0 ? acceptableSectors : availableSectorIndices);
+
+            // Shuffle candidates so enemy choice is randomized across available zones
+            ShuffleList(candidateSectors);
+
+            // 3. Try finding an obstacle-free point inside each candidate sector
+            foreach (int sectorIdx in candidateSectors)
+            {
+                SpawnSector sector = StageSectors[sectorIdx];
+
+                for (int attempt = 0; attempt < 8; attempt++)
+                {
+                    float x = Random.Range(sector.minX + 0.3f, sector.maxX - 0.3f);
+                    float z = Random.Range(sector.minZ + 0.3f, sector.maxZ - 0.3f);
+                    Vector3 candidatePos = new Vector3(x, 0.2f, z);
+
+                    if (Vector3.Distance(candidatePos, playerPos) < 3.8f) continue;
+
+                    bool tooCloseToEnemy = false;
+                    foreach (GameObject enemy in _activeEnemies)
+                    {
+                        if (enemy != null && enemy.activeInHierarchy && Vector3.Distance(candidatePos, enemy.transform.position) < 4.2f)
+                        {
+                            tooCloseToEnemy = true;
+                            break;
+                        }
+                    }
+                    if (tooCloseToEnemy) continue;
+
+                    if (IsPositionSafeFromObstacles(candidatePos))
+                    {
+                        _usedSectorIndices.Add(sectorIdx);
+                        return candidatePos;
+                    }
+                }
+            }
+
+            // 4. Fallback: Find the globally most isolated point on map maximizing distance from all existing enemies
+            return FindFurthestIsolatedPoint(playerPos);
+        }
+
+        private bool IsPositionSafeFromObstacles(Vector3 candidatePos)
+        {
+            Collider[] colliders = Physics.OverlapSphere(candidatePos, 0.65f);
+            foreach (Collider col in colliders)
+            {
+                if (col == null || col.isTrigger) continue;
+                if (IsIgnorableGroundOrWalkable(col)) continue;
+
+                // Hit a solid building, wall, prop, or blocker
+                return false;
+            }
+            return true;
+        }
+
+        private bool IsIgnorableGroundOrWalkable(Collider col)
+        {
+            if (col == null || col.isTrigger) return true;
+            if (col.CompareTag("Ground")) return true;
+
+            string colName = col.gameObject.name.ToLowerInvariant();
+            if (colName.Contains("ground") || 
+                colName.Contains("floor") || 
+                colName.Contains("road") || 
+                colName.Contains("street") || 
+                colName.Contains("terrain") ||
+                colName.Contains("plane"))
+            {
+                return true;
+            }
+
+            // Flat floor colliders (height <= 0.25m) are safe walkable surfaces
+            if (col.bounds.max.y <= 0.25f && col.bounds.size.y <= 0.5f)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private Vector3 FindFurthestIsolatedPoint(Vector3 playerPos)
+        {
+            float maxSpawnX = 12.0f;
+            float maxSpawnZ = 6.0f;
+
+            Vector3 bestPos = Vector3.zero;
+            float bestScore = -1f;
+
+            // Sample a 5x4 grid across the stage
+            for (float x = -maxSpawnX; x <= maxSpawnX; x += 6.0f)
+            {
+                for (float z = -maxSpawnZ; z <= maxSpawnZ; z += 4.0f)
+                {
+                    Vector3 candidatePos = new Vector3(x, 0.2f, z);
+
+                    if (Vector3.Distance(candidatePos, playerPos) < 3.2f) continue;
+                    if (!IsPositionSafeFromObstacles(candidatePos)) continue;
+
+                    float minDistToEnemy = float.MaxValue;
+                    foreach (GameObject enemy in _activeEnemies)
+                    {
+                        if (enemy != null && enemy.activeInHierarchy)
+                        {
+                            float d = Vector3.Distance(candidatePos, enemy.transform.position);
+                            if (d < minDistToEnemy) minDistToEnemy = d;
+                        }
+                    }
+
+                    float score = minDistToEnemy == float.MaxValue ? 100f : minDistToEnemy;
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestPos = candidatePos;
+                    }
+                }
+            }
+
+            if (bestScore > 0f)
+            {
+                return bestPos;
+            }
+
+            // Absolute fallback: pick opposite corner from player
+            float oppX = playerPos.x > 0 ? -9.5f : 9.5f;
+            float oppZ = playerPos.z > 0 ? -4.5f : 4.5f;
+            return new Vector3(oppX, 0.2f, oppZ);
+        }
+
+        private void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                T temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
             }
         }
 
@@ -601,6 +801,28 @@ namespace TheLastEmpire
         {
             // Placeholder: Switch audio tracks based on current biome type
             // e.g. SoundManager.Instance.PlayMusic(biomeMusicDictionary[biome]);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            // Visualize 12 spawn sectors in Unity Scene view for easy debugging
+            Color[] colors = new Color[]
+            {
+                new Color(0f, 1f, 0.5f, 0.25f),
+                new Color(0f, 0.7f, 1f, 0.25f),
+                new Color(1f, 0.8f, 0.2f, 0.25f),
+                new Color(1f, 0.3f, 0.5f, 0.25f)
+            };
+
+            for (int i = 0; i < StageSectors.Length; i++)
+            {
+                var s = StageSectors[i];
+                Gizmos.color = colors[i % colors.Length];
+                Vector3 size = new Vector3(s.maxX - s.minX, 0.4f, s.maxZ - s.minZ);
+                Gizmos.DrawCube(s.center, size);
+                Gizmos.color = Color.white;
+                Gizmos.DrawWireCube(s.center, size);
+            }
         }
     }
 }
