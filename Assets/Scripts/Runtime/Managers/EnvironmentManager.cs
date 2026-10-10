@@ -11,6 +11,11 @@ namespace TheLastEmpire
         public struct BiomeEnvConfig
         {
             public BiomeType biome;
+            [Tooltip("Addressable Label (e.g. 'Building' or 'Urban_Obstacles'). If set, assets with this label will be loaded dynamically via Addressables!")]
+            public string addressableObstacleLabel;
+            [Tooltip("Addressable Label for decorations (e.g. 'Urban_Decorations').")]
+            public string addressableDecorationLabel;
+
             [Tooltip("Prefabs that have colliders and block movement (e.g. Rocks, Trees, Fences).")]
             public List<GameObject> obstaclePrefabs;
             [Tooltip("Prefabs that are purely visual decoration without colliders (e.g. grass patches, dirt, debris, pebbles).")]
@@ -204,6 +209,8 @@ namespace TheLastEmpire
                     }
                 }
 
+                bool[,] customOccupied = new bool[rows, cols];
+
                 for (int r = 0; r < rows; r++)
                 {
                     if (customGrid == null || r >= customGrid.Length) continue;
@@ -213,51 +220,104 @@ namespace TheLastEmpire
                     for (int c = 0; c < cols; c++)
                     {
                         if (c >= row.columns.Length) continue;
-                        if (row.columns[c]) // Checked! Spawn obstacle at this grid coordinate
-                        {
-                            float x = startX + c * cellWidth + cellWidth * 0.5f;
-                            float y = startY + r * cellHeight + cellHeight * 0.5f;
-                            Vector2 spawnPos = new Vector2(x, y);
+                        if (!row.columns[c]) continue; // Cell not checked in inspector
+                        if (customOccupied[r, c]) continue; // Already occupied by a multi-cell model!
 
-                            // Skip spawning obstacles near active transition portals to keep doorway exits clear
-                            if (IsNearTransitionGates(spawnPos))
+                        float cellCenterX = startX + c * cellWidth + cellWidth * 0.5f;
+                        float cellCenterY = startY + r * cellHeight + cellHeight * 0.5f;
+                        Vector2 spawnPos = new Vector2(cellCenterX, cellCenterY);
+
+                        // Skip spawning obstacles near active transition portals to keep doorway exits clear
+                        if (IsNearTransitionGates(spawnPos))
+                        {
+                            continue;
+                        }
+
+                        bool isOnPath = IsPointOnWalkablePath(spawnPos, activePathSegments, 2.0f);
+
+                        GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
+                        if (isOnPath && IsLargeBuilding(prefab))
+                        {
+                            // Swap with a smaller prefab if on a street path
+                            prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                        }
+
+                        if (prefab != null)
+                        {
+                            if (isOnPath && IsLargeBuilding(prefab))
                             {
+                                // If still a building, skip it or fallback to a smaller procedural obstacle
+                                if (useProceduralFallbacks)
+                                {
+                                    CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, false);
+                                    customOccupied[r, c] = true;
+                                }
                                 continue;
                             }
 
-                            bool isOnPath = IsPointOnWalkablePath(spawnPos, activePathSegments, 2.0f);
+                            Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                            Quaternion rotation = randomYaw * prefab.transform.rotation;
 
-                            GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
-                            if (isOnPath && IsLargeBuilding(prefab))
+                            // Calculate actual footprint based on rotated model bounds vs cell size
+                            Vector2Int footprint = GetPrefabCellFootprint(prefab, rotation, cellWidth, cellHeight);
+
+                            // Check if the multi-cell space is available
+                            bool canSpan = true;
+                            if (r + footprint.y > rows || c + footprint.x > cols)
                             {
-                                // Swap with a smaller prefab if on a street path
-                                prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                                canSpan = false;
                             }
-
-                            if (prefab != null)
+                            else
                             {
-                                if (isOnPath && IsLargeBuilding(prefab))
+                                for (int dr = 0; dr < footprint.y; dr++)
                                 {
-                                    // If still a building, skip it or fallback to a smaller procedural obstacle
-                                    if (useProceduralFallbacks)
+                                    for (int dc = 0; dc < footprint.x; dc++)
                                     {
-                                        CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, false);
+                                        if (customOccupied[r + dr, c + dc])
+                                        {
+                                            canSpan = false;
+                                            break;
+                                        }
+                                        float chkX = startX + (c + dc) * cellWidth + cellWidth * 0.5f;
+                                        float chkY = startY + (r + dr) * cellHeight + cellHeight * 0.5f;
+                                        if (IsNearTransitionGates(new Vector2(chkX, chkY)))
+                                        {
+                                            canSpan = false;
+                                            break;
+                                        }
                                     }
-                                    continue;
+                                    if (!canSpan) break;
                                 }
+                            }
 
-                                // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
-                                float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
-                                Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                                Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
-                                Quaternion rotation = randomYaw * prefab.transform.rotation;
-                                GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                                obj.name = prefab.name;
-                            }
-                            else if (useProceduralFallbacks)
+                            int spanCols = canSpan ? footprint.x : 1;
+                            int spanRows = canSpan ? footprint.y : 1;
+
+                            // Mark all cells covered by this object as occupied
+                            for (int dr = 0; dr < spanRows; dr++)
                             {
-                                CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, !isOnPath);
+                                for (int dc = 0; dc < spanCols; dc++)
+                                {
+                                    if (r + dr < rows && c + dc < cols)
+                                    {
+                                        customOccupied[r + dr, c + dc] = true;
+                                    }
+                                }
                             }
+
+                            // Place model at the center of its multi-cell footprint
+                            float centerX = startX + (c + spanCols * 0.5f) * cellWidth;
+                            float centerZ = startY + (r + spanRows * 0.5f) * cellHeight;
+
+                            float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
+                            Vector3 worldPos = new Vector3(centerX, spawnY, centerZ);
+                            GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
+                            obj.name = prefab.name;
+                        }
+                        else if (useProceduralFallbacks)
+                        {
+                            CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.y, 0.0f), stage.biome, !isOnPath);
+                            customOccupied[r, c] = true;
                         }
                     }
                 }
@@ -334,64 +394,43 @@ namespace TheLastEmpire
                 }
             }
 
-            // Filter cells to only include safe cells
-            List<GridCell> buildingSafeCells = new List<GridCell>();
-            List<GridCell> pathObstacleSafeCells = new List<GridCell>();
-            List<GridCell> decorationSafeCells = new List<GridCell>();
+            // Initialize 2D Occupancy Grid and Path Grid
+            bool[,] occupiedGrid = new bool[rows, cols];
+            bool[,] isPathGrid = new bool[rows, cols];
             float safeRadius = 1.8f;
 
-            foreach (GridCell cell in allCells)
+            List<GridCell> decorationSafeCells = new List<GridCell>();
+
+            for (int r = 0; r < rows; r++)
             {
-                // Check player safety zone mapping to 3D ground plane coords (X and Z)
-                Vector3 cellWorldPos = new Vector3(cell.center.x, 0f, cell.center.y);
-                Vector3 playerWorldPos = new Vector3(playerPos.x, 0f, playerPos.z);
-                if (Vector3.Distance(cellWorldPos, playerWorldPos) < safeRadius)
+                for (int c = 0; c < cols; c++)
                 {
-                    continue;
-                }
+                    float x = startX + c * cellWidth + cellWidth * 0.5f;
+                    float y = startY + r * cellHeight + cellHeight * 0.5f;
+                    Vector2 cellCenter = new Vector2(x, y);
 
-                // Check transition gate safety zone
-                if (IsNearTransitionGates(cell.center))
-                {
-                    continue;
-                }
+                    // Check player safety zone mapping to 3D ground plane coords (X and Z)
+                    Vector3 cellWorldPos = new Vector3(x, 0f, y);
+                    Vector3 playerWorldPos = new Vector3(playerPos.x, 0f, playerPos.z);
+                    if (Vector3.Distance(cellWorldPos, playerWorldPos) < safeRadius || IsNearTransitionGates(cellCenter))
+                    {
+                        occupiedGrid[r, c] = true; // Mark as blocked/safe zone
+                        continue;
+                    }
 
-                // Check if the cell lies on a street path
-                bool isOnPath = IsPointOnWalkablePath(cell.center, activePathSegments, 2.0f);
-
-                // Only off-path cells are eligible for visual decorations (pebbles, leaves, puddles) to keep the streets clean
-                if (!isOnPath)
-                {
-                    decorationSafeCells.Add(cell);
-                }
-
-                if (isOnPath)
-                {
-                    pathObstacleSafeCells.Add(cell);
-                }
-                else
-                {
-                    buildingSafeCells.Add(cell);
+                    // Check if the cell lies on a street path
+                    if (IsPointOnWalkablePath(cellCenter, activePathSegments, 2.0f))
+                    {
+                        isPathGrid[r, c] = true;
+                    }
+                    else
+                    {
+                        decorationSafeCells.Add(new GridCell { row = r, col = c, center = new Vector3(x, y, 0f) });
+                    }
                 }
             }
 
-            // Shuffle safe cells deterministically using stage seed
-            for (int i = 0; i < buildingSafeCells.Count; i++)
-            {
-                GridCell temp = buildingSafeCells[i];
-                int randomIndex = Random.Range(i, buildingSafeCells.Count);
-                buildingSafeCells[i] = buildingSafeCells[randomIndex];
-                buildingSafeCells[randomIndex] = temp;
-            }
-
-            for (int i = 0; i < pathObstacleSafeCells.Count; i++)
-            {
-                GridCell temp = pathObstacleSafeCells[i];
-                int randomIndex = Random.Range(i, pathObstacleSafeCells.Count);
-                pathObstacleSafeCells[i] = pathObstacleSafeCells[randomIndex];
-                pathObstacleSafeCells[randomIndex] = temp;
-            }
-
+            // Shuffle decoration cells deterministically using stage seed
             for (int i = 0; i < decorationSafeCells.Count; i++)
             {
                 GridCell temp = decorationSafeCells[i];
@@ -403,51 +442,147 @@ namespace TheLastEmpire
             int obstacleCount = Random.Range(config.minObstacles, config.maxObstacles + 1);
             int decorationCount = Random.Range(config.minDecorations, config.maxDecorations + 1);
 
-            int buildingSpawnCount = Mathf.Min(Mathf.RoundToInt(obstacleCount * 0.7f), buildingSafeCells.Count);
-            int pathSpawnCount = Mathf.Min(obstacleCount - buildingSpawnCount, pathObstacleSafeCells.Count);
+            int buildingSpawnCount = Mathf.RoundToInt(obstacleCount * 0.7f);
+            int pathSpawnCount = obstacleCount - buildingSpawnCount;
             int spawnDecorations = Mathf.Min(decorationCount, decorationSafeCells.Count);
 
-            // 5a. Generate off-path buildings
+            // 5a. Generate off-path buildings using multi-cell footprint occupancy
             for (int i = 0; i < buildingSpawnCount; i++)
             {
-                GridCell cell = buildingSafeCells[i];
-                
-                // Add organic jitter within cell boundaries (only if not snapped to grid)
-                float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
-                float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
-                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
-
                 GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
-                if (prefab != null)
+                if (prefab == null) continue;
+
+                Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                Quaternion rotation = randomYaw * prefab.transform.rotation;
+
+                // Calculate footprint in cells (X cols x Z rows)
+                Vector2Int footprint = GetPrefabCellFootprint(prefab, rotation, cellWidth, cellHeight);
+
+                // Find all valid (row, col) anchor positions where this multi-cell footprint fits completely
+                List<Vector2Int> validPositions = new List<Vector2Int>();
+                for (int r = 0; r <= rows - footprint.y; r++)
                 {
-                    // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
+                    for (int c = 0; c <= cols - footprint.x; c++)
+                    {
+                        bool canPlace = true;
+                        for (int dr = 0; dr < footprint.y; dr++)
+                        {
+                            for (int dc = 0; dc < footprint.x; dc++)
+                            {
+                                if (occupiedGrid[r + dr, c + dc] || isPathGrid[r + dr, c + dc])
+                                {
+                                    canPlace = false;
+                                    break;
+                                }
+                            }
+                            if (!canPlace) break;
+                        }
+
+                        if (canPlace)
+                        {
+                            validPositions.Add(new Vector2Int(c, r));
+                        }
+                    }
+                }
+
+                if (validPositions.Count > 0)
+                {
+                    // Randomly select one of the valid positions
+                    Vector2Int chosen = validPositions[Random.Range(0, validPositions.Count)];
+                    int startC = chosen.x;
+                    int startR = chosen.y;
+
+                    // Reserve all cells in the footprint
+                    for (int dr = 0; dr < footprint.y; dr++)
+                    {
+                        for (int dc = 0; dc < footprint.x; dc++)
+                        {
+                            occupiedGrid[startR + dr, startC + dc] = true;
+                        }
+                    }
+
+                    // Calculate center position across the multi-cell span
+                    float centerX = startX + (startC + footprint.x * 0.5f) * cellWidth;
+                    float centerZ = startY + (startR + footprint.y * 0.5f) * cellHeight;
+
+                    float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.1f, cellWidth * 0.1f);
+                    float jitterZ = snapToGrid ? 0f : Random.Range(-cellHeight * 0.1f, cellHeight * 0.1f);
+
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
-                    Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                    Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
-                    Quaternion rotation = randomYaw * prefab.transform.rotation;
+                    Vector3 worldPos = new Vector3(centerX + jitterX, spawnY, centerZ + jitterZ);
+
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
                 }
-                else if (useProceduralFallbacks)
+                else
                 {
-                    CreateProceduralObstacle(spawnPos, stage.biome, true);
+                    // Multi-cell footprint couldn't fit; fallback to a 1x1 smaller prefab
+                    GameObject smallerPrefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                    List<Vector2Int> singleCells = new List<Vector2Int>();
+                    for (int r = 0; r < rows; r++)
+                    {
+                        for (int c = 0; c < cols; c++)
+                        {
+                            if (!occupiedGrid[r, c] && !isPathGrid[r, c])
+                            {
+                                singleCells.Add(new Vector2Int(c, r));
+                            }
+                        }
+                    }
+
+                    if (singleCells.Count > 0)
+                    {
+                        Vector2Int singleChosen = singleCells[Random.Range(0, singleCells.Count)];
+                        occupiedGrid[singleChosen.y, singleChosen.x] = true;
+
+                        float centerX = startX + (singleChosen.x + 0.5f) * cellWidth;
+                        float centerZ = startY + (singleChosen.y + 0.5f) * cellHeight;
+
+                        if (smallerPrefab != null)
+                        {
+                            float spawnY = smallerPrefab.transform.position.y + prefabSpawnOffsetHeight;
+                            Vector3 worldPos = new Vector3(centerX, spawnY, centerZ);
+                            GameObject obj = Instantiate(smallerPrefab, worldPos, rotation, _currentEnvContainer.transform);
+                            obj.name = smallerPrefab.name;
+                        }
+                        else if (useProceduralFallbacks)
+                        {
+                            CreateProceduralObstacle(new Vector3(centerX, centerZ, 0f), stage.biome, true);
+                        }
+                    }
                 }
             }
 
             // 5b. Generate on-path small obstacles
             for (int i = 0; i < pathSpawnCount; i++)
             {
-                GridCell cell = pathObstacleSafeCells[i];
-                
-                // Add organic jitter within cell boundaries (only if not snapped to grid)
+                List<Vector2Int> pathCandidates = new List<Vector2Int>();
+                for (int r = 0; r < rows; r++)
+                {
+                    for (int c = 0; c < cols; c++)
+                    {
+                        if (isPathGrid[r, c] && !occupiedGrid[r, c])
+                        {
+                            pathCandidates.Add(new Vector2Int(c, r));
+                        }
+                    }
+                }
+
+                if (pathCandidates.Count == 0) break;
+
+                Vector2Int chosen = pathCandidates[Random.Range(0, pathCandidates.Count)];
+                occupiedGrid[chosen.y, chosen.x] = true;
+
+                float x = startX + (chosen.x + 0.5f) * cellWidth;
+                float y = startY + (chosen.y + 0.5f) * cellHeight;
+
                 float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
                 float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
-                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
+                Vector3 spawnPos = new Vector3(x + jitterX, y + jitterY, 0f);
 
                 GameObject prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
                 if (prefab != null)
                 {
-                    // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                     Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
                     Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
@@ -462,9 +597,16 @@ namespace TheLastEmpire
             }
 
             // 6. Generate Decorations (visuals only)
-            for (int i = 0; i < spawnDecorations; i++)
+            int spawnedDecorCount = 0;
+            for (int i = 0; i < decorationSafeCells.Count && spawnedDecorCount < spawnDecorations; i++)
             {
                 GridCell cell = decorationSafeCells[i];
+
+                // Do not spawn decorations on cells that are already occupied by buildings, vehicles, or obstacles!
+                if (occupiedGrid[cell.row, cell.col])
+                {
+                    continue;
+                }
 
                 // Add organic jitter within cell boundaries (only if not snapped to grid)
                 float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
@@ -481,10 +623,15 @@ namespace TheLastEmpire
                     Quaternion rotation = randomYaw * prefab.transform.rotation;
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
+
+                    occupiedGrid[cell.row, cell.col] = true;
+                    spawnedDecorCount++;
                 }
                 else if (useProceduralFallbacks)
                 {
                     CreateProceduralDecoration(spawnPos, stage.biome);
+                    occupiedGrid[cell.row, cell.col] = true;
+                    spawnedDecorCount++;
                 }
             }
 
@@ -520,6 +667,53 @@ namespace TheLastEmpire
                 minDecorations = 6,
                 maxDecorations = 12
             };
+        }
+
+        /// <summary>
+        /// Asynchronously preloads all Addressable prefabs for this biome using its configured label (e.g. 'Building').
+        /// </summary>
+        public async System.Threading.Tasks.Task PreloadBiomeAddressablesAsync(BiomeType biome)
+        {
+            if (biomeConfigs == null) return;
+            int index = biomeConfigs.FindIndex(b => b.biome == biome);
+            if (index < 0) index = biomeConfigs.FindIndex(b => b.biome == BiomeType.All);
+            if (index < 0) return;
+
+            BiomeEnvConfig config = biomeConfigs[index];
+
+            if (!string.IsNullOrEmpty(config.addressableObstacleLabel))
+            {
+                IList<GameObject> loadedObstacles = await AddressableManager.LoadAssetsByLabelAsync<GameObject>(config.addressableObstacleLabel);
+                if (loadedObstacles != null && loadedObstacles.Count > 0)
+                {
+                    if (config.obstaclePrefabs == null) config.obstaclePrefabs = new List<GameObject>();
+                    foreach (var go in loadedObstacles)
+                    {
+                        if (go != null && !config.obstaclePrefabs.Contains(go))
+                        {
+                            config.obstaclePrefabs.Add(go);
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(config.addressableDecorationLabel))
+            {
+                IList<GameObject> loadedDecos = await AddressableManager.LoadAssetsByLabelAsync<GameObject>(config.addressableDecorationLabel);
+                if (loadedDecos != null && loadedDecos.Count > 0)
+                {
+                    if (config.decorationPrefabs == null) config.decorationPrefabs = new List<GameObject>();
+                    foreach (var go in loadedDecos)
+                    {
+                        if (go != null && !config.decorationPrefabs.Contains(go))
+                        {
+                            config.decorationPrefabs.Add(go);
+                        }
+                    }
+                }
+            }
+
+            biomeConfigs[index] = config;
         }
 
         private Vector3 GetRandomSafePosition(Vector3 playerPos, float safeRadius)
@@ -1313,6 +1507,131 @@ namespace TheLastEmpire
             return Vector2.Distance(t, projectionPoint);
         }
 
+        /// <summary>
+        /// Calculates the world-space bounding size (X and Z) of a prefab after applying rotation.
+        /// </summary>
+        public Vector2 GetPrefabWorldSize(GameObject prefab, Quaternion rotation)
+        {
+            if (prefab == null) return new Vector2(1f, 1f);
+
+            Bounds bounds = new Bounds();
+            bool hasBounds = false;
+
+            // 1. Check BoxColliders first (accurate for props & structures)
+            BoxCollider[] boxColliders = prefab.GetComponentsInChildren<BoxCollider>();
+            if (boxColliders != null && boxColliders.Length > 0)
+            {
+                foreach (var box in boxColliders)
+                {
+                    if (box.isTrigger) continue;
+                    Vector3 size = Vector3.Scale(box.size, box.transform.lossyScale);
+                    Vector3 center = box.center;
+                    Bounds b = new Bounds(center, size);
+                    if (!hasBounds)
+                    {
+                        bounds = b;
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(b);
+                    }
+                }
+            }
+
+            // 2. Check general Colliders
+            if (!hasBounds)
+            {
+                Collider[] colliders = prefab.GetComponentsInChildren<Collider>();
+                foreach (var col in colliders)
+                {
+                    if (col.isTrigger) continue;
+                    Bounds b = col.bounds;
+                    if (!hasBounds)
+                    {
+                        bounds = b;
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(b);
+                    }
+                }
+            }
+
+            // 3. Fallback to Renderers if no Colliders found
+            if (!hasBounds)
+            {
+                Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>();
+                foreach (var rend in renderers)
+                {
+                    if (rend is ParticleSystemRenderer) continue;
+                    Bounds b = rend.bounds;
+                    if (!hasBounds)
+                    {
+                        bounds = b;
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        bounds.Encapsulate(b);
+                    }
+                }
+            }
+
+            if (!hasBounds || bounds.size.sqrMagnitude < 0.001f)
+            {
+                return new Vector2(1f, 1f);
+            }
+
+            // Rotate all 8 corners by the target rotation to find projected bounds on the ground plane (X and Z)
+            Vector3 extents = bounds.extents;
+            Vector3[] corners = new Vector3[8]
+            {
+                rotation * new Vector3(-extents.x, -extents.y, -extents.z),
+                rotation * new Vector3( extents.x, -extents.y, -extents.z),
+                rotation * new Vector3(-extents.x,  extents.y, -extents.z),
+                rotation * new Vector3( extents.x,  extents.y, -extents.z),
+                rotation * new Vector3(-extents.x, -extents.y,  extents.z),
+                rotation * new Vector3( extents.x, -extents.y,  extents.z),
+                rotation * new Vector3(-extents.x,  extents.y,  extents.z),
+                rotation * new Vector3( extents.x,  extents.y,  extents.z)
+            };
+
+            float minX = float.MaxValue, maxX = float.MinValue;
+            float minZ = float.MaxValue, maxZ = float.MinValue;
+
+            for (int i = 0; i < 8; i++)
+            {
+                if (corners[i].x < minX) minX = corners[i].x;
+                if (corners[i].x > maxX) maxX = corners[i].x;
+                if (corners[i].z < minZ) minZ = corners[i].z;
+                if (corners[i].z > maxZ) maxZ = corners[i].z;
+            }
+
+            float worldWidth = Mathf.Max(0.2f, maxX - minX);
+            float worldDepth = Mathf.Max(0.2f, maxZ - minZ);
+
+            return new Vector2(worldWidth, worldDepth);
+        }
+
+        /// <summary>
+        /// Compares the prefab's rotated physical dimensions with grid cell dimensions to determine how many cells it occupies.
+        /// </summary>
+        /// <param name="prefab">Target prefab</param>
+        /// <param name="rotation">Spawn rotation</param>
+        /// <param name="cellWidth">Width of one grid cell (X axis)</param>
+        /// <param name="cellHeight">Height of one grid cell (Z axis)</param>
+        /// <returns>Vector2Int where x = columns spanned, y = rows spanned</returns>
+        public Vector2Int GetPrefabCellFootprint(GameObject prefab, Quaternion rotation, float cellWidth, float cellHeight)
+        {
+            Vector2 size = GetPrefabWorldSize(prefab, rotation);
+            // 0.82f margin prevents small model overshoots from unnecessarily snapping to extra cells
+            int spanCols = Mathf.Max(1, Mathf.CeilToInt((size.x * 0.82f) / cellWidth));
+            int spanRows = Mathf.Max(1, Mathf.CeilToInt((size.y * 0.82f) / cellHeight));
+            return new Vector2Int(spanCols, spanRows);
+        }
+
         private bool IsLargeBuilding(GameObject prefab)
         {
             if (prefab == null) return false;
@@ -1321,14 +1640,10 @@ namespace TheLastEmpire
             {
                 return true;
             }
-            Collider col = prefab.GetComponentInChildren<Collider>();
-            if (col != null)
+            Vector2 size = GetPrefabWorldSize(prefab, Quaternion.identity);
+            if (size.x > 1.8f || size.y > 1.8f)
             {
-                Vector3 size = col.bounds.size;
-                if (size.x > 1.4f || size.z > 1.4f)
-                {
-                    return true;
-                }
+                return true;
             }
             return false;
         }
@@ -1358,6 +1673,74 @@ namespace TheLastEmpire
 #if UNITY_EDITOR
 namespace TheLastEmpire
 {
+    [UnityEditor.CustomPropertyDrawer(typeof(EnvironmentManager.BiomeEnvConfig))]
+    public class BiomeEnvConfigDrawer : UnityEditor.PropertyDrawer
+    {
+        public override float GetPropertyHeight(UnityEditor.SerializedProperty property, GUIContent label)
+        {
+            if (!property.isExpanded)
+            {
+                return UnityEditor.EditorGUIUtility.singleLineHeight;
+            }
+
+            float totalHeight = UnityEditor.EditorGUIUtility.singleLineHeight + 4f;
+            UnityEditor.SerializedProperty prop = property.Copy();
+            UnityEditor.SerializedProperty end = property.GetEndProperty();
+
+            if (prop.NextVisible(true))
+            {
+                while (!UnityEditor.SerializedProperty.EqualContents(prop, end))
+                {
+                    totalHeight += UnityEditor.EditorGUI.GetPropertyHeight(prop, true) + 2f;
+                    if (!prop.NextVisible(false)) break;
+                }
+            }
+
+            return totalHeight + 4f;
+        }
+
+        public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
+        {
+            UnityEditor.EditorGUI.BeginProperty(position, label, property);
+
+            // Fetch the current Biome enum display text
+            var biomeProp = property.FindPropertyRelative("biome");
+            string headerTitle = label.text;
+            if (biomeProp != null && biomeProp.enumValueIndex >= 0 && biomeProp.enumValueIndex < biomeProp.enumDisplayNames.Length)
+            {
+                headerTitle = biomeProp.enumDisplayNames[biomeProp.enumValueIndex];
+            }
+
+            Rect foldoutRect = new Rect(position.x, position.y, position.width, UnityEditor.EditorGUIUtility.singleLineHeight);
+            property.isExpanded = UnityEditor.EditorGUI.Foldout(foldoutRect, property.isExpanded, headerTitle, true, UnityEditor.EditorStyles.foldoutHeader);
+
+            if (property.isExpanded)
+            {
+                UnityEditor.EditorGUI.indentLevel++;
+                float y = position.y + UnityEditor.EditorGUIUtility.singleLineHeight + 4f;
+
+                UnityEditor.SerializedProperty prop = property.Copy();
+                UnityEditor.SerializedProperty end = property.GetEndProperty();
+
+                if (prop.NextVisible(true))
+                {
+                    while (!UnityEditor.SerializedProperty.EqualContents(prop, end))
+                    {
+                        float h = UnityEditor.EditorGUI.GetPropertyHeight(prop, true);
+                        Rect fieldRect = new Rect(position.x, y, position.width, h);
+                        UnityEditor.EditorGUI.PropertyField(fieldRect, prop, true);
+                        y += h + 2f;
+                        if (!prop.NextVisible(false)) break;
+                    }
+                }
+
+                UnityEditor.EditorGUI.indentLevel--;
+            }
+
+            UnityEditor.EditorGUI.EndProperty();
+        }
+    }
+
     [UnityEditor.CustomEditor(typeof(EnvironmentManager))]
     public class EnvironmentManagerEditor : UnityEditor.Editor
     {

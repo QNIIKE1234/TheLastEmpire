@@ -2602,7 +2602,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.EnvironmentManager
   biomeConfigs:
+  - biome: 1
+    addressableObstacleLabel: 
+    addressableDecorationLabel: 
+    obstaclePrefabs:
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}
+    - {fileID: 6692907033503816029, guid: 08531d9e60c5fa541a395f74dea404eb, type: 3}
+    - {fileID: 8157337793685357177, guid: 1d17537be5f1a5c468644ec8f108d43b, type: 3}
+    - {fileID: 5661903787960213412, guid: 4d9816d519d539e4daad1911267ea396, type: 3}
+    - {fileID: 3793395306775473550, guid: 0d84f9b09c05ec64ab869d45c6a71edc, type: 3}
+    - {fileID: 3963649533660054913, guid: 6ac5dda0f4bb9b74ba036f86db98d38a, type: 3}
+    - {fileID: 1838776205811184338, guid: 12846f5cf81dcfb47b9ae8947faeff21, type: 3}
+    - {fileID: 730577434667777469, guid: 34f51671bbc72284890cee4cf679e713, type: 3}
+    - {fileID: 8935399208795525961, guid: 79f8636ed35b4684fabcc6b77ebfa8e3, type: 3}
+    decorationPrefabs:
+    - {fileID: 4342106235256591986, guid: d6c1a3793b1f02d4c81cf8bc7573e6db, type: 3}
+    - {fileID: 4565579722485741112, guid: e56216f7c685a714e9d0c69b944293c6, type: 3}
+    - {fileID: 3100554182501582303, guid: 4e64aef05f4db2a48989543bcb4ba7e5, type: 3}
+    - {fileID: 3288608938212174190, guid: f5a454cd3d630404d9b67a24d6648744, type: 3}
+    - {fileID: 192898508905197384, guid: 419aedbd54efe46488b7222ee0083261, type: 3}
+    - {fileID: 5916765338084365503, guid: 822cac218dbbabf449530f94d1437899, type: 3}
+    - {fileID: 3471266897832539031, guid: 3a16b0eda2bed664f9290bb0d8d29ec6, type: 3}
+    - {fileID: 6880606836561973916, guid: c6d4cc9951e033744a5abb48a8a19d4e, type: 3}
+    - {fileID: 6849874358938319339, guid: 9f68fb47c7fa36a499af42b8f5bed99e, type: 3}
+    - {fileID: 3479132503404430666, guid: 1bc4fced19227eb4fa4b96e5c605dad3, type: 3}
+    - {fileID: 2837257471285162023, guid: 963e9eee4e18e134a9f098ae12170d12, type: 3}
+    - {fileID: 3100554182501582303, guid: 4e64aef05f4db2a48989543bcb4ba7e5, type: 3}
+    - {fileID: 4565579722485741112, guid: e56216f7c685a714e9d0c69b944293c6, type: 3}
+    streetPrefabs:
+    - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
+    minObstacles: 15
+    maxObstacles: 15
+    minDecorations: 25
+    maxDecorations: 17
   - biome: 0
+    addressableObstacleLabel: 
+    addressableDecorationLabel: 
     obstaclePrefabs:
     - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
     - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}
@@ -2639,7 +2675,59 @@ MonoBehaviour:
     maxObstacles: 10
     minDecorations: 13
     maxDecorations: 13
+  - biome: 5
+    addressableObstacleLabel: 
+    addressableDecorationLabel: 
+    obstaclePrefabs:
+    - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
+    - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}
+    - {fileID: 5661903787960213412, guid: 4d9816d519d539e4daad1911267ea396, type: 3}
+    - {fileID: 3793395306775473550, guid: 0d84f9b09c05ec64ab869d45c6a71edc, type: 3}
+    - {fileID: 3963649533660054913, guid: 6ac5dda0f4bb9b74ba036f86db98d38a, type: 3}
+    - {fileID: 6692907033503816029, guid: 08531d9e60c5fa541a395f74dea404eb, type: 3}
+    - {fileID: 1838776205811184338, guid: 12846f5cf81dcfb47b9ae8947faeff21, type: 3}
+    - {fileID: 730577434667777469, guid: 34f51671bbc72284890cee4cf679e713, type: 3}
+    - {fileID: 8935399208795525961, guid: 79f8636ed35b4684fabcc6b77ebfa8e3, type: 3}
+    decorationPrefabs:
+    - {fileID: 6880606836561973916, guid: c6d4cc9951e033744a5abb48a8a19d4e, type: 3}
+    - {fileID: 6849874358938319339, guid: 9f68fb47c7fa36a499af42b8f5bed99e, type: 3}
+    - {fileID: 3479132503404430666, guid: 1bc4fced19227eb4fa4b96e5c605dad3, type: 3}
+    - {fileID: 7285295718950806860, guid: 7ab47baefd692e747878383d5cc04042, type: 3}
+    - {fileID: 1552780081609622714, guid: bed6177d43a07004898edf09d542069e, type: 3}
+    - {fileID: 4565579722485741112, guid: e56216f7c685a714e9d0c69b944293c6, type: 3}
+    - {fileID: 4342106235256591986, guid: d6c1a3793b1f02d4c81cf8bc7573e6db, type: 3}
+    - {fileID: 1613095519483117973, guid: eaa60d1aca1f08d4cb8f061fbae810a2, type: 3}
+    - {fileID: 4046936229634067820, guid: 4a158cc5788618f4a9255805d5ef547f, type: 3}
+    - {fileID: 9133895924154683102, guid: 4b5dfa3bd2dffaa4a9a99194b86add65, type: 3}
+    - {fileID: 7204432817533605020, guid: 86b708fa0299376498268a7bbaa11a69, type: 3}
+    - {fileID: 2837257471285162023, guid: 963e9eee4e18e134a9f098ae12170d12, type: 3}
+    - {fileID: 6880606836561973916, guid: c6d4cc9951e033744a5abb48a8a19d4e, type: 3}
+    - {fileID: 6849874358938319339, guid: 9f68fb47c7fa36a499af42b8f5bed99e, type: 3}
+    - {fileID: 3479132503404430666, guid: 1bc4fced19227eb4fa4b96e5c605dad3, type: 3}
+    - {fileID: 2837257471285162023, guid: 963e9eee4e18e134a9f098ae12170d12, type: 3}
+    - {fileID: 9133895924154683102, guid: 4b5dfa3bd2dffaa4a9a99194b86add65, type: 3}
+    - {fileID: 7204432817533605020, guid: 86b708fa0299376498268a7bbaa11a69, type: 3}
+    - {fileID: 6880606836561973916, guid: c6d4cc9951e033744a5abb48a8a19d4e, type: 3}
+    - {fileID: 6849874358938319339, guid: 9f68fb47c7fa36a499af42b8f5bed99e, type: 3}
+    - {fileID: 3479132503404430666, guid: 1bc4fced19227eb4fa4b96e5c605dad3, type: 3}
+    - {fileID: 2837257471285162023, guid: 963e9eee4e18e134a9f098ae12170d12, type: 3}
+    - {fileID: 9133895924154683102, guid: 4b5dfa3bd2dffaa4a9a99194b86add65, type: 3}
+    - {fileID: 7204432817533605020, guid: 86b708fa0299376498268a7bbaa11a69, type: 3}
+    - {fileID: 6880606836561973916, guid: c6d4cc9951e033744a5abb48a8a19d4e, type: 3}
+    - {fileID: 6849874358938319339, guid: 9f68fb47c7fa36a499af42b8f5bed99e, type: 3}
+    - {fileID: 3479132503404430666, guid: 1bc4fced19227eb4fa4b96e5c605dad3, type: 3}
+    - {fileID: 2837257471285162023, guid: 963e9eee4e18e134a9f098ae12170d12, type: 3}
+    - {fileID: 9133895924154683102, guid: 4b5dfa3bd2dffaa4a9a99194b86add65, type: 3}
+    - {fileID: 7204432817533605020, guid: 86b708fa0299376498268a7bbaa11a69, type: 3}
+    streetPrefabs:
+    - {fileID: 8166192186320078529, guid: 623ebb1408c20d1419b3228663e33e6b, type: 3}
+    minObstacles: 5
+    maxObstacles: 15
+    minDecorations: 25
+    maxDecorations: 25
   - biome: 7
+    addressableObstacleLabel: 
+    addressableDecorationLabel: 
     obstaclePrefabs:
     - {fileID: 6632577892538020172, guid: a2557e18b3d34af45b819cb520968b98, type: 3}
     - {fileID: 4767365994655485522, guid: 01e9141e76b40104aa1790d7bdb9a3e3, type: 3}

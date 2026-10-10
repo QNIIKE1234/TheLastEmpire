@@ -64,7 +64,7 @@ PrefabInstance:
       addedObject: {fileID: -2779959584589862706}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 40f40f6772257654ea865cff3b102c78, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -5319995771494811128}
+      addedObject: {fileID: 3400644590986612799}
   m_SourcePrefab: {fileID: 100100000, guid: 40f40f6772257654ea865cff3b102c78, type: 3}
 --- !u!1 &1823946344444929611 stripped
 GameObject:
@@ -114,24 +114,40 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.529391, y: 0.7199538, z: 1.1600002}
   m_Center: {x: 0, y: -0.0013782978, z: 0.6000001}
---- !u!65 &-5319995771494811128
-BoxCollider:
+--- !u!114 &3400644590986612799
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823946344444929611}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2.529391, y: 0.7199538, z: 1.1600002}
-  m_Center: {x: 0, y: -0.0013782978, z: 0.6000001}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
+  containerName: Broken Bike
+  moneyAmount: 0
+  itemsInside: []
+  randomizeLoot: 1
+  minRandomCash: 10
+  maxRandomCash: 300
+  possibleLoot:
+  - itemName: Shotgun
+    minQuantity: 1
+    maxQuantity: 1
+    dropProbability: 0.05
+  - itemName: Ammo
+    minQuantity: 1
+    maxQuantity: 20
+    dropProbability: 0.2
+  - itemName: Potion
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  - itemName: Bread
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.1
+  isSearched: 0
+  interactionRadius: 2

@@ -58,43 +58,16 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -998985381728971149}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 8592268969289656481}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
       insertIndex: -1
       addedObject: {fileID: -6752948578070585831}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1623887434622665685}
   m_SourcePrefab: {fileID: 100100000, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
 --- !u!1 &5090274247912332986 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 95b42d4cfe274187a74183e2dc59b17f, type: 3}
   m_PrefabInstance: {fileID: 5360726821814871019}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &-998985381728971149
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5090274247912332986}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8592268969289656481
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,27 +91,6 @@ MonoBehaviour:
   ignoreTriggerColliders: 1
   fitOnAwake: 0
 --- !u!65 &-6752948578070585831
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5090274247912332986}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 6.1695786, y: 5.866424, z: 3.900001}
-  m_Center: {x: 0, y: -0.40321183, z: 1.9500005}
---- !u!65 &1623887434622665685
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

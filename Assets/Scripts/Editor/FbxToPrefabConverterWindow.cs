@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 
 namespace TheLastEmpire
 {
@@ -63,36 +65,55 @@ namespace TheLastEmpire
         [SerializeField] private ColliderOption addCollider = ColliderOption.None;
         [SerializeField] private bool addRigidbody = false;
 
+        // Addressables Options
+        [SerializeField] private bool markAsAddressable = false;
+        [SerializeField] private string addressableGroup = "";
+        [SerializeField] private string addressableLabel = "Building";
+        [SerializeField] private string addressableAddressPrefix = "";
+
         // UI State
         private Vector2 _scrollPos;
         private bool _showPreviewFoldout = true;
         private bool _showComponentOptionsFoldout = false;
 
-        [MenuItem("Tools/FBX to Prefabs Converter", false, 100)]
-        [MenuItem("TheLastEmpire/FBX to Prefabs Converter", false, 100)]
+        public static readonly string[] SupportedExtensions = new string[] { ".fbx", ".obj", ".blend", ".dae" };
+
+        public static bool IsSupportedModelPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            string ext = Path.GetExtension(path);
+            foreach (string s in SupportedExtensions)
+            {
+                if (ext.Equals(s, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        [MenuItem("Tools/FBX & OBJ to Prefabs Converter", false, 100)]
+        [MenuItem("TheLastEmpire/FBX & OBJ to Prefabs Converter", false, 100)]
         public static void OpenWindow()
         {
-            FbxToPrefabConverterWindow window = GetWindow<FbxToPrefabConverterWindow>("FBX to Prefab");
+            FbxToPrefabConverterWindow window = GetWindow<FbxToPrefabConverterWindow>("FBX/OBJ to Prefab");
             window.minSize = new Vector2(460, 580);
             window.Show();
         }
 
-        [MenuItem("Assets/TheLastEmpire/Convert Selected FBX to Prefab(s)", false, 25)]
+        [MenuItem("Assets/TheLastEmpire/Convert Selected Models (FBX or OBJ) to Prefab(s)", false, 25)]
         private static void ConvertSelectedContext()
         {
-            List<string> fbxPaths = GetFbxPathsFromSelection();
-            if (fbxPaths.Count == 0)
+            List<string> modelPaths = GetFbxPathsFromSelection();
+            if (modelPaths.Count == 0)
             {
-                EditorUtility.DisplayDialog("Convert FBX to Prefabs", "No FBX files found in current selection.", "OK");
+                EditorUtility.DisplayDialog("Convert Models to Prefabs", "No FBX or OBJ files found in current selection.", "OK");
                 return;
             }
 
-            FbxToPrefabConverterWindow window = GetWindow<FbxToPrefabConverterWindow>("FBX to Prefab");
+            FbxToPrefabConverterWindow window = GetWindow<FbxToPrefabConverterWindow>("FBX/OBJ to Prefab");
             window.sourceMode = SourceMode.CurrentSelection;
             window.Show();
         }
 
-        [MenuItem("Assets/TheLastEmpire/Convert Selected FBX to Prefab(s)", true)]
+        [MenuItem("Assets/TheLastEmpire/Convert Selected Models (FBX or OBJ) to Prefab(s)", true)]
         private static bool ValidateConvertSelectedContext()
         {
             return Selection.objects != null && Selection.objects.Length > 0;
@@ -151,20 +172,20 @@ namespace TheLastEmpire
                     fontSize = 14,
                     alignment = TextAnchor.MiddleCenter
                 };
-                EditorGUILayout.LabelField("FBX to Prefab Batch Converter", titleStyle);
+                EditorGUILayout.LabelField("FBX & OBJ to Prefab Batch Converter", titleStyle);
 
                 GUIStyle subStyle = new GUIStyle(EditorStyles.miniLabel)
                 {
                     alignment = TextAnchor.MiddleCenter,
                     wordWrap = true
                 };
-                EditorGUILayout.LabelField("Batch convert FBX 3D models into clean, ready-to-use Unity Prefabs", subStyle);
+                EditorGUILayout.LabelField("Batch convert FBX / OBJ 3D models into clean, ready-to-use Unity Prefabs", subStyle);
             }
         }
 
         private void DrawSourceSection()
         {
-            EditorGUILayout.LabelField("1. Source Settings (FBX ขาเข้า)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("1. Source Settings (FBX / OBJ ขาเข้า)", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
                 sourceMode = (SourceMode)EditorGUILayout.EnumPopup("Source Mode", sourceMode);
@@ -182,7 +203,7 @@ namespace TheLastEmpire
 
                     if (GUILayout.Button("Browse...", GUILayout.Width(75)))
                     {
-                        string selected = EditorUtility.OpenFolderPanel("Select Folder with FBX files", "Assets", "");
+                        string selected = EditorUtility.OpenFolderPanel("Select Folder with FBX/OBJ files", "Assets", "");
                         if (!string.IsNullOrEmpty(selected))
                         {
                             string relative = MakeRelativePath(selected);
@@ -197,11 +218,11 @@ namespace TheLastEmpire
                 }
                 else if (sourceMode == SourceMode.SpecificFiles)
                 {
-                    EditorGUILayout.LabelField("Drag & Drop FBX Files Here:", EditorStyles.miniBoldLabel);
+                    EditorGUILayout.LabelField("Drag & Drop FBX / OBJ Files Here:", EditorStyles.miniBoldLabel);
 
                     // Drag and Drop Area
                     Rect dropArea = GUILayoutUtility.GetRect(0.0f, 45.0f, GUILayout.ExpandWidth(true));
-                    GUI.Box(dropArea, "Drop FBX Files or Folders Here", EditorStyles.helpBox);
+                    GUI.Box(dropArea, "Drop FBX / OBJ Files or Folders Here", EditorStyles.helpBox);
                     HandleDragAndDrop(dropArea);
 
                     // List items
@@ -235,7 +256,7 @@ namespace TheLastEmpire
                 else // CurrentSelection
                 {
                     int selCount = GetFbxPathsFromSelection().Count;
-                    EditorGUILayout.HelpBox($"Currently selected in Project View: {selCount} FBX file(s).", MessageType.Info);
+                    EditorGUILayout.HelpBox($"Currently selected in Project View: {selCount} model file(s) (FBX/OBJ).", MessageType.Info);
                 }
             }
         }
@@ -310,20 +331,31 @@ namespace TheLastEmpire
                     addRigidbody = EditorGUILayout.Toggle("Attach Rigidbody", addRigidbody);
                     EditorGUI.indentLevel--;
                 }
+
+                // Addressables Setup
+                markAsAddressable = EditorGUILayout.Toggle(new GUIContent("Mark as Addressable", "Automatically register the created Prefab in Addressable Asset Settings"), markAsAddressable);
+                if (markAsAddressable)
+                {
+                    EditorGUI.indentLevel++;
+                    addressableLabel = EditorGUILayout.TextField(new GUIContent("Addressable Label", "e.g. Building, Environment, Prop"), addressableLabel);
+                    addressableAddressPrefix = EditorGUILayout.TextField(new GUIContent("Address Prefix", "Optional prefix for address (e.g. Building/)"), addressableAddressPrefix);
+                    addressableGroup = EditorGUILayout.TextField(new GUIContent("Target Group", "Leave empty for Default Local Group"), addressableGroup);
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
         private void DrawPreviewSection()
         {
             List<string> fbxList = CollectFbxPaths();
-            _showPreviewFoldout = EditorGUILayout.Foldout(_showPreviewFoldout, $"Preview Target List ({fbxList.Count} FBX file(s) found)", true);
+            _showPreviewFoldout = EditorGUILayout.Foldout(_showPreviewFoldout, $"Preview Target List ({fbxList.Count} 3D model(s) found)", true);
             if (_showPreviewFoldout)
             {
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     if (fbxList.Count == 0)
                     {
-                        EditorGUILayout.LabelField("No FBX files found matching current settings.", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField("No 3D model files (.fbx, .obj) found matching current settings.", EditorStyles.miniLabel);
                     }
                     else
                     {
@@ -359,7 +391,7 @@ namespace TheLastEmpire
                 fixedHeight = 42
             };
 
-            if (GUILayout.Button($"Convert {fbxList.Count} FBX to Prefab(s)", buttonStyle))
+            if (GUILayout.Button($"Convert {fbxList.Count} Model(s) (FBX/OBJ) to Prefab(s)", buttonStyle))
             {
                 if (canConvert)
                 {
@@ -388,15 +420,18 @@ namespace TheLastEmpire
                             string assetPath = AssetDatabase.GetAssetPath(dragged);
                             if (AssetDatabase.IsValidFolder(assetPath))
                             {
-                                // Add all FBX in this folder
-                                string[] found = Directory.GetFiles(assetPath, "*.fbx", SearchOption.AllDirectories);
+                                // Add all supported 3D models in this folder
+                                string[] found = Directory.GetFiles(assetPath, "*.*", SearchOption.AllDirectories);
                                 foreach (string f in found)
                                 {
-                                    GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(NormalizePath(f));
-                                    if (go != null && !specificFbxList.Contains(go)) specificFbxList.Add(go);
+                                    if (IsSupportedModelPath(f))
+                                    {
+                                        GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(NormalizePath(f));
+                                        if (go != null && !specificFbxList.Contains(go)) specificFbxList.Add(go);
+                                    }
                                 }
                             }
-                            else if (dragged is GameObject go && assetPath.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                            else if (dragged is GameObject go && IsSupportedModelPath(assetPath))
                             {
                                 if (!specificFbxList.Contains(go)) specificFbxList.Add(go);
                             }
@@ -419,11 +454,14 @@ namespace TheLastEmpire
                     string fullPath = Path.Combine(Directory.GetCurrentDirectory(), sourceFolderPath);
                     if (Directory.Exists(fullPath))
                     {
-                        string[] files = Directory.GetFiles(fullPath, "*.fbx", opt);
+                        string[] files = Directory.GetFiles(fullPath, "*.*", opt);
                         foreach (string f in files)
                         {
-                            string relative = MakeRelativePath(f);
-                            results.Add(NormalizePath(relative));
+                            if (IsSupportedModelPath(f))
+                            {
+                                string relative = MakeRelativePath(f);
+                                results.Add(NormalizePath(relative));
+                            }
                         }
                     }
                 }
@@ -434,7 +472,7 @@ namespace TheLastEmpire
                 {
                     if (go == null) continue;
                     string path = AssetDatabase.GetAssetPath(go);
-                    if (!string.IsNullOrEmpty(path) && path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(path) && IsSupportedModelPath(path))
                     {
                         if (!results.Contains(path)) results.Add(path);
                     }
@@ -463,15 +501,18 @@ namespace TheLastEmpire
                     string fullPath = Path.Combine(Directory.GetCurrentDirectory(), path);
                     if (Directory.Exists(fullPath))
                     {
-                        string[] files = Directory.GetFiles(fullPath, "*.fbx", SearchOption.AllDirectories);
+                        string[] files = Directory.GetFiles(fullPath, "*.*", SearchOption.AllDirectories);
                         foreach (string f in files)
                         {
-                            string rel = MakeRelativePath(f);
-                            if (!results.Contains(rel)) results.Add(rel);
+                            if (IsSupportedModelPath(f))
+                            {
+                                string rel = MakeRelativePath(f);
+                                if (!results.Contains(rel)) results.Add(rel);
+                            }
                         }
                     }
                 }
-                else if (path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                else if (IsSupportedModelPath(path))
                 {
                     if (!results.Contains(path)) results.Add(path);
                 }
@@ -606,6 +647,13 @@ namespace TheLastEmpire
 
                     if (success && savedPrefab != null)
                     {
+                        // 6. Register as Addressable if enabled
+                        if (markAsAddressable)
+                        {
+                            string address = $"{addressableAddressPrefix}{Path.GetFileNameWithoutExtension(targetPath)}";
+                            RegisterAddressable(targetPath, address, addressableGroup, addressableLabel);
+                        }
+
                         successCount++;
                         lastCreatedPath = targetPath;
                     }
@@ -633,8 +681,8 @@ namespace TheLastEmpire
                 }
             }
 
-            EditorUtility.DisplayDialog("FBX to Prefab Complete",
-                $"Successfully converted {successCount} FBX file(s) into Prefabs!" +
+            EditorUtility.DisplayDialog("Model to Prefab Complete",
+                $"Successfully converted {successCount} 3D model file(s) (FBX/OBJ) into Prefabs!" +
                 (skippedCount > 0 ? $"\nSkipped {skippedCount} existing file(s)." : ""),
                 "OK");
         }
@@ -743,6 +791,43 @@ namespace TheLastEmpire
         private static string NormalizePath(string path)
         {
             return path.Replace('\\', '/');
+        }
+
+        private static void RegisterAddressable(string assetPath, string address, string groupName, string label)
+        {
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+            {
+                // Create settings if not initialized yet
+                settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
+            }
+            if (settings == null) return;
+
+            string guid = AssetDatabase.AssetPathToGUID(assetPath);
+            if (string.IsNullOrEmpty(guid)) return;
+
+            AddressableAssetGroup group = settings.DefaultGroup;
+            if (!string.IsNullOrEmpty(groupName))
+            {
+                group = settings.FindGroup(groupName) ?? settings.DefaultGroup;
+            }
+
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, false, false);
+            if (entry != null)
+            {
+                if (!string.IsNullOrEmpty(address))
+                {
+                    entry.SetAddress(address);
+                }
+
+                if (!string.IsNullOrEmpty(label))
+                {
+                    settings.AddLabel(label);
+                    entry.SetLabel(label, true);
+                }
+
+                EditorUtility.SetDirty(settings);
+            }
         }
     }
 }

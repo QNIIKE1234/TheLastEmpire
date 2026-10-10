@@ -2,7 +2,10 @@
     "name": "TheLastEmpire.Editor",
     "references": [
         "TheLastEmpire.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [
         "Editor"
