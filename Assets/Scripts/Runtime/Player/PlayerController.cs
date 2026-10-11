@@ -412,8 +412,28 @@ namespace TheLastEmpire
             }
         }
 
+        private float _knockbackTimer = 0f;
+        private Vector3 _knockbackVelocity = Vector3.zero;
+
+        /// <summary>
+        /// Applies an external knockback force to the player (e.g. from boss stomp or heavy attacks).
+        /// </summary>
+        public void ApplyKnockback(Vector3 force, float duration = 0.35f)
+        {
+            _knockbackTimer = duration;
+            _knockbackVelocity = force;
+        }
+
         private void FixedUpdate()
         {
+            if (_knockbackTimer > 0f)
+            {
+                _knockbackTimer -= Time.fixedDeltaTime;
+                _rb.linearVelocity = new Vector3(_knockbackVelocity.x, _rb.linearVelocity.y, _knockbackVelocity.z);
+                _knockbackVelocity = Vector3.Lerp(_knockbackVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
+                return;
+            }
+
             if (_isDashing)
             {
                 _rb.linearVelocity = _dashDirection * dashSpeed;

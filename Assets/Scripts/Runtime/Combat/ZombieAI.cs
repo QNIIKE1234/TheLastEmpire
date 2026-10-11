@@ -39,6 +39,28 @@ namespace TheLastEmpire
         [Header("Leader Throw Settings")]
         [SerializeField] private bool throwMinionAtPlayer = true;
 
+        [Header("Boss / Leader Charge Settings")]
+        [SerializeField] private float chargeCooldown = 6f;
+        [SerializeField] private float chargeSpeed = 12f;
+        [SerializeField] private float chargeDuration = 0.5f;
+        [SerializeField] private float chargeWindupDuration = 0.3f;
+        [SerializeField] private float minChargeDistance = 3.5f;
+        [SerializeField] private float maxChargeDistance = 10f;
+        [SerializeField] private int chargeContactDamage = 20;
+        [SerializeField] private float chargeContactKnockback = 8f;
+
+        [Header("Boss / Leader Stomp AOE Settings")]
+        [SerializeField] private float stompAttackRange = 3.2f;
+        [SerializeField] private float stompRadius = 3.0f;
+        [SerializeField] private int stompDamage = 40;
+        [SerializeField] private float stompTelegraphDuration = 1.0f;
+        [SerializeField] private float stompCooldown = 5.0f;
+        [SerializeField] private float stompKnockbackForce = 12f;
+        [SerializeField] private string stompVfxPoolKey = "EnemyExplosion";
+        [Tooltip("Custom sprite for Boss AOE warning circle (optional)")]
+        [SerializeField] private Sprite stompTelegraphSprite;
+        [SerializeField] private Color stompTelegraphColor = new Color(1f, 0.15f, 0.15f, 0.45f);
+
         private float _spawnCooldownTimer = 0f;
         private int _currentChildSpawns = 0;
 
@@ -55,6 +77,38 @@ namespace TheLastEmpire
         private float _leaderBuffCheckTimer = 0f;
         private bool _hasLeaderBuff = false;
 
+        // Boss Charge State
+        private float _chargeCooldownTimer = 0f;
+        private float _chargeWindupTimer = 0f;
+        private float _chargeActiveTimer = 0f;
+        private bool _isCharging = false;
+        private bool _isChargeWindingUp = false;
+        private Vector3 _chargeDirection;
+
+        // Boss Stomp AOE State
+        private float _stompCooldownTimer = 0f;
+        private float _stompTelegraphTimer = 0f;
+        private bool _isStompTelegraphing = false;
+        private LineRenderer _stompCircleRenderer;
+        private SpriteRenderer _stompSpriteRenderer;
+
+        public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            HideBossTelegraphVisual();
+            _isStompTelegraphing = false;
+            _isCharging = false;
+            _isChargeWindingUp = false;
+            _chargeCooldownTimer = 2.0f;
+            _stompCooldownTimer = 2.0f;
+            if (_spriteRenderer != null && _originalColor != default)
+            {
+                _spriteRenderer.color = _originalColor;
+            }
+        }
+
         protected override void Start()
         {
             base.Start();
@@ -63,6 +117,11 @@ namespace TheLastEmpire
             if (_spriteRenderer != null)
             {
                 _originalColor = _spriteRenderer.color;
+            }
+
+            if (IsBossUnit)
+            {
+                InitBossIndicators();
             }
 
             // Auto-correct ZombieType based on prefab/GameObject name if left as default/Normal
@@ -150,6 +209,96 @@ namespace TheLastEmpire
                 return;
             }
 
+            // Handle Boss / Leader Stomp AOE Telegraph (1.0 second visual warning before impact)
+            if (_stompCooldownTimer > 0f) _stompCooldownTimer -= Time.fixedDeltaTime;
+            if (_isStompTelegraphing)
+            {
+                rb.linearVelocity = Vector3.zero;
+                _stompTelegraphTimer -= Time.fixedDeltaTime;
+
+                UpdateBossTelegraphVisual(stompRadius);
+
+                // Flash boss sprite red/orange during telegraph windup
+                if (_spriteRenderer != null)
+                {
+                    float flashFreq = Mathf.PingPong(Time.time * 12f, 1f);
+                    _spriteRenderer.color = Color.Lerp(_originalColor, new Color(1f, 0.25f, 0.1f), flashFreq);
+                }
+
+                if (_stompTelegraphTimer <= 0f)
+                {
+                    PerformGroundStomp();
+                }
+                return;
+            }
+
+            // Handle Boss / Leader Charge
+            if (_chargeCooldownTimer > 0f) _chargeCooldownTimer -= Time.fixedDeltaTime;
+            if (_isChargeWindingUp)
+            {
+                rb.linearVelocity = Vector3.zero;
+                _chargeWindupTimer -= Time.fixedDeltaTime;
+
+                if (_spriteRenderer != null)
+                {
+                    float flashFreq = Mathf.PingPong(Time.time * 15f, 1f);
+                    _spriteRenderer.color = Color.Lerp(_originalColor, Color.yellow, flashFreq);
+                }
+
+                if (_chargeWindupTimer <= 0f)
+                {
+                    _isChargeWindingUp = false;
+                    _isCharging = true;
+                    _chargeActiveTimer = chargeDuration;
+                }
+                return;
+            }
+
+            if (_isCharging)
+            {
+                _chargeActiveTimer -= Time.fixedDeltaTime;
+                rb.linearVelocity = _chargeDirection * chargeSpeed;
+
+                if (_chargeDirection.sqrMagnitude > 0.01f)
+                {
+                    transform.forward = _chargeDirection;
+                }
+
+                // Check contact damage with player during rush
+                if (playerTransform != null && Vector3.Distance(transform.position, playerTransform.position) <= 1.3f)
+                {
+                    IDamageable damageable = playerTransform.GetComponent<IDamageable>();
+                    if (damageable != null)
+                    {
+                        damageable.TakeDamage(chargeContactDamage);
+                    }
+
+                    PlayerController pc = playerTransform.GetComponent<PlayerController>();
+                    if (pc != null)
+                    {
+                        pc.ApplyKnockback(_chargeDirection * chargeContactKnockback, 0.25f);
+                    }
+
+                    // Impact landed, conclude dash
+                    _isCharging = false;
+                    _chargeCooldownTimer = chargeCooldown;
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Chase;
+                    return;
+                }
+
+                if (_chargeActiveTimer <= 0f)
+                {
+                    _isCharging = false;
+                    _chargeCooldownTimer = chargeCooldown;
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Chase;
+                }
+                return;
+            }
+
             // Apply leader speed buff if Leader Zombie is nearby
             ApplyLeaderBuffChecks();
 
@@ -186,6 +335,24 @@ namespace TheLastEmpire
                 {
                     StartDogLeap();
                     return;
+                }
+
+                // Boss / Leader Special Attacks
+                if (IsBossUnit)
+                {
+                    // 1. Ground Stomp AOE: If player is in attack range (<= 3.2m) and cooldown is ready
+                    if (_stompCooldownTimer <= 0f && distanceToPlayer <= stompAttackRange && !_isStompTelegraphing && !_isCharging && !_isChargeWindingUp)
+                    {
+                        StartStompTelegraph();
+                        return;
+                    }
+
+                    // 2. Boss Charge: If player is at medium-long distance (3.5m - 10m) and cooldown is ready
+                    if (_chargeCooldownTimer <= 0f && distanceToPlayer >= minChargeDistance && distanceToPlayer <= maxChargeDistance && !_isCharging && !_isChargeWindingUp && !_isStompTelegraphing)
+                    {
+                        StartBossCharge();
+                        return;
+                    }
                 }
 
                 currentState = AIState.Chase;
@@ -306,8 +473,43 @@ namespace TheLastEmpire
             }
         }
 
+        protected override void OnDamageTaken(float damageAmount)
+        {
+            if (health != null && health.IsDead) return;
+
+            // Boss units are immune to stagger and interruption during Stomp Telegraph or Charge!
+            if (IsBossUnit && (_isStompTelegraphing || _isCharging || _isChargeWindingUp))
+            {
+                hasBeenAttacked = true;
+                return;
+            }
+
+            base.OnDamageTaken(damageAmount);
+        }
+
+        protected void OnDisable()
+        {
+            HideBossTelegraphVisual();
+            _isStompTelegraphing = false;
+            _isCharging = false;
+            _isChargeWindingUp = false;
+            if (_spriteRenderer != null && _originalColor != default)
+            {
+                _spriteRenderer.color = _originalColor;
+            }
+        }
+
         protected override void HandleDeath()
         {
+            HideBossTelegraphVisual();
+            _isStompTelegraphing = false;
+            _isCharging = false;
+            _isChargeWindingUp = false;
+            if (_spriteRenderer != null && _originalColor != default)
+            {
+                _spriteRenderer.color = _originalColor;
+            }
+
             // If Boomer dies from bullets/damage before exploding, it triggers a chain explosion!
             if (zombieType == ZombieType.Boomer && !_isExploding)
             {
@@ -318,6 +520,234 @@ namespace TheLastEmpire
             }
 
             base.HandleDeath();
+        }
+
+        protected override void OnDestroy()
+        {
+            HideBossTelegraphVisual();
+            base.OnDestroy();
+        }
+
+        private void StartStompTelegraph()
+        {
+            _isStompTelegraphing = true;
+            _stompTelegraphTimer = stompTelegraphDuration;
+            currentState = AIState.Telegraph;
+            rb.linearVelocity = Vector3.zero;
+
+            UpdateBossTelegraphVisual(stompRadius);
+        }
+
+        private void PerformGroundStomp()
+        {
+            _isStompTelegraphing = false;
+            _stompCooldownTimer = stompCooldown;
+
+            HideBossTelegraphVisual();
+            if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+
+            Debug.Log($"[ZombieAI] Boss performed Ground Stomp AOE with radius {stompRadius}m!");
+
+            // 1. Spawn ground slam / explosion VFX
+            if (!string.IsNullOrEmpty(stompVfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject stompVFX = ObjectPoolManager.Instance.SpawnFromPool(stompVfxPoolKey.Trim(), transform.position, Quaternion.identity);
+                if (stompVFX != null)
+                {
+                    PooledParticle pooledParticle = stompVFX.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        pooledParticle.SetPoolKey(stompVfxPoolKey.Trim());
+                        pooledParticle.ApplyScaleMultiplier(stompRadius);
+                    }
+                    else
+                    {
+                        stompVFX.transform.localScale = Vector3.one * stompRadius;
+                    }
+                }
+            }
+
+            // 2. Camera Shake
+            CameraFollow.TriggerShake(0.3f, 0.45f);
+
+            // 3. OverlapSphere AOE Damage & Knockback within 3 meters
+            Collider[] targets = Physics.OverlapSphere(transform.position, stompRadius);
+            foreach (var target in targets)
+            {
+                if (target.gameObject == gameObject) continue;
+                if (target.CompareTag("Enemy")) continue; // Don't hurt minion zombies
+
+                IDamageable damageable = target.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(stompDamage);
+                }
+
+                // Knockback player away from boss
+                PlayerController pc = target.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    Vector3 knockDir = (pc.transform.position - transform.position);
+                    knockDir.y = 0f;
+                    if (knockDir.sqrMagnitude < 0.001f) knockDir = transform.forward;
+                    knockDir.Normalize();
+                    pc.ApplyKnockback(knockDir * stompKnockbackForce, 0.35f);
+                }
+            }
+
+            currentState = AIState.Chase;
+        }
+
+        private void StartBossCharge()
+        {
+            _isChargeWindingUp = true;
+            _chargeWindupTimer = chargeWindupDuration;
+            _chargeCooldownTimer = chargeCooldown;
+            currentState = AIState.Telegraph;
+            rb.linearVelocity = Vector3.zero;
+
+            if (playerTransform != null)
+            {
+                _chargeDirection = (playerTransform.position - transform.position);
+                _chargeDirection.y = 0f;
+                _chargeDirection.Normalize();
+            }
+            else
+            {
+                _chargeDirection = transform.forward;
+            }
+
+            if (_chargeDirection.sqrMagnitude > 0.01f)
+            {
+                transform.forward = _chargeDirection;
+            }
+        }
+
+        private void InitBossIndicators()
+        {
+            if (_stompCircleRenderer != null) return;
+
+            // 1. LineRenderer Warning Ring (crisp 3m boundary)
+            GameObject circleObj = new GameObject("BossAOECircle");
+            circleObj.transform.SetParent(transform);
+            circleObj.transform.localPosition = Vector3.zero;
+
+            _stompCircleRenderer = circleObj.AddComponent<LineRenderer>();
+            _stompCircleRenderer.startWidth = 0.08f;
+            _stompCircleRenderer.endWidth = 0.08f;
+            _stompCircleRenderer.useWorldSpace = true;
+            _stompCircleRenderer.loop = true;
+            _stompCircleRenderer.positionCount = 48;
+
+            Material lineMat = new Material(Shader.Find("Sprites/Default"));
+            _stompCircleRenderer.material = lineMat;
+            _stompCircleRenderer.startColor = new Color(1f, 0.2f, 0.1f, 0.9f);
+            _stompCircleRenderer.endColor = new Color(1f, 0.2f, 0.1f, 0.9f);
+            circleObj.SetActive(false);
+
+            // 2. Ground Decal Disc (tinted danger zone)
+            GameObject discObj = new GameObject("BossAOEDisc");
+            discObj.transform.SetParent(transform);
+            discObj.transform.localPosition = Vector3.zero;
+            discObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            _stompSpriteRenderer = discObj.AddComponent<SpriteRenderer>();
+            _stompSpriteRenderer.sprite = stompTelegraphSprite;
+            _stompSpriteRenderer.color = stompTelegraphColor;
+
+            if (_stompSpriteRenderer.sprite == null)
+            {
+                // Procedural soft circular texture fallback
+                int size = 64;
+                Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                tex.wrapMode = TextureWrapMode.Clamp;
+                Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+                float radius = size * 0.5f;
+                Color[] colors = new Color[size * size];
+                for (int y = 0; y < size; y++)
+                {
+                    for (int x = 0; x < size; x++)
+                    {
+                        float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
+                        if (dist <= 1f)
+                        {
+                            float alpha = Mathf.Clamp01(1f - dist * dist);
+                            colors[y * size + x] = new Color(1f, 0.1f, 0.1f, alpha);
+                        }
+                        else
+                        {
+                            colors[y * size + x] = Color.clear;
+                        }
+                    }
+                }
+                tex.SetPixels(colors);
+                tex.Apply();
+                _stompSpriteRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
+            }
+
+            discObj.SetActive(false);
+        }
+
+        private void UpdateBossTelegraphVisual(float currentRadius)
+        {
+            if (_stompCircleRenderer == null && IsBossUnit)
+            {
+                InitBossIndicators();
+            }
+
+            Vector3 center = transform.position;
+
+            if (_stompCircleRenderer != null)
+            {
+                if (!_stompCircleRenderer.gameObject.activeSelf) _stompCircleRenderer.gameObject.SetActive(true);
+                int segments = _stompCircleRenderer.positionCount;
+                float angle = 0f;
+                for (int i = 0; i < segments; i++)
+                {
+                    float x = Mathf.Sin(Mathf.Deg2Rad * angle) * currentRadius;
+                    float z = Mathf.Cos(Mathf.Deg2Rad * angle) * currentRadius;
+                    _stompCircleRenderer.SetPosition(i, new Vector3(center.x + x, 0.05f, center.z + z));
+                    angle += (360f / segments);
+                }
+
+                // Pulsate line brightness
+                float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 15f);
+                Color c = new Color(1f, 0.15f, 0.1f, pulse);
+                _stompCircleRenderer.startColor = c;
+                _stompCircleRenderer.endColor = c;
+            }
+
+            if (_stompSpriteRenderer != null)
+            {
+                if (!_stompSpriteRenderer.gameObject.activeSelf) _stompSpriteRenderer.gameObject.SetActive(true);
+                _stompSpriteRenderer.transform.position = new Vector3(center.x, 0.04f, center.z);
+                _stompSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+                float baseWidth = _stompSpriteRenderer.sprite != null ? _stompSpriteRenderer.sprite.bounds.size.x : 1f;
+                if (baseWidth > 0f)
+                {
+                    float scale = (currentRadius * 2f) / baseWidth;
+                    _stompSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                }
+
+                // Pulsate fill opacity
+                float pulseAlpha = Mathf.Lerp(0.3f, 0.6f, Mathf.PingPong(Time.time * 6f, 1f));
+                Color sc = stompTelegraphColor;
+                sc.a = pulseAlpha;
+                _stompSpriteRenderer.color = sc;
+            }
+        }
+
+        private void HideBossTelegraphVisual()
+        {
+            if (_stompCircleRenderer != null && _stompCircleRenderer.gameObject.activeSelf)
+            {
+                _stompCircleRenderer.gameObject.SetActive(false);
+            }
+            if (_stompSpriteRenderer != null && _stompSpriteRenderer.gameObject.activeSelf)
+            {
+                _stompSpriteRenderer.gameObject.SetActive(false);
+            }
         }
 
         private void OnDrawGizmosSelected()
@@ -331,6 +761,10 @@ namespace TheLastEmpire
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawWireSphere(transform.position, buffRadius);
+
+                // Boss Stomp AOE radius gizmo
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(transform.position, stompRadius);
             }
         }
 

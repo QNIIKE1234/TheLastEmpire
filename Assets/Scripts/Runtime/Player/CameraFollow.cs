@@ -27,6 +27,36 @@ namespace TheLastEmpire
 
         private Vector3 _velocity = Vector3.zero;
 
+        private static CameraFollow _instance;
+        public static CameraFollow Instance => _instance;
+
+        private float _shakeTimer = 0f;
+        private float _shakeMagnitude = 0f;
+
+        private void Awake()
+        {
+            _instance = this;
+        }
+
+        public void Shake(float duration = 0.25f, float magnitude = 0.35f)
+        {
+            _shakeTimer = duration;
+            _shakeMagnitude = magnitude;
+        }
+
+        public static void TriggerShake(float duration = 0.25f, float magnitude = 0.35f)
+        {
+            if (_instance != null)
+            {
+                _instance.Shake(duration, magnitude);
+            }
+            else
+            {
+                CameraFollow cf = Object.FindFirstObjectByType<CameraFollow>();
+                if (cf != null) cf.Shake(duration, magnitude);
+            }
+        }
+
         private void Start()
         {
             if (target == null && autoFindPlayer)
@@ -140,6 +170,15 @@ namespace TheLastEmpire
 
             // Smoothly interpolate to target position
             transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _velocity, smoothTime);
+
+            // Apply camera shake if active
+            if (_shakeTimer > 0f)
+            {
+                _shakeTimer -= Time.deltaTime;
+                Vector3 shakeOffset = Random.insideUnitSphere * _shakeMagnitude;
+                shakeOffset.y = 0f; // Maintain standard camera height / plane
+                transform.position += shakeOffset;
+            }
         }
     }
 }
