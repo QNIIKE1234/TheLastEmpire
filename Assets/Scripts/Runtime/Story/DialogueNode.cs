@@ -9,6 +9,9 @@ namespace TheLastEmpire.Story
         [Tooltip("The name of the character speaking")]
         public string speakerName;
 
+        [Tooltip("Portrait image for this speaker line (optional)")]
+        public Sprite speakerPortrait;
+
         [Tooltip("The dialogue text to display")]
         [TextArea(3, 10)]
         public string dialogueText;

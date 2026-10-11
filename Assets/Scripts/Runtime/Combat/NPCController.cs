@@ -28,6 +28,8 @@ namespace TheLastEmpire
         [SerializeField] private string dialogueId;
         [Tooltip("Direct reference to DialogueTreeSO asset (overrides dialogueId if assigned)")]
         [SerializeField] private TheLastEmpire.Story.DialogueTreeSO dialogueTree;
+        [Tooltip("Character portrait sprite for dialogues (optional)")]
+        [SerializeField] private Sprite npcPortrait;
 
         [Header("Merchant Inventory Settings")]
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
@@ -37,6 +39,7 @@ namespace TheLastEmpire
         public NPCType NpcType => npcType;
         public string NpcName => npcName;
         public string DialogueId => dialogueId;
+        public Sprite NpcPortrait => npcPortrait;
 
         public TheLastEmpire.Story.DialogueTreeSO GetEffectiveDialogueTree()
         {
@@ -178,7 +181,7 @@ namespace TheLastEmpire
             {
                 if (TheLastEmpire.UI.DialogueUI.Instance != null)
                 {
-                    TheLastEmpire.UI.DialogueUI.Instance.StartDialogue(treeToPlay);
+                    TheLastEmpire.UI.DialogueUI.Instance.StartDialogue(treeToPlay, npcPortrait);
                 }
                 else
                 {

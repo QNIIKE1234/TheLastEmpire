@@ -15,6 +15,9 @@ namespace TheLastEmpire.Story
         [Tooltip("Description or developer notes")]
         public string description;
 
+        [Tooltip("Default speaker portrait for this dialogue if a line does not specify one (optional)")]
+        public Sprite defaultPortrait;
+
         [Tooltip("Direct reference to an existing DialogueTreeSO asset (optional override)")]
         public DialogueTreeSO dialogueTree;
 
@@ -28,7 +31,20 @@ namespace TheLastEmpire.Story
         /// </summary>
         public DialogueTreeSO GetEffectiveTree()
         {
-            if (dialogueTree != null) return dialogueTree;
+            if (dialogueTree != null)
+            {
+                if (defaultPortrait != null && dialogueTree.dialogueLines != null)
+                {
+                    foreach (var line in dialogueTree.dialogueLines)
+                    {
+                        if (line != null && line.speakerPortrait == null)
+                        {
+                            line.speakerPortrait = defaultPortrait;
+                        }
+                    }
+                }
+                return dialogueTree;
+            }
 
             if (inlineLines != null && inlineLines.Count > 0)
             {
@@ -36,6 +52,18 @@ namespace TheLastEmpire.Story
                 {
                     _generatedTree = ScriptableObject.CreateInstance<DialogueTreeSO>();
                     _generatedTree.name = $"RuntimeTree_{dialogueId}";
+
+                    if (defaultPortrait != null)
+                    {
+                        foreach (var line in inlineLines)
+                        {
+                            if (line != null && line.speakerPortrait == null)
+                            {
+                                line.speakerPortrait = defaultPortrait;
+                            }
+                        }
+                    }
+
                     _generatedTree.dialogueLines = inlineLines;
                 }
                 return _generatedTree;

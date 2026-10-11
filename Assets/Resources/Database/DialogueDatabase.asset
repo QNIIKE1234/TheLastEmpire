@@ -16,15 +16,18 @@ MonoBehaviour:
   - dialogueId: Merchant_Intro
     category: Shop
     description: Default welcome greeting from the Outpost Merchant
+    defaultPortrait: {fileID: 21300000, guid: 1a6b6eaa23bf9454f9e69c5d023efd0a, type: 3}
     dialogueTree: {fileID: 0}
     inlineLines:
-    - speakerName: Merchant
+    - speakerName: Pepper
+      speakerPortrait: {fileID: 21300000, guid: 1a6b6eaa23bf9454f9e69c5d023efd0a, type: 3}
       dialogueText: Welcome to the outpost, survivor! The ruins are crawling with
         danger, but I've got weapons and supplies if you have the cash.
       onDialogueEnd:
         m_PersistentCalls:
           m_Calls: []
-    - speakerName: Merchant
+    - speakerName: Pepper
+      speakerPortrait: {fileID: 21300000, guid: 1a6b6eaa23bf9454f9e69c5d023efd0a, type: 3}
       dialogueText: Press [E] to trade with me anytime. Or press [Q] if you want
         to chat or hear rumors about the wasteland!
       onDialogueEnd:
@@ -33,15 +36,18 @@ MonoBehaviour:
   - dialogueId: Merchant_Rumor
     category: Rumor
     description: Wasteland survival tips from the Merchant
+    defaultPortrait: {fileID: 0}
     dialogueTree: {fileID: 0}
     inlineLines:
     - speakerName: Merchant
+      speakerPortrait: {fileID: 0}
       dialogueText: 'Word of advice: Watch the sky! When night falls, Aliens become
         much more aggressive.'
       onDialogueEnd:
         m_PersistentCalls:
           m_Calls: []
     - speakerName: Merchant
+      speakerPortrait: {fileID: 0}
       dialogueText: Always keep a stash of ammunition and food in your backpack before
         stepping through unexplored portals.
       onDialogueEnd:
@@ -50,9 +56,11 @@ MonoBehaviour:
   - dialogueId: Wanderer_Greeting
     category: Story
     description: General survivor wasteland greeting
+    defaultPortrait: {fileID: 0}
     dialogueTree: {fileID: 0}
     inlineLines:
     - speakerName: Survivor
+      speakerPortrait: {fileID: 0}
       dialogueText: Still alive, huh? In this wasteland, that's already a victory.
       onDialogueEnd:
         m_PersistentCalls:

@@ -179,6 +179,13 @@ namespace TheLastEmpire
             _promptTarget = targetTransform;
 
             promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
+
+            RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
+            if (promptRect != null)
+            {
+                promptRect.sizeDelta = new Vector2(340f, 50f);
+            }
+
             promptPanel.SetActive(true);
         }
 
@@ -195,6 +202,14 @@ namespace TheLastEmpire
             _promptTarget = targetTransform;
 
             promptText.text = fullPromptText;
+
+            RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
+            if (promptRect != null)
+            {
+                bool isMultiLine = fullPromptText.Contains("\n");
+                promptRect.sizeDelta = isMultiLine ? new Vector2(240f, 75f) : new Vector2(260f, 50f);
+            }
+
             promptPanel.SetActive(true);
         }
 
@@ -708,6 +723,8 @@ namespace TheLastEmpire
             promptText.fontStyle = FontStyles.Bold;
             promptText.color = Color.white;
             promptText.alignment = TextAlignmentOptions.Center;
+            promptText.enableWordWrapping = false;
+            promptText.lineSpacing = 5f;
 
             RectTransform ptRect = pTextObj.GetComponent<RectTransform>();
             ptRect.anchorMin = Vector2.zero;

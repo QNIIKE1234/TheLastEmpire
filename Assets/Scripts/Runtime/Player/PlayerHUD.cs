@@ -9,8 +9,16 @@ namespace TheLastEmpire
         [SerializeField] private UnityEngine.UI.Image hpBarFillHUD;
         [SerializeField] private UnityEngine.UI.Slider hungerSliderHUD;
         [SerializeField] private UnityEngine.UI.Image hungerBarFillHUD;
+        [SerializeField] private UnityEngine.UI.Image weaponImage;
+        [SerializeField] private UnityEngine.UI.Image ammoImage;
         [SerializeField] private TMPro.TMP_Text ammoTextHUD;
         [SerializeField] private TMPro.TMP_Text hpTextHUD;
+
+        [Header("Display Settings")]
+        [Tooltip("แสดงเฉพาะตัวเลขกระสุน (ไม่โชว์ชื่อปืน เช่น ตัด PISTOL: ออก)")]
+        [SerializeField] private bool showWeaponName = false;
+        [Tooltip("แสดงรูปไอคอนอาวุธหรือไม่ (ถ้า false จะโชว์แค่รูปกระสุน)")]
+        [SerializeField] private bool showWeaponImage = false;
 
         [Header("Game Over References")]
         [SerializeField] private GameObject gameOverPanel;
@@ -27,6 +35,8 @@ namespace TheLastEmpire
         private UnityEngine.UI.Image _hungerBarFill;
         private TMPro.TMP_Text _hpText;
         private TMPro.TMP_Text _hungerTextText;
+        private UnityEngine.UI.Image _weaponImage;
+        private UnityEngine.UI.Image _ammoImage;
 
         private void Start()
         {
@@ -93,7 +103,8 @@ namespace TheLastEmpire
         private void SetupHUD()
         {
             // 1. Check if user assigned their own UI references in Inspector
-            if (hpBarSliderHUD != null || ammoTextHUD != null || hpBarFillHUD != null || hpTextHUD != null || hungerSliderHUD != null || hungerBarFillHUD != null)
+            if (hpBarSliderHUD != null || ammoTextHUD != null || hpBarFillHUD != null || hpTextHUD != null || 
+                hungerSliderHUD != null || hungerBarFillHUD != null || weaponImage != null || ammoImage != null)
             {
                 _hpBarSlider = hpBarSliderHUD;
                 _hungerSlider = hungerSliderHUD;
@@ -101,6 +112,8 @@ namespace TheLastEmpire
                 _hpBarFill = hpBarFillHUD;
                 _hungerBarFill = hungerBarFillHUD;
                 _hpText = hpTextHUD;
+
+                ResolveWeaponAndAmmoImages();
                 return;
             }
 
@@ -108,7 +121,7 @@ namespace TheLastEmpire
             Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
             if (hudCanvas != null)
             {
-                // Main glassmorphism container (Taller to hold Hunger bar)
+                // Main glassmorphism container (Taller to hold Hunger bar and weapon icons)
                 GameObject container = new GameObject("HUD_StatusPanel");
                 container.transform.SetParent(hudCanvas.transform, false);
 
@@ -117,7 +130,7 @@ namespace TheLastEmpire
                 containerRect.anchorMax = new Vector2(0f, 0f);
                 containerRect.pivot = new Vector2(0f, 0f);
                 containerRect.anchoredPosition = new Vector2(30f, 30f);
-                containerRect.sizeDelta = new Vector2(360f, 170f);
+                containerRect.sizeDelta = new Vector2(400f, 175f);
 
                 // Panel Background
                 UnityEngine.UI.Image panelBg = container.AddComponent<UnityEngine.UI.Image>();
@@ -219,21 +232,66 @@ namespace TheLastEmpire
                 hungerTextRect.offsetMin = Vector2.zero;
                 hungerTextRect.offsetMax = Vector2.zero;
 
-                // 2.3 Ammo Text
+                // 2.3 Weapon Icon
+                GameObject wpnObj = new GameObject("ProceduralWeaponImage");
+                wpnObj.transform.SetParent(container.transform, false);
+                _weaponImage = wpnObj.AddComponent<UnityEngine.UI.Image>();
+                _weaponImage.preserveAspect = true;
+                RectTransform wpnRect = wpnObj.GetComponent<RectTransform>();
+                wpnRect.anchorMin = new Vector2(0.05f, 0.06f);
+                wpnRect.anchorMax = new Vector2(0.05f, 0.06f);
+                wpnRect.pivot = new Vector2(0f, 0f);
+                wpnRect.anchoredPosition = Vector2.zero;
+                wpnRect.sizeDelta = new Vector2(40f, 40f);
+
+                // 2.4 Ammo Icon
+                GameObject ammoIconObj = new GameObject("ProceduralAmmoImage");
+                ammoIconObj.transform.SetParent(container.transform, false);
+                _ammoImage = ammoIconObj.AddComponent<UnityEngine.UI.Image>();
+                _ammoImage.preserveAspect = true;
+                RectTransform aIconRect = ammoIconObj.GetComponent<RectTransform>();
+                aIconRect.anchorMin = new Vector2(0.18f, 0.08f);
+                aIconRect.anchorMax = new Vector2(0.18f, 0.08f);
+                aIconRect.pivot = new Vector2(0f, 0f);
+                aIconRect.anchoredPosition = Vector2.zero;
+                aIconRect.sizeDelta = new Vector2(32f, 32f);
+
+                // 2.5 Ammo Text
                 GameObject ammoObj = new GameObject("AmmoTextHUD");
                 ammoObj.transform.SetParent(container.transform, false);
 
                 RectTransform ammoRect = ammoObj.AddComponent<RectTransform>();
-                ammoRect.anchorMin = new Vector2(0.05f, 0.08f);
+                ammoRect.anchorMin = new Vector2(0.30f, 0.06f);
                 ammoRect.anchorMax = new Vector2(0.95f, 0.32f);
                 ammoRect.offsetMin = Vector2.zero;
                 ammoRect.offsetMax = Vector2.zero;
 
                 _ammoText = ammoObj.AddComponent<TMPro.TextMeshProUGUI>();
-                _ammoText.fontSize = 24f;
+                _ammoText.fontSize = 22f;
                 _ammoText.color = Color.white;
                 _ammoText.fontStyle = TMPro.FontStyles.Bold;
                 _ammoText.alignment = TMPro.TextAlignmentOptions.Left;
+            }
+        }
+
+        private void ResolveWeaponAndAmmoImages()
+        {
+            _weaponImage = weaponImage;
+            _ammoImage = ammoImage;
+
+            // Smart detection: In case user dragged the GameObject named "Ammo" into weaponImage
+            // and "Weapon" into ammoImage in the Inspector, auto-swap them to match intended targets!
+            if (weaponImage != null && ammoImage != null)
+            {
+                string wName = weaponImage.gameObject.name.ToLower();
+                string aName = ammoImage.gameObject.name.ToLower();
+
+                if (wName.Contains("ammo") && aName.Contains("weapon"))
+                {
+                    _weaponImage = ammoImage;
+                    _ammoImage = weaponImage;
+                    Debug.Log("[PlayerHUD] Auto-corrected swapped Weapon and Ammo images based on GameObject names.");
+                }
             }
         }
 
@@ -294,17 +352,124 @@ namespace TheLastEmpire
                 _hungerTextText.text = $"HUNGER: {Mathf.RoundToInt(player.CurrentHunger)} / {Mathf.RoundToInt(player.MaxHunger)}";
             }
 
-            // 3. Update Ammo Text
-            if (_ammoText != null)
+            // 3. Update Weapon & Ammo Visuals
+            UpdateWeaponAndAmmoVisuals();
+        }
+
+        private void UpdateWeaponAndAmmoVisuals()
+        {
+            if (player == null) return;
+
+            string currentWeaponName = "";
+            string currentAmmoType = "";
+            Sprite weaponSprite = null;
+            Sprite ammoSprite = null;
+
+            if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
             {
-                string weaponName = player.CurrentWeaponName.ToUpper();
-                if (player.IsReloading)
+                currentWeaponName = player.CurrentWeapon.weaponName;
+                currentAmmoType = player.CurrentWeapon.ammoType;
+                weaponSprite = player.CurrentWeapon.icon;
+            }
+            else if (player.CurrentMeleeWeapon != null && !string.IsNullOrEmpty(player.CurrentMeleeWeapon.weaponName))
+            {
+                currentWeaponName = player.CurrentMeleeWeapon.weaponName;
+                weaponSprite = player.CurrentMeleeWeapon.icon;
+                currentAmmoType = null; // Melee weapons do not consume ammo
+            }
+
+            // Lookup weapon icon in ItemDatabase if not assigned on weapon object
+            if (weaponSprite == null && !string.IsNullOrEmpty(currentWeaponName) && ItemDatabase.Instance != null)
+            {
+                ItemData wData = ItemDatabase.Instance.GetItemByName(currentWeaponName);
+                if (wData != null)
                 {
-                    _ammoText.text = $"{weaponName}: <color=yellow>RELOADING...</color> (<color=#cfd8dc>{player.CurrentReserveAmmo}</color>)";
+                    weaponSprite = wData.icon;
+                }
+            }
+
+            // Lookup ammo icon in ItemDatabase if wielding a firearm
+            if (player.CurrentWeapon != null)
+            {
+                if (string.IsNullOrEmpty(currentAmmoType))
+                {
+                    string lower = currentWeaponName.ToLower();
+                    if (lower.Contains("rifl")) currentAmmoType = "Rifle Ammo";
+                    else if (lower.Contains("shot")) currentAmmoType = "Shotgun Ammo";
+                    else currentAmmoType = "Pistol Ammo";
+                }
+
+                if (!string.IsNullOrEmpty(currentAmmoType) && ItemDatabase.Instance != null)
+                {
+                    ItemData aData = ItemDatabase.Instance.GetItemByName(currentAmmoType);
+                    if (aData != null)
+                    {
+                        ammoSprite = aData.icon;
+                    }
+                    else
+                    {
+                        // Fallback check generic Ammo
+                        ItemData genericAmmo = ItemDatabase.Instance.GetItemByName("Ammo");
+                        if (genericAmmo != null) ammoSprite = genericAmmo.icon;
+                    }
+                }
+            }
+
+            // Apply Weapon Image
+            if (_weaponImage != null)
+            {
+                if (showWeaponImage && weaponSprite != null)
+                {
+                    _weaponImage.sprite = weaponSprite;
+                    _weaponImage.enabled = true;
+                    _weaponImage.preserveAspect = true;
+                    _weaponImage.color = Color.white;
                 }
                 else
                 {
-                    _ammoText.text = $"{weaponName}: <color=#00e5ff>{player.CurrentMagazine}</color> / <color=#cfd8dc>{player.CurrentReserveAmmo}</color>";
+                    _weaponImage.enabled = false;
+                }
+            }
+
+            // Apply Ammo Image
+            if (_ammoImage != null)
+            {
+                if (ammoSprite != null)
+                {
+                    _ammoImage.sprite = ammoSprite;
+                    _ammoImage.enabled = true;
+                    _ammoImage.preserveAspect = true;
+                    _ammoImage.color = Color.white;
+                }
+                else
+                {
+                    _ammoImage.enabled = false;
+                }
+            }
+
+            // Update Ammo / Weapon Text HUD
+            if (_ammoText != null)
+            {
+                if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
+                {
+                    string weaponPrefix = showWeaponName ? $"{player.CurrentWeaponName.ToUpper()}: " : "";
+                    if (player.IsReloading)
+                    {
+                        _ammoText.text = $"{weaponPrefix}<color=yellow>RELOAD...</color> (<color=#cfd8dc>{player.CurrentReserveAmmo}</color>)";
+                    }
+                    else
+                    {
+                        _ammoText.text = $"{weaponPrefix}<color=#00e5ff>{player.CurrentMagazine}</color> / <color=#cfd8dc>{player.CurrentReserveAmmo}</color>";
+                    }
+                }
+                else if (player.CurrentMeleeWeapon != null && !string.IsNullOrEmpty(player.CurrentMeleeWeapon.weaponName))
+                {
+                    string meleeName = showWeaponName ? $"{player.CurrentMeleeWeaponName.ToUpper()}: " : "";
+                    _ammoText.text = $"{meleeName}<color=#a0e0a0>MELEE</color>";
+                }
+                else
+                {
+                    _ammoText.text = "<color=gray>-</color>";
                 }
             }
         }

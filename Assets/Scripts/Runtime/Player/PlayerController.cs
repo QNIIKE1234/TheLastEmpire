@@ -1196,6 +1196,7 @@ namespace TheLastEmpire
             {
                 _currentMeleeWeaponIndex = -1;
                 Debug.Log($"[PlayerController] Unequipped melee weapon.");
+                OnAmmoChanged?.Invoke();
                 return;
             }
 
@@ -1214,6 +1215,7 @@ namespace TheLastEmpire
 
             _currentMeleeWeaponIndex = index;
             Debug.Log($"[PlayerController] Equipped melee weapon: {wName}");
+            OnAmmoChanged?.Invoke();
         }
 
         public void SwitchToWeapon(int index)
@@ -1350,20 +1352,20 @@ namespace TheLastEmpire
                 {
                     if (closestNpc.HasShop && closestNpc.HasDialogue)
                     {
-                        LootUI.Instance.ShowRawPrompt($"Press <color=yellow><b>[E]</b></color> Shop  |  <color=#00e5ff><b>[Q]</b></color> Talk with {closestNpc.NpcName}", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop\n<color=#00e5ff><b>[Q]</b></color> Talk", closestNpc.transform);
                     }
                     else if (closestNpc.HasShop)
                     {
-                        LootUI.Instance.ShowPrompt($"Shop with {closestNpc.NpcName}", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop", closestNpc.transform);
                     }
                     else if (closestNpc.HasDialogue)
                     {
-                        LootUI.Instance.ShowRawPrompt($"Press <color=#00e5ff><b>[Q]</b></color> or <color=yellow><b>[E]</b></color> to Talk with {closestNpc.NpcName}", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=#00e5ff><b>[Q]</b></color> Talk", closestNpc.transform);
                     }
                     else
                     {
                         string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Interact";
-                        LootUI.Instance.ShowPrompt($"{action} with {closestNpc.NpcName}", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> {action}", closestNpc.transform);
                     }
                 }
                 else if (LootUI.Instance != null)
@@ -1438,6 +1440,8 @@ namespace TheLastEmpire
     public class Weapon
     {
         public string weaponName;
+        [Tooltip("Weapon icon sprite (optional, falls back to ItemDatabase)")]
+        public Sprite icon;
         public Projectile projectilePrefab;
         public float fireRate = 0.2f;
         public int magazineSize = 12;
@@ -1493,6 +1497,7 @@ namespace TheLastEmpire
             if (data == null) return;
             weaponName = data.itemName;
             damage = data.damage;
+            icon = data.icon;
             
             if (data.weaponConfig != null)
             {
@@ -1517,6 +1522,8 @@ namespace TheLastEmpire
     public class MeleeWeapon
     {
         public string weaponName;
+        [Tooltip("Melee icon sprite (optional, falls back to ItemDatabase)")]
+        public Sprite icon;
         public float damage = 35f;
         public float attackRate = 0.4f;
         public float attackRadius = 1.2f;
@@ -1536,6 +1543,7 @@ namespace TheLastEmpire
             if (data == null) return;
             weaponName = data.itemName;
             damage = data.damage;
+            icon = data.icon;
             attackRate = data.attackRate;
             attackRadius = data.attackRadius;
             knockbackForce = data.knockbackForce;
