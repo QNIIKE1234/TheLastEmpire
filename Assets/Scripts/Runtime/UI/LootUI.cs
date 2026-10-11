@@ -182,6 +182,22 @@ namespace TheLastEmpire
             promptPanel.SetActive(true);
         }
 
+        public void ShowRawPrompt(string fullPromptText, Transform targetTransform = null)
+        {
+            if (promptPanel == null || promptText == null) return;
+
+            if (_isOpen)
+            {
+                HidePrompt();
+                return;
+            }
+
+            _promptTarget = targetTransform;
+
+            promptText.text = fullPromptText;
+            promptPanel.SetActive(true);
+        }
+
         public void HidePrompt()
         {
             if (promptPanel != null)

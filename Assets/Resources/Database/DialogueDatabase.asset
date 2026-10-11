@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 870ae3e062ea8f743ad4efe1b8b9b086, type: 3}
+  m_Name: DialogueDatabase
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Story.DialogueDatabase
+  dialogues:
+  - dialogueId: Merchant_Intro
+    category: Shop
+    description: Default welcome greeting from the Outpost Merchant
+    dialogueTree: {fileID: 0}
+    inlineLines:
+    - speakerName: Merchant
+      dialogueText: Welcome to the outpost, survivor! The ruins are crawling with
+        danger, but I've got weapons and supplies if you have the cash.
+      onDialogueEnd:
+        m_PersistentCalls:
+          m_Calls: []
+    - speakerName: Merchant
+      dialogueText: Press [E] to trade with me anytime. Or press [Q] if you want
+        to chat or hear rumors about the wasteland!
+      onDialogueEnd:
+        m_PersistentCalls:
+          m_Calls: []
+  - dialogueId: Merchant_Rumor
+    category: Rumor
+    description: Wasteland survival tips from the Merchant
+    dialogueTree: {fileID: 0}
+    inlineLines:
+    - speakerName: Merchant
+      dialogueText: 'Word of advice: Watch the sky! When night falls, Aliens become
+        much more aggressive.'
+      onDialogueEnd:
+        m_PersistentCalls:
+          m_Calls: []
+    - speakerName: Merchant
+      dialogueText: Always keep a stash of ammunition and food in your backpack before
+        stepping through unexplored portals.
+      onDialogueEnd:
+        m_PersistentCalls:
+          m_Calls: []
+  - dialogueId: Wanderer_Greeting
+    category: Story
+    description: General survivor wasteland greeting
+    dialogueTree: {fileID: 0}
+    inlineLines:
+    - speakerName: Survivor
+      dialogueText: Still alive, huh? In this wasteland, that's already a victory.
+      onDialogueEnd:
+        m_PersistentCalls:
+          m_Calls: []

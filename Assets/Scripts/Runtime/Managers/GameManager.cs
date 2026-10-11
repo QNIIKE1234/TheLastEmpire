@@ -751,15 +751,19 @@ namespace TheLastEmpire
                 }
                 npc.SetNPCType(type);
 
-                if (type == NPCType.Shop && _currentStage != null)
+                if (type == NPCType.Shop)
                 {
-                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    npc.SetDialogueId("Merchant_Intro");
+                    if (_currentStage != null)
                     {
-                        npc.SetShopItems(_currentStage.savedShopItems);
-                    }
-                    else
-                    {
-                        _currentStage.savedShopItems = npc.ShopItems;
+                        if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                        {
+                            npc.SetShopItems(_currentStage.savedShopItems);
+                        }
+                        else
+                        {
+                            _currentStage.savedShopItems = npc.ShopItems;
+                        }
                     }
                 }
             }
@@ -775,15 +779,19 @@ namespace TheLastEmpire
                 NPCController npc = _activeNPC.AddComponent<NPCController>();
                 npc.SetNPCType(type);
 
-                if (type == NPCType.Shop && _currentStage != null)
+                if (type == NPCType.Shop)
                 {
-                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    npc.SetDialogueId("Merchant_Intro");
+                    if (_currentStage != null)
                     {
-                        npc.SetShopItems(_currentStage.savedShopItems);
-                    }
-                    else
-                    {
-                        _currentStage.savedShopItems = npc.ShopItems;
+                        if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                        {
+                            npc.SetShopItems(_currentStage.savedShopItems);
+                        }
+                        else
+                        {
+                            _currentStage.savedShopItems = npc.ShopItems;
+                        }
                     }
                 }
 

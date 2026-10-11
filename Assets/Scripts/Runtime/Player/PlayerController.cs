@@ -270,7 +270,8 @@ namespace TheLastEmpire
             }
 
             bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen);
+                              (LootUI.Instance != null && LootUI.Instance.IsOpen) ||
+                              (TheLastEmpire.UI.DialogueUI.Instance != null && TheLastEmpire.UI.DialogueUI.Instance.IsDialogueActive);
             if (isMenuOpen)
             {
                 if (_rb != null)
@@ -480,6 +481,10 @@ namespace TheLastEmpire
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
                     TryInteract();
+                }
+                if (Keyboard.current.qKey.wasPressedThisFrame)
+                {
+                    TryTalk();
                 }
             }
         }
@@ -1343,12 +1348,45 @@ namespace TheLastEmpire
 
                 if (closestNpc != null && LootUI.Instance != null)
                 {
-                    string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Talk";
-                    LootUI.Instance.ShowPrompt($"{action} with {closestNpc.NpcName}", closestNpc.transform);
+                    if (closestNpc.HasShop && closestNpc.HasDialogue)
+                    {
+                        LootUI.Instance.ShowRawPrompt($"Press <color=yellow><b>[E]</b></color> Shop  |  <color=#00e5ff><b>[Q]</b></color> Talk with {closestNpc.NpcName}", closestNpc.transform);
+                    }
+                    else if (closestNpc.HasShop)
+                    {
+                        LootUI.Instance.ShowPrompt($"Shop with {closestNpc.NpcName}", closestNpc.transform);
+                    }
+                    else if (closestNpc.HasDialogue)
+                    {
+                        LootUI.Instance.ShowRawPrompt($"Press <color=#00e5ff><b>[Q]</b></color> or <color=yellow><b>[E]</b></color> to Talk with {closestNpc.NpcName}", closestNpc.transform);
+                    }
+                    else
+                    {
+                        string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Interact";
+                        LootUI.Instance.ShowPrompt($"{action} with {closestNpc.NpcName}", closestNpc.transform);
+                    }
                 }
                 else if (LootUI.Instance != null)
                 {
                     LootUI.Instance.HidePrompt();
+                }
+            }
+        }
+
+        private void TryTalk()
+        {
+            if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+
+            NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            foreach (NPCController npc in npcs)
+            {
+                if (npc != null && npc.IsPlayerInRange(transform.position))
+                {
+                    if (npc.HasDialogue)
+                    {
+                        npc.Talk();
+                        return; // Talked with NPC, skip other interactions!
+                    }
                 }
             }
         }

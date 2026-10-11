@@ -53,6 +53,20 @@ namespace TheLastEmpire.UI
             }
         }
 
+        public void StartDialogue(string dialogueId)
+        {
+            if (DialogueDatabase.Instance != null)
+            {
+                DialogueTreeSO tree = DialogueDatabase.Instance.GetDialogueTree(dialogueId);
+                if (tree != null)
+                {
+                    StartDialogue(tree);
+                    return;
+                }
+            }
+            Debug.LogWarning($"[DialogueUI] Cannot find dialogue with ID '{dialogueId}' in DialogueDatabase.");
+        }
+
         public void StartDialogue(DialogueTreeSO dialogueTree)
         {
             if (dialogueTree == null || dialogueTree.dialogueLines.Count == 0) return;

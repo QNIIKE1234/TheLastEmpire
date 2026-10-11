@@ -5132,7 +5132,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: asdasdasdasdasdasdasdasdasdasdasda
+  m_text: 'E To interract
+
+    Q TO Ttalk'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
   m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
@@ -5159,7 +5161,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15.2
+  m_fontSize: 17.4
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -9755,14 +9757,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4513a63d3903c0448224fc538063ee1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.GroundBiomeMaterialController
-  urbanRuinsMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  highwaysMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  overgrownForestsMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  highlandsMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  waterwaysMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  suburbanVillagesMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  specialEventMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
-  defaultMaterial: {fileID: 2100000, guid: f3baf628b9e9cc74fae2359448d40e51, type: 2}
+  urbanRuinsMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  highwaysMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  overgrownForestsMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  highlandsMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  waterwaysMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  suburbanVillagesMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  specialEventMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
+  defaultMaterial: {fileID: 2100000, guid: e2e2c28f75da9044aafd83e5ca72d7bc, type: 2}
   centerMeshRenderer: {fileID: 1357805093}
   northMeshRenderer: {fileID: 2007887629}
   southMeshRenderer: {fileID: 2100650991}
@@ -14574,7 +14576,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
