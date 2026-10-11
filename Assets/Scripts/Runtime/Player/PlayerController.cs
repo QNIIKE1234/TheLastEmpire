@@ -109,6 +109,15 @@ namespace TheLastEmpire
 
         [Header("Gunshot Noise Settings")]
         [SerializeField] private float gunshotAlertRange = 5f;
+
+        [Header("Grenade / AOE Indicators")]
+        [Tooltip("Custom sprite for the Grenade AOE circle (optional). If unassigned, uses the red LineRenderer circle.")]
+        [SerializeField] private Sprite aoeIndicatorSprite;
+        [SerializeField] private Color aoeIndicatorColor = new Color(1f, 0.2f, 0.2f, 0.7f);
+
+        [Tooltip("Custom sprite for the player throw range circle (optional). If unassigned, uses the white LineRenderer circle.")]
+        [SerializeField] private Sprite throwRangeSprite;
+        [SerializeField] private Color throwRangeColor = new Color(1f, 1f, 1f, 0.35f);
         
         private bool _isDashing = false;
         private Vector3 _dashDirection;
@@ -345,18 +354,61 @@ namespace TheLastEmpire
 
         private void UpdateIndicators()
         {
-            if (CurrentWeapon != null && CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced)
-            {
-                if (_throwRangeIndicator != null && !_throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(true);
-                if (_aoeIndicator != null && !_aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(true);
+            bool isThrowing = CurrentWeapon != null && CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced;
 
-                DrawCircle(_throwRangeIndicator, transform.position, CurrentWeapon.range);
-                DrawCircle(_aoeIndicator, _aimTargetPoint, CurrentWeapon.projectilePrefab.ExplosionRadius);
+            if (isThrowing)
+            {
+                float throwRadius = CurrentWeapon.range;
+                float aoeRadius = CurrentWeapon.projectilePrefab.ExplosionRadius;
+
+                // 1. Throw Range Indicator (Around Player)
+                if (throwRangeSprite != null && _throwRangeSpriteRenderer != null)
+                {
+                    if (!_throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(true);
+                    if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
+
+                    _throwRangeSpriteRenderer.transform.position = new Vector3(transform.position.x, 0.04f, transform.position.z);
+                    float baseWidth = _throwRangeSpriteRenderer.sprite != null ? _throwRangeSpriteRenderer.sprite.bounds.size.x : 1f;
+                    if (baseWidth > 0f)
+                    {
+                        float scale = (throwRadius * 2f) / baseWidth;
+                        _throwRangeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                    }
+                }
+                else if (_throwRangeIndicator != null)
+                {
+                    if (!_throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(true);
+                    if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
+                    DrawCircle(_throwRangeIndicator, transform.position, throwRadius);
+                }
+
+                // 2. AOE Radius Indicator (At Aim Target Point)
+                if (aoeIndicatorSprite != null && _aoeSpriteRenderer != null)
+                {
+                    if (!_aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(true);
+                    if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
+
+                    _aoeSpriteRenderer.transform.position = new Vector3(_aimTargetPoint.x, 0.05f, _aimTargetPoint.z);
+                    float baseWidth = _aoeSpriteRenderer.sprite != null ? _aoeSpriteRenderer.sprite.bounds.size.x : 1f;
+                    if (baseWidth > 0f)
+                    {
+                        float scale = (aoeRadius * 2f) / baseWidth;
+                        _aoeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                    }
+                }
+                else if (_aoeIndicator != null)
+                {
+                    if (!_aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(true);
+                    if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
+                    DrawCircle(_aoeIndicator, _aimTargetPoint, aoeRadius);
+                }
             }
             else
             {
                 if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
                 if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
+                if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
+                if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             }
         }
 
@@ -379,6 +431,8 @@ namespace TheLastEmpire
         // Grenade Aim Indicators
         private LineRenderer _throwRangeIndicator;
         private LineRenderer _aoeIndicator;
+        private SpriteRenderer _throwRangeSpriteRenderer;
+        private SpriteRenderer _aoeSpriteRenderer;
 
         private void UpdateAimDirection()
         {
@@ -652,15 +706,21 @@ namespace TheLastEmpire
             Vector3 spawnPos = transform.position + _aimDirection * 0.6f;
             
             // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
-            if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.vfxPoolKey) && ObjectPoolManager.Instance != null)
+            string flashKey = activeWeapon != null ? activeWeapon.vfxPoolKey : null;
+            if (string.IsNullOrEmpty(flashKey) || flashKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
             {
-                GameObject muzzleFlash = ObjectPoolManager.Instance.SpawnFromPool(activeWeapon.vfxPoolKey, spawnPos, Quaternion.LookRotation(_aimDirection));
+                flashKey = "PistolFlash";
+            }
+
+            if (!string.IsNullOrEmpty(flashKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject muzzleFlash = ObjectPoolManager.Instance.SpawnFromPool(flashKey, spawnPos, Quaternion.LookRotation(_aimDirection));
                 if (muzzleFlash != null)
                 {
                     PooledParticle pooledParticle = muzzleFlash.GetComponent<PooledParticle>();
                     if (pooledParticle != null)
                     {
-                        pooledParticle.SetPoolKey(activeWeapon.vfxPoolKey);
+                        pooledParticle.SetPoolKey(flashKey);
                     }
                 }
             }
@@ -1397,6 +1457,21 @@ namespace TheLastEmpire
         {
             _throwRangeIndicator = CreateLineRenderer("ThrowRangeIndicator", Color.white, 0.05f);
             _aoeIndicator = CreateLineRenderer("AOEIndicator", Color.red, 0.05f);
+
+            // Sprite Indicators (flat on ground, facing top-down camera)
+            GameObject throwRangeObj = new GameObject("ThrowRangeSprite");
+            throwRangeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            _throwRangeSpriteRenderer = throwRangeObj.AddComponent<SpriteRenderer>();
+            _throwRangeSpriteRenderer.sprite = throwRangeSprite;
+            _throwRangeSpriteRenderer.color = throwRangeColor;
+            throwRangeObj.SetActive(false);
+
+            GameObject aoeObj = new GameObject("AOESprite");
+            aoeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            _aoeSpriteRenderer = aoeObj.AddComponent<SpriteRenderer>();
+            _aoeSpriteRenderer.sprite = aoeIndicatorSprite;
+            _aoeSpriteRenderer.color = aoeIndicatorColor;
+            aoeObj.SetActive(false);
         }
 
         private LineRenderer CreateLineRenderer(string objName, Color color, float width)
@@ -1512,6 +1587,10 @@ namespace TheLastEmpire
                 isAutomatic = data.weaponConfig.isAutomatic;
                 ammoType = data.weaponConfig.ammoType;
                 vfxPoolKey = data.weaponConfig.vfxPoolKey;
+                if (string.IsNullOrEmpty(vfxPoolKey) || vfxPoolKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    vfxPoolKey = "PistolFlash";
+                }
             }
             
             Initialize(0);

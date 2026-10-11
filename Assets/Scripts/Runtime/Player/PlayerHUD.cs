@@ -17,8 +17,6 @@ namespace TheLastEmpire
         [Header("Display Settings")]
         [Tooltip("แสดงเฉพาะตัวเลขกระสุน (ไม่โชว์ชื่อปืน เช่น ตัด PISTOL: ออก)")]
         [SerializeField] private bool showWeaponName = false;
-        [Tooltip("แสดงรูปไอคอนอาวุธหรือไม่ (ถ้า false จะโชว์แค่รูปกระสุน)")]
-        [SerializeField] private bool showWeaponImage = false;
 
         [Header("Game Over References")]
         [SerializeField] private GameObject gameOverPanel;
@@ -418,7 +416,7 @@ namespace TheLastEmpire
             // Apply Weapon Image
             if (_weaponImage != null)
             {
-                if (showWeaponImage && weaponSprite != null)
+                if (weaponSprite != null)
                 {
                     _weaponImage.sprite = weaponSprite;
                     _weaponImage.enabled = true;

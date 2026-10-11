@@ -103,6 +103,10 @@ namespace TheLastEmpire
             if (string.IsNullOrEmpty(key)) return null;
             
             string trimmedKey = key.Trim();
+            if (trimmedKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
+            {
+                trimmedKey = "PistolFlash";
+            }
 
             if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
             {
@@ -146,6 +150,10 @@ namespace TheLastEmpire
             }
 
             string trimmedKey = key.Trim();
+            if (trimmedKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
+            {
+                trimmedKey = "PistolFlash";
+            }
 
             if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
             {
