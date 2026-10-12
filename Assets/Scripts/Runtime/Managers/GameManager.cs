@@ -62,15 +62,58 @@ namespace TheLastEmpire
             }
         }
 
+        private void OnEnable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            // Clear any active enemies and stale references from the previous scene
+            _currentStage = null;
+            _activeEnemies.Clear();
+            _usedSectorIndices.Clear();
+            _activeNPC = null;
+
+            // Trigger local stage content setup for the current stage coordinates
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged -= OnPlayerEnteredNewStage;
+                WorldMapManager.Instance.OnStageChanged += OnPlayerEnteredNewStage;
+
+                if (WorldMapManager.Instance.MapGenerator != null &&
+                    WorldMapManager.Instance.MapGenerator.gridData != null &&
+                    WorldMapManager.Instance.MapGenerator.gridData.Length > 0)
+                {
+                    OnPlayerEnteredNewStage(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+                }
+            }
+
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.OnTimePhaseChanged -= OnTimePhaseChanged;
+                DayNightManager.Instance.OnTimePhaseChanged += OnTimePhaseChanged;
+            }
+        }
+
         private void Start()
         {
             // Register to listen to the stage change event
             if (WorldMapManager.Instance != null)
             {
+                WorldMapManager.Instance.OnStageChanged -= OnPlayerEnteredNewStage;
                 WorldMapManager.Instance.OnStageChanged += OnPlayerEnteredNewStage;
                 
-                // Trigger initial setup for the starting stage
-                OnPlayerEnteredNewStage(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+                // Trigger initial setup for the starting stage if not already initialized
+                if (_currentStage == null && WorldMapManager.Instance.MapGenerator != null && WorldMapManager.Instance.MapGenerator.gridData != null)
+                {
+                    OnPlayerEnteredNewStage(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+                }
             }
             else
             {
@@ -80,6 +123,7 @@ namespace TheLastEmpire
             // Register to listen to the Day/Night manager to reset cleared rooms at new day phase
             if (DayNightManager.Instance != null)
             {
+                DayNightManager.Instance.OnTimePhaseChanged -= OnTimePhaseChanged;
                 DayNightManager.Instance.OnTimePhaseChanged += OnTimePhaseChanged;
             }
         }

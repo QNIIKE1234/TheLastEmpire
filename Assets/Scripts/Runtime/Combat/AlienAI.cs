@@ -105,6 +105,12 @@ namespace TheLastEmpire
 
         protected override void UpdateAIBehavior()
         {
+            if (IsTargetDead())
+            {
+                WanderMovement();
+                return;
+            }
+
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             bool detected = IsPlayerInDetectionRange();
 

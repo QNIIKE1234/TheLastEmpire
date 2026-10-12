@@ -105,6 +105,13 @@ namespace TheLastEmpire
         {
             if (_isActionActive) return;
 
+            if (IsTargetDead())
+            {
+                currentState = AIState.Wander;
+                WanderMovement();
+                return;
+            }
+
             bool playerDetected = CheckRobotVision();
 
             switch (currentState)
@@ -180,7 +187,7 @@ namespace TheLastEmpire
 
         private bool CheckRobotVision()
         {
-            if (playerTransform == null) return false;
+            if (playerTransform == null || IsTargetDead()) return false;
 
             float dist = Vector3.Distance(transform.position, playerTransform.position);
             if (dist > detectionRange) return false;

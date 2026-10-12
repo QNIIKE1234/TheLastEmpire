@@ -30,8 +30,11 @@ namespace TheLastEmpire
                 _wasGravity = _rb.useGravity;
                 _wasKinematic = _rb.isKinematic;
                 _rb.useGravity = false;
+                if (!_rb.isKinematic)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                }
                 _rb.isKinematic = true; // Prevent physics interference during manual lerp
-                _rb.linearVelocity = Vector3.zero;
             }
         }
 

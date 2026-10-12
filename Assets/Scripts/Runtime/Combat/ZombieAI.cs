@@ -57,21 +57,23 @@ namespace TheLastEmpire
 
         [Header("Boss / Leader Charge Settings")]
         [SerializeField] private float chargeCooldown = 6f;
-        [SerializeField] private float chargeSpeed = 12f;
-        [SerializeField] private float chargeDuration = 0.5f;
-        [SerializeField] private float chargeWindupDuration = 0.3f;
-        [SerializeField] private float minChargeDistance = 3.5f;
-        [SerializeField] private float maxChargeDistance = 10f;
-        [SerializeField] private int chargeContactDamage = 20;
-        [SerializeField] private float chargeContactKnockback = 8f;
+        [SerializeField] private float chargeSpeed = 22f;
+        [SerializeField] private float chargeDuration = 0.45f;
+        [SerializeField] private float chargeWindupDuration = 0.65f;
+        [SerializeField] private float minChargeDistance = 5.0f;
+        [SerializeField] private float maxChargeDistance = 12.5f;
+        [SerializeField] private int chargeContactDamage = 25;
+        [SerializeField] private float chargeContactKnockback = 10f;
+        [SerializeField] private float chargePathWidth = 1.8f;
+        [SerializeField] private Color chargeTelegraphColor = new Color(1f, 0.15f, 0.15f, 0.45f);
 
         [Header("Boss / Leader Stomp AOE Settings")]
-        [SerializeField] private float stompAttackRange = 3.2f;
-        [SerializeField] private float stompRadius = 3.0f;
-        [SerializeField] private int stompDamage = 40;
+        [SerializeField] private float stompAttackRange = 4.8f;
+        [SerializeField] private float stompRadius = 4.5f;
+        [SerializeField] private int stompDamage = 45;
         [SerializeField] private float stompTelegraphDuration = 1.0f;
         [SerializeField] private float stompCooldown = 5.0f;
-        [SerializeField] private float stompKnockbackForce = 12f;
+        [SerializeField] private float stompKnockbackForce = 13f;
         [SerializeField] private string stompVfxPoolKey = "EnemyExplosion";
         [Tooltip("Custom sprite for Boss AOE warning circle (optional)")]
         [SerializeField] private Sprite stompTelegraphSprite;
@@ -117,6 +119,8 @@ namespace TheLastEmpire
         private bool _isCharging = false;
         private bool _isChargeWindingUp = false;
         private Vector3 _chargeDirection;
+        private LineRenderer _chargePathLineRenderer;
+        private SpriteRenderer _chargePathSpriteRenderer;
 
         // Boss Stomp AOE State
         private float _stompCooldownTimer = 0f;
@@ -247,6 +251,15 @@ namespace TheLastEmpire
             // Handle Boomer Fuse Countdown
             if (_isExploding)
             {
+                if (IsTargetDead())
+                {
+                    _isExploding = false;
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Wander;
+                    return;
+                }
+
                 rb.linearVelocity = Vector3.zero;
                 _fuseTimer -= Time.fixedDeltaTime;
 
@@ -271,6 +284,16 @@ namespace TheLastEmpire
             if (_stompCooldownTimer > 0f) _stompCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
             if (_isStompTelegraphing)
             {
+                if (IsTargetDead())
+                {
+                    _isStompTelegraphing = false;
+                    HideBossTelegraphVisual();
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Wander;
+                    return;
+                }
+
                 rb.linearVelocity = Vector3.zero;
                 _stompTelegraphTimer -= Time.fixedDeltaTime;
 
@@ -294,8 +317,34 @@ namespace TheLastEmpire
             if (_chargeCooldownTimer > 0f) _chargeCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
             if (_isChargeWindingUp)
             {
+                if (IsTargetDead())
+                {
+                    _isChargeWindingUp = false;
+                    HideBossChargeTelegraphVisual();
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Wander;
+                    return;
+                }
+
                 rb.linearVelocity = Vector3.zero;
                 _chargeWindupTimer -= Time.fixedDeltaTime;
+
+                float totalWindup = IsRageMode ? (chargeWindupDuration * rageTelegraphSpeedMultiplier) : chargeWindupDuration;
+                // Track player during initial 60% of windup, then lock direction so player can dodge
+                if (_chargeWindupTimer > totalWindup * 0.4f && playerTransform != null)
+                {
+                    Vector3 toPlayer = (playerTransform.position - transform.position);
+                    toPlayer.y = 0f;
+                    if (toPlayer.sqrMagnitude > 0.01f)
+                    {
+                        _chargeDirection = toPlayer.normalized;
+                        transform.forward = _chargeDirection;
+                    }
+                }
+
+                float currentChargeDist = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f) * chargeDuration;
+                UpdateBossChargeTelegraphVisual(_chargeDirection, currentChargeDist, chargePathWidth);
 
                 if (_spriteRenderer != null)
                 {
@@ -306,6 +355,7 @@ namespace TheLastEmpire
                 if (_chargeWindupTimer <= 0f)
                 {
                     _isChargeWindingUp = false;
+                    HideBossChargeTelegraphVisual();
                     _isCharging = true;
                     _chargeActiveTimer = chargeDuration;
                 }
@@ -323,8 +373,8 @@ namespace TheLastEmpire
                     transform.forward = _chargeDirection;
                 }
 
-                // Check contact damage with player during rush
-                if (playerTransform != null && Vector3.Distance(transform.position, playerTransform.position) <= 1.3f)
+                // Check contact damage with player during rush (1.6m ensures reliable hit at high dash speed)
+                if (playerTransform != null && Vector3.Distance(transform.position, playerTransform.position) <= 1.6f)
                 {
                     IDamageable damageable = playerTransform.GetComponent<IDamageable>();
                     if (damageable != null)
@@ -362,7 +412,7 @@ namespace TheLastEmpire
             ApplyLeaderBuffChecks();
 
             // Handle Leader minion spawning
-            if (zombieType == ZombieType.Leader && health != null && !health.IsDead)
+            if (zombieType == ZombieType.Leader && health != null && !health.IsDead && !IsTargetDead())
             {
                 if (_spawnCooldownTimer > 0f) _spawnCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
                 HandleLeaderSpawning();
@@ -373,6 +423,21 @@ namespace TheLastEmpire
 
         protected override void UpdateAIBehavior()
         {
+            if (IsTargetDead())
+            {
+                bool night = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
+                if (night)
+                {
+                    currentState = AIState.Idle;
+                    rb.linearVelocity = Vector3.zero;
+                }
+                else
+                {
+                    WanderMovement();
+                }
+                return;
+            }
+
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             bool detected = IsPlayerInDetectionRange();
 
@@ -693,6 +758,9 @@ namespace TheLastEmpire
             {
                 transform.forward = _chargeDirection;
             }
+
+            float currentChargeDist = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f) * chargeDuration;
+            UpdateBossChargeTelegraphVisual(_chargeDirection, currentChargeDist, chargePathWidth);
         }
 
         #region Boss Rage Mode System
@@ -766,7 +834,7 @@ namespace TheLastEmpire
             {
                 foreach (var r in _allMeshRenderers)
                 {
-                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer) continue;
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer) continue;
                     if (r is SpriteRenderer || r is LineRenderer) continue;
                     if (r.material != null && r.material.HasProperty("_Color"))
                     {
@@ -787,7 +855,7 @@ namespace TheLastEmpire
             {
                 foreach (var r in _allMeshRenderers)
                 {
-                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer) continue;
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer) continue;
                     if (r is SpriteRenderer || r is LineRenderer) continue;
                     if (_originalRendererColors.TryGetValue(r, out Color orig) && r.material != null && r.material.HasProperty("_Color"))
                     {
@@ -819,7 +887,7 @@ namespace TheLastEmpire
         {
             if (_stompCircleRenderer != null) return;
 
-            // 1. LineRenderer Warning Ring (crisp 3m boundary)
+            // 1. LineRenderer Warning Ring (AOE stomp boundary)
             GameObject circleObj = new GameObject("BossAOECircle");
             circleObj.transform.SetParent(transform);
             circleObj.transform.localPosition = Vector3.zero;
@@ -837,7 +905,7 @@ namespace TheLastEmpire
             _stompCircleRenderer.endColor = new Color(1f, 0.2f, 0.1f, 0.9f);
             circleObj.SetActive(false);
 
-            // 2. Ground Decal Disc (tinted danger zone)
+            // 2. Ground Decal Disc (AOE stomp danger zone)
             GameObject discObj = new GameObject("BossAOEDisc");
             discObj.transform.SetParent(transform);
             discObj.transform.localPosition = Vector3.zero;
@@ -878,6 +946,53 @@ namespace TheLastEmpire
             }
 
             discObj.SetActive(false);
+
+            // 3. LineRenderer Charge Corridor Box (rectangular outline)
+            GameObject chargeLineObj = new GameObject("BossChargePathLine");
+            chargeLineObj.transform.SetParent(transform);
+            chargeLineObj.transform.localPosition = Vector3.zero;
+
+            _chargePathLineRenderer = chargeLineObj.AddComponent<LineRenderer>();
+            _chargePathLineRenderer.startWidth = 0.08f;
+            _chargePathLineRenderer.endWidth = 0.08f;
+            _chargePathLineRenderer.useWorldSpace = true;
+            _chargePathLineRenderer.loop = true;
+            _chargePathLineRenderer.positionCount = 4;
+
+            _chargePathLineRenderer.material = new Material(lineMat);
+            _chargePathLineRenderer.startColor = new Color(1f, 0.25f, 0.1f, 0.9f);
+            _chargePathLineRenderer.endColor = new Color(1f, 0.25f, 0.1f, 0.9f);
+            chargeLineObj.SetActive(false);
+
+            // 4. Ground Decal Charge Strip (rectangular danger zone)
+            GameObject chargeDiscObj = new GameObject("BossChargePathDecal");
+            chargeDiscObj.transform.SetParent(transform);
+            chargeDiscObj.transform.localPosition = Vector3.zero;
+            chargeDiscObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            _chargePathSpriteRenderer = chargeDiscObj.AddComponent<SpriteRenderer>();
+
+            int w = 32;
+            int h = 64;
+            Texture2D chargeTex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            chargeTex.wrapMode = TextureWrapMode.Clamp;
+            Color[] fillColors = new Color[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                float yNorm = (float)y / (h - 1);
+                float yGlow = Mathf.Lerp(0.9f, 0.5f, yNorm);
+                for (int x = 0; x < w; x++)
+                {
+                    float xNorm = Mathf.Abs(((float)x / (w - 1)) - 0.5f) * 2f;
+                    float edgeFade = Mathf.Clamp01(1f - xNorm * xNorm);
+                    fillColors[y * w + x] = new Color(1f, 0.15f, 0.1f, edgeFade * yGlow);
+                }
+            }
+            chargeTex.SetPixels(fillColors);
+            chargeTex.Apply();
+            _chargePathSpriteRenderer.sprite = Sprite.Create(chargeTex, new Rect(0, 0, w, h), new Vector2(0.5f, 0f), 32f);
+            _chargePathSpriteRenderer.color = chargeTelegraphColor;
+            chargeDiscObj.SetActive(false);
         }
 
         private void UpdateBossTelegraphVisual(float currentRadius)
@@ -930,6 +1045,71 @@ namespace TheLastEmpire
             }
         }
 
+        private void UpdateBossChargeTelegraphVisual(Vector3 direction, float distance, float width)
+        {
+            if (_chargePathLineRenderer == null && IsBossUnit)
+            {
+                InitBossIndicators();
+            }
+
+            if (direction.sqrMagnitude < 0.001f) direction = transform.forward;
+            direction.y = 0f;
+            direction.Normalize();
+
+            Vector3 origin = transform.position;
+            Vector3 forward = direction;
+            Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
+            float halfWidth = width * 0.5f;
+
+            if (_chargePathLineRenderer != null)
+            {
+                if (!_chargePathLineRenderer.gameObject.activeSelf) _chargePathLineRenderer.gameObject.SetActive(true);
+
+                Vector3 p0 = origin - right * halfWidth;
+                Vector3 p1 = origin + right * halfWidth;
+                Vector3 p2 = origin + right * halfWidth + forward * distance;
+                Vector3 p3 = origin - right * halfWidth + forward * distance;
+
+                p0.y = 0.05f;
+                p1.y = 0.05f;
+                p2.y = 0.05f;
+                p3.y = 0.05f;
+
+                _chargePathLineRenderer.SetPosition(0, p0);
+                _chargePathLineRenderer.SetPosition(1, p1);
+                _chargePathLineRenderer.SetPosition(2, p2);
+                _chargePathLineRenderer.SetPosition(3, p3);
+
+                // Pulsate line brightness
+                float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 18f);
+                Color c = new Color(1f, 0.25f, 0.1f, pulse);
+                _chargePathLineRenderer.startColor = c;
+                _chargePathLineRenderer.endColor = c;
+            }
+
+            if (_chargePathSpriteRenderer != null)
+            {
+                if (!_chargePathSpriteRenderer.gameObject.activeSelf) _chargePathSpriteRenderer.gameObject.SetActive(true);
+
+                _chargePathSpriteRenderer.transform.position = new Vector3(origin.x, 0.04f, origin.z);
+
+                float angle = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
+                _chargePathSpriteRenderer.transform.rotation = Quaternion.AngleAxis(angle, Vector3.up) * Quaternion.Euler(90f, 0f, 0f);
+
+                float baseW = _chargePathSpriteRenderer.sprite != null ? _chargePathSpriteRenderer.sprite.bounds.size.x : 1f;
+                float baseH = _chargePathSpriteRenderer.sprite != null ? _chargePathSpriteRenderer.sprite.bounds.size.y : 2f;
+                if (baseW > 0f && baseH > 0f)
+                {
+                    _chargePathSpriteRenderer.transform.localScale = new Vector3(width / baseW, distance / baseH, 1f);
+                }
+
+                float pulseAlpha = Mathf.Lerp(0.3f, 0.65f, Mathf.PingPong(Time.time * 8f, 1f));
+                Color sc = chargeTelegraphColor;
+                sc.a = pulseAlpha;
+                _chargePathSpriteRenderer.color = sc;
+            }
+        }
+
         private void HideBossTelegraphVisual()
         {
             if (_stompCircleRenderer != null && _stompCircleRenderer.gameObject.activeSelf)
@@ -939,6 +1119,19 @@ namespace TheLastEmpire
             if (_stompSpriteRenderer != null && _stompSpriteRenderer.gameObject.activeSelf)
             {
                 _stompSpriteRenderer.gameObject.SetActive(false);
+            }
+            HideBossChargeTelegraphVisual();
+        }
+
+        private void HideBossChargeTelegraphVisual()
+        {
+            if (_chargePathLineRenderer != null && _chargePathLineRenderer.gameObject.activeSelf)
+            {
+                _chargePathLineRenderer.gameObject.SetActive(false);
+            }
+            if (_chargePathSpriteRenderer != null && _chargePathSpriteRenderer.gameObject.activeSelf)
+            {
+                _chargePathSpriteRenderer.gameObject.SetActive(false);
             }
         }
 

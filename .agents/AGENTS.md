@@ -34,6 +34,13 @@ This file documents critical patterns, design choices, and systems established i
     *   Damage applies a direct knockback force pushed away from the player's coordinates.
     *   Enemy velocity decays smoothly to zero during stagger using friction Lerp.
 *   **Minion Spawning**: Boss/Leader AI units must spawn minor minions (configured via `childPoolKey`) instead of duplicating themselves.
+*   **Boss Special Attacks (Charge & Stomp AOE)**:
+    *   **Charge Rush**: At medium-long range (5.0m - 12.5m), Boss units (`IsBossUnit`) telegraph their dash corridor for 0.65s (tracking initial 60%, then locking) before rushing at high speed (22 m/s, up to ~30 m/s in Rage Mode), dealing contact damage and knockback.
+    *   **Charge Path Telegraph**: A visible rectangular danger corridor (`LineRenderer` outline + tinted ground decal strip) dynamically visualizes the charge trajectory throughout the windup.
+    *   **Ground Stomp AOE (+50% Radius)**: At close melee range (<= 4.8m), Boss halts and telegraphs a ground stomp with a 4.5-meter radius (increased by +50% from 3.0m).
+    *   **Telegraph Warning Ring**: A visible 4.5-meter red warning circle and ground decal appears around the boss for **1.0 second** before impact.
+    *   **Stomp Impact**: Exactly 1.0 second later, deals AOE damage in a 4.5m radius, triggers screen shake, and applies outward knockback to the player.
+    *   **Stagger Immunity**: Boss units are immune to hit-stagger interrupts during stomp windup and charge rush.
 
 ---
 

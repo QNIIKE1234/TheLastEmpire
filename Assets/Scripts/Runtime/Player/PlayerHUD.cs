@@ -30,6 +30,8 @@ namespace TheLastEmpire
         [SerializeField] private float gameOverFadeDuration = 1.2f;
         [Tooltip("หยุดเวลาในเกมตอนตายหรือไม่ (ถ้า false เกมจะเล่นต่อไปเรื่อยๆ ไม่หยุดเวลา)")]
         [SerializeField] private bool pauseGameOnDeath = false;
+        [Tooltip("สุ่ม Seed แมพใหม่ตอน Retry หรือไม่ (ถ้า false จะเล่นซ้ำ Seed เดิมและเกิดที่ Safe Zone เดิม)")]
+        [SerializeField] private bool randomizeSeedOnRetry = false;
 
         [Header("Player Reference (Optional)")]
         [SerializeField] private PlayerController player;
@@ -652,11 +654,16 @@ namespace TheLastEmpire
             }
 
             // Reset stage/exploration metrics
-            if (WorldMapManager.Instance != null)
+            if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
                 WorldMapManager.Instance.ResetMapProgression();
-                // Seed a fresh randomized stage layout on reload
-                WorldMapManager.Instance.StartNewGame(Random.Range(1000, 9999));
+
+                int seedToUse = randomizeSeedOnRetry 
+                    ? Random.Range(1000, 99999) 
+                    : WorldMapManager.Instance.MapGenerator.seed;
+
+                // Re-initialize map progression at safe spawn point
+                WorldMapManager.Instance.StartNewGame(seedToUse);
             }
 
             // Reload the current active scene

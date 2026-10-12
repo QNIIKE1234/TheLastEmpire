@@ -312,27 +312,27 @@ def pose(**kwargs):
 
 ANIMATIONS = []
 ANIMATIONS.append(build_loop_action("Idle", [
-    (1, pose(), 0.0),
-    (16, pose(Chest=(-1.5, 0, 0), Head=(0, 0, 1.5)), 0.012),
-    (31, pose(), 0.0),
-    (46, pose(Chest=(1.5, 0, 0), Head=(0, 0, -1.5)), 0.012),
-    (61, pose(), 0.0),
+    (1, pose(LeftUpperArm=(0, 6, -65), RightUpperArm=(0, -6, 65), LeftLowerArm=(12, 0, -5), RightLowerArm=(12, 0, 5)), 0.0),
+    (16, pose(Chest=(-1.5, 0, 0), Head=(0, 0, 1.5), LeftUpperArm=(0, 7, -64), RightUpperArm=(0, -7, 64), LeftLowerArm=(12, 0, -5), RightLowerArm=(12, 0, 5)), 0.012),
+    (31, pose(LeftUpperArm=(0, 6, -65), RightUpperArm=(0, -6, 65), LeftLowerArm=(12, 0, -5), RightLowerArm=(12, 0, 5)), 0.0),
+    (46, pose(Chest=(1.5, 0, 0), Head=(0, 0, -1.5), LeftUpperArm=(0, 5, -66), RightUpperArm=(0, -5, 66), LeftLowerArm=(12, 0, -5), RightLowerArm=(12, 0, 5)), 0.012),
+    (61, pose(LeftUpperArm=(0, 6, -65), RightUpperArm=(0, -6, 65), LeftLowerArm=(12, 0, -5), RightLowerArm=(12, 0, 5)), 0.0),
 ]))
 
 ANIMATIONS.append(build_loop_action("Walk", [
-    (1, pose(LeftUpperLeg=(18, 0, 0), RightUpperLeg=(-18, 0, 0), LeftLowerLeg=(2, 0, 0), RightLowerLeg=(20, 0, 0), LeftUpperArm=(0, 0, -10), RightUpperArm=(0, 0, 10)), 0.015),
-    (7, pose(LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(22, 0, 0), RightLowerLeg=(22, 0, 0), LeftUpperArm=(0, 0, 0), RightUpperArm=(0, 0, 0)), 0.035),
-    (13, pose(LeftUpperLeg=(-18, 0, 0), RightUpperLeg=(18, 0, 0), LeftLowerLeg=(20, 0, 0), RightLowerLeg=(2, 0, 0), LeftUpperArm=(0, 0, 10), RightUpperArm=(0, 0, -10)), 0.015),
-    (19, pose(LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(22, 0, 0), RightLowerLeg=(22, 0, 0), LeftUpperArm=(0, 0, 0), RightUpperArm=(0, 0, 0)), 0.035),
-    (25, pose(LeftUpperLeg=(18, 0, 0), RightUpperLeg=(-18, 0, 0), LeftLowerLeg=(2, 0, 0), RightLowerLeg=(20, 0, 0), LeftUpperArm=(0, 0, -10), RightUpperArm=(0, 0, 10)), 0.015),
+    (1, pose(LeftUpperLeg=(18, 0, 0), RightUpperLeg=(-18, 0, 0), LeftLowerLeg=(2, 0, 0), RightLowerLeg=(20, 0, 0), LeftUpperArm=(18, 0, -64), RightUpperArm=(-18, 0, 64), LeftLowerArm=(15, 0, -5), RightLowerArm=(15, 0, 5)), 0.015),
+    (7, pose(LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(22, 0, 0), RightLowerLeg=(22, 0, 0), LeftUpperArm=(0, 0, -66), RightUpperArm=(0, 0, 66), LeftLowerArm=(18, 0, -5), RightLowerArm=(18, 0, 5)), 0.035),
+    (13, pose(LeftUpperLeg=(-18, 0, 0), RightUpperLeg=(18, 0, 0), LeftLowerLeg=(20, 0, 0), RightLowerLeg=(2, 0, 0), LeftUpperArm=(-18, 0, -64), RightUpperArm=(18, 0, 64), LeftLowerArm=(15, 0, -5), RightLowerArm=(15, 0, 5)), 0.015),
+    (19, pose(LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(22, 0, 0), RightLowerLeg=(22, 0, 0), LeftUpperArm=(0, 0, -66), RightUpperArm=(0, 0, 66), LeftLowerArm=(18, 0, -5), RightLowerArm=(18, 0, 5)), 0.035),
+    (25, pose(LeftUpperLeg=(18, 0, 0), RightUpperLeg=(-18, 0, 0), LeftLowerLeg=(2, 0, 0), RightLowerLeg=(20, 0, 0), LeftUpperArm=(18, 0, -64), RightUpperArm=(-18, 0, 64), LeftLowerArm=(15, 0, -5), RightLowerArm=(15, 0, 5)), 0.015),
 ]))
 
 ANIMATIONS.append(build_loop_action("Run", [
-    (1, pose(Chest=(-5, 0, 0), LeftUpperLeg=(32, 0, 0), RightUpperLeg=(-32, 0, 0), LeftLowerLeg=(10, 0, 0), RightLowerLeg=(44, 0, 0), LeftUpperArm=(0, 0, -26), RightUpperArm=(0, 0, 26), LeftLowerArm=(15, 0, 0), RightLowerArm=(15, 0, 0)), 0.035),
-    (5, pose(Chest=(-5, 0, 0), LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(40, 0, 0), RightLowerLeg=(40, 0, 0), LeftUpperArm=(0, 0, 0), RightUpperArm=(0, 0, 0), LeftLowerArm=(28, 0, 0), RightLowerArm=(28, 0, 0)), 0.085),
-    (9, pose(Chest=(-5, 0, 0), LeftUpperLeg=(-32, 0, 0), RightUpperLeg=(32, 0, 0), LeftLowerLeg=(44, 0, 0), RightLowerLeg=(10, 0, 0), LeftUpperArm=(0, 0, 26), RightUpperArm=(0, 0, -26), LeftLowerArm=(15, 0, 0), RightLowerArm=(15, 0, 0)), 0.035),
-    (13, pose(Chest=(-5, 0, 0), LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(40, 0, 0), RightLowerLeg=(40, 0, 0), LeftUpperArm=(0, 0, 0), RightUpperArm=(0, 0, 0), LeftLowerArm=(28, 0, 0), RightLowerArm=(28, 0, 0)), 0.085),
-    (17, pose(Chest=(-5, 0, 0), LeftUpperLeg=(32, 0, 0), RightUpperLeg=(-32, 0, 0), LeftLowerLeg=(10, 0, 0), RightLowerLeg=(44, 0, 0), LeftUpperArm=(0, 0, -26), RightUpperArm=(0, 0, 26), LeftLowerArm=(15, 0, 0), RightLowerArm=(15, 0, 0)), 0.035),
+    (1, pose(Chest=(-5, 0, 0), LeftUpperLeg=(32, 0, 0), RightUpperLeg=(-32, 0, 0), LeftLowerLeg=(10, 0, 0), RightLowerLeg=(44, 0, 0), LeftUpperArm=(25, 0, -58), RightUpperArm=(-25, 0, 58), LeftLowerArm=(35, 0, -5), RightLowerArm=(35, 0, 5)), 0.035),
+    (5, pose(Chest=(-5, 0, 0), LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(40, 0, 0), RightLowerLeg=(40, 0, 0), LeftUpperArm=(0, 0, -62), RightUpperArm=(0, 0, 62), LeftLowerArm=(40, 0, -5), RightLowerArm=(40, 0, 5)), 0.085),
+    (9, pose(Chest=(-5, 0, 0), LeftUpperLeg=(-32, 0, 0), RightUpperLeg=(32, 0, 0), LeftLowerLeg=(44, 0, 0), RightLowerLeg=(10, 0, 0), LeftUpperArm=(-25, 0, -58), RightUpperArm=(25, 0, 58), LeftLowerArm=(35, 0, -5), RightLowerArm=(35, 0, 5)), 0.035),
+    (13, pose(Chest=(-5, 0, 0), LeftUpperLeg=(0, 0, 0), RightUpperLeg=(0, 0, 0), LeftLowerLeg=(40, 0, 0), RightLowerLeg=(40, 0, 0), LeftUpperArm=(0, 0, -62), RightUpperArm=(0, 0, 62), LeftLowerArm=(40, 0, -5), RightLowerArm=(40, 0, 5)), 0.085),
+    (17, pose(Chest=(-5, 0, 0), LeftUpperLeg=(32, 0, 0), RightUpperLeg=(-32, 0, 0), LeftLowerLeg=(10, 0, 0), RightLowerLeg=(44, 0, 0), LeftUpperArm=(25, 0, -58), RightUpperArm=(-25, 0, 58), LeftLowerArm=(35, 0, -5), RightLowerArm=(35, 0, 5)), 0.035),
 ]))
 
 # Two-handed aiming pose with a gentle breathing loop; a weapon can be attached to RightHand.

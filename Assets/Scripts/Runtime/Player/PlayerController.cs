@@ -193,8 +193,13 @@ namespace TheLastEmpire
             // Bind Health component or dynamically attach it
             if (_health == null)
             {
-                _health = gameObject.AddComponent<Health>();
+                _health = GetComponent<Health>();
+                if (_health == null)
+                {
+                    _health = gameObject.AddComponent<Health>();
+                }
             }
+            _health.onDeath.AddListener(HandlePlayerDeath);
 
             // Bind Inventory component or dynamically attach it
             _inventory = GetComponent<PlayerInventory>();
@@ -259,11 +264,58 @@ namespace TheLastEmpire
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
         }
 
+        private void OnDestroy()
+        {
+            if (_health != null)
+            {
+                _health.onDeath.RemoveListener(HandlePlayerDeath);
+            }
+        }
+
+        private void HandlePlayerDeath()
+        {
+            // 1. Freeze corpse physics completely so enemies cannot push or slide it around
+            if (_rb != null)
+            {
+                _rb.linearVelocity = Vector3.zero;
+                _rb.constraints = RigidbodyConstraints.FreezeAll;
+            }
+
+            // 2. Ignore collisions between player and all enemies so enemies pass through corpse freely
+            Collider[] playerColliders = GetComponentsInChildren<Collider>();
+            BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
+            foreach (BaseEnemyAI enemy in enemies)
+            {
+                if (enemy == null) continue;
+                Collider[] enemyColliders = enemy.GetComponentsInChildren<Collider>();
+                foreach (Collider pCol in playerColliders)
+                {
+                    foreach (Collider eCol in enemyColliders)
+                    {
+                        if (pCol != null && eCol != null)
+                        {
+                            Physics.IgnoreCollision(pCol, eCol, true);
+                        }
+                    }
+                }
+            }
+
+            // 3. Hide any active aiming or throwing indicators
+            if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
+            if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
+            if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
+            if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
+        }
+
         private void Update()
         {
             if (_health != null && _health.IsDead)
             {
-                if (_rb != null) _rb.linearVelocity = Vector3.zero;
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.constraints = RigidbodyConstraints.FreezeAll;
+                }
                 return;
             }
 
@@ -434,7 +486,11 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead)
             {
-                if (_rb != null) _rb.linearVelocity = Vector3.zero;
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.constraints = RigidbodyConstraints.FreezeAll;
+                }
                 return;
             }
 

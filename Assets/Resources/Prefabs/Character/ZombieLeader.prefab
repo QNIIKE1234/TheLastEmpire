@@ -625,19 +625,21 @@ MonoBehaviour:
   childPoolKey: Zombie001
   throwMinionAtPlayer: 1
   chargeCooldown: 6
-  chargeSpeed: 12
-  chargeDuration: 0.5
-  chargeWindupDuration: 0.3
-  minChargeDistance: 3.5
-  maxChargeDistance: 10
-  chargeContactDamage: 20
-  chargeContactKnockback: 8
-  stompAttackRange: 3.2
-  stompRadius: 3
-  stompDamage: 40
+  chargeSpeed: 22
+  chargeDuration: 0.45
+  chargeWindupDuration: 0.65
+  minChargeDistance: 5
+  maxChargeDistance: 12.5
+  chargeContactDamage: 25
+  chargeContactKnockback: 10
+  chargePathWidth: 1.8
+  chargeTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.45}
+  stompAttackRange: 4.8
+  stompRadius: 4.5
+  stompDamage: 45
   stompTelegraphDuration: 1
   stompCooldown: 5
-  stompKnockbackForce: 12
+  stompKnockbackForce: 13
   stompVfxPoolKey: EnemyExplosion
   stompTelegraphSprite: {fileID: 0}
   stompTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.45}

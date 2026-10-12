@@ -34,6 +34,7 @@ namespace TheLastEmpire
 
         protected Rigidbody rb;
         protected Transform playerTransform;
+        protected Health playerHealth;
         protected Health health;
         protected AIState currentState = AIState.Idle;
 
@@ -142,7 +143,22 @@ namespace TheLastEmpire
             if (player != null)
             {
                 playerTransform = player.transform;
+                playerHealth = player.PlayerHealth ?? player.GetComponent<Health>();
             }
+        }
+
+        protected bool IsTargetDead()
+        {
+            if (playerHealth == null && playerTransform != null)
+            {
+                playerHealth = playerTransform.GetComponent<Health>();
+            }
+            if (playerHealth != null && playerHealth.IsDead)
+            {
+                hasBeenAttacked = false; // Drop aggro when target dies
+                return true;
+            }
+            return false;
         }
 
         protected void WanderMovement()
@@ -193,6 +209,14 @@ namespace TheLastEmpire
                 return;
             }
 
+            // Immediately break chase and start wandering if player is dead
+            if (IsTargetDead())
+            {
+                rb.linearVelocity = Vector3.zero;
+                currentState = AIState.Wander;
+                return;
+            }
+
             Vector3 direction = (playerTransform.position - transform.position);
             direction.y = 0f;
             direction.Normalize();
@@ -207,6 +231,7 @@ namespace TheLastEmpire
         protected bool IsPlayerInDetectionRange()
         {
             if (playerTransform == null) return false;
+            if (IsTargetDead()) return false; // Completely ignore corpse
             if (hasBeenAttacked) return true; // Aggro locked on player after taking damage
             return Vector3.Distance(transform.position, playerTransform.position) <= detectionRange;
         }
@@ -314,12 +339,24 @@ namespace TheLastEmpire
 
         protected virtual void OnCollisionEnter(Collision collision)
         {
-            if (collision.gameObject.CompareTag("Item") || collision.gameObject.GetComponent<CollectibleItem>() != null)
+            if (collision.gameObject.GetComponent<CollectibleItem>() != null)
             {
                 Collider myCol = GetComponent<Collider>();
                 if (myCol != null && collision.collider != null)
                 {
                     Physics.IgnoreCollision(myCol, collision.collider, true);
+                }
+            }
+            else if (collision.gameObject.CompareTag("Player") || collision.gameObject.GetComponent<PlayerController>() != null)
+            {
+                Health pHealth = collision.gameObject.GetComponent<Health>();
+                if (pHealth != null && pHealth.IsDead)
+                {
+                    Collider myCol = GetComponent<Collider>();
+                    if (myCol != null && collision.collider != null)
+                    {
+                        Physics.IgnoreCollision(myCol, collision.collider, true);
+                    }
                 }
             }
         }
