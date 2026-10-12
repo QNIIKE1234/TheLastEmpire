@@ -44,6 +44,16 @@ namespace TheLastEmpire
         public string PoolKey => poolKey;
         public AIState CurrentState => currentState;
 
+        public void SetPoolKey(string key)
+        {
+            poolKey = key;
+        }
+
+        public void SkipTransitionDelay()
+        {
+            transitionDelayTimer = 0f;
+        }
+
         protected float transitionDelayTimer = 2.0f;
 
         [Header("UI Reference")]

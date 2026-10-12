@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TheLastEmpire
@@ -29,11 +30,26 @@ namespace TheLastEmpire
         [Tooltip("ตัวคูณขนาดของ VFX ระเบิด")]
         [SerializeField] private float explosionVfxScaleMultiplier = 1.0f;
 
+        [System.Serializable]
+        public struct MinionSpawnOption
+        {
+            [Tooltip("Pool Key ใน ObjectPoolManager (เช่น Zombie001, ZombieDog, ZombieRunner, ZombieBoomer)")]
+            public string poolKey;
+            [Tooltip("น้ำหนักโอกาสเกิด (ค่ายิ่งเยอะ ยิ่งมีโอกาสสุ่มได้สูง เช่น 50, 30, 20)")]
+            [Range(1, 100)] public int weight;
+        }
+
         [Header("Leader Settings")]
         [SerializeField] private float buffRadius = 6f;
-        [SerializeField] private GameObject childZombiePrefab;
         [SerializeField] private float spawnCooldown = 10f;
         [SerializeField] private int maxChildSpawns = 3;
+
+        [Header("Leader Minion Spawn Pool (สุ่มเรียกลูกน้องหลายประเภท)")]
+        [Tooltip("รายการซอมบี้ลูกน้องที่ต้องการให้สุ่มเสก หากมีข้อมูลในนี้ บอสจะสุ่มเรียกลูกน้องตามโอกาสที่กำหนด")]
+        [SerializeField] private List<MinionSpawnOption> minionSpawnPool = new List<MinionSpawnOption>();
+
+        [Header("Fallback Single Minion (ใช้กรณีไม่ได้ใส่ข้อมูลใน List ด้านบน)")]
+        [SerializeField] private GameObject childZombiePrefab;
         [SerializeField] private string childPoolKey = "Zombie001";
 
         [Header("Leader Throw Settings")]
@@ -61,6 +77,20 @@ namespace TheLastEmpire
         [SerializeField] private Sprite stompTelegraphSprite;
         [SerializeField] private Color stompTelegraphColor = new Color(1f, 0.15f, 0.15f, 0.45f);
 
+        [Header("Boss Rage Mode Settings")]
+        [Tooltip("เกณฑ์พลังชีวิตที่จะเปิดใช้งาน Rage Mode (0.30 = เลือดต่ำกว่า 30%)")]
+        [SerializeField] private float rageHealthThreshold = 0.30f;
+        [Tooltip("ตัวคูณความเร็ววิ่งเมื่อเข้าสู่ Rage Mode (2.0 = วิ่งเร็วขึ้น 2 เท่า)")]
+        [SerializeField] private float rageSpeedMultiplier = 2.0f;
+        [Tooltip("ตัวคูณคูลดาวน์สกิล (0.5 = สกิลวนมาใช้ไวขึ้น 2 เท่า)")]
+        [SerializeField] private float rageSkillCooldownMultiplier = 0.5f;
+        [Tooltip("ตัวคูณเวลาชาร์จก่อนปล่อยสกิล (0.7 = ชาร์จไวขึ้น 30%)")]
+        [SerializeField] private float rageTelegraphSpeedMultiplier = 0.7f;
+        [Tooltip("ตัวคูณความเร็วในการพุ่งกระแทก Charge")]
+        [SerializeField] private float rageChargeSpeedMultiplier = 1.35f;
+        [Tooltip("แสงออร่าสีแดงเมื่ออยู่ในโหมดคลั่ง")]
+        [SerializeField] private Color rageTint = new Color(1f, 0.22f, 0.15f, 1f);
+
         private float _spawnCooldownTimer = 0f;
         private int _currentChildSpawns = 0;
 
@@ -73,9 +103,12 @@ namespace TheLastEmpire
         private float _fuseTimer = 0f;
         private SpriteRenderer _spriteRenderer;
         private Color _originalColor;
+        private Renderer[] _allMeshRenderers;
+        private readonly Dictionary<Renderer, Color> _originalRendererColors = new Dictionary<Renderer, Color>();
 
         private float _leaderBuffCheckTimer = 0f;
         private bool _hasLeaderBuff = false;
+        private bool _hasTriggeredRageMode = false;
 
         // Boss Charge State
         private float _chargeCooldownTimer = 0f;
@@ -93,6 +126,7 @@ namespace TheLastEmpire
         private SpriteRenderer _stompSpriteRenderer;
 
         public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
+        public bool IsRageMode => IsBossUnit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
 
         protected override void OnEnable()
         {
@@ -101,6 +135,8 @@ namespace TheLastEmpire
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
+            _hasTriggeredRageMode = false;
+            ResetRageVisuals();
             _chargeCooldownTimer = 2.0f;
             _stompCooldownTimer = 2.0f;
             if (_spriteRenderer != null && _originalColor != default)
@@ -117,6 +153,19 @@ namespace TheLastEmpire
             if (_spriteRenderer != null)
             {
                 _originalColor = _spriteRenderer.color;
+            }
+
+            _allMeshRenderers = GetComponentsInChildren<Renderer>(true);
+            if (_allMeshRenderers != null)
+            {
+                foreach (var r in _allMeshRenderers)
+                {
+                    if (r == null || r is LineRenderer) continue;
+                    if (r.sharedMaterial != null && r.sharedMaterial.HasProperty("_Color"))
+                    {
+                        _originalRendererColors[r] = r.sharedMaterial.color;
+                    }
+                }
             }
 
             if (IsBossUnit)
@@ -174,6 +223,12 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
+            // Check Boss Rage Mode (HP <= 30%)
+            if (IsBossUnit)
+            {
+                CheckRageModeState();
+            }
+
             // Handle dog leap countdown timers
             if (_leapCooldownTimer > 0f) _leapCooldownTimer -= Time.fixedDeltaTime;
             
@@ -209,8 +264,11 @@ namespace TheLastEmpire
                 return;
             }
 
-            // Handle Boss / Leader Stomp AOE Telegraph (1.0 second visual warning before impact)
-            if (_stompCooldownTimer > 0f) _stompCooldownTimer -= Time.fixedDeltaTime;
+            // Cooldown rate multiplier (Skills tick down faster during Rage Mode!)
+            float cooldownSpeedMult = IsRageMode ? (1f / Mathf.Max(0.1f, rageSkillCooldownMultiplier)) : 1f;
+
+            // Handle Boss / Leader Stomp AOE Telegraph
+            if (_stompCooldownTimer > 0f) _stompCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
             if (_isStompTelegraphing)
             {
                 rb.linearVelocity = Vector3.zero;
@@ -218,10 +276,10 @@ namespace TheLastEmpire
 
                 UpdateBossTelegraphVisual(stompRadius);
 
-                // Flash boss sprite red/orange during telegraph windup
+                // Flash boss sprite red/orange during telegraph windup (faster pulse in Rage Mode)
                 if (_spriteRenderer != null)
                 {
-                    float flashFreq = Mathf.PingPong(Time.time * 12f, 1f);
+                    float flashFreq = Mathf.PingPong(Time.time * (IsRageMode ? 18f : 12f), 1f);
                     _spriteRenderer.color = Color.Lerp(_originalColor, new Color(1f, 0.25f, 0.1f), flashFreq);
                 }
 
@@ -233,7 +291,7 @@ namespace TheLastEmpire
             }
 
             // Handle Boss / Leader Charge
-            if (_chargeCooldownTimer > 0f) _chargeCooldownTimer -= Time.fixedDeltaTime;
+            if (_chargeCooldownTimer > 0f) _chargeCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
             if (_isChargeWindingUp)
             {
                 rb.linearVelocity = Vector3.zero;
@@ -241,7 +299,7 @@ namespace TheLastEmpire
 
                 if (_spriteRenderer != null)
                 {
-                    float flashFreq = Mathf.PingPong(Time.time * 15f, 1f);
+                    float flashFreq = Mathf.PingPong(Time.time * (IsRageMode ? 22f : 15f), 1f);
                     _spriteRenderer.color = Color.Lerp(_originalColor, Color.yellow, flashFreq);
                 }
 
@@ -257,7 +315,8 @@ namespace TheLastEmpire
             if (_isCharging)
             {
                 _chargeActiveTimer -= Time.fixedDeltaTime;
-                rb.linearVelocity = _chargeDirection * chargeSpeed;
+                float currentChargeSpeed = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f);
+                rb.linearVelocity = _chargeDirection * currentChargeSpeed;
 
                 if (_chargeDirection.sqrMagnitude > 0.01f)
                 {
@@ -281,7 +340,7 @@ namespace TheLastEmpire
 
                     // Impact landed, conclude dash
                     _isCharging = false;
-                    _chargeCooldownTimer = chargeCooldown;
+                    _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
                     currentState = AIState.Chase;
@@ -291,7 +350,7 @@ namespace TheLastEmpire
                 if (_chargeActiveTimer <= 0f)
                 {
                     _isCharging = false;
-                    _chargeCooldownTimer = chargeCooldown;
+                    _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
                     currentState = AIState.Chase;
@@ -305,7 +364,7 @@ namespace TheLastEmpire
             // Handle Leader minion spawning
             if (zombieType == ZombieType.Leader && health != null && !health.IsDead)
             {
-                if (_spawnCooldownTimer > 0f) _spawnCooldownTimer -= Time.fixedDeltaTime;
+                if (_spawnCooldownTimer > 0f) _spawnCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
                 HandleLeaderSpawning();
             }
 
@@ -318,6 +377,10 @@ namespace TheLastEmpire
             bool detected = IsPlayerInDetectionRange();
 
             float finalMoveSpeed = moveSpeed * (_hasLeaderBuff ? 1.3f : 1f);
+            if (IsRageMode)
+            {
+                finalMoveSpeed *= rageSpeedMultiplier;
+            }
 
             if (detected)
             {
@@ -356,7 +419,12 @@ namespace TheLastEmpire
                 }
 
                 currentState = AIState.Chase;
-                ChasePlayer(_hasLeaderBuff ? 1.3f : 1f);
+                float speedMultiplier = (_hasLeaderBuff ? 1.3f : 1f);
+                if (IsRageMode)
+                {
+                    speedMultiplier *= rageSpeedMultiplier;
+                }
+                ChasePlayer(speedMultiplier);
             }
             else
             {
@@ -493,6 +561,8 @@ namespace TheLastEmpire
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
+            _hasTriggeredRageMode = false;
+            ResetRageVisuals();
             if (_spriteRenderer != null && _originalColor != default)
             {
                 _spriteRenderer.color = _originalColor;
@@ -505,6 +575,8 @@ namespace TheLastEmpire
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
+            _hasTriggeredRageMode = false;
+            ResetRageVisuals();
             if (_spriteRenderer != null && _originalColor != default)
             {
                 _spriteRenderer.color = _originalColor;
@@ -531,7 +603,7 @@ namespace TheLastEmpire
         private void StartStompTelegraph()
         {
             _isStompTelegraphing = true;
-            _stompTelegraphTimer = stompTelegraphDuration;
+            _stompTelegraphTimer = IsRageMode ? (stompTelegraphDuration * rageTelegraphSpeedMultiplier) : stompTelegraphDuration;
             currentState = AIState.Telegraph;
             rb.linearVelocity = Vector3.zero;
 
@@ -541,12 +613,12 @@ namespace TheLastEmpire
         private void PerformGroundStomp()
         {
             _isStompTelegraphing = false;
-            _stompCooldownTimer = stompCooldown;
+            _stompCooldownTimer = IsRageMode ? (stompCooldown * rageSkillCooldownMultiplier) : stompCooldown;
 
             HideBossTelegraphVisual();
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            Debug.Log($"[ZombieAI] Boss performed Ground Stomp AOE with radius {stompRadius}m!");
+            Debug.Log($"[ZombieAI] Boss performed Ground Stomp AOE with radius {stompRadius}m! (Rage: {IsRageMode})");
 
             // 1. Spawn ground slam / explosion VFX
             if (!string.IsNullOrEmpty(stompVfxPoolKey) && ObjectPoolManager.Instance != null)
@@ -567,8 +639,8 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Camera Shake
-            CameraFollow.TriggerShake(0.3f, 0.45f);
+            // 2. Camera Shake (stronger in Rage Mode)
+            CameraFollow.TriggerShake(IsRageMode ? 0.45f : 0.3f, IsRageMode ? 0.6f : 0.45f);
 
             // 3. OverlapSphere AOE Damage & Knockback within 3 meters
             Collider[] targets = Physics.OverlapSphere(transform.position, stompRadius);
@@ -601,8 +673,8 @@ namespace TheLastEmpire
         private void StartBossCharge()
         {
             _isChargeWindingUp = true;
-            _chargeWindupTimer = chargeWindupDuration;
-            _chargeCooldownTimer = chargeCooldown;
+            _chargeWindupTimer = IsRageMode ? (chargeWindupDuration * rageTelegraphSpeedMultiplier) : chargeWindupDuration;
+            _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
             currentState = AIState.Telegraph;
             rb.linearVelocity = Vector3.zero;
 
@@ -622,6 +694,126 @@ namespace TheLastEmpire
                 transform.forward = _chargeDirection;
             }
         }
+
+        #region Boss Rage Mode System
+
+        private void CheckRageModeState()
+        {
+            if (IsRageMode)
+            {
+                if (!_hasTriggeredRageMode)
+                {
+                    _hasTriggeredRageMode = true;
+                    OnEnterRageMode();
+                }
+                UpdateRageVisuals();
+            }
+            else
+            {
+                if (_hasTriggeredRageMode)
+                {
+                    _hasTriggeredRageMode = false;
+                    OnExitRageMode();
+                }
+            }
+        }
+
+        private void OnEnterRageMode()
+        {
+            // Instantly ready skills so boss attacks immediately on rage
+            _stompCooldownTimer = 0f;
+            _chargeCooldownTimer = 0f;
+            _spawnCooldownTimer = 0f;
+
+            // Dramatic screen shake
+            CameraFollow.TriggerShake(0.45f, 0.55f);
+
+            // Spawn rage shockwave / burst effect
+            if (!string.IsNullOrEmpty(stompVfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool(stompVfxPoolKey.Trim(), transform.position, Quaternion.identity);
+            }
+
+            // Update UI healthbar name to display [RAGE]
+            if (nameText != null)
+            {
+                nameText.text = $"<color=#FF1100>🔥 [RAGE] {enemyName}</color>";
+            }
+
+            Debug.Log($"<color=#FF0000>[ZombieAI] 🔥🔥🔥 {gameObject.name} ENTERED RAGE MODE! (HP <= {rageHealthThreshold * 100:F0}%) Speed x{rageSpeedMultiplier}, Skills Faster!</color>");
+        }
+
+        private void OnExitRageMode()
+        {
+            ResetRageVisuals();
+            if (nameText != null)
+            {
+                nameText.text = enemyName;
+            }
+        }
+
+        private void UpdateRageVisuals()
+        {
+            float pulse = Mathf.PingPong(Time.time * 6f, 1f);
+            Color targetColor = Color.Lerp(_originalColor, rageTint, 0.55f + 0.45f * pulse);
+
+            if (_spriteRenderer != null && !_isStompTelegraphing && !_isChargeWindingUp && !_isExploding)
+            {
+                _spriteRenderer.color = targetColor;
+            }
+
+            if (_allMeshRenderers != null)
+            {
+                foreach (var r in _allMeshRenderers)
+                {
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer) continue;
+                    if (r is SpriteRenderer || r is LineRenderer) continue;
+                    if (r.material != null && r.material.HasProperty("_Color"))
+                    {
+                        r.material.color = targetColor;
+                    }
+                }
+            }
+        }
+
+        private void ResetRageVisuals()
+        {
+            if (_spriteRenderer != null && _originalColor != default)
+            {
+                _spriteRenderer.color = _originalColor;
+            }
+
+            if (_allMeshRenderers != null && _originalRendererColors != null)
+            {
+                foreach (var r in _allMeshRenderers)
+                {
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer) continue;
+                    if (r is SpriteRenderer || r is LineRenderer) continue;
+                    if (_originalRendererColors.TryGetValue(r, out Color orig) && r.material != null && r.material.HasProperty("_Color"))
+                    {
+                        r.material.color = orig;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Force reduce health to trigger Rage Mode (useful for debugging/testing).
+        /// </summary>
+        public void ForceTriggerRageMode()
+        {
+            if (health != null && health.MaxHealth > 0f)
+            {
+                float targetHp = health.MaxHealth * (rageHealthThreshold - 0.05f);
+                float damageNeeded = health.CurrentHealth - targetHp;
+                if (damageNeeded > 0f)
+                {
+                    health.TakeDamage(damageNeeded);
+                }
+            }
+        }
+
+        #endregion
 
         private void InitBossIndicators()
         {
@@ -768,22 +960,59 @@ namespace TheLastEmpire
             }
         }
 
+        private MinionSpawnOption GetRandomMinionOption()
+        {
+            if (minionSpawnPool != null && minionSpawnPool.Count > 0)
+            {
+                int totalWeight = 0;
+                foreach (var opt in minionSpawnPool)
+                {
+                    totalWeight += Mathf.Max(1, opt.weight > 0 ? opt.weight : 1);
+                }
+
+                int roll = Random.Range(0, totalWeight);
+                int cumulative = 0;
+                foreach (var opt in minionSpawnPool)
+                {
+                    cumulative += Mathf.Max(1, opt.weight > 0 ? opt.weight : 1);
+                    if (roll < cumulative)
+                    {
+                        return opt;
+                    }
+                }
+
+                return minionSpawnPool[Random.Range(0, minionSpawnPool.Count)];
+            }
+
+            // Fallback to single configured minion
+            return new MinionSpawnOption
+            {
+                poolKey = childPoolKey,
+                weight = 1
+            };
+        }
+
         private void HandleLeaderSpawning()
         {
             if (_spawnCooldownTimer > 0f || _currentChildSpawns >= maxChildSpawns) return;
             if (!IsPlayerInDetectionRange()) return; // only spawn when player is near!
 
-            _spawnCooldownTimer = spawnCooldown;
+            _spawnCooldownTimer = IsRageMode ? (spawnCooldown * rageSkillCooldownMultiplier) : spawnCooldown;
 
             Vector3 spawnOffset = new Vector3(Random.Range(-1.5f, 1.5f), 0f, Random.Range(-1.5f, 1.5f));
             Vector3 spawnPos = transform.position + spawnOffset;
 
+            // Pick a random minion pool key
+            MinionSpawnOption minionOption = GetRandomMinionOption();
+            string targetPoolKey = !string.IsNullOrEmpty(minionOption.poolKey) ? minionOption.poolKey.Trim() : (!string.IsNullOrEmpty(childPoolKey) ? childPoolKey.Trim() : "");
+
             GameObject babyZombie = null;
-            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(childPoolKey))
+            if (ObjectPoolManager.Instance != null && !string.IsNullOrEmpty(targetPoolKey))
             {
-                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(childPoolKey.Trim(), spawnPos, Quaternion.identity);
+                babyZombie = ObjectPoolManager.Instance.SpawnFromPool(targetPoolKey, spawnPos, Quaternion.identity);
             }
             
+            // Fallback to single childZombiePrefab if pool wasn't registered
             if (babyZombie == null && childZombiePrefab != null)
             {
                 babyZombie = Instantiate(childZombiePrefab, spawnPos, Quaternion.identity);
@@ -808,20 +1037,33 @@ namespace TheLastEmpire
 
             if (babyZombie != null)
             {
-                // Force spawned zombie to be a Normal type so it doesn't spawn more leaders!
                 ZombieAI babyAI = babyZombie.GetComponent<ZombieAI>();
                 if (babyAI != null)
                 {
-                    babyAI.zombieType = ZombieType.Normal;
+                    // Ensure the spawned minion remembers its pool key for returning to pool on death
+                    if (!string.IsNullOrEmpty(targetPoolKey))
+                    {
+                        babyAI.SetPoolKey(targetPoolKey);
+                    }
+
+                    babyAI.SkipTransitionDelay();
+                    babyAI.AlertToPlayer();
+
+                    // Ensure spawned zombie is never a Leader to prevent infinite leader proliferation
+                    if (babyAI.zombieType == ZombieType.Leader)
+                    {
+                        babyAI.zombieType = ZombieType.Normal;
+                    }
                 }
 
                 _currentChildSpawns++;
 
-                // Track child death to clear counter slot
+                // Track child death to clear counter slot cleanly
                 Health babyHealth = babyZombie.GetComponent<Health>();
                 if (babyHealth != null)
                 {
-                    babyHealth.onDeath.AddListener(() => _currentChildSpawns = Mathf.Max(0, _currentChildSpawns - 1));
+                    babyHealth.onDeath.RemoveListener(OnChildMinionDefeated);
+                    babyHealth.onDeath.AddListener(OnChildMinionDefeated);
                 }
 
                 // Throw mechanic
@@ -838,6 +1080,14 @@ namespace TheLastEmpire
                         if (col != null) col.enabled = true;
                     });
                 }
+            }
+        }
+
+        private void OnChildMinionDefeated()
+        {
+            if (this != null)
+            {
+                _currentChildSpawns = Mathf.Max(0, _currentChildSpawns - 1);
             }
         }
     }

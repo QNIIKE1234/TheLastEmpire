@@ -150,8 +150,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -45}
-  m_SizeDelta: {x: 3, y: 50}
+  m_AnchoredPosition: {x: 0, y: 42.8}
+  m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8783007171033290689
 CanvasRenderer:
@@ -181,7 +181,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 22332323
+  m_text: BosssMonseter
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
   m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
@@ -610,9 +610,18 @@ MonoBehaviour:
   explosionVfxPoolKey: EnemyExplosion
   explosionVfxScaleMultiplier: 1
   buffRadius: 6
-  childZombiePrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
   spawnCooldown: 10
   maxChildSpawns: 3
+  minionSpawnPool:
+  - poolKey: ZombieNormal
+    weight: 50
+  - poolKey: ZombieRunner
+    weight: 25
+  - poolKey: ZombieDog
+    weight: 15
+  - poolKey: ZombieBoomer
+    weight: 10
+  childZombiePrefab: {fileID: 5020151313939889713, guid: ddfe10a1267574c469430b67bfa0cd14, type: 3}
   childPoolKey: Zombie001
   throwMinionAtPlayer: 1
   chargeCooldown: 6
@@ -632,6 +641,12 @@ MonoBehaviour:
   stompVfxPoolKey: EnemyExplosion
   stompTelegraphSprite: {fileID: 0}
   stompTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.45}
+  rageHealthThreshold: 0.3
+  rageSpeedMultiplier: 2
+  rageSkillCooldownMultiplier: 0.5
+  rageTelegraphSpeedMultiplier: 0.7
+  rageChargeSpeedMultiplier: 1.35
+  rageTint: {r: 1, g: 0.22, b: 0.15, a: 1}
 --- !u!114 &-5402344508740751457
 MonoBehaviour:
   m_ObjectHideFlags: 0
