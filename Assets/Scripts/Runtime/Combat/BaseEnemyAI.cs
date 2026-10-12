@@ -311,5 +311,17 @@ namespace TheLastEmpire
                 }
             }
         }
+
+        protected virtual void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.CompareTag("Item") || collision.gameObject.GetComponent<CollectibleItem>() != null)
+            {
+                Collider myCol = GetComponent<Collider>();
+                if (myCol != null && collision.collider != null)
+                {
+                    Physics.IgnoreCollision(myCol, collision.collider, true);
+                }
+            }
+        }
     }
 }

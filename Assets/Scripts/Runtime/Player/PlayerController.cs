@@ -261,6 +261,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (_health != null && _health.IsDead)
+            {
+                if (_rb != null) _rb.linearVelocity = Vector3.zero;
+                return;
+            }
+
             _isSprinting = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
@@ -426,6 +432,12 @@ namespace TheLastEmpire
 
         private void FixedUpdate()
         {
+            if (_health != null && _health.IsDead)
+            {
+                if (_rb != null) _rb.linearVelocity = Vector3.zero;
+                return;
+            }
+
             if (_knockbackTimer > 0f)
             {
                 _knockbackTimer -= Time.fixedDeltaTime;

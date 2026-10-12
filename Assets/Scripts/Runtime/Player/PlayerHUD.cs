@@ -23,6 +23,14 @@ namespace TheLastEmpire
         [SerializeField] private TMPro.TMP_Text daysSurvivedText;
         [SerializeField] private UnityEngine.UI.Button retryButton;
 
+        [Header("Game Over Timing & Fade Settings")]
+        [Tooltip("หน่วงเวลาก่อนเริ่ม Fade (วินาที) ให้เห็นเหตุการณ์ในเกมดำเนินต่อไป เช่น ซอมบี้วิ่งรุม")]
+        [SerializeField] private float deathDelayBeforeFade = 1.0f;
+        [Tooltip("ระยะเวลาในการ Fade แผง GameOver ค่อยๆ สว่างขึ้นมา (วินาที)")]
+        [SerializeField] private float gameOverFadeDuration = 1.2f;
+        [Tooltip("หยุดเวลาในเกมตอนตายหรือไม่ (ถ้า false เกมจะเล่นต่อไปเรื่อยๆ ไม่หยุดเวลา)")]
+        [SerializeField] private bool pauseGameOnDeath = false;
+
         [Header("Player Reference (Optional)")]
         [SerializeField] private PlayerController player;
 
@@ -474,12 +482,37 @@ namespace TheLastEmpire
 
         private void ShowDeathResultScreen()
         {
-            // Pause the game mechanics
-            Time.timeScale = 0f;
+            StartCoroutine(DeathSequenceCoroutine());
+        }
 
-            // Use custom UI panel if assigned in the Inspector
+        private System.Collections.IEnumerator DeathSequenceCoroutine()
+        {
+            // ถ้าไม่ได้ตั้งค่าให้หยุดเวลา เกมจะเล่นต่อไปเรื่อยๆ ซอมบี้และโลกจะขยับต่อตามปกติ
+            if (pauseGameOnDeath)
+            {
+                Time.timeScale = 0f;
+            }
+
+            // รอสักแป๊บหนึ่งโดยที่เกมยังเล่นต่อไปเรื่อยๆ ให้เห็นจังหวะตัวละครล้ม/ซอมบี้รุม
+            if (deathDelayBeforeFade > 0f)
+            {
+                yield return new WaitForSeconds(deathDelayBeforeFade);
+            }
+
+            // 2. จัดเตรียม CanvasGroup สำหรับ Fade In
+            CanvasGroup canvasGroup = null;
+
             if (gameOverPanel != null)
             {
+                canvasGroup = gameOverPanel.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = gameOverPanel.AddComponent<CanvasGroup>();
+                }
+
+                canvasGroup.alpha = 0f;
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
                 gameOverPanel.SetActive(true);
 
                 if (daysSurvivedText != null)
@@ -487,12 +520,45 @@ namespace TheLastEmpire
                     int survivedDays = DayNightManager.Instance != null ? DayNightManager.Instance.DayCount : 1;
                     daysSurvivedText.text = $"You survived: <color=yellow>{survivedDays}</color> Days";
                 }
-                return;
+            }
+            else
+            {
+                Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
+                if (hudCanvas != null)
+                {
+                    GameObject resultPanel = BuildProceduralDeathScreen(hudCanvas);
+                    canvasGroup = resultPanel.GetComponent<CanvasGroup>();
+                    if (canvasGroup == null)
+                    {
+                        canvasGroup = resultPanel.AddComponent<CanvasGroup>();
+                    }
+                    canvasGroup.alpha = 0f;
+                    canvasGroup.interactable = false;
+                    canvasGroup.blocksRaycasts = false;
+                }
             }
 
-            Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
-            if (hudCanvas == null) return;
+            // 3. ค่อยๆ Fade ขึ้น GameOver Screen อย่างนุ่มนวล
+            if (canvasGroup != null)
+            {
+                float elapsed = 0f;
+                float duration = Mathf.Max(0.05f, gameOverFadeDuration);
 
+                while (elapsed < duration)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    canvasGroup.alpha = Mathf.Clamp01(elapsed / duration);
+                    yield return null;
+                }
+
+                canvasGroup.alpha = 1f;
+                canvasGroup.interactable = true;
+                canvasGroup.blocksRaycasts = true;
+            }
+        }
+
+        private GameObject BuildProceduralDeathScreen(Canvas hudCanvas)
+        {
             // Fullscreen panel container
             GameObject resultPanel = new GameObject("DeathResultScreen");
             resultPanel.transform.SetParent(hudCanvas.transform, false);
@@ -570,6 +636,8 @@ namespace TheLastEmpire
             btnTextRect.anchorMax = Vector2.one;
             btnTextRect.offsetMin = Vector2.zero;
             btnTextRect.offsetMax = Vector2.zero;
+
+            return resultPanel;
         }
 
         public void RetryGame()

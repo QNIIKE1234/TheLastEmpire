@@ -34,6 +34,9 @@ namespace TheLastEmpire
                 StartCoroutine(DisableGravityDelayed(rb, 0.6f));
             }
 
+            // Immediately ignore physical collisions with all enemy colliders so zombies walk through
+            IgnoreEnemyCollisions();
+
             if (promptText != null)
             {
                 promptText.gameObject.SetActive(false);
@@ -49,6 +52,56 @@ namespace TheLastEmpire
             if (rb != null)
             {
                 rb.linearVelocity = Vector3.zero;
+                rb.useGravity = false;
+                rb.isKinematic = true;
+            }
+
+            // Once the item has landed, convert colliders to triggers so all units walk through freely
+            Collider[] colliders = GetComponentsInChildren<Collider>();
+            foreach (var col in colliders)
+            {
+                if (col != null)
+                {
+                    col.isTrigger = true;
+                }
+            }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            // If an enemy bumps into the item while in mid-air, ignore collision
+            if (collision.gameObject.CompareTag("Enemy") || collision.gameObject.GetComponent<BaseEnemyAI>() != null)
+            {
+                Collider[] myColliders = GetComponentsInChildren<Collider>();
+                foreach (var c in myColliders)
+                {
+                    if (c != null && collision.collider != null)
+                    {
+                        Physics.IgnoreCollision(c, collision.collider, true);
+                    }
+                }
+            }
+        }
+
+        public void IgnoreEnemyCollisions()
+        {
+            Collider[] myColliders = GetComponentsInChildren<Collider>();
+            BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
+            foreach (var enemy in enemies)
+            {
+                if (enemy == null) continue;
+                Collider[] enemyCols = enemy.GetComponentsInChildren<Collider>();
+                foreach (var myCol in myColliders)
+                {
+                    if (myCol == null) continue;
+                    foreach (var enemyCol in enemyCols)
+                    {
+                        if (enemyCol != null)
+                        {
+                            Physics.IgnoreCollision(myCol, enemyCol, true);
+                        }
+                    }
+                }
             }
         }
 

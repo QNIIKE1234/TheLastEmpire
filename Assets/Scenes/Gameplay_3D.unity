@@ -5666,6 +5666,9 @@ MonoBehaviour:
   gameOverPanel: {fileID: 564921004}
   daysSurvivedText: {fileID: 378184722}
   retryButton: {fileID: 1973014411}
+  deathDelayBeforeFade: 3
+  gameOverFadeDuration: 1
+  pauseGameOnDeath: 0
   player: {fileID: 2126918795}
 --- !u!1 &760724545
 GameObject:
@@ -16109,30 +16112,6 @@ PrefabInstance:
     - target: {fileID: 2530340392483531905, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
       propertyPath: m_Name
       value: PlayerPrefabs
-      objectReference: {fileID: 0}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: moveSpeed
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: throwRangeSprite
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: aoeIndicatorSprite
-      value: 
-      objectReference: {fileID: 554067202, guid: c5f526e60cffa994588506483b595174, type: 3}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: aoeIndicatorColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: aoeIndicatorColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4901998671181550966, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
-      propertyPath: aoeIndicatorColor.r
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
