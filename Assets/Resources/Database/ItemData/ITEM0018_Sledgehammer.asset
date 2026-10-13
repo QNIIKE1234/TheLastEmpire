@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f66e274d5d4a559448705b384dc143eb, type: 3}
+  m_Name: ITEM0018_Sledgehammer
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
+  itemName: Sledgehammer
+  description: A colossal industrial sledgehammer delivering overwhelming ground impact and long stuns.
+  icon: {fileID: 483855283, guid: 8b61fa39e2c37cc4fa97376dcc5c8287, type: 3}
+  type: 6
+  restorationValue: 0
+  defaultQuantity: 1
+  themeColor: {r: 0.6, g: 0.65, b: 0.75, a: 1}
+  dropMaterial: {fileID: 0}
+  damage: 90
+  attackRadius: 1.4
+  attackRate: 0.95
+  knockbackForce: 20
+  staggerDuration: 0.8
+  weaponConfig:
+    projectilePrefab: {fileID: 0}
+    fireRate: 0.2
+    magazineSize: 12
+    reloadDuration: 1
+    range: 3
+    canPierce: 0
+    spreadAngle: 0
+    pelletsPerShot: 1
+    isAutomatic: 0
+    ammoType: 
+    vfxPoolKey: 

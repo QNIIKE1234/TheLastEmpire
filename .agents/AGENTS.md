@@ -47,3 +47,24 @@ This file documents critical patterns, design choices, and systems established i
 ## 5. Inventory System
 *   **Data Model**: `PlayerInventory.cs` manages wallet currency and string item lists, exposing `GetItemQuantities()` for stacking metrics.
 *   **UI Overlay**: `InventoryUI.cs` procedurally generates a dark slate glassmorphism UI canvas at runtime. It toggles with the **`I`** or **`ESC`** key and pauses the game timescale (`Time.timeScale = 0f`) when active.
+
+---
+
+## 6. Weapon & Arsenal System
+*   **Asset Structure**: Weapons and ammo are authored as `ItemData` ScriptableObjects in `Assets/Resources/Database/ItemData/` and registered in `ItemDatabase.asset` and `ShopDatabase.asset`.
+*   **Ammo Aliases**: `PlayerController.GetAmmoReserveCount` and `ConsumeAmmo` automatically bridge unified and legacy ammo names:
+    *   `Light Ammo` $\leftrightarrow$ `Pistol Ammo`
+    *   `Medium Ammo` $\leftrightarrow$ `Rifle Ammo`
+    *   `Heavy Ammo` $\leftrightarrow$ `Fuel Ammo`
+    *   `Shotgun Ammo` $\leftrightarrow$ `Ammo`
+*   **Controls & Cycling**:
+    *   Keys `1`–`9`: Direct slot select for ranged weapons.
+    *   Key `X`: Cycle through owned melee weapons (`CycleMeleeWeapon`).
+    *   Mouse Scroll Wheel: Cycle ranged weapons.
+*   **Combat Traits**:
+    *   `Katana`: 20% critical chance (2.0x dmg) + hits up to 4 targets in wide cleave.
+    *   `Fire Axe`: 25% chance to cause bleed laceration (+15 bonus dmg).
+    *   `Sledgehammer`: Ground slam shockwave + 100% heavy stagger/stun (0.8s) + 20 knockback.
+    *   `Stun Baton`: 30% chance for chain shock jumping to adjacent enemies.
+    *   `Crossbow`: Completely silent weapon that suppresses `AlertEnemiesToGunshot()`.
+

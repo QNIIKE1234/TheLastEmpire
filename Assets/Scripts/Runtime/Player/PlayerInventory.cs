@@ -173,23 +173,20 @@ namespace TheLastEmpire
                 if (player != null && !player.PlayerHealth.IsDead)
                 {
                     string cleanItem = itemName.Trim().ToLower();
-                    // Ensure list has at least 2 slots for Primary (0) and Throwable (1)
-                    while (player.WeaponsList.Count < 2)
+                    int idx = player.WeaponsList.FindIndex(w => 
                     {
-                        player.WeaponsList.Add(new Weapon());
-                    }
-
-                    int targetSlot = (itemData.type == ItemType.ThrowingWeapon) ? 1 : 0;
-                    
-                    // If the current slot doesn't match the item we want to equip, overwrite it
-                    if (string.IsNullOrEmpty(player.WeaponsList[targetSlot].weaponName) || 
-                        !player.WeaponsList[targetSlot].weaponName.Equals(itemName, StringComparison.OrdinalIgnoreCase))
+                        if (string.IsNullOrEmpty(w.weaponName)) return false;
+                        string cleanWName = w.weaponName.Trim().ToLower();
+                        return cleanWName.Contains(cleanItem) || cleanItem.Contains(cleanWName);
+                    });
+                    if (idx < 0)
                     {
-                        player.WeaponsList[targetSlot] = new Weapon(itemData);
-                        Debug.Log($"[PlayerInventory] Dynamically mapped '{itemName}' to Slot {targetSlot + 1}.");
+                        // Dynamically add the weapon
+                        Weapon newWeapon = new Weapon(itemData);
+                        player.WeaponsList.Add(newWeapon);
+                        idx = player.WeaponsList.Count - 1;
+                        Debug.Log($"[PlayerInventory] Dynamically added weapon '{itemName}' to loadout.");
                     }
-
-                    int idx = targetSlot;
 
                     if (player.CurrentWeapon != null && player.CurrentWeaponName != null &&
                         player.WeaponsList[idx].weaponName.Equals(player.CurrentWeaponName, StringComparison.OrdinalIgnoreCase))

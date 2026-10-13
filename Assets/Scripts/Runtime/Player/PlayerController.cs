@@ -71,11 +71,11 @@ namespace TheLastEmpire
             {
                 if (_inventory == null) return 0;
                 string ammoType = "Pistol Ammo";
-                if (CurrentWeapon != null)
+                if (CurrentWeapon != null && !string.IsNullOrEmpty(CurrentWeapon.ammoType))
                 {
                     ammoType = CurrentWeapon.ammoType;
                 }
-                return _inventory.GetItemCount(ammoType);
+                return GetAmmoReserveCount(ammoType);
             }
         }
 
@@ -611,6 +611,17 @@ namespace TheLastEmpire
                 if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToWeapon(0);
                 if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToWeapon(1);
                 if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToWeapon(2);
+                if (Keyboard.current.digit4Key.wasPressedThisFrame) SwitchToWeapon(3);
+                if (Keyboard.current.digit5Key.wasPressedThisFrame) SwitchToWeapon(4);
+                if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToWeapon(5);
+                if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToWeapon(6);
+                if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToWeapon(7);
+                if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToWeapon(8);
+
+                if (Keyboard.current.xKey.wasPressedThisFrame)
+                {
+                    CycleMeleeWeapon(1);
+                }
 
                 if (Keyboard.current.fKey.wasPressedThisFrame && _meleeCooldownTimer <= 0f)
                 {
@@ -913,9 +924,10 @@ namespace TheLastEmpire
             // Base player damage is 10, plus the damage specified in ItemData of the equipped weapon
             float basePlayerDamage = 10f;
             int itemDamage = 0;
+            string wName = CurrentMeleeWeaponName ?? "";
             if (ItemDatabase.Instance != null)
             {
-                ItemData item = ItemDatabase.Instance.GetItemByName(CurrentMeleeWeaponName);
+                ItemData item = ItemDatabase.Instance.GetItemByName(wName);
                 if (item != null)
                 {
                     itemDamage = item.damage;
@@ -928,6 +940,20 @@ namespace TheLastEmpire
                 }
             }
             float activeDamage = basePlayerDamage + itemDamage;
+
+            // --- Weapon Special Effects (from Weapon GDD) ---
+            bool isKatana = wName.IndexOf("Katana", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bool isFireAxe = wName.IndexOf("Axe", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bool isSledgehammer = wName.IndexOf("Hammer", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bool isStunBaton = wName.IndexOf("Baton", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+            // Katana: +20% Critical Chance dealing 2.0x damage
+            bool isCritical = isKatana && (Random.value < 0.20f);
+            if (isCritical)
+            {
+                activeDamage *= 2.0f;
+                Debug.Log("[MeleeAttack] Katana Critical Strike (2.0x Damage)!");
+            }
 
             _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
@@ -957,19 +983,37 @@ namespace TheLastEmpire
                 }
             }
 
+            // Sledgehammer: Ground Slam shockwave visual
+            if (isSledgehammer && ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool("EnemyExplosion", attackPoint, Quaternion.identity);
+            }
+
             // Visual swing debug
             Debug.Log($"[PlayerController] Melee Swing Swung using {CurrentMeleeWeaponName}!");
 
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
+            int targetsHit = 0;
+            int maxTargets = isKatana ? 4 : 999; // Katana strikes up to 4 targets in wide cleave
+
             foreach (var col in hitColliders)
             {
                 if (col.gameObject == gameObject) continue;
+                if (targetsHit >= maxTargets) break;
 
                 // 1. Deal damage
                 IDamageable damageable = col.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    damageable.TakeDamage((int)activeDamage);
+                    float hitDmg = activeDamage;
+                    // Fire Axe: 25% chance for Bleed (extra 15 damage)
+                    if (isFireAxe && Random.value < 0.25f)
+                    {
+                        hitDmg += 15f;
+                        Debug.Log("[MeleeAttack] Fire Axe caused bleeding laceration (+15 damage)!");
+                    }
+                    damageable.TakeDamage((int)hitDmg);
+                    targetsHit++;
                 }
 
                 // 2. Apply high-impact melee knockback to enemies
@@ -983,7 +1027,29 @@ namespace TheLastEmpire
                     {
                         pushDir = _aimDirection;
                     }
-                    enemy.ApplyMeleeKnockback(pushDir, activeKnockback, activeStagger);
+
+                    float finalStagger = isSledgehammer ? 0.8f : (isStunBaton ? 0.6f : activeStagger);
+                    float finalKnockback = isSledgehammer ? 20f : activeKnockback;
+                    enemy.ApplyMeleeKnockback(pushDir, finalKnockback, finalStagger);
+
+                    // Stun Baton: 30% chance to chain shock surrounding enemies
+                    if (isStunBaton && Random.value < 0.30f)
+                    {
+                        Collider[] nearby = Physics.OverlapSphere(enemy.transform.position, 2.5f);
+                        foreach (var nCol in nearby)
+                        {
+                            if (nCol.gameObject != enemy.gameObject && nCol.gameObject != gameObject)
+                            {
+                                BaseEnemyAI chainEnemy = nCol.GetComponent<BaseEnemyAI>();
+                                if (chainEnemy != null)
+                                {
+                                    chainEnemy.ApplyMeleeKnockback((chainEnemy.transform.position - enemy.transform.position).normalized, 4f, 0.5f);
+                                    IDamageable cDmg = chainEnemy.GetComponent<IDamageable>();
+                                    if (cDmg != null) cDmg.TakeDamage(10);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1105,6 +1171,57 @@ namespace TheLastEmpire
             if (_boundaryBottom != null) Physics.IgnoreCollision(_playerCollider, _boundaryBottom, ignore);
         }
 
+        public int GetAmmoReserveCount(string ammoType)
+        {
+            if (_inventory == null || string.IsNullOrEmpty(ammoType)) return 0;
+            int count = _inventory.GetItemCount(ammoType);
+            string alias = GetAmmoAlias(ammoType);
+            if (!string.IsNullOrEmpty(alias))
+            {
+                count += _inventory.GetItemCount(alias);
+            }
+            return count;
+        }
+
+        public string GetAmmoAlias(string ammoType)
+        {
+            if (string.IsNullOrEmpty(ammoType)) return null;
+            string clean = ammoType.Trim().ToLower();
+            if (clean == "light ammo") return "Pistol Ammo";
+            if (clean == "pistol ammo") return "Light Ammo";
+            if (clean == "medium ammo") return "Rifle Ammo";
+            if (clean == "rifle ammo") return "Medium Ammo";
+            if (clean == "heavy ammo") return "Fuel Ammo";
+            if (clean == "fuel ammo") return "Heavy Ammo";
+            if (clean == "shotgun ammo") return "Ammo";
+            if (clean == "ammo") return "Shotgun Ammo";
+            return null;
+        }
+
+        public void ConsumeAmmo(string ammoType, int amount)
+        {
+            if (_inventory == null || amount <= 0 || string.IsNullOrEmpty(ammoType)) return;
+            int countMain = _inventory.GetItemCount(ammoType);
+            int fromMain = Mathf.Min(amount, countMain);
+            for (int i = 0; i < fromMain; i++)
+            {
+                _inventory.RemoveItem(ammoType);
+            }
+            int remaining = amount - fromMain;
+            if (remaining > 0)
+            {
+                string alias = GetAmmoAlias(ammoType);
+                if (!string.IsNullOrEmpty(alias))
+                {
+                    int fromAlias = Mathf.Min(remaining, _inventory.GetItemCount(alias));
+                    for (int i = 0; i < fromAlias; i++)
+                    {
+                        _inventory.RemoveItem(alias);
+                    }
+                }
+            }
+        }
+
         private void TryStartReload()
         {
             Weapon activeWeapon = CurrentWeapon;
@@ -1114,11 +1231,11 @@ namespace TheLastEmpire
             int magSize = activeWeapon != null ? activeWeapon.magazineSize : magazineSize;
             
             string ammoType = "Pistol Ammo";
-            if (activeWeapon != null)
+            if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.ammoType))
             {
                 ammoType = activeWeapon.ammoType;
             }
-            int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
+            int reserve = GetAmmoReserveCount(ammoType);
 
             if (_isReloading || mag == magSize || reserve <= 0)
             {
@@ -1140,7 +1257,7 @@ namespace TheLastEmpire
             // Re-fetch current weapon status
             activeWeapon = CurrentWeapon;
             string ammoType = "Pistol Ammo";
-            if (activeWeapon != null)
+            if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.ammoType))
             {
                 ammoType = activeWeapon.ammoType;
             }
@@ -1148,30 +1265,18 @@ namespace TheLastEmpire
             if (activeWeapon != null)
             {
                 int needed = activeWeapon.magazineSize - activeWeapon.currentMagazine;
-                int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
+                int reserve = GetAmmoReserveCount(ammoType);
                 int toLoad = Mathf.Min(needed, reserve);
                 activeWeapon.currentMagazine += toLoad;
-                if (_inventory != null)
-                {
-                    for (int i = 0; i < toLoad; i++)
-                    {
-                        _inventory.RemoveItem(ammoType);
-                    }
-                }
+                ConsumeAmmo(ammoType, toLoad);
             }
             else
             {
                 int needed = magazineSize - _currentMagazine;
-                int reserve = _inventory != null ? _inventory.GetItemCount(ammoType) : 0;
+                int reserve = GetAmmoReserveCount(ammoType);
                 int toLoad = Mathf.Min(needed, reserve);
                 _currentMagazine += toLoad;
-                if (_inventory != null)
-                {
-                    for (int i = 0; i < toLoad; i++)
-                    {
-                        _inventory.RemoveItem(ammoType);
-                    }
-                }
+                ConsumeAmmo(ammoType, toLoad);
             }
 
             _isReloading = false;
@@ -1222,7 +1327,7 @@ namespace TheLastEmpire
 
             if (weapons.Count == 0)
             {
-                // 1. Pistol
+                // 1. 9mm Pistol
                 Weapon pistol = new Weapon
                 {
                     weaponName = "Pistol",
@@ -1236,12 +1341,13 @@ namespace TheLastEmpire
                     spreadAngle = 0f,
                     pelletsPerShot = 1,
                     isAutomatic = false,
+                    ammoType = "Light Ammo",
                     vfxPoolKey = "PistolFlash"
                 };
                 pistol.Initialize(startingReserveAmmo);
                 weapons.Add(pistol);
 
-                // 2. Rifle
+                // 2. Assault Rifle
                 Weapon rifle = new Weapon
                 {
                     weaponName = "Rifle",
@@ -1255,12 +1361,13 @@ namespace TheLastEmpire
                     spreadAngle = 5f,
                     pelletsPerShot = 1,
                     isAutomatic = true,
+                    ammoType = "Medium Ammo",
                     vfxPoolKey = "PistolFlash"
                 };
                 rifle.Initialize(120);
                 weapons.Add(rifle);
 
-                // 3. Shotgun
+                // 3. Pump Shotgun
                 Weapon shotgun = new Weapon
                 {
                     weaponName = "Shotgun",
@@ -1274,10 +1381,131 @@ namespace TheLastEmpire
                     spreadAngle = 15f,
                     pelletsPerShot = 5,
                     isAutomatic = false,
+                    ammoType = "Shotgun Ammo",
                     vfxPoolKey = "PistolFlash"
                 };
                 shotgun.Initialize(24);
                 weapons.Add(shotgun);
+
+                // 4. SMG (Submachine Gun)
+                Weapon smg = new Weapon
+                {
+                    weaponName = "SMG",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 0.08f,
+                    magazineSize = 35,
+                    reloadDuration = 1.2f,
+                    damage = 16f,
+                    range = 2.0f,
+                    canPierce = false,
+                    spreadAngle = 8f,
+                    pelletsPerShot = 1,
+                    isAutomatic = true,
+                    ammoType = "Light Ammo",
+                    vfxPoolKey = "PistolFlash"
+                };
+                smg.Initialize(70);
+                weapons.Add(smg);
+
+                // 5. Hunting Sniper Rifle
+                Weapon sniper = new Weapon
+                {
+                    weaponName = "Sniper Rifle",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 1.2f,
+                    magazineSize = 5,
+                    reloadDuration = 2.2f,
+                    damage = 110f,
+                    range = 6.0f,
+                    canPierce = true,
+                    spreadAngle = 0f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false,
+                    ammoType = "Medium Ammo",
+                    vfxPoolKey = "PistolFlash"
+                };
+                sniper.Initialize(15);
+                weapons.Add(sniper);
+
+                // 6. Heavy Revolver
+                Weapon revolver = new Weapon
+                {
+                    weaponName = "Revolver",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 0.65f,
+                    magazineSize = 6,
+                    reloadDuration = 1.8f,
+                    damage = 55f,
+                    range = 2.5f,
+                    canPierce = false,
+                    spreadAngle = 2f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false,
+                    ammoType = "Light Ammo",
+                    vfxPoolKey = "PistolFlash"
+                };
+                revolver.Initialize(24);
+                weapons.Add(revolver);
+
+                // 7. Flamethrower
+                Weapon flamethrower = new Weapon
+                {
+                    weaponName = "Flamethrower",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 0.1f,
+                    magazineSize = 50,
+                    reloadDuration = 2.5f,
+                    damage = 10f,
+                    range = 1.8f,
+                    canPierce = true,
+                    spreadAngle = 20f,
+                    pelletsPerShot = 2,
+                    isAutomatic = true,
+                    ammoType = "Heavy Ammo",
+                    vfxPoolKey = "PistolFlash"
+                };
+                flamethrower.Initialize(100);
+                weapons.Add(flamethrower);
+
+                // 8. Rocket Launcher
+                Weapon rocketLauncher = new Weapon
+                {
+                    weaponName = "Rocket Launcher",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 1.5f,
+                    magazineSize = 1,
+                    reloadDuration = 2.5f,
+                    damage = 150f,
+                    range = 4.0f,
+                    canPierce = false,
+                    spreadAngle = 0f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false,
+                    ammoType = "Heavy Ammo",
+                    vfxPoolKey = "PistolFlash"
+                };
+                rocketLauncher.Initialize(5);
+                weapons.Add(rocketLauncher);
+
+                // 9. Hunting Crossbow
+                Weapon crossbow = new Weapon
+                {
+                    weaponName = "Crossbow",
+                    projectilePrefab = projectilePrefab,
+                    fireRate = 1.0f,
+                    magazineSize = 1,
+                    reloadDuration = 1.2f,
+                    damage = 70f,
+                    range = 3.5f,
+                    canPierce = false,
+                    spreadAngle = 0f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false,
+                    ammoType = "Bolts",
+                    vfxPoolKey = ""
+                };
+                crossbow.Initialize(10);
+                weapons.Add(crossbow);
             }
             else
             {
@@ -1333,6 +1561,78 @@ namespace TheLastEmpire
                     staggerDuration = 0.3f,
                     vfxPoolKey = "SwordSlash"
                 });
+
+                // 4. Fire Axe
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Fire Axe",
+                    damage = 65f,
+                    attackRate = 0.7f,
+                    attackRadius = 1.35f,
+                    knockbackForce = 12f,
+                    staggerDuration = 0.4f,
+                    vfxPoolKey = "SwordSlash"
+                });
+
+                // 5. Katana
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Katana",
+                    damage = 50f,
+                    attackRate = 0.4f,
+                    attackRadius = 1.6f,
+                    knockbackForce = 8f,
+                    staggerDuration = 0.3f,
+                    vfxPoolKey = "SwordSlash"
+                });
+
+                // 6. Sledgehammer
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Sledgehammer",
+                    damage = 90f,
+                    attackRate = 0.95f,
+                    attackRadius = 1.4f,
+                    knockbackForce = 20f,
+                    staggerDuration = 0.8f,
+                    vfxPoolKey = "SwordSlash"
+                });
+
+                // 7. Survival Spear
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Survival Spear",
+                    damage = 45f,
+                    attackRate = 0.45f,
+                    attackRadius = 2.2f,
+                    knockbackForce = 10f,
+                    staggerDuration = 0.3f,
+                    vfxPoolKey = "SwordSlash"
+                });
+
+                // 8. Stun Baton
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Stun Baton",
+                    damage = 35f,
+                    attackRate = 0.45f,
+                    attackRadius = 1.2f,
+                    knockbackForce = 6f,
+                    staggerDuration = 0.6f,
+                    vfxPoolKey = "SwordSlash"
+                });
+
+                // 9. Chainsaw
+                meleeWeapons.Add(new MeleeWeapon
+                {
+                    weaponName = "Chainsaw",
+                    damage = 20f,
+                    attackRate = 0.1f,
+                    attackRadius = 1.2f,
+                    knockbackForce = 3f,
+                    staggerDuration = 0.1f,
+                    vfxPoolKey = "SwordSlash"
+                });
             }
         }
 
@@ -1364,6 +1664,26 @@ namespace TheLastEmpire
             _currentMeleeWeaponIndex = index;
             Debug.Log($"[PlayerController] Equipped melee weapon: {wName}");
             OnAmmoChanged?.Invoke();
+        }
+
+        public void CycleMeleeWeapon(int direction)
+        {
+            if (meleeWeapons == null || meleeWeapons.Count == 0) return;
+
+            int nextIndex = _currentMeleeWeaponIndex;
+            for (int i = 0; i < meleeWeapons.Count; i++)
+            {
+                nextIndex = (nextIndex + direction + meleeWeapons.Count) % meleeWeapons.Count;
+                string wName = meleeWeapons[nextIndex].weaponName;
+                bool isKnife = (wName ?? "").ToLower().Trim().Contains("knife");
+                bool hasWeapon = isKnife || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+
+                if (hasWeapon)
+                {
+                    SwitchToMeleeWeapon(nextIndex);
+                    return;
+                }
+            }
         }
 
         public void SwitchToWeapon(int index)
@@ -1424,6 +1744,13 @@ namespace TheLastEmpire
 
         private void AlertEnemiesToGunshot()
         {
+            if (CurrentWeapon != null && !string.IsNullOrEmpty(CurrentWeapon.weaponName))
+            {
+                if (CurrentWeapon.weaponName.IndexOf("Crossbow", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return; // Crossbow is completely silent and does not alert enemies!
+                }
+            }
             BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
             foreach (BaseEnemyAI enemy in enemies)
             {
