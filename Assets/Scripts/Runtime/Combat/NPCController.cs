@@ -102,16 +102,39 @@ namespace TheLastEmpire
 
             if (ItemDatabase.Instance != null)
             {
-                AddDefaultShopItem("Rifle");
+                // Weapons - Ranged
+                AddDefaultShopItem("Pistol");
+                AddDefaultShopItem("Revolver");
+                AddDefaultShopItem("SMG");
                 AddDefaultShopItem("Shotgun");
-                AddDefaultShopItem("Potion");
-                AddDefaultShopItem("Bread");
-                AddDefaultShopItem("Pistol Ammo");
-                AddDefaultShopItem("Shotgun Ammo");
-                AddDefaultShopItem("Rifle Ammo");
+                AddDefaultShopItem("Rifle");
+                AddDefaultShopItem("Sniper Rifle");
+                AddDefaultShopItem("Crossbow");
+                AddDefaultShopItem("Flamethrower");
+                AddDefaultShopItem("Rocket Launcher");
+
+                // Weapons - Melee
                 AddDefaultShopItem("Knife");
                 AddDefaultShopItem("Baseball Bat");
                 AddDefaultShopItem("Machete");
+                AddDefaultShopItem("Fire Axe");
+                AddDefaultShopItem("Katana");
+                AddDefaultShopItem("Sledgehammer");
+                AddDefaultShopItem("Survival Spear");
+                AddDefaultShopItem("Stun Baton");
+                AddDefaultShopItem("Chainsaw");
+
+                // Explosives & Consumables
+                AddDefaultShopItem("Grenade");
+                AddDefaultShopItem("Potion");
+                AddDefaultShopItem("Bread");
+
+                // Ammunition
+                AddDefaultShopItem("Pistol Ammo");
+                AddDefaultShopItem("Shotgun Ammo");
+                AddDefaultShopItem("Rifle Ammo");
+                AddDefaultShopItem("Heavy Ammo");
+                AddDefaultShopItem("Bolts");
             }
         }
 
