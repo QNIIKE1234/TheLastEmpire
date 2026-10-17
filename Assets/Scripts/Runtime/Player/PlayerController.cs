@@ -9,6 +9,16 @@ namespace TheLastEmpire
         [Header("Config")]
         [SerializeField] private PlayerConfigSO playerConfig;
 
+        [Header("Character Selection Integration")]
+        [SerializeField] private CharacterData activeCharacterData;
+        private IShiftAbility _activeShiftAbility;
+
+        public CharacterData ActiveCharacterData => activeCharacterData;
+        public IShiftAbility ActiveShiftAbility => _activeShiftAbility;
+        public Vector2 MoveInput => _moveInput;
+        public Vector3 AimDirection => _aimDirection;
+        public bool HasGuaranteedCrit { get; set; } = false;
+
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
 
@@ -140,7 +150,30 @@ namespace TheLastEmpire
 
         private void ApplyPlayerConfig()
         {
-            if (playerConfig != null)
+            if (activeCharacterData == null)
+            {
+                activeCharacterData = CharacterManager.GetSelectedCharacter();
+            }
+
+            if (activeCharacterData != null)
+            {
+                moveSpeed = activeCharacterData.moveSpeed;
+                dashSpeed = activeCharacterData.dashSpeed;
+                dashDuration = activeCharacterData.dashDuration;
+                dashCooldown = activeCharacterData.dashCooldown;
+                maxHunger = activeCharacterData.maxHunger;
+                currentHunger = maxHunger;
+                startingReserveAmmo = activeCharacterData.startingPistolAmmo;
+
+                _health = GetComponent<Health>();
+                if (_health != null)
+                {
+                    _health.SetMaxHealth(activeCharacterData.maxHealth, true);
+                }
+
+                InitShiftAbility();
+            }
+            else if (playerConfig != null)
             {
                 moveSpeed = playerConfig.moveSpeed;
                 dashSpeed = playerConfig.dashSpeed;
@@ -154,6 +187,41 @@ namespace TheLastEmpire
                     _health.SetMaxHealth(playerConfig.maxHealth, true);
                 }
             }
+        }
+
+        private void InitShiftAbility()
+        {
+            if (activeCharacterData == null) return;
+
+            switch (activeCharacterData.shiftAbilityType)
+            {
+                case ShiftAbilityType.AdrenalineRush:
+                    _activeShiftAbility = new AdrenalineRushAbility();
+                    break;
+                case ShiftAbilityType.UnstoppableCharge:
+                    _activeShiftAbility = new UnstoppableChargeAbility();
+                    break;
+                case ShiftAbilityType.ShadowStep:
+                    _activeShiftAbility = new ShadowStepAbility();
+                    break;
+                case ShiftAbilityType.EagleEye:
+                    _activeShiftAbility = new EagleEyeAbility();
+                    break;
+                case ShiftAbilityType.ToxicTrail:
+                    _activeShiftAbility = new ToxicTrailAbility();
+                    break;
+                default:
+                    _activeShiftAbility = new AdrenalineRushAbility();
+                    break;
+            }
+
+            _activeShiftAbility.Initialize(this);
+        }
+
+        public void DrainHunger(float amount)
+        {
+            currentHunger = Mathf.Max(0f, currentHunger - amount);
+            OnHungerChanged?.Invoke();
         }
 
         private void Start()
@@ -259,6 +327,10 @@ namespace TheLastEmpire
             _currentMagazine = magazineSize;
             InitializeDefaultWeapons();
             InitializeDefaultMeleeWeapons();
+            if (activeCharacterData != null)
+            {
+                ApplyStartingCharacterLoadout();
+            }
             OnAmmoChanged?.Invoke();
 
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
@@ -318,6 +390,23 @@ namespace TheLastEmpire
                 }
                 return;
             }
+
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.shiftKey.wasPressedThisFrame)
+                {
+                    _activeShiftAbility?.OnShiftPressed();
+                }
+                if (Keyboard.current.shiftKey.isPressed)
+                {
+                    _activeShiftAbility?.OnShiftHeld();
+                }
+                if (Keyboard.current.shiftKey.wasReleasedThisFrame)
+                {
+                    _activeShiftAbility?.OnShiftReleased();
+                }
+            }
+            _activeShiftAbility?.UpdateAbility();
 
             _isSprinting = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
@@ -508,8 +597,18 @@ namespace TheLastEmpire
             }
             else
             {
-                // Normal 8-directional movement (1.5x speed if sprinting)
-                float currentSpeed = _isSprinting ? (moveSpeed * 1.5f) : moveSpeed;
+                float currentSpeed = moveSpeed;
+                if (_activeShiftAbility != null && _activeShiftAbility.IsActive)
+                {
+                    if (_activeShiftAbility is AdrenalineRushAbility) currentSpeed *= 1.75f;
+                    else if (_activeShiftAbility is ShadowStepAbility) currentSpeed *= 1.40f;
+                    else if (_activeShiftAbility is EagleEyeAbility) currentSpeed *= 0.35f;
+                    else currentSpeed *= 1.5f;
+                }
+                else if (_isSprinting)
+                {
+                    currentSpeed *= 1.5f;
+                }
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }
@@ -882,8 +981,8 @@ namespace TheLastEmpire
                 {
                     if (activeWeapon != null)
                     {
-                        // Base player damage is 10, plus the damage specified in ItemData of the equipped weapon
-                        float basePlayerDamage = 10f;
+                        // Base player damage from active operative or fallback 10
+                        float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0) ? activeCharacterData.baseRangedDamage : 10f;
                         int itemDamage = 0;
                         float weaponRange = activeWeapon.range; // fallback to default weapon range/lifetime
 
@@ -903,7 +1002,14 @@ namespace TheLastEmpire
                         }
                         float finalDamage = basePlayerDamage + itemDamage;
 
-                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce);
+                        // Effective falloff range (e.g. standard 14m, snipers extend further)
+                        float effectiveFalloffDist = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
+                        if (activeCharacterData != null && activeCharacterData.characterId == "MARKSMAN")
+                        {
+                            effectiveFalloffDist = 22f; // Marksman maintains high damage at sniper ranges
+                        }
+
+                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce, activeWeapon.weaponName, effectiveFalloffDist);
                         Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
                     
@@ -921,8 +1027,8 @@ namespace TheLastEmpire
             float activeKnockback = activeMelee != null ? activeMelee.knockbackForce : 10f;
             float activeStagger = activeMelee != null ? activeMelee.staggerDuration : 0.4f;
 
-            // Base player damage is 10, plus the damage specified in ItemData of the equipped weapon
-            float basePlayerDamage = 10f;
+            // Base player damage from active operative or fallback 10
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseMeleeDamage > 0) ? activeCharacterData.baseMeleeDamage : 10f;
             int itemDamage = 0;
             string wName = CurrentMeleeWeaponName ?? "";
             if (ItemDatabase.Instance != null)
@@ -947,13 +1053,8 @@ namespace TheLastEmpire
             bool isSledgehammer = wName.IndexOf("Hammer", System.StringComparison.OrdinalIgnoreCase) >= 0;
             bool isStunBaton = wName.IndexOf("Baton", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
-            // Katana: +20% Critical Chance dealing 2.0x damage
-            bool isCritical = isKatana && (Random.value < 0.20f);
-            if (isCritical)
-            {
-                activeDamage *= 2.0f;
-                Debug.Log("[MeleeAttack] Katana Critical Strike (2.0x Damage)!");
-            }
+            // ⚔️ คำนวณดาเมจระยะประชิดด้วย DamageCalculator (มีสุ่ม +-10, อัตราคริ 20% / 1.3x หรือ Katana/Phantom 2.0x)
+            DamageResult meleeDmgResult = DamageCalculator.CalculateMeleeDamage(activeDamage, gameObject, wName);
 
             _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
@@ -1005,14 +1106,14 @@ namespace TheLastEmpire
                 IDamageable damageable = col.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    float hitDmg = activeDamage;
+                    float hitDmg = meleeDmgResult.FinalDamage;
                     // Fire Axe: 25% chance for Bleed (extra 15 damage)
                     if (isFireAxe && Random.value < 0.25f)
                     {
                         hitDmg += 15f;
                         Debug.Log("[MeleeAttack] Fire Axe caused bleeding laceration (+15 damage)!");
                     }
-                    damageable.TakeDamage((int)hitDmg);
+                    damageable.TakeDamage(hitDmg, col.transform.position, meleeDmgResult.IsCritical);
                     targetsHit++;
                 }
 
@@ -1045,7 +1146,7 @@ namespace TheLastEmpire
                                 {
                                     chainEnemy.ApplyMeleeKnockback((chainEnemy.transform.position - enemy.transform.position).normalized, 4f, 0.5f);
                                     IDamageable cDmg = chainEnemy.GetComponent<IDamageable>();
-                                    if (cDmg != null) cDmg.TakeDamage(10);
+                                    if (cDmg != null) cDmg.TakeDamage(10, chainEnemy.transform.position);
                                 }
                             }
                         }
@@ -1315,7 +1416,67 @@ namespace TheLastEmpire
         {
             currentHunger = Mathf.Clamp(currentHunger + amount, 0f, maxHunger);
             Debug.Log($"[PlayerController] Ate bread! Restored {amount} hunger. Current hunger: {currentHunger}");
+            
+            // Scavenger Passive: Eating food/bread grants bonus +10 HP healing
+            if (activeCharacterData != null && activeCharacterData.characterId == "SCAVENGER" && _health != null)
+            {
+                _health.Heal(10f);
+                Debug.Log("[PlayerController] Scavenger passive: Restored +10 HP from eating bread!");
+            }
+
             OnHungerChanged?.Invoke();
+        }
+
+        private void ApplyStartingCharacterLoadout()
+        {
+            if (activeCharacterData == null) return;
+
+            // Equip matching primary starting weapon
+            if (activeCharacterData.startingWeapons != null && weapons != null)
+            {
+                for (int i = 0; i < weapons.Count; i++)
+                {
+                    if (activeCharacterData.startingWeapons.Exists(w => w.Equals(weapons[i].weaponName, System.StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _currentWeaponIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Equip matching starting melee weapon
+            if (activeCharacterData.startingWeapons != null && meleeWeapons != null)
+            {
+                for (int i = 0; i < meleeWeapons.Count; i++)
+                {
+                    if (activeCharacterData.startingWeapons.Exists(w => w.Equals(meleeWeapons[i].weaponName, System.StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _currentMeleeWeaponIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Grant starting inventory supplies
+            if (_inventory != null)
+            {
+                if (activeCharacterData.startingMoney > 0)
+                {
+                    _inventory.AddMoney(activeCharacterData.startingMoney);
+                }
+
+                if (activeCharacterData.startingPistolAmmo > 0)
+                {
+                    for (int i = 0; i < activeCharacterData.startingPistolAmmo; i++)
+                    {
+                        _inventory.AddItem("Light Ammo");
+                    }
+                }
+
+                // Add starter survival bread
+                _inventory.AddItem("Bread");
+                _inventory.AddItem("Bread");
+            }
         }
 
         private void InitializeDefaultWeapons()

@@ -61,13 +61,34 @@ namespace TheLastEmpire
             _invulnerabilityTimer = Mathf.Max(_invulnerabilityTimer, duration);
         }
 
-        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null)
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null, bool isCrit = false)
         {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
 
+            // Player character defense traits & abilities
+            PlayerController pc = GetComponent<PlayerController>();
+            if (pc != null)
+            {
+                if (pc.ActiveShiftAbility is AdrenalineRushAbility && pc.ActiveShiftAbility.IsActive)
+                {
+                    damageAmount *= 0.8f; // 20% damage reduction during Adrenaline Rush
+                }
+                if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.damageReductionPercent > 0f)
+                {
+                    damageAmount *= (1f - pc.ActiveCharacterData.damageReductionPercent); // Passive armor (e.g. Juggernaut 15%)
+                }
+            }
+
             CurrentHealth -= damageAmount;
             onDamageTaken?.Invoke(damageAmount);
+
+            // 💥 แสดงตัวเลขดาเมจลอยขึ้นเหนือเป้าหมาย (Floating Damage Text)
+            Vector3 dmgNumberPos = hitPoint ?? (transform.position + Vector3.up * 1.3f);
+            if (DamageNumberManager.Instance != null)
+            {
+                DamageNumberManager.Instance.SpawnDamageNumber(dmgNumberPos, damageAmount, isCrit);
+            }
 
             // 🟢 เล่นเอฟเฟกต์เลือด/โดนตี ถ้ามีการตั้งค่า Pool Key ไว้
             if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)

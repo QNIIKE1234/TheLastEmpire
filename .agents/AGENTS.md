@@ -68,3 +68,39 @@ This file documents critical patterns, design choices, and systems established i
     *   `Stun Baton`: 30% chance for chain shock jumping to adjacent enemies.
     *   `Crossbow`: Completely silent weapon that suppresses `AlertEnemiesToGunshot()`.
 
+---
+
+## 7. Playable Operatives & Amnesia Narrative System
+*   **5-Operative Roster**:
+    *   `Vanguard` (*All-Rounder / Frontline*): Signature `AdrenalineRush` (Hold Shift for +75% speed, +30% attack speed, 20% damage reduction; extra hunger drain). Starting loadout: Rifle, Knife, 60 ammo.
+    *   `Juggernaut` (*Melee Brawler / Tank*): Signature `UnstoppableCharge` (Shift burst rush, deflects bullets, 25 impact dmg + 1s stun, 5s CD; passive 15% armor at all times). Starting loadout: Sledgehammer, Shotgun, 20 ammo.
+    *   `Phantom` (*Shadow Assassin*): Signature `ShadowStep` (Hold Shift for stealth phase through enemies, exit grants guaranteed 2.0x crit on next attack; extra hunger drain). Starting loadout: Katana, Pistol, 40 ammo.
+    *   `Marksman` (*Apex Sharpshooter*): Signature `EagleEye` (Hold Shift for 1.35x tactical zoom, 2x weapon range, piercing bullets; slow movement). Starting loadout: Sniper Rifle, Revolver, 30 ammo.
+    *   `Scavenger` (*Wasteland Nomad*): Signature `ToxicTrail` (Hold Shift to drop green toxic clouds that slow enemies 50% and deal 8 DoT; passive: eating bread heals +10 HP). Starting loadout: Crossbow, Survival Spear, 300 gold.
+*   **Amnesia Waking Clues**: Each operative wakes up randomly on the procedural ruins grid with a unique waking monologue reflecting their angle on the empire's collapse.
+*   **Session Management**: `CharacterManager.SelectedCharacterId` persists character choice between Main Menu and Gameplay scene.
+*   **HUD Integration**: `PlayerHUD.cs` presents a cinematic floating Awakening Memory Banner for 6 seconds upon game start, and renders real-time operative role badges and `[SHIFT]` ability cooldown indicators.
+
+---
+
+## 8. Combat Damage Formulas & Floating Combat Numbers
+*   **Distance Falloff**:
+    *   Point-blank range ($\le 2.0\text{m}$): 100% full damage.
+    *   Linear damage drop-off between $2.0\text{m}$ and $14.0\text{m}$ (or $22.0\text{m}$ for `Marksman` / Sniper rifles).
+    *   Minimum damage floor is capped at **40%** (0.40x) regardless of how far the projectile travels.
+*   **Random Damage Variance**:
+    *   All damage rolls add `Random.Range(-10f, 10f)`. Clamped to a minimum of 1 damage.
+*   **Critical Strike Mechanics**:
+    *   **Base Chance & Multiplier**: All characters and weapons have a baseline 20% crit chance with a 1.3x damage multiplier.
+    *   **Katana**: 20% crit chance with **2.0x** damage multiplier.
+    *   **Phantom (Shadow Step)**: Exiting shadow stealth guarantees **100% critical strike** with **2.0x** multiplier on the next attack.
+    *   **Marksman**: Elevated 35% crit chance with **1.5x** multiplier (increased to **2.0x** when `EagleEye` zoom stance is active).
+*   **Floating Combat Text (`DamageNumberManager` / `FloatingDamageNumber`)**:
+    *   High-contrast billboarded TextMesh with drop shadow rendering above hit positions.
+    *   Pop-scale animation ($0.6 \to 1.25 \to 1.0$), upward drift with deceleration, and fade-out over ~0.85s.
+    *   **Normal Hits**: Vibrant gold-yellow text (`#FFF073`).
+    *   **Critical Hits**: Larger font size (35pt), fiery orange-red (`#FF471A`) with `"HEADSHOT! "` prefix.
+    *   **Deflections / Shield Blocks**: Cool cyan-silver (`#A6D8FF`) with `"BLOCKED"` text when hitting Tanker frontal shields.
+
+
+

@@ -391,7 +391,7 @@ namespace TheLastEmpire
 
         // --- IDamageable Implementation for Frontal Shield ---
 
-        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null)
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null, bool isCrit = false)
         {
             if (IsDead) return;
 
@@ -409,6 +409,13 @@ namespace TheLastEmpire
                 {
                     Debug.Log($"[RobotAI] Frontal Shield blocked {damageAmount} damage!");
                     
+                    // Spawn "BLOCKED" floating feedback
+                    Vector3 blockedPos = hitPoint ?? (transform.position + Vector3.up * 1.3f);
+                    if (DamageNumberManager.Instance != null)
+                    {
+                        DamageNumberManager.Instance.SpawnDamageNumber(blockedPos, 0f, false, "BLOCKED");
+                    }
+
                     // Flash gray color to indicate blocked damage feedback
                     StartCoroutine(FlashColorFeedback(Color.gray, 0.15f));
                     return; // Damage blocked!
@@ -418,7 +425,7 @@ namespace TheLastEmpire
             // Normal damage forwarding to health
             if (health != null)
             {
-                health.TakeDamage(damageAmount);
+                health.TakeDamage(damageAmount, hitPoint, isCrit);
             }
         }
 

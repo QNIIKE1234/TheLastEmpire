@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,6 +37,7 @@ namespace TheLastEmpire
         [SerializeField] private Button quitBtn;
         [SerializeField] private GameObject controlsModalObj;
         [SerializeField] private GameObject settingsModalObj;
+        [SerializeField] private GameObject characterSelectModalObj;
         [SerializeField] private TMP_Text titleLabel;
         [SerializeField] private Button closeControlsBtn;
         [SerializeField] private Button closeSettingsBtn;
@@ -57,7 +59,8 @@ namespace TheLastEmpire
             GameObject controlsModal, GameObject settingsModal,
             TMP_Text title, Button closeControls, Button closeSettings,
             Slider masterSlider, Slider bgmSlider, Slider sfxSlider, Toggle fsToggle,
-            GameObject fadeObj, CanvasGroup fadeGrp)
+            GameObject fadeObj, CanvasGroup fadeGrp,
+            GameObject charModal = null)
         {
             menuCanvas = canvas;
             menuCanvasGroup = canvasGroup;
@@ -68,6 +71,7 @@ namespace TheLastEmpire
             quitBtn = quit;
             controlsModalObj = controlsModal;
             settingsModalObj = settingsModal;
+            characterSelectModalObj = charModal;
             titleLabel = title;
             closeControlsBtn = closeControls;
             closeSettingsBtn = closeSettings;
@@ -182,6 +186,29 @@ namespace TheLastEmpire
         public void OnClickNewGame()
         {
             if (_isTransitioning) return;
+            if (characterSelectModalObj != null)
+            {
+                characterSelectModalObj.SetActive(true);
+            }
+            else
+            {
+                ShouldLoadSave = false;
+                StartCoroutine(TransitionRoutine(gameplaySceneName));
+            }
+        }
+
+        public void OnCloseCharacterSelect()
+        {
+            if (characterSelectModalObj != null)
+            {
+                characterSelectModalObj.SetActive(false);
+            }
+        }
+
+        public void StartGameWithCharacter(string characterId)
+        {
+            if (_isTransitioning) return;
+            CharacterManager.SelectedCharacterId = characterId;
             ShouldLoadSave = false;
             StartCoroutine(TransitionRoutine(gameplaySceneName));
         }
@@ -394,6 +421,12 @@ namespace TheLastEmpire
             {
                 _fadeOverlayObj = fadeOverlayObj;
                 _fadeOverlayGroup = fadeOverlayGroup ?? fadeOverlayObj.GetComponent<CanvasGroup>();
+            }
+
+            if (characterSelectModalObj == null && menuCanvas != null)
+            {
+                characterSelectModalObj = CreateCharacterSelectModal(menuCanvas.transform);
+                characterSelectModalObj.SetActive(false);
             }
 
             AttachHoverEffect(newGameBtn);
@@ -706,6 +739,9 @@ namespace TheLastEmpire
 
             settingsModalObj = CreateSettingsModal(canvasObj.transform);
             settingsModalObj.SetActive(false);
+
+            characterSelectModalObj = CreateCharacterSelectModal(canvasObj.transform);
+            characterSelectModalObj.SetActive(false);
 
             // 8. Fullscreen Fade Curtain
             _fadeOverlayObj = new GameObject("SceneFadeCurtain");
@@ -1301,6 +1337,520 @@ namespace TheLastEmpire
 
             toggle.graphic = checkmarkImg;
             toggle.onValueChanged.AddListener((v) => onValueChanged?.Invoke(v));
+        }
+
+        // =========================================================================
+        //  Character Selection Modal Dialog
+        // =========================================================================
+        private GameObject CreateCharacterSelectModal(Transform canvasTransform)
+        {
+            GameObject modalRoot = new GameObject("CharacterSelectModal");
+            modalRoot.transform.SetParent(canvasTransform, false);
+
+            RectTransform modalRect = modalRoot.AddComponent<RectTransform>();
+            modalRect.anchorMin = Vector2.zero;
+            modalRect.anchorMax = Vector2.one;
+            modalRect.offsetMin = Vector2.zero;
+            modalRect.offsetMax = Vector2.zero;
+
+            // Semi-transparent blocker backdrop
+            Image backdrop = modalRoot.AddComponent<Image>();
+            backdrop.color = new Color(0.02f, 0.03f, 0.05f, 0.92f);
+
+            // Center Panel (1180 x 700)
+            GameObject panel = new GameObject("ModalPanel");
+            panel.transform.SetParent(modalRoot.transform, false);
+            Image panelImg = panel.AddComponent<Image>();
+            panelImg.color = panelBgColor;
+
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = new Vector2(1180f, 700f);
+
+            // Panel Border (Arcane Purple Accent)
+            GameObject border = new GameObject("PanelBorder");
+            border.transform.SetParent(panel.transform, false);
+            Image borderImg = border.AddComponent<Image>();
+            borderImg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.60f);
+            RectTransform borderRect = border.GetComponent<RectTransform>();
+            borderRect.anchorMin = Vector2.zero;
+            borderRect.anchorMax = Vector2.one;
+            borderRect.offsetMin = new Vector2(-2f, -2f);
+            borderRect.offsetMax = new Vector2(2f, 2f);
+            border.transform.SetAsFirstSibling();
+
+            // Header Title
+            GameObject headerObj = new GameObject("ModalTitle");
+            headerObj.transform.SetParent(panel.transform, false);
+            TMP_Text headerText = headerObj.AddComponent<TextMeshProUGUI>();
+            headerText.text = "OPERATIVE SELECTION // เลือกตัวละครเข้าสู่โลกาวินาศ";
+            headerText.fontSize = 24;
+            headerText.fontStyle = FontStyles.Bold;
+            headerText.color = secondaryAccent;
+            headerText.alignment = TextAlignmentOptions.Center;
+            ApplyCustomFont(headerText);
+            RectTransform hRect = headerObj.GetComponent<RectTransform>();
+            hRect.anchorMin = new Vector2(0f, 1f);
+            hRect.anchorMax = new Vector2(1f, 1f);
+            hRect.pivot = new Vector2(0.5f, 1f);
+            hRect.anchoredPosition = new Vector2(0f, -18f);
+            hRect.sizeDelta = new Vector2(1100f, 32f);
+
+            // Header Subtitle
+            GameObject subHeaderObj = new GameObject("ModalSubtitle");
+            subHeaderObj.transform.SetParent(panel.transform, false);
+            TMP_Text subHeaderText = subHeaderObj.AddComponent<TextMeshProUGUI>();
+            subHeaderText.text = "5 OPERATIVES • 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE • SIGNATURE SHIFT SKILLS";
+            subHeaderText.fontSize = 13;
+            subHeaderText.color = new Color(0.7f, 0.75f, 0.85f, 0.70f);
+            subHeaderText.alignment = TextAlignmentOptions.Center;
+            ApplyCustomFont(subHeaderText);
+            RectTransform shRect = subHeaderObj.GetComponent<RectTransform>();
+            shRect.anchorMin = new Vector2(0f, 1f);
+            shRect.anchorMax = new Vector2(1f, 1f);
+            shRect.pivot = new Vector2(0.5f, 1f);
+            shRect.anchoredPosition = new Vector2(0f, -50f);
+            shRect.sizeDelta = new Vector2(1100f, 20f);
+
+            // Content Area Container (Split into Left Roster and Right Dossier)
+            GameObject contentObj = new GameObject("ContentSplitArea");
+            contentObj.transform.SetParent(panel.transform, false);
+            RectTransform contentRect = contentObj.AddComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 0f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.offsetMin = new Vector2(30f, 80f);
+            contentRect.offsetMax = new Vector2(-30f, -80f);
+
+            // Left Roster Column (320px)
+            GameObject rosterCol = new GameObject("RosterColumn");
+            rosterCol.transform.SetParent(contentObj.transform, false);
+            RectTransform rColRect = rosterCol.AddComponent<RectTransform>();
+            rColRect.anchorMin = new Vector2(0f, 0f);
+            rColRect.anchorMax = new Vector2(0f, 1f);
+            rColRect.pivot = new Vector2(0f, 0.5f);
+            rColRect.anchoredPosition = Vector2.zero;
+            rColRect.sizeDelta = new Vector2(320f, 0f);
+
+            VerticalLayoutGroup rLayout = rosterCol.AddComponent<VerticalLayoutGroup>();
+            rLayout.spacing = 10f;
+            rLayout.childControlWidth = true;
+            rLayout.childControlHeight = true;
+            rLayout.childForceExpandWidth = true;
+            rLayout.childForceExpandHeight = false;
+
+            // Right Dossier Column (Remaining space: ~770px)
+            GameObject dossierCol = new GameObject("DossierColumn");
+            dossierCol.transform.SetParent(contentObj.transform, false);
+            RectTransform dColRect = dossierCol.AddComponent<RectTransform>();
+            dColRect.anchorMin = new Vector2(0f, 0f);
+            dColRect.anchorMax = new Vector2(1f, 1f);
+            dColRect.pivot = new Vector2(1f, 0.5f);
+            dColRect.offsetMin = new Vector2(340f, 0f);
+            dColRect.offsetMax = Vector2.zero;
+
+            Image dossierBg = dossierCol.AddComponent<Image>();
+            dossierBg.color = new Color(0.05f, 0.06f, 0.08f, 0.85f);
+
+            GameObject dossierBorder = new GameObject("DossierBorder");
+            dossierBorder.transform.SetParent(dossierCol.transform, false);
+            Image dBorderImg = dossierBorder.AddComponent<Image>();
+            dBorderImg.color = new Color(0.2f, 0.25f, 0.35f, 0.45f);
+            RectTransform dbRect = dossierBorder.GetComponent<RectTransform>();
+            dbRect.anchorMin = Vector2.zero;
+            dbRect.anchorMax = Vector2.one;
+            dbRect.offsetMin = new Vector2(-1f, -1f);
+            dbRect.offsetMax = new Vector2(1f, 1f);
+            dossierBorder.transform.SetAsFirstSibling();
+
+            // Right Dossier Sub-elements:
+            // 1. Header (Name + Title + Role Category)
+            GameObject dHeader = new GameObject("DossierHeader");
+            dHeader.transform.SetParent(dossierCol.transform, false);
+            TMP_Text dNameText = dHeader.AddComponent<TextMeshProUGUI>();
+            dNameText.fontSize = 28;
+            dNameText.fontStyle = FontStyles.Bold;
+            dNameText.color = Color.white;
+            ApplyCustomFont(dNameText);
+            RectTransform dhRect = dHeader.GetComponent<RectTransform>();
+            dhRect.anchorMin = new Vector2(0f, 1f);
+            dhRect.anchorMax = new Vector2(1f, 1f);
+            dhRect.pivot = new Vector2(0f, 1f);
+            dhRect.anchoredPosition = new Vector2(25f, -18f);
+            dhRect.sizeDelta = new Vector2(720f, 36f);
+
+            GameObject dRoleObj = new GameObject("DossierRole");
+            dRoleObj.transform.SetParent(dossierCol.transform, false);
+            TMP_Text dRoleText = dRoleObj.AddComponent<TextMeshProUGUI>();
+            dRoleText.fontSize = 15;
+            dRoleText.fontStyle = FontStyles.Bold;
+            dRoleText.color = secondaryAccent;
+            ApplyCustomFont(dRoleText);
+            RectTransform drRect = dRoleObj.GetComponent<RectTransform>();
+            drRect.anchorMin = new Vector2(0f, 1f);
+            drRect.anchorMax = new Vector2(1f, 1f);
+            drRect.pivot = new Vector2(0f, 1f);
+            drRect.anchoredPosition = new Vector2(25f, -54f);
+            drRect.sizeDelta = new Vector2(720f, 24f);
+
+            // 2. Amnesia Waking Clue Box
+            GameObject clueBox = new GameObject("AmnesiaClueBox");
+            clueBox.transform.SetParent(dossierCol.transform, false);
+            Image clueBoxBg = clueBox.AddComponent<Image>();
+            clueBoxBg.color = new Color(0.18f, 0.12f, 0.05f, 0.55f);
+            RectTransform cbRect = clueBox.GetComponent<RectTransform>();
+            cbRect.anchorMin = new Vector2(0f, 1f);
+            cbRect.anchorMax = new Vector2(1f, 1f);
+            cbRect.pivot = new Vector2(0.5f, 1f);
+            cbRect.anchoredPosition = new Vector2(0f, -86f);
+            cbRect.sizeDelta = new Vector2(730f, 85f);
+
+            GameObject clueBorder = new GameObject("ClueBorder");
+            clueBorder.transform.SetParent(clueBox.transform, false);
+            Image cbBorderImg = clueBorder.AddComponent<Image>();
+            cbBorderImg.color = new Color(0.95f, 0.65f, 0.2f, 0.5f);
+            RectTransform cbbRect = clueBorder.GetComponent<RectTransform>();
+            cbbRect.anchorMin = Vector2.zero;
+            cbbRect.anchorMax = Vector2.one;
+            cbbRect.offsetMin = new Vector2(-1f, -1f);
+            cbbRect.offsetMax = new Vector2(1f, 1f);
+            clueBorder.transform.SetAsFirstSibling();
+
+            GameObject clueTitleObj = new GameObject("ClueTitle");
+            clueTitleObj.transform.SetParent(clueBox.transform, false);
+            TMP_Text clueTitleText = clueTitleObj.AddComponent<TextMeshProUGUI>();
+            clueTitleText.text = "❖ ความทรงจำสุดท้ายก่อนตื่น (LAST MEMORY BEFORE AWAKENING) ❖";
+            clueTitleText.fontSize = 12;
+            clueTitleText.fontStyle = FontStyles.Bold;
+            clueTitleText.color = new Color(1f, 0.75f, 0.3f, 0.95f);
+            ApplyCustomFont(clueTitleText);
+            RectTransform ctRect = clueTitleObj.GetComponent<RectTransform>();
+            ctRect.anchorMin = new Vector2(0f, 1f);
+            ctRect.anchorMax = new Vector2(1f, 1f);
+            ctRect.anchoredPosition = new Vector2(16f, -10f);
+            ctRect.sizeDelta = new Vector2(700f, 18f);
+
+            GameObject clueBodyObj = new GameObject("ClueBody");
+            clueBodyObj.transform.SetParent(clueBox.transform, false);
+            TMP_Text clueBodyText = clueBodyObj.AddComponent<TextMeshProUGUI>();
+            clueBodyText.fontSize = 13;
+            clueBodyText.color = new Color(0.95f, 0.95f, 0.95f, 0.95f);
+            ApplyCustomFont(clueBodyText);
+            RectTransform cBodyRect = clueBodyObj.GetComponent<RectTransform>();
+            cBodyRect.anchorMin = new Vector2(0f, 0f);
+            cBodyRect.anchorMax = new Vector2(1f, 1f);
+            cBodyRect.offsetMin = new Vector2(16f, 8f);
+            cBodyRect.offsetMax = new Vector2(-16f, -28f);
+
+            // 3. Lore Synopsis
+            GameObject loreBox = new GameObject("LoreBox");
+            loreBox.transform.SetParent(dossierCol.transform, false);
+            RectTransform lbRect = loreBox.AddComponent<RectTransform>();
+            lbRect.anchorMin = new Vector2(0f, 1f);
+            lbRect.anchorMax = new Vector2(1f, 1f);
+            lbRect.pivot = new Vector2(0.5f, 1f);
+            lbRect.anchoredPosition = new Vector2(0f, -178f);
+            lbRect.sizeDelta = new Vector2(730f, 75f);
+
+            GameObject loreTitleObj = new GameObject("LoreTitle");
+            loreTitleObj.transform.SetParent(loreBox.transform, false);
+            TMP_Text loreTitleText = loreTitleObj.AddComponent<TextMeshProUGUI>();
+            loreTitleText.text = "❖ ปูมหลังและมุมมอง (BACKGROUND & PERSPECTIVE) ❖";
+            loreTitleText.fontSize = 12;
+            loreTitleText.fontStyle = FontStyles.Bold;
+            loreTitleText.color = secondaryAccent;
+            ApplyCustomFont(loreTitleText);
+            RectTransform ltRect = loreTitleObj.GetComponent<RectTransform>();
+            ltRect.anchorMin = new Vector2(0f, 1f);
+            ltRect.anchorMax = new Vector2(1f, 1f);
+            ltRect.anchoredPosition = new Vector2(0f, 0f);
+            ltRect.sizeDelta = new Vector2(730f, 18f);
+
+            GameObject loreBodyObj = new GameObject("LoreBody");
+            loreBodyObj.transform.SetParent(loreBox.transform, false);
+            TMP_Text loreBodyText = loreBodyObj.AddComponent<TextMeshProUGUI>();
+            loreBodyText.fontSize = 13;
+            loreBodyText.color = new Color(0.85f, 0.88f, 0.94f, 0.95f);
+            ApplyCustomFont(loreBodyText);
+            RectTransform lBodyRect = loreBodyObj.GetComponent<RectTransform>();
+            lBodyRect.anchorMin = new Vector2(0f, 0f);
+            lBodyRect.anchorMax = new Vector2(1f, 1f);
+            lBodyRect.offsetMin = new Vector2(0f, 0f);
+            lBodyRect.offsetMax = new Vector2(0f, -22f);
+
+            // 4. Attributes Block (Left side) + Shift Skill Block (Right side)
+            GameObject statsRow = new GameObject("StatsAndSkillRow");
+            statsRow.transform.SetParent(dossierCol.transform, false);
+            RectTransform srRect = statsRow.AddComponent<RectTransform>();
+            srRect.anchorMin = new Vector2(0f, 1f);
+            srRect.anchorMax = new Vector2(1f, 1f);
+            srRect.pivot = new Vector2(0.5f, 1f);
+            srRect.anchoredPosition = new Vector2(0f, -258f);
+            srRect.sizeDelta = new Vector2(730f, 160f);
+
+            // Attributes Sub-box
+            GameObject attrBox = new GameObject("AttributesBox");
+            attrBox.transform.SetParent(statsRow.transform, false);
+            Image attrBg = attrBox.AddComponent<Image>();
+            attrBg.color = new Color(1f, 1f, 1f, 0.04f);
+            RectTransform attrRect = attrBox.GetComponent<RectTransform>();
+            attrRect.anchorMin = new Vector2(0f, 0f);
+            attrRect.anchorMax = new Vector2(0.42f, 1f);
+            attrRect.offsetMin = Vector2.zero;
+            attrRect.offsetMax = Vector2.zero;
+
+            GameObject attrTitleObj = new GameObject("AttrTitle");
+            attrTitleObj.transform.SetParent(attrBox.transform, false);
+            TMP_Text attrTitleText = attrTitleObj.AddComponent<TextMeshProUGUI>();
+            attrTitleText.text = "⚡ OPERATIVE ATTRIBUTES";
+            attrTitleText.fontSize = 12;
+            attrTitleText.fontStyle = FontStyles.Bold;
+            attrTitleText.color = new Color(0.3f, 0.85f, 1f, 0.95f);
+            ApplyCustomFont(attrTitleText);
+            RectTransform atRect = attrTitleObj.GetComponent<RectTransform>();
+            atRect.anchorMin = new Vector2(0f, 1f);
+            atRect.anchorMax = new Vector2(1f, 1f);
+            atRect.anchoredPosition = new Vector2(12f, -10f);
+            atRect.sizeDelta = new Vector2(280f, 18f);
+
+            GameObject attrBodyObj = new GameObject("AttrBody");
+            attrBodyObj.transform.SetParent(attrBox.transform, false);
+            TMP_Text attrBodyText = attrBodyObj.AddComponent<TextMeshProUGUI>();
+            attrBodyText.fontSize = 13;
+            attrBodyText.color = Color.white;
+            ApplyCustomFont(attrBodyText);
+            RectTransform aBodyRect = attrBodyObj.GetComponent<RectTransform>();
+            aBodyRect.anchorMin = new Vector2(0f, 0f);
+            aBodyRect.anchorMax = new Vector2(1f, 1f);
+            aBodyRect.offsetMin = new Vector2(12f, 8f);
+            aBodyRect.offsetMax = new Vector2(-12f, -30f);
+
+            // Shift Ability Sub-box
+            GameObject skillBox = new GameObject("ShiftSkillBox");
+            skillBox.transform.SetParent(statsRow.transform, false);
+            Image skillBg = skillBox.AddComponent<Image>();
+            skillBg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.12f);
+            RectTransform skillRect = skillBox.GetComponent<RectTransform>();
+            skillRect.anchorMin = new Vector2(0.44f, 0f);
+            skillRect.anchorMax = new Vector2(1f, 1f);
+            skillRect.offsetMin = Vector2.zero;
+            skillRect.offsetMax = Vector2.zero;
+
+            GameObject skillBorder = new GameObject("SkillBorder");
+            skillBorder.transform.SetParent(skillBox.transform, false);
+            Image sBorderImg = skillBorder.AddComponent<Image>();
+            sBorderImg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.45f);
+            RectTransform sbRect = skillBorder.GetComponent<RectTransform>();
+            sbRect.anchorMin = Vector2.zero;
+            sbRect.anchorMax = Vector2.one;
+            sbRect.offsetMin = new Vector2(-1f, -1f);
+            sbRect.offsetMax = new Vector2(1f, 1f);
+            skillBorder.transform.SetAsFirstSibling();
+
+            GameObject skillTitleObj = new GameObject("SkillTitle");
+            skillTitleObj.transform.SetParent(skillBox.transform, false);
+            TMP_Text skillTitleText = skillTitleObj.AddComponent<TextMeshProUGUI>();
+            skillTitleText.fontSize = 14;
+            skillTitleText.fontStyle = FontStyles.Bold;
+            skillTitleText.color = secondaryAccent;
+            ApplyCustomFont(skillTitleText);
+            RectTransform stRect = skillTitleObj.GetComponent<RectTransform>();
+            stRect.anchorMin = new Vector2(0f, 1f);
+            stRect.anchorMax = new Vector2(1f, 1f);
+            stRect.anchoredPosition = new Vector2(12f, -10f);
+            stRect.sizeDelta = new Vector2(380f, 20f);
+
+            GameObject skillBodyObj = new GameObject("SkillBody");
+            skillBodyObj.transform.SetParent(skillBox.transform, false);
+            TMP_Text skillBodyText = skillBodyObj.AddComponent<TextMeshProUGUI>();
+            skillBodyText.fontSize = 12;
+            skillBodyText.color = new Color(0.92f, 0.92f, 0.95f, 0.95f);
+            ApplyCustomFont(skillBodyText);
+            RectTransform sBodyRect = skillBodyObj.GetComponent<RectTransform>();
+            sBodyRect.anchorMin = new Vector2(0f, 0f);
+            sBodyRect.anchorMax = new Vector2(1f, 1f);
+            sBodyRect.offsetMin = new Vector2(12f, 8f);
+            sBodyRect.offsetMax = new Vector2(-12f, -34f);
+
+            // 5. Starting Loadout Box
+            GameObject loadoutBox = new GameObject("LoadoutBox");
+            loadoutBox.transform.SetParent(dossierCol.transform, false);
+            RectTransform loutRect = loadoutBox.AddComponent<RectTransform>();
+            loutRect.anchorMin = new Vector2(0f, 0f);
+            loutRect.anchorMax = new Vector2(1f, 0f);
+            loutRect.pivot = new Vector2(0.5f, 0f);
+            loutRect.anchoredPosition = new Vector2(0f, 15f);
+            loutRect.sizeDelta = new Vector2(730f, 85f);
+
+            Image loutBg = loadoutBox.AddComponent<Image>();
+            loutBg.color = new Color(1f, 1f, 1f, 0.04f);
+
+            GameObject loutTitleObj = new GameObject("LoadoutTitle");
+            loutTitleObj.transform.SetParent(loadoutBox.transform, false);
+            TMP_Text loutTitleText = loutTitleObj.AddComponent<TextMeshProUGUI>();
+            loutTitleText.text = "🎒 STARTING ARSENAL & SURVIVAL LOADOUT";
+            loutTitleText.fontSize = 12;
+            loutTitleText.fontStyle = FontStyles.Bold;
+            loutTitleText.color = new Color(0.4f, 0.95f, 0.6f, 0.95f);
+            ApplyCustomFont(loutTitleText);
+            RectTransform lttRect = loutTitleObj.GetComponent<RectTransform>();
+            lttRect.anchorMin = new Vector2(0f, 1f);
+            lttRect.anchorMax = new Vector2(1f, 1f);
+            lttRect.anchoredPosition = new Vector2(12f, -10f);
+            lttRect.sizeDelta = new Vector2(700f, 18f);
+
+            GameObject loutBodyObj = new GameObject("LoadoutBody");
+            loutBodyObj.transform.SetParent(loadoutBox.transform, false);
+            TMP_Text loutBodyText = loutBodyObj.AddComponent<TextMeshProUGUI>();
+            loutBodyText.fontSize = 13;
+            loutBodyText.color = Color.white;
+            ApplyCustomFont(loutBodyText);
+            RectTransform ltBodyRect = loutBodyObj.GetComponent<RectTransform>();
+            ltBodyRect.anchorMin = new Vector2(0f, 0f);
+            ltBodyRect.anchorMax = new Vector2(1f, 1f);
+            ltBodyRect.offsetMin = new Vector2(12f, 8f);
+            ltBodyRect.offsetMax = new Vector2(-12f, -30f);
+
+            // Populate Roster Column with 5 Operative Tabs
+            List<CharacterData> roster = (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters.Count > 0)
+                ? CharacterDatabase.Instance.Characters
+                : CharacterDatabase.CreateDefaultRoster();
+
+            string currentSelectedId = CharacterManager.SelectedCharacterId;
+            List<Button> tabButtons = new List<Button>();
+            List<Image> tabBorders = new List<Image>();
+
+            System.Action<CharacterData> displayCharacter = (ch) =>
+            {
+                currentSelectedId = ch.characterId;
+                dNameText.text = ch.characterName.ToUpper();
+                dRoleText.text = $"{ch.characterTitle}  •  <color=#A855F7>{ch.roleCategory}</color>";
+                clueBodyText.text = ch.amnesiaWakingClue;
+                loreBodyText.text = ch.loreSynopsis;
+                attrBodyText.text = $"• Max HP: <b>{ch.maxHealth}</b>\n• Max Hunger: <b>{ch.maxHunger}</b>\n• Move Speed: <b>{ch.moveSpeed:F1} m/s</b>\n• Dash Speed: <b>{ch.dashSpeed:F0} m/s</b> ({ch.dashCooldown:F1}s CD)";
+                skillTitleText.text = $"✦ [SHIFT] {ch.shiftAbilityName.ToUpper()}";
+                skillBodyText.text = ch.shiftAbilityDescription;
+                string wpns = (ch.startingWeapons != null && ch.startingWeapons.Count > 0) ? string.Join(", ", ch.startingWeapons) : "Knife";
+                loutBodyText.text = $"• Primary Weapon: <b>{wpns}</b>\n• Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
+
+                for (int i = 0; i < tabBorders.Count; i++)
+                {
+                    bool isThis = roster[i].characterId.Equals(ch.characterId, System.StringComparison.OrdinalIgnoreCase);
+                    tabBorders[i].color = isThis ? ch.themeColor : new Color(0.24f, 0.28f, 0.35f, 0.40f);
+                }
+            };
+
+            for (int i = 0; i < roster.Count; i++)
+            {
+                var ch = roster[i];
+                GameObject tabObj = new GameObject($"Tab_{ch.characterId}");
+                tabObj.transform.SetParent(rosterCol.transform, false);
+
+                LayoutElement le = tabObj.AddComponent<LayoutElement>();
+                le.preferredHeight = 90f;
+                le.minHeight = 90f;
+
+                Image tabBg = tabObj.AddComponent<Image>();
+                tabBg.color = buttonBgColor;
+
+                GameObject tBorder = new GameObject("Border");
+                tBorder.transform.SetParent(tabObj.transform, false);
+                Image tbImg = tBorder.AddComponent<Image>();
+                tbImg.color = new Color(0.24f, 0.28f, 0.35f, 0.40f);
+                RectTransform tbRect = tBorder.GetComponent<RectTransform>();
+                tbRect.anchorMin = Vector2.zero;
+                tbRect.anchorMax = Vector2.one;
+                tbRect.offsetMin = new Vector2(-1.5f, -1.5f);
+                tbRect.offsetMax = new Vector2(1.5f, 1.5f);
+                tBorder.transform.SetAsFirstSibling();
+                tabBorders.Add(tbImg);
+
+                // Tab Text Container
+                GameObject tLabelObj = new GameObject("Label");
+                tLabelObj.transform.SetParent(tabObj.transform, false);
+                TMP_Text tLabel = tLabelObj.AddComponent<TextMeshProUGUI>();
+                tLabel.text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=11><color=#A855F7>{ch.roleCategory}</color></size>";
+                tLabel.fontSize = 15;
+                tLabel.color = Color.white;
+                ApplyCustomFont(tLabel);
+                RectTransform tlRect = tLabelObj.GetComponent<RectTransform>();
+                tlRect.anchorMin = Vector2.zero;
+                tlRect.anchorMax = Vector2.one;
+                tlRect.offsetMin = new Vector2(16f, 0f);
+                tlRect.offsetMax = new Vector2(-16f, 0f);
+
+                Button tBtn = tabObj.AddComponent<Button>();
+                tBtn.onClick.AddListener(() => displayCharacter(ch));
+                AttachHoverEffect(tBtn);
+                tabButtons.Add(tBtn);
+            }
+
+            // Find default selection and display it
+            CharacterData defaultChar = roster.Find(c => c.characterId.Equals(currentSelectedId, System.StringComparison.OrdinalIgnoreCase)) ?? roster[0];
+            displayCharacter(defaultChar);
+
+            // Bottom Action Bar: CANCEL (Left) and EMBARK (Right)
+            GameObject cancelBtnObj = new GameObject("CancelButton");
+            cancelBtnObj.transform.SetParent(panel.transform, false);
+            RectTransform cancelRect = cancelBtnObj.AddComponent<RectTransform>();
+            cancelRect.anchorMin = new Vector2(0f, 0f);
+            cancelRect.anchorMax = new Vector2(0f, 0f);
+            cancelRect.pivot = new Vector2(0f, 0f);
+            cancelRect.anchoredPosition = new Vector2(30f, 18f);
+            cancelRect.sizeDelta = new Vector2(200f, 48f);
+
+            Image cancelBg = cancelBtnObj.AddComponent<Image>();
+            cancelBg.color = buttonBgColor;
+
+            GameObject cancelLabelObj = new GameObject("Label");
+            cancelLabelObj.transform.SetParent(cancelBtnObj.transform, false);
+            TMP_Text cancelLabel = cancelLabelObj.AddComponent<TextMeshProUGUI>();
+            cancelLabel.text = "CANCEL // ย้อนกลับ";
+            cancelLabel.fontSize = 18;
+            cancelLabel.fontStyle = FontStyles.Bold;
+            cancelLabel.color = Color.white;
+            cancelLabel.alignment = TextAlignmentOptions.Center;
+            ApplyCustomFont(cancelLabel);
+            RectTransform cLabelRect = cancelLabelObj.GetComponent<RectTransform>();
+            cLabelRect.anchorMin = Vector2.zero;
+            cLabelRect.anchorMax = Vector2.one;
+
+            Button cancelBtn = cancelBtnObj.AddComponent<Button>();
+            cancelBtn.onClick.AddListener(OnCloseCharacterSelect);
+            AttachHoverEffect(cancelBtn);
+
+            // EMBARK Button (Right side, glowing vibrant purple)
+            GameObject embarkBtnObj = new GameObject("EmbarkButton");
+            embarkBtnObj.transform.SetParent(panel.transform, false);
+            RectTransform embarkRect = embarkBtnObj.AddComponent<RectTransform>();
+            embarkRect.anchorMin = new Vector2(1f, 0f);
+            embarkRect.anchorMax = new Vector2(1f, 0f);
+            embarkRect.pivot = new Vector2(1f, 0f);
+            embarkRect.anchoredPosition = new Vector2(-30f, 18f);
+            embarkRect.sizeDelta = new Vector2(320f, 48f);
+
+            Image embarkBg = embarkBtnObj.AddComponent<Image>();
+            embarkBg.color = primaryAccent;
+
+            GameObject embarkLabelObj = new GameObject("Label");
+            embarkLabelObj.transform.SetParent(embarkBtnObj.transform, false);
+            TMP_Text embarkLabel = embarkLabelObj.AddComponent<TextMeshProUGUI>();
+            embarkLabel.text = "EMBARK // เข้าสู่โลกาวินาศ ➔";
+            embarkLabel.fontSize = 20;
+            embarkLabel.fontStyle = FontStyles.Bold;
+            embarkLabel.color = Color.white;
+            embarkLabel.alignment = TextAlignmentOptions.Center;
+            ApplyCustomFont(embarkLabel);
+            RectTransform eLabelRect = embarkLabelObj.GetComponent<RectTransform>();
+            eLabelRect.anchorMin = Vector2.zero;
+            eLabelRect.anchorMax = Vector2.one;
+
+            Button embarkBtn = embarkBtnObj.AddComponent<Button>();
+            embarkBtn.onClick.AddListener(() => StartGameWithCharacter(currentSelectedId));
+            AttachHoverEffect(embarkBtn);
+
+            return modalRoot;
         }
 
         // =========================================================================

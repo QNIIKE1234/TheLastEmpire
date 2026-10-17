@@ -24,8 +24,8 @@ namespace TheLastEmpire
             _textMesh.alignment = TextAlignment.Center;
             _textMesh.anchor = TextAnchor.MiddleCenter;
 
-            // Use the standard Arial font that is bundled with Unity
-            _textMesh.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Use the standard built-in font (LegacyRuntime.ttf / Arial)
+            _textMesh.font = FloatingDamageNumber.GetBuiltinFont();
             MeshRenderer mr = textObj.GetComponent<MeshRenderer>();
             if (mr != null)
             {

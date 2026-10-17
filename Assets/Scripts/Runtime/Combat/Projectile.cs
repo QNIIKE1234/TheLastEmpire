@@ -42,6 +42,8 @@ namespace TheLastEmpire
         private float _activeDamage;
         private float _activeLifetime;
         private bool _canPierce = false;
+        private string _weaponName = "";
+        private float _maxFalloffDistance = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
         private System.Collections.Generic.List<IDamageable> _hitTargets = new System.Collections.Generic.List<IDamageable>();
 
         public string PoolKey
@@ -147,12 +149,14 @@ namespace TheLastEmpire
             }
         }
 
-        public void SetStats(float damageVal, float lifetimeVal, bool pierceVal)
+        public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f)
         {
             _activeDamage = damageVal;
             _activeLifetime = lifetimeVal;
             _canPierce = pierceVal;
             _lifeTimer = lifetimeVal; // Update active timer
+            _weaponName = weaponName;
+            _maxFalloffDistance = (maxFalloffRange > 0f) ? maxFalloffRange : DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
         }
 
         private void OnTriggerEnter(Collider collision)
@@ -186,7 +190,18 @@ namespace TheLastEmpire
                 {
                     _hitTargets.Add(damageable);
                     Vector3 exactHitPoint = collision.ClosestPoint(transform.position);
-                    damageable.TakeDamage(_activeDamage, exactHitPoint);
+
+                    // 🎯 โมดิฟายดาเมจ: ยิงไกลยิ่งเบา (ต่ำสุด 40%) + สุ่ม +-10 + Critical (20% -> 1.3x หรือตามคลาส)
+                    float distanceTraveled = Vector3.Distance(_startPoint, exactHitPoint);
+                    DamageResult dmgResult = DamageCalculator.CalculateRangedDamage(
+                        _activeDamage,
+                        distanceTraveled,
+                        _owner,
+                        _weaponName,
+                        _maxFalloffDistance
+                    );
+
+                    damageable.TakeDamage(dmgResult.FinalDamage, exactHitPoint, dmgResult.IsCritical);
                 }
 
                 if (!_canPierce)
@@ -239,8 +254,9 @@ namespace TheLastEmpire
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    // Use transform.position as the explosion center
-                    damageable.TakeDamage(_activeDamage, transform.position);
+                    float distFromCenter = Vector3.Distance(transform.position, target.transform.position);
+                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, explosionRadius, _owner);
+                    damageable.TakeDamage(dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);
                 }
             }
         }

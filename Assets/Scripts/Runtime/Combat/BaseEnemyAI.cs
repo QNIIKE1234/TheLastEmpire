@@ -306,6 +306,17 @@ namespace TheLastEmpire
             Debug.Log($"[BaseEnemyAI] Melee Knockback applied: {direction * force}");
         }
 
+        public void ApplyDamageKnockback(Vector3 knockbackVector)
+        {
+            if (knockbackVector.sqrMagnitude < 0.001f) return;
+            ApplyMeleeKnockback(knockbackVector.normalized, knockbackVector.magnitude, staggerDuration);
+        }
+
+        public void ApplyDamageKnockback(Vector3 direction, float force)
+        {
+            ApplyMeleeKnockback(direction.normalized, force, staggerDuration);
+        }
+
         protected void UpdateHealthUI()
         {
             if (health == null) return;

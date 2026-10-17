@@ -45,6 +45,8 @@ namespace TheLastEmpire
         private TMPro.TMP_Text _hungerTextText;
         private UnityEngine.UI.Image _weaponImage;
         private UnityEngine.UI.Image _ammoImage;
+        private TMPro.TMP_Text _charBadgeText;
+        private TMPro.TMP_Text _shiftSkillText;
 
         private void Start()
         {
@@ -75,6 +77,9 @@ namespace TheLastEmpire
                 
                 // Initial update
                 UpdateHUD();
+
+                // Show the cinematic amnesia waking memory monologue banner
+                StartCoroutine(ShowAmnesiaWakingRoutine());
             }
             else
             {
@@ -84,6 +89,33 @@ namespace TheLastEmpire
             if (retryButton != null)
             {
                 retryButton.onClick.AddListener(RetryGame);
+            }
+        }
+
+        private void Update()
+        {
+            UpdateShiftAbilityDisplay();
+        }
+
+        private void UpdateShiftAbilityDisplay()
+        {
+            if (_shiftSkillText == null || player == null) return;
+
+            if (player.ActiveShiftAbility != null)
+            {
+                string skillName = player.ActiveCharacterData != null ? player.ActiveCharacterData.shiftAbilityName : "ABILITY";
+                if (player.ActiveShiftAbility.IsActive)
+                {
+                    _shiftSkillText.text = $"<color=#00FFAA>✦ [SHIFT] {skillName.ToUpper()} (ACTIVE)</color>";
+                }
+                else if (player.ActiveShiftAbility.CooldownRemaining > 0.05f)
+                {
+                    _shiftSkillText.text = $"<color=#FFAA00>⏳ [SHIFT] {skillName.ToUpper()} ({player.ActiveShiftAbility.CooldownRemaining:F1}s)</color>";
+                }
+                else
+                {
+                    _shiftSkillText.text = $"<color=#C084FC>✦ [SHIFT] {skillName.ToUpper()} (READY)</color>";
+                }
             }
         }
 
@@ -138,11 +170,11 @@ namespace TheLastEmpire
                 containerRect.anchorMax = new Vector2(0f, 0f);
                 containerRect.pivot = new Vector2(0f, 0f);
                 containerRect.anchoredPosition = new Vector2(30f, 30f);
-                containerRect.sizeDelta = new Vector2(400f, 175f);
+                containerRect.sizeDelta = new Vector2(410f, 220f);
 
                 // Panel Background
                 UnityEngine.UI.Image panelBg = container.AddComponent<UnityEngine.UI.Image>();
-                panelBg.color = new Color(0.08f, 0.08f, 0.1f, 0.85f); // Sleek slate dark mode
+                panelBg.color = new Color(0.08f, 0.08f, 0.1f, 0.88f); // Sleek slate dark mode
 
                 // Cyan Border/Outline
                 GameObject borderObj = new GameObject("Border");
@@ -156,13 +188,27 @@ namespace TheLastEmpire
                 borderRect.offsetMax = new Vector2(2f, 2f);
                 borderObj.transform.SetAsFirstSibling();
 
+                // 2.0 Operative Character Badge (Top of panel)
+                GameObject badgeObj = new GameObject("CharacterBadge");
+                badgeObj.transform.SetParent(container.transform, false);
+                _charBadgeText = badgeObj.AddComponent<TMPro.TextMeshProUGUI>();
+                _charBadgeText.fontSize = 13f;
+                _charBadgeText.color = Color.white;
+                _charBadgeText.fontStyle = TMPro.FontStyles.Bold;
+                _charBadgeText.alignment = TMPro.TextAlignmentOptions.Left;
+                RectTransform badgeRect = badgeObj.GetComponent<RectTransform>();
+                badgeRect.anchorMin = new Vector2(0.05f, 0.86f);
+                badgeRect.anchorMax = new Vector2(0.95f, 0.98f);
+                badgeRect.offsetMin = Vector2.zero;
+                badgeRect.offsetMax = Vector2.zero;
+
                 // 2.1 HP Bar Background Track
                 GameObject hpBarObj = new GameObject("HPBarTrack");
                 hpBarObj.transform.SetParent(container.transform, false);
 
                 RectTransform hpBarRect = hpBarObj.AddComponent<RectTransform>();
-                hpBarRect.anchorMin = new Vector2(0.05f, 0.65f);
-                hpBarRect.anchorMax = new Vector2(0.95f, 0.88f);
+                hpBarRect.anchorMin = new Vector2(0.05f, 0.67f);
+                hpBarRect.anchorMax = new Vector2(0.95f, 0.84f);
                 hpBarRect.offsetMin = Vector2.zero;
                 hpBarRect.offsetMax = Vector2.zero;
 
@@ -187,7 +233,7 @@ namespace TheLastEmpire
                 hpTextObj.transform.SetParent(hpBarObj.transform, false);
 
                 _hpText = hpTextObj.AddComponent<TMPro.TextMeshProUGUI>();
-                _hpText.fontSize = 18f;
+                _hpText.fontSize = 17f;
                 _hpText.color = Color.white;
                 _hpText.fontStyle = TMPro.FontStyles.Bold;
                 _hpText.alignment = TMPro.TextAlignmentOptions.Center;
@@ -203,8 +249,8 @@ namespace TheLastEmpire
                 hungerBarObj.transform.SetParent(container.transform, false);
 
                 RectTransform hungerBarRect = hungerBarObj.AddComponent<RectTransform>();
-                hungerBarRect.anchorMin = new Vector2(0.05f, 0.38f);
-                hungerBarRect.anchorMax = new Vector2(0.95f, 0.60f);
+                hungerBarRect.anchorMin = new Vector2(0.05f, 0.46f);
+                hungerBarRect.anchorMax = new Vector2(0.95f, 0.63f);
                 hungerBarRect.offsetMin = Vector2.zero;
                 hungerBarRect.offsetMax = Vector2.zero;
 
@@ -229,7 +275,7 @@ namespace TheLastEmpire
                 hungerTextObj.transform.SetParent(hungerBarObj.transform, false);
 
                 _hungerTextText = hungerTextObj.AddComponent<TMPro.TextMeshProUGUI>();
-                _hungerTextText.fontSize = 15f;
+                _hungerTextText.fontSize = 14f;
                 _hungerTextText.color = Color.white;
                 _hungerTextText.fontStyle = TMPro.FontStyles.Bold;
                 _hungerTextText.alignment = TMPro.TextAlignmentOptions.Center;
@@ -240,42 +286,56 @@ namespace TheLastEmpire
                 hungerTextRect.offsetMin = Vector2.zero;
                 hungerTextRect.offsetMax = Vector2.zero;
 
-                // 2.3 Weapon Icon
+                // 2.3 Shift Ability Indicator
+                GameObject shiftObj = new GameObject("ShiftSkillText");
+                shiftObj.transform.SetParent(container.transform, false);
+                _shiftSkillText = shiftObj.AddComponent<TMPro.TextMeshProUGUI>();
+                _shiftSkillText.fontSize = 12f;
+                _shiftSkillText.fontStyle = TMPro.FontStyles.Bold;
+                _shiftSkillText.color = new Color(0.75f, 0.52f, 0.99f, 1f);
+                _shiftSkillText.alignment = TMPro.TextAlignmentOptions.Left;
+                RectTransform shiftRect = shiftObj.GetComponent<RectTransform>();
+                shiftRect.anchorMin = new Vector2(0.05f, 0.28f);
+                shiftRect.anchorMax = new Vector2(0.95f, 0.42f);
+                shiftRect.offsetMin = Vector2.zero;
+                shiftRect.offsetMax = Vector2.zero;
+
+                // 2.4 Weapon Icon
                 GameObject wpnObj = new GameObject("ProceduralWeaponImage");
                 wpnObj.transform.SetParent(container.transform, false);
                 _weaponImage = wpnObj.AddComponent<UnityEngine.UI.Image>();
                 _weaponImage.preserveAspect = true;
                 RectTransform wpnRect = wpnObj.GetComponent<RectTransform>();
-                wpnRect.anchorMin = new Vector2(0.05f, 0.06f);
-                wpnRect.anchorMax = new Vector2(0.05f, 0.06f);
+                wpnRect.anchorMin = new Vector2(0.05f, 0.04f);
+                wpnRect.anchorMax = new Vector2(0.05f, 0.04f);
                 wpnRect.pivot = new Vector2(0f, 0f);
                 wpnRect.anchoredPosition = Vector2.zero;
-                wpnRect.sizeDelta = new Vector2(40f, 40f);
+                wpnRect.sizeDelta = new Vector2(36f, 36f);
 
-                // 2.4 Ammo Icon
+                // 2.5 Ammo Icon
                 GameObject ammoIconObj = new GameObject("ProceduralAmmoImage");
                 ammoIconObj.transform.SetParent(container.transform, false);
                 _ammoImage = ammoIconObj.AddComponent<UnityEngine.UI.Image>();
                 _ammoImage.preserveAspect = true;
                 RectTransform aIconRect = ammoIconObj.GetComponent<RectTransform>();
-                aIconRect.anchorMin = new Vector2(0.18f, 0.08f);
-                aIconRect.anchorMax = new Vector2(0.18f, 0.08f);
+                aIconRect.anchorMin = new Vector2(0.18f, 0.05f);
+                aIconRect.anchorMax = new Vector2(0.18f, 0.05f);
                 aIconRect.pivot = new Vector2(0f, 0f);
                 aIconRect.anchoredPosition = Vector2.zero;
-                aIconRect.sizeDelta = new Vector2(32f, 32f);
+                aIconRect.sizeDelta = new Vector2(28f, 28f);
 
-                // 2.5 Ammo Text
+                // 2.6 Ammo Text
                 GameObject ammoObj = new GameObject("AmmoTextHUD");
                 ammoObj.transform.SetParent(container.transform, false);
 
                 RectTransform ammoRect = ammoObj.AddComponent<RectTransform>();
-                ammoRect.anchorMin = new Vector2(0.30f, 0.06f);
-                ammoRect.anchorMax = new Vector2(0.95f, 0.32f);
+                ammoRect.anchorMin = new Vector2(0.30f, 0.04f);
+                ammoRect.anchorMax = new Vector2(0.95f, 0.24f);
                 ammoRect.offsetMin = Vector2.zero;
                 ammoRect.offsetMax = Vector2.zero;
 
                 _ammoText = ammoObj.AddComponent<TMPro.TextMeshProUGUI>();
-                _ammoText.fontSize = 22f;
+                _ammoText.fontSize = 20f;
                 _ammoText.color = Color.white;
                 _ammoText.fontStyle = TMPro.FontStyles.Bold;
                 _ammoText.alignment = TMPro.TextAlignmentOptions.Left;
@@ -362,6 +422,15 @@ namespace TheLastEmpire
 
             // 3. Update Weapon & Ammo Visuals
             UpdateWeaponAndAmmoVisuals();
+
+            // 4. Update Character Badge & Shift Ability
+            if (_charBadgeText != null && player.ActiveCharacterData != null)
+            {
+                string hex = ColorUtility.ToHtmlStringRGB(player.ActiveCharacterData.themeColor);
+                _charBadgeText.text = $"<color=#{hex}><b>[{player.ActiveCharacterData.characterName.ToUpper()}]</b></color> <size=11>{player.ActiveCharacterData.roleCategory.ToUpper()}</size>";
+            }
+
+            UpdateShiftAbilityDisplay();
         }
 
         private void UpdateWeaponAndAmmoVisuals()
@@ -720,6 +789,124 @@ namespace TheLastEmpire
             UnityEngine.SceneManagement.SceneManager.LoadScene(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
             );
+        }
+
+        // =========================================================================
+        //  Amnesia Awakening Monologue Routine
+        // =========================================================================
+        private System.Collections.IEnumerator ShowAmnesiaWakingRoutine()
+        {
+            if (player == null) yield break;
+
+            CharacterData charData = player.ActiveCharacterData;
+            if (charData == null)
+            {
+                charData = CharacterManager.GetSelectedCharacter();
+            }
+            if (charData == null) yield break;
+
+            Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
+            if (hudCanvas == null) yield break;
+
+            GameObject bannerObj = new GameObject("AmnesiaAwakeningBanner");
+            bannerObj.transform.SetParent(hudCanvas.transform, false);
+
+            RectTransform bannerRect = bannerObj.AddComponent<RectTransform>();
+            bannerRect.anchorMin = new Vector2(0.5f, 1f);
+            bannerRect.anchorMax = new Vector2(0.5f, 1f);
+            bannerRect.pivot = new Vector2(0.5f, 1f);
+            bannerRect.anchoredPosition = new Vector2(0f, -30f);
+            bannerRect.sizeDelta = new Vector2(760f, 125f);
+
+            CanvasGroup bannerGroup = bannerObj.AddComponent<CanvasGroup>();
+            bannerGroup.alpha = 0f;
+
+            // Background Glass Panel
+            UnityEngine.UI.Image bgImg = bannerObj.AddComponent<UnityEngine.UI.Image>();
+            bgImg.color = new Color(0.06f, 0.07f, 0.09f, 0.94f);
+
+            // Border (Glow in character's theme color)
+            GameObject borderObj = new GameObject("Border");
+            borderObj.transform.SetParent(bannerObj.transform, false);
+            UnityEngine.UI.Image borderImg = borderObj.AddComponent<UnityEngine.UI.Image>();
+            borderImg.color = new Color(charData.themeColor.r, charData.themeColor.g, charData.themeColor.b, 0.85f);
+            RectTransform bRect = borderObj.GetComponent<RectTransform>();
+            bRect.anchorMin = Vector2.zero;
+            bRect.anchorMax = Vector2.one;
+            bRect.offsetMin = new Vector2(-2f, -2f);
+            bRect.offsetMax = new Vector2(2f, 2f);
+            borderObj.transform.SetAsFirstSibling();
+
+            // Header Title
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(bannerObj.transform, false);
+            TMPro.TMP_Text titleText = titleObj.AddComponent<TMPro.TextMeshProUGUI>();
+            titleText.text = $"❖ ความทรงจำสุดท้ายก่อนตื่น // {charData.characterName.ToUpper()} ❖";
+            titleText.fontSize = 15;
+            titleText.fontStyle = TMPro.FontStyles.Bold;
+            titleText.color = charData.themeColor;
+            titleText.alignment = TMPro.TextAlignmentOptions.Center;
+            RectTransform tRect = titleObj.GetComponent<RectTransform>();
+            tRect.anchorMin = new Vector2(0f, 1f);
+            tRect.anchorMax = new Vector2(1f, 1f);
+            tRect.pivot = new Vector2(0.5f, 1f);
+            tRect.anchoredPosition = new Vector2(0f, -10f);
+            tRect.sizeDelta = new Vector2(720f, 22f);
+
+            // Subtitle
+            GameObject subObj = new GameObject("Subtitle");
+            subObj.transform.SetParent(bannerObj.transform, false);
+            TMPro.TMP_Text subText = subObj.AddComponent<TMPro.TextMeshProUGUI>();
+            subText.text = $"{charData.characterTitle}  •  {charData.roleCategory}";
+            subText.fontSize = 11;
+            subText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
+            subText.alignment = TMPro.TextAlignmentOptions.Center;
+            RectTransform sRect = subObj.GetComponent<RectTransform>();
+            sRect.anchorMin = new Vector2(0f, 1f);
+            sRect.anchorMax = new Vector2(1f, 1f);
+            sRect.pivot = new Vector2(0.5f, 1f);
+            sRect.anchoredPosition = new Vector2(0f, -32f);
+            sRect.sizeDelta = new Vector2(720f, 16f);
+
+            // Clue Quote
+            GameObject clueObj = new GameObject("Quote");
+            clueObj.transform.SetParent(bannerObj.transform, false);
+            TMPro.TMP_Text clueText = clueObj.AddComponent<TMPro.TextMeshProUGUI>();
+            clueText.text = $"<i>{charData.amnesiaWakingClue}</i>";
+            clueText.fontSize = 13;
+            clueText.color = Color.white;
+            clueText.alignment = TMPro.TextAlignmentOptions.Center;
+            RectTransform cRect = clueObj.GetComponent<RectTransform>();
+            cRect.anchorMin = new Vector2(0f, 0f);
+            cRect.anchorMax = new Vector2(1f, 1f);
+            cRect.offsetMin = new Vector2(20f, 8f);
+            cRect.offsetMax = new Vector2(-20f, -48f);
+
+            // Smooth Fade In
+            float elapsed = 0f;
+            float fadeInDuration = 0.6f;
+            while (elapsed < fadeInDuration)
+            {
+                elapsed += Time.deltaTime;
+                bannerGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+                yield return null;
+            }
+            bannerGroup.alpha = 1f;
+
+            // Display for 6 seconds
+            yield return new WaitForSeconds(6.0f);
+
+            // Smooth Fade Out
+            elapsed = 0f;
+            float fadeOutDuration = 0.8f;
+            while (elapsed < fadeOutDuration)
+            {
+                elapsed += Time.deltaTime;
+                bannerGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeOutDuration);
+                yield return null;
+            }
+
+            Destroy(bannerObj);
         }
     }
 }
