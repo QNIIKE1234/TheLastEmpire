@@ -603,8 +603,8 @@ namespace TheLastEmpire
             GameObject buttonObj = new GameObject("RetryButton");
             buttonObj.transform.SetParent(resultPanel.transform, false);
             RectTransform btnRect = buttonObj.AddComponent<RectTransform>();
-            btnRect.sizeDelta = new Vector2(200f, 50f);
-            btnRect.anchoredPosition = new Vector2(0f, -60f);
+            btnRect.sizeDelta = new Vector2(180f, 50f);
+            btnRect.anchoredPosition = new Vector2(-100f, -60f);
 
             UnityEngine.UI.Image btnImg = buttonObj.AddComponent<UnityEngine.UI.Image>();
             btnImg.color = new Color(0.15f, 0.15f, 0.2f, 1f);
@@ -639,7 +639,57 @@ namespace TheLastEmpire
             btnTextRect.offsetMin = Vector2.zero;
             btnTextRect.offsetMax = Vector2.zero;
 
+            // Main Menu Button container
+            GameObject menuButtonObj = new GameObject("MainMenuButton");
+            menuButtonObj.transform.SetParent(resultPanel.transform, false);
+            RectTransform menuBtnRect = menuButtonObj.AddComponent<RectTransform>();
+            menuBtnRect.sizeDelta = new Vector2(180f, 50f);
+            menuBtnRect.anchoredPosition = new Vector2(100f, -60f);
+
+            UnityEngine.UI.Image menuBtnImg = menuButtonObj.AddComponent<UnityEngine.UI.Image>();
+            menuBtnImg.color = new Color(0.15f, 0.15f, 0.2f, 1f);
+
+            GameObject menuBtnBorder = new GameObject("BtnBorder");
+            menuBtnBorder.transform.SetParent(menuButtonObj.transform, false);
+            UnityEngine.UI.Image menuBorderImg = menuBtnBorder.AddComponent<UnityEngine.UI.Image>();
+            menuBorderImg.color = new Color(1f, 0.6f, 0.1f, 0.4f);
+            RectTransform menuBorderRect = menuBtnBorder.GetComponent<RectTransform>();
+            menuBorderRect.anchorMin = Vector2.zero;
+            menuBorderRect.anchorMax = Vector2.one;
+            menuBorderRect.offsetMin = new Vector2(-2f, -2f);
+            menuBorderRect.offsetMax = new Vector2(2f, 2f);
+            menuBtnBorder.transform.SetAsFirstSibling();
+
+            UnityEngine.UI.Button menuBtn = menuButtonObj.AddComponent<UnityEngine.UI.Button>();
+            menuBtn.onClick.AddListener(ReturnToMainMenu);
+
+            GameObject menuBtnTextObj = new GameObject("MenuText");
+            menuBtnTextObj.transform.SetParent(menuButtonObj.transform, false);
+            TMPro.TextMeshProUGUI menuBtnText = menuBtnTextObj.AddComponent<TMPro.TextMeshProUGUI>();
+            menuBtnText.text = "Main Menu";
+            menuBtnText.fontSize = 22f;
+            menuBtnText.color = Color.white;
+            menuBtnText.fontStyle = TMPro.FontStyles.Bold;
+            menuBtnText.alignment = TMPro.TextAlignmentOptions.Center;
+            RectTransform menuBtnTextRect = menuBtnTextObj.GetComponent<RectTransform>();
+            menuBtnTextRect.anchorMin = Vector2.zero;
+            menuBtnTextRect.anchorMax = Vector2.one;
+            menuBtnTextRect.offsetMin = Vector2.zero;
+            menuBtnTextRect.offsetMax = Vector2.zero;
+
             return resultPanel;
+        }
+
+        public void ReturnToMainMenu()
+        {
+            Time.timeScale = 1f;
+
+            if (GameManager.Instance != null) Destroy(GameManager.Instance.gameObject);
+            if (WorldMapManager.Instance != null) Destroy(WorldMapManager.Instance.gameObject);
+            if (DayNightManager.Instance != null) Destroy(DayNightManager.Instance.gameObject);
+            if (InventoryUI.Instance != null) Destroy(InventoryUI.Instance.gameObject);
+
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
         public void RetryGame()

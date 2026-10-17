@@ -38,12 +38,20 @@ namespace TheLastEmpire
         {
             if (mapGenerator != null)
             {
-                // Reset persistent editor memory at startup so it doesn't auto-save exploration
-                ResetMapProgression();
+                if (MainMenuManager.ShouldLoadSave && SaveSystem.HasSaveFile())
+                {
+                    MainMenuManager.ShouldLoadSave = false;
+                    LoadGame();
+                }
+                else
+                {
+                    // Reset persistent editor memory at startup so it doesn't auto-save exploration
+                    ResetMapProgression();
 
-                // Always generate a fresh randomized map seed at startup
-                int randomSeed = Random.Range(1000, 99999);
-                StartNewGame(randomSeed);
+                    // Always generate a fresh randomized map seed at startup
+                    int randomSeed = Random.Range(1000, 99999);
+                    StartNewGame(randomSeed);
+                }
             }
         }
 
