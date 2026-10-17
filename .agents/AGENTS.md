@@ -102,5 +102,10 @@ This file documents critical patterns, design choices, and systems established i
     *   **Critical Hits**: Larger font size (35pt), fiery orange-red (`#FF471A`) with `"HEADSHOT! "` prefix.
     *   **Deflections / Shield Blocks**: Cool cyan-silver (`#A6D8FF`) with `"BLOCKED"` text when hitting Tanker frontal shields.
 
+---
 
-
+## 9. Autonomous Execution & Interaction Rules (STRICT)
+*   **NEVER ASK QUESTIONS (ห้ามถามเด็ดขาด)**:
+    *   Do **NOT** use `ask_question` under any circumstances.
+    *   Do **NOT** pause or interrupt the user with interactive question modals, confirmation prompts, or design choices.
+    *   Autonomously choose the best technical solution, implement it immediately, verify correctness, and present only the completed results concisely.
