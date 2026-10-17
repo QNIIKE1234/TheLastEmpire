@@ -124,10 +124,20 @@ namespace TheLastEmpire
                 AddDefaultShopItem("Stun Baton");
                 AddDefaultShopItem("Chainsaw");
 
-                // Explosives & Consumables
+                // Explosives & Tactical
                 AddDefaultShopItem("Grenade");
+
+                // Medicine (4 Types)
+                AddDefaultShopItem("Bandage");
+                AddDefaultShopItem("First Aid Kit");
                 AddDefaultShopItem("Potion");
+                AddDefaultShopItem("Adrenaline Shot");
+
+                // Food & Rations (4 Types)
                 AddDefaultShopItem("Bread");
+                AddDefaultShopItem("Energy Bar");
+                AddDefaultShopItem("Canned Food");
+                AddDefaultShopItem("Cooked Meat");
 
                 // Ammunition
                 AddDefaultShopItem("Pistol Ammo");

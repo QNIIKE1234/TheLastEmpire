@@ -187,7 +187,7 @@ namespace TheLastEmpire
                         color = new Color(1f, 0.843f, 0f, 1f);
                         break;
                     case ItemType.Potion:
-                        label = "POTION";
+                        label = "MEDICINE";
                         color = new Color(0.368f, 1f, 0.584f, 1f);
                         break;
                     case ItemType.Bread:
