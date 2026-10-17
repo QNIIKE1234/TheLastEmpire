@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: ITEM0022_SMG
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: SMG
-  description: A lightweight submachine gun with an extreme rate of fire and rapid reload.
-  icon: {fileID: 652777473, guid: 8b61fa39e2c37cc4fa97376dcc5c8287, type: 3}
+  description: A lightweight submachine gun with an extreme rate of fire and rapid
+    reload.
+  icon: {fileID: -1845263680, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
   type: 5
   restorationValue: 0
   defaultQuantity: 1
@@ -30,7 +31,7 @@ MonoBehaviour:
     fireRate: 0.08
     magazineSize: 35
     reloadDuration: 1.2
-    range: 2.0
+    range: 2
     canPierce: 0
     spreadAngle: 8
     pelletsPerShot: 1

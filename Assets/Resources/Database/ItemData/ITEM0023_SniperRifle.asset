@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: ITEM0023_SniperRifle
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Sniper Rifle
-  description: A high-precision bolt-action rifle capable of piercing through targets across extreme distance.
-  icon: {fileID: 239670574, guid: 8b61fa39e2c37cc4fa97376dcc5c8287, type: 3}
+  description: A high-precision bolt-action rifle capable of piercing through targets
+    across extreme distance.
+  icon: {fileID: -732024087, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
   type: 5
   restorationValue: 0
   defaultQuantity: 1
@@ -30,7 +31,7 @@ MonoBehaviour:
     fireRate: 1.2
     magazineSize: 5
     reloadDuration: 2.2
-    range: 6.0
+    range: 6
     canPierce: 1
     spreadAngle: 0
     pelletsPerShot: 1

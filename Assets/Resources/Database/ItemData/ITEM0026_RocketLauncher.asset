@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: ITEM0026_RocketLauncher
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Rocket Launcher
-  description: Launches explosive rockets that blast surrounding enemies in a catastrophic radius.
-  icon: {fileID: -1307464449, guid: 8b61fa39e2c37cc4fa97376dcc5c8287, type: 3}
+  description: Launches explosive rockets that blast surrounding enemies in a catastrophic
+    radius.
+  icon: {fileID: 1929067104, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
   type: 5
   restorationValue: 0
   defaultQuantity: 1
@@ -30,7 +31,7 @@ MonoBehaviour:
     fireRate: 1.5
     magazineSize: 1
     reloadDuration: 2.5
-    range: 4.0
+    range: 4
     canPierce: 0
     spreadAngle: 0
     pelletsPerShot: 1
