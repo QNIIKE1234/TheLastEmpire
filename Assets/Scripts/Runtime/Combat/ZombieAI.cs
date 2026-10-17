@@ -25,7 +25,7 @@ namespace TheLastEmpire
         [Header("Boomer / Explosion Settings")]
         [SerializeField] private float explosionRadius = 3f;
         [SerializeField] private int explosionDamage = 45;
-        [SerializeField] private float fuseDuration = 0.8f;
+        [SerializeField] private float fuseDuration = 1.0f;
         [SerializeField] private string explosionVfxPoolKey = "EnemyExplosion";
         [Tooltip("ตัวคูณขนาดของ VFX ระเบิด")]
         [SerializeField] private float explosionVfxScaleMultiplier = 1.0f;
@@ -129,6 +129,10 @@ namespace TheLastEmpire
         private LineRenderer _stompCircleRenderer;
         private SpriteRenderer _stompSpriteRenderer;
 
+        // Boomer Explosion Telegraph Indicators
+        private LineRenderer _boomerCircleRenderer;
+        private SpriteRenderer _boomerDecalRenderer;
+
         public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
         public bool IsRageMode => IsBossUnit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
 
@@ -136,6 +140,8 @@ namespace TheLastEmpire
         {
             base.OnEnable();
             HideBossTelegraphVisual();
+            HideBoomerTelegraphVisual();
+            _isExploding = false;
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
@@ -248,12 +254,13 @@ namespace TheLastEmpire
                 return;
             }
 
-            // Handle Boomer Fuse Countdown
+            // Handle Boomer Fuse Countdown (1.0s delay with visible danger telegraph)
             if (_isExploding)
             {
                 if (IsTargetDead())
                 {
                     _isExploding = false;
+                    HideBoomerTelegraphVisual();
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
                     currentState = AIState.Wander;
@@ -263,10 +270,14 @@ namespace TheLastEmpire
                 rb.linearVelocity = Vector3.zero;
                 _fuseTimer -= Time.fixedDeltaTime;
 
-                // Flash red color visually to indicate fuse explosion warning
+                UpdateBoomerTelegraphVisual(explosionRadius);
+
+                // Flash red color visually to indicate fuse explosion warning (blinking faster as fuse burns down)
                 if (_spriteRenderer != null)
                 {
-                    float flashFreq = Mathf.PingPong(Time.time * 10f, 1f);
+                    float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
+                    float speed = Mathf.Lerp(10f, 30f, fuseProgress);
+                    float flashFreq = Mathf.PingPong(Time.time * speed, 1f);
                     _spriteRenderer.color = Color.Lerp(_originalColor, Color.red, flashFreq);
                 }
 
@@ -528,13 +539,15 @@ namespace TheLastEmpire
         private void TriggerBoomerFuse()
         {
             _isExploding = true;
-            _fuseTimer = fuseDuration;
+            _fuseTimer = Mathf.Max(1.0f, fuseDuration);
             currentState = AIState.Telegraph;
+            UpdateBoomerTelegraphVisual(explosionRadius);
         }
 
         private void ExplodeAndDie()
         {
             Debug.Log($"[ZombieAI] Boomer exploded at {transform.position}!");
+            HideBoomerTelegraphVisual();
 
             // 💥 เสกเอฟเฟกต์ระเบิด
             if (!string.IsNullOrEmpty(explosionVfxPoolKey) && ObjectPoolManager.Instance != null)
@@ -637,6 +650,7 @@ namespace TheLastEmpire
         protected override void HandleDeath()
         {
             HideBossTelegraphVisual();
+            HideBoomerTelegraphVisual();
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
@@ -662,6 +676,7 @@ namespace TheLastEmpire
         protected override void OnDestroy()
         {
             HideBossTelegraphVisual();
+            HideBoomerTelegraphVisual();
             base.OnDestroy();
         }
 
@@ -834,7 +849,7 @@ namespace TheLastEmpire
             {
                 foreach (var r in _allMeshRenderers)
                 {
-                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer) continue;
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer || r == _boomerCircleRenderer || r == _boomerDecalRenderer) continue;
                     if (r is SpriteRenderer || r is LineRenderer) continue;
                     if (r.material != null && r.material.HasProperty("_Color"))
                     {
@@ -855,7 +870,7 @@ namespace TheLastEmpire
             {
                 foreach (var r in _allMeshRenderers)
                 {
-                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer) continue;
+                    if (r == null || r == _stompCircleRenderer || r == _stompSpriteRenderer || r == _chargePathLineRenderer || r == _chargePathSpriteRenderer || r == _boomerCircleRenderer || r == _boomerDecalRenderer) continue;
                     if (r is SpriteRenderer || r is LineRenderer) continue;
                     if (_originalRendererColors.TryGetValue(r, out Color orig) && r.material != null && r.material.HasProperty("_Color"))
                     {
@@ -1134,6 +1149,133 @@ namespace TheLastEmpire
                 _chargePathSpriteRenderer.gameObject.SetActive(false);
             }
         }
+
+        #region Boomer Explosion Telegraph
+
+        private void InitBoomerIndicators()
+        {
+            if (_boomerCircleRenderer != null) return;
+
+            // 1. LineRenderer Warning Ring (AOE explosion boundary)
+            GameObject circleObj = new GameObject("BoomerExplosionCircle");
+            circleObj.transform.SetParent(transform);
+            circleObj.transform.localPosition = Vector3.zero;
+
+            _boomerCircleRenderer = circleObj.AddComponent<LineRenderer>();
+            _boomerCircleRenderer.startWidth = 0.08f;
+            _boomerCircleRenderer.endWidth = 0.08f;
+            _boomerCircleRenderer.useWorldSpace = true;
+            _boomerCircleRenderer.loop = true;
+            _boomerCircleRenderer.positionCount = 48;
+
+            Material lineMat = new Material(Shader.Find("Sprites/Default"));
+            _boomerCircleRenderer.material = lineMat;
+            _boomerCircleRenderer.startColor = new Color(1f, 0.15f, 0.1f, 0.95f);
+            _boomerCircleRenderer.endColor = new Color(1f, 0.15f, 0.1f, 0.95f);
+            circleObj.SetActive(false);
+
+            // 2. Ground Decal Disc (AOE danger zone)
+            GameObject discObj = new GameObject("BoomerExplosionDecal");
+            discObj.transform.SetParent(transform);
+            discObj.transform.localPosition = Vector3.zero;
+            discObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            _boomerDecalRenderer = discObj.AddComponent<SpriteRenderer>();
+
+            // Procedural soft circular texture for the danger decal
+            int size = 64;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            tex.wrapMode = TextureWrapMode.Clamp;
+            Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+            float radius = size * 0.5f;
+            Color[] colors = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
+                    if (dist <= 1f)
+                    {
+                        float alpha = Mathf.Clamp01(1f - dist * dist);
+                        colors[y * size + x] = new Color(1f, 0.12f, 0.08f, alpha);
+                    }
+                    else
+                    {
+                        colors[y * size + x] = Color.clear;
+                    }
+                }
+            }
+            tex.SetPixels(colors);
+            tex.Apply();
+            _boomerDecalRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
+            _boomerDecalRenderer.color = new Color(1f, 0.15f, 0.1f, 0.35f);
+            discObj.SetActive(false);
+        }
+
+        private void UpdateBoomerTelegraphVisual(float currentRadius)
+        {
+            if (_boomerCircleRenderer == null)
+            {
+                InitBoomerIndicators();
+            }
+
+            Vector3 center = transform.position;
+
+            if (_boomerCircleRenderer != null)
+            {
+                if (!_boomerCircleRenderer.gameObject.activeSelf) _boomerCircleRenderer.gameObject.SetActive(true);
+                int segments = _boomerCircleRenderer.positionCount;
+                float angle = 0f;
+                for (int i = 0; i < segments; i++)
+                {
+                    float x = Mathf.Sin(Mathf.Deg2Rad * angle) * currentRadius;
+                    float z = Mathf.Cos(Mathf.Deg2Rad * angle) * currentRadius;
+                    _boomerCircleRenderer.SetPosition(i, new Vector3(center.x + x, 0.05f, center.z + z));
+                    angle += (360f / segments);
+                }
+
+                // Pulsate line brightness (intensifies as fuse counts down)
+                float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
+                float pulseSpeed = Mathf.Lerp(10f, 30f, fuseProgress);
+                float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * pulseSpeed);
+                Color c = new Color(1f, 0.15f, 0.1f, pulse);
+                _boomerCircleRenderer.startColor = c;
+                _boomerCircleRenderer.endColor = c;
+            }
+
+            if (_boomerDecalRenderer != null)
+            {
+                if (!_boomerDecalRenderer.gameObject.activeSelf) _boomerDecalRenderer.gameObject.SetActive(true);
+                _boomerDecalRenderer.transform.position = new Vector3(center.x, 0.04f, center.z);
+                _boomerDecalRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+                float baseWidth = _boomerDecalRenderer.sprite != null ? _boomerDecalRenderer.sprite.bounds.size.x : 1f;
+                if (baseWidth > 0f)
+                {
+                    float scale = (currentRadius * 2f) / baseWidth;
+                    _boomerDecalRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                }
+
+                // Decal fill pulses with warning red, alpha increases as detonation nears
+                float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
+                float pulseAlpha = Mathf.Lerp(0.25f, 0.65f, fuseProgress) + 0.15f * Mathf.PingPong(Time.time * 8f, 1f);
+                _boomerDecalRenderer.color = new Color(1f, 0.12f, 0.08f, Mathf.Clamp01(pulseAlpha));
+            }
+        }
+
+        private void HideBoomerTelegraphVisual()
+        {
+            if (_boomerCircleRenderer != null && _boomerCircleRenderer.gameObject.activeSelf)
+            {
+                _boomerCircleRenderer.gameObject.SetActive(false);
+            }
+            if (_boomerDecalRenderer != null && _boomerDecalRenderer.gameObject.activeSelf)
+            {
+                _boomerDecalRenderer.gameObject.SetActive(false);
+            }
+        }
+
+        #endregion
 
         private void OnDrawGizmosSelected()
         {

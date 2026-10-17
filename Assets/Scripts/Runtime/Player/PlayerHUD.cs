@@ -172,9 +172,14 @@ namespace TheLastEmpire
                 containerRect.anchoredPosition = new Vector2(30f, 30f);
                 containerRect.sizeDelta = new Vector2(410f, 220f);
 
+                // Disable raycast blocking on the entire HUD container so clicks pass through to gameplay
+                CanvasGroup hudCanvasGroup = container.AddComponent<CanvasGroup>();
+                hudCanvasGroup.blocksRaycasts = false;
+
                 // Panel Background
                 UnityEngine.UI.Image panelBg = container.AddComponent<UnityEngine.UI.Image>();
                 panelBg.color = new Color(0.08f, 0.08f, 0.1f, 0.88f); // Sleek slate dark mode
+                panelBg.raycastTarget = false;
 
                 // Cyan Border/Outline
                 GameObject borderObj = new GameObject("Border");
@@ -820,16 +825,19 @@ namespace TheLastEmpire
 
             CanvasGroup bannerGroup = bannerObj.AddComponent<CanvasGroup>();
             bannerGroup.alpha = 0f;
+            bannerGroup.blocksRaycasts = false; // Never block player clicks or gunshots
 
             // Background Glass Panel
             UnityEngine.UI.Image bgImg = bannerObj.AddComponent<UnityEngine.UI.Image>();
             bgImg.color = new Color(0.06f, 0.07f, 0.09f, 0.94f);
+            bgImg.raycastTarget = false;
 
             // Border (Glow in character's theme color)
             GameObject borderObj = new GameObject("Border");
             borderObj.transform.SetParent(bannerObj.transform, false);
             UnityEngine.UI.Image borderImg = borderObj.AddComponent<UnityEngine.UI.Image>();
             borderImg.color = new Color(charData.themeColor.r, charData.themeColor.g, charData.themeColor.b, 0.85f);
+            borderImg.raycastTarget = false;
             RectTransform bRect = borderObj.GetComponent<RectTransform>();
             bRect.anchorMin = Vector2.zero;
             bRect.anchorMax = Vector2.one;
@@ -846,6 +854,7 @@ namespace TheLastEmpire
             titleText.fontStyle = TMPro.FontStyles.Bold;
             titleText.color = charData.themeColor;
             titleText.alignment = TMPro.TextAlignmentOptions.Center;
+            titleText.raycastTarget = false;
             RectTransform tRect = titleObj.GetComponent<RectTransform>();
             tRect.anchorMin = new Vector2(0f, 1f);
             tRect.anchorMax = new Vector2(1f, 1f);
@@ -861,6 +870,7 @@ namespace TheLastEmpire
             subText.fontSize = 11;
             subText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
             subText.alignment = TMPro.TextAlignmentOptions.Center;
+            subText.raycastTarget = false;
             RectTransform sRect = subObj.GetComponent<RectTransform>();
             sRect.anchorMin = new Vector2(0f, 1f);
             sRect.anchorMax = new Vector2(1f, 1f);
@@ -876,6 +886,7 @@ namespace TheLastEmpire
             clueText.fontSize = 13;
             clueText.color = Color.white;
             clueText.alignment = TMPro.TextAlignmentOptions.Center;
+            clueText.raycastTarget = false;
             RectTransform cRect = clueObj.GetComponent<RectTransform>();
             cRect.anchorMin = new Vector2(0f, 0f);
             cRect.anchorMax = new Vector2(1f, 1f);

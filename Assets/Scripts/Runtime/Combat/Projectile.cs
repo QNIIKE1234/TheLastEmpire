@@ -77,6 +77,7 @@ namespace TheLastEmpire
         {
             _lifeTimer = _activeLifetime;
             _currentFlightTime = 0f;
+            _owner = null;
             if (_hitTargets == null)
             {
                 _hitTargets = new System.Collections.Generic.List<IDamageable>();
@@ -161,10 +162,22 @@ namespace TheLastEmpire
 
         private void OnTriggerEnter(Collider collision)
         {
-            if (_owner != null && collision.gameObject == _owner) return;
+            if (collision == null) return;
 
-            // Ignore Item Drops completely
+            // Ignore owner, any child transforms of the owner, or same root hierarchy
+            if (_owner != null)
+            {
+                if (collision.gameObject == _owner || collision.transform.IsChildOf(_owner.transform) || collision.transform.root == _owner.transform.root) return;
+                if (_owner.CompareTag("Player") && collision.CompareTag("Player")) return;
+            }
+            else if (collision.CompareTag("Player"))
+            {
+                return; // Guard against frame-0 collisions before Setup assigns owner
+            }
+
+            // Ignore Item Drops, Ground, Floor, and Walkable Terrain
             if (collision.GetComponent<CollectibleItem>() != null) return;
+            if (collision.CompareTag("Ground") || collision.gameObject.name.ToLower().Contains("ground") || collision.gameObject.name.ToLower().Contains("floor")) return;
 
             // If it's an arced projectile, it ignores walls mid-air and only explodes on landing (in Update)
             // However, if we want it to hit enemies mid-air or explode on impact:

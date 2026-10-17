@@ -115,6 +115,7 @@ namespace TheLastEmpire
 
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
+        private float _fireBufferTimer = 0f;
         private float _meleeCooldownTimer = 0f;
 
         [Header("Gunshot Noise Settings")]
@@ -455,6 +456,7 @@ namespace TheLastEmpire
             // Reduce cooldown timers
             if (_dashCooldownTimer > 0f) _dashCooldownTimer -= Time.deltaTime;
             if (_fireCooldownTimer > 0f) _fireCooldownTimer -= Time.deltaTime;
+            if (_fireBufferTimer > 0f) _fireBufferTimer -= Time.deltaTime;
             if (_meleeCooldownTimer > 0f) _meleeCooldownTimer -= Time.deltaTime;
 
             CheckBoundaries();
@@ -663,29 +665,48 @@ namespace TheLastEmpire
         private void HandleDirectInput()
         {
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if ((InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || (LootUI.Instance != null && LootUI.Instance.IsOpen)) return;
 
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
             {
-                // Ignore attacks if clicking over a UI element
+                // Ignore attacks only if clicking over interactive UI elements (Buttons, Sliders, InputFields, Scrollbars)
                 if (UnityEngine.EventSystems.EventSystem.current != null && 
                     UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
                 {
-                    return;
+                    var pointerData = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+                    {
+                        position = Mouse.current.position.ReadValue()
+                    };
+                    var results = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+                    UnityEngine.EventSystems.EventSystem.current.RaycastAll(pointerData, results);
+
+                    bool hitInteractiveUI = false;
+                    foreach (var r in results)
+                    {
+                        if (r.gameObject != null && (
+                            r.gameObject.GetComponentInParent<UnityEngine.UI.Selectable>() != null ||
+                            r.gameObject.GetComponentInParent<UnityEngine.UI.ScrollRect>() != null))
+                        {
+                            hitInteractiveUI = true;
+                            break;
+                        }
+                    }
+                    if (hitInteractiveUI) return;
                 }
 
-                bool wantToShoot = false;
-                if (CurrentWeapon != null && CurrentWeapon.isAutomatic)
+                // Buffer click input so rapid clicks or walking clicks near cooldown boundaries are never dropped
+                if (Mouse.current.leftButton.wasPressedThisFrame)
                 {
-                    wantToShoot = Mouse.current.leftButton.isPressed;
+                    _fireBufferTimer = 0.18f; // 180ms responsive buffer window
                 }
-                else
-                {
-                    wantToShoot = Mouse.current.leftButton.wasPressedThisFrame;
-                }
+
+                bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic;
+                bool wantToShoot = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
 
                 if (wantToShoot && _fireCooldownTimer <= 0f)
                 {
+                    _fireBufferTimer = 0f;
                     ShootWeapon();
                 }
                 if (Mouse.current.rightButton.wasPressedThisFrame && _meleeCooldownTimer <= 0f)
@@ -900,8 +921,8 @@ namespace TheLastEmpire
             // Alert nearby enemies to the gunshot noise
             AlertEnemiesToGunshot();
 
-            // Spawning positions
-            Vector3 spawnPos = transform.position + _aimDirection * 0.6f;
+            // Spawning positions (offset 0.95m forward to prevent overlapping player's 0.5m radius capsule when walking)
+            Vector3 spawnPos = transform.position + _aimDirection * 0.95f;
             
             // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
             string flashKey = activeWeapon != null ? activeWeapon.vfxPoolKey : null;
@@ -974,6 +995,16 @@ namespace TheLastEmpire
                     }
 
                     bullet.AddComponent<Projectile>();
+                }
+
+                if (bullet != null)
+                {
+                    if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
+                    Collider bulletCol = bullet.GetComponent<Collider>();
+                    if (bulletCol != null && _playerCollider != null)
+                    {
+                        Physics.IgnoreCollision(bulletCol, _playerCollider, true);
+                    }
                 }
 
                 Projectile proj = bullet.GetComponent<Projectile>();
