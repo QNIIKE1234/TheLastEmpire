@@ -64,7 +64,8 @@ namespace TheLastEmpire
                             CollectibleItem prefabToUse = (entry.itemName.Trim().ToLower() == "money" && moneyPrefab != null) ? moneyPrefab : itemPrefab;
                             if (prefabToUse != null)
                             {
-                                CollectibleItem spawned = Instantiate(prefabToUse, transform.position + offset, Quaternion.identity);
+                                Vector3 dropPos = new Vector3(transform.position.x + offset.x, 0.4f, transform.position.z + offset.z);
+                                CollectibleItem spawned = Instantiate(prefabToUse, dropPos, Quaternion.identity);
                                 if (spawned != null)
                                 {
                                     if (entry.itemName.Trim().ToLower() == "money")

@@ -273,10 +273,11 @@ namespace TheLastEmpire
                     CollectibleItem prefabToUse = itemData.isMoney ? moneyDropPrefab : itemDropPrefab;
                     if (prefabToUse != null)
                     {
-                        Vector3 pos = new Vector3(itemData.posX, 0.5f, itemData.posY);
+                        Vector3 pos = new Vector3(itemData.posX, CollectibleItem.GROUND_Y, itemData.posY);
                         CollectibleItem spawnedItem = Instantiate(prefabToUse, pos, Quaternion.identity);
                         if (spawnedItem != null)
                         {
+                            spawnedItem.SnapToGround();
                             if (itemData.isMoney)
                             {
                                 spawnedItem.SetMoneyDetails(itemData.moneyAmount);

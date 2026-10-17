@@ -22,16 +22,25 @@ namespace TheLastEmpire
         public int MoneyAmount => moneyAmount;
         public bool IsMoney => isMoney;
 
+        public const float GROUND_Y = 0.25f;
+        private bool _skipHop = false;
+        private bool _isPopping = false;
+
         private void Start()
         {
-            // Pop/hop force on spawn for aesthetic feel
+            // Ensure all colliders are triggers immediately so all units walk through freely
+            Collider[] colliders = GetComponentsInChildren<Collider>();
+            foreach (var col in colliders)
+            {
+                if (col != null) col.isTrigger = true;
+            }
+
             Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.useGravity = true; // temporary gravity to fall back down
-                Vector3 hopForce = new Vector3(Random.Range(-1f, 1f), Random.Range(3f, 5f), Random.Range(-1f, 1f));
-                rb.linearVelocity = hopForce; // using Unity 6 linearVelocity
-                StartCoroutine(DisableGravityDelayed(rb, 0.6f));
+                rb.linearVelocity = Vector3.zero;
+                rb.useGravity = false;
+                rb.isKinematic = true;
             }
 
             // Immediately ignore physical collisions with all enemy colliders so zombies walk through
@@ -44,27 +53,65 @@ namespace TheLastEmpire
 
             UpdatePromptText();
             FindPlayer();
+
+            if (_skipHop)
+            {
+                SnapToGround();
+            }
+            else
+            {
+                StartCoroutine(PopAndLandRoutine());
+            }
         }
 
-        private System.Collections.IEnumerator DisableGravityDelayed(Rigidbody rb, float delay)
+        private System.Collections.IEnumerator PopAndLandRoutine()
         {
-            yield return new WaitForSeconds(delay);
+            _isPopping = true;
+            Vector3 startPos = transform.position;
+            Vector2 randomScatter = Random.insideUnitCircle * 0.6f;
+            Vector3 targetPos = new Vector3(startPos.x + randomScatter.x, GROUND_Y, startPos.z + randomScatter.y);
+
+            float duration = 0.45f;
+            float elapsed = 0f;
+            float arcHeight = 0.65f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                float currentX = Mathf.Lerp(startPos.x, targetPos.x, t);
+                float currentZ = Mathf.Lerp(startPos.z, targetPos.z, t);
+                float currentY = Mathf.Lerp(startPos.y, targetPos.y, t) + Mathf.Sin(t * Mathf.PI) * arcHeight;
+
+                transform.position = new Vector3(currentX, Mathf.Max(GROUND_Y, currentY), currentZ);
+                yield return null;
+            }
+
+            transform.position = targetPos;
+            _isPopping = false;
+        }
+
+        public void SnapToGround()
+        {
+            _skipHop = true;
+            _isPopping = false;
+            StopAllCoroutines();
+
+            Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.linearVelocity = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
             }
-
-            // Once the item has landed, convert colliders to triggers so all units walk through freely
             Collider[] colliders = GetComponentsInChildren<Collider>();
             foreach (var col in colliders)
             {
-                if (col != null)
-                {
-                    col.isTrigger = true;
-                }
+                if (col != null) col.isTrigger = true;
             }
+            Vector3 p = transform.position;
+            transform.position = new Vector3(p.x, GROUND_Y, p.z);
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -107,6 +154,14 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            // Safety ground clamp if not in the middle of popping arc
+            if (!_isPopping && Mathf.Abs(transform.position.y - GROUND_Y) > 0.05f)
+            {
+                Vector3 pos = transform.position;
+                pos.y = GROUND_Y;
+                transform.position = pos;
+            }
+
             if (_playerTransform == null)
             {
                 FindPlayer();
