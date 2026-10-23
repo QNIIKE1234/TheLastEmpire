@@ -21,6 +21,8 @@ namespace TheLastEmpire
         public string characterName = "The Vanguard";
         public string characterTitle = "Imperial Vanguard";
         public string roleCategory = "All-Rounder / Frontline";
+        [Tooltip("Full-body illustration or portrait displayed in operative selection screen.")]
+        public Sprite characterPortrait;
         [TextArea(3, 6)]
         public string loreSynopsis = "A battle-tested soldier of the imperial guard. Awakens in the military garrison ruins with his oath etched into his memory.";
         [TextArea(2, 4)]

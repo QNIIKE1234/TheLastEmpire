@@ -89,13 +89,18 @@ namespace TheLastEmpire
                 }
             }
 
-            // Weapon specific crit modifiers
+            // Weapon specific crit / headshot modifiers
             if (!string.IsNullOrEmpty(weaponName))
             {
-                if (weaponName.IndexOf("Sniper", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                bool isSniper = weaponName.IndexOf("Sniper", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                bool isCrossbow = weaponName.IndexOf("Crossbow", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                  weaponName.IndexOf("Bolt", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (isSniper || isCrossbow)
                 {
-                    critChance += 0.15f;
-                    critMultiplier = Mathf.Max(critMultiplier, 1.50f);
+                    // 🎯 Sniper & Crossbow มีโอกาส Headshot (Critical Strike) 80% พร้อมตัวคูณ 2.0x
+                    critChance = Mathf.Max(critChance, 0.80f);
+                    critMultiplier = Mathf.Max(critMultiplier, 2.0f);
                 }
             }
 

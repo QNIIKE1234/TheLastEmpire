@@ -425,7 +425,19 @@ namespace TheLastEmpire
 
             if (characterSelectModalObj == null && menuCanvas != null)
             {
-                characterSelectModalObj = CreateCharacterSelectModal(menuCanvas.transform);
+                Transform existingModal = menuCanvas.transform.Find("CharacterSelectModal");
+                if (existingModal != null)
+                {
+                    characterSelectModalObj = existingModal.gameObject;
+                }
+                else
+                {
+                    characterSelectModalObj = CreateCharacterSelectModal(menuCanvas.transform);
+                }
+                characterSelectModalObj.SetActive(false);
+            }
+            else if (characterSelectModalObj != null)
+            {
                 characterSelectModalObj.SetActive(false);
             }
 
@@ -1357,11 +1369,22 @@ namespace TheLastEmpire
             Image backdrop = modalRoot.AddComponent<Image>();
             backdrop.color = new Color(0.02f, 0.03f, 0.05f, 0.92f);
 
-            // Center Panel (1180 x 700)
+            // Center Panel Border Frame (1184 x 704) - Crisp 2px outer outline
+            GameObject borderFrame = new GameObject("ModalPanelBorder");
+            borderFrame.transform.SetParent(modalRoot.transform, false);
+            Image borderImg = borderFrame.AddComponent<Image>();
+            borderImg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.85f);
+            RectTransform borderRect = borderFrame.GetComponent<RectTransform>();
+            borderRect.anchorMin = new Vector2(0.5f, 0.5f);
+            borderRect.anchorMax = new Vector2(0.5f, 0.5f);
+            borderRect.pivot = new Vector2(0.5f, 0.5f);
+            borderRect.sizeDelta = new Vector2(1184f, 704f);
+
+            // Center Panel (1180 x 700) - Sleek Dark Obsidian Glass
             GameObject panel = new GameObject("ModalPanel");
             panel.transform.SetParent(modalRoot.transform, false);
             Image panelImg = panel.AddComponent<Image>();
-            panelImg.color = panelBgColor;
+            panelImg.color = new Color(0.06f, 0.07f, 0.10f, 0.98f);
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -1369,33 +1392,21 @@ namespace TheLastEmpire
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.sizeDelta = new Vector2(1180f, 700f);
 
-            // Panel Border (Arcane Purple Accent)
-            GameObject border = new GameObject("PanelBorder");
-            border.transform.SetParent(panel.transform, false);
-            Image borderImg = border.AddComponent<Image>();
-            borderImg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.60f);
-            RectTransform borderRect = border.GetComponent<RectTransform>();
-            borderRect.anchorMin = Vector2.zero;
-            borderRect.anchorMax = Vector2.one;
-            borderRect.offsetMin = new Vector2(-2f, -2f);
-            borderRect.offsetMax = new Vector2(2f, 2f);
-            border.transform.SetAsFirstSibling();
-
             // Header Title
             GameObject headerObj = new GameObject("ModalTitle");
             headerObj.transform.SetParent(panel.transform, false);
             TMP_Text headerText = headerObj.AddComponent<TextMeshProUGUI>();
-            headerText.text = "OPERATIVE SELECTION // เลือกตัวละครเข้าสู่โลกาวินาศ";
+            headerText.text = "OPERATIVE SELECTION // SURVIVOR DOSSIER";
             headerText.fontSize = 24;
             headerText.fontStyle = FontStyles.Bold;
             headerText.color = secondaryAccent;
             headerText.alignment = TextAlignmentOptions.Center;
             ApplyCustomFont(headerText);
             RectTransform hRect = headerObj.GetComponent<RectTransform>();
-            hRect.anchorMin = new Vector2(0f, 1f);
-            hRect.anchorMax = new Vector2(1f, 1f);
+            hRect.anchorMin = new Vector2(0.5f, 1f);
+            hRect.anchorMax = new Vector2(0.5f, 1f);
             hRect.pivot = new Vector2(0.5f, 1f);
-            hRect.anchoredPosition = new Vector2(0f, -18f);
+            hRect.anchoredPosition = new Vector2(0f, -16f);
             hRect.sizeDelta = new Vector2(1100f, 32f);
 
             // Header Subtitle
@@ -1403,15 +1414,15 @@ namespace TheLastEmpire
             subHeaderObj.transform.SetParent(panel.transform, false);
             TMP_Text subHeaderText = subHeaderObj.AddComponent<TextMeshProUGUI>();
             subHeaderText.text = "5 OPERATIVES • 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE • SIGNATURE SHIFT SKILLS";
-            subHeaderText.fontSize = 13;
-            subHeaderText.color = new Color(0.7f, 0.75f, 0.85f, 0.70f);
+            subHeaderText.fontSize = 12;
+            subHeaderText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
             subHeaderText.alignment = TextAlignmentOptions.Center;
             ApplyCustomFont(subHeaderText);
             RectTransform shRect = subHeaderObj.GetComponent<RectTransform>();
-            shRect.anchorMin = new Vector2(0f, 1f);
-            shRect.anchorMax = new Vector2(1f, 1f);
+            shRect.anchorMin = new Vector2(0.5f, 1f);
+            shRect.anchorMax = new Vector2(0.5f, 1f);
             shRect.pivot = new Vector2(0.5f, 1f);
-            shRect.anchoredPosition = new Vector2(0f, -50f);
+            shRect.anchoredPosition = new Vector2(0f, -48f);
             shRect.sizeDelta = new Vector2(1100f, 20f);
 
             // Content Area Container (Split into Left Roster and Right Dossier)
@@ -1420,8 +1431,8 @@ namespace TheLastEmpire
             RectTransform contentRect = contentObj.AddComponent<RectTransform>();
             contentRect.anchorMin = new Vector2(0f, 0f);
             contentRect.anchorMax = new Vector2(1f, 1f);
-            contentRect.offsetMin = new Vector2(30f, 80f);
-            contentRect.offsetMax = new Vector2(-30f, -80f);
+            contentRect.offsetMin = new Vector2(25f, 75f);
+            contentRect.offsetMax = new Vector2(-25f, -75f);
 
             // Left Roster Column (320px)
             GameObject rosterCol = new GameObject("RosterColumn");
@@ -1440,36 +1451,24 @@ namespace TheLastEmpire
             rLayout.childForceExpandWidth = true;
             rLayout.childForceExpandHeight = false;
 
-            // Right Dossier Column (Remaining space: ~770px)
+            // Right Dossier Column (Remaining space: ~785px)
             GameObject dossierCol = new GameObject("DossierColumn");
             dossierCol.transform.SetParent(contentObj.transform, false);
             RectTransform dColRect = dossierCol.AddComponent<RectTransform>();
             dColRect.anchorMin = new Vector2(0f, 0f);
             dColRect.anchorMax = new Vector2(1f, 1f);
-            dColRect.pivot = new Vector2(1f, 0.5f);
+            dColRect.pivot = new Vector2(0.5f, 0.5f);
             dColRect.offsetMin = new Vector2(340f, 0f);
             dColRect.offsetMax = Vector2.zero;
 
             Image dossierBg = dossierCol.AddComponent<Image>();
-            dossierBg.color = new Color(0.05f, 0.06f, 0.08f, 0.85f);
+            dossierBg.color = new Color(0.04f, 0.05f, 0.08f, 0.90f);
 
-            GameObject dossierBorder = new GameObject("DossierBorder");
-            dossierBorder.transform.SetParent(dossierCol.transform, false);
-            Image dBorderImg = dossierBorder.AddComponent<Image>();
-            dBorderImg.color = new Color(0.2f, 0.25f, 0.35f, 0.45f);
-            RectTransform dbRect = dossierBorder.GetComponent<RectTransform>();
-            dbRect.anchorMin = Vector2.zero;
-            dbRect.anchorMax = Vector2.one;
-            dbRect.offsetMin = new Vector2(-1f, -1f);
-            dbRect.offsetMax = new Vector2(1f, 1f);
-            dossierBorder.transform.SetAsFirstSibling();
-
-            // Right Dossier Sub-elements:
             // 1. Header (Name + Title + Role Category)
             GameObject dHeader = new GameObject("DossierHeader");
             dHeader.transform.SetParent(dossierCol.transform, false);
             TMP_Text dNameText = dHeader.AddComponent<TextMeshProUGUI>();
-            dNameText.fontSize = 28;
+            dNameText.fontSize = 26;
             dNameText.fontStyle = FontStyles.Bold;
             dNameText.color = Color.white;
             ApplyCustomFont(dNameText);
@@ -1477,13 +1476,13 @@ namespace TheLastEmpire
             dhRect.anchorMin = new Vector2(0f, 1f);
             dhRect.anchorMax = new Vector2(1f, 1f);
             dhRect.pivot = new Vector2(0f, 1f);
-            dhRect.anchoredPosition = new Vector2(25f, -18f);
-            dhRect.sizeDelta = new Vector2(720f, 36f);
+            dhRect.anchoredPosition = new Vector2(20f, -14f);
+            dhRect.sizeDelta = new Vector2(-40f, 32f);
 
             GameObject dRoleObj = new GameObject("DossierRole");
             dRoleObj.transform.SetParent(dossierCol.transform, false);
             TMP_Text dRoleText = dRoleObj.AddComponent<TextMeshProUGUI>();
-            dRoleText.fontSize = 15;
+            dRoleText.fontSize = 14;
             dRoleText.fontStyle = FontStyles.Bold;
             dRoleText.color = secondaryAccent;
             ApplyCustomFont(dRoleText);
@@ -1491,45 +1490,46 @@ namespace TheLastEmpire
             drRect.anchorMin = new Vector2(0f, 1f);
             drRect.anchorMax = new Vector2(1f, 1f);
             drRect.pivot = new Vector2(0f, 1f);
-            drRect.anchoredPosition = new Vector2(25f, -54f);
-            drRect.sizeDelta = new Vector2(720f, 24f);
+            drRect.anchoredPosition = new Vector2(20f, -44f);
+            drRect.sizeDelta = new Vector2(-40f, 22f);
 
-            // 2. Amnesia Waking Clue Box
+            // 2. Amnesia Waking Clue Box (Amber / Gold Accent)
             GameObject clueBox = new GameObject("AmnesiaClueBox");
             clueBox.transform.SetParent(dossierCol.transform, false);
             Image clueBoxBg = clueBox.AddComponent<Image>();
-            clueBoxBg.color = new Color(0.18f, 0.12f, 0.05f, 0.55f);
+            clueBoxBg.color = new Color(0.14f, 0.10f, 0.05f, 0.65f);
             RectTransform cbRect = clueBox.GetComponent<RectTransform>();
             cbRect.anchorMin = new Vector2(0f, 1f);
             cbRect.anchorMax = new Vector2(1f, 1f);
-            cbRect.pivot = new Vector2(0.5f, 1f);
-            cbRect.anchoredPosition = new Vector2(0f, -86f);
-            cbRect.sizeDelta = new Vector2(730f, 85f);
+            cbRect.pivot = new Vector2(0f, 1f);
+            cbRect.anchoredPosition = new Vector2(20f, -74f);
+            cbRect.sizeDelta = new Vector2(-40f, 76f);
 
-            GameObject clueBorder = new GameObject("ClueBorder");
-            clueBorder.transform.SetParent(clueBox.transform, false);
-            Image cbBorderImg = clueBorder.AddComponent<Image>();
-            cbBorderImg.color = new Color(0.95f, 0.65f, 0.2f, 0.5f);
-            RectTransform cbbRect = clueBorder.GetComponent<RectTransform>();
-            cbbRect.anchorMin = Vector2.zero;
-            cbbRect.anchorMax = Vector2.one;
-            cbbRect.offsetMin = new Vector2(-1f, -1f);
-            cbbRect.offsetMax = new Vector2(1f, 1f);
-            clueBorder.transform.SetAsFirstSibling();
+            GameObject clueAccent = new GameObject("ClueAccentStripe");
+            clueAccent.transform.SetParent(clueBox.transform, false);
+            Image caImg = clueAccent.AddComponent<Image>();
+            caImg.color = new Color(0.95f, 0.65f, 0.2f, 0.90f);
+            RectTransform caRect = clueAccent.GetComponent<RectTransform>();
+            caRect.anchorMin = new Vector2(0f, 0f);
+            caRect.anchorMax = new Vector2(0f, 1f);
+            caRect.pivot = new Vector2(0f, 0.5f);
+            caRect.anchoredPosition = Vector2.zero;
+            caRect.sizeDelta = new Vector2(4f, 0f);
 
             GameObject clueTitleObj = new GameObject("ClueTitle");
             clueTitleObj.transform.SetParent(clueBox.transform, false);
             TMP_Text clueTitleText = clueTitleObj.AddComponent<TextMeshProUGUI>();
-            clueTitleText.text = "❖ ความทรงจำสุดท้ายก่อนตื่น (LAST MEMORY BEFORE AWAKENING) ❖";
-            clueTitleText.fontSize = 12;
+            clueTitleText.text = "❖ LAST MEMORY BEFORE AWAKENING ❖";
+            clueTitleText.fontSize = 11;
             clueTitleText.fontStyle = FontStyles.Bold;
             clueTitleText.color = new Color(1f, 0.75f, 0.3f, 0.95f);
             ApplyCustomFont(clueTitleText);
             RectTransform ctRect = clueTitleObj.GetComponent<RectTransform>();
             ctRect.anchorMin = new Vector2(0f, 1f);
             ctRect.anchorMax = new Vector2(1f, 1f);
-            ctRect.anchoredPosition = new Vector2(16f, -10f);
-            ctRect.sizeDelta = new Vector2(700f, 18f);
+            ctRect.pivot = new Vector2(0f, 1f);
+            ctRect.anchoredPosition = new Vector2(16f, -8f);
+            ctRect.sizeDelta = new Vector2(-32f, 18f);
 
             GameObject clueBodyObj = new GameObject("ClueBody");
             clueBodyObj.transform.SetParent(clueBox.transform, false);
@@ -1538,34 +1538,48 @@ namespace TheLastEmpire
             clueBodyText.color = new Color(0.95f, 0.95f, 0.95f, 0.95f);
             ApplyCustomFont(clueBodyText);
             RectTransform cBodyRect = clueBodyObj.GetComponent<RectTransform>();
-            cBodyRect.anchorMin = new Vector2(0f, 0f);
-            cBodyRect.anchorMax = new Vector2(1f, 1f);
-            cBodyRect.offsetMin = new Vector2(16f, 8f);
-            cBodyRect.offsetMax = new Vector2(-16f, -28f);
+            cBodyRect.anchorMin = Vector2.zero;
+            cBodyRect.anchorMax = Vector2.one;
+            cBodyRect.offsetMin = new Vector2(16f, 6f);
+            cBodyRect.offsetMax = new Vector2(-16f, -26f);
 
-            // 3. Lore Synopsis
+            // 3. Lore Synopsis Box (Slate Navy Accent)
             GameObject loreBox = new GameObject("LoreBox");
             loreBox.transform.SetParent(dossierCol.transform, false);
-            RectTransform lbRect = loreBox.AddComponent<RectTransform>();
+            Image loreBoxBg = loreBox.AddComponent<Image>();
+            loreBoxBg.color = new Color(0.08f, 0.10f, 0.15f, 0.65f);
+            RectTransform lbRect = loreBox.GetComponent<RectTransform>();
             lbRect.anchorMin = new Vector2(0f, 1f);
             lbRect.anchorMax = new Vector2(1f, 1f);
-            lbRect.pivot = new Vector2(0.5f, 1f);
-            lbRect.anchoredPosition = new Vector2(0f, -178f);
-            lbRect.sizeDelta = new Vector2(730f, 75f);
+            lbRect.pivot = new Vector2(0f, 1f);
+            lbRect.anchoredPosition = new Vector2(20f, -156f);
+            lbRect.sizeDelta = new Vector2(-40f, 76f);
+
+            GameObject loreAccent = new GameObject("LoreAccentStripe");
+            loreAccent.transform.SetParent(loreBox.transform, false);
+            Image laImg = loreAccent.AddComponent<Image>();
+            laImg.color = new Color(0.4f, 0.65f, 0.85f, 0.90f);
+            RectTransform laRect = loreAccent.GetComponent<RectTransform>();
+            laRect.anchorMin = new Vector2(0f, 0f);
+            laRect.anchorMax = new Vector2(0f, 1f);
+            laRect.pivot = new Vector2(0f, 0.5f);
+            laRect.anchoredPosition = Vector2.zero;
+            laRect.sizeDelta = new Vector2(4f, 0f);
 
             GameObject loreTitleObj = new GameObject("LoreTitle");
             loreTitleObj.transform.SetParent(loreBox.transform, false);
             TMP_Text loreTitleText = loreTitleObj.AddComponent<TextMeshProUGUI>();
-            loreTitleText.text = "❖ ปูมหลังและมุมมอง (BACKGROUND & PERSPECTIVE) ❖";
-            loreTitleText.fontSize = 12;
+            loreTitleText.text = "❖ BACKGROUND & OPERATIVE DOSSIER ❖";
+            loreTitleText.fontSize = 11;
             loreTitleText.fontStyle = FontStyles.Bold;
             loreTitleText.color = secondaryAccent;
             ApplyCustomFont(loreTitleText);
             RectTransform ltRect = loreTitleObj.GetComponent<RectTransform>();
             ltRect.anchorMin = new Vector2(0f, 1f);
             ltRect.anchorMax = new Vector2(1f, 1f);
-            ltRect.anchoredPosition = new Vector2(0f, 0f);
-            ltRect.sizeDelta = new Vector2(730f, 18f);
+            ltRect.pivot = new Vector2(0f, 1f);
+            ltRect.anchoredPosition = new Vector2(16f, -8f);
+            ltRect.sizeDelta = new Vector2(-32f, 18f);
 
             GameObject loreBodyObj = new GameObject("LoreBody");
             loreBodyObj.transform.SetParent(loreBox.transform, false);
@@ -1574,10 +1588,10 @@ namespace TheLastEmpire
             loreBodyText.color = new Color(0.85f, 0.88f, 0.94f, 0.95f);
             ApplyCustomFont(loreBodyText);
             RectTransform lBodyRect = loreBodyObj.GetComponent<RectTransform>();
-            lBodyRect.anchorMin = new Vector2(0f, 0f);
-            lBodyRect.anchorMax = new Vector2(1f, 1f);
-            lBodyRect.offsetMin = new Vector2(0f, 0f);
-            lBodyRect.offsetMax = new Vector2(0f, -22f);
+            lBodyRect.anchorMin = Vector2.zero;
+            lBodyRect.anchorMax = Vector2.one;
+            lBodyRect.offsetMin = new Vector2(16f, 6f);
+            lBodyRect.offsetMax = new Vector2(-16f, -26f);
 
             // 4. Attributes Block (Left side) + Shift Skill Block (Right side)
             GameObject statsRow = new GameObject("StatsAndSkillRow");
@@ -1585,34 +1599,46 @@ namespace TheLastEmpire
             RectTransform srRect = statsRow.AddComponent<RectTransform>();
             srRect.anchorMin = new Vector2(0f, 1f);
             srRect.anchorMax = new Vector2(1f, 1f);
-            srRect.pivot = new Vector2(0.5f, 1f);
-            srRect.anchoredPosition = new Vector2(0f, -258f);
-            srRect.sizeDelta = new Vector2(730f, 160f);
+            srRect.pivot = new Vector2(0f, 1f);
+            srRect.anchoredPosition = new Vector2(20f, -238f);
+            srRect.sizeDelta = new Vector2(-40f, 155f);
 
             // Attributes Sub-box
             GameObject attrBox = new GameObject("AttributesBox");
             attrBox.transform.SetParent(statsRow.transform, false);
             Image attrBg = attrBox.AddComponent<Image>();
-            attrBg.color = new Color(1f, 1f, 1f, 0.04f);
+            attrBg.color = new Color(0.06f, 0.09f, 0.13f, 0.75f);
             RectTransform attrRect = attrBox.GetComponent<RectTransform>();
             attrRect.anchorMin = new Vector2(0f, 0f);
             attrRect.anchorMax = new Vector2(0.42f, 1f);
             attrRect.offsetMin = Vector2.zero;
-            attrRect.offsetMax = Vector2.zero;
+            attrRect.offsetMax = new Vector2(-6f, 0f);
+
+            GameObject attrAccent = new GameObject("AttrAccentStripe");
+            attrAccent.transform.SetParent(attrBox.transform, false);
+            Image aaImg = attrAccent.AddComponent<Image>();
+            aaImg.color = new Color(0.2f, 0.75f, 0.95f, 0.90f);
+            RectTransform aaRect = attrAccent.GetComponent<RectTransform>();
+            aaRect.anchorMin = new Vector2(0f, 0f);
+            aaRect.anchorMax = new Vector2(0f, 1f);
+            aaRect.pivot = new Vector2(0f, 0.5f);
+            aaRect.anchoredPosition = Vector2.zero;
+            aaRect.sizeDelta = new Vector2(4f, 0f);
 
             GameObject attrTitleObj = new GameObject("AttrTitle");
             attrTitleObj.transform.SetParent(attrBox.transform, false);
             TMP_Text attrTitleText = attrTitleObj.AddComponent<TextMeshProUGUI>();
             attrTitleText.text = "⚡ OPERATIVE ATTRIBUTES";
-            attrTitleText.fontSize = 12;
+            attrTitleText.fontSize = 11;
             attrTitleText.fontStyle = FontStyles.Bold;
             attrTitleText.color = new Color(0.3f, 0.85f, 1f, 0.95f);
             ApplyCustomFont(attrTitleText);
             RectTransform atRect = attrTitleObj.GetComponent<RectTransform>();
             atRect.anchorMin = new Vector2(0f, 1f);
             atRect.anchorMax = new Vector2(1f, 1f);
-            atRect.anchoredPosition = new Vector2(12f, -10f);
-            atRect.sizeDelta = new Vector2(280f, 18f);
+            atRect.pivot = new Vector2(0f, 1f);
+            atRect.anchoredPosition = new Vector2(14f, -8f);
+            atRect.sizeDelta = new Vector2(-20f, 18f);
 
             GameObject attrBodyObj = new GameObject("AttrBody");
             attrBodyObj.transform.SetParent(attrBox.transform, false);
@@ -1621,45 +1647,46 @@ namespace TheLastEmpire
             attrBodyText.color = Color.white;
             ApplyCustomFont(attrBodyText);
             RectTransform aBodyRect = attrBodyObj.GetComponent<RectTransform>();
-            aBodyRect.anchorMin = new Vector2(0f, 0f);
-            aBodyRect.anchorMax = new Vector2(1f, 1f);
-            aBodyRect.offsetMin = new Vector2(12f, 8f);
-            aBodyRect.offsetMax = new Vector2(-12f, -30f);
+            aBodyRect.anchorMin = Vector2.zero;
+            aBodyRect.anchorMax = Vector2.one;
+            aBodyRect.offsetMin = new Vector2(14f, 8f);
+            aBodyRect.offsetMax = new Vector2(-10f, -28f);
 
             // Shift Ability Sub-box
             GameObject skillBox = new GameObject("ShiftSkillBox");
             skillBox.transform.SetParent(statsRow.transform, false);
             Image skillBg = skillBox.AddComponent<Image>();
-            skillBg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.12f);
+            skillBg.color = new Color(0.12f, 0.08f, 0.18f, 0.75f);
             RectTransform skillRect = skillBox.GetComponent<RectTransform>();
-            skillRect.anchorMin = new Vector2(0.44f, 0f);
+            skillRect.anchorMin = new Vector2(0.42f, 0f);
             skillRect.anchorMax = new Vector2(1f, 1f);
-            skillRect.offsetMin = Vector2.zero;
+            skillRect.offsetMin = new Vector2(6f, 0f);
             skillRect.offsetMax = Vector2.zero;
 
-            GameObject skillBorder = new GameObject("SkillBorder");
-            skillBorder.transform.SetParent(skillBox.transform, false);
-            Image sBorderImg = skillBorder.AddComponent<Image>();
-            sBorderImg.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.45f);
-            RectTransform sbRect = skillBorder.GetComponent<RectTransform>();
-            sbRect.anchorMin = Vector2.zero;
-            sbRect.anchorMax = Vector2.one;
-            sbRect.offsetMin = new Vector2(-1f, -1f);
-            sbRect.offsetMax = new Vector2(1f, 1f);
-            skillBorder.transform.SetAsFirstSibling();
+            GameObject skillAccent = new GameObject("SkillAccentStripe");
+            skillAccent.transform.SetParent(skillBox.transform, false);
+            Image saImg = skillAccent.AddComponent<Image>();
+            saImg.color = primaryAccent;
+            RectTransform saRect = skillAccent.GetComponent<RectTransform>();
+            saRect.anchorMin = new Vector2(0f, 0f);
+            saRect.anchorMax = new Vector2(0f, 1f);
+            saRect.pivot = new Vector2(0f, 0.5f);
+            saRect.anchoredPosition = Vector2.zero;
+            saRect.sizeDelta = new Vector2(4f, 0f);
 
             GameObject skillTitleObj = new GameObject("SkillTitle");
             skillTitleObj.transform.SetParent(skillBox.transform, false);
             TMP_Text skillTitleText = skillTitleObj.AddComponent<TextMeshProUGUI>();
-            skillTitleText.fontSize = 14;
+            skillTitleText.fontSize = 13;
             skillTitleText.fontStyle = FontStyles.Bold;
             skillTitleText.color = secondaryAccent;
             ApplyCustomFont(skillTitleText);
             RectTransform stRect = skillTitleObj.GetComponent<RectTransform>();
             stRect.anchorMin = new Vector2(0f, 1f);
             stRect.anchorMax = new Vector2(1f, 1f);
-            stRect.anchoredPosition = new Vector2(12f, -10f);
-            stRect.sizeDelta = new Vector2(380f, 20f);
+            stRect.pivot = new Vector2(0f, 1f);
+            stRect.anchoredPosition = new Vector2(14f, -8f);
+            stRect.sizeDelta = new Vector2(-20f, 18f);
 
             GameObject skillBodyObj = new GameObject("SkillBody");
             skillBodyObj.transform.SetParent(skillBox.transform, false);
@@ -1668,37 +1695,49 @@ namespace TheLastEmpire
             skillBodyText.color = new Color(0.92f, 0.92f, 0.95f, 0.95f);
             ApplyCustomFont(skillBodyText);
             RectTransform sBodyRect = skillBodyObj.GetComponent<RectTransform>();
-            sBodyRect.anchorMin = new Vector2(0f, 0f);
-            sBodyRect.anchorMax = new Vector2(1f, 1f);
-            sBodyRect.offsetMin = new Vector2(12f, 8f);
-            sBodyRect.offsetMax = new Vector2(-12f, -34f);
+            sBodyRect.anchorMin = Vector2.zero;
+            sBodyRect.anchorMax = Vector2.one;
+            sBodyRect.offsetMin = new Vector2(14f, 8f);
+            sBodyRect.offsetMax = new Vector2(-10f, -28f);
 
             // 5. Starting Loadout Box
             GameObject loadoutBox = new GameObject("LoadoutBox");
             loadoutBox.transform.SetParent(dossierCol.transform, false);
             RectTransform loutRect = loadoutBox.AddComponent<RectTransform>();
-            loutRect.anchorMin = new Vector2(0f, 0f);
-            loutRect.anchorMax = new Vector2(1f, 0f);
-            loutRect.pivot = new Vector2(0.5f, 0f);
-            loutRect.anchoredPosition = new Vector2(0f, 15f);
-            loutRect.sizeDelta = new Vector2(730f, 85f);
+            loutRect.anchorMin = new Vector2(0f, 1f);
+            loutRect.anchorMax = new Vector2(1f, 1f);
+            loutRect.pivot = new Vector2(0f, 1f);
+            loutRect.anchoredPosition = new Vector2(20f, -399f);
+            loutRect.sizeDelta = new Vector2(-40f, 75f);
 
             Image loutBg = loadoutBox.AddComponent<Image>();
-            loutBg.color = new Color(1f, 1f, 1f, 0.04f);
+            loutBg.color = new Color(0.06f, 0.12f, 0.08f, 0.75f);
+
+            GameObject loutAccent = new GameObject("LoadoutAccentStripe");
+            loutAccent.transform.SetParent(loadoutBox.transform, false);
+            Image laaImg = loutAccent.AddComponent<Image>();
+            laaImg.color = new Color(0.35f, 0.90f, 0.55f, 0.90f);
+            RectTransform laaRect = loutAccent.GetComponent<RectTransform>();
+            laaRect.anchorMin = new Vector2(0f, 0f);
+            laaRect.anchorMax = new Vector2(0f, 1f);
+            laaRect.pivot = new Vector2(0f, 0.5f);
+            laaRect.anchoredPosition = Vector2.zero;
+            laaRect.sizeDelta = new Vector2(4f, 0f);
 
             GameObject loutTitleObj = new GameObject("LoadoutTitle");
             loutTitleObj.transform.SetParent(loadoutBox.transform, false);
             TMP_Text loutTitleText = loutTitleObj.AddComponent<TextMeshProUGUI>();
             loutTitleText.text = "🎒 STARTING ARSENAL & SURVIVAL LOADOUT";
-            loutTitleText.fontSize = 12;
+            loutTitleText.fontSize = 11;
             loutTitleText.fontStyle = FontStyles.Bold;
             loutTitleText.color = new Color(0.4f, 0.95f, 0.6f, 0.95f);
             ApplyCustomFont(loutTitleText);
             RectTransform lttRect = loutTitleObj.GetComponent<RectTransform>();
             lttRect.anchorMin = new Vector2(0f, 1f);
             lttRect.anchorMax = new Vector2(1f, 1f);
-            lttRect.anchoredPosition = new Vector2(12f, -10f);
-            lttRect.sizeDelta = new Vector2(700f, 18f);
+            lttRect.pivot = new Vector2(0f, 1f);
+            lttRect.anchoredPosition = new Vector2(14f, -8f);
+            lttRect.sizeDelta = new Vector2(-20f, 18f);
 
             GameObject loutBodyObj = new GameObject("LoadoutBody");
             loutBodyObj.transform.SetParent(loadoutBox.transform, false);
@@ -1707,10 +1746,10 @@ namespace TheLastEmpire
             loutBodyText.color = Color.white;
             ApplyCustomFont(loutBodyText);
             RectTransform ltBodyRect = loutBodyObj.GetComponent<RectTransform>();
-            ltBodyRect.anchorMin = new Vector2(0f, 0f);
-            ltBodyRect.anchorMax = new Vector2(1f, 1f);
-            ltBodyRect.offsetMin = new Vector2(12f, 8f);
-            ltBodyRect.offsetMax = new Vector2(-12f, -30f);
+            ltBodyRect.anchorMin = Vector2.zero;
+            ltBodyRect.anchorMax = Vector2.one;
+            ltBodyRect.offsetMin = new Vector2(14f, 6f);
+            ltBodyRect.offsetMax = new Vector2(-10f, -26f);
 
             // Populate Roster Column with 5 Operative Tabs
             List<CharacterData> roster = (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters.Count > 0)
@@ -1719,7 +1758,9 @@ namespace TheLastEmpire
 
             string currentSelectedId = CharacterManager.SelectedCharacterId;
             List<Button> tabButtons = new List<Button>();
-            List<Image> tabBorders = new List<Image>();
+            List<Image> tabBgs = new List<Image>();
+            List<Image> tabIndicators = new List<Image>();
+            List<TMP_Text> tabLabels = new List<TMP_Text>();
 
             System.Action<CharacterData> displayCharacter = (ch) =>
             {
@@ -1734,10 +1775,22 @@ namespace TheLastEmpire
                 string wpns = (ch.startingWeapons != null && ch.startingWeapons.Count > 0) ? string.Join(", ", ch.startingWeapons) : "Knife";
                 loutBodyText.text = $"• Primary Weapon: <b>{wpns}</b>\n• Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
 
-                for (int i = 0; i < tabBorders.Count; i++)
+                for (int i = 0; i < roster.Count; i++)
                 {
                     bool isThis = roster[i].characterId.Equals(ch.characterId, System.StringComparison.OrdinalIgnoreCase);
-                    tabBorders[i].color = isThis ? ch.themeColor : new Color(0.24f, 0.28f, 0.35f, 0.40f);
+                    if (i < tabBgs.Count && tabBgs[i] != null)
+                    {
+                        tabBgs[i].color = isThis ? new Color(0.18f, 0.20f, 0.28f, 0.95f) : new Color(0.09f, 0.10f, 0.14f, 0.75f);
+                    }
+                    if (i < tabIndicators.Count && tabIndicators[i] != null)
+                    {
+                        tabIndicators[i].gameObject.SetActive(isThis);
+                        tabIndicators[i].color = roster[i].themeColor;
+                    }
+                    if (i < tabLabels.Count && tabLabels[i] != null)
+                    {
+                        tabLabels[i].color = isThis ? Color.white : new Color(0.70f, 0.75f, 0.85f, 0.85f);
+                    }
                 }
             };
 
@@ -1748,37 +1801,41 @@ namespace TheLastEmpire
                 tabObj.transform.SetParent(rosterCol.transform, false);
 
                 LayoutElement le = tabObj.AddComponent<LayoutElement>();
-                le.preferredHeight = 90f;
-                le.minHeight = 90f;
+                le.preferredHeight = 92f;
+                le.minHeight = 92f;
 
                 Image tabBg = tabObj.AddComponent<Image>();
-                tabBg.color = buttonBgColor;
+                tabBg.color = new Color(0.09f, 0.10f, 0.14f, 0.75f);
+                tabBgs.Add(tabBg);
 
-                GameObject tBorder = new GameObject("Border");
-                tBorder.transform.SetParent(tabObj.transform, false);
-                Image tbImg = tBorder.AddComponent<Image>();
-                tbImg.color = new Color(0.24f, 0.28f, 0.35f, 0.40f);
-                RectTransform tbRect = tBorder.GetComponent<RectTransform>();
-                tbRect.anchorMin = Vector2.zero;
-                tbRect.anchorMax = Vector2.one;
-                tbRect.offsetMin = new Vector2(-1.5f, -1.5f);
-                tbRect.offsetMax = new Vector2(1.5f, 1.5f);
-                tBorder.transform.SetAsFirstSibling();
-                tabBorders.Add(tbImg);
+                // Left active indicator strip
+                GameObject activeBar = new GameObject("ActiveIndicator");
+                activeBar.transform.SetParent(tabObj.transform, false);
+                Image barImg = activeBar.AddComponent<Image>();
+                barImg.color = ch.themeColor;
+                RectTransform barRect = activeBar.GetComponent<RectTransform>();
+                barRect.anchorMin = new Vector2(0f, 0f);
+                barRect.anchorMax = new Vector2(0f, 1f);
+                barRect.pivot = new Vector2(0f, 0.5f);
+                barRect.anchoredPosition = Vector2.zero;
+                barRect.sizeDelta = new Vector2(4f, 0f);
+                activeBar.SetActive(false);
+                tabIndicators.Add(barImg);
 
                 // Tab Text Container
                 GameObject tLabelObj = new GameObject("Label");
                 tLabelObj.transform.SetParent(tabObj.transform, false);
                 TMP_Text tLabel = tLabelObj.AddComponent<TextMeshProUGUI>();
-                tLabel.text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=11><color=#A855F7>{ch.roleCategory}</color></size>";
+                tLabel.text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=12><color=#A855F7>{ch.roleCategory}</color></size>";
                 tLabel.fontSize = 15;
-                tLabel.color = Color.white;
+                tLabel.color = new Color(0.70f, 0.75f, 0.85f, 0.85f);
                 ApplyCustomFont(tLabel);
                 RectTransform tlRect = tLabelObj.GetComponent<RectTransform>();
                 tlRect.anchorMin = Vector2.zero;
                 tlRect.anchorMax = Vector2.one;
-                tlRect.offsetMin = new Vector2(16f, 0f);
-                tlRect.offsetMax = new Vector2(-16f, 0f);
+                tlRect.offsetMin = new Vector2(18f, 0f);
+                tlRect.offsetMax = new Vector2(-12f, 0f);
+                tabLabels.Add(tLabel);
 
                 Button tBtn = tabObj.AddComponent<Button>();
                 tBtn.onClick.AddListener(() => displayCharacter(ch));
@@ -1798,7 +1855,7 @@ namespace TheLastEmpire
             cancelRect.anchorMax = new Vector2(0f, 0f);
             cancelRect.pivot = new Vector2(0f, 0f);
             cancelRect.anchoredPosition = new Vector2(30f, 18f);
-            cancelRect.sizeDelta = new Vector2(200f, 48f);
+            cancelRect.sizeDelta = new Vector2(200f, 44f);
 
             Image cancelBg = cancelBtnObj.AddComponent<Image>();
             cancelBg.color = buttonBgColor;
@@ -1806,8 +1863,8 @@ namespace TheLastEmpire
             GameObject cancelLabelObj = new GameObject("Label");
             cancelLabelObj.transform.SetParent(cancelBtnObj.transform, false);
             TMP_Text cancelLabel = cancelLabelObj.AddComponent<TextMeshProUGUI>();
-            cancelLabel.text = "CANCEL // ย้อนกลับ";
-            cancelLabel.fontSize = 18;
+            cancelLabel.text = "CANCEL // BACK";
+            cancelLabel.fontSize = 17;
             cancelLabel.fontStyle = FontStyles.Bold;
             cancelLabel.color = Color.white;
             cancelLabel.alignment = TextAlignmentOptions.Center;
@@ -1828,7 +1885,7 @@ namespace TheLastEmpire
             embarkRect.anchorMax = new Vector2(1f, 0f);
             embarkRect.pivot = new Vector2(1f, 0f);
             embarkRect.anchoredPosition = new Vector2(-30f, 18f);
-            embarkRect.sizeDelta = new Vector2(320f, 48f);
+            embarkRect.sizeDelta = new Vector2(320f, 44f);
 
             Image embarkBg = embarkBtnObj.AddComponent<Image>();
             embarkBg.color = primaryAccent;
@@ -1836,8 +1893,8 @@ namespace TheLastEmpire
             GameObject embarkLabelObj = new GameObject("Label");
             embarkLabelObj.transform.SetParent(embarkBtnObj.transform, false);
             TMP_Text embarkLabel = embarkLabelObj.AddComponent<TextMeshProUGUI>();
-            embarkLabel.text = "EMBARK // เข้าสู่โลกาวินาศ ➔";
-            embarkLabel.fontSize = 20;
+            embarkLabel.text = "EMBARK // ENTER WASTELAND ➔";
+            embarkLabel.fontSize = 18;
             embarkLabel.fontStyle = FontStyles.Bold;
             embarkLabel.color = Color.white;
             embarkLabel.alignment = TextAlignmentOptions.Center;

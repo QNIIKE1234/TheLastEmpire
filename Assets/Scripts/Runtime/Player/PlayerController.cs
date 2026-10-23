@@ -1339,13 +1339,23 @@ namespace TheLastEmpire
 
         public int GetAmmoReserveCount(string ammoType)
         {
-            if (_inventory == null || string.IsNullOrEmpty(ammoType)) return 0;
-            int count = _inventory.GetItemCount(ammoType);
-            string alias = GetAmmoAlias(ammoType);
-            if (!string.IsNullOrEmpty(alias))
+            int count = 0;
+            if (_inventory != null && !string.IsNullOrEmpty(ammoType))
             {
-                count += _inventory.GetItemCount(alias);
+                count = _inventory.GetItemCount(ammoType);
+                string alias = GetAmmoAlias(ammoType);
+                if (!string.IsNullOrEmpty(alias) && !alias.Equals(ammoType, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    count += _inventory.GetItemCount(alias);
+                }
             }
+
+            // Fallback to internal weapon reserve if inventory has none (ensures weapons like Sniper Rifle / Crossbow work even if not yet picked up from loot)
+            if (count == 0 && CurrentWeapon != null && CurrentWeapon.currentReserveAmmo > 0)
+            {
+                count = CurrentWeapon.currentReserveAmmo;
+            }
+
             return count;
         }
 
@@ -1357,34 +1367,38 @@ namespace TheLastEmpire
             if (clean == "pistol ammo") return "Light Ammo";
             if (clean == "medium ammo") return "Rifle Ammo";
             if (clean == "rifle ammo") return "Medium Ammo";
+            if (clean.Contains("sniper")) return "Medium Ammo";
             if (clean == "heavy ammo") return "Fuel Ammo";
             if (clean == "fuel ammo") return "Heavy Ammo";
             if (clean == "shotgun ammo") return "Ammo";
             if (clean == "ammo") return "Shotgun Ammo";
+            if (clean == "bolts" || clean == "bolt") return "Bolts";
             return null;
         }
 
         public void ConsumeAmmo(string ammoType, int amount)
         {
-            if (_inventory == null || amount <= 0 || string.IsNullOrEmpty(ammoType)) return;
-            int countMain = _inventory.GetItemCount(ammoType);
-            int fromMain = Mathf.Min(amount, countMain);
-            for (int i = 0; i < fromMain; i++)
+            if (amount <= 0) return;
+
+            int invMain = (_inventory != null && !string.IsNullOrEmpty(ammoType)) ? _inventory.GetItemCount(ammoType) : 0;
+            string alias = GetAmmoAlias(ammoType);
+            int invAlias = (!string.IsNullOrEmpty(alias) && _inventory != null) ? _inventory.GetItemCount(alias) : 0;
+
+            if (invMain + invAlias > 0 && _inventory != null)
             {
-                _inventory.RemoveItem(ammoType);
-            }
-            int remaining = amount - fromMain;
-            if (remaining > 0)
-            {
-                string alias = GetAmmoAlias(ammoType);
-                if (!string.IsNullOrEmpty(alias))
+                int fromMain = Mathf.Min(amount, invMain);
+                for (int i = 0; i < fromMain; i++) _inventory.RemoveItem(ammoType);
+
+                int remaining = amount - fromMain;
+                if (remaining > 0 && !string.IsNullOrEmpty(alias))
                 {
-                    int fromAlias = Mathf.Min(remaining, _inventory.GetItemCount(alias));
-                    for (int i = 0; i < fromAlias; i++)
-                    {
-                        _inventory.RemoveItem(alias);
-                    }
+                    int fromAlias = Mathf.Min(remaining, invAlias);
+                    for (int i = 0; i < fromAlias; i++) _inventory.RemoveItem(alias);
                 }
+            }
+            else if (CurrentWeapon != null && CurrentWeapon.currentReserveAmmo > 0)
+            {
+                CurrentWeapon.currentReserveAmmo = Mathf.Max(0, CurrentWeapon.currentReserveAmmo - amount);
             }
         }
 
@@ -1530,7 +1544,41 @@ namespace TheLastEmpire
                     _inventory.AddMoney(activeCharacterData.startingMoney);
                 }
 
-                if (activeCharacterData.startingPistolAmmo > 0)
+                // Add starting weapons into inventory list so player ownership is registered!
+                if (activeCharacterData.startingWeapons != null)
+                {
+                    foreach (var sw in activeCharacterData.startingWeapons)
+                    {
+                        if (!_inventory.Items.Exists(x => IsWeaponNameMatch(x, sw)))
+                        {
+                            _inventory.AddItem(sw);
+                        }
+                    }
+                }
+
+                // Grant starting ammo tailored to character role and weapons
+                if (activeCharacterData.characterId == "MARKSMAN")
+                {
+                    // Marksman needs Medium Ammo for Sniper Rifle + Light Ammo for Revolver
+                    for (int i = 0; i < 20; i++) _inventory.AddItem("Medium Ammo");
+                    for (int i = 0; i < 20; i++) _inventory.AddItem("Light Ammo");
+                }
+                else if (activeCharacterData.characterId == "SCAVENGER")
+                {
+                    // Scavenger needs Bolts for Crossbow
+                    for (int i = 0; i < 25; i++) _inventory.AddItem("Bolts");
+                }
+                else if (activeCharacterData.characterId == "JUGGERNAUT")
+                {
+                    // Juggernaut needs Shotgun Ammo
+                    for (int i = 0; i < 20; i++) _inventory.AddItem("Shotgun Ammo");
+                }
+                else if (activeCharacterData.characterId == "VANGUARD")
+                {
+                    // Vanguard needs Medium Ammo for Rifle
+                    for (int i = 0; i < 60; i++) _inventory.AddItem("Medium Ammo");
+                }
+                else if (activeCharacterData.startingPistolAmmo > 0)
                 {
                     for (int i = 0; i < activeCharacterData.startingPistolAmmo; i++)
                     {
@@ -1870,6 +1918,59 @@ namespace TheLastEmpire
             }
         }
 
+        public bool IsWeaponNameMatch(string a, string b)
+        {
+            if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b)) return false;
+            string cleanA = a.Trim().ToLower();
+            string cleanB = b.Trim().ToLower();
+            if (cleanA == cleanB) return true;
+            if (cleanA.Replace(" ", "") == cleanB.Replace(" ", "")) return true;
+            if (cleanA.Contains(cleanB) || cleanB.Contains(cleanA)) return true;
+            return false;
+        }
+
+        public bool HasRangedWeaponAccess(string weaponName)
+        {
+            if (string.IsNullOrEmpty(weaponName)) return false;
+            string clean = weaponName.Trim().ToLower();
+            if (clean.Contains("pist")) return true; // Default sidearm always accessible
+
+            // Check if it's one of the active operative's starting weapons
+            if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
+            {
+                if (activeCharacterData.startingWeapons.Exists(sw => IsWeaponNameMatch(sw, weaponName))) return true;
+            }
+
+            // Check if player has it in inventory bag
+            if (_inventory != null && _inventory.Items != null)
+            {
+                if (_inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
+            }
+
+            return false;
+        }
+
+        public bool HasMeleeWeaponAccess(string weaponName)
+        {
+            if (string.IsNullOrEmpty(weaponName)) return false;
+            string clean = weaponName.Trim().ToLower();
+            if (clean.Contains("knife")) return true; // Default knife always accessible
+
+            // Check if it's one of the active operative's starting weapons
+            if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
+            {
+                if (activeCharacterData.startingWeapons.Exists(sw => IsWeaponNameMatch(sw, weaponName))) return true;
+            }
+
+            // Check if player has it in inventory bag
+            if (_inventory != null && _inventory.Items != null)
+            {
+                if (_inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
+            }
+
+            return false;
+        }
+
         public void SwitchToMeleeWeapon(int index)
         {
             if (meleeWeapons == null || meleeWeapons.Count == 0) return;
@@ -1884,10 +1985,8 @@ namespace TheLastEmpire
 
             if (index >= meleeWeapons.Count) return;
             
-            // Check weapon ownership from inventory (Knife is default, others require ownership)
             string wName = meleeWeapons[index].weaponName;
-            bool isKnife = (wName ?? "").ToLower().Trim().Contains("knife");
-            bool hasWeapon = isKnife || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+            bool hasWeapon = HasMeleeWeaponAccess(wName);
 
             if (!hasWeapon)
             {
@@ -1909,8 +2008,7 @@ namespace TheLastEmpire
             {
                 nextIndex = (nextIndex + direction + meleeWeapons.Count) % meleeWeapons.Count;
                 string wName = meleeWeapons[nextIndex].weaponName;
-                bool isKnife = (wName ?? "").ToLower().Trim().Contains("knife");
-                bool hasWeapon = isKnife || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+                bool hasWeapon = HasMeleeWeaponAccess(wName);
 
                 if (hasWeapon)
                 {
@@ -1935,10 +2033,8 @@ namespace TheLastEmpire
 
             if (index >= weapons.Count) return;
             
-            // Check weapon ownership from inventory
             string wName = weapons[index].weaponName;
-            bool isPistol = (wName ?? "").ToLower().Trim().Contains("pist");
-            bool hasWeapon = isPistol || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+            bool hasWeapon = HasRangedWeaponAccess(wName);
 
             if (!hasWeapon)
             {
@@ -1965,8 +2061,7 @@ namespace TheLastEmpire
             {
                 nextIndex = (nextIndex + direction + weapons.Count) % weapons.Count;
                 string wName = weapons[nextIndex].weaponName;
-                bool isPistol = (wName ?? "").ToLower().Trim().Contains("pist");
-                bool hasWeapon = isPistol || (_inventory != null && _inventory.Items.Exists(x => (x ?? "").ToLower().Trim() == wName.ToLower().Trim()));
+                bool hasWeapon = HasRangedWeaponAccess(wName);
 
                 if (hasWeapon)
                 {

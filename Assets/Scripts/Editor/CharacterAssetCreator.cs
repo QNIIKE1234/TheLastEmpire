@@ -32,29 +32,29 @@ namespace TheLastEmpire.Editor
             createdList.Add(CreateOrUpdateCharacter(
                 "CHAR_01_Vanguard", "VANGUARD", "The Vanguard", "Imperial Vanguard",
                 "All-Rounder / Frontline",
-                "ทหารผ่านศึกผู้ช่ำชองการต่อสู้ สมดุลทุกระยะ ตื่นขึ้นมาในซากป้อมปราการพร้อมคำสาบานประจำหน่วยที่ก้องอยู่ในหัว",
-                "\"หัวฉันระบมไปหมด... พลขับกับคนอื่นหายไปไหนกันหมด? ปืนยังขึ้นลำอยู่ ต้องรีบมุ่งหน้าไปใจกลางเมืองก่อนที่ทุกอย่างจะสายไป\"",
+                "Battle-hardened frontline veteran. Balanced in all combat ranges. Awakens in the garrison ruins with his unit's oath echoing in his mind.",
+                "\"My head is pounding... Where is the squad? My rifle's still primed. I have to reach the inner citadel before everything collapses.\"",
                 new Color(0.95f, 0.55f, 0.15f, 1f),
                 100f, 100f, 5.0f, 10, 10, 1.0f,
                 15f, 0.25f, 0.8f, 0f, 100, 60,
                 new List<string> { "Rifle", "Knife" }, 0f, 1.0f,
                 ShiftAbilityType.AdrenalineRush, "Adrenaline Rush",
-                "กด Shift ค้างเพื่อสูบฉีดอะดรีนาลีน: วิ่งเร็ว 1.75 เท่า, ตี/ยิงไวขึ้น 30%, ลดความเสียหายลง 20% (กินค่าความหิวไวขึ้น)",
+                "Hold [Shift] to surge adrenaline: +75% move speed, +30% attack speed, 20% damage reduction. (Consumes hunger faster)",
                 0f
             ));
 
             // 2. Juggernaut
             createdList.Add(CreateOrUpdateCharacter(
                 "CHAR_02_Juggernaut", "JUGGERNAUT", "The Juggernaut", "Ironbound Behemoth",
-                "Melee Brawler / Crowd Control",
-                "มนุษย์ร่างยักษ์ผู้ผ่านการดัดแปลงพันธุกรรมและโครงสร้างเหล็ก ตื่นขึ้นมาในซากโรงงานอุตสาหกรรมใต้ดิน พร้อมความแค้นต่อจักรวรรดิ",
-                "\"โซ่ตรวนขาดแล้ว... พวกมันทดลองอะไรกับร่างกายข้า? ร่างกายนี้ไม่รู้สึกเจ็บอีกต่อไป ข้าจะพังทุกอย่างที่ขวางหน้า\"",
+                "Melee Brawler / Tank",
+                "Genetically modified steel juggernaut. Awakens in the ruins of an underground foundry, fueled by unyielding vengeance against the Empire.",
+                "\"The chains are shattered... What did they do to my flesh? I feel no pain anymore. I will smash through anything in my path.\"",
                 new Color(0.92f, 0.22f, 0.22f, 1f),
                 150f, 120f, 4.3f, 15, 8, 1.2f,
                 12f, 0.25f, 1.0f, 0.15f, 50, 20,
-                new List<string> { "Sledgehammer" }, 0f, 1.0f,
+                new List<string> { "Sledgehammer", "Shotgun" }, 0f, 1.0f,
                 ShiftAbilityType.UnstoppableCharge, "Unstoppable Charge",
-                "กด Shift พุ่งชนทะลวงด้วยความเร็วสูง สร้างดาเมจชน 25 + สตั๊น 1 วิ บล็อกและสะท้อนกระสุนปืนทั้งหมด คูลดาวน์ 5 วิ",
+                "Press [Shift] to charge forward: deals 25 impact damage + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction at all times)",
                 5.0f
             ));
 
@@ -62,14 +62,14 @@ namespace TheLastEmpire.Editor
             createdList.Add(CreateOrUpdateCharacter(
                 "CHAR_03_Phantom", "PHANTOM", "The Phantom", "Shadow Assassin",
                 "Hit-and-Run / Assassin",
-                "มือสังหารหน่วยลอบเร้นมิติเงา ตื่นขึ้นมาในเงามืดของตรอกซอยแคบ พร้อมภารกิจลับที่สั่งให้ปิดปากบุคคลสำคัญก่อนโลกล่มสลาย",
-                "\"เป้าหมายของฉัน... ดอกเตอร์คนนั้นอยู่ที่ไหน? จักรวรรดิต้องการปิดปากเขาทำไมกันแน่? มีเงื่อนงำบางอย่างที่ถูกซ่อนไว้\"",
+                "Stealth dimensional assassin. Awakens in the shadows of a ruined alleyway with an encrypted mission to eliminate high-value targets.",
+                "\"My target... Where is the doctor? Why did the Empire want him silenced? There are dark secrets buried beneath this ruins.\"",
                 new Color(0.66f, 0.33f, 0.97f, 1f),
                 75f, 90f, 6.0f, 12, 10, 1.0f,
                 18f, 0.30f, 0.55f, 0f, 150, 40,
                 new List<string> { "Katana", "Pistol" }, 0f, 1.0f,
                 ShiftAbilityType.ShadowStep, "Shadow Step",
-                "กด Shift ค้างเพื่อเข้าสู่ร่างเงา: วิ่งเร็วขึ้น 40%, วิ่งทะลุผ่านตัวศัตรูได้โดยตรง, การโจมตีแรกหลังออกจากเงาการันตี Critical 2.0x",
+                "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.",
                 0f
             ));
 
@@ -77,29 +77,29 @@ namespace TheLastEmpire.Editor
             createdList.Add(CreateOrUpdateCharacter(
                 "CHAR_04_Marksman", "MARKSMAN", "The Marksman", "Apex Sharpshooter",
                 "Long-Range / Tactical",
-                "พลซุ่มยิงสายตานกอินทรี ตื่นขึ้นมาบนยอดหอคอยสูงขอบเมือง จำภาพสุดท้ายผ่านลำกล้องสไนเปอร์ในวินาทีที่เตาปฏิกรณ์ระเบิดได้แม่นยำ",
-                "\"ภาพในลำกล้องวันนั้น... คนที่กดสวิตช์ไม่ใช่ศัตรูภายนอก แต่เป็นคนของจักรวรรดิเอง! ฉันต้องสืบหาเบื้องหลังการทรยศนี้\"",
+                "Eagle-eyed sharpshooter. Awakens atop an abandoned observation tower, vividly recalling the moment the reactor detonated through his scope.",
+                "\"Through my scope that day... The one who flipped the switch wasn't an invader. It was an Imperial officer! I will uncover the betrayal.\"",
                 new Color(0.0f, 0.75f, 0.95f, 1f),
                 85f, 100f, 4.8f, 7, 14, 1.0f,
                 14f, 0.25f, 0.8f, 0f, 80, 30,
                 new List<string> { "Sniper Rifle", "Revolver" }, 0f, 1.0f,
                 ShiftAbilityType.EagleEye, "Eagle Eye",
-                "กด Shift ค้างเพื่อเพ่งสมาธิ: กล้องซูมกว้าง 1.35x, ระยะยิงปืนไกลขึ้น 2 เท่า, กระสุนเจาะทะลุศัตรู (เดินช้าลงขณะเล็ง)",
+                "Hold [Shift] to enter tactical focus: 1.35x sniper zoom, 2x attack range, bullets pierce through all enemies. (Move slower while aiming)",
                 0f
             ));
 
             // 5. Scavenger
             createdList.Add(CreateOrUpdateCharacter(
                 "CHAR_05_Scavenger", "SCAVENGER", "The Scavenger", "Wasteland Nomad",
-                "Crowd Control / Resource Hoarder",
-                "นักคุ้ยขยะแดนร้างสวมฮู้ด (ตัวละครหน้า Main Menu) คนนอกกำแพงเมืองที่แอบเข้ามาหาเศษอาหารประทังชีวิต แล้วติดอยู่ในซากอารยธรรม",
-                "\"ท้องร้องดังจนแสบไส้... ต้องหาขนมปังหรืออะไรก็ได้กินก่อน ฉันไม่สนเรื่องจักรวรรดิอะไรทั้งนั้น ขอแค่หาทางเปิดประตูเมืองหนีรอดไปได้ก็พอ\"",
+                "Survivalist / Trapper",
+                "Hooded wasteland nomad who slipped past city walls scavenging for survival rations, now trapped amidst the fallen ruins.",
+                "\"My stomach is burning with hunger... Need to find bread or scraps first. Forget the Empire, I just need to blast the city gates open and survive.\"",
                 new Color(0.25f, 0.85f, 0.45f, 1f),
                 90f, 110f, 5.2f, 10, 10, 0.85f,
                 16f, 0.25f, 0.75f, 0f, 300, 0,
                 new List<string> { "Crossbow", "Survival Spear" }, 0.25f, 1.30f,
                 ShiftAbilityType.ToxicTrail, "Toxic Trail",
-                "กด Shift วิ่งทิ้งควันพิษสะกดรอย: ศัตรูที่เหยียบสโลว์ 50% + โดนพิษต่อเนื่อง 8 Dps (Passive: กินอาหารฟื้นฟูเลือดแถม +10 HP)",
+                "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)",
                 0f
             ));
 
@@ -172,6 +172,16 @@ namespace TheLastEmpire.Editor
             data.shiftAbilityName = shiftName;
             data.shiftAbilityDescription = shiftDesc;
             data.shiftCooldown = shiftCd;
+
+            // Preserve existing portrait or assign Vanguard default artwork if unassigned
+            if (data.characterPortrait == null && id.Equals("VANGUARD", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Sprite vanguardSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Image/Picture/ChatGPT Image Oct 23, 2026, 10_07_54 PM.png");
+                if (vanguardSpr != null)
+                {
+                    data.characterPortrait = vanguardSpr;
+                }
+            }
 
             EditorUtility.SetDirty(data);
             return data;

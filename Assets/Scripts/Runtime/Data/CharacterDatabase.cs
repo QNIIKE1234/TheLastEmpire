@@ -63,10 +63,10 @@ namespace TheLastEmpire
             var vanguard = ScriptableObject.CreateInstance<CharacterData>();
             vanguard.characterId = "VANGUARD";
             vanguard.characterName = "The Vanguard";
-            vanguard.characterTitle = "Imperial Vanguard // กองหน้าทหารผ่านศึก";
+            vanguard.characterTitle = "Imperial Vanguard";
             vanguard.roleCategory = "All-Rounder / Frontline";
-            vanguard.loreSynopsis = "ทหารผ่านศึกผู้ช่ำชองการต่อสู้ สมดุลทุกระยะ ตื่นขึ้นมาในซากป้อมปราการพร้อมคำสาบานประจำหน่วยที่ก้องอยู่ในหัว";
-            vanguard.amnesiaWakingClue = "\"หัวฉันระบมไปหมด... พลขับกับคนอื่นหายไปไหนกันหมด? ปืนยังขึ้นลำอยู่ ต้องรีบมุ่งหน้าไปใจกลางเมืองก่อนที่ทุกอย่างจะสายไป\"";
+            vanguard.loreSynopsis = "Battle-hardened frontline veteran. Balanced in all combat ranges. Awakens in the garrison ruins with his unit's oath echoing in his mind.";
+            vanguard.amnesiaWakingClue = "\"My head is pounding... Where is the squad? My rifle's still primed. I have to reach the inner citadel before everything collapses.\"";
             vanguard.themeColor = new Color(0.95f, 0.55f, 0.15f, 1f);
             vanguard.maxHealth = 100f;
             vanguard.maxHunger = 100f;
@@ -83,7 +83,7 @@ namespace TheLastEmpire
             vanguard.startingWeapons = new List<string> { "Rifle", "Knife" };
             vanguard.shiftAbilityType = ShiftAbilityType.AdrenalineRush;
             vanguard.shiftAbilityName = "Adrenaline Rush";
-            vanguard.shiftAbilityDescription = "กด Shift ค้างเพื่อสูบฉีดอะดรีนาลีน: วิ่งเร็ว 1.75 เท่า, ตี/ยิงไวขึ้น 30%, ลดความเสียหายลง 20% (กินค่าความหิวไวขึ้น)";
+            vanguard.shiftAbilityDescription = "Hold [Shift] to surge adrenaline: +75% move speed, +30% attack speed, 20% damage reduction. (Consumes hunger faster)";
             vanguard.shiftCooldown = 0f;
             roster.Add(vanguard);
 
@@ -91,10 +91,10 @@ namespace TheLastEmpire
             var juggernaut = ScriptableObject.CreateInstance<CharacterData>();
             juggernaut.characterId = "JUGGERNAUT";
             juggernaut.characterName = "The Juggernaut";
-            juggernaut.characterTitle = "Ironbound Behemoth // จอมพลังเกราะเหล็ก";
+            juggernaut.characterTitle = "Ironbound Behemoth";
             juggernaut.roleCategory = "Melee Brawler / Tank";
-            juggernaut.loreSynopsis = "มนุษย์ร่างยักษ์ผู้ผ่านการดัดแปลงพันธุกรรมและโครงสร้างเหล็ก ตื่นขึ้นมาในซากโรงงานอุตสาหกรรมใต้ดิน พร้อมความแค้นต่อจักรวรรดิ";
-            juggernaut.amnesiaWakingClue = "\"โซ่ตรวนขาดแล้ว... พวกมันทดลองอะไรกับร่างกายข้า? ร่างกายนี้ไม่รู้สึกเจ็บอีกต่อไป ข้าจะพังทุกอย่างที่ขวางหน้า\"";
+            juggernaut.loreSynopsis = "Genetically modified steel juggernaut. Awakens in the ruins of an underground foundry, fueled by unyielding vengeance against the Empire.";
+            juggernaut.amnesiaWakingClue = "\"The chains are shattered... What did they do to my flesh? I feel no pain anymore. I will smash through anything in my path.\"";
             juggernaut.themeColor = new Color(0.92f, 0.22f, 0.22f, 1f);
             juggernaut.maxHealth = 150f;
             juggernaut.maxHunger = 120f;
@@ -111,7 +111,7 @@ namespace TheLastEmpire
             juggernaut.startingWeapons = new List<string> { "Sledgehammer", "Shotgun" };
             juggernaut.shiftAbilityType = ShiftAbilityType.UnstoppableCharge;
             juggernaut.shiftAbilityName = "Unstoppable Charge";
-            juggernaut.shiftAbilityDescription = "กด Shift พุ่งชนทะลวงด้วยความเร็วสูง สร้างดาเมจชน 25 + สตั๊น 1 วิ บล็อกและสะท้อนกระสุนปืนทั้งหมด คูลดาวน์ 5 วิ (Passive: ลดดาเมจตลอดเวลา 15%)";
+            juggernaut.shiftAbilityDescription = "Press [Shift] to charge forward: deals 25 impact damage + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction at all times)";
             juggernaut.shiftCooldown = 5.0f;
             roster.Add(juggernaut);
 
@@ -119,10 +119,10 @@ namespace TheLastEmpire
             var phantom = ScriptableObject.CreateInstance<CharacterData>();
             phantom.characterId = "PHANTOM";
             phantom.characterName = "The Phantom";
-            phantom.characterTitle = "Shadow Assassin // มือสังหารเงามืด";
+            phantom.characterTitle = "Shadow Assassin";
             phantom.roleCategory = "Hit-and-Run / Assassin";
-            phantom.loreSynopsis = "มือสังหารหน่วยลอบเร้นมิติเงา ตื่นขึ้นมาในเงามืดของตรอกซอยแคบ พร้อมภารกิจลับที่สั่งให้ปิดปากบุคคลสำคัญก่อนโลกล่มสลาย";
-            phantom.amnesiaWakingClue = "\"เป้าหมายของฉัน... ดอกเตอร์คนนั้นอยู่ที่ไหน? จักรวรรดิต้องการปิดปากเขาทำไมกันแน่? มีเงื่อนงำบางอย่างที่ถูกซ่อนไว้\"";
+            phantom.loreSynopsis = "Stealth dimensional assassin. Awakens in the shadows of a ruined alleyway with an encrypted mission to eliminate high-value targets.";
+            phantom.amnesiaWakingClue = "\"My target... Where is the doctor? Why did the Empire want him silenced? There are dark secrets buried beneath this ruins.\"";
             phantom.themeColor = new Color(0.66f, 0.33f, 0.97f, 1f);
             phantom.maxHealth = 75f;
             phantom.maxHunger = 90f;
@@ -139,7 +139,7 @@ namespace TheLastEmpire
             phantom.startingWeapons = new List<string> { "Katana", "Pistol" };
             phantom.shiftAbilityType = ShiftAbilityType.ShadowStep;
             phantom.shiftAbilityName = "Shadow Step";
-            phantom.shiftAbilityDescription = "กด Shift ค้างเพื่อเข้าสู่ร่างเงา: วิ่งเร็วขึ้น 40%, วิ่งทะลุผ่านตัวศัตรูได้โดยตรง, การโจมตีแรกหลังออกจากเงาการันตี Critical 2.0x";
+            phantom.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
             phantom.shiftCooldown = 0f;
             roster.Add(phantom);
 
@@ -147,10 +147,10 @@ namespace TheLastEmpire
             var marksman = ScriptableObject.CreateInstance<CharacterData>();
             marksman.characterId = "MARKSMAN";
             marksman.characterName = "The Marksman";
-            marksman.characterTitle = "Apex Sharpshooter // พลแม่นปืนสไนเปอร์";
+            marksman.characterTitle = "Apex Sharpshooter";
             marksman.roleCategory = "Long-Range / Tactical";
-            marksman.loreSynopsis = "พลซุ่มยิงสายตานกอินทรี ตื่นขึ้นมาบนยอดหอคอยสูงขอบเมือง จำภาพสุดท้ายผ่านลำกล้องสไนเปอร์ในวินาทีที่เตาปฏิกรณ์ระเบิดได้แม่นยำ";
-            marksman.amnesiaWakingClue = "\"ภาพในลำกล้องวันนั้น... คนที่กดสวิตช์ไม่ใช่ศัตรูภายนอก แต่เป็นคนของจักรวรรดิเอง! ฉันต้องสืบหาเบื้องหลังการทรยศนี้\"";
+            marksman.loreSynopsis = "Eagle-eyed sharpshooter. Awakens atop an abandoned observation tower, vividly recalling the moment the reactor detonated through his scope.";
+            marksman.amnesiaWakingClue = "\"Through my scope that day... The one who flipped the switch wasn't an invader. It was an Imperial officer! I will uncover the betrayal.\"";
             marksman.themeColor = new Color(0.0f, 0.75f, 0.95f, 1f);
             marksman.maxHealth = 85f;
             marksman.maxHunger = 100f;
@@ -167,7 +167,7 @@ namespace TheLastEmpire
             marksman.startingWeapons = new List<string> { "Sniper Rifle", "Revolver" };
             marksman.shiftAbilityType = ShiftAbilityType.EagleEye;
             marksman.shiftAbilityName = "Eagle Eye";
-            marksman.shiftAbilityDescription = "กด Shift ค้างเพื่อเพ่งสมาธิ: กล้องซูมกว้าง 1.35x, ระยะยิงปืนไกลขึ้น 2 เท่า, กระสุนเจาะทะลุศัตรู (เดินช้าลงขณะเล็ง)";
+            marksman.shiftAbilityDescription = "Hold [Shift] to enter tactical focus: 1.35x sniper zoom, 2x attack range, bullets pierce through all enemies. (Move slower while aiming)";
             marksman.shiftCooldown = 0f;
             roster.Add(marksman);
 
@@ -175,10 +175,10 @@ namespace TheLastEmpire
             var scavenger = ScriptableObject.CreateInstance<CharacterData>();
             scavenger.characterId = "SCAVENGER";
             scavenger.characterName = "The Scavenger";
-            scavenger.characterTitle = "Wasteland Nomad // ผู้รอดชีวิตพเนจร";
+            scavenger.characterTitle = "Wasteland Nomad";
             scavenger.roleCategory = "Survivalist / Trapper";
-            scavenger.loreSynopsis = "นักคุ้ยขยะแดนร้างสวมฮู้ด คนนอกกำแพงเมืองที่แอบเข้ามาหาเศษอาหารประทังชีวิต แล้วติดอยู่ในซากอารยธรรม";
-            scavenger.amnesiaWakingClue = "\"ท้องร้องดังจนแสบไส้... ต้องหาขนมปังหรืออะไรก็ได้กินก่อน ฉันไม่สนเรื่องจักรวรรดิอะไรทั้งนั้น ขอแค่หาทางเปิดประตูเมืองหนีรอดไปได้ก็พอ\"";
+            scavenger.loreSynopsis = "Hooded wasteland nomad who slipped past city walls scavenging for survival rations, now trapped amidst the fallen ruins.";
+            scavenger.amnesiaWakingClue = "\"My stomach is burning with hunger... Need to find bread or scraps first. Forget the Empire, I just need to blast the city gates open and survive.\"";
             scavenger.themeColor = new Color(0.25f, 0.85f, 0.45f, 1f);
             scavenger.maxHealth = 90f;
             scavenger.maxHunger = 110f;
@@ -195,7 +195,7 @@ namespace TheLastEmpire
             scavenger.startingWeapons = new List<string> { "Crossbow", "Survival Spear" };
             scavenger.shiftAbilityType = ShiftAbilityType.ToxicTrail;
             scavenger.shiftAbilityName = "Toxic Trail";
-            scavenger.shiftAbilityDescription = "กด Shift วิ่งทิ้งควันพิษสะกดรอย: ศัตรูที่เหยียบสโลว์ 50% + โดนพิษต่อเนื่อง 8 Dps (Passive: กินอาหารฟื้นฟูเลือดแถม +10 HP)";
+            scavenger.shiftAbilityDescription = "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)";
             scavenger.shiftCooldown = 0f;
             roster.Add(scavenger);
 

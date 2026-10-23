@@ -15,14 +15,12 @@ MonoBehaviour:
   characterId: JUGGERNAUT
   characterName: The Juggernaut
   characterTitle: Ironbound Behemoth
-  roleCategory: Melee Brawler / Crowd Control
-  loreSynopsis: "\u0E21\u0E19\u0E38\u0E29\u0E22\u0E4C\u0E23\u0E48\u0E32\u0E07\u0E22\u0E31\u0E01\u0E29\u0E4C\u0E1C\u0E39\u0E49\u0E1C\u0E48\u0E32\u0E19\u0E01\u0E32\u0E23\u0E14\u0E31\u0E14\u0E41\u0E1B\u0E25\u0E07\u0E1E\u0E31\u0E19\u0E18\u0E38\u0E01\u0E23\u0E23\u0E21\u0E41\u0E25\u0E30\u0E42\u0E04\u0E23\u0E07\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E40\u0E2B\u0E25\u0E47\u0E01
-    \u0E15\u0E37\u0E48\u0E19\u0E02\u0E36\u0E49\u0E19\u0E21\u0E32\u0E43\u0E19\u0E0B\u0E32\u0E01\u0E42\u0E23\u0E07\u0E07\u0E32\u0E19\u0E2D\u0E38\u0E15\u0E2A\u0E32\u0E2B\u0E01\u0E23\u0E23\u0E21\u0E43\u0E15\u0E49\u0E14\u0E34\u0E19
-    \u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E04\u0E27\u0E32\u0E21\u0E41\u0E04\u0E49\u0E19\u0E15\u0E48\u0E2D\u0E08\u0E31\u0E01\u0E23\u0E27\u0E23\u0E23\u0E14\u0E34"
-  amnesiaWakingClue: "\"\u0E42\u0E0B\u0E48\u0E15\u0E23\u0E27\u0E19\u0E02\u0E32\u0E14\u0E41\u0E25\u0E49\u0E27...
-    \u0E1E\u0E27\u0E01\u0E21\u0E31\u0E19\u0E17\u0E14\u0E25\u0E2D\u0E07\u0E2D\u0E30\u0E44\u0E23\u0E01\u0E31\u0E1A\u0E23\u0E48\u0E32\u0E07\u0E01\u0E32\u0E22\u0E02\u0E49\u0E32?
-    \u0E23\u0E48\u0E32\u0E07\u0E01\u0E32\u0E22\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E23\u0E39\u0E49\u0E2A\u0E36\u0E01\u0E40\u0E08\u0E47\u0E1A\u0E2D\u0E35\u0E01\u0E15\u0E48\u0E2D\u0E44\u0E1B
-    \u0E02\u0E49\u0E32\u0E08\u0E30\u0E1E\u0E31\u0E07\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E17\u0E35\u0E48\u0E02\u0E27\u0E32\u0E07\u0E2B\u0E19\u0E49\u0E32\""
+  roleCategory: Melee Brawler / Tank
+  characterPortrait: {fileID: 0}
+  loreSynopsis: Genetically modified steel juggernaut. Awakens in the ruins of an
+    underground foundry, fueled by unyielding vengeance against the Empire.
+  amnesiaWakingClue: '"The chains are shattered... What did they do to my flesh?
+    I feel no pain anymore. I will smash through anything in my path."'
   themeColor: {r: 0.92, g: 0.22, b: 0.22, a: 1}
   maxHealth: 150
   maxHunger: 120
@@ -38,12 +36,12 @@ MonoBehaviour:
   startingPistolAmmo: 20
   startingWeapons:
   - Sledgehammer
+  - Shotgun
   dropRateBonus: 0
   moneyMultiplier: 1
   shiftAbilityType: 1
   shiftAbilityName: Unstoppable Charge
-  shiftAbilityDescription: "\u0E01\u0E14 Shift \u0E1E\u0E38\u0E48\u0E07\u0E0A\u0E19\u0E17\u0E30\u0E25\u0E27\u0E07\u0E14\u0E49\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E40\u0E23\u0E47\u0E27\u0E2A\u0E39\u0E07
-    \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E14\u0E32\u0E40\u0E21\u0E08\u0E0A\u0E19 25 +
-    \u0E2A\u0E15\u0E31\u0E4A\u0E19 1 \u0E27\u0E34 \u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E41\u0E25\u0E30\u0E2A\u0E30\u0E17\u0E49\u0E2D\u0E19\u0E01\u0E23\u0E30\u0E2A\u0E38\u0E19\u0E1B\u0E37\u0E19\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14
-    \u0E04\u0E39\u0E25\u0E14\u0E32\u0E27\u0E19\u0E4C 5 \u0E27\u0E34"
+  shiftAbilityDescription: 'Press [Shift] to charge forward: deals 25 impact damage
+    + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction
+    at all times)'
   shiftCooldown: 5
