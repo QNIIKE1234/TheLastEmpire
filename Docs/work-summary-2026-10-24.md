@@ -165,3 +165,36 @@
   * เมื่อผู้เล่นเดินเข้าสู่ด่านใหม่ [StageTemplateManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageTemplateManager.cs) จะตรวจสอบความน่าจะเป็น `templateSelectionChance` (ค่าเริ่มต้น 50% หรือปรับแต่งได้):
     * **ถ้าถูกสุ่มให้ใช้ Template:** จะดึงแม่แบบ JSON ที่ตรงกับ Biome ของห้องนั้นมาสร้างสิ่งกีดขวางและสปอว์นศัตรู/ของตามไฟล์ 100%
     * **ถ้าถูกสุ่มเป็น Procedural หรือไม่มี Template ของ Biome นั้น:** จะตกกลับไปสร้างแบบ Procedural Noise ดั้งเดิม ทำให้เกมยังคงมีความสดใหม่ ไม่ตายตัว
+
+---
+
+## 9. ระบบจัดการการตั้งค่าเกม (SettingManager & Settings Modal)
+
+### ไฟล์หลัก:
+* [SettingManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/SettingManager.cs) — ตัวจัดการค่า Volume (Master, BGM, SFX) และ Display (Fullscreen), บันทึกและโหลดผ่าน `PlayerPrefs`, รองรับ Auto-Wiring หา UI Component ในฉากอัตโนมัติ
+
+### รายละเอียดการทำงาน:
+* **Audio Sliders & Percentage Texts**:
+  * Master Audio Volume (0-100%, ค่าเริ่มต้น 100%)
+  * BGM Music Volume (0-100%, ค่าเริ่มต้น 85%)
+  * SFX Sound Volume (0-100%, ค่าเริ่มต้น 100%)
+  * เมื่อเลื่อน Slider จะปรับลดเสียงแบบ Real-time และอัปเดตตัวเลขเปอร์เซ็นต์ (`ValueText`) ทันที
+* **Fullscreen Mode Toggle**:
+  * สลับโหมดเต็มจอ / หน้าต่าง ผ่าน `Screen.fullScreen` และบันทึกลง PlayerPrefs
+* **Action Buttons**:
+  * **DEFAULT Button**: รีเซ็ตค่าการตั้งค่าทั้งหมดกลับสู่ค่าเริ่มต้นมาตรฐาน (Master 100%, BGM 85%, SFX 100%, Fullscreen เปิด) พร้อมอัปเดตหน้า UI ทันที
+  * **SAVE & BACK Button**: สั่งบันทึกลงดิสก์ผ่าน `PlayerPrefs.Save()` และปิดหน้าต่าง Modal
+* **Auto-Wiring & Singleton**:
+  * หากนำสคริปต์ไปแปะไว้ที่ GameObject `SettingsModal` ใน Scene ระบบจะสแกนหา Slider, Text, และปุ่มต่างๆ ให้เองอัตโนมัติ ไม่จำเป็นต้องลากใส่ Inspector ทีละชิ้น
+  * มี Event Actions: `OnMasterVolumeChanged`, `OnBgmVolumeChanged`, `OnSfxVolumeChanged`, `OnFullscreenChanged` ให้ระบบเสียงในอนาคต subscribe เพื่อปรับระดับเสียงตามหมวดหมู่ได้ทันที
+
+---
+
+## 10. ระบบภาพควันและหมอกบรรยากาศในหน้าเมนู (Smoke VFX & Fog Drifter)
+
+### ไฟล์และ Asset หลัก:
+* [Smoke_Puff_VFX.png](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Image/UI/Smoke_Puff_VFX.png) — สไปรต์กลุ่มควันทรงกลมแบบ Volumetric โทนม่วงเทา พร้อมตัดขอบโปร่งใสด้วยการแปลง Grayscale to Alpha
+* [Smoke_Horizontal_Fog.png](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Image/UI/Smoke_Horizontal_Fog.png) — สไปรต์แนวนอนพาโนรามาสำหรับชั้นหมอกควันเรี่ยพื้นซากเมือง
+* [UIFogDrifter.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/UIFogDrifter.cs) — สคริปต์ควบคุมการพริ้วไหว ลอยส่ายไปมาอย่างช้าๆ (Drift & Sway) และการเต้นกระพริบความโปร่งแสงแบบจางๆ (Alpha Breathing Pulse) เหมาะสำหรับ GameObject `SmokeVFX` ใน MainMenuCanvas
+
+

@@ -308,7 +308,11 @@ namespace TheLastEmpire
 
         public void OnClickSettings()
         {
-            if (settingsModalObj != null)
+            if (SettingManager.Instance != null)
+            {
+                SettingManager.Instance.OpenSettingsModal();
+            }
+            else if (settingsModalObj != null)
             {
                 settingsModalObj.SetActive(true);
             }
@@ -316,7 +320,11 @@ namespace TheLastEmpire
 
         public void OnCloseSettings()
         {
-            if (settingsModalObj != null)
+            if (SettingManager.Instance != null)
+            {
+                SettingManager.Instance.CloseSettingsModal();
+            }
+            else if (settingsModalObj != null)
             {
                 settingsModalObj.SetActive(false);
             }
