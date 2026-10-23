@@ -98,6 +98,31 @@ namespace TheLastEmpire
             }
         }
 
+        public void CreatePool(string key, GameObject prefab, int size = 15)
+        {
+            if (prefab == null || string.IsNullOrEmpty(key)) return;
+            string trimmedKey = key.Trim();
+
+            if (_poolDictionary == null) _poolDictionary = new Dictionary<string, Queue<GameObject>>();
+            if (_prefabDictionary == null) _prefabDictionary = new Dictionary<string, GameObject>();
+
+            if (_poolDictionary.ContainsKey(trimmedKey)) return;
+
+            _prefabDictionary[trimmedKey] = prefab;
+            Queue<GameObject> objectPool = new Queue<GameObject>();
+
+            for (int i = 0; i < size; i++)
+            {
+                GameObject obj = Instantiate(prefab);
+                obj.SetActive(false);
+                obj.transform.SetParent(transform);
+                objectPool.Enqueue(obj);
+            }
+
+            _poolDictionary.Add(trimmedKey, objectPool);
+            Debug.Log($"[ObjectPoolManager] Successfully created pool '{trimmedKey}' (Size: {size}).");
+        }
+
         public GameObject SpawnFromPool(string key, Vector3 position, Quaternion rotation)
         {
             if (string.IsNullOrEmpty(key)) return null;
@@ -110,8 +135,22 @@ namespace TheLastEmpire
 
             if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
             {
-                Debug.LogWarning($"[ObjectPoolManager] Pool with key '{trimmedKey}' does not exist or has not been initialized.");
-                return null;
+                // Auto-fallback check: Try loading from Resources/Prefabs/Item/{trimmedKey} or BoltPrefabs
+                GameObject loadedPrefab = Resources.Load<GameObject>($"Prefabs/Item/{trimmedKey}");
+                if (loadedPrefab == null && trimmedKey.Equals("Bolt001", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    loadedPrefab = Resources.Load<GameObject>("Prefabs/Item/BoltPrefabs");
+                }
+
+                if (loadedPrefab != null)
+                {
+                    CreatePool(trimmedKey, loadedPrefab, 20);
+                }
+                else
+                {
+                    Debug.LogWarning($"[ObjectPoolManager] Pool with key '{trimmedKey}' does not exist or has not been initialized.");
+                    return null;
+                }
             }
 
             Queue<GameObject> poolQueue = _poolDictionary[trimmedKey];

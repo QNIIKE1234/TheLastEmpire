@@ -28,9 +28,20 @@ namespace TheLastEmpire
         [SerializeField] private TrajectoryMode trajectoryMode = TrajectoryMode.Straight;
         [SerializeField] private float arcHeight = 2.5f;
 
+        [Header("Bullet Trail VFX")]
+        [SerializeField] private bool useTrailRenderer = true;
+        [SerializeField] private Material trailMaterial;
+        [SerializeField] private Color trailColor = new Color(1f, 0.85f, 0.35f, 0.9f);
+        [SerializeField] private float trailTime = 0.08f;
+        [SerializeField] private float trailStartWidth = 0.15f;
+
+        [Header("Impact Spark VFX")]
+        [SerializeField] private string obstacleHitVfxPoolKey = "PistolFlash";
+
         private Rigidbody _rb;
         private GameObject _owner;
         private float _lifeTimer;
+        private TrailRenderer _trail;
 
         // Arced trajectory variables
         private Vector3 _startPoint;
@@ -68,13 +79,64 @@ namespace TheLastEmpire
                 col.isTrigger = true;
             }
 
+            SetupTrailRenderer();
+
             // Set initial defaults
             _activeDamage = damage;
             _activeLifetime = lifetime;
         }
 
+        private void SetupTrailRenderer()
+        {
+            if (!useTrailRenderer) return;
+
+            _trail = GetComponent<TrailRenderer>();
+            if (_trail == null)
+            {
+                _trail = gameObject.AddComponent<TrailRenderer>();
+                _trail.time = trailTime;
+                _trail.startWidth = trailStartWidth;
+                _trail.endWidth = 0.0f;
+                _trail.autodestruct = false;
+
+                if (trailMaterial != null)
+                {
+                    _trail.material = trailMaterial;
+                }
+                else
+                {
+                    Shader shader = Shader.Find("Sprites/Default");
+                    if (shader == null) shader = Shader.Find("Mobile/Particles/Additive");
+                    if (shader == null) shader = Shader.Find("Particles/Standard Unlit");
+                    if (shader != null)
+                    {
+                        _trail.material = new Material(shader);
+                    }
+                }
+
+                Gradient gradient = new Gradient();
+                gradient.SetKeys(
+                    new GradientColorKey[] {
+                        new GradientColorKey(Color.white, 0.0f),
+                        new GradientColorKey(trailColor, 0.35f),
+                        new GradientColorKey(new Color(1f, 0.45f, 0.05f), 1.0f)
+                    },
+                    new GradientAlphaKey[] {
+                        new GradientAlphaKey(0.9f, 0.0f),
+                        new GradientAlphaKey(0.7f, 0.5f),
+                        new GradientAlphaKey(0.0f, 1.0f)
+                    }
+                );
+                _trail.colorGradient = gradient;
+            }
+        }
+
         private void OnEnable()
         {
+            if (_trail != null)
+            {
+                _trail.Clear();
+            }
             _lifeTimer = _activeLifetime;
             _currentFlightTime = 0f;
             _owner = null;
@@ -227,7 +289,17 @@ namespace TheLastEmpire
             // Hit solid wall or obstacle
             if (!collision.isTrigger)
             {
-                if (isExplosive) Explode();
+                if (isExplosive)
+                {
+                    Explode();
+                }
+                else if (!string.IsNullOrEmpty(obstacleHitVfxPoolKey) && ObjectPoolManager.Instance != null)
+                {
+                    Vector3 hitPt = collision.ClosestPoint(transform.position);
+                    Vector3 normal = (transform.position - hitPt).normalized;
+                    if (normal.sqrMagnitude < 0.01f) normal = -transform.forward;
+                    ObjectPoolManager.Instance.SpawnFromPool(obstacleHitVfxPoolKey, hitPt, Quaternion.LookRotation(normal));
+                }
                 DeactivateProjectile();
             }
         }
@@ -276,6 +348,11 @@ namespace TheLastEmpire
 
         private void DeactivateProjectile()
         {
+            if (_trail != null)
+            {
+                _trail.Clear();
+            }
+
             if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
             {
                 _rb.linearVelocity = Vector3.zero;

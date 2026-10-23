@@ -921,6 +921,40 @@ namespace TheLastEmpire
             // Alert nearby enemies to the gunshot noise
             AlertEnemiesToGunshot();
 
+            // 📳 สั่นหน้าจอเบาๆ ตามแรงถีบของปืน (Screen Shake Recoil)
+            float shakeDur = 0.05f;
+            float shakeMag = 0.08f;
+            if (activeWeapon != null)
+            {
+                string lowerName = activeWeapon.weaponName.ToLower();
+                if (lowerName.Contains("shotgun"))
+                {
+                    shakeDur = 0.12f;
+                    shakeMag = 0.25f;
+                }
+                else if (lowerName.Contains("sniper") || lowerName.Contains("revolver"))
+                {
+                    shakeDur = 0.10f;
+                    shakeMag = 0.20f;
+                }
+                else if (lowerName.Contains("rocket") || lowerName.Contains("grenade"))
+                {
+                    shakeDur = 0.18f;
+                    shakeMag = 0.40f;
+                }
+                else if (lowerName.Contains("smg"))
+                {
+                    shakeDur = 0.035f;
+                    shakeMag = 0.05f;
+                }
+                else if (lowerName.Contains("rifle"))
+                {
+                    shakeDur = 0.06f;
+                    shakeMag = 0.10f;
+                }
+            }
+            CameraFollow.TriggerShake(shakeDur, shakeMag);
+
             // Spawning positions (offset 0.95m forward to prevent overlapping player's 0.5m radius capsule when walking)
             Vector3 spawnPos = transform.position + _aimDirection * 0.95f;
             
@@ -1680,10 +1714,18 @@ namespace TheLastEmpire
                 weapons.Add(rocketLauncher);
 
                 // 9. Hunting Crossbow
+                Projectile boltProjPrefab = projectilePrefab;
+                GameObject boltObj = Resources.Load<GameObject>("Prefabs/Item/BoltPrefabs");
+                if (boltObj != null)
+                {
+                    Projectile loadedBolt = boltObj.GetComponent<Projectile>();
+                    if (loadedBolt != null) boltProjPrefab = loadedBolt;
+                }
+
                 Weapon crossbow = new Weapon
                 {
                     weaponName = "Crossbow",
-                    projectilePrefab = projectilePrefab,
+                    projectilePrefab = boltProjPrefab,
                     fireRate = 1.0f,
                     magazineSize = 1,
                     reloadDuration = 1.2f,
