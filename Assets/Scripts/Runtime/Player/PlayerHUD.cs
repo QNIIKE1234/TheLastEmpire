@@ -106,15 +106,15 @@ namespace TheLastEmpire
                 string skillName = player.ActiveCharacterData != null ? player.ActiveCharacterData.shiftAbilityName : "ABILITY";
                 if (player.ActiveShiftAbility.IsActive)
                 {
-                    _shiftSkillText.text = $"<color=#00FFAA>✦ [SHIFT] {skillName.ToUpper()} (ACTIVE)</color>";
+                    _shiftSkillText.text = $"<color=#00FFAA>[SHIFT] {skillName.ToUpper()} (ACTIVE)</color>";
                 }
                 else if (player.ActiveShiftAbility.CooldownRemaining > 0.05f)
                 {
-                    _shiftSkillText.text = $"<color=#FFAA00>⏳ [SHIFT] {skillName.ToUpper()} ({player.ActiveShiftAbility.CooldownRemaining:F1}s)</color>";
+                    _shiftSkillText.text = $"<color=#FFAA00>[SHIFT] {skillName.ToUpper()} ({player.ActiveShiftAbility.CooldownRemaining:F1}s)</color>";
                 }
                 else
                 {
-                    _shiftSkillText.text = $"<color=#C084FC>✦ [SHIFT] {skillName.ToUpper()} (READY)</color>";
+                    _shiftSkillText.text = $"<color=#C084FC>[SHIFT] {skillName.ToUpper()} (READY)</color>";
                 }
             }
         }
@@ -849,7 +849,7 @@ namespace TheLastEmpire
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(bannerObj.transform, false);
             TMPro.TMP_Text titleText = titleObj.AddComponent<TMPro.TextMeshProUGUI>();
-            titleText.text = $"❖ ความทรงจำสุดท้ายก่อนตื่น // {charData.characterName.ToUpper()} ❖";
+            titleText.text = $"AWAKENING MEMORY / {charData.characterName.ToUpper()}";
             titleText.fontSize = 15;
             titleText.fontStyle = TMPro.FontStyles.Bold;
             titleText.color = charData.themeColor;
@@ -866,7 +866,7 @@ namespace TheLastEmpire
             GameObject subObj = new GameObject("Subtitle");
             subObj.transform.SetParent(bannerObj.transform, false);
             TMPro.TMP_Text subText = subObj.AddComponent<TMPro.TextMeshProUGUI>();
-            subText.text = $"{charData.characterTitle}  •  {charData.roleCategory}";
+            subText.text = $"{charData.characterTitle} - {charData.roleCategory}";
             subText.fontSize = 11;
             subText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
             subText.alignment = TMPro.TextAlignmentOptions.Center;

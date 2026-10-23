@@ -407,7 +407,7 @@ namespace TheLastEmpire.UI
             GameObject hintObj = new GameObject("ContinueHint");
             hintObj.transform.SetParent(dialogueContainer.transform, false);
             TMP_Text hintText = hintObj.AddComponent<TextMeshProUGUI>();
-            hintText.text = "[ Space / Left Click ]  ▶";
+            hintText.text = "[ Space / Left Click ]";
             hintText.fontSize = 18;
             hintText.color = new Color(0.7f, 0.7f, 0.75f, 0.8f);
             hintText.alignment = TextAlignmentOptions.Right;

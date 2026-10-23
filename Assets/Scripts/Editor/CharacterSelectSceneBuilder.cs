@@ -149,7 +149,7 @@ namespace TheLastEmpire.Editor
             GameObject subHeaderObj = new GameObject("ModalSubtitle", typeof(RectTransform), typeof(TextMeshProUGUI));
             subHeaderObj.transform.SetParent(panel.transform, false);
             TMP_Text subHeaderText = subHeaderObj.GetComponent<TextMeshProUGUI>();
-            subHeaderText.text = "5 OPERATIVES • 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE • SIGNATURE SHIFT SKILLS";
+            subHeaderText.text = "5 OPERATIVES - 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE - SIGNATURE SHIFT SKILLS";
             subHeaderText.fontSize = 12;
             subHeaderText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
             subHeaderText.alignment = TextAlignmentOptions.Center;
@@ -277,7 +277,7 @@ namespace TheLastEmpire.Editor
             GameObject clueTitleObj = new GameObject("ClueTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
             clueTitleObj.transform.SetParent(clueBox.transform, false);
             TMP_Text clueTitleText = clueTitleObj.GetComponent<TextMeshProUGUI>();
-            clueTitleText.text = "❖ LAST MEMORY BEFORE AWAKENING ❖";
+            clueTitleText.text = "LAST MEMORY BEFORE AWAKENING";
             clueTitleText.fontSize = 11;
             clueTitleText.fontStyle = FontStyles.Bold;
             clueTitleText.color = new Color(1f, 0.75f, 0.3f, 0.95f);
@@ -327,7 +327,7 @@ namespace TheLastEmpire.Editor
             GameObject loreTitleObj = new GameObject("LoreTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
             loreTitleObj.transform.SetParent(loreBox.transform, false);
             TMP_Text loreTitleText = loreTitleObj.GetComponent<TextMeshProUGUI>();
-            loreTitleText.text = "❖ BACKGROUND & OPERATIVE DOSSIER ❖";
+            loreTitleText.text = "BACKGROUND & OPERATIVE DOSSIER";
             loreTitleText.fontSize = 11;
             loreTitleText.fontStyle = FontStyles.Bold;
             loreTitleText.color = secondaryAccent;
@@ -386,7 +386,7 @@ namespace TheLastEmpire.Editor
             GameObject attrTitleObj = new GameObject("AttrTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
             attrTitleObj.transform.SetParent(attrBox.transform, false);
             TMP_Text attrTitleText = attrTitleObj.GetComponent<TextMeshProUGUI>();
-            attrTitleText.text = "⚡ OPERATIVE ATTRIBUTES";
+            attrTitleText.text = "OPERATIVE ATTRIBUTES";
             attrTitleText.fontSize = 11;
             attrTitleText.fontStyle = FontStyles.Bold;
             attrTitleText.color = new Color(0.3f, 0.85f, 1f, 0.95f);
@@ -485,7 +485,7 @@ namespace TheLastEmpire.Editor
             GameObject loutTitleObj = new GameObject("LoadoutTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
             loutTitleObj.transform.SetParent(loadoutBox.transform, false);
             TMP_Text loutTitleText = loutTitleObj.GetComponent<TextMeshProUGUI>();
-            loutTitleText.text = "🎒 STARTING ARSENAL & SURVIVAL LOADOUT";
+            loutTitleText.text = "STARTING ARSENAL & SURVIVAL LOADOUT";
             loutTitleText.fontSize = 11;
             loutTitleText.fontStyle = FontStyles.Bold;
             loutTitleText.color = new Color(0.4f, 0.95f, 0.6f, 0.95f);
@@ -610,7 +610,7 @@ namespace TheLastEmpire.Editor
             GameObject embarkLabelObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             embarkLabelObj.transform.SetParent(embarkBtnObj.transform, false);
             TMP_Text embarkLabel = embarkLabelObj.GetComponent<TextMeshProUGUI>();
-            embarkLabel.text = "EMBARK // ENTER WASTELAND ➔";
+            embarkLabel.text = "EMBARK / ENTER WASTELAND";
             embarkLabel.fontSize = 18;
             embarkLabel.fontStyle = FontStyles.Bold;
             embarkLabel.color = Color.white;

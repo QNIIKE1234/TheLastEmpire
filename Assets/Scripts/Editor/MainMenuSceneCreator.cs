@@ -256,7 +256,7 @@ namespace TheLastEmpire.Editor
             // Top Flourish
             GameObject topFlourishObj = CreateUIObject("TopFlourishText", logoContainer.transform);
             TextMeshProUGUI topFlourish = topFlourishObj.AddComponent<TextMeshProUGUI>();
-            topFlourish.text = "—   T H E   L A S T   —";
+            topFlourish.text = "THE LAST";
             topFlourish.fontSize = 20;
             topFlourish.fontStyle = FontStyles.Bold;
             topFlourish.color = HighlightAccent;
@@ -288,7 +288,7 @@ namespace TheLastEmpire.Editor
             // Crest Rune Flourish
             GameObject crestObj = CreateUIObject("CrestFlourish", logoContainer.transform);
             TextMeshProUGUI crestText = crestObj.AddComponent<TextMeshProUGUI>();
-            crestText.text = "◈ ─────── ❖ ─────── ◈";
+            crestText.text = "";
             crestText.fontSize = 16;
             crestText.color = new Color(PrimaryAccent.r, PrimaryAccent.g, PrimaryAccent.b, 0.85f);
             crestText.alignment = TextAlignmentOptions.Center;
@@ -333,12 +333,12 @@ namespace TheLastEmpire.Editor
             vLayout.childForceExpandWidth = true;
             vLayout.childForceExpandHeight = false;
 
-            // Highlighted Primary Button: NEW GAME (Vibrant purple matching reference!)
-            Button newGameBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_NEW GAME", "⊶  NEW GAME  ⊷", PrimaryAccent, true, tekoFont);
-            Button continueBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_CONTINUE", "᚛  CONTINUE  ᚜", SecondaryBtnColor, false, tekoFont);
-            Button controlsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_HOW TO PLAY", "❖  HOW TO PLAY  ❖", SecondaryBtnColor, false, tekoFont);
-            Button settingsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_SETTINGS", "⟐  OPTIONS  ⟐", SecondaryBtnColor, false, tekoFont);
-            Button quitBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_QUIT GAME", "⊶  EXIT  ⊷", SecondaryBtnColor, false, tekoFont);
+            // Highlighted Primary Button: NEW GAME
+            Button newGameBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_NEW GAME", "NEW GAME", PrimaryAccent, true, tekoFont);
+            Button continueBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_CONTINUE", "CONTINUE", SecondaryBtnColor, false, tekoFont);
+            Button controlsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_HOW TO PLAY", "HOW TO PLAY", SecondaryBtnColor, false, tekoFont);
+            Button settingsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_SETTINGS", "OPTIONS", SecondaryBtnColor, false, tekoFont);
+            Button quitBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_QUIT GAME", "EXIT", SecondaryBtnColor, false, tekoFont);
 
             // -------------------------------------------------------------
             // Bottom Social & Community Bar (Bottom of Sidebar)
@@ -358,13 +358,13 @@ namespace TheLastEmpire.Editor
             hLayout.childControlHeight = false;
 
             // Discord Button
-            CreateSocialButton(socialBar.transform, "Btn_Discord", "💬", 46f, tekoFont);
+            CreateSocialButton(socialBar.transform, "Btn_Discord", "DISCORD", 70f, tekoFont);
 
             // Wishlist Button (Pill shape)
-            CreateSocialButton(socialBar.transform, "Btn_Wishlist", "↗ WISHLIST ON STEAM", 230f, tekoFont);
+            CreateSocialButton(socialBar.transform, "Btn_Wishlist", "WISHLIST ON STEAM", 200f, tekoFont);
 
             // Twitter / Community Button
-            CreateSocialButton(socialBar.transform, "Btn_Community", "𝕏", 46f, tekoFont);
+            CreateSocialButton(socialBar.transform, "Btn_Community", "COMMUNITY", 80f, tekoFont);
 
             // Version text beneath social bar
             GameObject verObj = CreateUIObject("VersionText", sidebarObj.transform);

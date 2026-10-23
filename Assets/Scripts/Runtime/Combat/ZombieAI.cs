@@ -820,10 +820,10 @@ namespace TheLastEmpire
             // Update UI healthbar name to display [RAGE]
             if (nameText != null)
             {
-                nameText.text = $"<color=#FF1100>🔥 [RAGE] {enemyName}</color>";
+                nameText.text = $"<color=#FF1100>[RAGE] {enemyName}</color>";
             }
 
-            Debug.Log($"<color=#FF0000>[ZombieAI] 🔥🔥🔥 {gameObject.name} ENTERED RAGE MODE! (HP <= {rageHealthThreshold * 100:F0}%) Speed x{rageSpeedMultiplier}, Skills Faster!</color>");
+            Debug.Log($"<color=#FF0000>[ZombieAI] {gameObject.name} ENTERED RAGE MODE! (HP <= {rageHealthThreshold * 100:F0}%) Speed x{rageSpeedMultiplier}, Skills Faster!</color>");
         }
 
         private void OnExitRageMode()

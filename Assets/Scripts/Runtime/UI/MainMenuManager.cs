@@ -21,11 +21,11 @@ namespace TheLastEmpire
         [SerializeField] private string gameplaySceneName = "Gameplay_3D";
         [SerializeField] private float fadeDuration = 0.5f;
 
-        [Header("Theme Color Palette (Arcane / Post-Apocalyptic Vibrant)")]
-        [SerializeField] private Color primaryAccent = new Color(0.66f, 0.33f, 0.97f, 1f);    // Vibrant Purple (#A855F7)
-        [SerializeField] private Color secondaryAccent = new Color(0.75f, 0.52f, 0.99f, 1f);  // Lilac Flourish (#C084FC)
-        [SerializeField] private Color panelBgColor = new Color(0.08f, 0.09f, 0.11f, 0.96f);  // Dark Obsidian Sidebar (#15171C)
-        [SerializeField] private Color buttonBgColor = new Color(0.14f, 0.16f, 0.19f, 0.95f); // Dark Slate Button (#242930)
+        [Header("Theme Color Palette (Black / Silver / Gold)")]
+        [SerializeField] private Color primaryAccent = new Color(0.96f, 0.70f, 0.12f, 1f);
+        [SerializeField] private Color secondaryAccent = new Color(0.82f, 0.85f, 0.88f, 1f);
+        [SerializeField] private Color panelBgColor = new Color(0.035f, 0.04f, 0.045f, 0.98f);
+        [SerializeField] private Color buttonBgColor = new Color(0.075f, 0.08f, 0.085f, 0.98f);
 
         [Header("Serialized References (Optional - Built procedurally if null)")]
         [SerializeField] private Canvas menuCanvas;
@@ -52,6 +52,7 @@ namespace TheLastEmpire
         private CanvasGroup _fadeOverlayGroup;
         private bool _isTransitioning = false;
         private TMP_FontAsset _customFont;
+        private Sprite _menuFrameSprite;
 
         public void SetHierarchyReferences(
             Canvas canvas, CanvasGroup canvasGroup,
@@ -110,6 +111,7 @@ namespace TheLastEmpire
             {
                 WireExistingReferences();
             }
+            ApplyReferenceTheme();
 
             // Ensure background ember particles exist for atmosphere
             EnsureAtmosphericBackground();
@@ -170,6 +172,72 @@ namespace TheLastEmpire
                     break;
                 }
             }
+        }
+
+        private Sprite GetMenuFrameSprite()
+        {
+            if (_menuFrameSprite != null) return _menuFrameSprite;
+
+            Sprite[] sprites = Resources.LoadAll<Sprite>("Image/UI/exec-7b2b05d1-d8f6-4ee8-b21d-8ee6ba816922");
+            foreach (Sprite sprite in sprites)
+            {
+                if (sprite != null && sprite.name.EndsWith("_5"))
+                {
+                    _menuFrameSprite = sprite;
+                    break;
+                }
+            }
+            return _menuFrameSprite;
+        }
+
+        private void ApplyFrame(Image image, Color tint)
+        {
+            if (image == null) return;
+
+            Sprite frame = GetMenuFrameSprite();
+            if (frame == null) return;
+
+            image.sprite = frame;
+            image.type = Image.Type.Sliced;
+            image.color = tint;
+        }
+
+        private void ApplyReferenceTheme()
+        {
+            if (menuCanvas == null) return;
+
+            // Reuse the silver framed panel from the supplied UI atlas for the existing scene buttons.
+            ApplyFrame(newGameBtn != null ? newGameBtn.GetComponent<Image>() : null, primaryAccent);
+            ApplyFrame(continueBtn != null ? continueBtn.GetComponent<Image>() : null, Color.white);
+            ApplyFrame(controlsBtn != null ? controlsBtn.GetComponent<Image>() : null, Color.white);
+            ApplyFrame(settingsBtn != null ? settingsBtn.GetComponent<Image>() : null, Color.white);
+            ApplyFrame(quitBtn != null ? quitBtn.GetComponent<Image>() : null, Color.white);
+
+            // Keep modal surfaces dark while giving their outlines the same rounded instrument-panel frame.
+            Transform[] allTransforms = menuCanvas.GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in allTransforms)
+            {
+                Graphic graphic = child.GetComponent<Graphic>();
+                if (graphic != null)
+                {
+                    Color.RGBToHSV(graphic.color, out float hue, out float saturation, out float value);
+                    if (hue >= 0.68f && hue <= 0.86f && saturation >= 0.25f)
+                    {
+                        Color accent = value > 0.55f ? primaryAccent : new Color(0.58f, 0.40f, 0.10f, 1f);
+                        accent.a = graphic.color.a;
+                        graphic.color = accent;
+                    }
+                }
+
+                if (child.name == "ModalPanel")
+                {
+                    Image panelImage = child.GetComponent<Image>();
+                    ApplyFrame(panelImage, Color.white);
+                    if (panelImage != null) panelImage.raycastTarget = true;
+                }
+            }
+
+            if (titleLabel != null) titleLabel.color = secondaryAccent;
         }
 
         private void ApplyCustomFont(TMP_Text text)
@@ -283,7 +351,7 @@ namespace TheLastEmpire
                 TMP_Text btnText = continueBtn.GetComponentInChildren<TMP_Text>();
                 if (btnText != null)
                 {
-                    btnText.text = hasSave ? "᚛  CONTINUE  ᚜" : "᚛  CONTINUE (NO SAVE)  ᚜";
+                    btnText.text = hasSave ? "CONTINUE" : "CONTINUE (NO SAVE)";
                     btnText.color = hasSave ? Color.white : new Color(0.6f, 0.6f, 0.6f, 0.8f);
                 }
             }
@@ -617,7 +685,7 @@ namespace TheLastEmpire
             topFlourishObj.layer = 5;
             topFlourishObj.transform.SetParent(logoContainer.transform, false);
             TMP_Text topFlourish = topFlourishObj.AddComponent<TextMeshProUGUI>();
-            topFlourish.text = "—   T H E   L A S T   —";
+            topFlourish.text = "THE LAST";
             topFlourish.fontSize = 20;
             topFlourish.fontStyle = FontStyles.Bold;
             topFlourish.color = secondaryAccent;
@@ -653,7 +721,7 @@ namespace TheLastEmpire
             crestObj.layer = 5;
             crestObj.transform.SetParent(logoContainer.transform, false);
             TMP_Text crestText = crestObj.AddComponent<TextMeshProUGUI>();
-            crestText.text = "◈ ─────── ❖ ─────── ◈";
+            crestText.text = "";
             crestText.fontSize = 16;
             crestText.color = new Color(primaryAccent.r, primaryAccent.g, primaryAccent.b, 0.85f);
             crestText.alignment = TextAlignmentOptions.Center;
@@ -700,12 +768,12 @@ namespace TheLastEmpire
             vLayout.childForceExpandWidth = true;
             vLayout.childForceExpandHeight = false;
 
-            // Highlighted Primary Button: NEW GAME (Vibrant purple matching reference!)
-            newGameBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_NEW GAME", "⊶  NEW GAME  ⊷", primaryAccent, true, OnClickNewGame);
-            continueBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_CONTINUE", "᚛  CONTINUE  ᚜", buttonBgColor, false, OnClickContinue);
-            controlsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_HOW TO PLAY", "❖  HOW TO PLAY  ❖", buttonBgColor, false, OnClickControls);
-            settingsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_SETTINGS", "⟐  OPTIONS  ⟐", buttonBgColor, false, OnClickSettings);
-            quitBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_QUIT GAME", "⊶  EXIT  ⊷", buttonBgColor, false, OnClickQuit);
+            // Highlighted Primary Button: NEW GAME
+            newGameBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_NEW GAME", "NEW GAME", primaryAccent, true, OnClickNewGame);
+            continueBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_CONTINUE", "CONTINUE", buttonBgColor, false, OnClickContinue);
+            controlsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_HOW TO PLAY", "HOW TO PLAY", buttonBgColor, false, OnClickControls);
+            settingsBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_SETTINGS", "OPTIONS", buttonBgColor, false, OnClickSettings);
+            quitBtn = CreateSidebarButton(buttonsContainer.transform, "Btn_QUIT GAME", "EXIT", buttonBgColor, false, OnClickQuit);
 
             // 6. Bottom Social & Community Bar (Bottom of Sidebar)
             GameObject socialBar = new GameObject("BottomSocialBar");
@@ -724,9 +792,9 @@ namespace TheLastEmpire
             hLayout.childControlWidth = false;
             hLayout.childControlHeight = false;
 
-            CreateSocialButton(socialBar.transform, "Btn_Discord", "💬", 46f);
-            CreateSocialButton(socialBar.transform, "Btn_Wishlist", "↗ WISHLIST ON STEAM", 230f);
-            CreateSocialButton(socialBar.transform, "Btn_Community", "𝕏", 46f);
+            CreateSocialButton(socialBar.transform, "Btn_Discord", "DISCORD", 70f);
+            CreateSocialButton(socialBar.transform, "Btn_Wishlist", "WISHLIST ON STEAM", 200f);
+            CreateSocialButton(socialBar.transform, "Btn_Community", "COMMUNITY", 80f);
 
             // Version text beneath social bar
             GameObject verObj = new GameObject("VersionText");
@@ -785,6 +853,7 @@ namespace TheLastEmpire
 
             Image btnBg = btnObj.AddComponent<Image>();
             btnBg.color = bgColor;
+            ApplyFrame(btnBg, isPrimary ? primaryAccent : Color.white);
 
             // Border Line
             GameObject borderObj = new GameObject("Border");
@@ -837,6 +906,7 @@ namespace TheLastEmpire
 
             Image bg = btnObj.AddComponent<Image>();
             bg.color = new Color(0.12f, 0.14f, 0.17f, 0.90f);
+            ApplyFrame(bg, Color.white);
 
             GameObject borderObj = new GameObject("Border");
             borderObj.layer = 5;
@@ -1413,7 +1483,7 @@ namespace TheLastEmpire
             GameObject subHeaderObj = new GameObject("ModalSubtitle");
             subHeaderObj.transform.SetParent(panel.transform, false);
             TMP_Text subHeaderText = subHeaderObj.AddComponent<TextMeshProUGUI>();
-            subHeaderText.text = "5 OPERATIVES • 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE • SIGNATURE SHIFT SKILLS";
+            subHeaderText.text = "5 OPERATIVES - 5 AMNESIA PERSPECTIVES OF THE FALLEN EMPIRE - SIGNATURE SHIFT SKILLS";
             subHeaderText.fontSize = 12;
             subHeaderText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
             subHeaderText.alignment = TextAlignmentOptions.Center;
@@ -1519,7 +1589,7 @@ namespace TheLastEmpire
             GameObject clueTitleObj = new GameObject("ClueTitle");
             clueTitleObj.transform.SetParent(clueBox.transform, false);
             TMP_Text clueTitleText = clueTitleObj.AddComponent<TextMeshProUGUI>();
-            clueTitleText.text = "❖ LAST MEMORY BEFORE AWAKENING ❖";
+            clueTitleText.text = "LAST MEMORY BEFORE AWAKENING";
             clueTitleText.fontSize = 11;
             clueTitleText.fontStyle = FontStyles.Bold;
             clueTitleText.color = new Color(1f, 0.75f, 0.3f, 0.95f);
@@ -1569,7 +1639,7 @@ namespace TheLastEmpire
             GameObject loreTitleObj = new GameObject("LoreTitle");
             loreTitleObj.transform.SetParent(loreBox.transform, false);
             TMP_Text loreTitleText = loreTitleObj.AddComponent<TextMeshProUGUI>();
-            loreTitleText.text = "❖ BACKGROUND & OPERATIVE DOSSIER ❖";
+            loreTitleText.text = "BACKGROUND & OPERATIVE DOSSIER";
             loreTitleText.fontSize = 11;
             loreTitleText.fontStyle = FontStyles.Bold;
             loreTitleText.color = secondaryAccent;
@@ -1628,7 +1698,7 @@ namespace TheLastEmpire
             GameObject attrTitleObj = new GameObject("AttrTitle");
             attrTitleObj.transform.SetParent(attrBox.transform, false);
             TMP_Text attrTitleText = attrTitleObj.AddComponent<TextMeshProUGUI>();
-            attrTitleText.text = "⚡ OPERATIVE ATTRIBUTES";
+            attrTitleText.text = "OPERATIVE ATTRIBUTES";
             attrTitleText.fontSize = 11;
             attrTitleText.fontStyle = FontStyles.Bold;
             attrTitleText.color = new Color(0.3f, 0.85f, 1f, 0.95f);
@@ -1727,7 +1797,7 @@ namespace TheLastEmpire
             GameObject loutTitleObj = new GameObject("LoadoutTitle");
             loutTitleObj.transform.SetParent(loadoutBox.transform, false);
             TMP_Text loutTitleText = loutTitleObj.AddComponent<TextMeshProUGUI>();
-            loutTitleText.text = "🎒 STARTING ARSENAL & SURVIVAL LOADOUT";
+            loutTitleText.text = "STARTING ARSENAL & SURVIVAL LOADOUT";
             loutTitleText.fontSize = 11;
             loutTitleText.fontStyle = FontStyles.Bold;
             loutTitleText.color = new Color(0.4f, 0.95f, 0.6f, 0.95f);
@@ -1766,14 +1836,14 @@ namespace TheLastEmpire
             {
                 currentSelectedId = ch.characterId;
                 dNameText.text = ch.characterName.ToUpper();
-                dRoleText.text = $"{ch.characterTitle}  •  <color=#A855F7>{ch.roleCategory}</color>";
+                dRoleText.text = $"{ch.characterTitle} - <color=#A855F7>{ch.roleCategory}</color>";
                 clueBodyText.text = ch.amnesiaWakingClue;
                 loreBodyText.text = ch.loreSynopsis;
-                attrBodyText.text = $"• Max HP: <b>{ch.maxHealth}</b>\n• Max Hunger: <b>{ch.maxHunger}</b>\n• Move Speed: <b>{ch.moveSpeed:F1} m/s</b>\n• Dash Speed: <b>{ch.dashSpeed:F0} m/s</b> ({ch.dashCooldown:F1}s CD)";
-                skillTitleText.text = $"✦ [SHIFT] {ch.shiftAbilityName.ToUpper()}";
+                attrBodyText.text = $"- Max HP: <b>{ch.maxHealth}</b>\n- Max Hunger: <b>{ch.maxHunger}</b>\n- Move Speed: <b>{ch.moveSpeed:F1} m/s</b>\n- Dash Speed: <b>{ch.dashSpeed:F0} m/s</b> ({ch.dashCooldown:F1}s CD)";
+                skillTitleText.text = $"[SHIFT] {ch.shiftAbilityName.ToUpper()}";
                 skillBodyText.text = ch.shiftAbilityDescription;
                 string wpns = (ch.startingWeapons != null && ch.startingWeapons.Count > 0) ? string.Join(", ", ch.startingWeapons) : "Knife";
-                loutBodyText.text = $"• Primary Weapon: <b>{wpns}</b>\n• Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
+                loutBodyText.text = $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
 
                 for (int i = 0; i < roster.Count; i++)
                 {
@@ -1893,7 +1963,7 @@ namespace TheLastEmpire
             GameObject embarkLabelObj = new GameObject("Label");
             embarkLabelObj.transform.SetParent(embarkBtnObj.transform, false);
             TMP_Text embarkLabel = embarkLabelObj.AddComponent<TextMeshProUGUI>();
-            embarkLabel.text = "EMBARK // ENTER WASTELAND ➔";
+            embarkLabel.text = "EMBARK / ENTER WASTELAND";
             embarkLabel.fontSize = 18;
             embarkLabel.fontStyle = FontStyles.Bold;
             embarkLabel.color = Color.white;

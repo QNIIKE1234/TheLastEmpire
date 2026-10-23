@@ -23,11 +23,11 @@ namespace TheLastEmpire
 
         private Vector2 _scrollPos;
 
-        [MenuItem("TheLastEmpire/👑 Boss Spawner Tool %&b", false, 50)]
-        [MenuItem("Tools/👑 Boss Spawner Tool", false, 50)]
+        [MenuItem("TheLastEmpire/Boss Spawner Tool %&b", false, 50)]
+        [MenuItem("Tools/Boss Spawner Tool", false, 50)]
         public static void OpenWindow()
         {
-            BossSpawnerEditorWindow window = GetWindow<BossSpawnerEditorWindow>("👑 Boss Spawner");
+            BossSpawnerEditorWindow window = GetWindow<BossSpawnerEditorWindow>("Boss Spawner");
             window.minSize = new Vector2(340, 520);
             window.Show();
         }
@@ -55,7 +55,7 @@ namespace TheLastEmpire
             };
             titleStyle.normal.textColor = new Color(1f, 0.82f, 0.2f);
 
-            EditorGUILayout.LabelField("👑 BOSS SPAWNER TOOL", titleStyle);
+            EditorGUILayout.LabelField("BOSS SPAWNER TOOL", titleStyle);
             EditorGUILayout.LabelField("เครื่องมือเสก Boss และมอนสเตอร์ สำหรับทดสอบระบบ", EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space(10);
         }
@@ -70,7 +70,7 @@ namespace TheLastEmpire
                 GUIStyle statusStyle = new GUIStyle(EditorStyles.boldLabel);
                 statusStyle.normal.textColor = statusColor;
 
-                EditorGUILayout.LabelField("สถานะ:", isPlaying ? "🟢 [PLAY MODE - เล่นอยู่]" : "🟡 [EDIT MODE - กำลังแก้ไข]", statusStyle);
+                EditorGUILayout.LabelField("สถานะ:", isPlaying ? "[PLAY MODE - เล่นอยู่]" : "[EDIT MODE - กำลังแก้ไข]", statusStyle);
 
                 PlayerController player = Object.FindFirstObjectByType<PlayerController>();
                 if (player != null)
@@ -79,7 +79,7 @@ namespace TheLastEmpire
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("ผู้เล่น:", "⚠️ ไม่พบ Player ในฉาก", EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField("ผู้เล่น:", "ไม่พบ Player ในฉาก", EditorStyles.miniLabel);
                 }
 
                 if (isPlaying)
@@ -95,7 +95,7 @@ namespace TheLastEmpire
 
         private void DrawSpawnOptions()
         {
-            EditorGUILayout.LabelField("⚙️ ตัวเลือกการเสก", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("ตัวเลือกการเสก", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical("box");
             {
                 _selectedType = (BossSpawnerRuntime.EnemySpawnType)EditorGUILayout.EnumPopup("ประเภทมอน:", _selectedType);
@@ -119,18 +119,18 @@ namespace TheLastEmpire
 
         private void DrawActionButtons()
         {
-            EditorGUILayout.LabelField("🚀 คำสั่งเสก (Actions)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("คำสั่งเสก (Actions)", EditorStyles.boldLabel);
 
             // Primary Spawn Button
             GUI.backgroundColor = new Color(0.2f, 0.75f, 0.3f);
-            string spawnLabel = _spawnCount == 1 ? $"👑 เสก {_selectedType} ทันที!" : $"👑 เสก {_selectedType} ({_spawnCount} ตัว)!";
+            string spawnLabel = _spawnCount == 1 ? $"เสก {_selectedType} ทันที!" : $"เสก {_selectedType} ({_spawnCount} ตัว)!";
             if (GUILayout.Button(spawnLabel, GUILayout.Height(38)))
             {
                 ExecuteSpawn();
             }
 
             GUI.backgroundColor = new Color(0.95f, 0.55f, 0.1f);
-            if (GUILayout.Button("⚡ เสก Boss Rush (3 ตัวล้อมกรอบ)", GUILayout.Height(28)))
+            if (GUILayout.Button("เสก Boss Rush (3 ตัวล้อมกรอบ)", GUILayout.Height(28)))
             {
                 if (EditorApplication.isPlaying && BossSpawnerRuntime.Instance != null)
                 {
@@ -145,7 +145,7 @@ namespace TheLastEmpire
             }
 
             GUI.backgroundColor = new Color(1f, 0.25f, 0.15f);
-            if (GUILayout.Button("🔥 บังคับ Boss เข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(28)))
+            if (GUILayout.Button("บังคับ Boss เข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(28)))
             {
                 if (EditorApplication.isPlaying && BossSpawnerRuntime.Instance != null)
                 {
@@ -168,12 +168,12 @@ namespace TheLastEmpire
             }
 
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("💀 คำสั่งเคลียร์ฉาก", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("คำสั่งเคลียร์ฉาก", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
             {
                 GUI.backgroundColor = new Color(0.85f, 0.25f, 0.25f);
-                if (GUILayout.Button("💀 ฆ่า Boss ทั้งหมด", GUILayout.Height(28)))
+                if (GUILayout.Button("ฆ่า Boss ทั้งหมด", GUILayout.Height(28)))
                 {
                     if (EditorApplication.isPlaying && BossSpawnerRuntime.Instance != null)
                     {
@@ -186,7 +186,7 @@ namespace TheLastEmpire
                 }
 
                 GUI.backgroundColor = new Color(0.65f, 0.15f, 0.15f);
-                if (GUILayout.Button("🧹 ล้างศัตรูทั้งหมด", GUILayout.Height(28)))
+                if (GUILayout.Button("ล้างศัตรูทั้งหมด", GUILayout.Height(28)))
                 {
                     if (EditorApplication.isPlaying && BossSpawnerRuntime.Instance != null)
                     {
@@ -208,11 +208,11 @@ namespace TheLastEmpire
         {
             EditorGUILayout.BeginVertical("helpbox");
             {
-                EditorGUILayout.LabelField("⌨️ ปุ่มลัดในขณะเล่น (Play Mode):", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField("• กด [B] : เสก Boss ตรงหน้าผู้เล่นทันที", EditorStyles.miniLabel);
-                EditorGUILayout.LabelField("• กด [Shift + B] : เสก Boss Rush (3 ตัว)", EditorStyles.miniLabel);
-                EditorGUILayout.LabelField("• กด [K] : ฆ่า Boss ทั้งหมดในฉาก", EditorStyles.miniLabel);
-                EditorGUILayout.LabelField("• กด [F1] : เปิด/ปิด หน้าต่างเมนูบนหน้าจอเกม", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("ปุ่มลัดในขณะเล่น (Play Mode):", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("- กด [B] : เสก Boss ตรงหน้าผู้เล่นทันที", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("- กด [Shift + B] : เสก Boss Rush (3 ตัว)", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("- กด [K] : ฆ่า Boss ทั้งหมดในฉาก", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("- กด [F1] : เปิด/ปิด หน้าต่างเมนูบนหน้าจอเกม", EditorStyles.miniLabel);
             }
             EditorGUILayout.EndVertical();
         }

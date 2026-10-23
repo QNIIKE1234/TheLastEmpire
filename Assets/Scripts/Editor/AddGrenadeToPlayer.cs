@@ -36,7 +36,7 @@ public class AddGrenadeToPlayer
                 
                 EditorUtility.SetDirty(prefab);
                 AssetDatabase.SaveAssets();
-                Debug.Log("✅ Added Grenade to PlayerPrefabs successfully! You can now equip it in-game.");
+                Debug.Log("[AddGrenadeToPlayer] Added Grenade to PlayerPrefabs successfully! You can now equip it in-game.");
             }
             else
             {

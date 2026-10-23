@@ -118,7 +118,7 @@ namespace TheLastEmpire
                 SpawnEnemy(EnemySpawnType.BossLeader, spawnPos, bossHealthMultiplier, bossScaleMultiplier);
             }
 
-            ShowToast($"👑 BOSS RUSH! เสก Boss {count} ตัวล้อมรอบผู้เล่น!");
+            ShowToast($"BOSS RUSH! เสก Boss {count} ตัวล้อมรอบผู้เล่น!");
         }
 
         public GameObject SpawnEnemy(EnemySpawnType type, Vector3 position, float hpMultiplier = 1f, float scaleMultiplier = 1f)
@@ -171,7 +171,7 @@ namespace TheLastEmpire
                     health.SetMaxHealth(newMax, true);
                 }
 
-                string typeName = type == EnemySpawnType.BossLeader ? "👑 Boss (ZombieLeader)" : type.ToString();
+                string typeName = type == EnemySpawnType.BossLeader ? "Boss (ZombieLeader)" : type.ToString();
                 ShowToast($"เสก {typeName} สำเร็จที่ ({position.x:F1}, {position.z:F1})");
                 Debug.Log($"<color=#FFD700>[BossSpawner]</color> Spawned {type} at {position} (HP x{hpMultiplier}, Scale x{scaleMultiplier})");
             }
@@ -243,7 +243,7 @@ namespace TheLastEmpire
                 }
             }
 
-            ShowToast($"💀 กำจัด Boss ไปแล้ว {count} ตัว!");
+            ShowToast($"กำจัด Boss ไปแล้ว {count} ตัว!");
         }
 
         public void KillAllEnemies()
@@ -262,7 +262,7 @@ namespace TheLastEmpire
                 }
             }
 
-            ShowToast($"🧹 กำจัดศัตรูทั้งหมดในฉากแล้ว ({count} ตัว)");
+            ShowToast($"กำจัดศัตรูทั้งหมดในฉากแล้ว ({count} ตัว)");
         }
 
         #endregion
@@ -301,7 +301,7 @@ namespace TheLastEmpire
             float toggleX = Screen.width - 150f;
             float toggleY = 10f;
             GUI.backgroundColor = _showDebugGui ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.7f, 0.3f);
-            if (GUI.Button(new Rect(toggleX, toggleY, 140f, 32f), _showDebugGui ? "✕ ปิด Boss Tool [F1]" : "👑 Boss Tool [F1]"))
+            if (GUI.Button(new Rect(toggleX, toggleY, 140f, 32f), _showDebugGui ? "[-] ปิด Boss Tool [F1]" : "[+] Boss Tool [F1]"))
             {
                 _showDebugGui = !_showDebugGui;
             }
@@ -324,7 +324,7 @@ namespace TheLastEmpire
                     alignment = TextAnchor.MiddleCenter
                 };
                 titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
-                GUILayout.Label("👑 BOSS SPAWNER TOOL", titleStyle);
+                GUILayout.Label("BOSS SPAWNER TOOL", titleStyle);
 
                 // Stats Info
                 int bossCount = CountActiveBosses();
@@ -335,42 +335,42 @@ namespace TheLastEmpire
 
                 // Quick Spawns
                 GUI.backgroundColor = new Color(0.9f, 0.6f, 0.1f);
-                if (GUILayout.Button("👑 เสก Boss [กด B]", GUILayout.Height(34)))
+                if (GUILayout.Button("เสก Boss [กด B]", GUILayout.Height(34)))
                 {
                     SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
                 }
 
                 GUI.backgroundColor = new Color(0.85f, 0.35f, 0.1f);
-                if (GUILayout.Button("⚡ เสก Boss Rush (3 ตัว) [Shift+B]", GUILayout.Height(28)))
+                if (GUILayout.Button("เสก Boss Rush (3 ตัว) [Shift+B]", GUILayout.Height(28)))
                 {
                     SpawnBossRush(3);
                 }
 
                 GUILayout.Space(6);
                 GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
-                if (GUILayout.Button("💥 เสก Boomer (ตัวระเบิด)"))
+                if (GUILayout.Button("เสก Boomer (ตัวระเบิด)"))
                 {
                     SpawnEnemy(EnemySpawnType.Boomer, GetPositionInFrontOfPlayer(defaultSpawnDistance));
                 }
 
-                if (GUILayout.Button("🐕 เสก Dog (หมาพุ่งกัด)"))
+                if (GUILayout.Button("เสก Dog (หมาพุ่งกัด)"))
                 {
                     SpawnEnemy(EnemySpawnType.Dog, GetPositionInFrontOfPlayer(defaultSpawnDistance));
                 }
 
-                if (GUILayout.Button("🏃 เสก Runner (วิ่งไว)"))
+                if (GUILayout.Button("เสก Runner (วิ่งไว)"))
                 {
                     SpawnEnemy(EnemySpawnType.Runner, GetPositionInFrontOfPlayer(defaultSpawnDistance));
                 }
 
-                if (GUILayout.Button("🧟 เสก Normal (ซอมบี้ทั่วไป)"))
+                if (GUILayout.Button("เสก Normal (ซอมบี้ทั่วไป)"))
                 {
                     SpawnEnemy(EnemySpawnType.Normal, GetPositionInFrontOfPlayer(defaultSpawnDistance));
                 }
 
                 GUILayout.Space(6);
                 GUI.backgroundColor = new Color(1f, 0.2f, 0.1f);
-                if (GUILayout.Button("🔥 บังคับเข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(28)))
+                if (GUILayout.Button("บังคับเข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(28)))
                 {
                     TriggerRageOnAllBosses();
                 }
@@ -388,13 +388,13 @@ namespace TheLastEmpire
 
                 // Kill Buttons
                 GUI.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
-                if (GUILayout.Button("💀 ฆ่า Boss ทั้งหมด [กด K]", GUILayout.Height(26)))
+                if (GUILayout.Button("ฆ่า Boss ทั้งหมด [กด K]", GUILayout.Height(26)))
                 {
                     KillAllBosses();
                 }
 
                 GUI.backgroundColor = new Color(0.6f, 0.1f, 0.1f);
-                if (GUILayout.Button("🧹 ล้างศัตรูทั้งหมดในฉาก", GUILayout.Height(26)))
+                if (GUILayout.Button("ล้างศัตรูทั้งหมดในฉาก", GUILayout.Height(26)))
                 {
                     KillAllEnemies();
                 }
@@ -414,7 +414,7 @@ namespace TheLastEmpire
                     count++;
                 }
             }
-            ShowToast(count > 0 ? $"🔥 สั่ง Boss {count} ตัวเข้าสู่ Rage Mode สำเร็จ!" : "⚠️ ไม่พบบอสในฉาก");
+            ShowToast(count > 0 ? $"สั่ง Boss {count} ตัวเข้าสู่ Rage Mode สำเร็จ!" : "ไม่พบบอสในฉาก");
         }
 
         private int CountActiveBosses()
