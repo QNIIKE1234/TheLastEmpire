@@ -159,6 +159,13 @@ namespace TheLastEmpire
             _currentEnvContainer = new GameObject("GeneratedEnvironment");
             _currentEnvContainer.transform.position = Vector3.zero;
 
+            // 3a. Handcrafted JSON Stage Template Override
+            if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
+            {
+                GenerateEnvironmentFromTemplate(template, stage);
+                return;
+            }
+
             // 3b. Custom grid spawner override
             if (useInspectorGrid)
             {
@@ -1666,6 +1673,88 @@ namespace TheLastEmpire
                 return smallerPrefabs[Random.Range(0, smallerPrefabs.Count)];
             }
             return null; // Return null if all are large
+        }
+
+        private void GenerateEnvironmentFromTemplate(StageTemplateData template, StageData stage)
+        {
+            if (template == null || _currentEnvContainer == null) return;
+
+            Debug.Log($"[EnvironmentManager] Building handcrafted environment from template '{template.templateName}' (ID: {template.templateId}) for Stage ({stage.x}, {stage.y})");
+
+            // 1. Spawn Obstacles
+            if (template.obstacles != null)
+            {
+                foreach (StagePlacedObject obj in template.obstacles)
+                {
+                    GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
+                    if (prefab != null)
+                    {
+                        GameObject spawned = Instantiate(prefab, obj.position, Quaternion.Euler(obj.rotation), _currentEnvContainer.transform);
+                        spawned.transform.localScale = obj.scale;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[EnvironmentManager] Template obstacle prefab not found: {obj.prefabName} (Path: {obj.resourcePath})");
+                    }
+                }
+            }
+
+            // 2. Spawn Decorations
+            if (template.decorations != null)
+            {
+                foreach (StagePlacedObject obj in template.decorations)
+                {
+                    GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
+                    if (prefab != null)
+                    {
+                        GameObject spawned = Instantiate(prefab, obj.position, Quaternion.Euler(obj.rotation), _currentEnvContainer.transform);
+                        spawned.transform.localScale = obj.scale;
+                    }
+                }
+            }
+        }
+
+        private GameObject ResolveTemplatePrefab(string prefabName, string resourcePath)
+        {
+            // 1. Try direct resourcePath if provided
+            if (!string.IsNullOrEmpty(resourcePath))
+            {
+                GameObject res = Resources.Load<GameObject>(resourcePath);
+                if (res != null) return res;
+            }
+
+            // 2. Try common Environment folders in Resources
+            if (!string.IsNullOrEmpty(prefabName))
+            {
+                GameObject res = Resources.Load<GameObject>($"Prefabs/Environment/{prefabName}");
+                if (res != null) return res;
+
+                res = Resources.Load<GameObject>($"Prefabs/Environment/Building/{prefabName}");
+                if (res != null) return res;
+
+                res = Resources.Load<GameObject>($"Prefabs/{prefabName}");
+                if (res != null) return res;
+
+                // Search in configured biomeConfigs
+                if (biomeConfigs != null)
+                {
+                    foreach (var cfg in biomeConfigs)
+                    {
+                        if (cfg.obstaclePrefabs != null)
+                        {
+                            var found = cfg.obstaclePrefabs.Find(p => p != null && p.name.Equals(prefabName, System.StringComparison.OrdinalIgnoreCase));
+                            if (found != null) return found;
+                        }
+                        if (cfg.decorationPrefabs != null)
+                        {
+                            var found = cfg.decorationPrefabs.Find(p => p != null && p.name.Equals(prefabName, System.StringComparison.OrdinalIgnoreCase));
+                            if (found != null) return found;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

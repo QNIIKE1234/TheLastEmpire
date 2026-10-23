@@ -55,6 +55,13 @@ namespace TheLastEmpire
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+
+                if (StageTemplateManager.Instance == null)
+                {
+                    GameObject stmObj = new GameObject("StageTemplateManager");
+                    stmObj.AddComponent<StageTemplateManager>();
+                    DontDestroyOnLoad(stmObj);
+                }
             }
             else
             {
@@ -339,6 +346,13 @@ namespace TheLastEmpire
                 return; // Skip new random spawning since we restored previous state!
             }
 
+            // 4b. Handcrafted JSON Stage Template Enemies & Loot Override
+            if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
+            {
+                SpawnStageTemplateEnemiesAndLoot(template, stage);
+                return;
+            }
+
             // 5. Reset Unity's random state using the deterministic stageSeed
             // This guarantees the exact same items/enemies spawn if player returns to this stage coordinates
             Random.InitState(stage.stageSeed);
@@ -472,27 +486,99 @@ namespace TheLastEmpire
             PlayerController player = Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
+            Vector3 spawnPos = FindDistributedSpawnPosition(playerPos);
+            SpawnEnemyInstanceAt(prefab, pKey, spawnPos, Quaternion.identity);
+        }
+
+        private GameObject SpawnEnemyInstanceAt(GameObject prefab, string pKey, Vector3 spawnPos, Quaternion spawnRot)
+        {
+            if (prefab == null) return null;
+
             // Remove null or inactive enemies from tracking list
             _activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
 
             // Sync physics transforms so newly instantiated obstacles have up-to-date colliders
             Physics.SyncTransforms();
 
-            Vector3 spawnPos = FindDistributedSpawnPosition(playerPos);
-
             GameObject enemy;
             if (!string.IsNullOrEmpty(pKey) && ObjectPoolManager.Instance != null)
             {
-                enemy = ObjectPoolManager.Instance.SpawnFromPool(pKey, spawnPos, Quaternion.identity);
+                enemy = ObjectPoolManager.Instance.SpawnFromPool(pKey, spawnPos, spawnRot);
             }
             else
             {
-                enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+                enemy = Instantiate(prefab, spawnPos, spawnRot);
             }
 
             if (enemy != null)
             {
                 _activeEnemies.Add(enemy);
+            }
+            return enemy;
+        }
+
+        private void SpawnStageTemplateEnemiesAndLoot(StageTemplateData template, StageData stage)
+        {
+            if (template == null || stage == null) return;
+
+            Debug.Log($"[GameManager] Spawning enemies, loot, and NPCs from template '{template.templateName}' (ID: {template.templateId}) for Stage ({stage.x}, {stage.y})");
+
+            stage.remainingEnemyPrefabNames = new List<string>();
+            _usedSectorIndices.Clear();
+
+            // 1. Spawn NPCs
+            if (template.npcSpawns != null)
+            {
+                foreach (var npc in template.npcSpawns)
+                {
+                    SpawnNPCInstance(npc.npcType, npc.position);
+                }
+            }
+
+            // 2. Spawn Loot
+            if (template.lootSpawns != null)
+            {
+                foreach (var loot in template.lootSpawns)
+                {
+                    CollectibleItem prefabToUse = loot.isMoney ? moneyDropPrefab : itemDropPrefab;
+                    if (prefabToUse != null)
+                    {
+                        Vector3 pos = new Vector3(loot.position.x, CollectibleItem.GROUND_Y, loot.position.z);
+                        CollectibleItem spawned = Instantiate(prefabToUse, pos, Quaternion.identity);
+                        if (spawned != null)
+                        {
+                            spawned.SnapToGround();
+                            if (loot.isMoney) spawned.SetMoneyDetails(loot.moneyAmount);
+                            else spawned.SetItemDetails(loot.itemName, loot.quantity);
+                        }
+                    }
+                }
+            }
+
+            // 3. Spawn Enemies
+            if (template.enemySpawns != null)
+            {
+                foreach (var spawn in template.enemySpawns)
+                {
+                    GameObject prefab = GetPrefabByName(spawn.enemyPrefabName);
+                    if (prefab == null)
+                    {
+                        prefab = Resources.Load<GameObject>($"Prefabs/Character/{spawn.enemyPrefabName}");
+                    }
+                    if (prefab != null)
+                    {
+                        string pKey = GetPoolKeyForPrefab(prefab);
+                        GameObject enemyObj = SpawnEnemyInstanceAt(prefab, pKey, spawn.position, Quaternion.Euler(spawn.rotation));
+                        if (enemyObj != null)
+                        {
+                            stage.remainingEnemyPrefabNames.Add(prefab.name);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[GameManager] Template enemy prefab not found: {spawn.enemyPrefabName}");
+                    }
+                }
             }
         }
 

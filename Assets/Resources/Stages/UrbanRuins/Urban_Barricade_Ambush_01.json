@@ -1,0 +1,90 @@
+{
+  "templateId": "Urban_Barricade_Ambush_01",
+  "templateName": "Urban Barricade Ambush",
+  "biome": 0,
+  "selectionWeight": 1.0,
+  "roomSize": {
+    "x": 32.0,
+    "y": 18.0
+  },
+  "obstacles": [
+    {
+      "prefabName": "Apoc_Prop_Concrete_Barricade",
+      "resourcePath": "Prefabs/Environment/Apoc_Prop_Concrete_Barricade",
+      "position": { "x": -5.5, "y": 0.0, "z": 2.5 },
+      "rotation": { "x": 0.0, "y": 15.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    },
+    {
+      "prefabName": "Apoc_Prop_Concrete_Barricade",
+      "resourcePath": "Prefabs/Environment/Apoc_Prop_Concrete_Barricade",
+      "position": { "x": 5.5, "y": 0.0, "z": -2.5 },
+      "rotation": { "x": 0.0, "y": -15.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    },
+    {
+      "prefabName": "Apoc_Prop_Sandbag_Pile",
+      "resourcePath": "Prefabs/Environment/Apoc_Prop_Sandbag_Pile",
+      "position": { "x": 0.0, "y": 0.0, "z": 4.5 },
+      "rotation": { "x": 0.0, "y": 90.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    },
+    {
+      "prefabName": "Apoc_Vehicle_01_Damaged_Van",
+      "resourcePath": "Prefabs/Environment/Apoc_Vehicle_01_Damaged_Van",
+      "position": { "x": -8.0, "y": 0.0, "z": -4.0 },
+      "rotation": { "x": 0.0, "y": 45.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    },
+    {
+      "prefabName": "Apoc_Prop_Rusty_Drum_Stack",
+      "resourcePath": "Prefabs/Environment/Apoc_Prop_Rusty_Drum_Stack",
+      "position": { "x": 8.0, "y": 0.0, "z": 5.0 },
+      "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    }
+  ],
+  "decorations": [
+    {
+      "prefabName": "Bush_Flowering",
+      "resourcePath": "Prefabs/Environment/Bush_Flowering",
+      "position": { "x": -11.0, "y": 0.0, "z": 6.0 },
+      "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+    }
+  ],
+  "enemySpawns": [
+    {
+      "enemyPrefabName": "ZombieRunner",
+      "position": { "x": -6.0, "y": 0.2, "z": 5.0 },
+      "rotation": { "x": 0.0, "y": 180.0, "z": 0.0 }
+    },
+    {
+      "enemyPrefabName": "ZombieNormal",
+      "position": { "x": 6.0, "y": 0.2, "z": 4.0 },
+      "rotation": { "x": 0.0, "y": 180.0, "z": 0.0 }
+    },
+    {
+      "enemyPrefabName": "ZombieBoomer",
+      "position": { "x": 0.0, "y": 0.2, "z": 6.5 },
+      "rotation": { "x": 0.0, "y": 180.0, "z": 0.0 }
+    }
+  ],
+  "lootSpawns": [
+    {
+      "itemName": "Bread",
+      "quantity": 2,
+      "isMoney": false,
+      "moneyAmount": 0,
+      "position": { "x": 0.0, "y": 0.25, "z": 3.0 }
+    },
+    {
+      "itemName": "Money",
+      "quantity": 1,
+      "isMoney": true,
+      "moneyAmount": 100,
+      "position": { "x": -7.0, "y": 0.25, "z": -2.5 }
+    }
+  ],
+  "npcSpawns": []
+}

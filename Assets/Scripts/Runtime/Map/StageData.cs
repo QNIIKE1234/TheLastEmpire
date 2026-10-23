@@ -23,6 +23,7 @@ namespace TheLastEmpire
         public bool isCleared;
         public int stageSeed;
         public bool isShopStage;
+        public string assignedTemplateId = null;
         public System.Collections.Generic.List<string> remainingEnemyPrefabNames;
         public System.Collections.Generic.List<ShopItemConfig> savedShopItems;
         public System.Collections.Generic.List<DroppedItemData> droppedItems = new System.Collections.Generic.List<DroppedItemData>();

@@ -109,3 +109,12 @@ This file documents critical patterns, design choices, and systems established i
     *   Do **NOT** use `ask_question` under any circumstances.
     *   Do **NOT** pause or interrupt the user with interactive question modals, confirmation prompts, or design choices.
     *   Autonomously choose the best technical solution, implement it immediately, verify correctness, and present only the completed results concisely.
+
+---
+
+## 10. Master Reference Documentation & UI Safety Rules
+*   **Work History & System Summaries**: Always read [work-summary-2026-10-24.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-24.md) and [work-summary-2026-10-14.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-14.md) for complete feature implementation history before inspecting Git logs.
+*   **Item & Economy Catalog**: Read [item-list.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/item-list.md) for the master catalog of all 35 items, weapon stats, categories, and gold prices.
+*   **UI & Font Safety**: NEVER insert non-standard Unicode glyphs (such as runes `◈`, `❖`, flourishes `✦`, `➔`, or emojis `💬`, `🔥`) into TextMeshPro text or code strings. Always use clean ASCII / UTF-8 Latin characters to prevent missing glyph box artifacts (`□`).
+*   **Class Icons**: Operative selection modal uses `ClassIcon` in [CharacterSelectModal.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Prefabs/UI/CharacterSelectModal.prefab) backed by sliced sprites from `Assets/Resources/Image/UI/`.
+
