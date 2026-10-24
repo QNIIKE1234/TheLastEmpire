@@ -4,7 +4,7 @@ Shader "Custom/WorldSpaceGroundShader"
     {
         _BaseMap("Base Map (Albedo)", 2D) = "white" {}
         _BaseColor("Base Color", Color) = (1, 1, 1, 1)
-        _Tiling("Tiling Factor", Float) = 0.1
+        _Tiling("Tiling Factor", Float) = 0.05
     }
 
     SubShader
@@ -37,6 +37,9 @@ Shader "Custom/WorldSpaceGroundShader"
             Texture2D _BaseMap;
             SamplerState sampler_BaseMap;
 
+            // Global ambient tint driven by DayNightManager
+            half4 _GlobalAmbientTint;
+
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
                 half4 _BaseColor;
@@ -54,11 +57,13 @@ Shader "Custom/WorldSpaceGroundShader"
 
             half4 frag(Varyings input) : SV_Target
             {
-                // Use World Space X and Z coordinates as UVs for seamless tiling across meshes
+                // Seamless World-Space Tiling across X and Z plane
                 float2 worldUV = input.positionWS.xz * _Tiling;
-                
-                half4 col = _BaseMap.Sample(sampler_BaseMap, worldUV) * _BaseColor;
-                return col;
+                half4 albedo = _BaseMap.Sample(sampler_BaseMap, worldUV) * _BaseColor;
+
+                // Ultra-fast tint (1 instruction multiply, zero performance loss)
+                half4 tint = (_GlobalAmbientTint.a > 0.01) ? _GlobalAmbientTint : half4(1, 1, 1, 1);
+                return albedo * tint;
             }
             ENDHLSL
         }

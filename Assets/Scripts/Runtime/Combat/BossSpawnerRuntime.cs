@@ -27,6 +27,7 @@ namespace TheLastEmpire
         [SerializeField] private float bossScaleMultiplier = 1.0f;
 
         private bool _showDebugGui = false;
+        private int _selectedTab = 0; // 0 = Boss Spawner, 1 = Time Cheat
         private string _toastMessage = "";
         private float _toastTimer = 0f;
 
@@ -64,6 +65,24 @@ namespace TheLastEmpire
                 _showDebugGui = !_showDebugGui;
             }
 
+            // T key: Cycle Game Speed (TimeScale)
+            if (Keyboard.current.tKey.wasPressedThisFrame)
+            {
+                CycleTimeScale();
+            }
+
+            // N key: Next Day/Night Phase
+            if (Keyboard.current.nKey.wasPressedThisFrame)
+            {
+                SkipToNextPhase();
+            }
+
+            // L key: Toggle Flashlight / Torch
+            if (Keyboard.current.lKey.wasPressedThisFrame)
+            {
+                TogglePlayerLight();
+            }
+
             // B key: Spawn Boss
             if (Keyboard.current.bKey.wasPressedThisFrame)
             {
@@ -89,11 +108,47 @@ namespace TheLastEmpire
             // Toast message countdown
             if (_toastTimer > 0f)
             {
-                _toastTimer -= Time.deltaTime;
+                _toastTimer -= Time.unscaledDeltaTime;
                 if (_toastTimer <= 0f)
                 {
                     _toastMessage = "";
                 }
+            }
+        }
+
+        private void CycleTimeScale()
+        {
+            float current = Time.timeScale;
+            float next = current switch
+            {
+                < 1.2f => 2.0f,
+                < 2.5f => 5.0f,
+                < 5.5f => 10.0f,
+                _ => 1.0f
+            };
+            Time.timeScale = next;
+            ShowToast($"เร่งความเร็วเกมเป็น {next:F0}x [กด T]");
+        }
+
+        private void SkipToNextPhase()
+        {
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.AdvancePhase();
+                ShowToast($"ข้ามช่วงเวลาเป็น {DayNightManager.Instance.CurrentPhase} (วันที่ {DayNightManager.Instance.DayCount}) [กด N]");
+            }
+            else
+            {
+                ShowToast("ไม่พบ DayNightManager ในฉาก");
+            }
+        }
+
+        private void TogglePlayerLight()
+        {
+            if (NightDarknessController.Instance != null)
+            {
+                NightDarknessController.Instance.ToggleTorchLight();
+                ShowToast($"ไฟฉาย: {(NightDarknessController.Instance.HasTorchLight ? "ON" : "OFF")} [กด L]");
             }
         }
 
@@ -282,13 +337,13 @@ namespace TheLastEmpire
             {
                 GUIStyle toastStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 16,
+                    fontSize = 15,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter
                 };
                 toastStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
 
-                float width = 450f;
+                float width = 460f;
                 float height = 45f;
                 float x = (Screen.width - width) * 0.5f;
                 float y = 25f;
@@ -298,108 +353,274 @@ namespace TheLastEmpire
             }
 
             // 2. Small Toggle Button in Top-Right
-            float toggleX = Screen.width - 150f;
+            float toggleX = Screen.width - 160f;
             float toggleY = 10f;
             GUI.backgroundColor = _showDebugGui ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.7f, 0.3f);
-            if (GUI.Button(new Rect(toggleX, toggleY, 140f, 32f), _showDebugGui ? "[-] ปิด Boss Tool [F1]" : "[+] Boss Tool [F1]"))
+            if (GUI.Button(new Rect(toggleX, toggleY, 150f, 32f), _showDebugGui ? "[-] ปิด Debug [F1]" : "[+] Cheat Menu [F1]"))
             {
                 _showDebugGui = !_showDebugGui;
             }
 
             if (!_showDebugGui) return;
 
-            // 3. Spawner Panel
-            float panelWidth = 280f;
-            float panelHeight = 440f;
+            // 3. Spawner / Cheat Panel
+            float panelWidth = 320f;
+            float panelHeight = 500f;
             float panelX = Screen.width - panelWidth - 10f;
             float panelY = 50f;
 
-            GUI.backgroundColor = new Color(0.08f, 0.08f, 0.12f, 0.95f);
+            GUI.backgroundColor = new Color(0.08f, 0.08f, 0.12f, 0.96f);
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
-                GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 15,
-                    fontStyle = FontStyle.Bold,
-                    alignment = TextAnchor.MiddleCenter
-                };
-                titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
-                GUILayout.Label("BOSS SPAWNER TOOL", titleStyle);
-
-                // Stats Info
-                int bossCount = CountActiveBosses();
-                int enemyCount = CountActiveEnemies();
-                GUILayout.Label($"ศัตรูในฉาก: {enemyCount} | Boss: {bossCount}", EditorStylesMini());
-
-                GUILayout.Space(8);
-
-                // Quick Spawns
-                GUI.backgroundColor = new Color(0.9f, 0.6f, 0.1f);
-                if (GUILayout.Button("เสก Boss [กด B]", GUILayout.Height(34)))
-                {
-                    SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
-                }
-
-                GUI.backgroundColor = new Color(0.85f, 0.35f, 0.1f);
-                if (GUILayout.Button("เสก Boss Rush (3 ตัว) [Shift+B]", GUILayout.Height(28)))
-                {
-                    SpawnBossRush(3);
-                }
+                // Tab Selection Toolbar
+                string[] tabNames = new string[] { "Boss Spawner [B]", "Time Cheat [T/N]" };
+                _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
-                GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
-                if (GUILayout.Button("เสก Boomer (ตัวระเบิด)"))
+
+                if (_selectedTab == 0)
                 {
-                    SpawnEnemy(EnemySpawnType.Boomer, GetPositionInFrontOfPlayer(defaultSpawnDistance));
+                    DrawBossSpawnerTab();
                 }
-
-                if (GUILayout.Button("เสก Dog (หมาพุ่งกัด)"))
+                else
                 {
-                    SpawnEnemy(EnemySpawnType.Dog, GetPositionInFrontOfPlayer(defaultSpawnDistance));
-                }
-
-                if (GUILayout.Button("เสก Runner (วิ่งไว)"))
-                {
-                    SpawnEnemy(EnemySpawnType.Runner, GetPositionInFrontOfPlayer(defaultSpawnDistance));
-                }
-
-                if (GUILayout.Button("เสก Normal (ซอมบี้ทั่วไป)"))
-                {
-                    SpawnEnemy(EnemySpawnType.Normal, GetPositionInFrontOfPlayer(defaultSpawnDistance));
-                }
-
-                GUILayout.Space(6);
-                GUI.backgroundColor = new Color(1f, 0.2f, 0.1f);
-                if (GUILayout.Button("บังคับเข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(28)))
-                {
-                    TriggerRageOnAllBosses();
-                }
-
-                GUILayout.Space(8);
-
-                // Modifiers
-                GUILayout.Label($"คูณเลือด Boss: {bossHealthMultiplier:F1}x");
-                bossHealthMultiplier = GUILayout.HorizontalSlider(bossHealthMultiplier, 0.5f, 5.0f);
-
-                GUILayout.Label($"คูณขนาดตัว Boss: {bossScaleMultiplier:F1}x");
-                bossScaleMultiplier = GUILayout.HorizontalSlider(bossScaleMultiplier, 0.8f, 2.5f);
-
-                GUILayout.Space(10);
-
-                // Kill Buttons
-                GUI.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
-                if (GUILayout.Button("ฆ่า Boss ทั้งหมด [กด K]", GUILayout.Height(26)))
-                {
-                    KillAllBosses();
-                }
-
-                GUI.backgroundColor = new Color(0.6f, 0.1f, 0.1f);
-                if (GUILayout.Button("ล้างศัตรูทั้งหมดในฉาก", GUILayout.Height(26)))
-                {
-                    KillAllEnemies();
+                    DrawTimeCheatTab();
                 }
             }
             GUILayout.EndArea();
+        }
+
+        private void DrawBossSpawnerTab()
+        {
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
+            GUILayout.Label("BOSS SPAWNER TOOL", titleStyle);
+
+            // Stats Info
+            int bossCount = CountActiveBosses();
+            int enemyCount = CountActiveEnemies();
+            GUILayout.Label($"ศัตรูในฉาก: {enemyCount} | Boss: {bossCount}", EditorStylesMini());
+
+            GUILayout.Space(8);
+
+            // Quick Spawns
+            GUI.backgroundColor = new Color(0.9f, 0.6f, 0.1f);
+            if (GUILayout.Button("เสก Boss [กด B]", GUILayout.Height(34)))
+            {
+                SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
+            }
+
+            GUI.backgroundColor = new Color(0.85f, 0.35f, 0.1f);
+            if (GUILayout.Button("เสก Boss Rush (3 ตัว) [Shift+B]", GUILayout.Height(28)))
+            {
+                SpawnBossRush(3);
+            }
+
+            GUILayout.Space(6);
+            GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
+            if (GUILayout.Button("เสก Boomer (ตัวระเบิด)"))
+            {
+                SpawnEnemy(EnemySpawnType.Boomer, GetPositionInFrontOfPlayer(defaultSpawnDistance));
+            }
+
+            if (GUILayout.Button("เสก Dog (หมาพุ่งกัด)"))
+            {
+                SpawnEnemy(EnemySpawnType.Dog, GetPositionInFrontOfPlayer(defaultSpawnDistance));
+            }
+
+            if (GUILayout.Button("เสก Runner (วิ่งไว)"))
+            {
+                SpawnEnemy(EnemySpawnType.Runner, GetPositionInFrontOfPlayer(defaultSpawnDistance));
+            }
+
+            if (GUILayout.Button("เสก Normal (ซอมบี้ทั่วไป)"))
+            {
+                SpawnEnemy(EnemySpawnType.Normal, GetPositionInFrontOfPlayer(defaultSpawnDistance));
+            }
+
+            GUILayout.Space(6);
+            GUI.backgroundColor = new Color(1f, 0.2f, 0.1f);
+            if (GUILayout.Button("บังคับเข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(26)))
+            {
+                TriggerRageOnAllBosses();
+            }
+
+            GUILayout.Space(8);
+
+            // Modifiers
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label($"คูณเลือด Boss: {bossHealthMultiplier:F1}x", EditorStylesBold());
+            bossHealthMultiplier = GUILayout.HorizontalSlider(bossHealthMultiplier, 0.5f, 5.0f);
+
+            GUILayout.Label($"คูณขนาดตัว Boss: {bossScaleMultiplier:F1}x", EditorStylesBold());
+            bossScaleMultiplier = GUILayout.HorizontalSlider(bossScaleMultiplier, 0.8f, 2.5f);
+
+            GUILayout.Space(8);
+
+            // Kill Buttons
+            GUI.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
+            if (GUILayout.Button("ฆ่า Boss ทั้งหมด [กด K]", GUILayout.Height(26)))
+            {
+                KillAllBosses();
+            }
+
+            GUI.backgroundColor = new Color(0.6f, 0.1f, 0.1f);
+            if (GUILayout.Button("ล้างศัตรูทั้งหมดในฉาก", GUILayout.Height(26)))
+            {
+                KillAllEnemies();
+            }
+        }
+
+        private void DrawTimeCheatTab()
+        {
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(0.4f, 0.85f, 1f);
+            GUILayout.Label("TIME & DAY/NIGHT CHEAT", titleStyle);
+
+            // 1. Current Phase Status Display
+            if (DayNightManager.Instance != null)
+            {
+                var dm = DayNightManager.Instance;
+                Color phaseColor = dm.CurrentPhase switch
+                {
+                    DayNightManager.TimePhase.Day => new Color(1f, 0.85f, 0.2f),
+                    DayNightManager.TimePhase.Dusk => new Color(1f, 0.55f, 0.2f),
+                    DayNightManager.TimePhase.Night => new Color(0.4f, 0.8f, 1f),
+                    _ => Color.white
+                };
+
+                GUIStyle badgeStyle = new GUIStyle(GUI.skin.box)
+                {
+                    fontSize = 12,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                badgeStyle.normal.textColor = phaseColor;
+
+                GUILayout.Box($"PHASE: {dm.CurrentPhase.ToString().ToUpper()} | วันที่: {dm.DayCount}\nเหลืออีก: {dm.RemainingPhaseTime:F0}s / {dm.CurrentPhaseDuration:F0}s ({dm.PhaseProgress * 100f:F0}%)", badgeStyle);
+            }
+            else
+            {
+                GUILayout.Label("ไม่พบ DayNightManager ในฉาก", EditorStylesMini());
+            }
+
+            GUILayout.Space(6);
+
+            // 2. Global Game TimeScale Multipliers
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label($"ความเร็วทั้งเกม (TimeScale): {Time.timeScale:F1}x [กด T]", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("0x (หยุด)")) { Time.timeScale = 0f; ShowToast("หยุดเวลาชั่วคราว (Pause)"); }
+                if (GUILayout.Button("1x")) { Time.timeScale = 1f; ShowToast("ความเร็วปกติ 1x"); }
+                if (GUILayout.Button("2x")) { Time.timeScale = 2f; ShowToast("เร่งความเร็ว 2x"); }
+                if (GUILayout.Button("5x")) { Time.timeScale = 5f; ShowToast("เร่งความเร็ว 5x"); }
+                if (GUILayout.Button("10x")) { Time.timeScale = 10f; ShowToast("เร่งความเร็วสูงสุด 10x"); }
+            }
+            GUILayout.EndHorizontal();
+
+            float newTimeScale = GUILayout.HorizontalSlider(Time.timeScale, 0.0f, 10f);
+            if (Mathf.Abs(newTimeScale - Time.timeScale) > 0.05f)
+            {
+                Time.timeScale = Mathf.Round(newTimeScale * 10f) / 10f;
+            }
+
+            GUILayout.Space(6);
+
+            // 3. Fast-Forward Time (+Seconds)
+            GUILayout.Label("เร่งเวลานาฬิกา Day-Night (+วินาที)", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("+5s")) { DayNightManager.Instance?.FastForward(5f); ShowToast("+5 วินาที"); }
+                if (GUILayout.Button("+15s")) { DayNightManager.Instance?.FastForward(15f); ShowToast("+15 วินาที"); }
+                if (GUILayout.Button("+30s")) { DayNightManager.Instance?.FastForward(30f); ShowToast("+30 วินาที"); }
+                if (GUILayout.Button("+60s")) { DayNightManager.Instance?.FastForward(60f); ShowToast("+60 วินาที"); }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(6);
+
+            // 4. Instant Phase Jump Buttons
+            GUILayout.Label("เปลี่ยนช่วงเวลาทันที [กด N]", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                GUI.backgroundColor = new Color(1f, 0.85f, 0.2f);
+                if (GUILayout.Button("DAY (กลางวัน)"))
+                {
+                    DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Day, true);
+                    ShowToast("สลับเป็นช่วง กลางวัน (Day)");
+                }
+
+                GUI.backgroundColor = new Color(1f, 0.55f, 0.2f);
+                if (GUILayout.Button("DUSK (เย็น)"))
+                {
+                    DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Dusk, true);
+                    ShowToast("สลับเป็นช่วง พลบค่ำ (Dusk)");
+                }
+
+                GUI.backgroundColor = new Color(0.2f, 0.5f, 0.9f);
+                if (GUILayout.Button("NIGHT (กลางคืน)"))
+                {
+                    DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Night, true);
+                    ShowToast("สลับเป็นช่วง กลางคืน (Night)");
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUI.backgroundColor = new Color(0.2f, 0.7f, 0.4f);
+            if (GUILayout.Button("ข้ามไปช่วงถัดไป (Next Phase) [กด N]", GUILayout.Height(28)))
+            {
+                SkipToNextPhase();
+            }
+
+            GUILayout.Space(6);
+
+            // 5. Day Navigation Controls
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label("ควบคุมวันที่ (Day Count)", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("◀ วันก่อนหน้า")) { DayNightManager.Instance?.AddDays(-1); ShowToast($"วันที่ {DayNightManager.Instance?.DayCount}"); }
+                if (GUILayout.Button("วันถัดไป ▶")) { DayNightManager.Instance?.AddDays(1); ShowToast($"วันที่ {DayNightManager.Instance?.DayCount}"); }
+                if (GUILayout.Button("รีเซ็ตเป็นวันที่ 1")) { DayNightManager.Instance?.ResetDayCount(); ShowToast("รีเซ็ตเป็นวันที่ 1"); }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(6);
+
+            // 6. Light & Darkness Cheats
+            GUILayout.Label("ไฟฉาย & แสงสว่าง", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                bool lightOn = NightDarknessController.Instance != null && NightDarknessController.Instance.HasTorchLight;
+                GUI.backgroundColor = lightOn ? new Color(0.2f, 0.8f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
+                if (GUILayout.Button($"ไฟฉาย: {(lightOn ? "เปิด [ON]" : "ปิด [OFF]")} [L]"))
+                {
+                    TogglePlayerLight();
+                }
+
+                bool darkDisabled = NightDarknessController.Instance != null && NightDarknessController.Instance.DisableDarknessOverlay;
+                GUI.backgroundColor = darkDisabled ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.6f, 0.9f);
+                if (GUILayout.Button($"Darkness Mask: {(darkDisabled ? "ซ่อน" : "แสดง")}"))
+                {
+                    if (NightDarknessController.Instance != null)
+                    {
+                        NightDarknessController.Instance.DisableDarknessOverlay = !NightDarknessController.Instance.DisableDarknessOverlay;
+                        ShowToast($"Darkness Mask: {(NightDarknessController.Instance.DisableDarknessOverlay ? "ซ่อนความมืด (สว่าง)" : "แสดงความมืด")}");
+                    }
+                }
+            }
+            GUILayout.EndHorizontal();
         }
 
         public void TriggerRageOnAllBosses()
@@ -437,6 +658,17 @@ namespace TheLastEmpire
                 if (e != null && e.gameObject.activeInHierarchy) count++;
             }
             return count;
+        }
+
+        private GUIStyle EditorStylesBold()
+        {
+            GUIStyle s = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
+            s.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            return s;
         }
 
         private GUIStyle EditorStylesMini()

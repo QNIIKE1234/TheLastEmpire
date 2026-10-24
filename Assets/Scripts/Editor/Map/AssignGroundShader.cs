@@ -5,6 +5,7 @@ namespace TheLastEmpire
 {
     public static class AssignGroundShader
     {
+        [MenuItem("Tools/The Last Empire/Setup Ground Materials Shader (Day & Night)", false, 20)]
         [MenuItem("The Last Empire/Setup Ground Materials Shader")]
         public static void SetupMaterials()
         {
@@ -25,10 +26,22 @@ namespace TheLastEmpire
                 if (mat != null)
                 {
                     mat.shader = customShader;
-                    // Set default tiling value for world space mapping
-                    mat.SetFloat("_Tiling", 0.05f); // default scale for smooth seamless mapping
+                    // Set default tiling value for crisp world space mapping
+                    mat.SetFloat("_Tiling", 0.1f);
+                    
+                    // Day/Night and Flashlight defaults
+                    mat.SetColor("_DayColor", new Color(1.0f, 0.98f, 0.92f, 1f));
+                    mat.SetColor("_DuskColor", new Color(0.95f, 0.55f, 0.35f, 1f));
+                    mat.SetColor("_NightColor", new Color(0.06f, 0.09f, 0.18f, 1f));
+                    mat.SetFloat("_NightDarkness", 0.85f);
+                    mat.SetColor("_FlashlightColor", new Color(1.0f, 0.95f, 0.82f, 1f));
+                    mat.SetFloat("_FlashlightRange", 11.0f);
+                    mat.SetFloat("_FlashlightAngle", 35.0f);
+                    mat.SetFloat("_FlashlightIntensity", 2.2f);
+                    mat.SetFloat("_PlayerLightRadius", 2.4f);
+
                     EditorUtility.SetDirty(mat);
-                    Debug.Log($"AssignGroundShader: Assigned custom world-space shader to Material: {name}");
+                    Debug.Log($"AssignGroundShader: Assigned Day/Night world-space shader to Material: {name}");
                 }
             }
 
