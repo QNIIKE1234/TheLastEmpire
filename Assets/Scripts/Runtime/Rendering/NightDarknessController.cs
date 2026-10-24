@@ -22,11 +22,11 @@ namespace TheLastEmpire
 
         [Header("Gradual Distance Falloff & Environment Visibility")]
         [Tooltip("Center bright radius around player")]
-        [Range(0.05f, 0.4f)] public float innerRadius = 0.12f;
+        [Range(0.05f, 0.4f)] public float innerRadius = 0.10f;
         [Tooltip("Outer fade radius where darkness reaches max level")]
-        [Range(0.2f, 1.5f)] public float outerRadius = 0.70f;
-        [Tooltip("Max darkness opacity outside light (0.74 keeps the environment clearly visible as dark night!)")]
-        [Range(0.3f, 0.95f)] public float maxDarkness = 0.74f;
+        [Range(0.15f, 1.2f)] public float outerRadius = 0.45f;
+        [Tooltip("Max darkness opacity outside light (0.90 = 90% dark)")]
+        [Range(0.3f, 0.98f)] public float maxDarkness = 0.90f;
 
         private PlayerController _cachedPlayer;
         private float _playerSearchTimer = 0f;

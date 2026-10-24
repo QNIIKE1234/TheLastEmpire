@@ -2,11 +2,13 @@ Shader "Custom/NightDarknessOverlay"
 {
     Properties
     {
-        _NightColor("Night Ambiance Color", Color) = (0.02, 0.04, 0.08, 1.0)
+        [HideInInspector] _MainTex("Texture", 2D) = "white" {}
+        [HideInInspector] _Color("Color", Color) = (1, 1, 1, 1)
+        _NightColor("Night Ambiance Color", Color) = (0.01, 0.02, 0.04, 1.0)
         _DuskColor("Dusk Sunset Tint", Color) = (0.9, 0.45, 0.15, 0.35)
-        _InnerRadius("Inner Bright Radius", Range(0.05, 0.5)) = 0.12
-        _OuterRadius("Outer Fade Radius", Range(0.2, 1.5)) = 0.70
-        _MaxDarkness("Max Darkness (Keeps Env Visible)", Range(0.3, 0.95)) = 0.74
+        _InnerRadius("Inner Bright Radius", Range(0.05, 0.5)) = 0.10
+        _OuterRadius("Outer Fade Radius", Range(0.15, 1.2)) = 0.45
+        _MaxDarkness("Max Darkness (90% Dark)", Range(0.3, 0.98)) = 0.90
         _FlickerAmount("Torch Flicker Amount", Range(0, 0.04)) = 0.008
     }
 
@@ -38,6 +40,9 @@ Shader "Custom/NightDarknessOverlay"
                 float2 uv           : TEXCOORD0;
             };
 
+            Texture2D _MainTex;
+            SamplerState sampler_MainTex;
+
             // Globals driven by DayNightManager & NightDarknessController
             float _GlobalDarknessAlpha;    // 0.0 (Day) -> 1.0 (Full Night)
             float _GlobalDuskAlpha;        // 0.0 -> 1.0 during Dusk, 0 at Night
@@ -46,6 +51,7 @@ Shader "Custom/NightDarknessOverlay"
             float _GlobalAspect;           // Screen aspect ratio for circular light
 
             CBUFFER_START(UnityPerMaterial)
+                half4 _Color;
                 half4 _NightColor;
                 half4 _DuskColor;
                 float _InnerRadius;
@@ -79,7 +85,7 @@ Shader "Custom/NightDarknessOverlay"
                     return half4(_DuskColor.rgb, _DuskColor.a * duskAlpha);
                 }
 
-                // Night Phase: Smooth distance fade from bright center to moody dark ambiance
+                // Night Phase: Smooth distance fade from bright center to 90% dark ambiance
                 float2 diff = input.uv - _GlobalPlayerScreenPos;
                 diff.x *= _GlobalAspect; // Correct aspect ratio for circular light
                 float dist = length(diff);
@@ -87,17 +93,16 @@ Shader "Custom/NightDarknessOverlay"
                 // Subtle organic torch breathing
                 float flicker = sin(_Time.y * 6.0) * cos(_Time.y * 11.0) * _FlickerAmount;
                 float inner = max(0.01, _InnerRadius + flicker);
-                float outer = max(inner + 0.1, _OuterRadius + flicker);
+                float outer = max(inner + 0.08, _OuterRadius + flicker);
 
-                // Smooth gradual distance decay (replaces sharp Pokemon cutout with smooth atmospheric falloff)
+                // Smooth gradual distance decay
                 float falloff = smoothstep(inner, outer, dist);
-                falloff = pow(falloff, 1.25); // Cinematic natural light falloff curve
+                falloff = pow(falloff, 1.2); // Cinematic natural light falloff curve
 
                 float hasTorch = saturate(_GlobalHasTorchLight);
 
-                // Outside the light, cap at _MaxDarkness (0.74) so the environment, roads, vehicles, and props
-                // remain visible in the darkness as moody silhouettes, instead of pitch black void!
-                float maxDark = lerp(0.92, _MaxDarkness, hasTorch);
+                // Outside the light, reach 90% darkness as requested (0.90)
+                float maxDark = lerp(0.96, _MaxDarkness, hasTorch);
                 float darkness = lerp(maxDark, falloff * maxDark, hasTorch);
 
                 float finalAlpha = darkness * darkAlpha;

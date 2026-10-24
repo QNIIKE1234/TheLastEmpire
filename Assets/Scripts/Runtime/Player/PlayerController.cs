@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -728,15 +729,15 @@ namespace TheLastEmpire
 
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToWeapon(0);
-                if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToWeapon(1);
-                if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToWeapon(2);
-                if (Keyboard.current.digit4Key.wasPressedThisFrame) SwitchToWeapon(3);
-                if (Keyboard.current.digit5Key.wasPressedThisFrame) SwitchToWeapon(4);
-                if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToWeapon(5);
-                if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToWeapon(6);
-                if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToWeapon(7);
-                if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToWeapon(8);
+                if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToQuickSlot(0);
+                if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToQuickSlot(1);
+                if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToQuickSlot(2);
+                if (Keyboard.current.digit4Key.wasPressedThisFrame) SwitchToQuickSlot(3);
+                if (Keyboard.current.digit5Key.wasPressedThisFrame) SwitchToQuickSlot(4);
+                if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToQuickSlot(5);
+                if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToQuickSlot(6);
+                if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToQuickSlot(7);
+                if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToQuickSlot(8);
 
                 if (Keyboard.current.xKey.wasPressedThisFrame)
                 {
@@ -1932,8 +1933,6 @@ namespace TheLastEmpire
         public bool HasRangedWeaponAccess(string weaponName)
         {
             if (string.IsNullOrEmpty(weaponName)) return false;
-            string clean = weaponName.Trim().ToLower();
-            if (clean.Contains("pist")) return true; // Default sidearm always accessible
 
             // Check if it's one of the active operative's starting weapons
             if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
@@ -1953,8 +1952,6 @@ namespace TheLastEmpire
         public bool HasMeleeWeaponAccess(string weaponName)
         {
             if (string.IsNullOrEmpty(weaponName)) return false;
-            string clean = weaponName.Trim().ToLower();
-            if (clean.Contains("knife")) return true; // Default knife always accessible
 
             // Check if it's one of the active operative's starting weapons
             if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
@@ -2016,6 +2013,38 @@ namespace TheLastEmpire
                     return;
                 }
             }
+        }
+
+        public void SwitchToQuickSlot(int slotIndex)
+        {
+            if (weapons == null || weapons.Count == 0) return;
+            if (_isReloading) return;
+
+            // 1. Collect all ranged weapons that the player currently owns / has access to
+            List<int> ownedWeaponIndices = new List<int>();
+            for (int i = 0; i < weapons.Count; i++)
+            {
+                if (HasRangedWeaponAccess(weapons[i].weaponName))
+                {
+                    ownedWeaponIndices.Add(i);
+                }
+            }
+
+            // 2. If slotIndex maps to an owned weapon (e.g. 1st owned gun for Key 1, 2nd for Key 2)
+            if (slotIndex >= 0 && slotIndex < ownedWeaponIndices.Count)
+            {
+                SwitchToWeapon(ownedWeaponIndices[slotIndex]);
+                return;
+            }
+
+            // 3. Fallback: if player pressed a number matching a catalog slot they actually own
+            if (slotIndex >= 0 && slotIndex < weapons.Count && HasRangedWeaponAccess(weapons[slotIndex].weaponName))
+            {
+                SwitchToWeapon(slotIndex);
+                return;
+            }
+
+            Debug.Log($"[PlayerController] QuickSlot {slotIndex + 1} is empty or weapon not owned.");
         }
 
         public void SwitchToWeapon(int index)

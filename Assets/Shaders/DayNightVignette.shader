@@ -2,6 +2,7 @@ Shader "Custom/DayNightVignette"
 {
     Properties
     {
+        [HideInInspector] _MainTex("Texture", 2D) = "white" {}
         _VignetteColor("Night Vignette Color", Color) = (0.01, 0.02, 0.05, 0.95)
         _VignetteRadius("Vignette Radius", Range(0.1, 1.5)) = 0.8
         _VignetteSoftness("Vignette Softness", Range(0.01, 1.0)) = 0.5

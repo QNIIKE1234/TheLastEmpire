@@ -365,7 +365,7 @@ namespace TheLastEmpire
 
             // 3. Spawner / Cheat Panel
             float panelWidth = 320f;
-            float panelHeight = 500f;
+            float panelHeight = 535f;
             float panelX = Screen.width - panelWidth - 10f;
             float panelY = 50f;
 
@@ -621,6 +621,19 @@ namespace TheLastEmpire
                 }
             }
             GUILayout.EndHorizontal();
+
+            if (NightDarknessController.Instance != null)
+            {
+                var ctrl = NightDarknessController.Instance;
+                GUILayout.Space(4);
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label($"ระดับความมืด (Darkness): {ctrl.maxDarkness * 100f:F0}%", EditorStylesBold());
+                float newDark = GUILayout.HorizontalSlider(ctrl.maxDarkness, 0.4f, 0.98f);
+                if (Mathf.Abs(newDark - ctrl.maxDarkness) > 0.01f)
+                {
+                    ctrl.maxDarkness = Mathf.Round(newDark * 100f) / 100f;
+                }
+            }
         }
 
         public void TriggerRageOnAllBosses()

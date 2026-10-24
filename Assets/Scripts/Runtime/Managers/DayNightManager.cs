@@ -24,6 +24,15 @@ namespace TheLastEmpire
         [Header("Speed Multiplier (Debug / Fast-Forward)")]
         [SerializeField] private float cycleSpeedMultiplier = 1.0f;
 
+        [Header("Scene Sun / Directional Light Dimming")]
+        [SerializeField] private Light sceneDirectionalLight;
+        [SerializeField] private float daySunIntensity = 1.0f;
+        [SerializeField] private float duskSunIntensity = 0.45f;
+        [SerializeField] private float nightSunIntensity = 0.08f;
+        [SerializeField] private Color daySunColor = new Color(1f, 0.98f, 0.92f);
+        [SerializeField] private Color duskSunColor = new Color(0.95f, 0.60f, 0.35f);
+        [SerializeField] private Color nightSunColor = new Color(0.12f, 0.16f, 0.28f);
+
         [Header("Visual Feedback (Camera Background Tint)")]
         [SerializeField] private Color dayCameraColor = new Color(0.15f, 0.3f, 0.45f, 1f);
         [SerializeField] private Color duskCameraColor = new Color(0.25f, 0.15f, 0.12f, 1f);
@@ -121,7 +130,7 @@ namespace TheLastEmpire
             _phaseTimer += Time.deltaTime * cycleSpeedMultiplier;
             float currentDuration = GetCurrentPhaseDuration();
 
-            // Smooth transition for screen darkness and ambient tint
+            // Smooth transition for screen darkness, sun dimming, and ambient tint
             UpdateFades();
 
             // Smoothly shift camera background
@@ -153,14 +162,62 @@ namespace TheLastEmpire
             }
             else if (_currentPhase == TimePhase.Night)
             {
-                targetTint = new Color(0.15f, 0.18f, 0.25f, 1f);
+                targetTint = new Color(0.10f, 0.12f, 0.18f, 1f);
             }
 
             _currentDarknessAlpha = Mathf.MoveTowards(_currentDarknessAlpha, targetDarkness, Time.deltaTime * fadeSpeed);
             _currentDuskAlpha = Mathf.MoveTowards(_currentDuskAlpha, targetDusk, Time.deltaTime * fadeSpeed);
             _currentAmbientTint = Color.Lerp(_currentAmbientTint, targetTint, Time.deltaTime * fadeSpeed * 1.5f);
 
+            // Smoothly dim Directional Light (Sun)
+            UpdateSunLight();
+
             PushShaderValues();
+        }
+
+        private void UpdateSunLight()
+        {
+            if (sceneDirectionalLight == null)
+            {
+                if (RenderSettings.sun != null)
+                {
+                    sceneDirectionalLight = RenderSettings.sun;
+                }
+                else
+                {
+                    Light[] lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+                    foreach (var l in lights)
+                    {
+                        if (l != null && l.type == LightType.Directional)
+                        {
+                            sceneDirectionalLight = l;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (sceneDirectionalLight != null)
+            {
+                float targetIntensity = _currentPhase switch
+                {
+                    TimePhase.Day => daySunIntensity,
+                    TimePhase.Dusk => duskSunIntensity,
+                    TimePhase.Night => nightSunIntensity,
+                    _ => daySunIntensity
+                };
+
+                Color targetColor = _currentPhase switch
+                {
+                    TimePhase.Day => daySunColor,
+                    TimePhase.Dusk => duskSunColor,
+                    TimePhase.Night => nightSunColor,
+                    _ => daySunColor
+                };
+
+                sceneDirectionalLight.intensity = Mathf.MoveTowards(sceneDirectionalLight.intensity, targetIntensity, Time.deltaTime * fadeSpeed);
+                sceneDirectionalLight.color = Color.Lerp(sceneDirectionalLight.color, targetColor, Time.deltaTime * fadeSpeed);
+            }
         }
 
         private void PushShaderValues()
@@ -256,7 +313,15 @@ namespace TheLastEmpire
                 _currentDuskAlpha = (_currentPhase == TimePhase.Dusk) ? 1.0f : 0.0f;
                 if (_currentPhase == TimePhase.Day) _currentAmbientTint = Color.white;
                 else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.95f, 0.70f, 0.45f, 1f);
-                else _currentAmbientTint = new Color(0.15f, 0.18f, 0.25f, 1f);
+                else _currentAmbientTint = new Color(0.10f, 0.12f, 0.18f, 1f);
+
+                if (sceneDirectionalLight != null)
+                {
+                    sceneDirectionalLight.intensity = (_currentPhase == TimePhase.Night) ? nightSunIntensity :
+                                                     (_currentPhase == TimePhase.Dusk) ? duskSunIntensity : daySunIntensity;
+                    sceneDirectionalLight.color = (_currentPhase == TimePhase.Night) ? nightSunColor :
+                                                  (_currentPhase == TimePhase.Dusk) ? duskSunColor : daySunColor;
+                }
 
                 PushShaderValues();
 
