@@ -73,16 +73,10 @@ Shader "Custom/NightDarknessOverlay"
                 float darkAlpha = saturate(_GlobalDarknessAlpha);
                 float duskAlpha = saturate(_GlobalDuskAlpha);
 
-                // Day Mode: Completely transparent
-                if (darkAlpha <= 0.005 && duskAlpha <= 0.005)
+                // Day & Dusk Phase: Completely transparent (lighting is handled naturally by URP Directional Light & Ambient)
+                if (darkAlpha <= 0.005)
                 {
                     return half4(0, 0, 0, 0);
-                }
-
-                // Dusk Phase: Warm amber screen tint
-                if (duskAlpha > 0.005 && darkAlpha <= 0.05)
-                {
-                    return half4(_DuskColor.rgb, _DuskColor.a * duskAlpha);
                 }
 
                 // Night Phase: Smooth distance fade from bright center to 90% dark ambiance

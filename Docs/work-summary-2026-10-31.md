@@ -81,3 +81,28 @@
 
 * ออกแบบโครงสร้างรองรับการลากไอเทมจาก Inventory ฝั่งซ้ายมาวางใน QuickSlot 1 - 5 ฝั่งขวา บันทึกไว้ใน [quickslot_drag_drop_plan.md](file:///C:/Users/Acer/.gemini/antigravity-ide/brain/ffdcd308-350d-4497-99fb-4a8fea84f0d7/quickslot_drag_drop_plan.md)
 * โครงสร้างเตรียมพร้อมรองรับทั้งอาวุธ (ติดตั้งทันทีเมื่อกด 1-5) และไอเทมบริโภค (กดใช้ตามคีย์ลัด)
+
+---
+
+## 6. การยกเครื่องระบบแสง URP และการหมุนองศาแสงตามช่วงเวลา (URP Lighting Overhaul & Dynamic Celestial Path)
+
+### ปัญหาเดิมที่พบจากภาพหน้าจอของผู้ใช้:
+* ในช่วง Dusk (พลบค่ำ) มี Shader Quad แบบ 2D คลุมสีส้มทั่วจอ (`NightDarknessOverlay.shader`) ซ้อนทับกับ Ground Tint สีส้มจัด และหมอกสีส้ม
+* ทำให้เกิดอาการ **"ส้มทั้งจอแบนๆ"** บดบังลายตารางพื้น Texture และทำให้โมเดลตัวละคร/ฉากกลืนกัน ขาดคอนทราสต์และแสงเงาแบบ 3 มิติ
+
+### การแก้ไขและปรับปรุง:
+1. **ลบ Screen-space 2D Dusk Overlay**:
+   * แก้ไข [NightDarknessOverlay.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/NightDarknessOverlay.shader) ให้ไม่วาดสีส้มแบนทับจอในเวลาพลบค่ำ เพื่อคืนรายละเอียด 100% ให้แก่ Texture พื้นและแสงเงา 3D
+2. **ระบบหมุนองศาแสงและเงาตามเวลาจริง (Dynamic Celestial Sun/Moon Path)** ใน [DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs):
+   * คำนวณองศา Directional Light (Sun/Moon) แบบ Real-time ตามความคืบหน้าของเวลา (`PhaseProgress` 0.0 -> 1.0):
+     * **Day (เช้า -> บ่าย)**: พระอาทิตย์ขึ้นมุมเฉียง (Pitch 35°, Yaw -70°) เงาทอดยาว -> เที่ยงวันขึ้นมุมสูง (Pitch 60°, Yaw -115°) ให้เงากระชับใต้เท้าและพื้นอ่านง่าย -> บ่ายคล้อยลงสู่ Pitch 38°
+     * **Dusk (พลบค่ำ Golden Hour)**: พระอาทิตย์คล้อยต่ำสู่ขอบฟ้า (Pitch 38° -> 18°, Yaw -150° -> -175°) ทำให้เงา 3D ทอดยาวขนานพื้นอย่างสวยงามสไตล์ Cinematic
+     * **Night (ราตรี)**: แสงจันทร์ขึ้นจากฟากตรงข้าม (Pitch 25° -> 55°, Yaw 35° -> 80°) ส่องประกายสีเงินคราม ให้เงาคมชัดในทิศตรงข้ามกับกลางวัน
+3. **การสร้าง Contrast อุณหภูมิสี (Warm Sunlight vs Cool Ambient Fill)**:
+   * แยกแสงอาทิตย์ (Directional Light) ให้เป็นโทนอุ่น และแสงเงาในบรรยากาศ (Ambient Light) ให้เป็นโทนเย็นอมฟ้า/ม่วง
+   * ป้องกันไม่ให้เงามืดสนิทหรือกลายเป็นสีส้มทึบ ทำให้เห็นรายละเอียดทั้งในที่สว่างและในร่มเงา
+4. **ปรับจูน Post-Processing ใน [DefaultVolumeProfile.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Settings/DefaultVolumeProfile.asset)**:
+   * ปรับ Color Filter เป็นสีขาวกลาง (Neutral), ปรับ Exposure = 0.0, เพิ่ม Contrast = 15
+   * ปรับ Bloom Threshold เป็น 1.05 เพื่อเรืองแสงเฉพาะไฟ ตะเกียง กระสุน ไม่ให้แสงขาวฟุ้งบวม
+   * เปิด Vignette (Intensity 0.25, Smoothness 0.45) ให้ขอบจอมีความนุ่มลึกตีกรอบมุมมอง Isometric ได้อย่างลงตัว
+

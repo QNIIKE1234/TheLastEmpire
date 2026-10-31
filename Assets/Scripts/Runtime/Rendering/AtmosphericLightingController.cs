@@ -18,14 +18,14 @@ namespace TheLastEmpire
         [SerializeField] private Light sunLight;
         [Tooltip("Low pitch angle (18-32 deg) to cast dramatic long diagonal shadows and sunbeams")]
         [Range(10f, 60f)]
-        [SerializeField] private float sunPitchAngle = 26f;
+        [SerializeField] private float sunPitchAngle = 48f;
         [Range(-180f, 180f)]
-        [SerializeField] private float sunYawAngle = -135f;
+        [SerializeField] private float sunYawAngle = -130f;
         [SerializeField] private Color goldenSunColor = new Color(1.0f, 0.88f, 0.72f, 1.0f);
         [SerializeField] private float sunIntensity = 1.45f;
 
         [Header("Atmospheric Mist & Height Fog")]
-        [SerializeField] private bool enableFog = true;
+        [SerializeField] private bool enableFog = false;
         [SerializeField] private Color goldenFogColor = new Color(0.92f, 0.82f, 0.65f, 1.0f);
         [SerializeField] private Color duskFogColor = new Color(0.95f, 0.55f, 0.35f, 1.0f);
         [SerializeField] private Color nightFogColor = new Color(0.08f, 0.10f, 0.16f, 1.0f);
@@ -33,7 +33,7 @@ namespace TheLastEmpire
         [SerializeField] private float fogDensity = 0.006f;
 
         [Header("Volumetric God Ray Beams (Sun Shafts)")]
-        [SerializeField] private bool enableGodRays = true;
+        [SerializeField] private bool enableGodRays = false;
         [SerializeField] private Material godRayMaterial;
         [Range(1, 10)]
         [SerializeField] private int beamCount = 6;
@@ -157,9 +157,14 @@ namespace TheLastEmpire
             // 1. Configure Directional Light (Sun)
             if (sunLight != null)
             {
-                sunLight.transform.rotation = Quaternion.Euler(sunPitchAngle, sunYawAngle, 0f);
-                sunLight.color = goldenSunColor;
-                sunLight.intensity = sunIntensity;
+                // If DayNightManager is active at runtime, let it drive rotation, color, and intensity
+                if (DayNightManager.Instance == null || !Application.isPlaying)
+                {
+                    sunLight.transform.rotation = Quaternion.Euler(sunPitchAngle, sunYawAngle, 0f);
+                    sunLight.color = goldenSunColor;
+                    sunLight.intensity = sunIntensity;
+                }
+
                 sunLight.shadows = LightShadows.Soft;
                 sunLight.shadowResolution = LightShadowResolution.VeryHigh;
                 sunLight.shadowNormalBias = 0.4f;
@@ -227,7 +232,17 @@ namespace TheLastEmpire
 
         private void SetupGodRayBeams()
         {
-            if (!enableGodRays || godRayMaterial == null) return;
+            if (!enableGodRays || godRayMaterial == null)
+            {
+                if (_godRayContainer != null)
+                {
+                    if (Application.isPlaying) Destroy(_godRayContainer);
+                    else DestroyImmediate(_godRayContainer);
+                    _beamTransforms.Clear();
+                    _beamMaterialInstances.Clear();
+                }
+                return;
+            }
 
             if (_godRayContainer != null)
             {
@@ -366,6 +381,18 @@ namespace TheLastEmpire
                 if (mat != null)
                 {
                     mat.SetFloat("_Intensity", godRayIntensity * targetRayMul);
+                }
+            }
+
+            if (sunLight != null && _beamTransforms.Count > 0)
+            {
+                Quaternion rayRotation = Quaternion.LookRotation(sunLight.transform.forward, Vector3.up);
+                for (int i = 0; i < _beamTransforms.Count; i++)
+                {
+                    if (_beamTransforms[i] != null)
+                    {
+                        _beamTransforms[i].rotation = rayRotation;
+                    }
                 }
             }
         }

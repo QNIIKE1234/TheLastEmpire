@@ -26,17 +26,34 @@ namespace TheLastEmpire
 
         [Header("Scene Sun / Directional Light Dimming")]
         [SerializeField] private Light sceneDirectionalLight;
-        [SerializeField] private float daySunIntensity = 1.45f;
-        [SerializeField] private float duskSunIntensity = 0.65f;
-        [SerializeField] private float nightSunIntensity = 0.08f;
-        [SerializeField] private Color daySunColor = new Color(1.0f, 0.90f, 0.74f);
-        [SerializeField] private Color duskSunColor = new Color(0.98f, 0.62f, 0.35f);
-        [SerializeField] private Color nightSunColor = new Color(0.12f, 0.16f, 0.28f);
+        [SerializeField] private float daySunIntensity = 1.25f;
+        [SerializeField] private float duskSunIntensity = 0.85f;
+        [SerializeField] private float nightSunIntensity = 0.15f;
+        [SerializeField] private Color daySunColor = new Color(1.0f, 0.96f, 0.90f);
+        [SerializeField] private Color duskSunColor = new Color(1.0f, 0.68f, 0.38f);
+        [SerializeField] private Color nightSunColor = new Color(0.35f, 0.50f, 0.75f);
+
+        [Header("Ambient & Shadow Fill (Color Contrast)")]
+        [SerializeField] private Color dayAmbientColor = new Color(0.40f, 0.44f, 0.50f);
+        [SerializeField] private Color duskAmbientColor = new Color(0.28f, 0.24f, 0.32f);
+        [SerializeField] private Color nightAmbientColor = new Color(0.08f, 0.10f, 0.16f);
+
+        [Header("Dynamic Celestial Sun & Moon Path")]
+        [Tooltip("When enabled, the directional light smoothly sweeps across the sky matching time of day")]
+        [SerializeField] private bool dynamicLightAngle = true;
+        [SerializeField] private Vector3 dayMorningSunAngle = new Vector3(35f, -70f, 0f);
+        [SerializeField] private Vector3 dayNoonSunAngle = new Vector3(60f, -115f, 0f);
+        [SerializeField] private Vector3 dayAfternoonSunAngle = new Vector3(38f, -150f, 0f);
+        [SerializeField] private Vector3 duskStartSunAngle = new Vector3(38f, -150f, 0f);
+        [SerializeField] private Vector3 duskSunsetSunAngle = new Vector3(18f, -175f, 0f);
+        [SerializeField] private Vector3 nightMoonriseAngle = new Vector3(25f, 35f, 0f);
+        [SerializeField] private Vector3 nightMidnightAngle = new Vector3(55f, 60f, 0f);
+        [SerializeField] private Vector3 nightDawnpinAngle = new Vector3(30f, 80f, 0f);
 
         [Header("Visual Feedback (Camera Background Tint)")]
-        [SerializeField] private Color dayCameraColor = new Color(0.18f, 0.18f, 0.20f, 1f);
-        [SerializeField] private Color duskCameraColor = new Color(0.25f, 0.15f, 0.12f, 1f);
-        [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.02f, 0.04f, 1f);
+        [SerializeField] private Color dayCameraColor = new Color(0.12f, 0.13f, 0.15f, 1f);
+        [SerializeField] private Color duskCameraColor = new Color(0.14f, 0.11f, 0.13f, 1f);
+        [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.03f, 0.05f, 1f);
 
         [Header("UI Reference")]
         [SerializeField] private TextMeshProUGUI timeText;
@@ -158,18 +175,18 @@ namespace TheLastEmpire
             Color targetTint = Color.white;
             if (_currentPhase == TimePhase.Dusk)
             {
-                targetTint = new Color(0.95f, 0.70f, 0.45f, 1f);
+                targetTint = new Color(0.98f, 0.94f, 0.88f, 1f); // Subtle warm sunset tone, maintains full texture clarity
             }
             else if (_currentPhase == TimePhase.Night)
             {
-                targetTint = new Color(0.10f, 0.12f, 0.18f, 1f);
+                targetTint = new Color(0.45f, 0.50f, 0.65f, 1f); // Cool moonlit ground
             }
 
             _currentDarknessAlpha = Mathf.MoveTowards(_currentDarknessAlpha, targetDarkness, Time.deltaTime * fadeSpeed);
             _currentDuskAlpha = Mathf.MoveTowards(_currentDuskAlpha, targetDusk, Time.deltaTime * fadeSpeed);
             _currentAmbientTint = Color.Lerp(_currentAmbientTint, targetTint, Time.deltaTime * fadeSpeed * 1.5f);
 
-            // Smoothly dim Directional Light (Sun)
+            // Smoothly dim Directional Light (Sun) & Ambient Fill
             UpdateSunLight();
 
             PushShaderValues();
@@ -197,8 +214,27 @@ namespace TheLastEmpire
                 }
             }
 
+            // Update Ambient Light fill for rich shadow depth
+            Color targetAmbient = _currentPhase switch
+            {
+                TimePhase.Day => dayAmbientColor,
+                TimePhase.Dusk => duskAmbientColor,
+                TimePhase.Night => nightAmbientColor,
+                _ => dayAmbientColor
+            };
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = Color.Lerp(RenderSettings.ambientLight, targetAmbient, Time.deltaTime * fadeSpeed);
+
             if (sceneDirectionalLight != null)
             {
+                // Dynamic celestial path (smooth sun/moon rotation over the time of day)
+                Quaternion targetRot = GetTargetSunRotation();
+                sceneDirectionalLight.transform.rotation = Quaternion.Slerp(
+                    sceneDirectionalLight.transform.rotation,
+                    targetRot,
+                    Time.deltaTime * Mathf.Max(2f, fadeSpeed)
+                );
+
                 float targetIntensity = _currentPhase switch
                 {
                     TimePhase.Day => daySunIntensity,
@@ -217,6 +253,46 @@ namespace TheLastEmpire
 
                 sceneDirectionalLight.intensity = Mathf.MoveTowards(sceneDirectionalLight.intensity, targetIntensity, Time.deltaTime * fadeSpeed);
                 sceneDirectionalLight.color = Color.Lerp(sceneDirectionalLight.color, targetColor, Time.deltaTime * fadeSpeed);
+            }
+        }
+
+        public Quaternion GetTargetSunRotation()
+        {
+            if (!dynamicLightAngle)
+            {
+                return Quaternion.Euler(48f, -130f, 0f);
+            }
+
+            float t = PhaseProgress; // 0.0 to 1.0 within current phase
+            switch (_currentPhase)
+            {
+                case TimePhase.Day:
+                {
+                    // Morning -> Noon (peak height) -> Afternoon
+                    float pitch = (t < 0.5f)
+                        ? Mathf.Lerp(dayMorningSunAngle.x, dayNoonSunAngle.x, t * 2f)
+                        : Mathf.Lerp(dayNoonSunAngle.x, dayAfternoonSunAngle.x, (t - 0.5f) * 2f);
+                    float yaw = Mathf.Lerp(dayMorningSunAngle.y, dayAfternoonSunAngle.y, t);
+                    return Quaternion.Euler(pitch, yaw, 0f);
+                }
+                case TimePhase.Dusk:
+                {
+                    // Sunset descent towards horizon: shadows stretch dramatically
+                    float pitch = Mathf.Lerp(duskStartSunAngle.x, duskSunsetSunAngle.x, t);
+                    float yaw = Mathf.Lerp(duskStartSunAngle.y, duskSunsetSunAngle.y, t);
+                    return Quaternion.Euler(pitch, yaw, 0f);
+                }
+                case TimePhase.Night:
+                {
+                    // Moonlight arc across the opposite side of the sky
+                    float pitch = (t < 0.5f)
+                        ? Mathf.Lerp(nightMoonriseAngle.x, nightMidnightAngle.x, t * 2f)
+                        : Mathf.Lerp(nightMidnightAngle.x, nightDawnpinAngle.x, (t - 0.5f) * 2f);
+                    float yaw = Mathf.Lerp(nightMoonriseAngle.y, nightDawnpinAngle.y, t);
+                    return Quaternion.Euler(pitch, yaw, 0f);
+                }
+                default:
+                    return Quaternion.Euler(48f, -130f, 0f);
             }
         }
 
@@ -312,11 +388,16 @@ namespace TheLastEmpire
                 _currentDarknessAlpha = (_currentPhase == TimePhase.Night) ? 1.0f : 0.0f;
                 _currentDuskAlpha = (_currentPhase == TimePhase.Dusk) ? 1.0f : 0.0f;
                 if (_currentPhase == TimePhase.Day) _currentAmbientTint = Color.white;
-                else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.95f, 0.70f, 0.45f, 1f);
-                else _currentAmbientTint = new Color(0.10f, 0.12f, 0.18f, 1f);
+                else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.98f, 0.94f, 0.88f, 1f);
+                else _currentAmbientTint = new Color(0.45f, 0.50f, 0.65f, 1f);
+
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = (_currentPhase == TimePhase.Night) ? nightAmbientColor :
+                                             (_currentPhase == TimePhase.Dusk) ? duskAmbientColor : dayAmbientColor;
 
                 if (sceneDirectionalLight != null)
                 {
+                    sceneDirectionalLight.transform.rotation = GetTargetSunRotation();
                     sceneDirectionalLight.intensity = (_currentPhase == TimePhase.Night) ? nightSunIntensity :
                                                      (_currentPhase == TimePhase.Dusk) ? duskSunIntensity : daySunIntensity;
                     sceneDirectionalLight.color = (_currentPhase == TimePhase.Night) ? nightSunColor :
