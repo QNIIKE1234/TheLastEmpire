@@ -34,7 +34,7 @@ namespace TheLastEmpire
         [SerializeField] private Color nightSunColor = new Color(0.12f, 0.16f, 0.28f);
 
         [Header("Visual Feedback (Camera Background Tint)")]
-        [SerializeField] private Color dayCameraColor = new Color(0.15f, 0.3f, 0.45f, 1f);
+        [SerializeField] private Color dayCameraColor = new Color(0.18f, 0.18f, 0.20f, 1f);
         [SerializeField] private Color duskCameraColor = new Color(0.25f, 0.15f, 0.12f, 1f);
         [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.02f, 0.04f, 1f);
 

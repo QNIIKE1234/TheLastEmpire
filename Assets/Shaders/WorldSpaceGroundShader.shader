@@ -67,5 +67,44 @@ Shader "Custom/WorldSpaceGroundShader"
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+
+            ZWrite On
+            ColorMask R
+            Cull Back
+
+            HLSLPROGRAM
+            #pragma vertex vertDepth
+            #pragma fragment fragDepth
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct AttributesDepth
+            {
+                float4 positionOS : POSITION;
+            };
+
+            struct VaryingsDepth
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            VaryingsDepth vertDepth(AttributesDepth input)
+            {
+                VaryingsDepth output;
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                return output;
+            }
+
+            half4 fragDepth(VaryingsDepth input) : SV_Target
+            {
+                return 0;
+            }
+            ENDHLSL
+        }
     }
 }

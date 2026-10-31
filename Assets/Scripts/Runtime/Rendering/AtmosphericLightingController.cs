@@ -30,7 +30,7 @@ namespace TheLastEmpire
         [SerializeField] private Color duskFogColor = new Color(0.95f, 0.55f, 0.35f, 1.0f);
         [SerializeField] private Color nightFogColor = new Color(0.08f, 0.10f, 0.16f, 1.0f);
         [Range(0.001f, 0.05f)]
-        [SerializeField] private float fogDensity = 0.016f;
+        [SerializeField] private float fogDensity = 0.006f;
 
         [Header("Volumetric God Ray Beams (Sun Shafts)")]
         [SerializeField] private bool enableGodRays = true;
