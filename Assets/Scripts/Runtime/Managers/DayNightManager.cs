@@ -26,17 +26,17 @@ namespace TheLastEmpire
 
         [Header("Scene Sun / Directional Light Dimming")]
         [SerializeField] private Light sceneDirectionalLight;
-        [SerializeField] private float daySunIntensity = 1.25f;
-        [SerializeField] private float duskSunIntensity = 0.85f;
-        [SerializeField] private float nightSunIntensity = 0.15f;
-        [SerializeField] private Color daySunColor = new Color(1.0f, 0.96f, 0.90f);
-        [SerializeField] private Color duskSunColor = new Color(1.0f, 0.68f, 0.38f);
-        [SerializeField] private Color nightSunColor = new Color(0.35f, 0.50f, 0.75f);
+        [SerializeField] private float daySunIntensity = 1.38f;
+        [SerializeField] private float duskSunIntensity = 1.15f;
+        [SerializeField] private float nightSunIntensity = 0.20f;
+        [SerializeField] private Color daySunColor = new Color(1.0f, 0.95f, 0.86f);
+        [SerializeField] private Color duskSunColor = new Color(1.0f, 0.58f, 0.20f);
+        [SerializeField] private Color nightSunColor = new Color(0.28f, 0.42f, 0.72f);
 
-        [Header("Ambient & Shadow Fill (Color Contrast)")]
-        [SerializeField] private Color dayAmbientColor = new Color(0.40f, 0.44f, 0.50f);
-        [SerializeField] private Color duskAmbientColor = new Color(0.28f, 0.24f, 0.32f);
-        [SerializeField] private Color nightAmbientColor = new Color(0.08f, 0.10f, 0.16f);
+        [Header("Ambient & Shadow Fill (Warmth & Vibrancy)")]
+        [SerializeField] private Color dayAmbientColor = new Color(0.58f, 0.54f, 0.50f);
+        [SerializeField] private Color duskAmbientColor = new Color(0.50f, 0.34f, 0.24f);
+        [SerializeField] private Color nightAmbientColor = new Color(0.12f, 0.15f, 0.24f);
 
         [Header("Dynamic Celestial Sun & Moon Path")]
         [Tooltip("When enabled, the directional light smoothly sweeps across the sky matching time of day")]
@@ -175,11 +175,11 @@ namespace TheLastEmpire
             Color targetTint = Color.white;
             if (_currentPhase == TimePhase.Dusk)
             {
-                targetTint = new Color(0.98f, 0.94f, 0.88f, 1f); // Subtle warm sunset tone, maintains full texture clarity
+                targetTint = new Color(0.96f, 0.68f, 0.40f, 1f); // Rich warm sunset terracotta tone
             }
             else if (_currentPhase == TimePhase.Night)
             {
-                targetTint = new Color(0.45f, 0.50f, 0.65f, 1f); // Cool moonlit ground
+                targetTint = new Color(0.25f, 0.30f, 0.45f, 1f); // Deep cool moonlit ground
             }
 
             _currentDarknessAlpha = Mathf.MoveTowards(_currentDarknessAlpha, targetDarkness, Time.deltaTime * fadeSpeed);
@@ -388,8 +388,8 @@ namespace TheLastEmpire
                 _currentDarknessAlpha = (_currentPhase == TimePhase.Night) ? 1.0f : 0.0f;
                 _currentDuskAlpha = (_currentPhase == TimePhase.Dusk) ? 1.0f : 0.0f;
                 if (_currentPhase == TimePhase.Day) _currentAmbientTint = Color.white;
-                else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.98f, 0.94f, 0.88f, 1f);
-                else _currentAmbientTint = new Color(0.45f, 0.50f, 0.65f, 1f);
+                else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.96f, 0.68f, 0.40f, 1f);
+                else _currentAmbientTint = new Color(0.25f, 0.30f, 0.45f, 1f);
 
                 RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
                 RenderSettings.ambientLight = (_currentPhase == TimePhase.Night) ? nightAmbientColor :

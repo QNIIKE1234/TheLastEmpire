@@ -106,3 +106,26 @@
    * ปรับ Bloom Threshold เป็น 1.05 เพื่อเรืองแสงเฉพาะไฟ ตะเกียง กระสุน ไม่ให้แสงขาวฟุ้งบวม
    * เปิด Vignette (Intensity 0.25, Smoothness 0.45) ให้ขอบจอมีความนุ่มลึกตีกรอบมุมมอง Isometric ได้อย่างลงตัว
 
+---
+
+## 7. คืนความเข้ม สดใส และความอุ่นของสีสันฉาก (Color Vibrancy, Saturation & Warm Ambient Recalibration)
+
+### ปัญหาที่พบ:
+* หลังจากถอด Overlay สีส้มเดิมออก ทำให้ภาพขาดความอิ่มตัวของสี (Saturation ต่ำเกินไปที่ระดับ 8) และ Ambient Fill เดิมถูกดึงเป็นสีเทาเย็น ส่งผลให้ภาพดูซีด ทึม และรู้สึกเหมือน **"มีแต่เงา สีไม่เข้มเหมือนเดิม"**
+
+### การแก้ไขและปรับจูนความเข้มสดของสี:
+1. **เร่งความอิ่มตัวและความเปล่งปลั่งของสี (Color Saturation & Post-Exposure)**:
+   * ใน [DefaultVolumeProfile.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Settings/DefaultVolumeProfile.asset):
+     * เพิ่ม **Saturation = 22** (จากเดิม 8) ทำให้สีเสื้อผ้าตัวละคร, สีต้นไม้, ถังน้ำมัน, เลือด และพื้นกลับมาสด ฉ่ำ สวยงามคมเข้มทันที
+     * ปรับ **Post-Exposure = +0.25** และ **Contrast = 18** ให้ภาพสว่างสดใส มีชีวิตชีวา ไม่อึมครึม
+     * ปรับ Bloom Tint ให้อบอุ่นเรืองรองทองคำ (`{r: 1, g: 0.95, b: 0.88, a: 1}`)
+2. **เปลี่ยนแสงเงา Ambient Shadow Fill ให้อบอุ่น ไม่เป็นสีเทาซีด**:
+   * ใน [DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs):
+     * เปลี่ยน Day Ambient จากสีเทาครามซีด `(0.40, 0.44, 0.50)` เป็นแสงสะท้อนอุ่นอมทองธรรมชาติ `(0.58, 0.54, 0.50)`
+     * เปลี่ยน Dusk Ambient เป็น `(0.50, 0.34, 0.24)` และ Sun Intensity เป็น `1.15f` พร้อมสีทองส้มจัดจ้าน `(1.0, 0.58, 0.20)`
+3. **คืนสีส้มอิฐทองอันอบอุ่นให้พื้น Texture (Terracotta Golden Ground Tint)**:
+   * ปรับ Ground Ambient Tint ในช่วง Dusk คืนสู่โทนส้มทองเข้มข้น `(0.96, 0.68, 0.40)` เพื่อไม่ให้พื้นดินกลายเป็นสีขาวอมเทาจืดชืด
+4. **ใส่ Radial Sunset Vignette โอบล้อมขอบจอในยามพลบค่ำ**:
+   * ใน [NightDarknessOverlay.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/NightDarknessOverlay.shader): ให้ช่วง Dusk มีไออุ่นสีส้มอำพันนวลๆ โอบรอบขอบจออย่างมีมิติ โดยที่พื้นที่กลางจอตรงตัวละครยังสว่างใส คมชัด ไม่ถูกบดบัง
+
+
