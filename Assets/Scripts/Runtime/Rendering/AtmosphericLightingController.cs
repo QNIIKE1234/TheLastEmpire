@@ -21,37 +21,38 @@ namespace TheLastEmpire
         [SerializeField] private float sunPitchAngle = 32f;
         [Range(-180f, 180f)]
         [SerializeField] private float sunYawAngle = -135f;
-        [SerializeField] private Color goldenSunColor = new Color(1.0f, 0.92f, 0.78f, 1.0f);
-        [SerializeField] private float sunIntensity = 1.45f;
+        [SerializeField] private Color goldenSunColor = new Color(1.0f, 0.90f, 0.68f, 1.0f);
+        [SerializeField] private float sunIntensity = 1.35f;
 
-        [Header("PM 2.5 & Post-Fire Smoke Haze (หมอกควันไฟและมลพิษ)")]
+        [Header("Bangkok PM 2.5 Golden Smog Haze (ม่านหมอกมลพิษสีเหลืองทองแบบกรุงเทพฯ)")]
         [SerializeField] private bool enableFog = true;
-        [Tooltip("Daytime PM 2.5 smog haze color (dusty warm sepia-gray)")]
-        [SerializeField] private Color goldenFogColor = new Color(0.74f, 0.68f, 0.58f, 1.0f);
+        [Tooltip("Bangkok PM 2.5 dense smog haze color (dusty mustard-sepia)")]
+        [SerializeField] private Color goldenFogColor = new Color(0.85f, 0.76f, 0.50f, 1.0f);
         [Tooltip("Dusk post-fire smoldering smoke sunset")]
-        [SerializeField] private Color duskFogColor = new Color(0.80f, 0.54f, 0.36f, 1.0f);
+        [SerializeField] private Color duskFogColor = new Color(0.82f, 0.55f, 0.35f, 1.0f);
         [Tooltip("Night ash smog & darkness")]
-        [SerializeField] private Color nightFogColor = new Color(0.10f, 0.13f, 0.20f, 1.0f);
-        [Tooltip("Distance where smog begins to obscure the scene")]
-        [Range(1f, 20f)]
-        [SerializeField] private float fogStartDistance = 5f;
+        [SerializeField] private Color nightFogColor = new Color(0.12f, 0.16f, 0.24f, 1.0f);
+        [Tooltip("Distance where smog begins to obscure the scene (close to camera)")]
+        [Range(1f, 15f)]
+        [SerializeField] private float fogStartDistance = 2.0f;
         [Tooltip("Distance where smog reaches full opacity (screen edges)")]
-        [Range(15f, 50f)]
-        [SerializeField] private float fogEndDistance = 24f;
+        [Range(10f, 35f)]
+        [SerializeField] private float fogEndDistance = 20.0f;
 
-        [Header("PM 2.5 Particulates & Ash Flakes (ละอองฝุ่น PM 2.5 และสะเก็ดขี้เถ้า)")]
-        [SerializeField] private bool enableDustMotes = true;
-        [Range(30, 250)]
-        [SerializeField] private int dustMoteCount = 135;
-        [Tooltip("Size of fine ash/dust flecks (meters)")]
-        [Range(0.05f, 1.0f)]
-        [SerializeField] private float dustMoteSize = 0.22f;
-        [Tooltip("Daytime PM 2.5 ash & soot fleck color (dark ash-gray)")]
-        [SerializeField] private Color dayDustColor = new Color(0.50f, 0.46f, 0.40f, 0.55f);
+        [Header("Airborne Micro-Dust Flecks (Faint Ambient Shimmer)")]
+        [Tooltip("Disabled by default for clean pure Bangkok PM 2.5 smog haze (zero distracting dots)")]
+        [SerializeField] private bool enableDustMotes = false;
+        [Range(20, 150)]
+        [SerializeField] private int dustMoteCount = 60;
+        [Tooltip("Micro-fine dust fleck size (meters)")]
+        [Range(0.04f, 0.5f)]
+        [SerializeField] private float dustMoteSize = 0.08f;
+        [Tooltip("Daytime PM 2.5 micro-dust color")]
+        [SerializeField] private Color dayDustColor = new Color(0.85f, 0.78f, 0.55f, 0.18f);
         [Tooltip("Dusk post-fire ash color")]
-        [SerializeField] private Color duskDustColor = new Color(0.60f, 0.45f, 0.35f, 0.50f);
+        [SerializeField] private Color duskDustColor = new Color(0.80f, 0.55f, 0.35f, 0.20f);
         [Tooltip("Night dark soot color")]
-        [SerializeField] private Color nightDustColor = new Color(0.25f, 0.30f, 0.40f, 0.35f);
+        [SerializeField] private Color nightDustColor = new Color(0.30f, 0.35f, 0.45f, 0.15f);
         [SerializeField] private Material dustMoteMaterial;
 
         [Header("Post-Processing & Volume")]
@@ -205,6 +206,11 @@ namespace TheLastEmpire
             {
                 RenderSettings.fog = false;
             }
+
+            if (Camera.main != null)
+            {
+                Camera.main.backgroundColor = goldenFogColor;
+            }
         }
 
         private void SetupCameraAndVolume()
@@ -212,6 +218,7 @@ namespace TheLastEmpire
             Camera cam = Camera.main;
             if (cam != null)
             {
+                cam.backgroundColor = goldenFogColor;
                 UniversalAdditionalCameraData camData = cam.GetUniversalAdditionalCameraData();
                 if (camData != null)
                 {
@@ -256,16 +263,18 @@ namespace TheLastEmpire
                     colorAdj = profile.Add<ColorAdjustments>(true);
                 }
                 colorAdj.active = true;
-                colorAdj.contrast.Override(-8f); // Softens harsh contrast into hazy PM 2.5 / smoke atmosphere
-                colorAdj.colorFilter.Override(new Color(0.98f, 0.95f, 0.90f, 1f)); // Dusty warm ambient filter
+                colorAdj.contrast.Override(-14f); // Low contrast for authentic thick Bangkok PM 2.5 smog
+                colorAdj.colorFilter.Override(new Color(1.0f, 0.95f, 0.82f, 1f)); // Warm golden-mustard atmospheric wash
+                colorAdj.postExposure.Override(0.22f);
 
                 if (!profile.TryGet<Bloom>(out var bloom))
                 {
                     bloom = profile.Add<Bloom>(true);
                 }
                 bloom.active = true;
-                bloom.threshold.Override(1.05f);
-                bloom.intensity.Override(0.35f);
+                bloom.threshold.Override(0.85f);
+                bloom.intensity.Override(0.50f);
+                bloom.scatter.Override(0.70f);
             }
         }
 

@@ -29,12 +29,12 @@ namespace TheLastEmpire
         [SerializeField] private float daySunIntensity = 1.38f;
         [SerializeField] private float duskSunIntensity = 1.15f;
         [SerializeField] private float nightSunIntensity = 0.20f;
-        [SerializeField] private Color daySunColor = new Color(1.0f, 0.95f, 0.86f);
+        [SerializeField] private Color daySunColor = new Color(1.0f, 0.90f, 0.68f);
         [SerializeField] private Color duskSunColor = new Color(1.0f, 0.58f, 0.20f);
         [SerializeField] private Color nightSunColor = new Color(0.28f, 0.42f, 0.72f);
 
         [Header("Ambient & Shadow Fill (Warmth & Vibrancy)")]
-        [SerializeField] private Color dayAmbientColor = new Color(0.58f, 0.54f, 0.50f);
+        [SerializeField] private Color dayAmbientColor = new Color(0.68f, 0.60f, 0.44f);
         [SerializeField] private Color duskAmbientColor = new Color(0.50f, 0.34f, 0.24f);
         [SerializeField] private Color nightAmbientColor = new Color(0.12f, 0.15f, 0.24f);
 
@@ -51,8 +51,8 @@ namespace TheLastEmpire
         [SerializeField] private Vector3 nightDawnpinAngle = new Vector3(30f, 80f, 0f);
 
         [Header("Visual Feedback (Camera Background Tint)")]
-        [SerializeField] private Color dayCameraColor = new Color(0.12f, 0.13f, 0.15f, 1f);
-        [SerializeField] private Color duskCameraColor = new Color(0.14f, 0.11f, 0.13f, 1f);
+        [SerializeField] private Color dayCameraColor = new Color(0.86f, 0.78f, 0.52f, 1f);
+        [SerializeField] private Color duskCameraColor = new Color(0.78f, 0.55f, 0.32f, 1f);
         [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.03f, 0.05f, 1f);
 
         [Header("Ground Plane Ambient Tint (WorldSpaceGroundShader)")]

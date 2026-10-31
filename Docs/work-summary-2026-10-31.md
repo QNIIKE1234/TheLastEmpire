@@ -337,6 +337,32 @@
 3. **ปรับแต่ง Post-Processing Volume สำหรับบรรยากาศ PM 2.5**:
    * ลด Contrast ลงเล็กน้อย (`-8f`) เพื่อเลียนแบบสภาพแสงในม่านควันหมอกที่ความคมชัดลดลงอย่างสมจริง
    * ย้อม Color Filter โทนอุ่นฝุ่นควันเบาๆ (`rgba(0.98, 0.95, 0.90, 1.0)`)
+---
+
+## 17. บรรยากาศหมอกควันพิษสีเหลืองทองแบบกรุงเทพฯ (Bangkok PM 2.5 Golden Smog Palette Overhaul)
+
+### ความต้องการของผู้ใช้:
+* ผู้ใช้ส่งรูปภาพวิกฤตฝุ่น **PM 2.5 กรุงเทพฯ (Bangkok Smog Skyline)** พร้อมระบุ: *"อยากได้แบบนี้"*
+* วิเคราะห์ภาพถ่ายจริงของกรุงเทพฯ:
+  1. ท้องฟ้าและอากาศทั้งเมือง **ถูกย้อมด้วยม่านหมอกควันสีเหลืองทองซีเปีย/มัสตาร์ดหนาทึบ (Golden-Mustard Sepia Smog)** ขอบตึกและอาคารระยะไกลเลือนหายกลายเป็นเงาดำในม่านหมอก
+  2. **ไม่มีจุดอนุภาคกลมๆ ลอยกวนสายตา (Zero Particle Dots)**: สภาพอากาศเป็นมวลหมอกควันที่กลืนเป็นเนื้อเดียวกันทั้งหน้าจอ
+  3. แสงแดดและเงาถูกลดความเปรียบต่าง (Low Contrast) และย้อมโทนสีฝุ่นทองทั้งระบบ
+
+### สิ่งที่ดำเนินการ:
+1. **จับคู่สีตรงตามภาพถ่ายกรุงเทพฯ (Bangkok Smog Palette)**:
+   * **หมอกบรรยากาศ ([AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs))**:
+     * `goldenFogColor = new Color(0.85f, 0.76f, 0.50f, 1.0f)` (สีเหลืองทองมัสตาร์ดซีเปีย ตรงตามภาพถ่าย 100%)
+     * `fogStartDistance = 2.0m`, `fogEndDistance = 20.0m` (เริ่มกลืนตั้งแต่ 2m และปกคลุมหนาทึบ 100% ที่ขอบหน้าจอ)
+   * **ท้องฟ้าและฉากหลัง ([DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs))**:
+     * ปรับ `dayCameraColor = new Color(0.86f, 0.78f, 0.52f, 1.0f)` ทำให้ท้องฟ้าและเส้นขอบฟ้าไร้รอยต่อ กลืนเข้ากับม่านหมอก PM 2.5
+     * ปรับ `daySunColor = new Color(1.0f, 0.90f, 0.68f)` และ `dayAmbientColor = new Color(0.68f, 0.60f, 0.44f)` ให้แสงเงาในฉากสะท้อนโทนควันฝุ่นสีทอง
+2. **ปิดจุดอนุภาคที่กวนสายตา (Clean Air Haze)**:
+   * ปรับ `enableDustMotes = false` เป็นค่าเริ่มต้น เพื่อตัดจุดเม็ดกลมหรือลูกไฟออกจากหน้าจอ 100% ให้ภาพคลีน ละมุนตา สวยงามเหมือนภาพถ่ายตึกกรุงเทพฯ
+3. **ปรับแต่ง Post-Processing สำหรับ Bangkok PM 2.5**:
+   * ปรับ `ColorAdjustments.contrast = -14f` (ลดคอนทราสต์จำลองการกระเจิงของแสงในม่านควัน)
+   * ย้อม `ColorAdjustments.colorFilter = new Color(1.0f, 0.95f, 0.82f, 1f)`
+   * เพิ่ม `Bloom` (Threshold 0.85f, Intensity 0.50f, Scatter 0.70f) ให้แสงแดดและขอบอาคารฟุ้งสว่างละมุนเข้าไปในม่านหมอกสีทอง
+
 
 
 

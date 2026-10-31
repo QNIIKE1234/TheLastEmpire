@@ -75,7 +75,7 @@ namespace TheLastEmpire
             EditorGUILayout.Space(6);
 
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("ATMOSPHERIC MIST & HEIGHT FOG", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("BANGKOK PM 2.5 SMOG & ATMOSPHERIC FOG", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(so.FindProperty("enableFog"));
             EditorGUILayout.PropertyField(so.FindProperty("goldenFogColor"));
             EditorGUILayout.PropertyField(so.FindProperty("duskFogColor"));
@@ -87,7 +87,7 @@ namespace TheLastEmpire
             EditorGUILayout.Space(6);
 
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("ATMOSPHERIC DUST PARTICLES (DUST MOTES)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("AIRBORNE MICRO-DUST PARTICLES", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(so.FindProperty("enableDustMotes"));
             EditorGUILayout.PropertyField(so.FindProperty("dustMoteCount"));
             EditorGUILayout.PropertyField(so.FindProperty("dustMoteSize"));
@@ -102,7 +102,7 @@ namespace TheLastEmpire
             so.ApplyModifiedProperties();
 
             GUI.backgroundColor = new Color(0.2f, 0.75f, 0.4f);
-            if (GUILayout.Button("Apply Atmosphere & Dust Motes", GUILayout.Height(36)))
+            if (GUILayout.Button("Apply Bangkok PM 2.5 Atmosphere", GUILayout.Height(36)))
             {
                 controller.ApplyAtmosphere();
                 controller.DestroyLegacyGodRayContainers();

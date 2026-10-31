@@ -652,7 +652,7 @@ namespace TheLastEmpire
                 }
 
                 GUI.backgroundColor = new Color(0.9f, 0.7f, 0.2f);
-                if (GUILayout.Button("รีเซ็ตแสง & ฝุ่นละออง"))
+                if (GUILayout.Button("รีเซ็ตบรรยากาศ PM 2.5"))
                 {
                     if (AtmosphericLightingController.Instance != null)
                     {
@@ -660,7 +660,7 @@ namespace TheLastEmpire
                         AtmosphericLightingController.Instance.DestroyLegacyGodRayContainers();
                         AtmosphericLightingController.Instance.SetupDustMotes();
                     }
-                    ShowToast("รีเซ็ตแสง Golden Hour, หมอก & ฝุ่นละออง");
+                    ShowToast("รีเซ็ตบรรยากาศหมอกควัน Bangkok PM 2.5 สำเร็จ");
                 }
             }
             GUILayout.EndHorizontal();
