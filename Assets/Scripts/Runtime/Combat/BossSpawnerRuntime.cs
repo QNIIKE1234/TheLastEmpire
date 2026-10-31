@@ -634,6 +634,27 @@ namespace TheLastEmpire
                     ctrl.maxDarkness = Mathf.Round(newDark * 100f) / 100f;
                 }
             }
+
+            GUILayout.Space(6);
+            GUILayout.Label("บรรยากาศ & หมอกแสง (Fog & God Rays)", EditorStylesBold());
+            GUILayout.BeginHorizontal();
+            {
+                bool fogOn = RenderSettings.fog;
+                GUI.backgroundColor = fogOn ? new Color(0.2f, 0.8f, 0.4f) : new Color(0.6f, 0.6f, 0.6f);
+                if (GUILayout.Button($"หมอกบรรยากาศ (Fog): {(fogOn ? "เปิด [ON]" : "ปิด [OFF]")}"))
+                {
+                    RenderSettings.fog = !RenderSettings.fog;
+                    ShowToast($"หมอกบรรยากาศ: {(RenderSettings.fog ? "เปิด" : "ปิด")}");
+                }
+
+                GUI.backgroundColor = new Color(0.9f, 0.7f, 0.2f);
+                if (GUILayout.Button("รีเซ็ตแสง Golden Hour"))
+                {
+                    AtmosphericLightingController.Instance?.ApplyAtmosphere();
+                    ShowToast("รีเซ็ตแสง Golden Hour & หมอก");
+                }
+            }
+            GUILayout.EndHorizontal();
         }
 
         public void TriggerRageOnAllBosses()

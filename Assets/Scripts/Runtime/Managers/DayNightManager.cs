@@ -26,11 +26,11 @@ namespace TheLastEmpire
 
         [Header("Scene Sun / Directional Light Dimming")]
         [SerializeField] private Light sceneDirectionalLight;
-        [SerializeField] private float daySunIntensity = 1.0f;
-        [SerializeField] private float duskSunIntensity = 0.45f;
+        [SerializeField] private float daySunIntensity = 1.45f;
+        [SerializeField] private float duskSunIntensity = 0.65f;
         [SerializeField] private float nightSunIntensity = 0.08f;
-        [SerializeField] private Color daySunColor = new Color(1f, 0.98f, 0.92f);
-        [SerializeField] private Color duskSunColor = new Color(0.95f, 0.60f, 0.35f);
+        [SerializeField] private Color daySunColor = new Color(1.0f, 0.90f, 0.74f);
+        [SerializeField] private Color duskSunColor = new Color(0.98f, 0.62f, 0.35f);
         [SerializeField] private Color nightSunColor = new Color(0.12f, 0.16f, 0.28f);
 
         [Header("Visual Feedback (Camera Background Tint)")]
