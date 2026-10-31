@@ -128,4 +128,29 @@
 4. **ใส่ Radial Sunset Vignette โอบล้อมขอบจอในยามพลบค่ำ**:
    * ใน [NightDarknessOverlay.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/NightDarknessOverlay.shader): ให้ช่วง Dusk มีไออุ่นสีส้มอำพันนวลๆ โอบรอบขอบจออย่างมีมิติ โดยที่พื้นที่กลางจอตรงตัวละครยังสว่างใส คมชัด ไม่ถูกบดบัง
 
+---
+
+## 8. ระบบแสงแดดส่องผ่านยอดไม้ ฝุ่นละอองในอากาศ และลำแสง (God Rays, Atmospheric Dust Motes & Woodland Lighting)
+
+### ตามภาพอ้างอิงของผู้ใช้ (`media_1793459221819.png`):
+* แสงแดดยามกลางวันส่องเฉียงลงมาผ่านยอดไม้ (Pitch 28° - 38°, Yaw -105° ถึง -155°) ทอดเงายาวไปตามพื้นและวัตถุ
+* ลำแสง Volumetric Sun Shafts (God Rays) ส่องลงมาจากฟากฟ้าตัดผ่านยอดไม้
+* มีละอองฝุ่นทองคำ (Atmospheric Dust Motes) ลอยฟุ้งเป็นประกายระยิบระยับในอากาศเมื่อต้องแสงแดด ("เหมือนมีฝุ่นๆ")
+* หมอกบรรยากาศสีทองอ่อนแบบ Linear Fog (ระยะ 18m - 75m) ที่ไม่บดบังระยะต่อสู้ใกล้ตัวผู้เล่น
+
+### สิ่งที่พัฒนาและติดตั้ง:
+1. **สร้าง Shader ละอองฝุ่นในอากาศ [AtmosphericDustMote.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/AtmosphericDustMote.shader)**:
+   * คำนวณ Point Sprite แบบ Soft Radial Additive เรืองแสงสีทองโดยไม่ต้องใช้ Texture ภายนอก
+2. **ระบบอนุภาคฝุ่นละอองลอยในอากาศ (Atmospheric Dust Motes)** ใน [AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs):
+   * ปล่อยละอองฝุ่น 180 อนุภาค ลอยเบาๆ ในขอบเขต 28m x 10m x 28m รอบตัวละครและกล้อง
+   * เคลื่อนไหวแบบ Brownian Motion + Turbulence Noise ลอยขึ้นและพลิ้วไหวอย่างเป็นธรรมชาติ
+   * ปรับสีตามเวลา: กลางวันสีทองนวล (`1.0, 0.92, 0.75`), พลบค่ำสีส้มอำพัน (`1.0, 0.68, 0.35`)
+3. **ยกเครื่องการกำเนิดลำแสง God Rays จากฟากฟ้า**:
+   * ย้ายจุดกำเนิด Quad ขึ้นไปบนท้องฟ้าตามทิศทาง `-sunForward * beamLength` ส่องลงมาสู่พื้นดินรอบตัวผู้เล่น
+   * ปรับความกว้าง 14m และความยาว 55m พร้อมหมุนตามองศาพระอาทิตย์แบบ Real-time
+4. **ปรับมุมพระอาทิตย์กลางวันแบบ Cinematic Diagonal** ใน [DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs):
+   * ล็อคมุม Pitch ให้อยู่ระหว่าง 28° - 38° ตลอดทั้งวัน เพื่อให้เกิดเงาและลำแสงส่องเฉียงที่งดงามเหมือนในวิดีโออ้างอิง ไม่ตั้งชันเป็น 60°
+5. **เพิ่มปุ่มรีเซ็ตแสงและฝุ่นในเมนูโกง F1** ใน [BossSpawnerRuntime.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BossSpawnerRuntime.cs) และอัปเดตหน้าต่างปรับแต่ง [AtmosphericLightingEditorWindow.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/AtmosphericLightingEditorWindow.cs)
+
+
 

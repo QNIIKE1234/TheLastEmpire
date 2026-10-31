@@ -80,7 +80,8 @@ namespace TheLastEmpire
             EditorGUILayout.PropertyField(so.FindProperty("goldenFogColor"));
             EditorGUILayout.PropertyField(so.FindProperty("duskFogColor"));
             EditorGUILayout.PropertyField(so.FindProperty("nightFogColor"));
-            EditorGUILayout.PropertyField(so.FindProperty("fogDensity"));
+            EditorGUILayout.PropertyField(so.FindProperty("fogStartDistance"));
+            EditorGUILayout.PropertyField(so.FindProperty("fogEndDistance"));
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space(6);
@@ -95,14 +96,29 @@ namespace TheLastEmpire
             EditorGUILayout.PropertyField(so.FindProperty("godRayIntensity"));
             EditorGUILayout.EndVertical();
 
+            EditorGUILayout.Space(6);
+
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("ATMOSPHERIC DUST PARTICLES (DUST MOTES)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(so.FindProperty("enableDustMotes"));
+            EditorGUILayout.PropertyField(so.FindProperty("dustMoteCount"));
+            EditorGUILayout.PropertyField(so.FindProperty("dustMoteSize"));
+            EditorGUILayout.PropertyField(so.FindProperty("dayDustColor"));
+            EditorGUILayout.PropertyField(so.FindProperty("duskDustColor"));
+            EditorGUILayout.PropertyField(so.FindProperty("nightDustColor"));
+            EditorGUILayout.PropertyField(so.FindProperty("dustMoteMaterial"));
+            EditorGUILayout.EndVertical();
+
             EditorGUILayout.Space(10);
 
             so.ApplyModifiedProperties();
 
             GUI.backgroundColor = new Color(0.2f, 0.75f, 0.4f);
-            if (GUILayout.Button("Apply Atmosphere & Regenerate Beams", GUILayout.Height(36)))
+            if (GUILayout.Button("Apply Atmosphere, Beams & Dust Motes", GUILayout.Height(36)))
             {
                 controller.ApplyAtmosphere();
+                controller.SetupGodRayBeams();
+                controller.SetupDustMotes();
                 EditorUtility.SetDirty(controller);
             }
         }

@@ -648,10 +648,15 @@ namespace TheLastEmpire
                 }
 
                 GUI.backgroundColor = new Color(0.9f, 0.7f, 0.2f);
-                if (GUILayout.Button("รีเซ็ตแสง Golden Hour"))
+                if (GUILayout.Button("รีเซ็ตแสง & ฝุ่นละออง"))
                 {
-                    AtmosphericLightingController.Instance?.ApplyAtmosphere();
-                    ShowToast("รีเซ็ตแสง Golden Hour & หมอก");
+                    if (AtmosphericLightingController.Instance != null)
+                    {
+                        AtmosphericLightingController.Instance.ApplyAtmosphere();
+                        AtmosphericLightingController.Instance.SetupGodRayBeams();
+                        AtmosphericLightingController.Instance.SetupDustMotes();
+                    }
+                    ShowToast("รีเซ็ตแสง Golden Hour, หมอก & ฝุ่นละออง");
                 }
             }
             GUILayout.EndHorizontal();

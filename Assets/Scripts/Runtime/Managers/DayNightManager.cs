@@ -41,11 +41,11 @@ namespace TheLastEmpire
         [Header("Dynamic Celestial Sun & Moon Path")]
         [Tooltip("When enabled, the directional light smoothly sweeps across the sky matching time of day")]
         [SerializeField] private bool dynamicLightAngle = true;
-        [SerializeField] private Vector3 dayMorningSunAngle = new Vector3(35f, -70f, 0f);
-        [SerializeField] private Vector3 dayNoonSunAngle = new Vector3(60f, -115f, 0f);
-        [SerializeField] private Vector3 dayAfternoonSunAngle = new Vector3(38f, -150f, 0f);
-        [SerializeField] private Vector3 duskStartSunAngle = new Vector3(38f, -150f, 0f);
-        [SerializeField] private Vector3 duskSunsetSunAngle = new Vector3(18f, -175f, 0f);
+        [SerializeField] private Vector3 dayMorningSunAngle = new Vector3(28f, -105f, 0f);
+        [SerializeField] private Vector3 dayNoonSunAngle = new Vector3(38f, -135f, 0f);
+        [SerializeField] private Vector3 dayAfternoonSunAngle = new Vector3(30f, -155f, 0f);
+        [SerializeField] private Vector3 duskStartSunAngle = new Vector3(30f, -155f, 0f);
+        [SerializeField] private Vector3 duskSunsetSunAngle = new Vector3(16f, -175f, 0f);
         [SerializeField] private Vector3 nightMoonriseAngle = new Vector3(25f, 35f, 0f);
         [SerializeField] private Vector3 nightMidnightAngle = new Vector3(55f, 60f, 0f);
         [SerializeField] private Vector3 nightDawnpinAngle = new Vector3(30f, 80f, 0f);
