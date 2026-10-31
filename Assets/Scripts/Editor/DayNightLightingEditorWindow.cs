@@ -97,18 +97,18 @@ namespace TheLastEmpire
                 else SetManualPreview(0f, 0f, Color.white);
             }
 
-            GUI.backgroundColor = new Color(1.0f, 0.65f, 0.35f);
-            if (GUILayout.Button("DUSK\n(Sunset Fade)", GUILayout.Height(40)))
+            GUI.backgroundColor = new Color(1.0f, 0.6f, 0.25f);
+            if (GUILayout.Button("DUSK\n(Sunset Mist)", GUILayout.Height(40)))
             {
                 if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Dusk);
-                else SetManualPreview(0f, 1f, new Color(0.95f, 0.70f, 0.45f, 1f));
+                else SetManualPreview(0f, 0f, new Color(0.98f, 0.88f, 0.78f, 1f));
             }
 
             GUI.backgroundColor = new Color(0.2f, 0.35f, 0.7f);
             if (GUILayout.Button("NIGHT\n(Distance Fade)", GUILayout.Height(40)))
             {
                 if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Night);
-                else SetManualPreview(1f, 0f, new Color(0.15f, 0.18f, 0.25f, 1f));
+                else SetManualPreview(1f, 0f, new Color(0.12f, 0.16f, 0.28f, 1f));
             }
             GUI.backgroundColor = Color.white;
             EditorGUILayout.EndHorizontal();

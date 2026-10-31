@@ -87,18 +87,6 @@ namespace TheLastEmpire
             EditorGUILayout.Space(6);
 
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("VOLUMETRIC GOD RAY BEAMS (SUN SHAFTS)", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(so.FindProperty("enableGodRays"));
-            EditorGUILayout.PropertyField(so.FindProperty("godRayMaterial"));
-            EditorGUILayout.PropertyField(so.FindProperty("beamCount"));
-            EditorGUILayout.PropertyField(so.FindProperty("beamLength"));
-            EditorGUILayout.PropertyField(so.FindProperty("beamWidth"));
-            EditorGUILayout.PropertyField(so.FindProperty("godRayIntensity"));
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.Space(6);
-
-            EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("ATMOSPHERIC DUST PARTICLES (DUST MOTES)", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(so.FindProperty("enableDustMotes"));
             EditorGUILayout.PropertyField(so.FindProperty("dustMoteCount"));
@@ -114,10 +102,10 @@ namespace TheLastEmpire
             so.ApplyModifiedProperties();
 
             GUI.backgroundColor = new Color(0.2f, 0.75f, 0.4f);
-            if (GUILayout.Button("Apply Atmosphere, Beams & Dust Motes", GUILayout.Height(36)))
+            if (GUILayout.Button("Apply Atmosphere & Dust Motes", GUILayout.Height(36)))
             {
                 controller.ApplyAtmosphere();
-                controller.SetupGodRayBeams();
+                controller.DestroyLegacyGodRayContainers();
                 controller.SetupDustMotes();
                 EditorUtility.SetDirty(controller);
             }

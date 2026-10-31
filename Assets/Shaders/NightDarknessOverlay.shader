@@ -71,46 +71,35 @@ Shader "Custom/NightDarknessOverlay"
             half4 frag(Varyings input) : SV_Target
             {
                 float darkAlpha = saturate(_GlobalDarknessAlpha);
-                float duskAlpha = saturate(_GlobalDuskAlpha);
+
+                // Day: Transparent
+                if (darkAlpha <= 0.005)
+                {
+                    return half4(0, 0, 0, 0);
+                }
 
                 // Night Phase: Smooth distance fade from bright center to 90% dark ambiance
-                if (darkAlpha > 0.005)
-                {
-                    float2 diff = input.uv - _GlobalPlayerScreenPos;
-                    diff.x *= _GlobalAspect; // Correct aspect ratio for circular light
-                    float dist = length(diff);
+                float2 diff = input.uv - _GlobalPlayerScreenPos;
+                diff.x *= _GlobalAspect; // Correct aspect ratio for circular light
+                float dist = length(diff);
 
-                    // Subtle organic torch breathing
-                    float flicker = sin(_Time.y * 6.0) * cos(_Time.y * 11.0) * _FlickerAmount;
-                    float inner = max(0.01, _InnerRadius + flicker);
-                    float outer = max(inner + 0.08, _OuterRadius + flicker);
+                // Subtle organic torch breathing
+                float flicker = sin(_Time.y * 6.0) * cos(_Time.y * 11.0) * _FlickerAmount;
+                float inner = max(0.01, _InnerRadius + flicker);
+                float outer = max(inner + 0.08, _OuterRadius + flicker);
 
-                    // Smooth gradual distance decay
-                    float falloff = smoothstep(inner, outer, dist);
-                    falloff = pow(falloff, 1.2); // Cinematic natural light falloff curve
+                // Smooth gradual distance decay
+                float falloff = smoothstep(inner, outer, dist);
+                falloff = pow(falloff, 1.2); // Cinematic natural light falloff curve
 
-                    float hasTorch = saturate(_GlobalHasTorchLight);
+                float hasTorch = saturate(_GlobalHasTorchLight);
 
-                    // Outside the light, reach 90% darkness as requested (0.90)
-                    float maxDark = lerp(0.96, _MaxDarkness, hasTorch);
-                    float darkness = lerp(maxDark, falloff * maxDark, hasTorch);
+                // Outside the light, reach 90% darkness as requested (0.90)
+                float maxDark = lerp(0.96, _MaxDarkness, hasTorch);
+                float darkness = lerp(maxDark, falloff * maxDark, hasTorch);
 
-                    float finalAlpha = darkness * darkAlpha;
-                    return half4(_NightColor.rgb, finalAlpha);
-                }
-
-                // Dusk Phase: Rich warm golden hour ambiance with radial vignette (clear in center, deep amber tone)
-                if (duskAlpha > 0.005)
-                {
-                    float2 centerDiff = input.uv - 0.5;
-                    centerDiff.x *= _GlobalAspect;
-                    float vignette = smoothstep(0.18, 0.90, length(centerDiff));
-                    float alpha = _DuskColor.a * duskAlpha * (0.22 + vignette * 0.42);
-                    return half4(_DuskColor.rgb, alpha);
-                }
-
-                // Day Phase: Transparent
-                return half4(0, 0, 0, 0);
+                float nightAlpha = darkness * darkAlpha;
+                return half4(_NightColor.rgb, nightAlpha);
             }
             ENDHLSL
         }

@@ -48,6 +48,7 @@ namespace TheLastEmpire
 
         private void Awake()
         {
+            disableDarknessOverlay = false;
             if (Instance == null)
             {
                 Instance = this;
@@ -58,6 +59,16 @@ namespace TheLastEmpire
             {
                 Destroy(gameObject);
             }
+        }
+
+        private void OnEnable()
+        {
+            disableDarknessOverlay = false;
+        }
+
+        private void Start()
+        {
+            disableDarknessOverlay = false;
         }
 
         private void InitializeDarknessCanvas()
@@ -118,6 +129,25 @@ namespace TheLastEmpire
             HandleInput();
             UpdatePlayerScreenPosition();
 
+            // Keep Daytime 100% clean of 2D canvas overdraw; activate canvas dynamically when night is present
+            if (_overlayCanvasObj != null)
+            {
+                if (!disableDarknessOverlay)
+                {
+                    bool shouldBeActive = (DayNightManager.Instance != null)
+                        ? (DayNightManager.Instance.IsNight || DayNightManager.Instance.CurrentDarknessAlpha > 0.005f)
+                        : true;
+                    if (_overlayCanvasObj.activeSelf != shouldBeActive)
+                    {
+                        _overlayCanvasObj.SetActive(shouldBeActive);
+                    }
+                }
+                else
+                {
+                    if (_overlayCanvasObj.activeSelf) _overlayCanvasObj.SetActive(false);
+                }
+            }
+
             if (_darknessMaterial != null)
             {
                 _darknessMaterial.SetFloat("_InnerRadius", innerRadius);
@@ -130,8 +160,8 @@ namespace TheLastEmpire
         {
             if (Keyboard.current == null) return;
 
-            // L key (or F) toggles torch / flashlight
-            if (Keyboard.current.lKey.wasPressedThisFrame)
+            // L key (or F key) toggles torch / flashlight
+            if (Keyboard.current.lKey.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame)
             {
                 ToggleTorchLight();
             }

@@ -148,7 +148,7 @@ namespace TheLastEmpire
             if (NightDarknessController.Instance != null)
             {
                 NightDarknessController.Instance.ToggleTorchLight();
-                ShowToast($"ไฟฉาย: {(NightDarknessController.Instance.HasTorchLight ? "ON" : "OFF")} [กด L]");
+                ShowToast($"ไฟฉาย: {(NightDarknessController.Instance.HasTorchLight ? "ON" : "OFF")} [กด L หรือ F]");
             }
         }
 
@@ -555,24 +555,28 @@ namespace TheLastEmpire
             GUILayout.BeginHorizontal();
             {
                 GUI.backgroundColor = new Color(1f, 0.85f, 0.2f);
-                if (GUILayout.Button("DAY (กลางวัน)"))
+                if (GUILayout.Button("DAY (กลางวัน)", GUILayout.Height(30)))
                 {
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Day, true);
                     ShowToast("สลับเป็นช่วง กลางวัน (Day)");
                 }
 
                 GUI.backgroundColor = new Color(1f, 0.55f, 0.2f);
-                if (GUILayout.Button("DUSK (เย็น)"))
+                if (GUILayout.Button("DUSK (เย็น)", GUILayout.Height(30)))
                 {
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Dusk, true);
-                    ShowToast("สลับเป็นช่วง พลบค่ำ (Dusk)");
+                    ShowToast("สลับเป็นช่วง พลบค่ำ (Dusk) - แสงอาทิตย์อัสดง & ละอองทอง");
                 }
 
                 GUI.backgroundColor = new Color(0.2f, 0.5f, 0.9f);
-                if (GUILayout.Button("NIGHT (กลางคืน)"))
+                if (GUILayout.Button("NIGHT (กลางคืน)", GUILayout.Height(30)))
                 {
+                    if (NightDarknessController.Instance != null)
+                    {
+                        NightDarknessController.Instance.DisableDarknessOverlay = false;
+                    }
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Night, true);
-                    ShowToast("สลับเป็นช่วง กลางคืน (Night)");
+                    ShowToast("สลับเป็นช่วง กลางคืน (Night) - แสงเก่า: พื้นมืด & ไฟฉาย ON");
                 }
             }
             GUILayout.EndHorizontal();
@@ -604,19 +608,19 @@ namespace TheLastEmpire
             {
                 bool lightOn = NightDarknessController.Instance != null && NightDarknessController.Instance.HasTorchLight;
                 GUI.backgroundColor = lightOn ? new Color(0.2f, 0.8f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
-                if (GUILayout.Button($"ไฟฉาย: {(lightOn ? "เปิด [ON]" : "ปิด [OFF]")} [L]"))
+                if (GUILayout.Button($"ไฟฉาย: {(lightOn ? "เปิด [ON]" : "ปิด [OFF]")} [L/F]"))
                 {
                     TogglePlayerLight();
                 }
 
                 bool darkDisabled = NightDarknessController.Instance != null && NightDarknessController.Instance.DisableDarknessOverlay;
-                GUI.backgroundColor = darkDisabled ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.6f, 0.9f);
-                if (GUILayout.Button($"Darkness Mask: {(darkDisabled ? "ซ่อน" : "แสดง")}"))
+                GUI.backgroundColor = darkDisabled ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.8f, 0.3f);
+                if (GUILayout.Button($"Darkness Mask: {(darkDisabled ? "ซ่อนอยู่ [คลิกเพื่อเปิด]" : "เปิดใช้งาน [ON]")}"))
                 {
                     if (NightDarknessController.Instance != null)
                     {
                         NightDarknessController.Instance.DisableDarknessOverlay = !NightDarknessController.Instance.DisableDarknessOverlay;
-                        ShowToast($"Darkness Mask: {(NightDarknessController.Instance.DisableDarknessOverlay ? "ซ่อนความมืด (สว่าง)" : "แสดงความมืด")}");
+                        ShowToast($"Darkness Mask: {(NightDarknessController.Instance.DisableDarknessOverlay ? "ซ่อนความมืด" : "เปิดความมืด 90%")}");
                     }
                 }
             }
@@ -653,7 +657,7 @@ namespace TheLastEmpire
                     if (AtmosphericLightingController.Instance != null)
                     {
                         AtmosphericLightingController.Instance.ApplyAtmosphere();
-                        AtmosphericLightingController.Instance.SetupGodRayBeams();
+                        AtmosphericLightingController.Instance.DestroyLegacyGodRayContainers();
                         AtmosphericLightingController.Instance.SetupDustMotes();
                     }
                     ShowToast("รีเซ็ตแสง Golden Hour, หมอก & ฝุ่นละออง");

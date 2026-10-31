@@ -55,6 +55,14 @@ namespace TheLastEmpire
         [SerializeField] private Color duskCameraColor = new Color(0.14f, 0.11f, 0.13f, 1f);
         [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.03f, 0.05f, 1f);
 
+        [Header("Ground Plane Ambient Tint (WorldSpaceGroundShader)")]
+        [SerializeField] private Color dayGroundTint = Color.white;
+        [SerializeField] private Color duskGroundTint = new Color(0.96f, 0.68f, 0.40f, 1f);
+        [SerializeField] private Color nightGroundTint = new Color(0.12f, 0.16f, 0.28f, 1f);
+
+        [Header("Legacy Lighting Compatibility")]
+        [SerializeField] private bool disableLegacyLighting = false;
+
         [Header("UI Reference")]
         [SerializeField] private TextMeshProUGUI timeText;
 
@@ -71,6 +79,23 @@ namespace TheLastEmpire
         public bool IsDusk => _currentPhase == TimePhase.Dusk;
         public bool IsDay => _currentPhase == TimePhase.Day;
         public int DayCount { get; private set; } = 1;
+
+        public float CurrentDarknessAlpha => _currentDarknessAlpha;
+        public float CurrentDuskAlpha => 0f;
+        public Color CurrentAmbientTint => _currentAmbientTint;
+
+        public bool DisableLegacyLighting
+        {
+            get => false;
+            set
+            {
+                disableLegacyLighting = false;
+                if (NightDarknessController.Instance != null)
+                {
+                    NightDarknessController.Instance.DisableDarknessOverlay = false;
+                }
+            }
+        }
 
         public float CycleSpeedMultiplier
         {
@@ -96,6 +121,7 @@ namespace TheLastEmpire
 
         private void Awake()
         {
+            disableLegacyLighting = false;
             if (Instance == null)
             {
                 Instance = this;
@@ -107,8 +133,23 @@ namespace TheLastEmpire
             }
         }
 
+        private void OnEnable()
+        {
+            disableLegacyLighting = false;
+            if (nightGroundTint == default || nightGroundTint.a < 0.01f) nightGroundTint = new Color(0.12f, 0.16f, 0.28f, 1f);
+            if (duskGroundTint == default || duskGroundTint.a < 0.01f) duskGroundTint = new Color(0.96f, 0.68f, 0.40f, 1f);
+            if (dayGroundTint == default || dayGroundTint.a < 0.01f) dayGroundTint = Color.white;
+
+            PushShaderValues();
+        }
+
         private void Start()
         {
+            disableLegacyLighting = false;
+            if (NightDarknessController.Instance != null)
+            {
+                NightDarknessController.Instance.DisableDarknessOverlay = false;
+            }
             ResetDayCount();
         }
 
@@ -135,9 +176,9 @@ namespace TheLastEmpire
         {
             switch (_currentPhase)
             {
-                case TimePhase.Day: return dayDuration;
                 case TimePhase.Dusk: return duskDuration;
                 case TimePhase.Night: return nightDuration;
+                case TimePhase.Day:
                 default: return dayDuration;
             }
         }
@@ -170,20 +211,10 @@ namespace TheLastEmpire
         private void UpdateFades()
         {
             float targetDarkness = (_currentPhase == TimePhase.Night) ? 1.0f : 0.0f;
-            float targetDusk = (_currentPhase == TimePhase.Dusk) ? 1.0f : 0.0f;
-
-            Color targetTint = Color.white;
-            if (_currentPhase == TimePhase.Dusk)
-            {
-                targetTint = new Color(0.96f, 0.68f, 0.40f, 1f); // Rich warm sunset terracotta tone
-            }
-            else if (_currentPhase == TimePhase.Night)
-            {
-                targetTint = new Color(0.25f, 0.30f, 0.45f, 1f); // Deep cool moonlit ground
-            }
+            Color targetTint = (_currentPhase == TimePhase.Night) ? nightGroundTint : (_currentPhase == TimePhase.Dusk ? duskGroundTint : dayGroundTint);
 
             _currentDarknessAlpha = Mathf.MoveTowards(_currentDarknessAlpha, targetDarkness, Time.deltaTime * fadeSpeed);
-            _currentDuskAlpha = Mathf.MoveTowards(_currentDuskAlpha, targetDusk, Time.deltaTime * fadeSpeed);
+            _currentDuskAlpha = 0f; // No legacy 2D dusk overlay; Dusk uses modern URP atmospheric sunlight & fog
             _currentAmbientTint = Color.Lerp(_currentAmbientTint, targetTint, Time.deltaTime * fadeSpeed * 1.5f);
 
             // Smoothly dim Directional Light (Sun) & Ambient Fill
@@ -215,13 +246,30 @@ namespace TheLastEmpire
             }
 
             // Update Ambient Light fill for rich shadow depth
-            Color targetAmbient = _currentPhase switch
+            Color targetAmbient;
+            float targetIntensity;
+            Color targetColor;
+
+            switch (_currentPhase)
             {
-                TimePhase.Day => dayAmbientColor,
-                TimePhase.Dusk => duskAmbientColor,
-                TimePhase.Night => nightAmbientColor,
-                _ => dayAmbientColor
-            };
+                case TimePhase.Dusk:
+                    targetAmbient = duskAmbientColor;
+                    targetIntensity = duskSunIntensity;
+                    targetColor = duskSunColor;
+                    break;
+                case TimePhase.Night:
+                    targetAmbient = nightAmbientColor;
+                    targetIntensity = nightSunIntensity;
+                    targetColor = nightSunColor;
+                    break;
+                case TimePhase.Day:
+                default:
+                    targetAmbient = dayAmbientColor;
+                    targetIntensity = daySunIntensity;
+                    targetColor = daySunColor;
+                    break;
+            }
+
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = Color.Lerp(RenderSettings.ambientLight, targetAmbient, Time.deltaTime * fadeSpeed);
 
@@ -234,22 +282,6 @@ namespace TheLastEmpire
                     targetRot,
                     Time.deltaTime * Mathf.Max(2f, fadeSpeed)
                 );
-
-                float targetIntensity = _currentPhase switch
-                {
-                    TimePhase.Day => daySunIntensity,
-                    TimePhase.Dusk => duskSunIntensity,
-                    TimePhase.Night => nightSunIntensity,
-                    _ => daySunIntensity
-                };
-
-                Color targetColor = _currentPhase switch
-                {
-                    TimePhase.Day => daySunColor,
-                    TimePhase.Dusk => duskSunColor,
-                    TimePhase.Night => nightSunColor,
-                    _ => daySunColor
-                };
 
                 sceneDirectionalLight.intensity = Mathf.MoveTowards(sceneDirectionalLight.intensity, targetIntensity, Time.deltaTime * fadeSpeed);
                 sceneDirectionalLight.color = Color.Lerp(sceneDirectionalLight.color, targetColor, Time.deltaTime * fadeSpeed);
@@ -266,18 +298,9 @@ namespace TheLastEmpire
             float t = PhaseProgress; // 0.0 to 1.0 within current phase
             switch (_currentPhase)
             {
-                case TimePhase.Day:
-                {
-                    // Morning -> Noon (peak height) -> Afternoon
-                    float pitch = (t < 0.5f)
-                        ? Mathf.Lerp(dayMorningSunAngle.x, dayNoonSunAngle.x, t * 2f)
-                        : Mathf.Lerp(dayNoonSunAngle.x, dayAfternoonSunAngle.x, (t - 0.5f) * 2f);
-                    float yaw = Mathf.Lerp(dayMorningSunAngle.y, dayAfternoonSunAngle.y, t);
-                    return Quaternion.Euler(pitch, yaw, 0f);
-                }
                 case TimePhase.Dusk:
                 {
-                    // Sunset descent towards horizon: shadows stretch dramatically
+                    // Sunset descent: Long dramatic diagonal shadows
                     float pitch = Mathf.Lerp(duskStartSunAngle.x, duskSunsetSunAngle.x, t);
                     float yaw = Mathf.Lerp(duskStartSunAngle.y, duskSunsetSunAngle.y, t);
                     return Quaternion.Euler(pitch, yaw, 0f);
@@ -291,15 +314,23 @@ namespace TheLastEmpire
                     float yaw = Mathf.Lerp(nightMoonriseAngle.y, nightDawnpinAngle.y, t);
                     return Quaternion.Euler(pitch, yaw, 0f);
                 }
+                case TimePhase.Day:
                 default:
-                    return Quaternion.Euler(48f, -130f, 0f);
+                {
+                    // Morning -> Noon (peak height) -> Afternoon
+                    float pitch = (t < 0.5f)
+                        ? Mathf.Lerp(dayMorningSunAngle.x, dayNoonSunAngle.x, t * 2f)
+                        : Mathf.Lerp(dayNoonSunAngle.x, dayAfternoonSunAngle.x, (t - 0.5f) * 2f);
+                    float yaw = Mathf.Lerp(dayMorningSunAngle.y, dayAfternoonSunAngle.y, t);
+                    return Quaternion.Euler(pitch, yaw, 0f);
+                }
             }
         }
 
         private void PushShaderValues()
         {
             Shader.SetGlobalFloat("_GlobalDarknessAlpha", _currentDarknessAlpha);
-            Shader.SetGlobalFloat("_GlobalDuskAlpha", _currentDuskAlpha);
+            Shader.SetGlobalFloat("_GlobalDuskAlpha", 0f);
             Shader.SetGlobalColor("_GlobalAmbientTint", _currentAmbientTint);
         }
 
@@ -307,9 +338,9 @@ namespace TheLastEmpire
         {
             switch (_currentPhase)
             {
-                case TimePhase.Day: return dayCameraColor;
                 case TimePhase.Dusk: return duskCameraColor;
                 case TimePhase.Night: return nightCameraColor;
+                case TimePhase.Day:
                 default: return dayCameraColor;
             }
         }
@@ -324,21 +355,18 @@ namespace TheLastEmpire
 
             switch (_currentPhase)
             {
-                case TimePhase.Day:
-                    label = "DAY";
-                    labelColor = new Color(1f, 0.85f, 0.2f);
-                    break;
                 case TimePhase.Dusk:
                     label = "DUSK";
-                    labelColor = new Color(1f, 0.55f, 0.2f);
+                    labelColor = new Color(1f, 0.6f, 0.2f);
                     break;
                 case TimePhase.Night:
                     label = "NIGHT";
                     labelColor = new Color(0.4f, 0.8f, 1f);
                     break;
+                case TimePhase.Day:
                 default:
                     label = "DAY";
-                    labelColor = Color.white;
+                    labelColor = new Color(1f, 0.85f, 0.2f);
                     break;
             }
 
@@ -360,6 +388,9 @@ namespace TheLastEmpire
                     break;
                 case TimePhase.Night:
                     DayCount++;
+                    SetPhase(TimePhase.Day, snapVisuals);
+                    break;
+                default:
                     SetPhase(TimePhase.Day, snapVisuals);
                     break;
             }
@@ -386,22 +417,41 @@ namespace TheLastEmpire
             if (snapVisuals)
             {
                 _currentDarknessAlpha = (_currentPhase == TimePhase.Night) ? 1.0f : 0.0f;
-                _currentDuskAlpha = (_currentPhase == TimePhase.Dusk) ? 1.0f : 0.0f;
-                if (_currentPhase == TimePhase.Day) _currentAmbientTint = Color.white;
-                else if (_currentPhase == TimePhase.Dusk) _currentAmbientTint = new Color(0.96f, 0.68f, 0.40f, 1f);
-                else _currentAmbientTint = new Color(0.25f, 0.30f, 0.45f, 1f);
+                _currentDuskAlpha = 0f;
+                _currentAmbientTint = (_currentPhase == TimePhase.Night) ? nightGroundTint : (_currentPhase == TimePhase.Dusk ? duskGroundTint : dayGroundTint);
+
+                Color targetAmbient;
+                float targetIntensity;
+                Color targetColor;
+
+                switch (_currentPhase)
+                {
+                    case TimePhase.Dusk:
+                        targetAmbient = duskAmbientColor;
+                        targetIntensity = duskSunIntensity;
+                        targetColor = duskSunColor;
+                        break;
+                    case TimePhase.Night:
+                        targetAmbient = nightAmbientColor;
+                        targetIntensity = nightSunIntensity;
+                        targetColor = nightSunColor;
+                        break;
+                    case TimePhase.Day:
+                    default:
+                        targetAmbient = dayAmbientColor;
+                        targetIntensity = daySunIntensity;
+                        targetColor = daySunColor;
+                        break;
+                }
 
                 RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-                RenderSettings.ambientLight = (_currentPhase == TimePhase.Night) ? nightAmbientColor :
-                                             (_currentPhase == TimePhase.Dusk) ? duskAmbientColor : dayAmbientColor;
+                RenderSettings.ambientLight = targetAmbient;
 
                 if (sceneDirectionalLight != null)
                 {
                     sceneDirectionalLight.transform.rotation = GetTargetSunRotation();
-                    sceneDirectionalLight.intensity = (_currentPhase == TimePhase.Night) ? nightSunIntensity :
-                                                     (_currentPhase == TimePhase.Dusk) ? duskSunIntensity : daySunIntensity;
-                    sceneDirectionalLight.color = (_currentPhase == TimePhase.Night) ? nightSunColor :
-                                                  (_currentPhase == TimePhase.Dusk) ? duskSunColor : daySunColor;
+                    sceneDirectionalLight.intensity = targetIntensity;
+                    sceneDirectionalLight.color = targetColor;
                 }
 
                 PushShaderValues();
