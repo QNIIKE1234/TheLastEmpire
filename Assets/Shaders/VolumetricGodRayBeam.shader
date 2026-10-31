@@ -115,17 +115,16 @@ Shader "Custom/VolumetricGodRayBeam"
                 float dustLayer = lerp(0.85, 1.25, dustNoise);
 
                 // 4. Soft Depth Intersection (Fade cleanly against terrain and props without harsh seam lines)
-                float sceneDepth = 1.0;
                 float depthFade = 1.0;
-
-                #if defined(_CAMERA_DEPTH_ATTACHMENT) || defined(_CAMERA_DEPTH_TEXTURE)
-                    float2 screenUV = input.screenPos.xy / max(input.screenPos.w, 0.0001);
-                    float rawDepth = SampleSceneDepth(screenUV);
-                    sceneDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                float2 screenUV = input.screenPos.xy / max(input.screenPos.w, 0.0001);
+                float rawDepth = SampleSceneDepth(screenUV);
+                if (rawDepth > 0.00001 && rawDepth < 0.99999)
+                {
+                    float sceneDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float beamDepth = LinearEyeDepth(input.positionCS.z, _ZBufferParams);
                     float diff = sceneDepth - beamDepth;
                     depthFade = saturate(diff / max(0.01, _SoftDepthFade));
-                #endif
+                }
 
                 // Combine all visibility masks
                 float combinedAlpha = lateralMask * lengthFalloff * dustLayer * depthFade;

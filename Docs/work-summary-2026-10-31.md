@@ -363,6 +363,102 @@
    * ย้อม `ColorAdjustments.colorFilter = new Color(1.0f, 0.95f, 0.82f, 1f)`
    * เพิ่ม `Bloom` (Threshold 0.85f, Intensity 0.50f, Scatter 0.70f) ให้แสงแดดและขอบอาคารฟุ้งสว่างละมุนเข้าไปในม่านหมอกสีทอง
 
+---
+
+## 18. ยกระดับระบบหมอก: Procedural Volumetric Ground Mist (หมอกเรี่ยพื้นแบบไดนามิก ไม่บดบังมุมมองกล้อง Top-Down)
+
+### ปัญหาที่พบจาก Distance Fog ในมุมมอง Top-Down:
+* ในเกมมุมมอง Top-Down (กล้องอยู่สูง Y ≈ 16m ส่องลงพื้น): ทุกวัตถุบนพื้น (ผู้เล่น, รถ, ซอมบี้, ถนน) อยู่ห่างจากกล้องเป็นระยะประมาณ 16 เมตรเท่ากันหมด
+* เมื่อใช้ Camera Distance Fog (`fogStart = 2m`, `fogEnd = 20m`) ม่านหมอกจึงคำนวณว่าวัตถุทุกอย่างอยู่ในหมอก 80-90% เท่ากันทั้งจอ ส่งผลให้ทั้งภาพกลายเป็นสีเหลืองทึบ ("ไม่เห็นอะไรเลย")
+
+### วิธีแก้ไขและเทคนิคที่ใช้ (เลียนแบบ Diablo / Hades / Resident Evil):
+* ในเกม Top-Down หมอกที่สมจริงและเล่นได้ดีที่สุดคือ **Ground Mist (หมอกเรี่ยพื้น)**:
+  * หมอกจะลอยตัวในแนวระนาบเหนือพื้นถนนเพียงเล็กน้อย (`Y = 0.22m`)
+  * ตัวละคร, รถยนต์, และศัตรูมีความสูง 1.5 - 2.5m จึงโผล่พ้นหมอกขึ้นมา ทำให้โมเดล, พื้นผิว (Textures), และการเคลื่อนไหว **ชัดเจน 100% คมกริบ ไม่โดนหมอกกลืน**
+  * ในขณะที่พื้นถนน, รอยแอ่งน้ำ, และข้อเท้าของตัวละคร จะถูกม่านหมอกที่ไหลเอื่อยๆ คลี่คลุมอยู่อย่างสวยงาม มีมิติความลึก (Depth)
+
+### ไฟล์และการเปลี่ยนแปลง:
+1. **[ProceduralGroundMist.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/ProceduralGroundMist.shader)**:
+   * **Dual Scrolling FBM Noise**: เลเยอร์หมอกไหลสวนทิศทางกันด้วย Perlin / FBM Noise ให้ความรู้สึกเป็นมวลหมอกควันที่ลอยละล่องอย่างเป็นธรรมชาติ
+   * **Soft Radial Edge Fade**: ขอบระนาบหมอกเฟดจางแบบวงกลม นุ่มนวล ไร้รอยต่อขอบสี่เหลี่ยม
+   * **Depth Intersection Fade (`SampleSceneDepth`)**: หมอกเฟดกลืนแนบเนียนเมื่อสัมผัสกับพื้นถนนและสิ่งกีดขวาง ไม่เกิดรอยตัดแข็ง (Hard Seams)
+2. **[AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs)**:
+   * ปิด Distance Fog ที่เคยกวนกล้อง (`enableFog = false`)
+   * สร้างระนาบหมอก Procedural Ground Mist Quad ขนาด 46m x 46m ที่ความสูง `Y = 0.22m` เคลื่อนที่ตามกล้อง
+   * ซิงก์สีหมอกตามวัฏจักรเวลา Day / Dusk / Night (กลางวันสีควันนุ่มนวล, ค่ำสีส้มทองพระอาทิตย์ตก, กลางคืนสีน้ำเงินจางใต้แสงจันทร์)
+   * คืนค่า Contrast (`+2f`) และ Color Filter (`Color.white`) ทำให้ทุกพื้นผิวกลับมาคมชัดสวยงาม 100%
+
+---
+
+## 19. เพิ่มเฉดสีหมอกเหลืองทอง (Golden-Yellow Mist) และลำแสงแดดพาดผ่านเป็นเส้นๆ (Volumetric Sun Shafts / God Rays)
+
+### ความต้องการของผู้ใช้:
+* *"ดีเลยเอาเป็นสีเหลืองๆหน่อยได้ปะ กูอยากให้เวลาแสงเดินผ่านมันจะเป้น เส้นๆ ถูกปะ"*
+  1. ย้อมสีหมอกเรี่ยพื้นให้เป็น **สีเหลืองทองอบอุ่น (Golden Yellow / Morning Sunlight / PM 2.5 Golden Haze)**
+  2. เมื่อแสงแดดส่องผ่านหมอก ให้เกิด **ริ้วลำแสงแดดพาดผ่านเป็นเส้นๆ (Light Streaks & Volumetric Sun Shafts)** เคลื่อนตัวอย่างสวยงาม
+
+### สิ่งที่ดำเนินการ:
+1. **ย้อมสีหมอกเรี่ยพื้นเป็นสีเหลืองทอง (Warm Golden Haze)**:
+   * ปรับ `_MistColor = new Color(0.96f, 0.82f, 0.45f, 0.38f)` (สีทองนวลอบอุ่น สบายตา ไม่บดบังโมเดล)
+   * กลางวัน (Day) เป็นสีเหลืองทองยามเช้า, ค่ำ (Dusk) เป็นสีส้มทองพระอาทิตย์ตก
+2. **สร้างริ้วลำแสงแดดพาดผ่านในหมอกเรี่ยพื้น ([ProceduralGroundMist.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/ProceduralGroundMist.shader))**:
+   * คำนวณเวกเตอร์แสงแดด `_SunDirection` บนระนาบ XZ จากมุมองศาของ Directional Light
+   * เพิ่ม **Anisotropic Light Streaks**: จำลองริ้วแสงแดดเฉียงพาดผ่านหมอกควันบนพื้นถนนเป็นทางยาว
+   * จุดที่เป็นลำแสงแดดจะมีความสว่างเปล่งปลั่งสีทองประกาย (Luminous Golden Highlights) ไหลเลื้อยอย่างนุ่มนวล
+3. **เพิ่มลำแสงแดดพาดผ่านในอากาศ 3D ([VolumetricGodRayBeam.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/VolumetricGodRayBeam.shader) & [AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs))**:
+   * สร้างระนาบลำแสง Volumetric Sun Shafts 4 แถบคู่ขนาน ลาดเอียง 32 องศาตามมุมแสงอาทิตย์
+   * ใช้ Additive Blending (`Blend One One`) ทำให้ลำแสงแดดส่องเรืองรองเป็นลำพาดผ่านฉาก โดยไม่บดบังฉากหลัง
+   * ปรับปรุง Soft Depth Intersection ให้ลำแสงเฟดกลืนแนบเนียนเมื่อสัมผัสกับพื้นถนนและโมเดลต่างๆ
+
+---
+
+## 20. แก้ไขแสงเคลื่อนที่ตามตัวละคร (World-Space Sun Shafts & Spotting Cut Fix)
+
+### ปัญหาที่พบจากภาพหน้าจอของผู้ใช้:
+1. **"แสงมันตามตัวกูไปด้วยลืมบอก"**: ลำแสงและหมอกเคลื่อนที่เกาะติดไปกับตัวละครเหมือนสปอร์ตไลต์ส่องตามตัว
+   * *สาเหตุ*: ตัวระนาบ 3D Quads (`VolumetricSunShafts`) ถูกอัปเดตตำแหน่งตาม `Camera.position` ทุกเฟรม และหมอกมี Radial Fade แคบเพียง 15m รอบตัวผู้เล่น ทำให้เกิดเป็นวงกลมสว่างสีเหลืองตามติดตัวละคร
+2. **รอยเส้นตัดแข็งคมกริบพาดเฉียงกลางจอ**:
+   * *สาเหตุ*: แผ่น 3D Quad ลาดเอียง 32 องศาในอากาศจมลงไปในพื้นดิน ทำให้เกิดรอยตัดเหลี่ยมโพลีกอนตัดผ่านพื้นถนนและท่อนไม้
+
+### วิธีแก้ไข:
+1. **ตัด 3D Air Quads ออก 100%**:
+   * ลบ `VolumetricSunShafts` ออกทั้งหมด ไม่ให้มีแผ่นโพลีกอนลอยในอากาศที่เสียบลงพื้นจนเกิดรอยตัดแข็งอีกต่อไป
+2. **ตรึงริ้วลำแสงแดดไว้กับพิกัดโลก (Pure World-Space Sun Shafts)**:
+   * ใน [ProceduralGroundMist.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/ProceduralGroundMist.shader) คำนวณลำแสงจาก `input.positionWS.xz` (พิกัดโลกจริง)
+   * **ลำแสงแดดจะอยู่กับที่ในแผนที่อย่างสมจริง**: เมื่อตัวละครเดินไปตามถนน ตัวละครจะเดิน "ลอดเข้า" ไปในลำแสงแดดสีทอง และ "เดินออก" ไปสู่เงามืดอย่างเป็นธรรมชาติ แสงจะไม่เลื่อนตามตัวละครอีกต่อไป
+3. **ขยายระนาบหมอกและเกลี่ยให้ครอบคลุมเต็มจอ (Seamless Coverage)**:
+   * ขยายขนาดระนาบหมอกเป็น **75m x 75m** ([AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs))
+   * ปรับ Radial Falloff ให้เริ่มเฟดเฉพาะขอบนอกสุดเกิน 80% (`dist > 0.85`) เพื่อให้ในมุมมองกล้องไม่มีวงกลมหมอกรอบตัวผู้เล่น ม่านหมอกและลำแสงแดดจะเนียนเรียบสม่ำเสมอเต็มหน้าจอ
+4. **ปรับโทนสีเป็นสีทองแชมเปญโปร่งแสง (Champagne Gold Translucent)**:
+   * ปรับ `_MistColor = new Color(0.98f, 0.92f, 0.74f, 0.22f)` ให้มีความโปร่งแสงพอเหมาะ ไม่เป็นสีเหลืองข้นทึบ มองเห็นพื้นผิวถนนและตัวละครชัดเจน 100%
+
+---
+
+## 21. อ่านค่าเงาจริงจากตึกและสิ่งปลูกสร้าง (Real-Time Shadow Map Sampling On Mist)
+
+### ความต้องการของผู้ใช้:
+* *"แสงเส้นๆมาจากไหนไม่ธรรมชาติเลยขนาดโดนตึกบังแสงมันยังมีแสง"*
+* *"มึงอ่านค่าจากแสงที่ยิงมาไม่ได้หรอ้ถ้สโดนสิ่งปลูกสร้างก็กลายเป้นเงางี้อะ"*
+
+### สาเหตุเดิม:
+* ก่อนหน้านี้ริ้วลำแสงถูกสร้างด้วยสูตรทางคณิตศาสตร์แบบเทียม (`sin()`) ซึ่งระบายริ้วแสงลงไปบนพื้นโดยไม่สนใจว่าด้านหน้ามีตึกหรือสิ่งปลูกสร้างบังแสงอาทิตย์อยู่หรือไม่ ทำให้ในเงามืดหลังตึกก็ยังมีเส้นแสงเหลืองๆ สว่างทะลุออกมาดูหลอกตา
+
+### การแก้ไขและปรับปรุงสู่ระบบ Physical Shadow Mapping:
+1. **ตัดสูตรเส้นริ้วคณิตศาสตร์เทียมทิ้งทั้งหมด 100%**:
+   * ลบ `sin(uAcross)` และริ้วแสงเทียมออกทั้งหมด ไม่มีการวาดริ้วแสงมั่วซั่วอีกต่อไป
+2. **อ่านค่าเงาจริงจาก URP Shadow Map ([ProceduralGroundMist.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/ProceduralGroundMist.shader))**:
+   * เพิ่ม `#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE`
+   * คำนวณพิกัดเงาจริง: `float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS)`
+   * อ่านค่าการบังแสงของ Directional Light: `Light mainLight = GetMainLight(shadowCoord); float shadow = mainLight.shadowAttenuation;`
+3. **ผลลัพธ์ที่ถูกต้องตามฟิสิกส์ 100%**:
+   * **บริเวณที่โดนตึก/กำแพง/หลังคาบังแสง**: `shadow = 0` แสงอาทิตย์ถูกตัดออกสนิท 100% ม่านหมอกในเงามืดจะมืดลงเป็นสี Cool Shadow และลดความโปร่งแสงลง ไม่มีแสงสีทองเล็ดลอดเข้าไปในเงาตึกอีกเลย
+   * **บริเวณที่โล่งแจ้งรับแดด**: `shadow = 1` ม่านหมอกกระทบกับแสงแดดยามเช้าสีทองเปล่งประกายอย่างสมจริง
+   * **ช่องว่างระหว่างตึก (Alleys & Gaps)**: ลำแสงแดดจะเกิดขึ้น**เฉพาะช่องว่างที่แสงแดดส่องทะลุผ่านตึกมาโดนพื้นจริงๆ เท่านั้น** เกิดเป็นลำแสงแดดธรรมชาติแท้ๆ (Architectural God Rays) โดยไม่ต้องใช้เส้นริ้วปลอม
+
+
+
+
+
 
 
 
