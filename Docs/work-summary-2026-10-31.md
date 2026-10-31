@@ -284,6 +284,30 @@
      * ละอองฝุ่นลอยในอากาศ (Dust Motes) สะท้อนแสงเป็นสีทองประกายส้ม (`duskDustColor`)
 4. **อัปเดตเมนู F1 ใน [BossSpawnerRuntime.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BossSpawnerRuntime.cs) และ [DayNightLightingEditorWindow.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/DayNightLightingEditorWindow.cs)**:
    * เพิ่มปุ่ม `[ DUSK (เย็น) ]` สีส้มกลับมาในเมนูทั้งสอง สามารถกดคลิกสลับช่วงเวลาได้ทันที 1 คลิก
+---
+
+## 15. ปรับปรุงละอองฝุ่นเป็นหมอกและฝุ่นละมุนยามเช้า (Morning Mist & Atmospheric Dust Haze Overhaul)
+
+### ความต้องการของผู้ใช้:
+* ผู้ใช้สั่ง: *"ฝุ่นอะอยากได้ฝุ่นๆแบบฝุ่นๆเลยเหมือนหมอกตกตอนเช้าอะ"*
+* เปลี่ยนจากอนุภาคจุดประกายแสงขนาดเล็ก (ที่เดิมดูเหมือนสะเก็ดลูกไฟ/เถ้าถ่านเรืองแสง) ให้กลายเป็น **"มวลหมอกและละอองฝุ่นยามเช้า"** ที่ลอยเรี่ยพื้นละมุนตา เป็นธรรมชาติ ไร้แสงไฟเรืองแสบตา
+
+### สิ่งที่ดำเนินการ:
+1. **ยกเครื่อง Shader [AtmosphericDustMote.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/AtmosphericDustMote.shader)**:
+   * **เปลี่ยนโหมด Blending**: จาก Additive (`Blend One One` ที่สว่างจ้าเหมือนหลอดไฟ) เป็น Alpha Blending ธรรมชาติ (`Blend SrcAlpha OneMinusSrcAlpha`)
+   * **โครงสร้างกลุ่มเมฆหมอกนุ่มนวล (Soft Cloud Falloff)**: ใช้อัลกอริทึม Organic Cloud Noise ผสานกับ Smoothstep Falloff ทำให้ขอบอนุภาคนวลตา ไร้เหลี่ยม และไม่เป็นวงกลมแข็งกระด้าง
+2. **ปรับแต่งพฤติกรรม Particle System ใน [AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs)**:
+   * **ขนาดอนุภาค (Puff Size)**: ขยายจากจุดเล็ก 0.12m เป็นกลุ่มก้อนหมอกขนาดกว้าง 1.6m – 3.2m (`dustMoteSize = 2.4f`)
+   * **ตำแหน่งเรี่ยพื้น (Ground-Level Fog)**: ปรับตำแหน่ง Emitter ต่ำลงมาอยู่ที่ความสูง 0.8m เหนือพื้น ให้ลอยเรี่ยระดับเอวและพื้นดินเหมือนหมอกยามเช้าตก
+   * **การเคลื่อนที่และการหมุนอย่างละมุน**:
+     * เพิ่มการหมุนอย่างช้าๆ (`rotationOverLifetime`) ให้กลุ่มหมอกคลี่ตัวหมุนวนอย่างเป็นธรรมชาติ
+     * ค่อยๆ ขยายขนาดขึ้นตามเวลา (`sizeOverLifetime: 0.8x -> 1.25x`)
+     * ความเร็วลมพัดแผ่วเบาในแนวระนาบ X/Z
+   * **สีและความโปร่งแสง (Translucent Mist)**:
+     * **Day (หมอกยามเช้า)**: สีขาวนวลจางๆ โปร่งแสง 16% (`rgba(0.92, 0.90, 0.86, 0.16)`)
+     * **Dusk (ไอหมอกยามเย็น)**: สีพีชอบอุ่นละมุน ไม่ส้มจัด ไม่เป็นลูกไฟ (`rgba(0.88, 0.74, 0.64, 0.14)`)
+     * **Night (ไอหมอกใต้แสงจันทร์)**: สีครามจางๆ 8% (`rgba(0.60, 0.68, 0.80, 0.08)`)
+
 
 
 

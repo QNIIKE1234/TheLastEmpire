@@ -32,14 +32,19 @@ namespace TheLastEmpire
         [SerializeField] private float fogStartDistance = 18f;
         [SerializeField] private float fogEndDistance = 75f;
 
-        [Header("Atmospheric Floating Dust Particles (Dust Motes - ฝุ่นละอองในอากาศ)")]
+        [Header("Atmospheric Morning Mist & Dust Haze (หมอกและฝุ่นละอองยามเช้า)")]
         [SerializeField] private bool enableDustMotes = true;
-        [Range(50, 400)]
-        [SerializeField] private int dustMoteCount = 180;
-        [SerializeField] private float dustMoteSize = 0.12f;
-        [SerializeField] private Color dayDustColor = new Color(1.0f, 0.92f, 0.75f, 0.70f);
-        [SerializeField] private Color duskDustColor = new Color(1.0f, 0.68f, 0.35f, 0.85f);
-        [SerializeField] private Color nightDustColor = new Color(0.35f, 0.55f, 0.85f, 0.30f);
+        [Range(20, 150)]
+        [SerializeField] private int dustMoteCount = 65;
+        [Tooltip("Size of soft billowing mist/dust clouds (meters)")]
+        [Range(0.8f, 5.0f)]
+        [SerializeField] private float dustMoteSize = 2.4f;
+        [Tooltip("Soft morning mist & dust color (translucent pale morning haze)")]
+        [SerializeField] private Color dayDustColor = new Color(0.92f, 0.90f, 0.86f, 0.16f);
+        [Tooltip("Warm evening sunset mist & dust haze")]
+        [SerializeField] private Color duskDustColor = new Color(0.88f, 0.74f, 0.64f, 0.14f);
+        [Tooltip("Subtle cool midnight fog mist")]
+        [SerializeField] private Color nightDustColor = new Color(0.60f, 0.68f, 0.80f, 0.08f);
         [SerializeField] private Material dustMoteMaterial;
 
         [Header("Post-Processing & Volume")]
@@ -104,11 +109,11 @@ namespace TheLastEmpire
             Transform followTarget = Camera.main != null ? Camera.main.transform : transform;
             if (followTarget != null)
             {
-                // Smoothly position dust particle emitter around the camera view
+                // Smoothly position mist particle emitter low near ground level around the camera view
                 if (_dustParticleSystem != null)
                 {
                     Vector3 dustPos = followTarget.position;
-                    dustPos.y = 3f;
+                    dustPos.y = 0.8f; // Low ground-level morning mist
                     _dustParticleSystem.transform.position = dustPos;
                 }
             }
@@ -273,42 +278,55 @@ namespace TheLastEmpire
             var main = ps.main;
             main.loop = true;
             main.maxParticles = dustMoteCount;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(5f, 9f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(0.10f, 0.35f);
-            main.startSize = new ParticleSystem.MinMaxCurve(dustMoteSize * 0.6f, dustMoteSize * 1.5f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(7f, 13f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.06f, 0.22f);
+            main.startSize = new ParticleSystem.MinMaxCurve(dustMoteSize * 0.7f, dustMoteSize * 1.4f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, 360f * Mathf.Deg2Rad);
             main.startColor = dayDustColor;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.scalingMode = ParticleSystemScalingMode.Shape;
 
             var emission = ps.emission;
-            emission.rateOverTime = dustMoteCount / 7.0f;
+            emission.rateOverTime = dustMoteCount / 8.0f;
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(28f, 10f, 28f);
-            shape.position = new Vector3(0f, 3.5f, 0f);
+            shape.scale = new Vector3(36f, 2.5f, 36f);
+            shape.position = new Vector3(0f, 0.5f, 0f);
 
             var velocity = ps.velocityOverLifetime;
             velocity.enabled = true;
             velocity.space = ParticleSystemSimulationSpace.World;
-            velocity.x = new ParticleSystem.MinMaxCurve(-0.20f, 0.20f);
-            velocity.y = new ParticleSystem.MinMaxCurve(0.06f, 0.20f);
-            velocity.z = new ParticleSystem.MinMaxCurve(-0.20f, 0.20f);
+            velocity.x = new ParticleSystem.MinMaxCurve(-0.35f, 0.45f);
+            velocity.y = new ParticleSystem.MinMaxCurve(-0.03f, 0.04f);
+            velocity.z = new ParticleSystem.MinMaxCurve(-0.25f, 0.35f);
+
+            var rotLife = ps.rotationOverLifetime;
+            rotLife.enabled = true;
+            rotLife.separateAxes = false;
+            rotLife.z = new ParticleSystem.MinMaxCurve(-0.08f, 0.08f);
+
+            var sizeLife = ps.sizeOverLifetime;
+            sizeLife.enabled = true;
+            AnimationCurve sizeCurve = new AnimationCurve();
+            sizeCurve.AddKey(0f, 0.8f);
+            sizeCurve.AddKey(1f, 1.25f);
+            sizeLife.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
 
             var noise = ps.noise;
             noise.enabled = true;
             noise.separateAxes = false;
-            noise.strength = 0.35f;
-            noise.frequency = 0.40f;
+            noise.strength = 0.22f;
+            noise.frequency = 0.25f;
             noise.damping = true;
-            noise.quality = ParticleSystemNoiseQuality.Medium;
+            noise.quality = ParticleSystemNoiseQuality.Low;
 
             var colorLife = ps.colorOverLifetime;
             colorLife.enabled = true;
             Gradient grad = new Gradient();
             grad.SetKeys(
                 new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) }
+                new GradientAlphaKey[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.25f), new GradientAlphaKey(1f, 0.75f), new GradientAlphaKey(0f, 1f) }
             );
             colorLife.color = grad;
 
