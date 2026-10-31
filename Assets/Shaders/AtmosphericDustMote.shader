@@ -2,8 +2,8 @@ Shader "Custom/AtmosphericDustMote"
 {
     Properties
     {
-        _TintColor("Tint Color", Color) = (0.92, 0.90, 0.88, 0.20)
-        _Softness("Edge Softness", Range(0.1, 3.0)) = 1.6
+        _TintColor("Tint Color", Color) = (0.55, 0.50, 0.44, 0.60)
+        _Softness("Edge Softness", Range(0.1, 3.0)) = 1.2
     }
     SubShader
     {
@@ -17,10 +17,10 @@ Shader "Custom/AtmosphericDustMote"
 
         Pass
         {
-            Name "MistForward"
+            Name "PM25DustForward"
             Tags { "LightMode" = "UniversalForward" }
 
-            Blend SrcAlpha OneMinusSrcAlpha // Alpha blend for natural morning mist & atmospheric dust haze
+            Blend SrcAlpha OneMinusSrcAlpha // Alpha blend for physical PM 2.5 dust & ash flakes
             ZWrite Off
             Cull Off
 
@@ -60,20 +60,19 @@ Shader "Custom/AtmosphericDustMote"
 
             half4 frag(Varyings input) : SV_Target
             {
-                // Soft, billowing morning mist puff with organic cloud contours
+                // Organic ash flake & PM 2.5 soot particulate shape (slightly irregular flake)
                 float2 center = input.uv - 0.5;
                 float dist = length(center) * 2.0;
 
-                // Ultra-smooth edge falloff (no hard borders or glowing core)
-                float radialFalloff = smoothstep(1.0, 0.0, dist);
+                float angle = atan2(center.y, center.x);
+                float wobble = sin(angle * 3.0 + 1.2) * cos(angle * 2.0 - 0.5) * 0.16;
+                float radius = 1.0 + wobble;
 
-                // Subtle organic cloud turbulence for realistic wispy morning mist puffs
-                float2 p = center * 4.0;
-                float cloudNoise = sin(p.x * 2.3 + p.y * 1.7) * cos(p.y * 2.8 - p.x * 1.5) * 0.18;
-                float mistMask = saturate(radialFalloff + cloudNoise * radialFalloff);
-                mistMask = pow(mistMask, _Softness);
+                // Soft edge falloff with micro-particulate core
+                float falloff = smoothstep(radius, radius * 0.25, dist);
+                falloff = pow(falloff, _Softness);
 
-                float alpha = mistMask * input.color.a * _TintColor.a;
+                float alpha = falloff * input.color.a * _TintColor.a;
                 half3 rgb = input.color.rgb * _TintColor.rgb;
 
                 return half4(rgb, alpha);

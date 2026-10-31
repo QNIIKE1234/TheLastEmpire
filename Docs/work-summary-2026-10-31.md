@@ -307,6 +307,37 @@
      * **Day (หมอกยามเช้า)**: สีขาวนวลจางๆ โปร่งแสง 16% (`rgba(0.92, 0.90, 0.86, 0.16)`)
      * **Dusk (ไอหมอกยามเย็น)**: สีพีชอบอุ่นละมุน ไม่ส้มจัด ไม่เป็นลูกไฟ (`rgba(0.88, 0.74, 0.64, 0.14)`)
      * **Night (ไอหมอกใต้แสงจันทร์)**: สีครามจางๆ 8% (`rgba(0.60, 0.68, 0.80, 0.08)`)
+---
+
+## 16. บรรยากาศหมอกควันไฟหลังไฟไหม้ และมลพิษ PM 2.5 (Post-Fire Smoke & Heavy PM 2.5 Smog Overhaul)
+
+### ความต้องการของผู้ใช้:
+* ผู้ใช้ชี้แจง: *"เอางี้ มึงเคยเห็นควัญหลังไฟไหม้ไหม ไม่ก็ บรรยากาศตอนมี PM 2.5"*
+* ความต้องการไม่ใช่แค่ละอองน้ำหรือลูกไฟ แต่คือ **"มวลบรรยากาศหมอกควันทึบ (Atmospheric Smog/Haze)"** ที่แผ่ปกคลุมทั้งเมืองเหมือนควันหลังไฟไหม้ใหญ่ หรือช่วงวิกฤตฝุ่น PM 2.5:
+  1. วิสัยทัศน์ถูกบดบังด้วยหมอกควันสีเทาอมน้ำตาลซีเปีย (Sepia-Gray Smog) ขอบจอและวัตถุระยะไกลจมหายไปในม่านควัน
+  2. อนุภาคในอากาศคือ **สะเก็ดขี้เถ้าและฝุ่นละอองขนาดจิ๋ว (PM 2.5 Ash/Soot Flecks)** สีเทาขี้เถ้า ลอยปลิวเอื่อยๆ ตามแรงลม ไม่เรืองแสงแสบตา
+
+### สิ่งที่ดำเนินการ:
+1. **ดึงหมอกควันเข้ามาใกล้กล้องแบบวิกฤต PM 2.5 (Dense Linear Fog Coverage)**:
+   * ใน [AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs):
+     * ปรับ `fogStartDistance = 5.0m` (เริ่มมีหมอกควันบางๆ รอบตัวผู้เล่น)
+     * ปรับ `fogEndDistance = 24.0m` (จากเดิม 75m ที่อยู่นอกจอ ทำให้ขอบจอและวัตถุถัดไป 1-2 ห้องจมลงสู่ม่านควัน PM 2.5 ทึบ 100%)
+     * **โทนสีหมอกควันไฟ**:
+       * **Day (PM 2.5 Smog)**: สีเทาน้ำตาลฝุ่นควัน (`rgba(0.74, 0.68, 0.58, 1.0)`)
+       * **Dusk (ควันไฟคุกรุ่นยามเย็น)**: สีควันไฟอมทองแดง (`rgba(0.80, 0.54, 0.36, 1.0)`)
+       * **Night (เถ้าถ่านกลางดึก)**: สีครามเขม่าควัน (`rgba(0.10, 0.13, 0.20, 1.0)`)
+2. **ปรับแต่งอนุภาคฝุ่นเป็นขี้เถ้าและฝุ่น PM 2.5 แท้จริง**:
+   * ใน [AtmosphericDustMote.shader](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/AtmosphericDustMote.shader):
+     * คำนวณขอบอนุภาคเป็นทรงสะเก็ดขี้เถ้าอินทรีย์ไม่สม่ำเสมอ (Organic Ash Flake Contour)
+     * ใช้ Alpha Blending ธรรมชาติ ไร้แสงไฟเรือง
+   * ใน [AtmosphericLightingController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/AtmosphericLightingController.cs):
+     * ปรับขนาดเป็นสะเก็ดฝุ่นจริง: `0.08m – 0.35m` (`dustMoteSize = 0.22f`) จำนวน 135 ชิ้น
+     * สีฝุ่นเทาขี้เถ้าจริง: `dayDustColor = rgba(0.50, 0.46, 0.40, 0.55)`
+     * การหมุนควงและปลิว (Tumbling & Drifting): ปลิวหมุนรอบแกน Z ช้าๆ ตามกระแสลมร้อน
+3. **ปรับแต่ง Post-Processing Volume สำหรับบรรยากาศ PM 2.5**:
+   * ลด Contrast ลงเล็กน้อย (`-8f`) เพื่อเลียนแบบสภาพแสงในม่านควันหมอกที่ความคมชัดลดลงอย่างสมจริง
+   * ย้อม Color Filter โทนอุ่นฝุ่นควันเบาๆ (`rgba(0.98, 0.95, 0.90, 1.0)`)
+
 
 
 
