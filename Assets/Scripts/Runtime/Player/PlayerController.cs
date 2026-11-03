@@ -448,7 +448,8 @@ namespace TheLastEmpire
             }
             _activeShiftAbility?.UpdateAbility();
 
-            _isSprinting = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+            bool isShootingNow = _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
+            _isSprinting = !isShootingNow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
@@ -1044,6 +1045,8 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
                 int shootLayer = _animator.layerCount > 1 ? 1 : 0;
+                _isSprinting = false;
+                _animator.SetBool("IsRunning", false);
                 _shootAnimLayerTimer = 0.42f;
                 if (shootLayer == 1) _animator.SetLayerWeight(1, 1f);
                 _animator.Play("Shoot", shootLayer, 0f);
