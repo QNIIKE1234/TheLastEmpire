@@ -151,6 +151,7 @@ RectTransform:
   - {fileID: 1483863865192165749}
   - {fileID: 5548202732690103209}
   - {fileID: 5236896962879352122}
+  - {fileID: 4854609988334820303}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -272,7 +273,12 @@ MonoBehaviour:
   xLimit: 8.5
   yLimit: 5
   entryOffset: 0.5
-  animator: {fileID: 2183435333591578432}
+  animator: {fileID: 1567013821837427125}
+  muzzleFlashLight: {fileID: 0}
+  muzzleLightColor: {r: 1, g: 0.72, b: 0.28, a: 1}
+  muzzleLightIntensity: 10
+  muzzleLightRange: 6
+  muzzleLightDuration: 0.08
   meleeWeapons: []
   maxHunger: 100
   currentHunger: 100
@@ -512,6 +518,85 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &5517192243326058151
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1499705149031448608}
+    m_Modifications:
+    - target: {fileID: 96911834827406517, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 325908036676730834, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_Name
+      value: Chibi_TacticalGirl_Rigged
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172399083217815702, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6426117535229427474, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 2e7b3de4c1c44d742b1795abbffe89b4, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+--- !u!95 &1567013821837427125 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 6426117535229427474, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+  m_PrefabInstance: {fileID: 5517192243326058151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4854609988334820303 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1138859907999589736, guid: 302340225a168ff44b264d5a1b2dd2ff, type: 3}
+  m_PrefabInstance: {fileID: 5517192243326058151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6144119033330072258
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -527,6 +612,10 @@ PrefabInstance:
     - target: {fileID: 1631051914941844802, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
       propertyPath: m_Name
       value: Chibi_Base_Rigged
+      objectReference: {fileID: 0}
+    - target: {fileID: 1631051914941844802, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2155387760786282488, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -577,11 +666,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
---- !u!95 &2183435333591578432 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 5406946746483461506, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
-  m_PrefabInstance: {fileID: 6144119033330072258}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5236896962879352122 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2155387760786282488, guid: db7944e2bac936f4889a50d115dbf9b7, type: 3}
