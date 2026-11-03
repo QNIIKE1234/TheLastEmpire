@@ -118,6 +118,10 @@ namespace TheLastEmpire
         private float _fireCooldownTimer = 0f;
         private float _fireBufferTimer = 0f;
         private float _meleeCooldownTimer = 0f;
+        private float _meleeBufferTimer = 0f;
+        private int _meleeComboStep = 0;
+        private float _lastMeleeSwingTime = -10f;
+        private const float MeleeComboResetWindow = 1.0f;
 
         [Header("Gunshot Noise Settings")]
         [SerializeField] private float gunshotAlertRange = 5f;
@@ -459,6 +463,11 @@ namespace TheLastEmpire
             if (_fireCooldownTimer > 0f) _fireCooldownTimer -= Time.deltaTime;
             if (_fireBufferTimer > 0f) _fireBufferTimer -= Time.deltaTime;
             if (_meleeCooldownTimer > 0f) _meleeCooldownTimer -= Time.deltaTime;
+            if (_meleeBufferTimer > 0f) _meleeBufferTimer -= Time.deltaTime;
+            if (_meleeComboStep > 0 && Time.time - _lastMeleeSwingTime > MeleeComboResetWindow)
+            {
+                _meleeComboStep = 0;
+            }
 
             CheckBoundaries();
 
@@ -469,6 +478,7 @@ namespace TheLastEmpire
                 {
                     EndDash();
                 }
+                UpdateAnimation();
                 return; // Disable normal actions and movement while dashing
             }
 
@@ -710,8 +720,13 @@ namespace TheLastEmpire
                     _fireBufferTimer = 0f;
                     ShootWeapon();
                 }
-                if (Mouse.current.rightButton.wasPressedThisFrame && _meleeCooldownTimer <= 0f)
+                if (Mouse.current.rightButton.wasPressedThisFrame)
                 {
+                    _meleeBufferTimer = 0.22f;
+                }
+                if (_meleeBufferTimer > 0f && _meleeCooldownTimer <= 0f)
+                {
+                    _meleeBufferTimer = 0f;
                     MeleeAttack();
                 }
 
@@ -921,6 +936,13 @@ namespace TheLastEmpire
 
             // Alert nearby enemies to the gunshot noise
             AlertEnemiesToGunshot();
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                _animator.ResetTrigger("Shoot");
+                _animator.SetTrigger("Shoot");
+                _animator.CrossFadeInFixedTime("Shoot", 0.03f, 0, 0f);
+            }
 
             // 📳 สั่นหน้าจอเบาๆ ตามแรงถีบของปืน (Screen Shake Recoil)
             float shakeDur = 0.05f;
@@ -1159,6 +1181,25 @@ namespace TheLastEmpire
             // Visual swing debug
             Debug.Log($"[PlayerController] Melee Swing Swung using {CurrentMeleeWeaponName}!");
 
+            // 3-step melee combo on Right-Click: resets to Slash1 if idle > 1.0s
+            if (Time.time - _lastMeleeSwingTime > MeleeComboResetWindow)
+            {
+                _meleeComboStep = 0;
+            }
+            _meleeComboStep = (_meleeComboStep % 3) + 1;
+            _lastMeleeSwingTime = Time.time;
+
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                string slashState = "Slash" + _meleeComboStep;
+                _animator.ResetTrigger("Slash1");
+                _animator.ResetTrigger("Slash2");
+                _animator.ResetTrigger("Slash3");
+                _animator.SetTrigger(slashState);
+                _animator.CrossFadeInFixedTime(slashState, 0.05f, 0, 0f);
+            }
+
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
             int targetsHit = 0;
             int maxTargets = isKatana ? 4 : 999; // Katana strikes up to 4 targets in wide cleave
@@ -1243,6 +1284,19 @@ namespace TheLastEmpire
             }
 
             IgnoreCollisionWithBoundaries(true);
+
+            if (_dashDirection.sqrMagnitude > 0.001f)
+            {
+                transform.forward = _dashDirection;
+            }
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                _animator.SetBool("IsDashing", true);
+                _animator.ResetTrigger("DashRoll");
+                _animator.SetTrigger("DashRoll");
+                _animator.CrossFadeInFixedTime("DashRoll", 0.04f, 0, 0f);
+            }
         }
 
         private void EndDash()
@@ -1256,6 +1310,10 @@ namespace TheLastEmpire
             }
 
             IgnoreCollisionWithBoundaries(false);
+            if (_animator != null)
+            {
+                _animator.SetBool("IsDashing", false);
+            }
         }
 
         private void CheckBoundaries()

@@ -5931,9 +5931,25 @@ MonoBehaviour:
   daySunColor: {r: 1, g: 0.98, b: 0.92, a: 1}
   duskSunColor: {r: 0.95, g: 0.6, b: 0.35, a: 1}
   nightSunColor: {r: 0.12, g: 0.16, b: 0.28, a: 1}
+  dayAmbientColor: {r: 0.55, g: 0.52, b: 0.48, a: 1}
+  duskAmbientColor: {r: 0.5, g: 0.34, b: 0.24, a: 1}
+  nightAmbientColor: {r: 0.12, g: 0.15, b: 0.24, a: 1}
+  dynamicLightAngle: 1
+  dayMorningSunAngle: {x: 28, y: -105, z: 0}
+  dayNoonSunAngle: {x: 38, y: -135, z: 0}
+  dayAfternoonSunAngle: {x: 30, y: -155, z: 0}
+  duskStartSunAngle: {x: 30, y: -155, z: 0}
+  duskSunsetSunAngle: {x: 16, y: -175, z: 0}
+  nightMoonriseAngle: {x: 25, y: 35, z: 0}
+  nightMidnightAngle: {x: 55, y: 60, z: 0}
+  nightDawnpinAngle: {x: 30, y: 80, z: 0}
   dayCameraColor: {r: 0.15, g: 0.3, b: 0.45, a: 1}
   duskCameraColor: {r: 0.25, g: 0.15, b: 0.12, a: 1}
   nightCameraColor: {r: 0.02, g: 0.05, b: 0.12, a: 1}
+  dayGroundTint: {r: 1, g: 1, b: 1, a: 1}
+  duskGroundTint: {r: 0.96, g: 0.68, b: 0.4, a: 1}
+  nightGroundTint: {r: 0.12, g: 0.16, b: 0.28, a: 1}
+  disableLegacyLighting: 0
   timeText: {fileID: 1243525789}
 --- !u!1001 &607560209
 PrefabInstance:
