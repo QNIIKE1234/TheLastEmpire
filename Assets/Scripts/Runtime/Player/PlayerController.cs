@@ -55,6 +55,14 @@ namespace TheLastEmpire
         [SerializeField] private Animator animator;
         private Animator _animator;
 
+        [Header("Muzzle Flash Light")]
+        [SerializeField] private Light muzzleFlashLight;
+        [SerializeField] private Color muzzleLightColor = new Color(1f, 0.72f, 0.28f, 1f);
+        [SerializeField] private float muzzleLightIntensity = 10f;
+        [SerializeField] private float muzzleLightRange = 6f;
+        [SerializeField] private float muzzleLightDuration = 0.08f;
+        private float _muzzleLightTimer = 0f;
+
         private Rigidbody _rb;
         private Health _health;
         private Vector2 _moveInput;
@@ -240,6 +248,9 @@ namespace TheLastEmpire
             if (_animator != null)
             {
                 _animator.applyRootMotion = false;
+            }
+            InitMuzzleFlashLight();
+            {
             }
 
             // Automatically attach CameraFollow and CameraObstacleFader components to main camera if not present
@@ -461,6 +472,7 @@ namespace TheLastEmpire
             // Reduce cooldown timers
             if (_dashCooldownTimer > 0f) _dashCooldownTimer -= Time.deltaTime;
             if (_fireCooldownTimer > 0f) _fireCooldownTimer -= Time.deltaTime;
+            UpdateMuzzleFlashLight();
             if (_fireBufferTimer > 0f) _fireBufferTimer -= Time.deltaTime;
             if (_meleeCooldownTimer > 0f) _meleeCooldownTimer -= Time.deltaTime;
             if (_meleeBufferTimer > 0f) _meleeBufferTimer -= Time.deltaTime;
@@ -495,6 +507,66 @@ namespace TheLastEmpire
             UpdateInteractionPrompt();
             UpdateIndicators();
             UpdateAnimation();
+        }
+
+        private void InitMuzzleFlashLight()
+        {
+            if (muzzleFlashLight == null)
+            {
+                Transform existing = transform.Find("MuzzleFlashLight");
+                if (existing != null)
+                {
+                    muzzleFlashLight = existing.GetComponent<Light>();
+                }
+            }
+
+            if (muzzleFlashLight == null)
+            {
+                GameObject lightObj = new GameObject("MuzzleFlashLight");
+                lightObj.transform.SetParent(transform, false);
+                lightObj.transform.localPosition = new Vector3(0f, 0.35f, 0.75f);
+                muzzleFlashLight = lightObj.AddComponent<Light>();
+            }
+
+            muzzleFlashLight.type = LightType.Point;
+            muzzleFlashLight.color = muzzleLightColor;
+            muzzleFlashLight.range = muzzleLightRange;
+            muzzleFlashLight.intensity = 0f;
+            muzzleFlashLight.shadows = LightShadows.Soft;
+            muzzleFlashLight.renderMode = LightRenderMode.ForcePixel;
+            muzzleFlashLight.enabled = false;
+        }
+
+        private void TriggerMuzzleFlashLight()
+        {
+            if (muzzleFlashLight == null) InitMuzzleFlashLight();
+            if (muzzleFlashLight == null) return;
+
+            muzzleFlashLight.transform.position = transform.position + _aimDirection * 0.75f + Vector3.up * 0.35f;
+            muzzleFlashLight.color = muzzleLightColor;
+            muzzleFlashLight.range = muzzleLightRange;
+            muzzleFlashLight.intensity = muzzleLightIntensity;
+            muzzleFlashLight.enabled = true;
+            _muzzleLightTimer = muzzleLightDuration;
+        }
+
+        private void UpdateMuzzleFlashLight()
+        {
+            if (_muzzleLightTimer > 0f)
+            {
+                _muzzleLightTimer -= Time.deltaTime;
+                if (muzzleFlashLight != null)
+                {
+                    float t = Mathf.Clamp01(_muzzleLightTimer / Mathf.Max(0.001f, muzzleLightDuration));
+                    muzzleFlashLight.intensity = muzzleLightIntensity * t;
+                    muzzleFlashLight.transform.position = transform.position + _aimDirection * 0.75f + Vector3.up * 0.35f;
+                    if (_muzzleLightTimer <= 0f)
+                    {
+                        muzzleFlashLight.intensity = 0f;
+                        muzzleFlashLight.enabled = false;
+                    }
+                }
+            }
         }
 
         private void UpdateAnimation()
@@ -941,7 +1013,8 @@ namespace TheLastEmpire
             {
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
-                _animator.CrossFadeInFixedTime("Shoot", 0.03f, 0, 0f);
+                int shootLayer = _animator.layerCount > 1 ? 1 : 0;
+                _animator.CrossFadeInFixedTime("Shoot", 0.03f, shootLayer, 0f);
             }
 
             // 📳 สั่นหน้าจอเบาๆ ตามแรงถีบของปืน (Screen Shake Recoil)
@@ -980,6 +1053,9 @@ namespace TheLastEmpire
 
             // Spawning positions (offset 0.95m forward to prevent overlapping player's 0.5m radius capsule when walking)
             Vector3 spawnPos = transform.position + _aimDirection * 0.95f;
+            TriggerMuzzleFlashLight();
+
+            // ─── Helper methods for Muzzle Flash Point Light ───
             
             // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
             string flashKey = activeWeapon != null ? activeWeapon.vfxPoolKey : null;
@@ -1197,6 +1273,7 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Slash2");
                 _animator.ResetTrigger("Slash3");
                 _animator.SetTrigger(slashState);
+                if (_animator.layerCount > 1) _animator.Play("UpperBody_Empty", 1, 0f);
                 _animator.CrossFadeInFixedTime(slashState, 0.05f, 0, 0f);
             }
 
@@ -1295,6 +1372,7 @@ namespace TheLastEmpire
                 _animator.SetBool("IsDashing", true);
                 _animator.ResetTrigger("DashRoll");
                 _animator.SetTrigger("DashRoll");
+                if (_animator.layerCount > 1) _animator.Play("UpperBody_Empty", 1, 0f);
                 _animator.CrossFadeInFixedTime("DashRoll", 0.04f, 0, 0f);
             }
         }
