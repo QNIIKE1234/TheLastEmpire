@@ -131,6 +131,7 @@ namespace TheLastEmpire
         private float _lastMeleeSwingTime = -10f;
         private const float MeleeComboResetWindow = 1.0f;
         private float _shootAnimLayerTimer = 0f;
+        private float _shootSprintLockTimer = 0f;
         private float _meleeAnimTimer = 0f;
 
         [Header("Gunshot Noise Settings")]
@@ -433,11 +434,11 @@ namespace TheLastEmpire
 
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (_shootSprintLockTimer <= 0f && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (Keyboard.current.shiftKey.isPressed)
+                if (_shootSprintLockTimer <= 0f && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
@@ -448,7 +449,9 @@ namespace TheLastEmpire
             }
             _activeShiftAbility?.UpdateAbility();
 
-            bool isShootingNow = _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
+            if (_shootSprintLockTimer > 0f) _shootSprintLockTimer -= Time.deltaTime;
+            bool isShootingNow = _shootSprintLockTimer > 0f || _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
+            if (isShootingNow) _activeShiftAbility?.OnShiftReleased();
             _isSprinting = !isShootingNow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
@@ -714,14 +717,14 @@ namespace TheLastEmpire
             else
             {
                 float currentSpeed = moveSpeed;
-                if (_activeShiftAbility != null && _activeShiftAbility.IsActive)
+                if (_shootSprintLockTimer <= 0f && _activeShiftAbility != null && _activeShiftAbility.IsActive)
                 {
                     if (_activeShiftAbility is AdrenalineRushAbility) currentSpeed *= 1.75f;
                     else if (_activeShiftAbility is ShadowStepAbility) currentSpeed *= 1.40f;
                     else if (_activeShiftAbility is EagleEyeAbility) currentSpeed *= 0.35f;
                     else currentSpeed *= 1.5f;
                 }
-                else if (_isSprinting)
+                else if (_shootSprintLockTimer <= 0f && _isSprinting)
                 {
                     currentSpeed *= 1.5f;
                 }
@@ -1045,6 +1048,8 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
                 int shootLayer = _animator.layerCount > 1 ? 1 : 0;
+                _shootSprintLockTimer = 1.0f;
+                _activeShiftAbility?.OnShiftReleased();
                 _isSprinting = false;
                 _animator.SetBool("IsRunning", false);
                 _shootAnimLayerTimer = 0.42f;
