@@ -389,7 +389,28 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. Hide any active aiming or throwing indicators
+            // 3. Turn off muzzle flash light if active and play 1.5s dramatic Death animation
+            if (muzzleFlashLight != null) muzzleFlashLight.enabled = false;
+            _muzzleLightTimer = 0f;
+
+            if (_animator == null)
+                _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+
+            if (_animator != null)
+            {
+                _animator.SetFloat("Speed", 0f);
+                _animator.SetBool("IsRunning", false);
+                _animator.SetBool("IsDashing", false);
+                if (_animator.layerCount > 1)
+                {
+                    _animator.Play("UpperBody_Empty", 1, 0f);
+                }
+                _animator.ResetTrigger("Die");
+                _animator.SetTrigger("Die");
+                _animator.CrossFadeInFixedTime("Death", 0.06f, 0, 0f);
+            }
+
+            // 4. Hide any active aiming or throwing indicators
             if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
             if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
             if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
