@@ -130,6 +130,8 @@ namespace TheLastEmpire
         private int _meleeComboStep = 0;
         private float _lastMeleeSwingTime = -10f;
         private const float MeleeComboResetWindow = 1.0f;
+        private float _shootAnimLayerTimer = 0f;
+        private float _meleeAnimTimer = 0f;
 
         [Header("Gunshot Noise Settings")]
         [SerializeField] private float gunshotAlertRange = 5f;
@@ -602,6 +604,13 @@ namespace TheLastEmpire
             _animator.SetFloat("Speed", moveMagnitude);
             _animator.SetBool("IsRunning", _isSprinting && moveMagnitude > 0.1f);
             _animator.SetBool("HasGun", CurrentWeapon != null);
+            if (_shootAnimLayerTimer > 0f) _shootAnimLayerTimer -= Time.deltaTime;
+            if (_meleeAnimTimer > 0f) _meleeAnimTimer -= Time.deltaTime;
+            if (_animator.layerCount > 1)
+            {
+                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing;
+                _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
+            }
             _animator.SetBool("IsDashing", _isDashing);
         }
 
@@ -808,7 +817,7 @@ namespace TheLastEmpire
                 bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic;
                 bool wantToShoot = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
 
-                if (wantToShoot && _fireCooldownTimer <= 0f)
+                if (wantToShoot && _fireCooldownTimer <= 0f && _meleeAnimTimer <= 0f)
                 {
                     _fireBufferTimer = 0f;
                     ShootWeapon();
@@ -1035,7 +1044,9 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
                 int shootLayer = _animator.layerCount > 1 ? 1 : 0;
-                _animator.CrossFadeInFixedTime("Shoot", 0.03f, shootLayer, 0f);
+                _shootAnimLayerTimer = 0.42f;
+                if (shootLayer == 1) _animator.SetLayerWeight(1, 1f);
+                _animator.Play("Shoot", shootLayer, 0f);
             }
 
             // 📳 สั่นหน้าจอเบาๆ ตามแรงถีบของปืน (Screen Shake Recoil)
@@ -1293,9 +1304,18 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Slash1");
                 _animator.ResetTrigger("Slash2");
                 _animator.ResetTrigger("Slash3");
-                _animator.SetTrigger(slashState);
+
                 if (_animator.layerCount > 1) _animator.Play("UpperBody_Empty", 1, 0f);
-                _animator.CrossFadeInFixedTime(slashState, 0.05f, 0, 0f);
+                _shootAnimLayerTimer = 0f;
+                _meleeAnimTimer = 0.40f;
+                _fireBufferTimer = 0f;
+                _animator.ResetTrigger("Shoot");
+                if (_animator.layerCount > 1)
+                {
+                    _animator.SetLayerWeight(1, 0f);
+                    _animator.Play("UpperBody_Empty", 1, 0f);
+                }
+                _animator.Play(slashState, 0, 0f);
             }
 
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
@@ -1394,7 +1414,14 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("DashRoll");
                 _animator.SetTrigger("DashRoll");
                 if (_animator.layerCount > 1) _animator.Play("UpperBody_Empty", 1, 0f);
-                _animator.CrossFadeInFixedTime("DashRoll", 0.04f, 0, 0f);
+                _shootAnimLayerTimer = 0f;
+                _meleeAnimTimer = 0f;
+                if (_animator.layerCount > 1)
+                {
+                    _animator.SetLayerWeight(1, 0f);
+                    _animator.Play("UpperBody_Empty", 1, 0f);
+                }
+                _animator.Play("DashRoll", 0, 0f);
             }
         }
 
