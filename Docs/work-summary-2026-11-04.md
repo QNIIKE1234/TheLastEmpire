@@ -1,0 +1,104 @@
+# สรุปบันทึกการพัฒนาเกม (Work Summary) - 4 พฤศจิกายน 2026
+
+เอกสารฉบับนี้จัดทำขึ้นเพื่อรวบรวมฟีเจอร์, โมเดล 3D ตัวละครหลัก, ระบบแอนิเมชัน 10 ท่า, การควบคุม Layer Mask และการปรับปรุงระบบการต่อสู้/การเคลื่อนที่ทั้งหมดที่พัฒนาในโปรเจกต์ **The Last Empire** ในวันที่ 4 พฤศจิกายน 2026 เพื่อให้ทีมงานและ AI สามารถตรวจสอบและนำไปต่อยอดได้ทันที
+
+---
+
+## 📑 สารบัญระบบที่พัฒนาและอัปเดตล่าสุด
+1. [โมเดล 3D ตัวละครหลัก Chibi Tactical Girl สไตล์ Toy-Chibi / Nendoroid พร้อม Rig 20 กระดูก](#1-โมเดล-3d-ตัวละครหลัก-chibi-tactical-girl-สไตล์-toy-chibi--nendoroid-พร้อม-rig-20-กระดูก)
+2. [การปรับจูน Material เนื้อด้าน (Matte Finish) และระบบ Postprocessor อัตโนมัติ](#2-การปรับจูน-material-เนื้อด้าน-matte-finish-และระบบ-postprocessor-อัตโนมัติ)
+3. [ชุดแอนิเมชัน 10 ท่าครบวงจร และท่าตายสุดเท่ 1.5 วินาที (10-Clip Animation Suite & Dramatic Death)](#3-ชุดแอนิเมชัน-10-ท่าครบวงจร-และท่าตายสุดเท่-15-วินาที-10-clip-animation-suite--dramatic-death)
+4. [ระบบ UpperBody AvatarMask สำหรับเดินยิง, แสงไฟปากกระบอกปืน และการแก้บั๊กฟันประชิดหลังถือปืน](#4-ระบบ-upperbody-avatarmask-สำหรับเดินยิง-แสงไฟปากกระบอกปืน-และการแก้บั๊กฟันประชิดหลังถือปืน)
+5. [ระบบล็อกความเร็วเดินปกติ 1 วินาทีหลังยิงปืน (1-Second Sprint Lock On Shoot)](#5-ระบบล็อกความเร็วเดินปกติ-1-วินาทีหลังยิงปืน-1-second-sprint-lock-on-shoot)
+
+---
+
+## 1. โมเดล 3D ตัวละครหลัก Chibi Tactical Girl สไตล์ Toy-Chibi / Nendoroid พร้อม Rig 20 กระดูก
+
+### ไฟล์หลัก:
+* [Chibi_TacticalGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx) — โมเดล 3D ตัวละครผู้เล่นหลักพร้อมโครงกระดูก `Chibi_Base_Rig` และ AnimationClips ทั้ง 10 ท่าฝังในตัว
+* [Chibi_TacticalGirl_Source.blend](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Source.blend) — ไฟล์ต้นฉบับ Blender 5.2 LTS
+* [Chibi_TacticalGirl_Preview.png](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Preview.png) — ภาพเรนเดอร์พรีวิวตัวละคร
+* [PlayerPrefabs.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Prefabs/Player/PlayerPrefabs.prefab) — พรีแฟบผู้เล่นหลักที่ผูกโมเดลและ Animator เรียบร้อย
+
+### รายละเอียดโครงสร้างและสัดส่วน (Toy-Chibi Proportions):
+* **สัดส่วนมาตรฐานเดียวกับ `ChibiGhostOperator` (`~2.0m`)**:
+  * ปรับขนาดศีรษะลดลง 25% จากโมเดลฐานเดิม ให้สมดุลกับลำตัวและหมวกแก๊ปยุทธวิธีสีดำ (`Mat_Cap_Black`)
+  * ขากางเกงทรงกระบอกสั้นตัน (`z = 0.20..0.68`) พร้อมสายรัดต้นขาสีเหลืองทอง (`ThighBand`), สนับเข่า 2 ชั้น (`KneePadOuter` / `KneePadInner`), และรองเท้าบูทยุทธวิธีหัวมนพื้นหนา (`BootUpper` / `BootSole`)
+  * แจ็คเก็ตยุทธวิธีสีเหลืองทองตัวสั้น (`Mat_Jacket_Gold`) คอปกตั้ง (`Jacket_Collar`) กระเป๋าหน้าอกซ้าย-ขวา สายรัดอกสีดำพร้อมหัวเข็มขัดโลหะ เกราะไหล่สีเทาปืน (`ShoulderPad`) และถุงมือยุทธวิธีเปิดนิ้วสีน้ำเงิน (`Mat_Glove_Blue`)
+  * ความยาวแขนกะทัดรัด (`|x| = 0.18..0.90` ที่ `z = 1.23`) ทำให้ในท่ายืน `Idle` แขนทั้งสองข้างทิ้งตัวลงข้างลำตัวตรงเป็นธรรมชาติ ไม่โก่งเป็นวงเล็บ `(   )`
+* **ใบหน้าและดวงตาสไตล์ Nendoroid แนบสนิทผิวหน้า (`head_surface_point`)**:
+  * คำนวณพิกัดและเวกเตอร์ตั้งฉากของพื้นผิวใบหน้าเพื่อวางกรอบตา ตาขาว ม่านตาสีส้มอำพัน (`Mat_Eye_Amber`) ไฮไลท์สีทองด้านล่าง รูม่านตาดำเงา (`Mat_Glossy_Black`) จุดสะท้อนแสงสีขาวคู่ ขอบตาดำแบบเฉี่ยว และคิ้วสีม่วงเข้ม ให้แนบสนิทไปกับความโค้งของใบหน้าในระยะ `0.6–3.1mm` ไร้เงาตกกระทบเป็นก้อน
+* **ทรงผมอนิเมะสีม่วงแบบ Flat-Ribbon & หางม้าชี้ฟู**:
+  * สร้างปอยผมหน้าม้า ปอยผมข้างแก้ม และหางม้าด้านบนด้วยเส้นโค้ง Catmull-Rom หน้าตัดแบนโค้ง (`create_ribbon_hair_strand`) พร้อมก้อนผมปิดขมับ (`Hair_Temple`) ไร้ช่องว่างด้านข้าง
+
+---
+
+## 2. การปรับจูน Material เนื้อด้าน (Matte Finish) และระบบ Postprocessor อัตโนมัติ
+
+### ไฟล์หลัก:
+* [ChibiArmPoseFixer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/ChibiArmPoseFixer.cs) (`ChibiTacticalGirlMaterialPostprocessor`)
+
+### รายละเอียดการแก้ไข:
+* **แก้ปัญหาโมเดลเงาเหมือนพลาสติกเคลือบ**:
+  * แปลงค่าสี Material จาก sRGB เป็น Scene-Linear (`srgb_to_lin`) ที่ต้นทางใน Blender พร้อมตั้งค่า `Roughness = 0.88 – 0.92` และ `Specular = 0.03 – 0.05` สำหรับผิวหนัง เสื้อผ้า หมวก ผม และรองเท้าบูททั้งหมด
+  * คงความเงาวาว (`Roughness = 0.06 – 0.12`, `_Smoothness = 0.90`) ไว้เฉพาะที่ดวงตา (`Mat_Glossy_Black`, `Mat_Eye_Amber`, `Mat_Eye_Gold_Hi`, `Mat_Eye_White`)
+  * เพิ่ม `ChibiTacticalGirlMaterialPostprocessor` ใน Unity Editor เพื่อคุมค่า `_Smoothness = 0.08` บนวัสดุเนื้อด้านทุกครั้งที่ Import ไฟล์ FBX โดยอัตโนมัติ
+
+---
+
+## 3. ชุดแอนิเมชัน 10 ท่าครบวงจร และท่าตายสุดเท่ 1.5 วินาที (10-Clip Animation Suite & Dramatic Death)
+
+### ไฟล์หลัก:
+* [Chibi_Player_Controller.controller](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_Player_Controller.controller)
+* [Chibi_TacticalGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx)
+* [Chibi_Base_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_Base_Rigged.fbx)
+
+### รายการแอนิเมชันทั้ง 10 ท่า (24 FPS):
+1. **`Idle` (49 เฟรม, Loop)**: ยืนหายใจขยับอกและไหล่เบาๆ แขนทิ้งตัวข้างลำตัวอย่างเป็นธรรมชาติ
+2. **`Walk` (25 เฟรม, Loop)**: เดินก้าวเท้าสลับแกว่งแขนสมดุล
+3. **`Run` (17 เฟรม, Loop)**: วิ่งโน้มตัวไปข้างหน้า ก้าวขายาวและแกว่งแขนกระฉับกระเฉง
+4. **`GunHold` (25 เฟรม, Loop)**: ท่ายืนประทับปืนสองมือระดับอก
+5. **`Shoot` (15 เฟรม)**: ท่ายิงปืนสองมือพร้อมแรงถีบ Recoil กระตุกไหล่และลำตัว
+6. **`Slash1` (19 เฟรม)**: คอมโบฟันระยะประชิดขั้นที่ 1 (ฟันกวาดขวาไปซ้าย)
+7. **`Slash2` (19 เฟรม)**: คอมโบฟันระยะประชิดขั้นที่ 2 (ฟันตวัดย้อนซ้ายไปขวา)
+8. **`Slash3` (23 เฟรม)**: คอมโบฟันระยะประชิดขั้นที่ 3 (ก้าวบิดตัวฟันผ่าลงเต็มแรง 360 องศา)
+9. **`DashRoll` (21 เฟรม)**: พุ่งตัวก้มต่ำหลบหลีก (Tactical Roll / Evasive Dash)
+10. **`Death` (37 เฟรม = 1.5 วินาที, Clamp Forever)**:
+    * **เฟรม 0–7 (0.0s – 0.3s)**: โดนดาเมจกระแทกตัวแอ่นสะบัดไปด้านหลัง แขนกางออก ศีรษะเงย
+    * **เฟรม 7–19 (0.3s – 0.8s)**: ทรุดเข่ากระแทกพื้น มือกุมหน้าอก ก้มหน้าหอบ
+    * **เฟรม 19–36 (0.8s – 1.5s)**: ล้มฟุบตะแคงลงกับพื้นพร้อมแรงสะท้อนเบาๆ แล้วแน่นิ่งจนจบเกม (`HandlePlayerDeath()` ใน [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs) สั่ง Trigger `Die` และ延时แสดงหน้าจอ Game Over หลังเล่นท่าตายครบ 1.5 วินาที)
+
+---
+
+## 4. ระบบ UpperBody AvatarMask สำหรับเดินยิง, แสงไฟปากกระบอกปืน และการแก้บั๊กฟันประชิดหลังถือปืน
+
+### ไฟล์หลัก:
+* [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+* [Chibi_Player_Controller.controller](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_Player_Controller.controller)
+* [Chibi_UpperBody_Mask.mask](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_UpperBody_Mask.mask)
+
+### รายละเอียดการทำงาน:
+* **เดินยิงปืนแยกช่วงบน-ช่วงล่าง (`UpperBody` Layer 1)**:
+  * ใช้ `Chibi_UpperBody_Mask.mask` เปิดใช้งานเฉพาะกระดูก `Spine`, `Chest`, `Neck`, `Head`, และแขนซ้าย-ขวา ส่วน `Hips` และขาซ้าย-ขวาปล่อยให้ `Base Layer` (Layer 0) เล่นท่า `Walk` หรือ `Idle` ตามปกติ
+* **การแก้ไขปัญหาไม่เล่นท่าฟัน (`Slash1/2/3`) หลังจากถือหรือยิงปืน**:
+  * **สาเหตุ**: เดิม Layer 1 (`UpperBody`) มีค่า `Weight = 1.0` ค้างไว้ตลอดเวลา และสถานะ `UpperBody_Empty` มี `Motion: None` ทำให้เมื่อยิงปืน (`Shoot`) ไปแล้ว 1 ครั้ง Mecanim จะค้างเฟรมสุดท้ายของท่ายิงปืนทับลำตัวช่วงบนตลอดเวลา จนบดบังท่าฟัน `Slash1/2/3` บน Layer 0
+  * **วิธีแก้ไข**:
+    1. ตั้งค่าเริ่มต้น `m_DefaultWeight: 0` บน Layer `UpperBody` และเปิด `m_WriteDefaultValues: 1` บน `UpperBody_Empty`
+    2. เพิ่มตัวนับเวลา `_shootAnimLayerTimer` และ `_meleeAnimTimer` ใน [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs) เพื่อเปิด `SetLayerWeight(1, 1f)` เฉพาะขณะยิงปืน (`0.42s`) และสั่งตัด `SetLayerWeight(1, 0f)` ทันทีที่กดฟันประชิด (`MeleeAttack()`) หรือพุ่งหลบ (`StartDash()`)
+* **แสงไฟปากกระบอกปืนไดนามิก (`MuzzleFlashLight`)**:
+  * สร้าง Point Light สีส้มทอง (`Intensity = 10`, `Range = 6m`) สว่างวาบที่ตำแหน่งปากกระบอกปืนเป็นเวลา `0.08s` ทุกครั้งที่ยิง แล้วค่อยๆ เฟดดับลงอย่างนุ่มนวล
+
+---
+
+## 5. ระบบล็อกความเร็วเดินปกติ 1 วินาทีหลังยิงปืน (1-Second Sprint Lock On Shoot)
+
+### ไฟล์หลัก:
+* [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+
+### รายละเอียดการทำงาน:
+* เพิ่มตัวจับเวลา `_shootSprintLockTimer = 1.0f` เมื่อเรียกใช้งาน `ShootWeapon()`:
+  * ทันทีที่ผู้เล่นกดยิงปืน ตัวละครจะยกเลิกการวิ่งทันที (`_isSprinting = false`, `_animator.SetBool("IsRunning", false)`, และสั่ง `_activeShiftAbility?.OnShiftReleased()`)
+  * ตลอดระยะเวลา **1.0 วินาที** หลังจากยิงกระสุนนัดล่าสุด (`_shootSprintLockTimer > 0f`):
+    * ใน `FixedUpdate()` ความเร็วเคลื่อนที่จะถูกล็อกให้เท่ากับความเร็วเดินปกติ (`currentSpeed = moveSpeed`) โดยไม่นำตัวคูณความเร็ววิ่ง (`1.5x`) หรือตัวคูณจาก `ShiftAbility` (`AdrenalineRush 1.75x`) มาคิด
+    * ผู้เล่นต้องหยุดยิงครบ **1.0 วินาที** จึงจะสามารถกลับมาวิ่งเร็ว (`Sprint`) ได้อีกครั้ง

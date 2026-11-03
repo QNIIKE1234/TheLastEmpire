@@ -113,8 +113,20 @@ This file documents critical patterns, design choices, and systems established i
 ---
 
 ## 10. Master Reference Documentation & UI Safety Rules
-*   **Work History & System Summaries**: Always read [work-summary-2026-10-24.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-24.md) and [work-summary-2026-10-14.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-14.md) for complete feature implementation history before inspecting Git logs.
+*   **Work History & System Summaries**: Always read [work-summary-2026-11-04.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-11-04.md), [work-summary-2026-10-31.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-31.md), [work-summary-2026-10-24.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-24.md), and [work-summary-2026-10-14.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/work-summary-2026-10-14.md) for complete feature implementation history before inspecting Git logs.
 *   **Item & Economy Catalog**: Read [item-list.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/item-list.md) for the master catalog of all 35 items, weapon stats, categories, and gold prices.
 *   **UI & Font Safety**: NEVER insert non-standard Unicode glyphs (such as runes `◈`, `❖`, flourishes `✦`, `➔`, or emojis `💬`, `🔥`) into TextMeshPro text or code strings. Always use clean ASCII / UTF-8 Latin characters to prevent missing glyph box artifacts (`□`).
 *   **Class Icons**: Operative selection modal uses `ClassIcon` in [CharacterSelectModal.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Prefabs/UI/CharacterSelectModal.prefab) backed by sliced sprites from `Assets/Resources/Image/UI/`.
+
+---
+
+## 11. 3D Chibi Player Model, 10-Clip Animation Suite & Combat Movement Rules
+*   **Primary 3D Player Model**: [Chibi_TacticalGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx) (built with Toy-Chibi / Nendoroid proportions matching `ChibiGhostOperator`, 20-bone `Chibi_Base_Rig` armature, and matte materials via `ChibiTacticalGirlMaterialPostprocessor` in [ChibiArmPoseFixer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/ChibiArmPoseFixer.cs)).
+*   **10-Clip Animation Suite (`Chibi_Player_Controller.controller`)**:
+    *   `Idle`, `Walk`, `Run`, `GunHold`, `Shoot`, `Slash1`, `Slash2`, `Slash3`, `DashRoll`, and `Death` (1.5s dramatic collapse, 37 frames at 24 FPS).
+*   **UpperBody Layer Weight Management**:
+    *   Layer 1 (`UpperBody`, masked with `Chibi_UpperBody_Mask.mask`) has `m_DefaultWeight: 0` and dynamically sets weight to `1.0` only during `_shootAnimLayerTimer > 0f` (`0.42s`) when not melee attacking or dashing.
+    *   `MeleeAttack()` immediately resets `_shootAnimLayerTimer = 0f` and sets `SetLayerWeight(1, 0f)` so `Slash1 -> Slash2 -> Slash3` on Base Layer (Layer 0) are never overridden by a stale `Shoot` pose.
+*   **1-Second Sprint Lock On Shoot (`_shootSprintLockTimer`)**:
+    *   Firing a ranged weapon (`ShootWeapon()`) sets `_shootSprintLockTimer = 1.0f`, cancels `_isSprinting` and `_activeShiftAbility`, and locks movement velocity in `FixedUpdate()` to standard walking speed (`moveSpeed`) for 1.0 full second before sprinting is allowed again.
 
