@@ -453,7 +453,8 @@ namespace TheLastEmpire
             }
             _activeShiftAbility?.UpdateAbility();
 
-            _isSprinting = !isShootingNow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+            bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
+            _isSprinting = !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
@@ -745,6 +746,12 @@ namespace TheLastEmpire
                         {
                             float shadowMult = (activeCharacterData != null) ? activeCharacterData.shadowSpeedMultiplier : 1.40f;
                             sprintMult = Mathf.Max(sprintMult, shadowMult);
+                        }
+                        else if (_activeShiftAbility is EagleEyeAbility)
+                        {
+                            // สกิล Eagle Eye ของสไนเปอร์: ซูมจอกว้างขึ้นและเดินย่องเล็งยิงอย่างประณีต (0.35x ตามที่ตั้งค่าใน CharacterData)
+                            float eagleMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeMoveSpeedMultiplier : 0.35f;
+                            sprintMult = eagleMult;
                         }
                     }
 
