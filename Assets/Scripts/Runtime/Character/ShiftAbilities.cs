@@ -264,7 +264,7 @@ namespace TheLastEmpire
             if (_cam != null)
             {
                 _defaultCamSize = _cam.orthographic ? _cam.orthographicSize : _cam.fieldOfView;
-                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.20f;
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.30f;
                 _targetCamSize = _defaultCamSize * zoomMult;
             }
         }
@@ -291,7 +291,7 @@ namespace TheLastEmpire
         {
             if (_cam != null)
             {
-                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.20f;
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.30f;
                 _targetCamSize = _defaultCamSize * zoomMult;
 
                 float target = _isAiming ? _targetCamSize : _defaultCamSize;
