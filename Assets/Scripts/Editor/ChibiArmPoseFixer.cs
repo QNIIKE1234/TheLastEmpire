@@ -16,7 +16,7 @@ namespace TheLastEmpire
     {
         private void OnPostprocessMaterial(Material material)
         {
-            if (string.IsNullOrEmpty(assetPath) || !assetPath.Contains("Chibi_TacticalGirl_Rigged"))
+            if (string.IsNullOrEmpty(assetPath) || (!assetPath.Contains("Chibi_TacticalGirl_Rigged") && !assetPath.Contains("Chibi_PunkGirl_Rigged")))
             {
                 return;
             }
@@ -32,12 +32,13 @@ namespace TheLastEmpire
             bool isEye = matName.Contains("Glossy_Black") ||
                          matName.Contains("Eye_Amber") ||
                          matName.Contains("Eye_Gold_Hi") ||
-                         matName.Contains("Eye_White");
-            bool isSilver = matName.Contains("Metal_Silver");
+                         matName.Contains("Eye_White") ||
+                         matName.Contains("Eye_Red");
+            bool isSilver = matName.Contains("Metal_Silver") || matName.Contains("Zipper_Teeth") || matName.Contains("Bat_Nail");
             bool isArmor = matName.Contains("Armor_Grey");
 
             float smoothness = isEye ? 0.90f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
-            float metallic = isSilver ? 0.55f : (isArmor ? 0.08f : 0.0f);
+            float metallic = isSilver ? 0.70f : (isArmor ? 0.08f : 0.0f);
 
             if (material.HasProperty("_Smoothness"))
                 material.SetFloat("_Smoothness", smoothness);
@@ -54,25 +55,33 @@ namespace TheLastEmpire
         {
             EditorApplication.delayCall += () =>
             {
-                const string fbxPath = "Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx";
-                Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(fbxPath);
-                if (subAssets == null || subAssets.Length == 0) return;
+                string[] fbxPaths = new string[] {
+                    "Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx",
+                    "Assets/GeneratedModels/Chibi_PunkGirl_Rigged.fbx"
+                };
 
                 bool changed = false;
-                foreach (Object obj in subAssets)
+                foreach (string path in fbxPaths)
                 {
-                    if (obj is Material mat)
+                    Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                    if (subAssets == null || subAssets.Length == 0) continue;
+
+                    foreach (Object obj in subAssets)
                     {
-                        bool isEye = mat.name.Contains("Glossy_Black") ||
-                                     mat.name.Contains("Eye_Amber") ||
-                                     mat.name.Contains("Eye_Gold_Hi") ||
-                                     mat.name.Contains("Eye_White");
-                        float targetSmooth = isEye ? 0.90f : (mat.name.Contains("Metal_Silver") ? 0.48f : (mat.name.Contains("Armor_Grey") ? 0.18f : 0.08f));
-                        if (mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f)
+                        if (obj is Material mat)
                         {
-                            ApplyTacticalGirlMaterialSettings(mat);
-                            EditorUtility.SetDirty(mat);
-                            changed = true;
+                            bool isEye = mat.name.Contains("Glossy_Black") ||
+                                         mat.name.Contains("Eye_Amber") ||
+                                         mat.name.Contains("Eye_Gold_Hi") ||
+                                         mat.name.Contains("Eye_White") ||
+                                         mat.name.Contains("Eye_Red");
+                            float targetSmooth = isEye ? 0.90f : (mat.name.Contains("Metal_Silver") || mat.name.Contains("Zipper_Teeth") ? 0.48f : (mat.name.Contains("Armor_Grey") ? 0.18f : 0.08f));
+                            if (mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f)
+                            {
+                                ApplyTacticalGirlMaterialSettings(mat);
+                                EditorUtility.SetDirty(mat);
+                                changed = true;
+                            }
                         }
                     }
                 }
