@@ -901,9 +901,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '<b>THE ?????</b>
+  m_text: '<b>THE REBEL</b>
 
-    <size=18><color=#A855F7>????? / ?????</color></size>'
+    <size=18><color=#A855F7>Brawler / Close Quarters</color></size>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
   m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
@@ -1896,12 +1896,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 26.9
+  m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 28
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -2206,8 +2206,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 3, y: -73}
-  m_SizeDelta: {x: 170, y: 87.410706}
+  m_AnchoredPosition: {x: 0, y: -73}
+  m_SizeDelta: {x: 180, y: 87.4107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &856077253618983229
 CanvasRenderer:
@@ -2237,9 +2237,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '<b>THE ?????</b>
+  m_text: '<b>THE DEMOLITIONIST</b>
 
-    <size=18><color=#A855F7>?????? / ????</color></size>'
+    <size=18><color=#A855F7>Trapper / Area Denial</color></size>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
   m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
@@ -2629,7 +2629,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.16226411, g: 0.16226411, b: 0.16226411, a: 0.5921569}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3249,14 +3249,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.1764706}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0dee4cebfd48c36458f4251e89459dea, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 18342b0699cba304d8c4339a2e610406, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4324,7 +4324,7 @@ GameObject:
   - component: {fileID: 5515590525062263609}
   - component: {fileID: 8154213779111675249}
   m_Layer: 0
-  m_Name: Tab_SAMURAI
+  m_Name: Tab_REBEL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4373,7 +4373,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4397,7 +4397,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6747021205848442389}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -4527,12 +4527,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 26.4
+  m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 28
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -4665,12 +4665,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 28
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -4803,12 +4803,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 28
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -5028,7 +5028,9 @@ MonoBehaviour:
   juggernautPortrait: {fileID: 21300000, guid: dc5e0347481d00b48aaa7f64cb08289a, type: 3}
   phantomPortrait: {fileID: 21300000, guid: 79ca78b8be579de469c6e4ba6ff36588, type: 3}
   marksmanPortrait: {fileID: 21300000, guid: 1a6b6eaa23bf9454f9e69c5d023efd0a, type: 3}
-  scavengerPortrait: {fileID: 21300000, guid: 7182cba8d0de2a14587a13c4870fce18, type: 3}
+  scavengerPortrait: {fileID: 21300000, guid: 282c28bff12d256449696960ef56b2f9, type: 3}
+  rebelPortrait: {fileID: 21300000, guid: 7182cba8d0de2a14587a13c4870fce18, type: 3}
+  demolitionistPortrait: {fileID: 21300000, guid: 18342b0699cba304d8c4339a2e610406, type: 3}
   customPortraits: []
   rosterColumn: {fileID: 2983164266651765594}
   tabButtons:
@@ -5037,24 +5039,32 @@ MonoBehaviour:
   - {fileID: 8600089001031272119}
   - {fileID: 1698211313166767199}
   - {fileID: 7365517596100654701}
+  - {fileID: 8154213779111675249}
+  - {fileID: 6048916686698987374}
   tabBackgrounds:
   - {fileID: 6378881062411474184}
   - {fileID: 4085101597210463069}
   - {fileID: 6700006142993083994}
   - {fileID: 5418735196487144827}
   - {fileID: 3752340742041026926}
+  - {fileID: 5515590525062263609}
+  - {fileID: 6568465927910715625}
   tabActiveIndicators:
   - {fileID: 1728611403262883506}
   - {fileID: 192795239313513400}
   - {fileID: 2942499828565670694}
   - {fileID: 8770680988241738018}
   - {fileID: 1950484170265528780}
+  - {fileID: 3215419094120014381}
+  - {fileID: 9118491292598335148}
   tabLabels:
   - {fileID: 8165134769484899630}
   - {fileID: 2316442029097624475}
   - {fileID: 3977826403750942685}
   - {fileID: 2355904778296594177}
   - {fileID: 8530757667911847587}
+  - {fileID: 444373853007749349}
+  - {fileID: 2825348138269159532}
 --- !u!1 &7425978441474107233
 GameObject:
   m_ObjectHideFlags: 0
@@ -5195,7 +5205,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7182cba8d0de2a14587a13c4870fce18, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 282c28bff12d256449696960ef56b2f9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5218,7 +5228,7 @@ GameObject:
   - component: {fileID: 6568465927910715625}
   - component: {fileID: 6048916686698987374}
   m_Layer: 0
-  m_Name: Tab_GANG
+  m_Name: Tab_DEMOLITIONIST
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5267,7 +5277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5291,7 +5301,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7510303719339160612}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
@@ -5622,12 +5632,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 21.2
+  m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 28
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -5725,14 +5735,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.1764706}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 18342b0699cba304d8c4339a2e610406, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7182cba8d0de2a14587a13c4870fce18, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6152,7 +6162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.16226411, g: 0.16226411, b: 0.16226411, a: 0.5921569}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

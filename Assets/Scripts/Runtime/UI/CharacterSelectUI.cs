@@ -277,7 +277,8 @@ namespace TheLastEmpire
                 }
                 if (i < tabLabels.Count && tabLabels[i] != null)
                 {
-                    tabLabels[i].text = ch.characterName;
+                    string roleStr = !string.IsNullOrEmpty(ch.roleCategory) ? ch.roleCategory : "";
+                    tabLabels[i].text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=18><color=#A855F7>{roleStr}</color></size>";
                 }
             }
 

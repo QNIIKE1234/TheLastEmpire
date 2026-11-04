@@ -1903,7 +1903,7 @@ namespace TheLastEmpire
                 GameObject tLabelObj = new GameObject("Label");
                 tLabelObj.transform.SetParent(tabObj.transform, false);
                 TMP_Text tLabel = tLabelObj.AddComponent<TextMeshProUGUI>();
-                tLabel.text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=12><color=#A855F7>{ch.roleCategory}</color></size>";
+                tLabel.text = $"<b>{ch.characterName.ToUpper()}</b>\n<size=18><color=#A855F7>{ch.roleCategory}</color></size>";
                 tLabel.fontSize = 15;
                 tLabel.color = new Color(0.70f, 0.75f, 0.85f, 0.85f);
                 ApplyCustomFont(tLabel);
