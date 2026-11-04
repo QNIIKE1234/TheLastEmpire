@@ -10,7 +10,8 @@ namespace TheLastEmpire
         UnstoppableCharge, // Juggernaut: Charges forward, deflects bullets, stuns enemies
         ShadowStep,        // Phantom: Phasing through enemies, stealth, guaranteed crit
         EagleEye,          // Marksman: Wide tactical zoom, doubled range, piercing bullets
-        ToxicTrail         // Scavenger: Spawns toxic fog trails, slows, DoT, food heals extra
+        GrapplingHook,     // Scavenger: Fires grappling wire forward, pulling player to buildings/structures
+        ToxicTrail = GrapplingHook // Backward compatibility alias
     }
 
     [Serializable]
@@ -207,12 +208,16 @@ namespace TheLastEmpire
         [Range(0.1f, 2f)] public float eagleEyeMoveSpeedMultiplier = 0.35f;
         [Range(0.1f, 5f)] public float eagleEyeHungerDrainRate = 0.8f;
 
-        [Header("--- Ability Tuning: Toxic Trail (Scavenger) ---")]
-        [Range(0.1f, 0.9f)] public float toxicSlowPercent = 0.50f;
-        [Range(1f, 50f)] public float toxicPoisonDps = 8f;
-        [Range(1f, 10f)] public float toxicCloudDuration = 3.5f;
-        [Range(0.5f, 5f)] public float toxicCloudRadius = 1.6f;
-        [Range(0.1f, 10f)] public float toxicHungerDrainRate = 1.8f;
+        [Header("--- Ability Tuning: Grappling Hook (Scavenger) ---")]
+        [Range(5f, 40f)] public float grappleRange = 18f;
+        [Range(10f, 40f)] public float grapplePullSpeed = 22f;
+        [Range(0f, 20f)] public float grappleHungerCost = 3.5f;
+
+        [HideInInspector] public float toxicSlowPercent = 0.50f;
+        [HideInInspector] public float toxicPoisonDps = 8f;
+        [HideInInspector] public float toxicCloudDuration = 3.5f;
+        [HideInInspector] public float toxicCloudRadius = 1.6f;
+        [HideInInspector] public float toxicHungerDrainRate = 1.8f;
 
         /// <summary>
         /// Generates a clean, formatted loadout string for UI presentation.

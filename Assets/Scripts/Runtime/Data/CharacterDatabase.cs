@@ -218,10 +218,13 @@ namespace TheLastEmpire
             scavenger.foodHealBonus = 10f;
             scavenger.sprintSpeedMultiplier = 1.5f;
             scavenger.shootSprintLockDuration = 1.0f;
-            scavenger.shiftAbilityType = ShiftAbilityType.ToxicTrail;
-            scavenger.shiftAbilityName = "Toxic Trail";
-            scavenger.shiftAbilityDescription = "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)";
-            scavenger.shiftCooldown = 0f;
+            scavenger.shiftAbilityType = ShiftAbilityType.GrapplingHook;
+            scavenger.shiftAbilityName = "Grappling Hook";
+            scavenger.shiftAbilityDescription = "Press [Shift] to fire a survival grappling wire: latches onto buildings/obstacles and zips you directly to the point. (Passive: eating food grants +10 bonus HP)";
+            scavenger.shiftCooldown = 3.0f;
+            scavenger.grappleRange = 18f;
+            scavenger.grapplePullSpeed = 22f;
+            scavenger.grappleHungerCost = 3.5f;
             roster.Add(scavenger);
 
             return roster;

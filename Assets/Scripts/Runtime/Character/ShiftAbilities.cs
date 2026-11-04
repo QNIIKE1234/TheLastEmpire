@@ -324,6 +324,287 @@ namespace TheLastEmpire
     }
 
     // =========================================================================
+    
+    // =========================================================================
+    //  5. Scavenger: Grappling Hook (Spider-Man Cable / Wire Launcher)
+    // =========================================================================
+    public class GrapplingHookAbility : IShiftAbility
+    {
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Grappling Hook";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Fires a survival grappling wire forward: latches onto buildings/obstacles and zips you directly to the point.";
+        public bool IsActive => _isPulling || _isExtendingMiss;
+        public bool IsPulling => _isPulling;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftCooldown : 3.0f;
+
+        private PlayerController _player;
+        private bool _isPulling = false;
+        private bool _isExtendingMiss = false;
+        private float _cooldownTimer = 0f;
+        private float _pullTimer = 0f;
+        private const float MaxPullDuration = 1.2f;
+
+        private Vector3 _hookTargetPoint;
+        private LineRenderer _cableLine;
+        private GameObject _hookAnchorVisual;
+        private float _lastDistanceToTarget = 999f;
+        private float _stuckTimer = 0f;
+
+        private float GetGrappleRange() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.grappleRange : 18f;
+        private float GetGrapplePullSpeed() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.grapplePullSpeed : 22f;
+        private float GetGrappleHungerCost() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.grappleHungerCost : 3.5f;
+
+        public void Initialize(PlayerController player)
+        {
+            _player = player;
+            CreateCableRenderer();
+        }
+
+        public void OnShiftPressed()
+        {
+            if (_player == null || _cooldownTimer > 0f || _isPulling || _player.CurrentHunger <= 0f) return;
+
+            Vector3 origin = _player.transform.position + Vector3.up * 0.7f;
+            Vector3 aimDir = _player.AimDirection;
+            aimDir.y = 0f;
+            if (aimDir.sqrMagnitude < 0.01f) aimDir = _player.transform.forward;
+            aimDir.Normalize();
+
+            float maxRange = GetGrappleRange();
+
+            // Raycast forward to detect buildings, walls, obstacles, structures
+            RaycastHit[] hits = Physics.RaycastAll(origin, aimDir, maxRange, ~0, QueryTriggerInteraction.Ignore);
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            RaycastHit? validHit = null;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                var h = hits[i];
+                if (h.collider == null) continue;
+                if (h.collider.transform.root == _player.transform.root) continue;
+                if (h.collider.CompareTag("Player")) continue;
+                if (h.collider.isTrigger) continue;
+                if (h.collider.GetComponent<CollectibleItem>() != null) continue;
+
+                // Ignore flat ground plane (normal pointing mostly upward)
+                if (h.normal.y > 0.65f) continue;
+
+                // Ignore enemies so hook passes through them to latch onto buildings behind them
+                if (h.collider.CompareTag("Enemy") || h.collider.GetComponent<BaseEnemyAI>() != null) continue;
+
+                validHit = h;
+                break;
+            }
+
+            if (validHit.HasValue)
+            {
+                RaycastHit hit = validHit.Value;
+                Vector3 latchPt = hit.point;
+
+                // Position target slightly away from wall along normal so player doesn't clip
+                Vector3 standPos = latchPt + hit.normal * 0.8f;
+                standPos.y = _player.transform.position.y; // Keep player level on ground
+
+                _hookTargetPoint = standPos;
+                _lastDistanceToTarget = Vector3.Distance(_player.transform.position, _hookTargetPoint);
+                _stuckTimer = 0f;
+                _isPulling = true;
+                _pullTimer = MaxPullDuration;
+                _cooldownTimer = CooldownDuration;
+
+                _player.DrainHunger(GetGrappleHungerCost());
+
+                ShowCable(origin, latchPt);
+                CreateAnchorVisual(latchPt, hit.normal);
+            }
+            else
+            {
+                // Missed: shoot line forward briefly with short cooldown
+                Vector3 missPt = origin + aimDir * (maxRange * 0.75f);
+                _isExtendingMiss = true;
+                _pullTimer = 0.22f;
+                _cooldownTimer = 0.8f;
+                ShowCable(origin, missPt);
+            }
+        }
+
+        public void OnShiftHeld() { }
+        public void OnShiftReleased() { }
+
+        public void UpdateAbility()
+        {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
+            if (_isExtendingMiss)
+            {
+                _pullTimer -= Time.deltaTime;
+                if (_cableLine != null && _player != null)
+                {
+                    _cableLine.SetPosition(0, _player.transform.position + Vector3.up * 0.7f);
+                }
+                if (_pullTimer <= 0f)
+                {
+                    _isExtendingMiss = false;
+                    HideCable();
+                }
+                return;
+            }
+
+            if (_isPulling && _player != null)
+            {
+                _pullTimer -= Time.deltaTime;
+
+                Vector3 currentPos = _player.transform.position;
+                Vector3 toTarget = _hookTargetPoint - currentPos;
+                toTarget.y = 0f;
+                float dist = toTarget.magnitude;
+
+                // Update cable origin to player's current moving position
+                if (_cableLine != null)
+                {
+                    _cableLine.SetPosition(0, currentPos + Vector3.up * 0.7f);
+                }
+
+                // Grant brief invulnerability (I-Frames) during high-speed pull
+                if (_player.PlayerHealth != null)
+                {
+                    _player.PlayerHealth.TriggerInvulnerability(0.1f);
+                }
+
+                // Detect if player is stuck against an obstacle
+                if (Mathf.Abs(dist - _lastDistanceToTarget) < 0.05f)
+                {
+                    _stuckTimer += Time.deltaTime;
+                }
+                else
+                {
+                    _stuckTimer = 0f;
+                }
+                _lastDistanceToTarget = dist;
+
+                // Check arrival, timeout, or stuck
+                if (dist < 0.9f || _pullTimer <= 0f || _stuckTimer > 0.25f)
+                {
+                    EndGrapplePull();
+                    return;
+                }
+
+                // Rapid pull towards target
+                float speed = GetGrapplePullSpeed();
+                Vector3 pullVelocity = toTarget.normalized * speed;
+
+                Rigidbody rb = _player.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = new Vector3(pullVelocity.x, rb.linearVelocity.y, pullVelocity.z);
+                }
+
+                // Make player face pulling direction
+                if (toTarget.sqrMagnitude > 0.05f)
+                {
+                    _player.transform.forward = toTarget.normalized;
+                }
+            }
+        }
+
+        private void EndGrapplePull()
+        {
+            _isPulling = false;
+            HideCable();
+            if (_hookAnchorVisual != null)
+            {
+                GameObject.Destroy(_hookAnchorVisual);
+                _hookAnchorVisual = null;
+            }
+            if (_player != null)
+            {
+                Rigidbody rb = _player.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector3.zero;
+                }
+            }
+        }
+
+        private void CreateCableRenderer()
+        {
+            if (_cableLine != null || _player == null) return;
+
+            GameObject cableObj = new GameObject("GrappleCableRenderer");
+            cableObj.transform.SetParent(_player.transform);
+            cableObj.transform.localPosition = Vector3.zero;
+
+            _cableLine = cableObj.AddComponent<LineRenderer>();
+            _cableLine.startWidth = 0.06f;
+            _cableLine.endWidth = 0.04f;
+            _cableLine.useWorldSpace = true;
+            _cableLine.loop = false;
+            _cableLine.positionCount = 2;
+
+            Material lineMat = new Material(Shader.Find("Universal Render Pipeline/Unlit") 
+                ?? Shader.Find("Unlit/Color") 
+                ?? Shader.Find("Sprites/Default"));
+
+            Color wireColor = new Color(0.95f, 0.85f, 0.25f, 0.95f); // High-contrast survival steel/amber wire
+            lineMat.color = wireColor;
+            _cableLine.material = lineMat;
+            _cableLine.startColor = wireColor;
+            _cableLine.endColor = new Color(0.85f, 0.95f, 0.35f, 0.90f);
+            _cableLine.enabled = false;
+        }
+
+        private void ShowCable(Vector3 start, Vector3 end)
+        {
+            if (_cableLine == null) CreateCableRenderer();
+            if (_cableLine != null)
+            {
+                _cableLine.positionCount = 2;
+                _cableLine.SetPosition(0, start);
+                _cableLine.SetPosition(1, end);
+                _cableLine.enabled = true;
+            }
+        }
+
+        private void HideCable()
+        {
+            if (_cableLine != null) _cableLine.enabled = false;
+        }
+
+        private void CreateAnchorVisual(Vector3 pos, Vector3 normal)
+        {
+            if (_hookAnchorVisual != null) GameObject.Destroy(_hookAnchorVisual);
+
+            _hookAnchorVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _hookAnchorVisual.name = "GrappleHookAnchor";
+            _hookAnchorVisual.transform.position = pos;
+            _hookAnchorVisual.transform.localScale = Vector3.one * 0.28f;
+            GameObject.Destroy(_hookAnchorVisual.GetComponent<Collider>());
+
+            MeshRenderer mr = _hookAnchorVisual.GetComponent<MeshRenderer>();
+            if (mr != null)
+            {
+                mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") 
+                    ?? Shader.Find("Unlit/Color") 
+                    ?? Shader.Find("Sprites/Default"));
+                mr.material.color = new Color(1f, 0.85f, 0.2f, 1f);
+            }
+        }
+
+        public void OnDestroy()
+        {
+            EndGrapplePull();
+            if (_cableLine != null && _cableLine.gameObject != null)
+            {
+                GameObject.Destroy(_cableLine.gameObject);
+                _cableLine = null;
+            }
+        }
+    }
+
     //  5. Scavenger: Toxic Trail
     // =========================================================================
     public class ToxicTrailAbility : IShiftAbility

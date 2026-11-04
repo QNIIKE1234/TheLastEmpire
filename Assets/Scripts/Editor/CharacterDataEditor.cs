@@ -156,6 +156,13 @@ namespace TheLastEmpire.Editor
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("eagleEyeHungerDrainRate"));
                         break;
 
+                    case ShiftAbilityType.GrapplingHook:
+                        EditorGUILayout.LabelField("Grappling Hook Tuning Parameters", EditorStyles.boldLabel);
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("grappleRange"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("grapplePullSpeed"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("grappleHungerCost"));
+                        break;
+
                     case ShiftAbilityType.ToxicTrail:
                         EditorGUILayout.LabelField("Toxic Trail Tuning Parameters", EditorStyles.boldLabel);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("toxicSlowPercent"));

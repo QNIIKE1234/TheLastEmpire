@@ -55,11 +55,14 @@ MonoBehaviour:
   dropRateBonus: 0.25
   moneyMultiplier: 1.3
   shiftAbilityType: 4
-  shiftAbilityName: Toxic Trail
-  shiftAbilityDescription: 'Hold [Shift] to sprint and release toxic smoke clouds:
-    enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants
-    +10 bonus HP)'
-  shiftCooldown: 0
+  shiftAbilityName: Grappling Hook
+  shiftAbilityDescription: 'Press [Shift] to fire a survival grappling wire: latches
+    onto buildings/obstacles and zips you directly to the point. (Passive: eating food
+    grants +10 bonus HP)'
+  shiftCooldown: 3
+  grappleRange: 18
+  grapplePullSpeed: 22
+  grappleHungerCost: 3.5
   adrenalineSpeedMultiplier: 1.75
   adrenalineAttackSpeedBonus: 0.3
   adrenalineDamageReduction: 0.2

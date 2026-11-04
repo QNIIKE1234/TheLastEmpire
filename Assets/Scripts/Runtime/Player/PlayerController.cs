@@ -224,6 +224,9 @@ namespace TheLastEmpire
                 case ShiftAbilityType.EagleEye:
                     _activeShiftAbility = new EagleEyeAbility();
                     break;
+                case ShiftAbilityType.GrapplingHook:
+                    _activeShiftAbility = new GrapplingHookAbility();
+                    break;
                 case ShiftAbilityType.ToxicTrail:
                     _activeShiftAbility = new ToxicTrailAbility();
                     break;
@@ -780,6 +783,11 @@ namespace TheLastEmpire
             if (_isDashing)
             {
                 _rb.linearVelocity = _dashDirection * dashSpeed;
+            }
+            else if (_activeShiftAbility != null && _activeShiftAbility.IsActive && (_activeShiftAbility is GrapplingHookAbility gha && gha.IsPulling || _activeShiftAbility is UnstoppableChargeAbility))
+            {
+                // Active ability handles linearVelocity override directly (Grappling Hook zip or Juggernaut Charge)
+                return;
             }
             else
             {

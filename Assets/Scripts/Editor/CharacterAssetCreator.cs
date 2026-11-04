@@ -454,10 +454,13 @@ namespace TheLastEmpire.Editor
             data.dropRateBonus = 0.25f;
             data.moneyMultiplier = 1.30f;
 
-            data.shiftAbilityType = ShiftAbilityType.ToxicTrail;
-            data.shiftAbilityName = "Toxic Trail";
-            data.shiftAbilityDescription = "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)";
-            data.shiftCooldown = 0f;
+            data.shiftAbilityType = ShiftAbilityType.GrapplingHook;
+            data.shiftAbilityName = "Grappling Hook";
+            data.shiftAbilityDescription = "Press [Shift] to fire a survival grappling wire: latches onto buildings/obstacles and zips you directly to the point. (Passive: eating food grants +10 bonus HP)";
+            data.shiftCooldown = 3.0f;
+            data.grappleRange = 18f;
+            data.grapplePullSpeed = 22f;
+            data.grappleHungerCost = 3.5f;
 
             data.toxicSlowPercent = 0.50f;
             data.toxicPoisonDps = 8f;

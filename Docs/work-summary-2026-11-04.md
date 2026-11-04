@@ -11,6 +11,7 @@
 4. [ระบบ UpperBody AvatarMask สำหรับเดินยิง, แสงไฟปากกระบอกปืน และการแก้บั๊กฟันประชิดหลังถือปืน](#4-ระบบ-upperbody-avatarmask-สำหรับเดินยิง-แสงไฟปากกระบอกปืน-และการแก้บั๊กฟันประชิดหลังถือปืน)
 5. [ระบบความเร็ววิ่งเร็ว และลดความเร็วเหลือ 0.75x เดินปกติ 1 วินาทีเมื่อกดยิงปืน (Sprint Speed & 0.75x Shoot Penalty)](#5-ระบบความเร็ววิ่งเร็ว-และลดความเร็วเหลือ-075x-เดินปกติ-1-วินาทีเมื่อกดยิงปืน-sprint-speed--075x-shoot-penalty)
 6. [ระบบ ScriptableObject Status & Config สำหรับปรับแต่งตัวละครทั้งหมด (Customizable CharacterData ScriptableObjects & Custom Inspector)](#6-ระบบ-scriptableobject-status--config-สำหรับปรับแต่งตัวละครทั้งหมด-customizable-characterdata-scriptableobjects--custom-inspector)
+7. [สกิลใหม่ The Scavenger: Grappling Hook สลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์ Spider-Man](#7-สกิลใหม่-the-scavenger-grappling-hook-สลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์-spider-man)
 
 ---
 
@@ -128,7 +129,7 @@
 * `CHAR_02_Juggernaut.asset` (The Juggernaut: เลือด 150, เกราะติดตัว 15%, สกิลพุ่งชน Unstoppable Charge ปรับจูนได้)
 * `CHAR_03_Phantom.asset` (The Phantom: วิ่งไว 6.0 m/s, สกิล Shadow Step วิ่งทะลุศัตรูพร้อมการันตีคริติคอลหลังออกจากเงามืด)
 * `CHAR_04_Marksman.asset` (The Marksman: อัตราคริติคอลพื้นฐาน 35%, กระสุน Medium 20 + Light 20, สกิล Eagle Eye ซูม 1.35x ยิงทะลุ)
-* `CHAR_05_Scavenger.asset` (The Scavenger: โบนัสตกของ +25%, โบนัสทอง +30%, สกิล Toxic Trail ปล่อยควันพิษสโลว์ 50%, Passive กินอาหารฮีลเลือด +10 HP)
+* `CHAR_05_Scavenger.asset` (The Scavenger: โบนัสตกของ +25%, โบนัสทอง +30%, สกิล Grappling Hook ยิงสลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์ Spider-Man, Passive กินอาหารฮีลเลือด +10 HP)
 
 ### จุดสำคัญที่ได้รับการแก้ไข (Root-Cause Fix):
 1. **แก้ปัญหา Inspector ถูก Reset คืนค่าเริ่มต้นทุกครั้งที่ Recompile**:
@@ -138,3 +139,37 @@
    * เพิ่ม `StartingAmmoConfig` แบบ List ทำให้กำหนดประเภทกระสุนกี่ชนิดและจำนวนเท่าใดก็ได้ใน Inspector ของแต่ละตัวละคร
    * เพิ่ม `startingRations` สำหรับปรับจำนวนขนมปังเริ่มต้น
    * เชื่อมต่อ `shootSprintLockDuration` เข้ากับ SO เพื่อให้ผู้พัฒนาสามารถปรับจูนระยะเวลาห้ามวิ่งหลังยิงของแต่ละตัวละครได้อย่างอิสระ
+
+---
+
+## 7. สกิลใหม่ The Scavenger: Grappling Hook สลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์ Spider-Man
+
+### ไฟล์หลัก:
+* [ShiftAbilities.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Character/ShiftAbilities.cs) (`GrapplingHookAbility`)
+* [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+* [CharacterData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CharacterData.cs)
+* [CharacterDataEditor.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/CharacterDataEditor.cs)
+* [CharacterDatabase.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CharacterDatabase.cs)
+* [CharacterAssetCreator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/CharacterAssetCreator.cs)
+* [CHAR_05_Scavenger.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Database/Characters/CHAR_05_Scavenger.asset)
+
+### กลไกการทำงาน (Grappling Hook Mechanics):
+1. **การกดใช้งานและการเล็งทิศทาง (Targeting & Firing)**:
+   * ผู้เล่น The Scavenger กดปุ่ม **[Shift]** จะเป็นการยิงสายเคเบิลสลิงเอาชีวิตรอดพุ่งตรงไปยังทิศทางที่เล็งเมาส์ (`_aimDirection`) ในระยะไกลสูงสุด `18 เมตร` (ปรับจูนได้)
+   * ระบบใช้ `Physics.RaycastAll` ตรวจจับสิ่งปลูกสร้าง, กำแพง, บาริเคด, และสิ่งกีดขวางแนวตั้ง (`normal.y <= 0.65f`) โดยไม่ถูกพื้นเรียบขวาง
+   * หากมีศัตรูยืนขวางอยู่ สายสลิงจะพุ่งทะลุกลุ่มศัตรูไปเกาะติดกับสิ่งปลูกสร้างด้านหลัง เพื่อให้ผู้เล่นโหน/ดึงตัวแหวกวงล้อมหนีได้สไตล์ Spider-Man
+2. **การยึดเกาะและการลากตัวด้วยความเร็วสูง (Zip & Pull Phase)**:
+   * เมื่อสลิงกระทบสิ่งปลูกสร้าง จะสร้างจุดยึดสมอเรืองแสงสีทอง (`GrappleHookAnchor`) บนผนัง
+   * วาดเส้นลวดสลิงสีเหลืองอำพันสะท้อนแสง (`LineRenderer`) เชื่อมจากหน้าอกผู้เล่นไปยังจุดที่สลิงเกาะอย่างชัดเจน
+   * ลากตัวผู้เล่นพุ่งเข้าหาจุดยึดด้วยความเร็วสูง **22 m/s** (`grapplePullSpeed`)
+   * ให้สถานะอมตะชั่วคราว (I-Frames) ขณะพุ่งเพื่อหลบหลีกการโจมตีอันตราย
+   * คำนวณจุดหยุดยืนให้เว้นระยะห่างจากผนัง `0.8 เมตร` ตามแนว Normal เพื่อไม่ให้ตัวละครติดหรือคลิปจมเข้าไปในสิ่งปลูกสร้าง
+   * มีระบบตรวจจับการชนหรือติดขัด (`_stuckTimer`) และจำกัดเวลาพุ่งสูงสุด (`MaxPullDuration = 1.2s`) เพื่อปลดสลิงทันที ไม่ทำให้ตัวละครติดบั๊กค้าง
+3. **กรณีที่ยิงสลิงไม่โดนสิ่งปลูกสร้าง (Miss / Whiff)**:
+   * หากยิงไปในที่โล่งและไม่โดนสิ่งปลูกสร้างใดๆ เส้นสลิงจะพุ่งออกไปสุดระยะแล้วหดกลับมาอย่างรวดเร็ว (0.22s) โดยไม่ลากตัวผู้เล่น และลดคูลดาวน์ลงเหลือเพียง `0.8s`
+4. **พารามิเตอร์การปรับจูนใน ScriptableObject (`CharacterData`)**:
+   * `grappleRange`: ระยะยิงสลิงไกลสุด (ค่าเริ่มต้น: 18m)
+   * `grapplePullSpeed`: ความเร็วในการลากดึงตัวผู้เล่น (ค่าเริ่มต้น: 22 m/s)
+   * `grappleHungerCost`: ปริมาณความหิวที่ใช้ต่อการยิง 1 ครั้ง (ค่าเริ่มต้น: 3.5 หน่วย)
+   * `shiftCooldown`: คูลดาวน์ของสกิล (ค่าเริ่มต้น: 3.0s)
+   * รองรับการปรับแต่งผ่าน Survivor Dossier Inspector ใน Unity Editor ได้อย่างอิสระ
