@@ -63,6 +63,16 @@ namespace TheLastEmpire
 
         public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null, bool isCrit = false)
         {
+            TakeDamage(damageAmount, hitPoint, isCrit, false);
+        }
+
+        public void TakeExplosiveDamage(float damageAmount, UnityEngine.Vector3? hitPoint = null, bool isCrit = false)
+        {
+            TakeDamage(damageAmount, hitPoint, isCrit, true);
+        }
+
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint, bool isCrit, bool isExplosion)
+        {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
 
