@@ -227,9 +227,6 @@ namespace TheLastEmpire
                 case ShiftAbilityType.GrapplingHook:
                     _activeShiftAbility = new GrapplingHookAbility();
                     break;
-                case ShiftAbilityType.ToxicTrail:
-                    _activeShiftAbility = new ToxicTrailAbility();
-                    break;
                 default:
                     _activeShiftAbility = new AdrenalineRushAbility();
                     break;

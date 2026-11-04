@@ -10,8 +10,7 @@ namespace TheLastEmpire
         UnstoppableCharge, // Juggernaut: Charges forward, deflects bullets, stuns enemies
         ShadowStep,        // Phantom: Phasing through enemies, stealth, guaranteed crit
         EagleEye,          // Marksman: Wide tactical zoom, doubled range, piercing bullets
-        GrapplingHook,     // Scavenger: Fires grappling wire forward, pulling player to buildings/structures
-        ToxicTrail = GrapplingHook // Backward compatibility alias
+        GrapplingHook      // Scavenger: Fires grappling wire forward, pulling player to buildings/structures
     }
 
     [Serializable]
