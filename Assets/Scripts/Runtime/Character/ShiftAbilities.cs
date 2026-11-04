@@ -263,8 +263,8 @@ namespace TheLastEmpire
             _cam = Camera.main;
             if (_cam != null)
             {
-                _defaultCamSize = _cam.orthographicSize;
-                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.35f;
+                _defaultCamSize = _cam.orthographic ? _cam.orthographicSize : _cam.fieldOfView;
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.20f;
                 _targetCamSize = _defaultCamSize * zoomMult;
             }
         }
@@ -291,11 +291,18 @@ namespace TheLastEmpire
         {
             if (_cam != null)
             {
-                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.35f;
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.20f;
                 _targetCamSize = _defaultCamSize * zoomMult;
 
                 float target = _isAiming ? _targetCamSize : _defaultCamSize;
-                _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, target, Time.deltaTime * 4.5f);
+                if (_cam.orthographic)
+                {
+                    _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, target, Time.deltaTime * 5f);
+                }
+                else
+                {
+                    _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, target, Time.deltaTime * 5f);
+                }
             }
 
             if (_isAiming && _player != null)
@@ -308,7 +315,11 @@ namespace TheLastEmpire
         public void OnDestroy()
         {
             _isAiming = false;
-            if (_cam != null) _cam.orthographicSize = _defaultCamSize;
+            if (_cam != null)
+            {
+                if (_cam.orthographic) _cam.orthographicSize = _defaultCamSize;
+                else _cam.fieldOfView = _defaultCamSize;
+            }
         }
     }
 

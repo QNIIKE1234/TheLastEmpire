@@ -385,7 +385,7 @@ namespace TheLastEmpire.Editor
             data.shiftAbilityDescription = "Hold [Shift] to enter tactical focus: 1.35x sniper zoom, 2x attack range, bullets pierce through all enemies. (Move slower while aiming)";
             data.shiftCooldown = 0f;
 
-            data.eagleEyeZoomMultiplier = 1.35f;
+            data.eagleEyeZoomMultiplier = 1.20f;
             data.eagleEyeRangeMultiplier = 2.0f;
             data.eagleEyeMoveSpeedMultiplier = 0.35f;
             data.eagleEyeHungerDrainRate = 0.8f;

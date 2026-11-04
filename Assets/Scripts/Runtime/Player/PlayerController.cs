@@ -418,6 +418,8 @@ namespace TheLastEmpire
             if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
             if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
             if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
+            if (_laserSightIndicator != null && _laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(false);
+            if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -678,6 +680,69 @@ namespace TheLastEmpire
                 if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(false);
                 if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             }
+
+            // 3. Eagle Eye Sniper Laser Sight Indicator
+            bool isEagleEyeAiming = _activeShiftAbility is EagleEyeAbility eagle && eagle.IsActive;
+            if (isEagleEyeAiming)
+            {
+                if (_laserSightIndicator == null)
+                {
+                    _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
+                }
+                if (_laserTargetDot == null)
+                {
+                    _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+                }
+
+                if (!_laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(true);
+                if (!_laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(true);
+
+                float targetRange = 25f;
+                if (CurrentWeapon != null)
+                {
+                    targetRange = CurrentWeapon.range;
+                    if (ItemDatabase.Instance != null)
+                    {
+                        ItemData item = ItemDatabase.Instance.GetItemByName(CurrentWeapon.weaponName);
+                        if (item != null && item.attackRadius > 0.01f)
+                        {
+                            targetRange = item.attackRadius;
+                        }
+                    }
+                    if (CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Speed > 0.01f)
+                    {
+                        targetRange = Mathf.Max(targetRange, CurrentWeapon.range * CurrentWeapon.projectilePrefab.Speed);
+                    }
+                }
+                float rangeMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeRangeMultiplier : 2.0f;
+                targetRange *= rangeMult;
+                targetRange = Mathf.Clamp(targetRange, 12f, 45f);
+
+                Vector3 startPos = transform.position + Vector3.up * 0.15f + _aimDirection * 0.4f;
+                Vector3 endPos = startPos + _aimDirection * targetRange;
+
+                // Check obstacle collisions
+                int layerMask = ~LayerMask.GetMask("Player", "Ignore Raycast");
+                if (Physics.Raycast(startPos + Vector3.up * 0.35f, _aimDirection, out RaycastHit hit, targetRange, layerMask))
+                {
+                    endPos = new Vector3(hit.point.x, startPos.y, hit.point.z);
+                }
+
+                _laserSightIndicator.SetPosition(0, startPos);
+                _laserSightIndicator.SetPosition(1, endPos);
+                DrawCircle(_laserTargetDot, endPos, 0.22f);
+            }
+            else
+            {
+                if (_laserSightIndicator != null && _laserSightIndicator.gameObject.activeSelf)
+                {
+                    _laserSightIndicator.gameObject.SetActive(false);
+                }
+                if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf)
+                {
+                    _laserTargetDot.gameObject.SetActive(false);
+                }
+            }
         }
 
         private float _knockbackTimer = 0f;
@@ -774,6 +839,10 @@ namespace TheLastEmpire
         private LineRenderer _aoeIndicator;
         private SpriteRenderer _throwRangeSpriteRenderer;
         private SpriteRenderer _aoeSpriteRenderer;
+
+        // Eagle Eye Laser Sight Aim Indicators
+        private LineRenderer _laserSightIndicator;
+        private LineRenderer _laserTargetDot;
 
         private void UpdateAimDirection()
         {
@@ -2503,6 +2572,30 @@ namespace TheLastEmpire
             _aoeSpriteRenderer.sprite = aoeIndicatorSprite;
             _aoeSpriteRenderer.color = aoeIndicatorColor;
             aoeObj.SetActive(false);
+
+            _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
+            _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+        }
+
+        private LineRenderer CreateLaserLineRenderer(string objName, Color color, float width)
+        {
+            GameObject obj = new GameObject(objName);
+            obj.transform.SetParent(transform);
+            obj.transform.localPosition = Vector3.zero;
+
+            LineRenderer lr = obj.AddComponent<LineRenderer>();
+            lr.startWidth = width;
+            lr.endWidth = width * 0.65f;
+            lr.useWorldSpace = true;
+            lr.loop = false;
+            lr.positionCount = 2;
+
+            lr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default"));
+            lr.startColor = color;
+            lr.endColor = new Color(color.r, color.g, color.b, 0.45f);
+
+            lr.gameObject.SetActive(false);
+            return lr;
         }
 
         private LineRenderer CreateLineRenderer(string objName, Color color, float width)
