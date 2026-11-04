@@ -477,7 +477,6 @@ namespace TheLastEmpire.Editor
             EditorUtility.SetDirty(data);
             return data;
         }
-    }
 
         private static CharacterData GetOrCreateRebel(bool forceOverwrite)
         {
@@ -627,5 +626,5 @@ namespace TheLastEmpire.Editor
             EditorUtility.SetDirty(data);
             return data;
         }
-
+    }
 }
