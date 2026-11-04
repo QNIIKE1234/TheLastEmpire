@@ -67,24 +67,29 @@ namespace TheLastEmpire
                 if (pc != null)
                 {
                     // Check Phantom Shadow Step guaranteed crit bonus
+                    float shadowCrit = (pc.ActiveCharacterData != null) ? pc.ActiveCharacterData.shadowExitCritMultiplier : 2.0f;
                     if (pc.HasGuaranteedCrit)
                     {
                         guaranteedCrit = true;
-                        critMultiplier = 2.0f;
+                        critMultiplier = shadowCrit;
                         pc.HasGuaranteedCrit = false;
                     }
                     else if (pc.ActiveShiftAbility is ShadowStepAbility shadow && shadow.HasGuaranteedCrit)
                     {
                         guaranteedCrit = true;
-                        critMultiplier = 2.0f;
+                        critMultiplier = shadowCrit;
                         shadow.ConsumeCritBonus();
                     }
 
-                    // Marksman class specialization
-                    if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.characterId == "MARKSMAN")
+                    // Character crit configuration from CharacterData ScriptableObject
+                    if (pc.ActiveCharacterData != null)
                     {
-                        critChance = 0.35f; // 35% crit chance for Marksman
-                        critMultiplier = (pc.ActiveShiftAbility is EagleEyeAbility eagle && eagle.IsActive) ? 2.0f : 1.50f;
+                        critChance += pc.ActiveCharacterData.critChanceBonus;
+                        critMultiplier += pc.ActiveCharacterData.critMultiplierBonus;
+                        if (pc.ActiveShiftAbility is EagleEyeAbility eagle && eagle.IsActive)
+                        {
+                            critMultiplier = Mathf.Max(critMultiplier, 2.0f);
+                        }
                     }
                 }
             }

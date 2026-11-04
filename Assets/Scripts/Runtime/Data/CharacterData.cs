@@ -13,48 +13,242 @@ namespace TheLastEmpire
         ToxicTrail         // Scavenger: Spawns toxic fog trails, slows, DoT, food heals extra
     }
 
+    [Serializable]
+    public struct StartingAmmoConfig
+    {
+        [Tooltip("Exact item name of ammo in inventory database (e.g. Medium Ammo, Light Ammo, Shotgun Ammo, Bolts).")]
+        public string ammoType;
+        [Tooltip("Number of rounds or ammo items granted on game start.")]
+        public int count;
+
+        public StartingAmmoConfig(string ammoType, int count)
+        {
+            this.ammoType = ammoType;
+            this.count = count;
+        }
+    }
+
+    [Serializable]
+    public struct StartingItemConfig
+    {
+        [Tooltip("Item name from item database (e.g. Bandage, Medkit).")]
+        public string itemName;
+        [Tooltip("Quantity of items granted.")]
+        public int count;
+
+        public StartingItemConfig(string itemName, int count)
+        {
+            this.itemName = itemName;
+            this.count = count;
+        }
+    }
+
     [CreateAssetMenu(fileName = "NewCharacterData", menuName = "The Last Empire/Character Data", order = 1)]
     public class CharacterData : ScriptableObject
     {
-        [Header("Identity & Lore")]
+        [Header("=== IDENTITY & LORE ===")]
+        [Tooltip("Unique uppercase identifier for system lookups (e.g. VANGUARD, JUGGERNAUT).")]
         public string characterId = "VANGUARD";
+
+        [Tooltip("Display name shown in UI and Dossier header.")]
         public string characterName = "The Vanguard";
+
+        [Tooltip("Military or Wasteland title (e.g. Imperial Vanguard).")]
         public string characterTitle = "Imperial Vanguard";
+
+        [Tooltip("Class category / tactical role.")]
         public string roleCategory = "All-Rounder / Frontline";
+
         [Tooltip("Full-body illustration or portrait displayed in operative selection screen.")]
         public Sprite characterPortrait;
-        [TextArea(3, 6)]
-        public string loreSynopsis = "A battle-tested soldier of the imperial guard. Awakens in the military garrison ruins with his oath etched into his memory.";
+
+        [TextArea(3, 5)]
+        [Tooltip("Background biography and operative dossier text.")]
+        public string loreSynopsis = "A battle-tested soldier of the imperial guard. Awakens in the garrison ruins with his unit's oath echoing in his mind.";
+
         [TextArea(2, 4)]
-        public string amnesiaWakingClue = "\"My head hurts... Where is the squad? My rifle's still loaded. I need to reach the central citadel before it's too late.\"";
-        public Color themeColor = new Color(0.95f, 0.55f, 0.15f, 1f); // Accent color for UI
+        [Tooltip("First awakening thought / amnesia monologue.")]
+        public string amnesiaWakingClue = "\"My head hurts... Where is the squad? My rifle's still primed. I have to reach the inner citadel before everything collapses.\"";
 
-        [Header("Base Attributes")]
+        [Tooltip("Color accent used for UI themes, borders, and badges.")]
+        public Color themeColor = new Color(0.95f, 0.55f, 0.15f, 1f);
+
+        [Header("=== BASE ATTRIBUTES & COMBAT ===")]
+        [Range(10f, 500f)]
         public float maxHealth = 100f;
-        public float maxHunger = 100f;
-        public float moveSpeed = 5.0f;
-        public int baseMeleeDamage = 10;
-        public int baseRangedDamage = 10;
-        public float hungerConsumptionMultiplier = 1.0f;
 
-        [Header("Mobility & Defense")]
-        public float dashSpeed = 15f;
-        public float dashDuration = 0.25f;
-        public float dashCooldown = 0.8f;
+        [Range(10f, 300f)]
+        public float maxHunger = 100f;
+
+        [Tooltip("Base damage added to melee attacks.")]
+        public int baseMeleeDamage = 10;
+
+        [Tooltip("Base damage added to ranged attacks.")]
+        public int baseRangedDamage = 10;
+
+        [Range(0f, 1f)]
+        [Tooltip("Passive critical strike chance bonus (e.g. 0.25 = +25% crit chance).")]
+        public float critChanceBonus = 0f;
+
+        [Range(0f, 3f)]
+        [Tooltip("Passive critical damage multiplier bonus (added to base crit multiplier).")]
+        public float critMultiplierBonus = 0f;
+
+        [Range(0f, 0.9f)]
+        [Tooltip("Permanent passive damage reduction (0.15 = 15% armor reduction, e.g. Juggernaut).")]
         public float damageReductionPercent = 0f;
 
-        [Header("Starting Economy & Loadout")]
-        public int startingMoney = 0;
+        [Header("=== MOVEMENT & MOBILITY ===")]
+        [Range(1f, 20f)]
+        [Tooltip("Base walking speed in m/s.")]
+        public float moveSpeed = 5.0f;
+
+        [Range(1f, 3f)]
+        [Tooltip("Sprint speed multiplier applied when holding Shift while moving.")]
+        public float sprintSpeedMultiplier = 1.5f;
+
+        [Range(0f, 3f)]
+        [Tooltip("Duration in seconds that sprinting is locked after firing a gun (forces walk speed).")]
+        public float shootSprintLockDuration = 1.0f;
+
+        [Range(5f, 40f)]
+        [Tooltip("Dash velocity in m/s (Spacebar).")]
+        public float dashSpeed = 15f;
+
+        [Range(0.05f, 1f)]
+        [Tooltip("Dash duration in seconds.")]
+        public float dashDuration = 0.25f;
+
+        [Range(0.1f, 5f)]
+        [Tooltip("Dash cooldown time in seconds.")]
+        public float dashCooldown = 0.8f;
+
+        [Header("=== HUNGER & SURVIVAL ===")]
+        [Range(0.01f, 5f)]
+        [Tooltip("Base hunger depletion rate per second while walking or idle.")]
+        public float baseHungerDepletionRate = 0.5f;
+
+        [Range(1f, 10f)]
+        [Tooltip("Hunger consumption multiplier when sprinting (e.g. 4.0 = 4x base rate).")]
+        public float sprintHungerMultiplier = 4.0f;
+
+        [Range(0.1f, 5f)]
+        [Tooltip("Global hunger consumption multiplier for this character (1.0 = normal, 0.85 = slower, 1.2 = faster).")]
+        public float hungerConsumptionMultiplier = 1.0f;
+
+        [Range(1f, 50f)]
+        [Tooltip("Damage dealt per starvation tick when hunger reaches 0.")]
+        public float starvationDamage = 5.0f;
+
+        [Range(0.5f, 10f)]
+        [Tooltip("Interval in seconds between starvation damage ticks.")]
+        public float starvationInterval = 2.0f;
+
+        [Range(0f, 50f)]
+        [Tooltip("Bonus HP healed whenever consuming food/bread (Scavenger perk: +10 HP).")]
+        public float foodHealBonus = 0f;
+
+        [Header("=== STARTING ARSENAL & LOADOUT ===")]
+        [Tooltip("Starting credits / gold in player pouch.")]
+        public int startingMoney = 100;
+
+        [Tooltip("Starting ration bread count given upon spawn.")]
+        public int startingRations = 2;
+
+        [Tooltip("List of weapon names added to inventory & arsenal on start (e.g. Rifle, Knife).")]
+        public List<string> startingWeapons = new List<string> { "Rifle", "Knife" };
+
+        [Tooltip("Starting ammo stacks granted upon game start.")]
+        public List<StartingAmmoConfig> startingAmmo = new List<StartingAmmoConfig>();
+
+        [Tooltip("Additional items to grant in starting inventory.")]
+        public List<StartingItemConfig> startingExtraItems = new List<StartingItemConfig>();
+
+        [Tooltip("Legacy pistol ammo count - used as fallback if startingAmmo is empty.")]
         public int startingPistolAmmo = 60;
-        public List<string> startingWeapons = new List<string> { "Pistol", "Knife" };
+
+        [Range(0f, 2f)]
+        [Tooltip("Bonus loot drop rate (e.g. 0.25 = +25% drop rate for Scavenger).")]
         public float dropRateBonus = 0f;
+
+        [Range(0.5f, 5f)]
+        [Tooltip("Money pickup multiplier (e.g. 1.30 = +30% Gold for Scavenger).")]
         public float moneyMultiplier = 1.0f;
 
-        [Header("Signature Shift Active Ability")]
+        [Header("=== SIGNATURE SHIFT ACTIVE ABILITY ===")]
         public ShiftAbilityType shiftAbilityType = ShiftAbilityType.AdrenalineRush;
         public string shiftAbilityName = "Adrenaline Rush";
         [TextArea(2, 4)]
-        public string shiftAbilityDescription = "Hold Shift to surge with combat adrenaline: +75% move speed, +30% fire/attack rate, and 20% damage resistance. Consumes hunger faster.";
-        public float shiftCooldown = 0f; // 0 for toggle/channeling, >0 for active burst cooldown
+        public string shiftAbilityDescription = "Hold [Shift] to surge adrenaline: +75% move speed, +30% attack speed, 20% damage reduction. (Consumes hunger faster)";
+        [Tooltip("Cooldown in seconds for active burst skills (0 for toggle/hold channeling).")]
+        public float shiftCooldown = 0f;
+
+        [Header("--- Ability Tuning: Adrenaline Rush (Vanguard) ---")]
+        [Range(1f, 3f)] public float adrenalineSpeedMultiplier = 1.75f;
+        [Range(0f, 1f)] public float adrenalineAttackSpeedBonus = 0.30f;
+        [Range(0f, 0.9f)] public float adrenalineDamageReduction = 0.20f;
+        [Range(0.1f, 10f)] public float adrenalineHungerDrainRate = 1.5f;
+
+        [Header("--- Ability Tuning: Unstoppable Charge (Juggernaut) ---")]
+        [Range(5f, 35f)] public float chargeSpeed = 18f;
+        [Range(0.1f, 2f)] public float chargeDuration = 0.35f;
+        [Range(5f, 100f)] public float chargeDamage = 25f;
+        [Range(0.1f, 5f)] public float chargeStunDuration = 1.0f;
+        [Range(0f, 50f)] public float chargeHungerCost = 5.0f;
+
+        [Header("--- Ability Tuning: Shadow Step (Phantom) ---")]
+        [Range(1f, 3f)] public float shadowSpeedMultiplier = 1.40f;
+        [Range(0.1f, 10f)] public float shadowHungerDrainRate = 2.5f;
+        [Range(1f, 5f)] public float shadowExitCritMultiplier = 2.0f;
+
+        [Header("--- Ability Tuning: Eagle Eye (Marksman) ---")]
+        [Range(1.1f, 2.5f)] public float eagleEyeZoomMultiplier = 1.35f;
+        [Range(1f, 4f)] public float eagleEyeRangeMultiplier = 2.0f;
+        [Range(0.1f, 1f)] public float eagleEyeMoveSpeedMultiplier = 0.35f;
+        [Range(0.1f, 5f)] public float eagleEyeHungerDrainRate = 0.8f;
+
+        [Header("--- Ability Tuning: Toxic Trail (Scavenger) ---")]
+        [Range(0.1f, 0.9f)] public float toxicSlowPercent = 0.50f;
+        [Range(1f, 50f)] public float toxicPoisonDps = 8f;
+        [Range(1f, 10f)] public float toxicCloudDuration = 3.5f;
+        [Range(0.5f, 5f)] public float toxicCloudRadius = 1.6f;
+        [Range(0.1f, 10f)] public float toxicHungerDrainRate = 1.8f;
+
+        /// <summary>
+        /// Generates a clean, formatted loadout string for UI presentation.
+        /// </summary>
+        public string GetFormattedLoadoutString()
+        {
+            string wpns = (startingWeapons != null && startingWeapons.Count > 0) ? string.Join(", ", startingWeapons) : "Knife";
+            string ammoDesc = "";
+            if (startingAmmo != null && startingAmmo.Count > 0)
+            {
+                List<string> parts = new List<string>();
+                foreach (var a in startingAmmo)
+                {
+                    if (a.count > 0 && !string.IsNullOrEmpty(a.ammoType))
+                    {
+                        parts.Add($"{a.ammoType}: {a.count}");
+                    }
+                }
+                ammoDesc = string.Join(" | ", parts);
+            }
+
+            if (string.IsNullOrEmpty(ammoDesc))
+            {
+                ammoDesc = startingPistolAmmo > 0 ? $"{startingPistolAmmo} rounds" : "None";
+            }
+
+            string rationStr = startingRations > 0 ? $"{startingRations}x Bread" : "None";
+            return $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ammoDesc}</b> | Ration: <b>{rationStr}</b> | Credits: <b>{startingMoney} Gold</b>";
+        }
+
+        /// <summary>
+        /// Generates a clean, formatted attributes summary string for UI presentation.
+        /// </summary>
+        public string GetFormattedAttributesString()
+        {
+            return $"- Max HP: <b>{maxHealth}</b>\n- Max Hunger: <b>{maxHunger}</b>\n- Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
+        }
     }
 }

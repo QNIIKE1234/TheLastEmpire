@@ -719,14 +719,31 @@ namespace TheLastEmpire
                 float currentSpeed = moveSpeed;
                 if (_shootSprintLockTimer <= 0f && _activeShiftAbility != null && _activeShiftAbility.IsActive)
                 {
-                    if (_activeShiftAbility is AdrenalineRushAbility) currentSpeed *= 1.75f;
-                    else if (_activeShiftAbility is ShadowStepAbility) currentSpeed *= 1.40f;
-                    else if (_activeShiftAbility is EagleEyeAbility) currentSpeed *= 0.35f;
-                    else currentSpeed *= 1.5f;
+                    if (_activeShiftAbility is AdrenalineRushAbility)
+                    {
+                        float mult = activeCharacterData != null ? activeCharacterData.adrenalineSpeedMultiplier : 1.75f;
+                        currentSpeed *= mult;
+                    }
+                    else if (_activeShiftAbility is ShadowStepAbility)
+                    {
+                        float mult = activeCharacterData != null ? activeCharacterData.shadowSpeedMultiplier : 1.40f;
+                        currentSpeed *= mult;
+                    }
+                    else if (_activeShiftAbility is EagleEyeAbility)
+                    {
+                        float mult = activeCharacterData != null ? activeCharacterData.eagleEyeMoveSpeedMultiplier : 0.35f;
+                        currentSpeed *= mult;
+                    }
+                    else
+                    {
+                        float mult = activeCharacterData != null ? activeCharacterData.sprintSpeedMultiplier : 1.5f;
+                        currentSpeed *= mult;
+                    }
                 }
                 else if (_shootSprintLockTimer <= 0f && _isSprinting)
                 {
-                    currentSpeed *= 1.5f;
+                    float mult = activeCharacterData != null ? activeCharacterData.sprintSpeedMultiplier : 1.5f;
+                    currentSpeed *= mult;
                 }
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
@@ -1038,6 +1055,11 @@ namespace TheLastEmpire
 
             // Set cooldown
             float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
+            if (_activeShiftAbility != null && _activeShiftAbility.IsActive && _activeShiftAbility is AdrenalineRushAbility)
+            {
+                float atkBonus = activeCharacterData != null ? activeCharacterData.adrenalineAttackSpeedBonus : 0.30f;
+                rate /= (1f + atkBonus);
+            }
             _fireCooldownTimer = rate;
 
             // Alert nearby enemies to the gunshot noise
@@ -1048,7 +1070,7 @@ namespace TheLastEmpire
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
                 int shootLayer = _animator.layerCount > 1 ? 1 : 0;
-                _shootSprintLockTimer = 1.0f;
+                _shootSprintLockTimer = activeCharacterData != null ? activeCharacterData.shootSprintLockDuration : 1.0f;
                 _activeShiftAbility?.OnShiftReleased();
                 _isSprinting = false;
                 _animator.SetBool("IsRunning", false);
@@ -1660,21 +1682,25 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // Sprinting depletes hunger at 4x rate (2.0f instead of 0.5f per second)
-            float depletionRate = _isSprinting ? 2.0f : 0.5f;
+            float baseRate = activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f;
+            float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
+            float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult;
             currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 
             if (currentHunger <= 0f)
             {
                 _hungerDamageTimer += Time.deltaTime;
-                if (_hungerDamageTimer >= 2f)
+                float interval = activeCharacterData != null ? activeCharacterData.starvationInterval : 2.0f;
+                if (_hungerDamageTimer >= interval)
                 {
                     _hungerDamageTimer = 0f;
-                    if (_health != null)
+                    if (_health != null && !_health.IsDead)
                     {
-                        _health.TakeDamage(5f); // Starving damage
-                        Debug.Log("[PlayerController] Starving! Took 5 damage.");
+                        float dmg = activeCharacterData != null ? activeCharacterData.starvationDamage : 5.0f;
+                        _health.TakeDamage(dmg);
+                        Debug.Log($"[PlayerController] Starving! Took {dmg} damage.");
                     }
                 }
             }
@@ -1689,11 +1715,11 @@ namespace TheLastEmpire
             currentHunger = Mathf.Clamp(currentHunger + amount, 0f, maxHunger);
             Debug.Log($"[PlayerController] Ate bread! Restored {amount} hunger. Current hunger: {currentHunger}");
             
-            // Scavenger Passive: Eating food/bread grants bonus +10 HP healing
-            if (activeCharacterData != null && activeCharacterData.characterId == "SCAVENGER" && _health != null)
+            // Bonus healing on eating food (e.g. Scavenger perk or configured food heal bonus)
+            if (activeCharacterData != null && activeCharacterData.foodHealBonus > 0f && _health != null)
             {
-                _health.Heal(10f);
-                Debug.Log("[PlayerController] Scavenger passive: Restored +10 HP from eating bread!");
+                _health.Heal(activeCharacterData.foodHealBonus);
+                Debug.Log($"[PlayerController] Passive food heal bonus: Restored +{activeCharacterData.foodHealBonus} HP from eating bread!");
             }
 
             OnHungerChanged?.Invoke();
@@ -1749,39 +1775,58 @@ namespace TheLastEmpire
                     }
                 }
 
-                // Grant starting ammo tailored to character role and weapons
-                if (activeCharacterData.characterId == "MARKSMAN")
+                // Grant starting ammo from CharacterData ScriptableObject
+                if (activeCharacterData.startingAmmo != null && activeCharacterData.startingAmmo.Count > 0)
                 {
-                    // Marksman needs Medium Ammo for Sniper Rifle + Light Ammo for Revolver
-                    for (int i = 0; i < 20; i++) _inventory.AddItem("Medium Ammo");
-                    for (int i = 0; i < 20; i++) _inventory.AddItem("Light Ammo");
-                }
-                else if (activeCharacterData.characterId == "SCAVENGER")
-                {
-                    // Scavenger needs Bolts for Crossbow
-                    for (int i = 0; i < 25; i++) _inventory.AddItem("Bolts");
-                }
-                else if (activeCharacterData.characterId == "JUGGERNAUT")
-                {
-                    // Juggernaut needs Shotgun Ammo
-                    for (int i = 0; i < 20; i++) _inventory.AddItem("Shotgun Ammo");
-                }
-                else if (activeCharacterData.characterId == "VANGUARD")
-                {
-                    // Vanguard needs Medium Ammo for Rifle
-                    for (int i = 0; i < 60; i++) _inventory.AddItem("Medium Ammo");
+                    foreach (var ammoEntry in activeCharacterData.startingAmmo)
+                    {
+                        if (!string.IsNullOrEmpty(ammoEntry.ammoType) && ammoEntry.count > 0)
+                        {
+                            for (int i = 0; i < ammoEntry.count; i++)
+                            {
+                                _inventory.AddItem(ammoEntry.ammoType);
+                            }
+                        }
+                    }
                 }
                 else if (activeCharacterData.startingPistolAmmo > 0)
                 {
+                    // Fallback to role-tailored ammo if startingAmmo list is unassigned
+                    string fallbackAmmo = "Light Ammo";
+                    if (activeCharacterData.characterId == "VANGUARD" || activeCharacterData.characterId == "MARKSMAN")
+                        fallbackAmmo = "Medium Ammo";
+                    else if (activeCharacterData.characterId == "JUGGERNAUT")
+                        fallbackAmmo = "Shotgun Ammo";
+                    else if (activeCharacterData.characterId == "SCAVENGER")
+                        fallbackAmmo = "Bolts";
+
                     for (int i = 0; i < activeCharacterData.startingPistolAmmo; i++)
                     {
-                        _inventory.AddItem("Light Ammo");
+                        _inventory.AddItem(fallbackAmmo);
                     }
                 }
 
-                // Add starter survival bread
-                _inventory.AddItem("Bread");
-                _inventory.AddItem("Bread");
+                // Grant starting survival rations (e.g. Bread)
+                int rationCount = activeCharacterData.startingRations > 0 ? activeCharacterData.startingRations : 2;
+                for (int i = 0; i < rationCount; i++)
+                {
+                    _inventory.AddItem("Bread");
+                }
+
+                // Grant starting extra items if configured
+                if (activeCharacterData.startingExtraItems != null)
+                {
+                    foreach (var extra in activeCharacterData.startingExtraItems)
+                    {
+                        if (!string.IsNullOrEmpty(extra.itemName) && extra.count > 0)
+                        {
+                            for (int i = 0; i < extra.count; i++)
+                            {
+                                _inventory.AddItem(extra.itemName);
+                            }
+                        }
+                    }
+                }
             }
         }
 

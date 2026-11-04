@@ -24,19 +24,33 @@ MonoBehaviour:
   themeColor: {r: 0.92, g: 0.22, b: 0.22, a: 1}
   maxHealth: 150
   maxHunger: 120
-  moveSpeed: 4.3
   baseMeleeDamage: 15
   baseRangedDamage: 8
-  hungerConsumptionMultiplier: 1.2
+  critChanceBonus: 0
+  critMultiplierBonus: 0
+  damageReductionPercent: 0.15
+  moveSpeed: 4.3
+  sprintSpeedMultiplier: 1.4
+  shootSprintLockDuration: 1
   dashSpeed: 12
   dashDuration: 0.25
   dashCooldown: 1
-  damageReductionPercent: 0.15
+  baseHungerDepletionRate: 0.5
+  sprintHungerMultiplier: 4
+  hungerConsumptionMultiplier: 1.2
+  starvationDamage: 5
+  starvationInterval: 2
+  foodHealBonus: 0
   startingMoney: 50
-  startingPistolAmmo: 20
+  startingRations: 2
   startingWeapons:
   - Sledgehammer
   - Shotgun
+  startingAmmo:
+  - ammoType: Shotgun Ammo
+    count: 20
+  startingExtraItems: []
+  startingPistolAmmo: 20
   dropRateBonus: 0
   moneyMultiplier: 1
   shiftAbilityType: 1
@@ -45,3 +59,24 @@ MonoBehaviour:
     + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction
     at all times)'
   shiftCooldown: 5
+  adrenalineSpeedMultiplier: 1.75
+  adrenalineAttackSpeedBonus: 0.3
+  adrenalineDamageReduction: 0.2
+  adrenalineHungerDrainRate: 1.5
+  chargeSpeed: 18
+  chargeDuration: 0.35
+  chargeDamage: 25
+  chargeStunDuration: 1
+  chargeHungerCost: 5
+  shadowSpeedMultiplier: 1.4
+  shadowHungerDrainRate: 2.5
+  shadowExitCritMultiplier: 2
+  eagleEyeZoomMultiplier: 1.35
+  eagleEyeRangeMultiplier: 2
+  eagleEyeMoveSpeedMultiplier: 0.35
+  eagleEyeHungerDrainRate: 0.8
+  toxicSlowPercent: 0.5
+  toxicPoisonDps: 8
+  toxicCloudDuration: 3.5
+  toxicCloudRadius: 1.6
+  toxicHungerDrainRate: 1.8

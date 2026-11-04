@@ -1847,11 +1847,10 @@ namespace TheLastEmpire
                 dRoleText.text = $"{ch.characterTitle} - <color=#A855F7>{ch.roleCategory}</color>";
                 clueBodyText.text = ch.amnesiaWakingClue;
                 loreBodyText.text = ch.loreSynopsis;
-                attrBodyText.text = $"- Max HP: <b>{ch.maxHealth}</b>\n- Max Hunger: <b>{ch.maxHunger}</b>\n- Move Speed: <b>{ch.moveSpeed:F1} m/s</b>\n- Dash Speed: <b>{ch.dashSpeed:F0} m/s</b> ({ch.dashCooldown:F1}s CD)";
+                attrBodyText.text = ch.GetFormattedAttributesString();
                 skillTitleText.text = $"[SHIFT] {ch.shiftAbilityName.ToUpper()}";
                 skillBodyText.text = ch.shiftAbilityDescription;
-                string wpns = (ch.startingWeapons != null && ch.startingWeapons.Count > 0) ? string.Join(", ", ch.startingWeapons) : "Knife";
-                loutBodyText.text = $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
+                loutBodyText.text = ch.GetFormattedLoadoutString();
 
                 for (int i = 0; i < roster.Count; i++)
                 {

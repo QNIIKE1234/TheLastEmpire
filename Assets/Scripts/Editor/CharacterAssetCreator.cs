@@ -5,20 +5,35 @@ using UnityEngine;
 
 namespace TheLastEmpire.Editor
 {
-    [InitializeOnLoad]
+    /// <summary>
+    /// Utility for creating and maintaining the 5 playable character ScriptableObject assets.
+    /// NOTE: Does NOT auto-overwrite user edits on domain reload!
+    /// </summary>
     public static class CharacterAssetCreator
     {
         private const string CharDir = "Assets/Resources/Database/Characters";
         private const string DbDir = "Assets/Resources/Database";
         private const string DatabaseAssetPath = "Assets/Resources/Database/CharacterDatabase.asset";
 
-        static CharacterAssetCreator()
+        [MenuItem("The Last Empire/Characters/Ensure Missing Character Assets Exist (Safe)", priority = 1)]
+        public static void EnsureMissingCharacterAssetsExist()
         {
-            EditorApplication.delayCall += EnsureAllCharacterAssetsCreated;
+            CreateOrUpdateRoster(false);
         }
 
-        [MenuItem("The Last Empire/Generate 5 Playable Character Assets", priority = 2)]
-        public static void EnsureAllCharacterAssetsCreated()
+        [MenuItem("The Last Empire/Characters/Reset All 5 Characters to Default Config (Warning: Overwrites SO)", priority = 2)]
+        public static void ForceResetAllCharactersToDefault()
+        {
+            if (EditorUtility.DisplayDialog(
+                "Reset Character ScriptableObjects",
+                "Are you sure you want to reset all 5 playable character configs to default? Any custom Inspector edits on these 5 CharacterData assets will be overwritten.",
+                "Yes, Reset All", "Cancel"))
+            {
+                CreateOrUpdateRoster(true);
+            }
+        }
+
+        public static void CreateOrUpdateRoster(bool forceOverwrite)
         {
             if (!Directory.Exists(CharDir))
             {
@@ -26,84 +41,24 @@ namespace TheLastEmpire.Editor
                 AssetDatabase.Refresh();
             }
 
-            List<CharacterData> createdList = new List<CharacterData>();
+            List<CharacterData> roster = new List<CharacterData>();
 
             // 1. Vanguard
-            createdList.Add(CreateOrUpdateCharacter(
-                "CHAR_01_Vanguard", "VANGUARD", "The Vanguard", "Imperial Vanguard",
-                "All-Rounder / Frontline",
-                "Battle-hardened frontline veteran. Balanced in all combat ranges. Awakens in the garrison ruins with his unit's oath echoing in his mind.",
-                "\"My head is pounding... Where is the squad? My rifle's still primed. I have to reach the inner citadel before everything collapses.\"",
-                new Color(0.95f, 0.55f, 0.15f, 1f),
-                100f, 100f, 5.0f, 10, 10, 1.0f,
-                15f, 0.25f, 0.8f, 0f, 100, 60,
-                new List<string> { "Rifle", "Knife" }, 0f, 1.0f,
-                ShiftAbilityType.AdrenalineRush, "Adrenaline Rush",
-                "Hold [Shift] to surge adrenaline: +75% move speed, +30% attack speed, 20% damage reduction. (Consumes hunger faster)",
-                0f
-            ));
+            roster.Add(GetOrCreateVanguard(forceOverwrite));
 
             // 2. Juggernaut
-            createdList.Add(CreateOrUpdateCharacter(
-                "CHAR_02_Juggernaut", "JUGGERNAUT", "The Juggernaut", "Ironbound Behemoth",
-                "Melee Brawler / Tank",
-                "Genetically modified steel juggernaut. Awakens in the ruins of an underground foundry, fueled by unyielding vengeance against the Empire.",
-                "\"The chains are shattered... What did they do to my flesh? I feel no pain anymore. I will smash through anything in my path.\"",
-                new Color(0.92f, 0.22f, 0.22f, 1f),
-                150f, 120f, 4.3f, 15, 8, 1.2f,
-                12f, 0.25f, 1.0f, 0.15f, 50, 20,
-                new List<string> { "Sledgehammer", "Shotgun" }, 0f, 1.0f,
-                ShiftAbilityType.UnstoppableCharge, "Unstoppable Charge",
-                "Press [Shift] to charge forward: deals 25 impact damage + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction at all times)",
-                5.0f
-            ));
+            roster.Add(GetOrCreateJuggernaut(forceOverwrite));
 
             // 3. Phantom
-            createdList.Add(CreateOrUpdateCharacter(
-                "CHAR_03_Phantom", "PHANTOM", "The Phantom", "Shadow Assassin",
-                "Hit-and-Run / Assassin",
-                "Stealth dimensional assassin. Awakens in the shadows of a ruined alleyway with an encrypted mission to eliminate high-value targets.",
-                "\"My target... Where is the doctor? Why did the Empire want him silenced? There are dark secrets buried beneath this ruins.\"",
-                new Color(0.66f, 0.33f, 0.97f, 1f),
-                75f, 90f, 6.0f, 12, 10, 1.0f,
-                18f, 0.30f, 0.55f, 0f, 150, 40,
-                new List<string> { "Katana", "Pistol" }, 0f, 1.0f,
-                ShiftAbilityType.ShadowStep, "Shadow Step",
-                "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.",
-                0f
-            ));
+            roster.Add(GetOrCreatePhantom(forceOverwrite));
 
             // 4. Marksman
-            createdList.Add(CreateOrUpdateCharacter(
-                "CHAR_04_Marksman", "MARKSMAN", "The Marksman", "Apex Sharpshooter",
-                "Long-Range / Tactical",
-                "Eagle-eyed sharpshooter. Awakens atop an abandoned observation tower, vividly recalling the moment the reactor detonated through his scope.",
-                "\"Through my scope that day... The one who flipped the switch wasn't an invader. It was an Imperial officer! I will uncover the betrayal.\"",
-                new Color(0.0f, 0.75f, 0.95f, 1f),
-                85f, 100f, 4.8f, 7, 14, 1.0f,
-                14f, 0.25f, 0.8f, 0f, 80, 30,
-                new List<string> { "Sniper Rifle", "Revolver" }, 0f, 1.0f,
-                ShiftAbilityType.EagleEye, "Eagle Eye",
-                "Hold [Shift] to enter tactical focus: 1.35x sniper zoom, 2x attack range, bullets pierce through all enemies. (Move slower while aiming)",
-                0f
-            ));
+            roster.Add(GetOrCreateMarksman(forceOverwrite));
 
             // 5. Scavenger
-            createdList.Add(CreateOrUpdateCharacter(
-                "CHAR_05_Scavenger", "SCAVENGER", "The Scavenger", "Wasteland Nomad",
-                "Survivalist / Trapper",
-                "Hooded wasteland nomad who slipped past city walls scavenging for survival rations, now trapped amidst the fallen ruins.",
-                "\"My stomach is burning with hunger... Need to find bread or scraps first. Forget the Empire, I just need to blast the city gates open and survive.\"",
-                new Color(0.25f, 0.85f, 0.45f, 1f),
-                90f, 110f, 5.2f, 10, 10, 0.85f,
-                16f, 0.25f, 0.75f, 0f, 300, 0,
-                new List<string> { "Crossbow", "Survival Spear" }, 0.25f, 1.30f,
-                ShiftAbilityType.ToxicTrail, "Toxic Trail",
-                "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)",
-                0f
-            ));
+            roster.Add(GetOrCreateScavenger(forceOverwrite));
 
-            // Create or update CharacterDatabase.asset
+            // Update CharacterDatabase.asset references
             CharacterDatabase db = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabaseAssetPath);
             if (db == null)
             {
@@ -112,7 +67,7 @@ namespace TheLastEmpire.Editor
             }
 
             db.Characters.Clear();
-            foreach (var ch in createdList)
+            foreach (var ch in roster)
             {
                 if (ch != null && !db.Characters.Contains(ch))
                 {
@@ -123,65 +78,392 @@ namespace TheLastEmpire.Editor
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"<color=#50FA7B>[CharacterAssetCreator]</color> Successfully initialized 5 playable characters in: {DatabaseAssetPath}");
+
+            string mode = forceOverwrite ? "Reset to defaults" : "Preserved existing assets & verified references";
+            Debug.Log($"<color=#50FA7B>[CharacterAssetCreator]</color> Successfully processed 5 playable characters ({mode}) in: {DatabaseAssetPath}");
         }
 
-        private static CharacterData CreateOrUpdateCharacter(
-            string assetName, string id, string name, string title, string role,
-            string lore, string clue, Color theme,
-            float hp, float hunger, float speed, int meleeDmg, int rangedDmg, float hungerMultiplier,
-            float dashSpeed, float dashDuration, float dashCooldown, float dmgReduction, int money, int pistolAmmo,
-            List<string> weapons, float dropBonus, float moneyMult,
-            ShiftAbilityType shiftType, string shiftName, string shiftDesc, float shiftCd)
+        private static CharacterData GetOrCreateVanguard(bool forceOverwrite)
         {
-            string path = $"{CharDir}/{assetName}.asset";
+            string path = $"{CharDir}/CHAR_01_Vanguard.asset";
             CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
-            if (data == null)
+            bool isNew = (data == null);
+
+            if (isNew)
             {
                 data = ScriptableObject.CreateInstance<CharacterData>();
                 AssetDatabase.CreateAsset(data, path);
             }
-
-            data.characterId = id;
-            data.characterName = name;
-            data.characterTitle = title;
-            data.roleCategory = role;
-            data.loreSynopsis = lore;
-            data.amnesiaWakingClue = clue;
-            data.themeColor = theme;
-
-            data.maxHealth = hp;
-            data.maxHunger = hunger;
-            data.moveSpeed = speed;
-            data.baseMeleeDamage = meleeDmg;
-            data.baseRangedDamage = rangedDmg;
-            data.hungerConsumptionMultiplier = hungerMultiplier;
-
-            data.dashSpeed = dashSpeed;
-            data.dashDuration = dashDuration;
-            data.dashCooldown = dashCooldown;
-            data.damageReductionPercent = dmgReduction;
-
-            data.startingMoney = money;
-            data.startingPistolAmmo = pistolAmmo;
-            data.startingWeapons = weapons;
-            data.dropRateBonus = dropBonus;
-            data.moneyMultiplier = moneyMult;
-
-            data.shiftAbilityType = shiftType;
-            data.shiftAbilityName = shiftName;
-            data.shiftAbilityDescription = shiftDesc;
-            data.shiftCooldown = shiftCd;
-
-            // Preserve existing portrait or assign Vanguard default artwork if unassigned
-            if (data.characterPortrait == null && id.Equals("VANGUARD", System.StringComparison.OrdinalIgnoreCase))
+            else if (!forceOverwrite)
             {
-                Sprite vanguardSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Image/Picture/ChatGPT Image Oct 23, 2026, 10_07_54 PM.png");
-                if (vanguardSpr != null)
+                // Ensure startingAmmo and new fields have sensible defaults if missing
+                if (data.startingAmmo == null || data.startingAmmo.Count == 0)
                 {
-                    data.characterPortrait = vanguardSpr;
+                    data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Medium Ammo", 60) };
+                    if (data.startingRations == 0) data.startingRations = 2;
+                    EditorUtility.SetDirty(data);
                 }
+                return data;
             }
+
+            data.characterId = "VANGUARD";
+            data.characterName = "The Vanguard";
+            data.characterTitle = "Imperial Vanguard";
+            data.roleCategory = "All-Rounder / Frontline";
+            data.loreSynopsis = "Battle-hardened frontline veteran. Balanced in all combat ranges. Awakens in the garrison ruins with his unit's oath echoing in his mind.";
+            data.amnesiaWakingClue = "\"My head is pounding... Where is the squad? My rifle's still primed. I have to reach the inner citadel before everything collapses.\"";
+            data.themeColor = new Color(0.95f, 0.55f, 0.15f, 1f);
+
+            data.maxHealth = 100f;
+            data.maxHunger = 100f;
+            data.baseMeleeDamage = 10;
+            data.baseRangedDamage = 10;
+            data.critChanceBonus = 0f;
+            data.critMultiplierBonus = 0f;
+            data.damageReductionPercent = 0f;
+
+            data.moveSpeed = 5.0f;
+            data.sprintSpeedMultiplier = 1.5f;
+            data.shootSprintLockDuration = 1.0f;
+            data.dashSpeed = 15f;
+            data.dashDuration = 0.25f;
+            data.dashCooldown = 0.8f;
+
+            data.baseHungerDepletionRate = 0.5f;
+            data.sprintHungerMultiplier = 4.0f;
+            data.hungerConsumptionMultiplier = 1.0f;
+            data.starvationDamage = 5.0f;
+            data.starvationInterval = 2.0f;
+            data.foodHealBonus = 0f;
+
+            data.startingMoney = 100;
+            data.startingRations = 2;
+            data.startingPistolAmmo = 60;
+            data.startingWeapons = new List<string> { "Rifle", "Knife" };
+            data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Medium Ammo", 60) };
+            data.dropRateBonus = 0f;
+            data.moneyMultiplier = 1.0f;
+
+            data.shiftAbilityType = ShiftAbilityType.AdrenalineRush;
+            data.shiftAbilityName = "Adrenaline Rush";
+            data.shiftAbilityDescription = "Hold [Shift] to surge adrenaline: +75% move speed, +30% attack speed, 20% damage reduction. (Consumes hunger faster)";
+            data.shiftCooldown = 0f;
+
+            data.adrenalineSpeedMultiplier = 1.75f;
+            data.adrenalineAttackSpeedBonus = 0.30f;
+            data.adrenalineDamageReduction = 0.20f;
+            data.adrenalineHungerDrainRate = 1.5f;
+
+            if (data.characterPortrait == null)
+            {
+                Sprite sp = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Image/Picture/ChatGPT Image Oct 23, 2026, 10_07_54 PM.png");
+                if (sp != null) data.characterPortrait = sp;
+            }
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
+        private static CharacterData GetOrCreateJuggernaut(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_02_Juggernaut.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+            else if (!forceOverwrite)
+            {
+                if (data.startingAmmo == null || data.startingAmmo.Count == 0)
+                {
+                    data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Shotgun Ammo", 20) };
+                    if (data.startingRations == 0) data.startingRations = 2;
+                    EditorUtility.SetDirty(data);
+                }
+                return data;
+            }
+
+            data.characterId = "JUGGERNAUT";
+            data.characterName = "The Juggernaut";
+            data.characterTitle = "Ironbound Behemoth";
+            data.roleCategory = "Melee Brawler / Tank";
+            data.loreSynopsis = "Genetically modified steel juggernaut. Awakens in the ruins of an underground foundry, fueled by unyielding vengeance against the Empire.";
+            data.amnesiaWakingClue = "\"The chains are shattered... What did they do to my flesh? I feel no pain anymore. I will smash through anything in my path.\"";
+            data.themeColor = new Color(0.92f, 0.22f, 0.22f, 1f);
+
+            data.maxHealth = 150f;
+            data.maxHunger = 120f;
+            data.baseMeleeDamage = 15;
+            data.baseRangedDamage = 8;
+            data.critChanceBonus = 0f;
+            data.critMultiplierBonus = 0f;
+            data.damageReductionPercent = 0.15f; // Passive 15% armor
+
+            data.moveSpeed = 4.3f;
+            data.sprintSpeedMultiplier = 1.4f;
+            data.shootSprintLockDuration = 1.0f;
+            data.dashSpeed = 12f;
+            data.dashDuration = 0.25f;
+            data.dashCooldown = 1.0f;
+
+            data.baseHungerDepletionRate = 0.5f;
+            data.sprintHungerMultiplier = 4.0f;
+            data.hungerConsumptionMultiplier = 1.2f;
+            data.starvationDamage = 5.0f;
+            data.starvationInterval = 2.0f;
+            data.foodHealBonus = 0f;
+
+            data.startingMoney = 50;
+            data.startingRations = 2;
+            data.startingPistolAmmo = 20;
+            data.startingWeapons = new List<string> { "Sledgehammer", "Shotgun" };
+            data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Shotgun Ammo", 20) };
+            data.dropRateBonus = 0f;
+            data.moneyMultiplier = 1.0f;
+
+            data.shiftAbilityType = ShiftAbilityType.UnstoppableCharge;
+            data.shiftAbilityName = "Unstoppable Charge";
+            data.shiftAbilityDescription = "Press [Shift] to charge forward: deals 25 impact damage + 1s stun, deflects all incoming bullets. 5s CD. (Passive: 15% damage reduction at all times)";
+            data.shiftCooldown = 5.0f;
+
+            data.chargeSpeed = 18f;
+            data.chargeDuration = 0.35f;
+            data.chargeDamage = 25f;
+            data.chargeStunDuration = 1.0f;
+            data.chargeHungerCost = 5.0f;
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
+        private static CharacterData GetOrCreatePhantom(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_03_Phantom.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+            else if (!forceOverwrite)
+            {
+                if (data.startingAmmo == null || data.startingAmmo.Count == 0)
+                {
+                    data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Light Ammo", 40) };
+                    if (data.startingRations == 0) data.startingRations = 2;
+                    EditorUtility.SetDirty(data);
+                }
+                return data;
+            }
+
+            data.characterId = "PHANTOM";
+            data.characterName = "The Phantom";
+            data.characterTitle = "Shadow Assassin";
+            data.roleCategory = "Hit-and-Run / Assassin";
+            data.loreSynopsis = "Stealth dimensional assassin. Awakens in the shadows of a ruined alleyway with an encrypted mission to eliminate high-value targets.";
+            data.amnesiaWakingClue = "\"My target... Where is the doctor? Why did the Empire want him silenced? There are dark secrets buried beneath this ruins.\"";
+            data.themeColor = new Color(0.66f, 0.33f, 0.97f, 1f);
+
+            data.maxHealth = 75f;
+            data.maxHunger = 90f;
+            data.baseMeleeDamage = 12;
+            data.baseRangedDamage = 10;
+            data.critChanceBonus = 0f;
+            data.critMultiplierBonus = 0.5f;
+            data.damageReductionPercent = 0f;
+
+            data.moveSpeed = 6.0f;
+            data.sprintSpeedMultiplier = 1.6f;
+            data.shootSprintLockDuration = 1.0f;
+            data.dashSpeed = 18f;
+            data.dashDuration = 0.30f;
+            data.dashCooldown = 0.55f;
+
+            data.baseHungerDepletionRate = 0.5f;
+            data.sprintHungerMultiplier = 4.0f;
+            data.hungerConsumptionMultiplier = 1.0f;
+            data.starvationDamage = 5.0f;
+            data.starvationInterval = 2.0f;
+            data.foodHealBonus = 0f;
+
+            data.startingMoney = 150;
+            data.startingRations = 2;
+            data.startingPistolAmmo = 40;
+            data.startingWeapons = new List<string> { "Katana", "Pistol" };
+            data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Light Ammo", 40) };
+            data.dropRateBonus = 0f;
+            data.moneyMultiplier = 1.0f;
+
+            data.shiftAbilityType = ShiftAbilityType.ShadowStep;
+            data.shiftAbilityName = "Shadow Step";
+            data.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
+            data.shiftCooldown = 0f;
+
+            data.shadowSpeedMultiplier = 1.40f;
+            data.shadowHungerDrainRate = 2.5f;
+            data.shadowExitCritMultiplier = 2.0f;
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
+        private static CharacterData GetOrCreateMarksman(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_04_Marksman.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+            else if (!forceOverwrite)
+            {
+                if (data.startingAmmo == null || data.startingAmmo.Count == 0)
+                {
+                    data.startingAmmo = new List<StartingAmmoConfig>
+                    {
+                        new StartingAmmoConfig("Medium Ammo", 20),
+                        new StartingAmmoConfig("Light Ammo", 20)
+                    };
+                    if (data.startingRations == 0) data.startingRations = 2;
+                    EditorUtility.SetDirty(data);
+                }
+                return data;
+            }
+
+            data.characterId = "MARKSMAN";
+            data.characterName = "The Marksman";
+            data.characterTitle = "Apex Sharpshooter";
+            data.roleCategory = "Long-Range / Tactical";
+            data.loreSynopsis = "Eagle-eyed sharpshooter. Awakens atop an abandoned observation tower, vividly recalling the moment the reactor detonated through his scope.";
+            data.amnesiaWakingClue = "\"Through my scope that day... The one who flipped the switch wasn't an invader. It was an Imperial officer! I will uncover the betrayal.\"";
+            data.themeColor = new Color(0.0f, 0.75f, 0.95f, 1f);
+
+            data.maxHealth = 85f;
+            data.maxHunger = 100f;
+            data.baseMeleeDamage = 7;
+            data.baseRangedDamage = 14;
+            data.critChanceBonus = 0.25f; // Marksman 35% base crit (10% + 25%)
+            data.critMultiplierBonus = 0.5f; // +0.5x crit multiplier
+            data.damageReductionPercent = 0f;
+
+            data.moveSpeed = 4.8f;
+            data.sprintSpeedMultiplier = 1.5f;
+            data.shootSprintLockDuration = 1.0f;
+            data.dashSpeed = 14f;
+            data.dashDuration = 0.25f;
+            data.dashCooldown = 0.8f;
+
+            data.baseHungerDepletionRate = 0.5f;
+            data.sprintHungerMultiplier = 4.0f;
+            data.hungerConsumptionMultiplier = 1.0f;
+            data.starvationDamage = 5.0f;
+            data.starvationInterval = 2.0f;
+            data.foodHealBonus = 0f;
+
+            data.startingMoney = 80;
+            data.startingRations = 2;
+            data.startingPistolAmmo = 30;
+            data.startingWeapons = new List<string> { "Sniper Rifle", "Revolver" };
+            data.startingAmmo = new List<StartingAmmoConfig>
+            {
+                new StartingAmmoConfig("Medium Ammo", 20),
+                new StartingAmmoConfig("Light Ammo", 20)
+            };
+            data.dropRateBonus = 0f;
+            data.moneyMultiplier = 1.0f;
+
+            data.shiftAbilityType = ShiftAbilityType.EagleEye;
+            data.shiftAbilityName = "Eagle Eye";
+            data.shiftAbilityDescription = "Hold [Shift] to enter tactical focus: 1.35x sniper zoom, 2x attack range, bullets pierce through all enemies. (Move slower while aiming)";
+            data.shiftCooldown = 0f;
+
+            data.eagleEyeZoomMultiplier = 1.35f;
+            data.eagleEyeRangeMultiplier = 2.0f;
+            data.eagleEyeMoveSpeedMultiplier = 0.35f;
+            data.eagleEyeHungerDrainRate = 0.8f;
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
+        private static CharacterData GetOrCreateScavenger(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_05_Scavenger.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+            else if (!forceOverwrite)
+            {
+                if (data.startingAmmo == null || data.startingAmmo.Count == 0)
+                {
+                    data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Bolts", 25) };
+                    if (data.startingRations == 0) data.startingRations = 2;
+                    EditorUtility.SetDirty(data);
+                }
+                return data;
+            }
+
+            data.characterId = "SCAVENGER";
+            data.characterName = "The Scavenger";
+            data.characterTitle = "Wasteland Nomad";
+            data.roleCategory = "Survivalist / Trapper";
+            data.loreSynopsis = "Hooded wasteland nomad who slipped past city walls scavenging for survival rations, now trapped amidst the fallen ruins.";
+            data.amnesiaWakingClue = "\"My stomach is burning with hunger... Need to find bread or scraps first. Forget the Empire, I just need to blast the city gates open and survive.\"";
+            data.themeColor = new Color(0.25f, 0.85f, 0.45f, 1f);
+
+            data.maxHealth = 90f;
+            data.maxHunger = 110f;
+            data.baseMeleeDamage = 10;
+            data.baseRangedDamage = 10;
+            data.critChanceBonus = 0f;
+            data.critMultiplierBonus = 0f;
+            data.damageReductionPercent = 0f;
+
+            data.moveSpeed = 5.2f;
+            data.sprintSpeedMultiplier = 1.5f;
+            data.shootSprintLockDuration = 1.0f;
+            data.dashSpeed = 16f;
+            data.dashDuration = 0.25f;
+            data.dashCooldown = 0.75f;
+
+            data.baseHungerDepletionRate = 0.5f;
+            data.sprintHungerMultiplier = 4.0f;
+            data.hungerConsumptionMultiplier = 0.85f; // Slower hunger consumption
+            data.starvationDamage = 5.0f;
+            data.starvationInterval = 2.0f;
+            data.foodHealBonus = 10f; // Passive: Eating food gives +10 HP
+
+            data.startingMoney = 300;
+            data.startingRations = 2;
+            data.startingPistolAmmo = 0;
+            data.startingWeapons = new List<string> { "Crossbow", "Survival Spear" };
+            data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Bolts", 25) };
+            data.dropRateBonus = 0.25f;
+            data.moneyMultiplier = 1.30f;
+
+            data.shiftAbilityType = ShiftAbilityType.ToxicTrail;
+            data.shiftAbilityName = "Toxic Trail";
+            data.shiftAbilityDescription = "Hold [Shift] to sprint and release toxic smoke clouds: enemies are slowed by 50% and suffer 8 poison DPS. (Passive: eating food grants +10 bonus HP)";
+            data.shiftCooldown = 0f;
+
+            data.toxicSlowPercent = 0.50f;
+            data.toxicPoisonDps = 8f;
+            data.toxicCloudDuration = 3.5f;
+            data.toxicCloudRadius = 1.6f;
+            data.toxicHungerDrainRate = 1.8f;
 
             EditorUtility.SetDirty(data);
             return data;

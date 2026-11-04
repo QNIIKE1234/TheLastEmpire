@@ -9,8 +9,8 @@ namespace TheLastEmpire
     // =========================================================================
     public class AdrenalineRushAbility : IShiftAbility
     {
-        public string AbilityName => "Adrenaline Rush";
-        public string Description => "+75% Speed, +30% Attack Rate, 20% Dmg Resistance, Rapid Hunger Drain";
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Adrenaline Rush";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "+75% Speed, +30% Attack Rate, 20% Dmg Resistance, Rapid Hunger Drain";
         public bool IsActive => _isActive;
         public float CooldownRemaining => 0f;
         public float CooldownDuration => 0f;
@@ -45,8 +45,9 @@ namespace TheLastEmpire
         {
             if (_isActive && _player != null)
             {
-                // Extra hunger drain applied during adrenaline state
-                _player.DrainHunger(Time.deltaTime * 1.5f);
+                // Extra hunger drain applied during adrenaline state (configured in CharacterData)
+                float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.adrenalineHungerDrainRate : 1.5f;
+                _player.DrainHunger(Time.deltaTime * drainRate);
             }
         }
 
@@ -58,19 +59,23 @@ namespace TheLastEmpire
     // =========================================================================
     public class UnstoppableChargeAbility : IShiftAbility
     {
-        public string AbilityName => "Unstoppable Charge";
-        public string Description => "Burst dash that deflects bullets, deals 25 damage, and stuns enemies";
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Unstoppable Charge";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Burst dash that deflects bullets, deals impact damage, and stuns enemies";
         public bool IsActive => _isCharging;
         public float CooldownRemaining => _cooldownTimer;
-        public float CooldownDuration => 5.0f;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftCooldown : 5.0f;
 
         private PlayerController _player;
         private bool _isCharging = false;
         private float _chargeTimer = 0f;
         private float _cooldownTimer = 0f;
         private Vector3 _chargeDir;
-        private const float ChargeSpeed = 18f;
-        private const float ChargeDuration = 0.35f;
+
+        private float GetChargeSpeed() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeSpeed : 18f;
+        private float GetChargeDuration() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeDuration : 0.35f;
+        private float GetChargeDamage() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeDamage : 25f;
+        private float GetChargeStunDuration() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeStunDuration : 1.0f;
+        private float GetChargeHungerCost() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeHungerCost : 5.0f;
 
         public void Initialize(PlayerController player)
         {
@@ -89,9 +94,9 @@ namespace TheLastEmpire
             if (_chargeDir.sqrMagnitude < 0.01f) _chargeDir = Vector3.right;
 
             _isCharging = true;
-            _chargeTimer = ChargeDuration;
+            _chargeTimer = GetChargeDuration();
             _cooldownTimer = CooldownDuration;
-            _player.DrainHunger(5f); // Instant hunger cost for burst
+            _player.DrainHunger(GetChargeHungerCost()); // Configured hunger cost for burst
         }
 
         public void OnShiftHeld() { }
@@ -109,11 +114,15 @@ namespace TheLastEmpire
             {
                 _chargeTimer -= Time.deltaTime;
 
+                float speed = GetChargeSpeed();
+                float damage = GetChargeDamage();
+                float stun = GetChargeStunDuration();
+
                 // Move with high speed
                 Rigidbody rb = _player.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    rb.linearVelocity = _chargeDir * ChargeSpeed;
+                    rb.linearVelocity = _chargeDir * speed;
                 }
 
                 // Check collisions with enemies in frontal cone
@@ -125,14 +134,14 @@ namespace TheLastEmpire
                         Health enemyHealth = h.GetComponent<Health>();
                         if (enemyHealth != null && !enemyHealth.IsDead)
                         {
-                            enemyHealth.TakeDamage(25);
+                            enemyHealth.TakeDamage(damage);
                         }
 
                         BaseEnemyAI ai = h.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
                             Vector3 pushDir = (h.transform.position - _player.transform.position).normalized;
-                            ai.ApplyMeleeKnockback(pushDir, 18f, 1.0f); // Impact knockback + 1s stun
+                            ai.ApplyMeleeKnockback(pushDir, speed, stun); // Impact knockback + configured stun
                         }
                     }
                 }
@@ -152,8 +161,8 @@ namespace TheLastEmpire
     // =========================================================================
     public class ShadowStepAbility : IShiftAbility
     {
-        public string AbilityName => "Shadow Step";
-        public string Description => "Phase into shadow, walk through enemies, guaranteed 2.0x crit on exit";
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Shadow Step";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Phase into shadow, walk through enemies, guaranteed critical strike on exit";
         public bool IsActive => _isInShadow;
         public float CooldownRemaining => 0f;
         public float CooldownDuration => 0f;
@@ -219,7 +228,8 @@ namespace TheLastEmpire
             if (_isInShadow && _player != null)
             {
                 // Extra hunger drain applied in shadow form
-                _player.DrainHunger(Time.deltaTime * 2.5f);
+                float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shadowHungerDrainRate : 2.5f;
+                _player.DrainHunger(Time.deltaTime * drainRate);
             }
         }
 
@@ -235,8 +245,8 @@ namespace TheLastEmpire
     // =========================================================================
     public class EagleEyeAbility : IShiftAbility
     {
-        public string AbilityName => "Eagle Eye";
-        public string Description => "Tactical stance: camera zooms out 1.35x, 2x weapon range, piercing bullets";
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Eagle Eye";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Tactical stance: camera zooms out, expanded weapon range, piercing bullets";
         public bool IsActive => _isAiming;
         public float CooldownRemaining => 0f;
         public float CooldownDuration => 0f;
@@ -254,7 +264,8 @@ namespace TheLastEmpire
             if (_cam != null)
             {
                 _defaultCamSize = _cam.orthographicSize;
-                _targetCamSize = _defaultCamSize * 1.35f;
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.35f;
+                _targetCamSize = _defaultCamSize * zoomMult;
             }
         }
 
@@ -280,13 +291,17 @@ namespace TheLastEmpire
         {
             if (_cam != null)
             {
+                float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.35f;
+                _targetCamSize = _defaultCamSize * zoomMult;
+
                 float target = _isAiming ? _targetCamSize : _defaultCamSize;
                 _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, target, Time.deltaTime * 4.5f);
             }
 
             if (_isAiming && _player != null)
             {
-                _player.DrainHunger(Time.deltaTime * 0.8f);
+                float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeHungerDrainRate : 0.8f;
+                _player.DrainHunger(Time.deltaTime * drainRate);
             }
         }
 
@@ -302,8 +317,8 @@ namespace TheLastEmpire
     // =========================================================================
     public class ToxicTrailAbility : IShiftAbility
     {
-        public string AbilityName => "Toxic Trail";
-        public string Description => "Leaves toxic cloud trail that slows enemies by 50% with poison DoT";
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Toxic Trail";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Leaves toxic cloud trail that slows enemies with poison DoT";
         public bool IsActive => _isActive;
         public float CooldownRemaining => 0f;
         public float CooldownDuration => 0f;
@@ -340,7 +355,8 @@ namespace TheLastEmpire
         {
             if (_isActive && _player != null)
             {
-                _player.DrainHunger(Time.deltaTime * 1.8f);
+                float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicHungerDrainRate : 1.8f;
+                _player.DrainHunger(Time.deltaTime * drainRate);
 
                 _cloudSpawnTimer -= Time.deltaTime;
                 if (_cloudSpawnTimer <= 0f)
@@ -353,10 +369,15 @@ namespace TheLastEmpire
 
         private void SpawnToxicCloudDecal(Vector3 pos)
         {
+            float duration = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicCloudDuration : 3.5f;
+            float radius = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicCloudRadius : 1.6f;
+            float dps = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicPoisonDps : 8f;
+            float slow = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicSlowPercent : 0.5f;
+
             GameObject cloudObj = new GameObject("ToxicCloudDecal");
             cloudObj.transform.position = pos + Vector3.up * 0.1f;
             ToxicCloudHazard hazard = cloudObj.AddComponent<ToxicCloudHazard>();
-            hazard.Initialize(pos, 3.5f, 1.6f, 8f);
+            hazard.Initialize(pos, duration, radius, dps, slow);
         }
 
         public void OnDestroy() { _isActive = false; }
@@ -370,16 +391,17 @@ namespace TheLastEmpire
         private float _lifetime;
         private float _radius;
         private float _dotDamage;
+        private float _slowPercent;
         private float _timer = 0f;
-        private SpriteRenderer _sr;
 
-        public void Initialize(Vector3 pos, float duration, float radius, float dotDamage)
+        public void Initialize(Vector3 pos, float duration, float radius, float dotDamage, float slowPercent = 0.5f)
         {
             _lifetime = duration;
             _radius = radius;
             _dotDamage = dotDamage;
+            _slowPercent = slowPercent;
 
-            // Simple visual ring/decal
+            // Visual ring/decal
             GameObject vis = GameObject.CreatePrimitive(PrimitiveType.Quad);
             vis.transform.SetParent(transform, false);
             vis.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);

@@ -288,15 +288,14 @@ namespace TheLastEmpire
             if (loreSynopsisLabel != null) loreSynopsisLabel.text = ch.loreSynopsis;
             if (attributesLabel != null)
             {
-                attributesLabel.text = $"- Max HP: <b>{ch.maxHealth}</b>\n- Max Hunger: <b>{ch.maxHunger}</b>\n- Move Speed: <b>{ch.moveSpeed:F1} m/s</b>\n- Dash Speed: <b>{ch.dashSpeed:F0} m/s</b> ({ch.dashCooldown:F1}s CD)";
+                attributesLabel.text = ch.GetFormattedAttributesString();
             }
             if (shiftAbilityTitleLabel != null) shiftAbilityTitleLabel.text = $"[SHIFT] {ch.shiftAbilityName.ToUpper()}";
             if (shiftAbilityDescLabel != null) shiftAbilityDescLabel.text = ch.shiftAbilityDescription;
 
             if (loadoutLabel != null)
             {
-                string wpns = (ch.startingWeapons != null && ch.startingWeapons.Count > 0) ? string.Join(", ", ch.startingWeapons) : "Knife";
-                loadoutLabel.text = $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ch.startingPistolAmmo} rounds</b> | Ration: <b>2x Bread</b> | Credits: <b>{ch.startingMoney} Gold</b>";
+                loadoutLabel.text = ch.GetFormattedLoadoutString();
             }
 
             // 3. Update tab highlights

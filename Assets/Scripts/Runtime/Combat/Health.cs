@@ -72,7 +72,8 @@ namespace TheLastEmpire
             {
                 if (pc.ActiveShiftAbility is AdrenalineRushAbility && pc.ActiveShiftAbility.IsActive)
                 {
-                    damageAmount *= 0.8f; // 20% damage reduction during Adrenaline Rush
+                    float reduction = pc.ActiveCharacterData != null ? pc.ActiveCharacterData.adrenalineDamageReduction : 0.20f;
+                    damageAmount *= (1f - reduction); // Configured damage reduction during Adrenaline Rush
                 }
                 if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.damageReductionPercent > 0f)
                 {

@@ -10,6 +10,7 @@
 3. [ชุดแอนิเมชัน 10 ท่าครบวงจร และท่าตายสุดเท่ 1.5 วินาที (10-Clip Animation Suite & Dramatic Death)](#3-ชุดแอนิเมชัน-10-ท่าครบวงจร-และท่าตายสุดเท่-15-วินาที-10-clip-animation-suite--dramatic-death)
 4. [ระบบ UpperBody AvatarMask สำหรับเดินยิง, แสงไฟปากกระบอกปืน และการแก้บั๊กฟันประชิดหลังถือปืน](#4-ระบบ-upperbody-avatarmask-สำหรับเดินยิง-แสงไฟปากกระบอกปืน-และการแก้บั๊กฟันประชิดหลังถือปืน)
 5. [ระบบล็อกความเร็วเดินปกติ 1 วินาทีหลังยิงปืน (1-Second Sprint Lock On Shoot)](#5-ระบบล็อกความเร็วเดินปกติ-1-วินาทีหลังยิงปืน-1-second-sprint-lock-on-shoot)
+6. [ระบบ ScriptableObject Status & Config สำหรับปรับแต่งตัวละครทั้งหมด (Customizable CharacterData ScriptableObjects & Custom Inspector)](#6-ระบบ-scriptableobject-status--config-สำหรับปรับแต่งตัวละครทั้งหมด-customizable-characterdata-scriptableobjects--custom-inspector)
 
 ---
 
@@ -102,3 +103,34 @@
   * ตลอดระยะเวลา **1.0 วินาที** หลังจากยิงกระสุนนัดล่าสุด (`_shootSprintLockTimer > 0f`):
     * ใน `FixedUpdate()` ความเร็วเคลื่อนที่จะถูกล็อกให้เท่ากับความเร็วเดินปกติ (`currentSpeed = moveSpeed`) โดยไม่นำตัวคูณความเร็ววิ่ง (`1.5x`) หรือตัวคูณจาก `ShiftAbility` (`AdrenalineRush 1.75x`) มาคิด
     * ผู้เล่นต้องหยุดยิงครบ **1.0 วินาที** จึงจะสามารถกลับมาวิ่งเร็ว (`Sprint`) ได้อีกครั้ง
+
+
+
+---
+
+## 6. ระบบ ScriptableObject Status & Config สำหรับปรับแต่งตัวละครทั้งหมด (Customizable CharacterData ScriptableObjects & Custom Inspector)
+
+### ไฟล์หลัก:
+* [CharacterData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CharacterData.cs) — สคริปต์ ScriptableObject กำหนด Data Schema สำหรับ Stat, Loadout, ความหิว, อัตราวิ่ง และ Skill ตัวละครทุกตัว
+* [CharacterDataEditor.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/CharacterDataEditor.cs) — Custom Inspector สไตล์ Survivor Dossier จัดหมวดหมู่อย่างสวยงาม พร้อมแถบสี, พรีวิวภาพตัวละคร, กล่องพรีวิว UI สด และซ่อน/แสดงช่องจูนตามสกิลที่เลือก
+* [CharacterAssetCreator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/CharacterAssetCreator.cs) — ปรับปรุงไม่ให้เขียนทับค่าที่ผู้พัฒนาปรับแต่งไว้ใน Inspector ทุกครั้งที่ Reload Domain พร้อมเมนูสร้าง/รีเซ็ตอย่างปลอดภัย
+* [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs) — เชื่อมต่อการคำนวณความเร็ววิ่ง, ล็อกความเร็วหลังยิง, การแจกกระสุนตามลิสต์, อาหารเริ่มต้น, และอัตราลดความหิวจาก SO โดยตรง
+* [ShiftAbilities.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Character/ShiftAbilities.cs) — สกิลประจำตัวทั้ง 5 ตัวละครดึงค่า Tuning Parameters (ความเร็วพุ่ง, สตั้น, อัตราดูดเลือด/สโลว์, อัตรากินความหิว) จาก SO แบบเรียลไทม์
+* [DamageCalculator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/DamageCalculator.cs) & [Health.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Health.cs) — คำนวณ Critical Chance, Critical Multiplier และ Armor Damage Reduction จาก CharacterData
+* [CharacterSelectUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CharacterSelectUI.cs) & [MainMenuManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/MainMenuManager.cs) — แสดงข้อมูล Stat, ข้อมูลกระสุน และเสบียงบนหน้าต่างเลือกตัวละครอย่างตรงไปตรงมาตามค่าที่ปรับใน SO
+
+### ไฟล์ Asset ตัวละครที่ปรับแต่งได้ทันทีใน Inspector (Assets/Resources/Database/Characters/):
+* CHAR_01_Vanguard.asset (The Vanguard: สมดุล, วิ่งเร็ว 1.5x, สกิล Adrenaline Rush ปรับจูนได้)
+* CHAR_02_Juggernaut.asset (The Juggernaut: เลือด 150, เกราะติดตัว 15%, สกิลพุ่งชน Unstoppable Charge ปรับจูนได้)
+* CHAR_03_Phantom.asset (The Phantom: วิ่งไว 6.0 m/s, สกิล Shadow Step วิ่งทะลุศัตรูพร้อมการันตีคริติคอลหลังออกจากเงามืด)
+* CHAR_04_Marksman.asset (The Marksman: อัตราคริติคอลพื้นฐาน 35%, กระสุน Medium 20 + Light 20, สกิล Eagle Eye ซูม 1.35x ยิงทะลุ)
+* CHAR_05_Scavenger.asset (The Scavenger: โบนัสตกของ +25%, โบนัสทอง +30%, สกิล Toxic Trail ปล่อยควันพิษสโลว์ 50%, Passive กินอาหารฮีลเลือด +10 HP)
+
+### จุดสำคัญที่ได้รับการแก้ไข (Root-Cause Fix):
+1. **แก้ปัญหา Inspector ถูก Reset คืนค่าเริ่มต้นทุกครั้งที่ Recompile**:
+   * เดิม CharacterAssetCreator.cs มีแอตทริบิวต์ [InitializeOnLoad] และเขียนทับตัวแปรทุกตัวบนไฟล์ .asset ด้วยฮาร์ดโค้ดเดิมทุกครั้งที่ Unity คอมไพล์ใหม่
+   * ได้ทำการลบ [InitializeOnLoad] ออก พร้อมเปลี่ยนระบบเป็น **Safe Load** (หากไฟล์ .asset มีอยู่แล้ว จะไม่แตะต้องค่าที่ผู้ใช้อิดิทไว้เด็ดขาด) และเพิ่มเมนูรีเซ็ตสำหรับ Factory Reset แยกชัดเจน
+2. **ปลดล็อกการตั้งค่ากระสุนเริ่มต้นและเสบียง (Decoupled Loadouts)**:
+   * เพิ่ม StartingAmmoConfig แบบ List ทำให้กำหนดประเภทกระสุนกี่ชนิดและจำนวนเท่าใดก็ได้ใน Inspector ของแต่ละตัวละคร
+   * เพิ่ม startingRations สำหรับปรับจำนวนขนมปังเริ่มต้น
+   * เชื่อมต่อ shootSprintLockDuration เข้ากับ SO เพื่อให้ผู้พัฒนาสามารถปรับจูนระยะเวลาห้ามวิ่งหลังยิงของแต่ละตัวละครได้อย่างอิสระ
