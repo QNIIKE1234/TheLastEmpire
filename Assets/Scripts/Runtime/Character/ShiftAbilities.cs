@@ -732,4 +732,484 @@ namespace TheLastEmpire
             }
         }
     }
+
+
+    // =========================================================================
+    //  6. Rebel: Cyclone Swing
+    // =========================================================================
+    public class CycloneSwingAbility : IShiftAbility
+    {
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Cyclone Swing";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "360 whirlwind bat swing: deflects bullets, deals AOE knockback, and 40% damage reduction";
+        public bool IsActive => _isSpinning;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftCooldown : 4.5f;
+
+        private PlayerController _player;
+        private bool _isSpinning = false;
+        private float _spinTimer = 0f;
+        private float _cooldownTimer = 0f;
+        private float _hitTimer = 0f;
+        private LineRenderer _whirlwindRing;
+        private float _visualRotationAngle = 0f;
+
+        public void Initialize(PlayerController player)
+        {
+            _player = player;
+        }
+
+        public void OnShiftPressed()
+        {
+            if (_player == null || _cooldownTimer > 0f || _isSpinning) return;
+            if (_player.CurrentHunger <= 0f) return;
+
+            float hungerCost = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneHungerCost : 4.0f;
+            _player.DrainHunger(hungerCost);
+
+            _isSpinning = true;
+            _spinTimer = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneDuration : 1.2f;
+            _cooldownTimer = CooldownDuration;
+            _hitTimer = 0f;
+
+            CreateWhirlwindVisual();
+            PlaySpinAnimation();
+        }
+
+        public void OnShiftHeld() { }
+        public void OnShiftReleased() { }
+
+        public void UpdateAbility()
+        {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
+            if (_isSpinning && _player != null)
+            {
+                _spinTimer -= Time.deltaTime;
+                _hitTimer -= Time.deltaTime;
+
+                float radius = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneRadius : 2.4f;
+                float dpsHit = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneDamagePerHit : 22f;
+                float knockback = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneKnockback : 12f;
+                float interval = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.cycloneHitInterval : 0.25f;
+
+                _visualRotationAngle += Time.deltaTime * 720f;
+                UpdateWhirlwindVisual(radius);
+
+                if (_hitTimer <= 0f)
+                {
+                    _hitTimer = interval;
+                    PerformCyclonePulse(radius, dpsHit, knockback);
+                }
+
+                DeflectEnemyProjectiles(radius);
+
+                if (_spinTimer <= 0f)
+                {
+                    EndCyclone();
+                }
+            }
+        }
+
+        private void PerformCyclonePulse(float radius, float damage, float knockback)
+        {
+            if (_player == null) return;
+            Vector3 center = _player.transform.position;
+
+            if (ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", center + Vector3.up * 0.8f, Quaternion.Euler(0f, _visualRotationAngle, 0f));
+            }
+
+            Collider[] hits = Physics.OverlapSphere(center, radius);
+            foreach (var h in hits)
+            {
+                if (h != null && (h.CompareTag("Enemy") || h.GetComponent<BaseEnemyAI>() != null))
+                {
+                    Health enemyHealth = h.GetComponent<Health>();
+                    if (enemyHealth != null && !enemyHealth.IsDead)
+                    {
+                        DamageResult dmgRes = DamageCalculator.CalculateMeleeDamage(damage, _player.gameObject, "Baseball Bat");
+                        enemyHealth.TakeDamage(dmgRes.FinalDamage, h.transform.position, dmgRes.IsCritical);
+
+                        if (enemyHealth.IsDead && _player.ActiveCharacterData != null && _player.ActiveCharacterData.rebelMeleeKillHungerRestore > 0f)
+                        {
+                            _player.RestoreHunger(_player.ActiveCharacterData.rebelMeleeKillHungerRestore);
+                        }
+                    }
+
+                    BaseEnemyAI ai = h.GetComponent<BaseEnemyAI>();
+                    if (ai != null)
+                    {
+                        Vector3 pushDir = (h.transform.position - center);
+                        pushDir.y = 0f;
+                        if (pushDir.sqrMagnitude < 0.01f) pushDir = _player.transform.forward;
+                        ai.ApplyMeleeKnockback(pushDir.normalized, knockback, 0.4f);
+                    }
+                }
+            }
+        }
+
+        private void DeflectEnemyProjectiles(float radius)
+        {
+            if (_player == null) return;
+            Vector3 center = _player.transform.position;
+
+            Collider[] hits = Physics.OverlapSphere(center, radius);
+            foreach (var h in hits)
+            {
+                if (h == null) continue;
+                Projectile proj = h.GetComponent<Projectile>() ?? h.GetComponentInParent<Projectile>();
+                if (proj != null && proj.gameObject.activeInHierarchy)
+                {
+                    if (proj.Owner != _player.gameObject)
+                    {
+                        Vector3 away = (proj.transform.position - center).normalized;
+                        if (away.sqrMagnitude < 0.01f) away = -proj.transform.forward;
+                        proj.Deflect(away, _player.gameObject);
+
+                        if (ObjectPoolManager.Instance != null)
+                        {
+                            ObjectPoolManager.Instance.SpawnFromPool("PistolFlash", proj.transform.position, Quaternion.identity);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void PlaySpinAnimation()
+        {
+            if (_player != null)
+            {
+                Animator anim = _player.GetComponentInChildren<Animator>();
+                if (anim != null)
+                {
+                    anim.Play("Slash2", 0, 0f);
+                }
+            }
+        }
+
+        private void CreateWhirlwindVisual()
+        {
+            if (_whirlwindRing == null && _player != null)
+            {
+                GameObject ringObj = new GameObject("CycloneWhirlwindRing");
+                ringObj.transform.SetParent(_player.transform, false);
+                ringObj.transform.localPosition = Vector3.up * 0.35f;
+
+                _whirlwindRing = ringObj.AddComponent<LineRenderer>();
+                _whirlwindRing.useWorldSpace = false;
+                _whirlwindRing.loop = true;
+                _whirlwindRing.startWidth = 0.12f;
+                _whirlwindRing.endWidth = 0.12f;
+
+                Material lineMat = new Material(Shader.Find("Universal Render Pipeline/Unlit") 
+                    ?? Shader.Find("Unlit/Color") 
+                    ?? Shader.Find("Sprites/Default"));
+                Color ringColor = new Color(0.98f, 0.20f, 0.40f, 0.90f);
+                lineMat.color = ringColor;
+                _whirlwindRing.material = lineMat;
+                _whirlwindRing.startColor = ringColor;
+                _whirlwindRing.endColor = new Color(1.0f, 0.70f, 0.10f, 0.80f);
+            }
+
+            if (_whirlwindRing != null)
+            {
+                _whirlwindRing.enabled = true;
+            }
+        }
+
+        private void UpdateWhirlwindVisual(float radius)
+        {
+            if (_whirlwindRing == null) return;
+            const int segments = 24;
+            _whirlwindRing.positionCount = segments;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = (i / (float)segments) * Mathf.PI * 2f + (_visualRotationAngle * Mathf.Deg2Rad);
+                float x = Mathf.Cos(angle) * radius;
+                float z = Mathf.Sin(angle) * radius;
+                _whirlwindRing.SetPosition(i, new Vector3(x, 0f, z));
+            }
+        }
+
+        private void EndCyclone()
+        {
+            _isSpinning = false;
+            if (_whirlwindRing != null)
+            {
+                _whirlwindRing.enabled = false;
+            }
+        }
+
+        public void OnDestroy()
+        {
+            EndCyclone();
+            if (_whirlwindRing != null && _whirlwindRing.gameObject != null)
+            {
+                GameObject.Destroy(_whirlwindRing.gameObject);
+                _whirlwindRing = null;
+            }
+        }
+    }
+
+    // =========================================================================
+    //  7. Demolitionist: Satchel Vault
+    // =========================================================================
+    public class SatchelVaultAbility : IShiftAbility
+    {
+        public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Satchel Vault";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Plants C4 satchel mine and vaults backwards 4.5m with evasion I-frames";
+        public bool IsActive => _isVaulting;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftCooldown : 5.0f;
+        public bool IsVaulting => _isVaulting;
+
+        private PlayerController _player;
+        private bool _isVaulting = false;
+        private float _vaultTimer = 0f;
+        private float _cooldownTimer = 0f;
+        private Vector3 _vaultDirection;
+
+        public void Initialize(PlayerController player)
+        {
+            _player = player;
+        }
+
+        public void OnShiftPressed()
+        {
+            if (_player == null || _cooldownTimer > 0f || _isVaulting) return;
+            if (_player.CurrentHunger <= 0f) return;
+
+            float hungerCost = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelHungerCost : 5.0f;
+            _player.DrainHunger(hungerCost);
+
+            SpawnSatchelMine(_player.transform.position);
+
+            float distance = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.vaultDistance : 4.5f;
+            float speed = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.vaultSpeed : 16f;
+            float duration = distance / Mathf.Max(1f, speed);
+
+            _vaultDirection = -_player.AimDirection.normalized;
+            _vaultDirection.y = 0f;
+            if (_vaultDirection.sqrMagnitude < 0.01f) _vaultDirection = -_player.transform.forward;
+
+            _isVaulting = true;
+            _vaultTimer = duration;
+            _cooldownTimer = CooldownDuration;
+
+            Health h = _player.GetComponent<Health>();
+            if (h != null)
+            {
+                h.TriggerInvulnerability(duration + 0.1f);
+            }
+
+            Animator anim = _player.GetComponentInChildren<Animator>();
+            if (anim != null)
+            {
+                anim.Play("DashRoll", 0, 0f);
+            }
+        }
+
+        public void OnShiftHeld() { }
+        public void OnShiftReleased() { }
+
+        public void UpdateAbility()
+        {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
+            if (_isVaulting && _player != null)
+            {
+                _vaultTimer -= Time.deltaTime;
+                float speed = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.vaultSpeed : 16f;
+
+                Rigidbody rb = _player.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = new Vector3(_vaultDirection.x * speed, rb.linearVelocity.y, _vaultDirection.z * speed);
+                }
+
+                if (_vaultTimer <= 0f)
+                {
+                    _isVaulting = false;
+                    if (rb != null)
+                    {
+                        rb.linearVelocity = Vector3.zero;
+                    }
+                }
+            }
+        }
+
+        private void SpawnSatchelMine(Vector3 pos)
+        {
+            float damage = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelDamage : 65f;
+            float blastRadius = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelBlastRadius : 4.5f;
+            float stunDuration = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelStunDuration : 1.2f;
+            float armDelay = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelArmDelay : 0.3f;
+            float autoDetonate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelAutoDetonateTime : 2.5f;
+
+            if (_player.ActiveCharacterData != null && _player.ActiveCharacterData.explosiveRadiusBonus > 0f)
+            {
+                blastRadius *= (1f + _player.ActiveCharacterData.explosiveRadiusBonus);
+            }
+
+            GameObject mineObj = new GameObject("C4_SatchelMine");
+            mineObj.transform.position = pos + Vector3.up * 0.1f;
+            SatchelMineHazard hazard = mineObj.AddComponent<SatchelMineHazard>();
+            hazard.Initialize(_player.gameObject, damage, blastRadius, stunDuration, armDelay, autoDetonate);
+        }
+
+        public void OnDestroy()
+        {
+            _isVaulting = false;
+        }
+    }
+
+    // =========================================================================
+    //  Satchel Mine Hazard Component
+    // =========================================================================
+    public class SatchelMineHazard : MonoBehaviour
+    {
+        private GameObject _owner;
+        private float _damage;
+        private float _blastRadius;
+        private float _stunDuration;
+        private float _armDelay;
+        private float _autoDetonateTime;
+        private float _timer = 0f;
+        private bool _isArmed = false;
+        private bool _hasDetonated = false;
+
+        private GameObject _mineVisual;
+        private Light _beepingLed;
+
+        public void Initialize(GameObject owner, float damage, float blastRadius, float stunDuration, float armDelay, float autoDetonateTime)
+        {
+            _owner = owner;
+            _damage = damage;
+            _blastRadius = blastRadius;
+            _stunDuration = stunDuration;
+            _armDelay = armDelay;
+            _autoDetonateTime = autoDetonateTime;
+
+            CreateMineVisual();
+        }
+
+        private void CreateMineVisual()
+        {
+            _mineVisual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _mineVisual.transform.SetParent(transform, false);
+            _mineVisual.transform.localScale = new Vector3(0.45f, 0.18f, 0.30f);
+            Destroy(_mineVisual.GetComponent<Collider>());
+
+            MeshRenderer mr = _mineVisual.GetComponent<MeshRenderer>();
+            if (mr != null)
+            {
+                mr.material = new Material(Shader.Find("Universal Render Pipeline/Lit") 
+                    ?? Shader.Find("Standard") 
+                    ?? Shader.Find("Universal Render Pipeline/Unlit"));
+                mr.material.color = new Color(0.18f, 0.20f, 0.18f);
+            }
+
+            GameObject ledObj = new GameObject("BeepingLed");
+            ledObj.transform.SetParent(transform, false);
+            ledObj.transform.localPosition = Vector3.up * 0.15f;
+            _beepingLed = ledObj.AddComponent<Light>();
+            _beepingLed.type = LightType.Point;
+            _beepingLed.range = 1.5f;
+            _beepingLed.color = Color.red;
+            _beepingLed.intensity = 2f;
+        }
+
+        private void Update()
+        {
+            if (_hasDetonated) return;
+
+            _timer += Time.deltaTime;
+
+            if (_beepingLed != null)
+            {
+                float freq = _isArmed ? 12f : 4f;
+                _beepingLed.intensity = (Mathf.Sin(_timer * freq) > 0f) ? 2.5f : 0.2f;
+            }
+
+            if (!_isArmed)
+            {
+                if (_timer >= _armDelay)
+                {
+                    _isArmed = true;
+                }
+                return;
+            }
+
+            Collider[] hits = Physics.OverlapSphere(transform.position, 1.5f);
+            foreach (var h in hits)
+            {
+                if (h != null && (h.CompareTag("Enemy") || h.GetComponent<BaseEnemyAI>() != null))
+                {
+                    Detonate();
+                    return;
+                }
+            }
+
+            if (_timer >= _autoDetonateTime)
+            {
+                Detonate();
+            }
+        }
+
+        public void Detonate()
+        {
+            if (_hasDetonated) return;
+            _hasDetonated = true;
+
+            Vector3 explosionPos = transform.position;
+
+            if (ObjectPoolManager.Instance != null)
+            {
+                GameObject vfx = ObjectPoolManager.Instance.SpawnFromPool("EnemyExplosion", explosionPos, Quaternion.identity);
+                if (vfx != null)
+                {
+                    PooledParticle pp = vfx.GetComponent<PooledParticle>();
+                    if (pp != null)
+                    {
+                        pp.ApplyScaleMultiplier(_blastRadius * 0.8f);
+                    }
+                }
+            }
+
+            Collider[] targets = Physics.OverlapSphere(explosionPos, _blastRadius);
+            foreach (var col in targets)
+            {
+                if (col == null || col.gameObject == gameObject) continue;
+
+                Health health = col.GetComponent<Health>();
+                if (health != null && !health.IsDead)
+                {
+                    float dist = Vector3.Distance(explosionPos, col.transform.position);
+                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_damage, dist, _blastRadius, _owner);
+                    health.TakeDamage(dmgResult.FinalDamage, col.transform.position, dmgResult.IsCritical, true);
+                }
+
+                BaseEnemyAI enemyAI = col.GetComponent<BaseEnemyAI>();
+                if (enemyAI != null)
+                {
+                    Vector3 pushDir = (col.transform.position - explosionPos);
+                    pushDir.y = 0f;
+                    if (pushDir.sqrMagnitude < 0.01f) pushDir = Vector3.forward;
+                    enemyAI.ApplyMeleeKnockback(pushDir.normalized, 14f, _stunDuration);
+                }
+            }
+
+            Destroy(gameObject);
+        }
+    }
+
 }

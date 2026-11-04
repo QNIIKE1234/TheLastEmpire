@@ -34,6 +34,7 @@ namespace TheLastEmpire.Editor
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("characterTitle"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("roleCategory"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("characterPortrait"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("characterModelPrefab"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("themeColor"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("amnesiaWakingClue"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("loreSynopsis"));

@@ -85,6 +85,11 @@ namespace TheLastEmpire
                     if (pc.ActiveCharacterData != null)
                     {
                         critChance += pc.ActiveCharacterData.critChanceBonus;
+                        Health h = pc.GetComponent<Health>();
+                        if (h != null && pc.ActiveCharacterData.rebelFrenzyHpThreshold > 0f && (h.CurrentHealth / h.MaxHealth <= pc.ActiveCharacterData.rebelFrenzyHpThreshold))
+                        {
+                            critChance += pc.ActiveCharacterData.rebelFrenzyCritBonus;
+                        }
                         critMultiplier += pc.ActiveCharacterData.critMultiplierBonus;
                         if (pc.ActiveShiftAbility is EagleEyeAbility eagle && eagle.IsActive)
                         {
@@ -152,6 +157,14 @@ namespace TheLastEmpire
                 PlayerController pc = attacker.GetComponent<PlayerController>();
                 if (pc != null)
                 {
+                    if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.rebelFrenzyHpThreshold > 0f)
+                    {
+                        Health h = pc.GetComponent<Health>();
+                        if (h != null && (h.CurrentHealth / h.MaxHealth <= pc.ActiveCharacterData.rebelFrenzyHpThreshold))
+                        {
+                            critChance += pc.ActiveCharacterData.rebelFrenzyCritBonus;
+                        }
+                    }
                     if (pc.HasGuaranteedCrit)
                     {
                         guaranteedCrit = true;
@@ -186,6 +199,21 @@ namespace TheLastEmpire
             float explosionRadius,
             GameObject attacker = null)
         {
+            if (attacker != null)
+            {
+                PlayerController pc = attacker.GetComponent<PlayerController>();
+                if (pc != null && pc.ActiveCharacterData != null)
+                {
+                    if (pc.ActiveCharacterData.explosiveDamageBonus > 0f)
+                    {
+                        baseDamage *= (1f + pc.ActiveCharacterData.explosiveDamageBonus);
+                    }
+                    if (pc.ActiveCharacterData.explosiveRadiusBonus > 0f)
+                    {
+                        explosionRadius *= (1f + pc.ActiveCharacterData.explosiveRadiusBonus);
+                    }
+                }
+            }
             DamageResult result = new DamageResult();
             result.RawDamage = baseDamage;
 

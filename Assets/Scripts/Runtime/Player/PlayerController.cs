@@ -189,6 +189,21 @@ namespace TheLastEmpire
                 }
 
                 InitShiftAbility();
+
+                if (activeCharacterData.characterModelPrefab != null)
+                {
+                    Transform existingCapsule = transform.Find("Capsule");
+                    if (existingCapsule != null) existingCapsule.gameObject.SetActive(false);
+                    Transform existingModel = transform.Find("CharacterModelInstance");
+                    if (existingModel == null)
+                    {
+                        GameObject modelInstance = Instantiate(activeCharacterData.characterModelPrefab, transform);
+                        modelInstance.name = "CharacterModelInstance";
+                        modelInstance.transform.localPosition = Vector3.zero;
+                        modelInstance.transform.localRotation = Quaternion.identity;
+                        _animator = modelInstance.GetComponentInChildren<Animator>();
+                    }
+                }
             }
             else if (playerConfig != null)
             {
@@ -227,6 +242,12 @@ namespace TheLastEmpire
                 case ShiftAbilityType.GrapplingHook:
                     _activeShiftAbility = new GrapplingHookAbility();
                     break;
+                case ShiftAbilityType.CycloneSwing:
+                    _activeShiftAbility = new CycloneSwingAbility();
+                    break;
+                case ShiftAbilityType.SatchelVault:
+                    _activeShiftAbility = new SatchelVaultAbility();
+                    break;
                 default:
                     _activeShiftAbility = new AdrenalineRushAbility();
                     break;
@@ -238,6 +259,13 @@ namespace TheLastEmpire
         public void DrainHunger(float amount)
         {
             currentHunger = Mathf.Max(0f, currentHunger - amount);
+            OnHungerChanged?.Invoke();
+        }
+
+        public void RestoreHunger(float amount)
+        {
+            float maxH = (activeCharacterData != null && activeCharacterData.maxHunger > 0f) ? activeCharacterData.maxHunger : 100f;
+            currentHunger = Mathf.Min(maxH, currentHunger + amount);
             OnHungerChanged?.Invoke();
         }
 
@@ -1152,6 +1180,10 @@ namespace TheLastEmpire
                 float atkBonus = activeCharacterData != null ? activeCharacterData.adrenalineAttackSpeedBonus : 0.30f;
                 rate /= (1f + atkBonus);
             }
+            if (activeCharacterData != null && activeCharacterData.rebelFrenzyAttackSpeedBonus > 0f && _health != null && (_health.CurrentHealth / _health.MaxHealth <= activeCharacterData.rebelFrenzyHpThreshold))
+            {
+                rate /= (1f + activeCharacterData.rebelFrenzyAttackSpeedBonus);
+            }
             _fireCooldownTimer = rate;
 
             // Alert nearby enemies to the gunshot noise
@@ -1377,6 +1409,10 @@ namespace TheLastEmpire
             // ⚔️ คำนวณดาเมจระยะประชิดด้วย DamageCalculator (มีสุ่ม +-10, อัตราคริ 20% / 1.3x หรือ Katana/Phantom 2.0x)
             DamageResult meleeDmgResult = DamageCalculator.CalculateMeleeDamage(activeDamage, gameObject, wName);
 
+            if (activeCharacterData != null && activeCharacterData.rebelFrenzyAttackSpeedBonus > 0f && _health != null && (_health.CurrentHealth / _health.MaxHealth <= activeCharacterData.rebelFrenzyHpThreshold))
+            {
+                activeRate /= (1f + activeCharacterData.rebelFrenzyAttackSpeedBonus);
+            }
             _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
 
@@ -1463,8 +1499,13 @@ namespace TheLastEmpire
                         hitDmg += 15f;
                         Debug.Log("[MeleeAttack] Fire Axe caused bleeding laceration (+15 damage)!");
                     }
+                    bool wasDeadBefore = damageable.IsDead;
                     damageable.TakeDamage(hitDmg, col.transform.position, meleeDmgResult.IsCritical);
                     targetsHit++;
+                    if (!wasDeadBefore && damageable.IsDead && activeCharacterData != null && activeCharacterData.rebelMeleeKillHungerRestore > 0f)
+                    {
+                        RestoreHunger(activeCharacterData.rebelMeleeKillHungerRestore);
+                    }
                 }
 
                 // 2. Apply high-impact melee knockback to enemies

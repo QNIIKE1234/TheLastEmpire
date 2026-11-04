@@ -67,6 +67,22 @@ namespace TheLastEmpire
         public bool IsExplosive => isExplosive;
         public float ExplosionRadius => explosionRadius;
         public TrajectoryMode Trajectory => trajectoryMode;
+        public GameObject Owner => _owner;
+
+        public void Deflect(Vector3 newDirection, GameObject newOwner)
+        {
+            _owner = newOwner;
+            if (_hitTargets == null) _hitTargets = new System.Collections.Generic.List<IDamageable>();
+            _hitTargets.Clear();
+            if (_rb != null)
+            {
+                _rb.linearVelocity = newDirection.normalized * speed;
+            }
+            if (newDirection.sqrMagnitude > 0.01f)
+            {
+                transform.forward = newDirection.normalized;
+            }
+        }
 
         private void Awake()
         {

@@ -75,6 +75,15 @@ namespace TheLastEmpire
                     float reduction = pc.ActiveCharacterData != null ? pc.ActiveCharacterData.adrenalineDamageReduction : 0.20f;
                     damageAmount *= (1f - reduction); // Configured damage reduction during Adrenaline Rush
                 }
+                if (pc.ActiveShiftAbility is CycloneSwingAbility && pc.ActiveShiftAbility.IsActive)
+                {
+                    float reduction = pc.ActiveCharacterData != null ? pc.ActiveCharacterData.cycloneDamageReduction : 0.40f;
+                    damageAmount *= (1f - reduction);
+                }
+                if (isExplosion && pc.ActiveCharacterData != null && pc.ActiveCharacterData.blastDamageReduction > 0f)
+                {
+                    damageAmount *= (1f - pc.ActiveCharacterData.blastDamageReduction);
+                }
                 if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.damageReductionPercent > 0f)
                 {
                     damageAmount *= (1f - pc.ActiveCharacterData.damageReductionPercent); // Passive armor (e.g. Juggernaut 15%)

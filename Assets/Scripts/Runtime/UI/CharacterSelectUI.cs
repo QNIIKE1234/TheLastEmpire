@@ -43,6 +43,10 @@ namespace TheLastEmpire
         [SerializeField] private Sprite marksmanPortrait;
         [Tooltip("Artwork for The Scavenger")]
         [SerializeField] private Sprite scavengerPortrait;
+        [Tooltip("Artwork for The Rebel")]
+        [SerializeField] private Sprite rebelPortrait;
+        [Tooltip("Artwork for The Demolitionist")]
+        [SerializeField] private Sprite demolitionistPortrait;
 
         [System.Serializable]
         public struct CustomPortraitEntry
@@ -195,6 +199,12 @@ namespace TheLastEmpire
                 case "SCAVENGER":
                     found = scavengerPortrait;
                     break;
+                case "REBEL":
+                    found = rebelPortrait;
+                    break;
+                case "DEMOLITIONIST":
+                    found = demolitionistPortrait;
+                    break;
             }
 
             if (found != null) return found;
@@ -240,6 +250,22 @@ namespace TheLastEmpire
                 }
             }
 
+            // Dynamically create extra tab buttons if roster has more operatives than scene buttons
+            if (rosterColumn != null && tabButtons.Count > 0 && tabButtons.Count < _roster.Count)
+            {
+                while (tabButtons.Count < _roster.Count)
+                {
+                    int idx = tabButtons.Count;
+                    Button cloned = Instantiate(tabButtons[0], rosterColumn);
+                    cloned.name = $"Tab_{_roster[idx].characterName}";
+                    tabButtons.Add(cloned);
+                    tabBackgrounds.Add(cloned.GetComponent<Image>());
+                    Transform ind = cloned.transform.Find("ActiveIndicator");
+                    tabActiveIndicators.Add(ind != null ? ind.GetComponent<Image>() : null);
+                    tabLabels.Add(cloned.GetComponentInChildren<TMP_Text>(true));
+                }
+            }
+
             // Wire existing tab buttons in scene if present
             for (int i = 0; i < tabButtons.Count && i < _roster.Count; i++)
             {
@@ -248,6 +274,10 @@ namespace TheLastEmpire
                 {
                     tabButtons[i].onClick.RemoveAllListeners();
                     tabButtons[i].onClick.AddListener(() => SelectCharacter(ch));
+                }
+                if (i < tabLabels.Count && tabLabels[i] != null)
+                {
+                    tabLabels[i].text = ch.characterName;
                 }
             }
 

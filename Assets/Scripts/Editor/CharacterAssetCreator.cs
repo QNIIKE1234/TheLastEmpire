@@ -58,6 +58,12 @@ namespace TheLastEmpire.Editor
             // 5. Scavenger
             roster.Add(GetOrCreateScavenger(forceOverwrite));
 
+            // 6. Rebel
+            roster.Add(GetOrCreateRebel(forceOverwrite));
+
+            // 7. Demolitionist
+            roster.Add(GetOrCreateDemolitionist(forceOverwrite));
+
             // Update CharacterDatabase.asset references
             CharacterDatabase db = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabaseAssetPath);
             if (db == null)
@@ -80,7 +86,7 @@ namespace TheLastEmpire.Editor
             AssetDatabase.Refresh();
 
             string mode = forceOverwrite ? "Reset to defaults" : "Preserved existing assets & verified references";
-            Debug.Log($"<color=#50FA7B>[CharacterAssetCreator]</color> Successfully processed 5 playable characters ({mode}) in: {DatabaseAssetPath}");
+            Debug.Log($"<color=#50FA7B>[CharacterAssetCreator]</color> Successfully processed 7 playable characters ({mode}) in: {DatabaseAssetPath}");
         }
 
         private static CharacterData GetOrCreateVanguard(bool forceOverwrite)
@@ -472,4 +478,154 @@ namespace TheLastEmpire.Editor
             return data;
         }
     }
+
+        private static CharacterData GetOrCreateRebel(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_06_Rebel.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+
+            if (isNew || forceOverwrite)
+            {
+                data.characterId = "REBEL";
+                data.characterName = "The Rebel";
+                data.characterTitle = "Anarchist Brawler";
+                data.roleCategory = "Brawler / Close Quarters";
+                data.loreSynopsis = "Former wasteland riot punk armed with custom spiked weaponry. Awakens amidst smoldering bar barricades, defying both imperial enforcers and necrotic swarms.";
+                data.amnesiaWakingClue = "\"Ugh, that blast gave me a ringing headache... Where's my bat? If the Empire thinks they can chain me down, they're in for a bloody surprise!\"";
+                data.themeColor = new Color(0.98f, 0.20f, 0.40f, 1f);
+                data.maxHealth = 110f;
+                data.maxHunger = 100f;
+                data.moveSpeed = 5.2f;
+                data.baseMeleeDamage = 16;
+                data.baseRangedDamage = 8;
+                data.critChanceBonus = 0.15f;
+                data.critMultiplierBonus = 0.4f;
+                data.damageReductionPercent = 0.05f;
+                data.hungerConsumptionMultiplier = 1.05f;
+                data.dashSpeed = 16f;
+                data.dashDuration = 0.25f;
+                data.dashCooldown = 0.70f;
+                data.startingMoney = 120;
+                data.startingRations = 2;
+                data.startingPistolAmmo = 24;
+                data.startingWeapons = new List<string> { "Baseball Bat", "Shotgun" };
+                data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Shotgun Ammo", 24) };
+                data.sprintSpeedMultiplier = 1.5f;
+                data.shootSprintLockDuration = 1.0f;
+                data.shiftAbilityType = ShiftAbilityType.CycloneSwing;
+                data.shiftAbilityName = "Cyclone Swing";
+                data.shiftAbilityDescription = "Press [Shift] to spin violently in a 360 whirlwind for 1.2s: damages & knocks back all nearby enemies, deflects incoming bullets, and grants 40% damage reduction. (Passive: Frenzy at <50% HP grants +35% attack speed & +25% crit, melee kills restore hunger)";
+                data.shiftCooldown = 4.5f;
+                data.cycloneDuration = 1.2f;
+                data.cycloneDamagePerHit = 22f;
+                data.cycloneHitInterval = 0.25f;
+                data.cycloneRadius = 2.4f;
+                data.cycloneKnockback = 12f;
+                data.cycloneDamageReduction = 0.40f;
+                data.cycloneMoveSpeedMultiplier = 1.30f;
+                data.cycloneHungerCost = 4.0f;
+                data.rebelFrenzyHpThreshold = 0.50f;
+                data.rebelFrenzyAttackSpeedBonus = 0.35f;
+                data.rebelFrenzyCritBonus = 0.25f;
+                data.rebelMeleeKillHungerRestore = 3.0f;
+            }
+
+            if (data.characterPortrait == null)
+            {
+                Sprite sp = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Image/Picture/Chibi_PunkGirl_Portrait.png")
+                    ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GeneratedModels/Chibi_PunkGirl_Preview.png");
+                if (sp != null) data.characterPortrait = sp;
+            }
+
+            if (data.characterModelPrefab == null)
+            {
+                GameObject fbx = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/Chibi_PunkGirl_Rigged.fbx");
+                if (fbx != null) data.characterModelPrefab = fbx;
+            }
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
+        private static CharacterData GetOrCreateDemolitionist(bool forceOverwrite)
+        {
+            string path = $"{CharDir}/CHAR_07_Demolitionist.asset";
+            CharacterData data = AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+            bool isNew = (data == null);
+
+            if (isNew)
+            {
+                data = ScriptableObject.CreateInstance<CharacterData>();
+                AssetDatabase.CreateAsset(data, path);
+            }
+
+            if (isNew || forceOverwrite)
+            {
+                data.characterId = "DEMOLITIONIST";
+                data.characterName = "The Demolitionist";
+                data.characterTitle = "Pyrotechnic Saboteur";
+                data.roleCategory = "Trapper / Area Denial";
+                data.loreSynopsis = "Former imperial ordnance specialist turned freelance saboteur. Awakens in the crater of a collapsed munitions depot, surrounded by unexploded ordinance.";
+                data.amnesiaWakingClue = "\"Careful where you step... that timer's still ticking. The depot was sabotaged from the inside. Whoever blew the blast doors won't escape my payload.\"";
+                data.themeColor = new Color(0.96f, 0.45f, 0.05f, 1f);
+                data.maxHealth = 105f;
+                data.maxHunger = 105f;
+                data.moveSpeed = 4.9f;
+                data.baseMeleeDamage = 11;
+                data.baseRangedDamage = 12;
+                data.critChanceBonus = 0.05f;
+                data.critMultiplierBonus = 0.2f;
+                data.damageReductionPercent = 0f;
+                data.hungerConsumptionMultiplier = 1.0f;
+                data.dashSpeed = 14f;
+                data.dashDuration = 0.25f;
+                data.dashCooldown = 0.80f;
+                data.startingMoney = 90;
+                data.startingRations = 2;
+                data.startingPistolAmmo = 36;
+                data.startingWeapons = new List<string> { "Fire Axe", "Revolver" };
+                data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Light Ammo", 36) };
+                data.sprintSpeedMultiplier = 1.5f;
+                data.shootSprintLockDuration = 1.0f;
+                data.shiftAbilityType = ShiftAbilityType.SatchelVault;
+                data.shiftAbilityName = "Satchel Vault";
+                data.shiftAbilityDescription = "Press [Shift] to plant a C4 satchel charge and launch yourself backward 4.5m with evasion I-frames. The mine arms in 0.3s and detonates on enemy proximity or 2.5s timer dealing 65 AOE damage and 1.2s stun. (Passive: Blast Shield reduces explosive damage taken by 60%, +30% blast radius)";
+                data.shiftCooldown = 5.0f;
+                data.satchelDamage = 65f;
+                data.satchelBlastRadius = 4.5f;
+                data.satchelStunDuration = 1.2f;
+                data.satchelArmDelay = 0.3f;
+                data.satchelAutoDetonateTime = 2.5f;
+                data.vaultDistance = 4.5f;
+                data.vaultSpeed = 16f;
+                data.satchelHungerCost = 5.0f;
+                data.explosiveDamageBonus = 0.20f;
+                data.explosiveRadiusBonus = 0.30f;
+                data.blastDamageReduction = 0.60f;
+            }
+
+            if (data.characterPortrait == null)
+            {
+                Sprite sp = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GeneratedModels/Chibi_TacticalGirl_Preview.png")
+                    ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Image/Picture/ChatGPT Image Oct 23, 2026, 10_16_03 PM.png");
+                if (sp != null) data.characterPortrait = sp;
+            }
+
+            if (data.characterModelPrefab == null)
+            {
+                GameObject fbx = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx");
+                if (fbx != null) data.characterModelPrefab = fbx;
+            }
+
+            EditorUtility.SetDirty(data);
+            return data;
+        }
+
 }

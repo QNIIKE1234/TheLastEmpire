@@ -10,7 +10,9 @@ namespace TheLastEmpire
         UnstoppableCharge, // Juggernaut: Charges forward, deflects bullets, stuns enemies
         ShadowStep,        // Phantom: Phasing through enemies, stealth, guaranteed crit
         EagleEye,          // Marksman: Wide tactical zoom, doubled range, piercing bullets
-        GrapplingHook      // Scavenger: Fires grappling wire forward, pulling player to buildings/structures
+        GrapplingHook,     // Scavenger: Fires grappling wire forward, pulling player to buildings/structures
+        CycloneSwing,      // Rebel: Rapid 360 whirlwind bat spin, deflects bullets, AOE knockback and damage reduction
+        SatchelVault       // Demolitionist: Plants C4 satchel mine and vaults backwards with I-Frames
     }
 
     [Serializable]
@@ -61,6 +63,9 @@ namespace TheLastEmpire
 
         [Tooltip("Full-body illustration or portrait displayed in operative selection screen.")]
         public Sprite characterPortrait;
+
+        [Tooltip("Optional 3D character model prefab. If assigned, replaces the default player mesh with this model.")]
+        public GameObject characterModelPrefab;
 
         [TextArea(3, 5)]
         [Tooltip("Background biography and operative dossier text.")]
@@ -211,6 +216,37 @@ namespace TheLastEmpire
         [Range(5f, 40f)] public float grappleRange = 18f;
         [Range(10f, 40f)] public float grapplePullSpeed = 22f;
         [Range(0f, 20f)] public float grappleHungerCost = 3.5f;
+
+        [Header("--- Ability Tuning: Cyclone Swing (Rebel) ---")]
+        [Range(0.5f, 3.0f)] public float cycloneDuration = 1.2f;
+        [Range(5f, 80f)] public float cycloneDamagePerHit = 22f;
+        [Range(0.1f, 0.5f)] public float cycloneHitInterval = 0.25f;
+        [Range(1f, 5f)] public float cycloneRadius = 2.4f;
+        [Range(5f, 30f)] public float cycloneKnockback = 12f;
+        [Range(0f, 0.9f)] public float cycloneDamageReduction = 0.40f;
+        [Range(1f, 2.5f)] public float cycloneMoveSpeedMultiplier = 1.30f;
+        [Range(0f, 20f)] public float cycloneHungerCost = 4.0f;
+
+        [Header("--- Passive Tuning: Adrenaline Mania (Rebel) ---")]
+        [Range(0.1f, 0.9f)] public float rebelFrenzyHpThreshold = 0.50f;
+        [Range(0f, 1f)] public float rebelFrenzyAttackSpeedBonus = 0.35f;
+        [Range(0f, 1f)] public float rebelFrenzyCritBonus = 0.25f;
+        [Range(0f, 20f)] public float rebelMeleeKillHungerRestore = 3.0f;
+
+        [Header("--- Ability Tuning: Satchel Vault (Demolitionist) ---")]
+        [Range(10f, 150f)] public float satchelDamage = 65f;
+        [Range(1f, 10f)] public float satchelBlastRadius = 4.5f;
+        [Range(0.2f, 3.0f)] public float satchelStunDuration = 1.2f;
+        [Range(0.1f, 2.0f)] public float satchelArmDelay = 0.3f;
+        [Range(1.0f, 6.0f)] public float satchelAutoDetonateTime = 2.5f;
+        [Range(1f, 10f)] public float vaultDistance = 4.5f;
+        [Range(5f, 30f)] public float vaultSpeed = 16f;
+        [Range(0f, 20f)] public float satchelHungerCost = 5.0f;
+
+        [Header("--- Passive Tuning: Blast Shield and Ordnance (Demolitionist) ---")]
+        [Range(0f, 1f)] public float explosiveDamageBonus = 0.20f;
+        [Range(0f, 1f)] public float explosiveRadiusBonus = 0.30f;
+        [Range(0f, 0.9f)] public float blastDamageReduction = 0.60f;
 
         [HideInInspector] public float toxicSlowPercent = 0.50f;
         [HideInInspector] public float toxicPoisonDps = 8f;

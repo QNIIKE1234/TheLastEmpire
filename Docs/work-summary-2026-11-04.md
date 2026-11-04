@@ -12,6 +12,7 @@
 5. [ระบบความเร็ววิ่งเร็ว และลดความเร็วเหลือ 0.75x เดินปกติ 1 วินาทีเมื่อกดยิงปืน (Sprint Speed & 0.75x Shoot Penalty)](#5-ระบบความเร็ววิ่งเร็ว-และลดความเร็วเหลือ-075x-เดินปกติ-1-วินาทีเมื่อกดยิงปืน-sprint-speed--075x-shoot-penalty)
 6. [ระบบ ScriptableObject Status & Config สำหรับปรับแต่งตัวละครทั้งหมด (Customizable CharacterData ScriptableObjects & Custom Inspector)](#6-ระบบ-scriptableobject-status--config-สำหรับปรับแต่งตัวละครทั้งหมด-customizable-characterdata-scriptableobjects--custom-inspector)
 7. [สกิลใหม่ The Scavenger: Grappling Hook สลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์ Spider-Man](#7-สกิลใหม่-the-scavenger-grappling-hook-สลิงดึงตัวเข้าหาสิ่งปลูกสร้างสไตล์-spider-man)
+8. [2 คลาสใหม่: The Rebel (พังก์สาวสายบุกประชิด) และ The Demolitionist (ผู้เชี่ยวชาญระเบิด C4)](#8-2-คลาสใหม่-the-rebel-พังก์สาวสายบุกประชิด-และ-the-demolitionist-ผู้เชี่ยวชาญระเบิด-c4)
 
 ---
 
@@ -173,3 +174,42 @@
    * `grappleHungerCost`: ปริมาณความหิวที่ใช้ต่อการยิง 1 ครั้ง (ค่าเริ่มต้น: 3.5 หน่วย)
    * `shiftCooldown`: คูลดาวน์ของสกิล (ค่าเริ่มต้น: 3.0s)
    * รองรับการปรับแต่งผ่าน Survivor Dossier Inspector ใน Unity Editor ได้อย่างอิสระ
+
+
+---
+
+## 8. 2 คลาสใหม่: The Rebel (พังก์สาวสายบุกประชิด) และ The Demolitionist (ผู้เชี่ยวชาญระเบิด C4)
+
+ขยายจำนวนตัวละครในเกมจาก 5 ตัวละครเป็น **7 ตัวละครครบวงจร** พร้อมระบบโมเดล 3D, สกิลกดใช้ [Shift] และ Passive Traits พิเศษเฉพาะตัว:
+
+### 1. The Rebel (อันธพาลสาวพังก์ - Anarchist Brawler)
+* **รหัสตัวละคร**: `REBEL`
+* **ไฟล์ Asset**: [CHAR_06_Rebel.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Database/Characters/CHAR_06_Rebel.asset)
+* **โมเดล 3D**: [Chibi_PunkGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_PunkGirl_Rigged.fbx) (ผมบันคู่สีบลอนด์แซมชมพู, แจ็คเก็ตแดง, กางเกงหนัง, ไม้เบสบอลตอกตะปู)
+* **ภาพพอร์ตเทรต**: [Chibi_PunkGirl_Portrait.png](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Image/Picture/Chibi_PunkGirl_Portrait.png)
+* **อาวุธเริ่มต้น**: ไม้เบสบอล (`Baseball Bat`) + ปืนลูกซอง (`Shotgun`) พร้อมกระสุน Shotgun Ammo 24 นัด
+* **ค่าพลังพื้นฐาน**: HP 110 | Max Hunger 100 | ความเร็วเคลื่อนที่ 5.2 m/s | Melee Damage +16 | Crit Chance +15% | เกราะติดตัว 5%
+* **สกิลกดใช้ [Shift] — `Cyclone Swing`**:
+  * หมุนตัวควงไม้เบสบอล 360 องศาเป็นพายุหมุนต่อเนื่อง 1.2 วินาที (คูลดาวน์ 4.5s)
+  * วาดวงแหวนแสงเลเซอร์นีออนสีแดงชมพูหมุนรอบตัว
+  * สร้างดาเมจรอบตัวครั้งละ 22 หน่วยทุกๆ 0.25 วินาที พร้อมผลักศัตรูกระเด็นถอยหลังรุนแรง (Knockback 12)
+  * สะท้อนกระสุนปืนของศัตรูทุกลูกที่พุ่งเข้ามาในระยะ 2.4 เมตรกลับไปหาผู้ยิง
+  * ได้รับการลดดาเมจจากการโจมตีของศัตรู 40% ขณะหมุนตัว
+* **Passive — `Adrenaline Mania`**:
+  * เมื่อเลือดต่ำกว่า 50% จะเข้าสู่โหมดคลั่ง (Frenzy): ความเร็วโจมตีเร็วขึ้น +35% และอัตราคริติคอลเพิ่มขึ้น +25%
+  * การสังหารศัตรูด้วยการโจมตีระยะประชิด (Melee Kill) จะฟื้นฟูค่าความหิว +3 หน่วยทันที
+
+### 2. The Demolitionist (ผู้เชี่ยวชาญการก่อวินาศกรรม - Pyrotechnic Saboteur)
+* **รหัสตัวละคร**: `DEMOLITIONIST`
+* **ไฟล์ Asset**: [CHAR_07_Demolitionist.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Database/Characters/CHAR_07_Demolitionist.asset)
+* **โมเดล 3D**: [Chibi_TacticalGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx)
+* **อาวุธเริ่มต้น**: ขวานดับเพลิง (`Fire Axe`) + ปืนลูกโม่ (`Revolver`) พร้อมกระสุน Light Ammo 36 นัด
+* **ค่าพลังพื้นฐาน**: HP 105 | Max Hunger 105 | ความเร็วเคลื่อนที่ 4.9 m/s | Melee Damage +11 | Ranged Damage +12
+* **สกิลกดใช้ [Shift] — `Satchel Vault`**:
+  * ปลูกกับระเบิดกระเป๋า C4 (`C4_SatchelMine`) ลงบนพื้นทันที พร้อมดีดตัวถอยหลังด้วยความเร็ว 16 m/s เป็นระยะทาง 4.5 เมตร
+  * ได้รับสถานะอมตะชั่วคราว (I-Frames) และเล่นแอนิเมชันม้วนตัวหลบ (`DashRoll`) ขณะดีดตัว
+  * ตัวระเบิด C4 มีไฟ LED กะพริบแจ้งเตือน จะ Arm ภายใน 0.3 วินาที และจุดชนวนระเบิดทันทีเมื่อมีศัตรูเดินเข้าใกล้ หรือครบเวลาฟิวส์ 2.5 วินาที
+  * สร้างดาเมจระเบิด AOE รุนแรง 65 หน่วยในรัศมี 4.5 เมตร พร้อมทำให้ศัตรูทั้งหมดที่โดนแรงระเบิดติดสตั้นชะงักนาน 1.2 วินาที
+* **Passive — `Blast Shield & Ordnance`**:
+  * รัศมีระเบิดของอาวุธระเบิดทั้งหมดกว้างขึ้น +30% และดาเมจระเบิดแรงขึ้น +20%
+  * ต้านทานความเสียหายจากระเบิด (ทั้งจากศัตรูและระเบิดของตัวเอง) ลดลงถึง 60%
