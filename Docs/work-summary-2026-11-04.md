@@ -9,7 +9,7 @@
 2. [การปรับจูน Material เนื้อด้าน (Matte Finish) และระบบ Postprocessor อัตโนมัติ](#2-การปรับจูน-material-เนื้อด้าน-matte-finish-และระบบ-postprocessor-อัตโนมัติ)
 3. [ชุดแอนิเมชัน 10 ท่าครบวงจร และท่าตายสุดเท่ 1.5 วินาที (10-Clip Animation Suite & Dramatic Death)](#3-ชุดแอนิเมชัน-10-ท่าครบวงจร-และท่าตายสุดเท่-15-วินาที-10-clip-animation-suite--dramatic-death)
 4. [ระบบ UpperBody AvatarMask สำหรับเดินยิง, แสงไฟปากกระบอกปืน และการแก้บั๊กฟันประชิดหลังถือปืน](#4-ระบบ-upperbody-avatarmask-สำหรับเดินยิง-แสงไฟปากกระบอกปืน-และการแก้บั๊กฟันประชิดหลังถือปืน)
-5. [ระบบล็อกความเร็วเดินปกติ 1 วินาทีหลังยิงปืน (1-Second Sprint Lock On Shoot)](#5-ระบบล็อกความเร็วเดินปกติ-1-วินาทีหลังยิงปืน-1-second-sprint-lock-on-shoot)
+5. [ระบบความเร็ววิ่งเร็ว และลดความเร็วเหลือ 0.75x เดินปกติ 1 วินาทีเมื่อกดยิงปืน (Sprint Speed & 0.75x Shoot Penalty)](#5-ระบบความเร็ววิ่งเร็ว-และลดความเร็วเหลือ-075x-เดินปกติ-1-วินาทีเมื่อกดยิงปืน-sprint-speed--075x-shoot-penalty)
 6. [ระบบ ScriptableObject Status & Config สำหรับปรับแต่งตัวละครทั้งหมด (Customizable CharacterData ScriptableObjects & Custom Inspector)](#6-ระบบ-scriptableobject-status--config-สำหรับปรับแต่งตัวละครทั้งหมด-customizable-characterdata-scriptableobjects--custom-inspector)
 
 ---
@@ -92,19 +92,21 @@
 
 ---
 
-## 5. ระบบล็อกความเร็วเดินปกติ 1 วินาทีหลังยิงปืน (1-Second Sprint Lock On Shoot)
+## 5. ระบบความเร็ววิ่งเร็ว และลดความเร็วเหลือ 0.75x เดินปกติ 1 วินาทีเมื่อกดยิงปืน (Sprint Speed & 0.75x Shoot Penalty)
 
 ### ไฟล์หลัก:
 * [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+* [CharacterData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CharacterData.cs)
+* [CHAR_04_Marksman.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources/Database/Characters/CHAR_04_Marksman.asset)
 
 ### รายละเอียดการทำงาน:
-* เพิ่มตัวจับเวลา `_shootSprintLockTimer = 1.0f` เมื่อเรียกใช้งาน `ShootWeapon()`:
-  * ทันทีที่ผู้เล่นกดยิงปืน ตัวละครจะยกเลิกการวิ่งทันที (`_isSprinting = false`, `_animator.SetBool("IsRunning", false)`, และสั่ง `_activeShiftAbility?.OnShiftReleased()`)
-  * ตลอดระยะเวลา **1.0 วินาที** หลังจากยิงกระสุนนัดล่าสุด (`_shootSprintLockTimer > 0f`):
-    * ใน `FixedUpdate()` ความเร็วเคลื่อนที่จะถูกล็อกให้เท่ากับความเร็วเดินปกติ (`currentSpeed = moveSpeed`) โดยไม่นำตัวคูณความเร็ววิ่ง (`1.5x`) หรือตัวคูณจาก `ShiftAbility` (`AdrenalineRush 1.75x`) มาคิด
-    * ผู้เล่นต้องหยุดยิงครบ **1.0 วินาที** จึงจะสามารถกลับมาวิ่งเร็ว (`Sprint`) ได้อีกครั้ง
-
-
+* **แก้ไขปัญหาเดิมที่กด Shift แล้วตัวละครเดินช้า**:
+  * เดิมทีสกิล Eagle Eye ของ Marksman มีค่า `eagleEyeMoveSpeedMultiplier = 0.35f` ทำให้เมื่อกด Shift ตัวละครจะถูกดึงความเร็วลงเหลือเพียง 35% ของความเร็วปกติ
+  * ปรับแก้ให้ความเร็ววิ่งเร็ว (`sprintSpeedMultiplier = 1.5x - 1.75x`) เป็นมาตรฐานสูงสุด ไม่มีสกิลใดดึงความเร็วให้ช้ากว่าการวิ่งเร็วได้อีกต่อไป
+* **เงื่อนไขระบบวิ่งและยิงปืน**:
+  1. **กด Shift วิ่งโดยไม่ได้ยิงปืน**: ความเร็วจะกลายเป็น **วิ่งเร็ว** เสมอ (`currentSpeed = moveSpeed * sprintSpeedMultiplier` หรือตามตัวคูณสกิล เช่น Vanguard 1.75x) พร้อมเล่นแอนิเมชันวิ่ง `IsRunning = true`
+  2. **วิ่งอยู่แล้วกดยิงปืน**: ทันทีที่กดยิง ตัวนับเวลา `_shootSprintLockTimer = 1.0f` จะทำงาน และความเร็วจะถูกปรับเป็น **เท่าเดิน * 0.75** ทันที (`currentSpeed = moveSpeed * 0.75f`) เป็นเวลา 1.0 วินาที
+  3. **หยุดยิงครบ 1.0 วินาที**: หากผู้เล่นยังคงกดปุ่ม Shift ค้างอยู่ ความเร็วจะสปริงกลับไปเป็น **วิ่งเร็ว** ทันทีโดยอัตโนมัติ และสลับกลับไปเล่นท่าวิ่ง `IsRunning = true`
 
 ---
 
@@ -119,18 +121,18 @@
 * [DamageCalculator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/DamageCalculator.cs) & [Health.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Health.cs) — คำนวณ Critical Chance, Critical Multiplier และ Armor Damage Reduction จาก CharacterData
 * [CharacterSelectUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CharacterSelectUI.cs) & [MainMenuManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/MainMenuManager.cs) — แสดงข้อมูล Stat, ข้อมูลกระสุน และเสบียงบนหน้าต่างเลือกตัวละครอย่างตรงไปตรงมาตามค่าที่ปรับใน SO
 
-### ไฟล์ Asset ตัวละครที่ปรับแต่งได้ทันทีใน Inspector (Assets/Resources/Database/Characters/):
-* CHAR_01_Vanguard.asset (The Vanguard: สมดุล, วิ่งเร็ว 1.5x, สกิล Adrenaline Rush ปรับจูนได้)
-* CHAR_02_Juggernaut.asset (The Juggernaut: เลือด 150, เกราะติดตัว 15%, สกิลพุ่งชน Unstoppable Charge ปรับจูนได้)
-* CHAR_03_Phantom.asset (The Phantom: วิ่งไว 6.0 m/s, สกิล Shadow Step วิ่งทะลุศัตรูพร้อมการันตีคริติคอลหลังออกจากเงามืด)
-* CHAR_04_Marksman.asset (The Marksman: อัตราคริติคอลพื้นฐาน 35%, กระสุน Medium 20 + Light 20, สกิล Eagle Eye ซูม 1.35x ยิงทะลุ)
-* CHAR_05_Scavenger.asset (The Scavenger: โบนัสตกของ +25%, โบนัสทอง +30%, สกิล Toxic Trail ปล่อยควันพิษสโลว์ 50%, Passive กินอาหารฮีลเลือด +10 HP)
+### ไฟล์ Asset ตัวละครที่ปรับแต่งได้ทันทีใน Inspector (`Assets/Resources/Database/Characters/`):
+* `CHAR_01_Vanguard.asset` (The Vanguard: สมดุล, วิ่งเร็ว 1.5x, สกิล Adrenaline Rush ปรับจูนได้)
+* `CHAR_02_Juggernaut.asset` (The Juggernaut: เลือด 150, เกราะติดตัว 15%, สกิลพุ่งชน Unstoppable Charge ปรับจูนได้)
+* `CHAR_03_Phantom.asset` (The Phantom: วิ่งไว 6.0 m/s, สกิล Shadow Step วิ่งทะลุศัตรูพร้อมการันตีคริติคอลหลังออกจากเงามืด)
+* `CHAR_04_Marksman.asset` (The Marksman: อัตราคริติคอลพื้นฐาน 35%, กระสุน Medium 20 + Light 20, สกิล Eagle Eye ซูม 1.35x ยิงทะลุ)
+* `CHAR_05_Scavenger.asset` (The Scavenger: โบนัสตกของ +25%, โบนัสทอง +30%, สกิล Toxic Trail ปล่อยควันพิษสโลว์ 50%, Passive กินอาหารฮีลเลือด +10 HP)
 
 ### จุดสำคัญที่ได้รับการแก้ไข (Root-Cause Fix):
 1. **แก้ปัญหา Inspector ถูก Reset คืนค่าเริ่มต้นทุกครั้งที่ Recompile**:
-   * เดิม CharacterAssetCreator.cs มีแอตทริบิวต์ [InitializeOnLoad] และเขียนทับตัวแปรทุกตัวบนไฟล์ .asset ด้วยฮาร์ดโค้ดเดิมทุกครั้งที่ Unity คอมไพล์ใหม่
-   * ได้ทำการลบ [InitializeOnLoad] ออก พร้อมเปลี่ยนระบบเป็น **Safe Load** (หากไฟล์ .asset มีอยู่แล้ว จะไม่แตะต้องค่าที่ผู้ใช้อิดิทไว้เด็ดขาด) และเพิ่มเมนูรีเซ็ตสำหรับ Factory Reset แยกชัดเจน
+   * เดิม `CharacterAssetCreator.cs` มีแอตทริบิวต์ `[InitializeOnLoad]` และเขียนทับตัวแปรทุกตัวบนไฟล์ `.asset` ด้วยฮาร์ดโค้ดเดิมทุกครั้งที่ Unity คอมไพล์ใหม่
+   * ได้ทำการลบ `[InitializeOnLoad]` ออก พร้อมเปลี่ยนระบบเป็น **Safe Load** (หากไฟล์ `.asset` มีอยู่แล้ว จะไม่แตะต้องค่าที่ผู้ใช้อิดิทไว้เด็ดขาด) และเพิ่มเมนูรีเซ็ตสำหรับ Factory Reset แยกชัดเจน
 2. **ปลดล็อกการตั้งค่ากระสุนเริ่มต้นและเสบียง (Decoupled Loadouts)**:
-   * เพิ่ม StartingAmmoConfig แบบ List ทำให้กำหนดประเภทกระสุนกี่ชนิดและจำนวนเท่าใดก็ได้ใน Inspector ของแต่ละตัวละคร
-   * เพิ่ม startingRations สำหรับปรับจำนวนขนมปังเริ่มต้น
-   * เชื่อมต่อ shootSprintLockDuration เข้ากับ SO เพื่อให้ผู้พัฒนาสามารถปรับจูนระยะเวลาห้ามวิ่งหลังยิงของแต่ละตัวละครได้อย่างอิสระ
+   * เพิ่ม `StartingAmmoConfig` แบบ List ทำให้กำหนดประเภทกระสุนกี่ชนิดและจำนวนเท่าใดก็ได้ใน Inspector ของแต่ละตัวละคร
+   * เพิ่ม `startingRations` สำหรับปรับจำนวนขนมปังเริ่มต้น
+   * เชื่อมต่อ `shootSprintLockDuration` เข้ากับ SO เพื่อให้ผู้พัฒนาสามารถปรับจูนระยะเวลาห้ามวิ่งหลังยิงของแต่ละตัวละครได้อย่างอิสระ

@@ -204,7 +204,7 @@ namespace TheLastEmpire
         [Header("--- Ability Tuning: Eagle Eye (Marksman) ---")]
         [Range(1.1f, 2.5f)] public float eagleEyeZoomMultiplier = 1.35f;
         [Range(1f, 4f)] public float eagleEyeRangeMultiplier = 2.0f;
-        [Range(0.1f, 1f)] public float eagleEyeMoveSpeedMultiplier = 0.35f;
+        [Range(1.0f, 3f)] public float eagleEyeMoveSpeedMultiplier = 1.5f;
         [Range(0.1f, 5f)] public float eagleEyeHungerDrainRate = 0.8f;
 
         [Header("--- Ability Tuning: Toxic Trail (Scavenger) ---")]

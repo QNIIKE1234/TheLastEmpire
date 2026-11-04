@@ -432,13 +432,17 @@ namespace TheLastEmpire
                 return;
             }
 
+            if (_shootSprintLockTimer > 0f) _shootSprintLockTimer -= Time.deltaTime;
+            bool isShootingNow = _shootSprintLockTimer > 0f || _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
+            if (isShootingNow) _activeShiftAbility?.OnShiftReleased();
+
             if (Keyboard.current != null)
             {
-                if (_shootSprintLockTimer <= 0f && Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (!isShootingNow && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (_shootSprintLockTimer <= 0f && Keyboard.current.shiftKey.isPressed)
+                if (!isShootingNow && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
@@ -449,9 +453,6 @@ namespace TheLastEmpire
             }
             _activeShiftAbility?.UpdateAbility();
 
-            if (_shootSprintLockTimer > 0f) _shootSprintLockTimer -= Time.deltaTime;
-            bool isShootingNow = _shootSprintLockTimer > 0f || _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
-            if (isShootingNow) _activeShiftAbility?.OnShiftReleased();
             _isSprinting = !isShootingNow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
@@ -716,35 +717,45 @@ namespace TheLastEmpire
             }
             else
             {
-                float currentSpeed = moveSpeed;
-                if (_shootSprintLockTimer <= 0f && _activeShiftAbility != null && _activeShiftAbility.IsActive)
+                float baseSpeed = moveSpeed;
+                float currentSpeed = baseSpeed;
+                bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+
+                if (_shootSprintLockTimer > 0f)
                 {
-                    if (_activeShiftAbility is AdrenalineRushAbility)
-                    {
-                        float mult = activeCharacterData != null ? activeCharacterData.adrenalineSpeedMultiplier : 1.75f;
-                        currentSpeed *= mult;
-                    }
-                    else if (_activeShiftAbility is ShadowStepAbility)
-                    {
-                        float mult = activeCharacterData != null ? activeCharacterData.shadowSpeedMultiplier : 1.40f;
-                        currentSpeed *= mult;
-                    }
-                    else if (_activeShiftAbility is EagleEyeAbility)
-                    {
-                        float mult = activeCharacterData != null ? activeCharacterData.eagleEyeMoveSpeedMultiplier : 0.35f;
-                        currentSpeed *= mult;
-                    }
-                    else
-                    {
-                        float mult = activeCharacterData != null ? activeCharacterData.sprintSpeedMultiplier : 1.5f;
-                        currentSpeed *= mult;
-                    }
+                    // เงื่อนไข: ถ้าวิ่งแล้วกดยิง (หรือยิงปืนภายใน 1.0 วินาที) ความเร็วจะเป็นเท่าเดิน * 0.75 จนกว่าจะพ้น 1.0 วินาที
+                    currentSpeed = baseSpeed * 0.75f;
                 }
-                else if (_shootSprintLockTimer <= 0f && _isSprinting)
+                else if (isShiftHeld)
                 {
-                    float mult = activeCharacterData != null ? activeCharacterData.sprintSpeedMultiplier : 1.5f;
-                    currentSpeed *= mult;
+                    // ถ้าวิ่งแล้วไม่ได้ยิง (หรือหมดช่วง 1.0 วินาทีแล้ว) ความเร็วจะกลายเป็นวิ่งเร็ว
+                    float sprintMult = (activeCharacterData != null && activeCharacterData.sprintSpeedMultiplier > 1f)
+                        ? activeCharacterData.sprintSpeedMultiplier
+                        : 1.5f;
+
+                    // ตรวจสอบโบนัสความเร็วจาก Shift Ability เพิ่มเติม (เช่น Adrenaline Rush 1.75x)
+                    if (_activeShiftAbility != null && _activeShiftAbility.IsActive)
+                    {
+                        if (_activeShiftAbility is AdrenalineRushAbility)
+                        {
+                            float adrMult = (activeCharacterData != null) ? activeCharacterData.adrenalineSpeedMultiplier : 1.75f;
+                            sprintMult = Mathf.Max(sprintMult, adrMult);
+                        }
+                        else if (_activeShiftAbility is ShadowStepAbility)
+                        {
+                            float shadowMult = (activeCharacterData != null) ? activeCharacterData.shadowSpeedMultiplier : 1.40f;
+                            sprintMult = Mathf.Max(sprintMult, shadowMult);
+                        }
+                    }
+
+                    currentSpeed = baseSpeed * sprintMult;
                 }
+                else
+                {
+                    // เดินปกติ
+                    currentSpeed = baseSpeed;
+                }
+
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }
@@ -1064,15 +1075,18 @@ namespace TheLastEmpire
 
             // Alert nearby enemies to the gunshot noise
             AlertEnemiesToGunshot();
+
+            // ล็อกความเร็วให้เหลือเดิน * 0.75 ทันทีที่กดยิงปืน เป็นเวลา 1.0 วินาที
+            _shootSprintLockTimer = activeCharacterData != null ? activeCharacterData.shootSprintLockDuration : 1.0f;
+            _activeShiftAbility?.OnShiftReleased();
+            _isSprinting = false;
+
             if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
             if (_animator != null)
             {
                 _animator.ResetTrigger("Shoot");
                 _animator.SetTrigger("Shoot");
                 int shootLayer = _animator.layerCount > 1 ? 1 : 0;
-                _shootSprintLockTimer = activeCharacterData != null ? activeCharacterData.shootSprintLockDuration : 1.0f;
-                _activeShiftAbility?.OnShiftReleased();
-                _isSprinting = false;
                 _animator.SetBool("IsRunning", false);
                 _shootAnimLayerTimer = 0.42f;
                 if (shootLayer == 1) _animator.SetLayerWeight(1, 1f);

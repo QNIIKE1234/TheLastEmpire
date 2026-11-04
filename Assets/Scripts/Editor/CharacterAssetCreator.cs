@@ -387,7 +387,7 @@ namespace TheLastEmpire.Editor
 
             data.eagleEyeZoomMultiplier = 1.35f;
             data.eagleEyeRangeMultiplier = 2.0f;
-            data.eagleEyeMoveSpeedMultiplier = 0.35f;
+            data.eagleEyeMoveSpeedMultiplier = 1.5f;
             data.eagleEyeHungerDrainRate = 0.8f;
 
             EditorUtility.SetDirty(data);
