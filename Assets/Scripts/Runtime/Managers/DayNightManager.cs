@@ -15,9 +15,9 @@ namespace TheLastEmpire
         }
 
         [Header("Timing Settings (Day-Night Cycle)")]
-        [SerializeField] private float dayDuration = 35f;
+        [SerializeField] private float dayDuration = 180f;
         [SerializeField] private float duskDuration = 12f;
-        [SerializeField] private float nightDuration = 25f;
+        [SerializeField] private float nightDuration = 120f;
         [Tooltip("Smooth fade duration into darkness/dusk (seconds)")]
         [SerializeField] private float fadeSpeed = 1.2f;
 
@@ -607,6 +607,14 @@ namespace TheLastEmpire
             DayCount = Mathf.Max(1, DayCount + delta);
         }
 
+
+        public void SetCycleDurations(float day, float dusk, float night)
+        {
+            dayDuration = Mathf.Max(1f, day);
+            duskDuration = Mathf.Max(1f, dusk);
+            nightDuration = Mathf.Max(1f, night);
+            Debug.Log($"[DayNightManager] Cycle updated: Day={dayDuration}s, Dusk={duskDuration}s, Night={nightDuration}s");
+        }
         public void ToggleTimePhase()
         {
             AdvancePhase();

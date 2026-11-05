@@ -84,6 +84,41 @@ namespace TheLastEmpire
                 EditorGUILayout.EndVertical();
             }
 
+
+            EditorGUILayout.Space(10);
+            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("DAY/NIGHT RATIO PRESETS", EditorStyles.boldLabel);
+            if (dayNightMgr != null)
+            {
+                EditorGUILayout.LabelField("Active Durations:", $"Day: {dayNightMgr.DayDuration:0}s | Dusk: {dayNightMgr.DuskDuration:0}s | Night: {dayNightMgr.NightDuration:0}s");
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            GUI.backgroundColor = new Color(0.4f, 0.85f, 1f);
+            if (GUILayout.Button("60% / 40% (5 Mins)\n[Day: 180s | Night: 120s]", GUILayout.Height(38)))
+            {
+                if (dayNightMgr != null)
+                {
+                    Undo.RecordObject(dayNightMgr, "Set Day/Night 60/40 5min");
+                    dayNightMgr.SetCycleDurations(180f, 12f, 120f);
+                    EditorUtility.SetDirty(dayNightMgr);
+                }
+            }
+
+            GUI.backgroundColor = new Color(0.9f, 0.7f, 1f);
+            if (GUILayout.Button("60s / 40s (Fast Cycle)\n[Day: 60s | Night: 40s]", GUILayout.Height(38)))
+            {
+                if (dayNightMgr != null)
+                {
+                    Undo.RecordObject(dayNightMgr, "Set Day/Night 60s/40s");
+                    dayNightMgr.SetCycleDurations(60f, 10f, 40f);
+                    EditorUtility.SetDirty(dayNightMgr);
+                }
+            }
+            GUI.backgroundColor = Color.white;
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+
             EditorGUILayout.Space(10);
 
             // 1-Click Phase Jump Buttons
