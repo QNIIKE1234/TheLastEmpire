@@ -26,7 +26,12 @@ namespace TheLastEmpire
 
         [Header("Optional Text Label")]
         [SerializeField] private TextMeshProUGUI timeText;
-        [SerializeField] private bool showDayPrefix = true;
+
+        [Header("Time Display Format")]
+        [Tooltip("When true, displays 24-hour clock format like '12:00'. When false, displays countdown like '(100s)'")]
+        [SerializeField] private bool useClockTime = true;
+        [SerializeField] private bool showDayPrefix = false;
+        [SerializeField] private bool showPeriodName = false;
 
         [Header("Scroll Tuning")]
         [Tooltip("Smooth transition speed when interpolating position (higher = snappier)")]
@@ -293,14 +298,37 @@ namespace TheLastEmpire
                     break;
             }
 
-            int sec = Mathf.CeilToInt(remainingSeconds);
-            if (showDayPrefix)
+            if (useClockTime)
             {
-                timeText.text = $"DAY {dnm.DayCount} - {periodName} ({sec}s)";
+                string clock = dnm.GetClockTimeString();
+                if (showDayPrefix && showPeriodName)
+                {
+                    timeText.text = $"DAY {dnm.DayCount} • {periodName}  {clock}";
+                }
+                else if (showDayPrefix)
+                {
+                    timeText.text = $"DAY {dnm.DayCount}  {clock}";
+                }
+                else if (showPeriodName)
+                {
+                    timeText.text = $"{periodName}  {clock}";
+                }
+                else
+                {
+                    timeText.text = clock; // e.g. "12:00", "06:00", "18:00"
+                }
             }
             else
             {
-                timeText.text = $"{periodName} ({sec}s)";
+                int sec = Mathf.CeilToInt(remainingSeconds);
+                if (showDayPrefix)
+                {
+                    timeText.text = $"DAY {dnm.DayCount} - {periodName} ({sec}s)";
+                }
+                else
+                {
+                    timeText.text = $"{periodName} ({sec}s)";
+                }
             }
             timeText.color = periodColor;
         }
@@ -323,3 +351,4 @@ namespace TheLastEmpire
         }
     }
 }
+

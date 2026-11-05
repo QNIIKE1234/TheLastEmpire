@@ -90,24 +90,42 @@ namespace TheLastEmpire
             EditorGUILayout.LabelField("TEST PHASES (1-CLICK JUMP)", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
 
-            GUI.backgroundColor = new Color(1.0f, 0.95f, 0.7f);
-            if (GUILayout.Button("DAY\n(Clear Sun)", GUILayout.Height(40)))
+            GUI.backgroundColor = new Color(1.0f, 0.88f, 0.45f);
+            if (GUILayout.Button("DAWN\n(Golden Sunrise)", GUILayout.Height(40)))
             {
-                if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Day);
+                if (dayNightMgr != null)
+                {
+                    dayNightMgr.SetPhase(DayNightManager.TimePhase.Day, true);
+                    // Start at beginning of Day (06:00 Dawn)
+                    dayNightMgr.ResetDayCount();
+                    if (TimeHUDController.Instance != null) TimeHUDController.Instance.SnapToCurrentPhase();
+                }
+                else SetManualPreview(0f, 0f, new Color(0.98f, 0.94f, 0.68f, 1f));
+            }
+
+            GUI.backgroundColor = new Color(1.0f, 0.98f, 0.70f);
+            if (GUILayout.Button("NOON\n(High Sun)", GUILayout.Height(40)))
+            {
+                if (dayNightMgr != null)
+                {
+                    dayNightMgr.SetPhase(DayNightManager.TimePhase.Day, true);
+                    dayNightMgr.FastForward(dayNightMgr.DayDuration * 0.5f);
+                    if (TimeHUDController.Instance != null) TimeHUDController.Instance.SnapToCurrentPhase();
+                }
                 else SetManualPreview(0f, 0f, Color.white);
             }
 
             GUI.backgroundColor = new Color(1.0f, 0.6f, 0.25f);
             if (GUILayout.Button("DUSK\n(Sunset Mist)", GUILayout.Height(40)))
             {
-                if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Dusk);
+                if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Dusk, true);
                 else SetManualPreview(0f, 0f, new Color(0.98f, 0.88f, 0.78f, 1f));
             }
 
             GUI.backgroundColor = new Color(0.2f, 0.35f, 0.7f);
             if (GUILayout.Button("NIGHT\n(Distance Fade)", GUILayout.Height(40)))
             {
-                if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Night);
+                if (dayNightMgr != null) dayNightMgr.SetPhase(DayNightManager.TimePhase.Night, true);
                 else SetManualPreview(1f, 0f, new Color(0.12f, 0.16f, 0.28f, 1f));
             }
             GUI.backgroundColor = Color.white;
