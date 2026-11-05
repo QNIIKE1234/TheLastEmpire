@@ -119,3 +119,4 @@
 * `65f12cd` — `feat(combat): scale up floating damage numbers by 50%`
 * `3228333` — `feat(player): add melee and ranged weapon visual reference slots and auto-toggle on attack/shoot`
 * `9116d3f` — `feat(models): generate 3D weapon models in GeneratedModels/Weapons and relocate animations to Resources/Image/Animation`
+
