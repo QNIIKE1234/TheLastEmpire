@@ -12,9 +12,20 @@ namespace TheLastEmpire
         [SerializeField] private bool isMoney = false;
         [SerializeField] private float interactRange = 1.5f;
 
+        [Header("Magnet / Vacuum Settings")]
+        [SerializeField] private bool enableMagnet = true;
+        [SerializeField] private float magnetRange = 3.5f;
+        [SerializeField] private float initialMagnetSpeed = 6.0f;
+        [SerializeField] private float maxMagnetSpeed = 24.0f;
+        [SerializeField] private float magnetAcceleration = 32.0f;
+        [SerializeField] private float collectRadius = 0.45f;
+        [SerializeField] private float spinSpeed = 360f;
+        [SerializeField] private float minScaleRatio = 0.05f;
+
         public int Quantity => quantity;
 
         private Transform _playerTransform;
+        private PlayerController _playerController;
         [SerializeField] private TMP_Text promptText;
         [SerializeField] private MeshRenderer itemMeshRenderer;
 
@@ -25,9 +36,17 @@ namespace TheLastEmpire
         public const float GROUND_Y = 0.25f;
         private bool _skipHop = false;
         private bool _isPopping = false;
+        private bool _isMagnetizing = false;
+        private float _currentMagnetSpeed = 0f;
+        private float _magnetStartDist = 0f;
+        private Vector3 _initialScale = Vector3.zero;
+        private bool _isCollected = false;
+        public bool IsCollected => _isCollected;
 
         private void Start()
         {
+            CaptureInitialScale();
+
             // Ensure all colliders are triggers immediately so all units walk through freely
             Collider[] colliders = GetComponentsInChildren<Collider>();
             foreach (var col in colliders)
@@ -64,6 +83,14 @@ namespace TheLastEmpire
             }
         }
 
+        private void CaptureInitialScale()
+        {
+            if (transform.localScale != Vector3.zero)
+            {
+                _initialScale = transform.localScale;
+            }
+        }
+
         private System.Collections.IEnumerator PopAndLandRoutine()
         {
             _isPopping = true;
@@ -78,6 +105,18 @@ namespace TheLastEmpire
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
+
+                // After initial burst (0.12s), if player is within magnet range, transition directly to magnet
+                if (enableMagnet && elapsed >= 0.12f && _playerTransform != null)
+                {
+                    Vector3 pTarget = _playerTransform.position + Vector3.up * 0.7f;
+                    if (Vector3.Distance(transform.position, pTarget) <= magnetRange)
+                    {
+                        StartMagnetizing(pTarget);
+                        yield break;
+                    }
+                }
+
                 float t = Mathf.Clamp01(elapsed / duration);
 
                 float currentX = Mathf.Lerp(startPos.x, targetPos.x, t);
@@ -92,11 +131,35 @@ namespace TheLastEmpire
             _isPopping = false;
         }
 
+        public void StartMagnetizing(Vector3 playerTargetPos)
+        {
+            if (_isMagnetizing || _isCollected) return;
+            _isMagnetizing = true;
+            _isPopping = false;
+            StopAllCoroutines();
+
+            CaptureInitialScale();
+            _magnetStartDist = Vector3.Distance(transform.position, playerTargetPos);
+            if (_magnetStartDist < 0.5f) _magnetStartDist = 0.5f;
+            _currentMagnetSpeed = initialMagnetSpeed;
+
+            if (promptText != null)
+            {
+                promptText.gameObject.SetActive(false);
+            }
+        }
+
         public void SnapToGround()
         {
             _skipHop = true;
             _isPopping = false;
+            _isMagnetizing = false;
             StopAllCoroutines();
+            CaptureInitialScale();
+            if (_initialScale != Vector3.zero)
+            {
+                transform.localScale = _initialScale;
+            }
 
             Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
@@ -154,35 +217,111 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            // Safety ground clamp if not in the middle of popping arc
-            if (!_isPopping && Mathf.Abs(transform.position.y - GROUND_Y) > 0.05f)
-            {
-                Vector3 pos = transform.position;
-                pos.y = GROUND_Y;
-                transform.position = pos;
-            }
+            if (_isCollected) return;
 
-            if (_playerTransform == null)
+            if (_playerTransform == null || _playerController == null)
             {
                 FindPlayer();
-                return;
+                if (_playerTransform == null) return;
             }
 
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            bool inRange = dist <= interactRange;
+            Vector3 playerTargetPos = _playerTransform.position + Vector3.up * 0.7f;
+            float distToPlayer = Vector3.Distance(transform.position, playerTargetPos);
 
-            if (promptText != null)
+            if (!_isMagnetizing)
             {
-                promptText.gameObject.SetActive(inRange);
+                if (enableMagnet && distToPlayer <= magnetRange)
+                {
+                    if (!_isPopping)
+                    {
+                        StartMagnetizing(playerTargetPos);
+                    }
+                }
+            }
+
+            if (_isMagnetizing)
+            {
+                // 1. Move & Accelerate towards player
+                _currentMagnetSpeed = Mathf.Min(maxMagnetSpeed, _currentMagnetSpeed + magnetAcceleration * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, playerTargetPos, _currentMagnetSpeed * Time.deltaTime);
+
+                // 2. Visual: Gradually shrink smaller as it gets sucked closer to the player
+                float remainingDist = Vector3.Distance(transform.position, playerTargetPos);
+                float progress = Mathf.Clamp01(remainingDist / Mathf.Max(0.1f, _magnetStartDist));
+                float scaleMultiplier = Mathf.Lerp(minScaleRatio, 1f, progress);
+                if (_initialScale != Vector3.zero)
+                {
+                    transform.localScale = _initialScale * scaleMultiplier;
+                }
+
+                // 3. Visual: Swirl / spin towards player for extra juicy vacuum effect
+                if (spinSpeed != 0f)
+                {
+                    transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+                }
+
+                // 4. Collection check
+                if (remainingDist <= collectRadius || progress <= 0.05f)
+                {
+                    if (_playerController != null)
+                    {
+                        _playerController.CollectItem(this);
+                    }
+                    else
+                    {
+                        Collect();
+                    }
+                    return;
+                }
+            }
+            else
+            {
+                // Safety ground clamp if not popping and not magnetizing
+                if (!_isPopping && Mathf.Abs(transform.position.y - GROUND_Y) > 0.05f)
+                {
+                    Vector3 pos = transform.position;
+                    pos.y = GROUND_Y;
+                    transform.position = pos;
+                }
+
+                // Show prompt text only if magnet is disabled
+                bool inRange = distToPlayer <= interactRange;
+                if (promptText != null)
+                {
+                    promptText.gameObject.SetActive(!enableMagnet && inRange);
+                }
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (_isCollected) return;
+            if (other.CompareTag("Player") || other.GetComponent<PlayerController>() != null || other.GetComponentInParent<PlayerController>() != null)
+            {
+                if (_playerController == null)
+                {
+                    _playerController = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                }
+                if (_playerController != null)
+                {
+                    _playerController.CollectItem(this);
+                }
+                else
+                {
+                    Collect();
+                }
             }
         }
 
         private void FindPlayer()
         {
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
-            if (player != null)
+            if (_playerController == null)
             {
-                _playerTransform = player.transform;
+                _playerController = Object.FindFirstObjectByType<PlayerController>();
+            }
+            if (_playerController != null)
+            {
+                _playerTransform = _playerController.transform;
             }
         }
 
@@ -194,7 +333,8 @@ namespace TheLastEmpire
 
         public void Collect()
         {
-            // Visual pop effect (could spawn particle)
+            if (_isCollected) return;
+            _isCollected = true;
             Destroy(gameObject);
         }
 
@@ -290,6 +430,7 @@ namespace TheLastEmpire
             }
 
             UpdatePromptText();
+            CaptureInitialScale();
         }
 
         public void SetMoneyDetails(int amount)
@@ -358,6 +499,7 @@ namespace TheLastEmpire
             }
 
             UpdatePromptText();
+            CaptureInitialScale();
         }
 
         private void UpdatePromptText()
@@ -379,6 +521,12 @@ namespace TheLastEmpire
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, interactRange);
+
+            if (enableMagnet)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(transform.position, magnetRange);
+            }
         }
     }
 }

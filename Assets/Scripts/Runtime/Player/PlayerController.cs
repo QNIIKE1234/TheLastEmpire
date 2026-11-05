@@ -1124,8 +1124,8 @@ namespace TheLastEmpire
 
             foreach (var item in collectibles)
             {
-                if (item == null) continue;
-                float dist = Vector2.Distance(transform.position, item.transform.position);
+                if (item == null || item.IsCollected) continue;
+                float dist = Vector3.Distance(transform.position, item.transform.position);
                 if (dist < closestDist)
                 {
                     closestDist = dist;
@@ -1135,17 +1135,23 @@ namespace TheLastEmpire
 
             if (closestItem != null && closestItem.IsPlayerInRange())
             {
-                if (closestItem.IsMoney)
-                {
-                    _inventory.AddMoney(closestItem.MoneyAmount);
-                }
-                else
-                {
-                    _inventory.AddItem(closestItem.ItemName, closestItem.Quantity);
-                }
-                closestItem.Collect();
-                OnAmmoChanged?.Invoke();
+                CollectItem(closestItem);
             }
+        }
+
+        public void CollectItem(CollectibleItem item)
+        {
+            if (item == null || item.IsCollected || _inventory == null) return;
+            if (item.IsMoney)
+            {
+                _inventory.AddMoney(item.MoneyAmount);
+            }
+            else
+            {
+                _inventory.AddItem(item.ItemName, item.Quantity);
+            }
+            item.Collect();
+            OnAmmoChanged?.Invoke();
         }
 
         private void ShootWeapon()
