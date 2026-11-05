@@ -1892,8 +1892,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -815, y: 390}
-  m_SizeDelta: {x: -1670, y: -820}
+  m_AnchoredPosition: {x: -814, y: 386.77344}
+  m_SizeDelta: {x: -1649.8649, y: -793.7051}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &175479349
 MonoBehaviour:
@@ -1928,7 +1928,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1110369301, guid: c5f526e60cffa994588506483b595174, type: 3}
+  m_Sprite: {fileID: 628180629, guid: 98e0f9cf3c014c14e806439dd44efb6c, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -6361,18 +6361,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3161b50b02a3d47bf05b2ef234f8c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.DayNightManager
-  dayDuration: 180
+  dayDuration: 200
   duskDuration: 12
-  nightDuration: 120
+  nightDuration: 100
   fadeSpeed: 1.2
   cycleSpeedMultiplier: 1
-  sceneDirectionalLight: {fileID: 0}
-  dawnSunIntensity: 0.85
   dawnSunColor: {r: 1, g: 0.92, b: 0.55, a: 1}
+  dawnSunIntensity: 0.85
   dawnAmbientColor: {r: 0.56, g: 0.52, b: 0.38, a: 1}
   dawnCameraColor: {r: 0.18, g: 0.22, b: 0.3, a: 1}
   dawnGroundTint: {r: 0.98, g: 0.94, b: 0.68, a: 1}
   dawnSunriseSunAngle: {x: 18, y: -90, z: 0}
+  sceneDirectionalLight: {fileID: 0}
   daySunIntensity: 1
   duskSunIntensity: 0.45
   nightSunIntensity: 0.08
@@ -8910,7 +8910,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2077295905, guid: c5f526e60cffa994588506483b595174, type: 3}
+  m_Sprite: {fileID: -1392100888, guid: 98e0f9cf3c014c14e806439dd44efb6c, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -11594,8 +11594,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -814.9509, y: 389.45}
-  m_SizeDelta: {x: -1660.0928, y: -816.79}
+  m_AnchoredPosition: {x: -814, y: 386.77}
+  m_SizeDelta: {x: -1615.153, y: -771.2791}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1188109265
 MonoBehaviour:
@@ -11630,7 +11630,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 098eca53dfcb7b14989fd25bda5a8314, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 738d0386f7ab1b242b3cca6cedcb2106, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -14156,7 +14156,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1790591155, guid: c5f526e60cffa994588506483b595174, type: 3}
+  m_Sprite: {fileID: -1392100888, guid: 98e0f9cf3c014c14e806439dd44efb6c, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -16774,7 +16774,9 @@ MonoBehaviour:
   duskIcon: {fileID: 342801257}
   nightIcon: {fileID: 1560984098}
   timeText: {fileID: 1243525789}
+  useClockTime: 1
   showDayPrefix: 1
+  showPeriodName: 0
   smoothSpeed: 6
 --- !u!1001 &1717474618
 PrefabInstance:
