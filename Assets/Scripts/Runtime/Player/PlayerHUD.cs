@@ -33,6 +33,14 @@ namespace TheLastEmpire
         [Tooltip("สุ่ม Seed แมพใหม่ตอน Retry หรือไม่ (ถ้า false จะเล่นซ้ำ Seed เดิมและเกิดที่ Safe Zone เดิม)")]
         [SerializeField] private bool randomizeSeedOnRetry = false;
 
+        [Header("Awakening Banner References (Optional)")]
+        [Tooltip("ลากแผง AmnesiaAwakeningBanner ที่สร้างไว้มาใส่ช่องนี้ (หากไม่ลากใส่ ระบบจะค้นหาจากชื่อใน Scene ให้อัตโนมัติ)")]
+        [SerializeField] private GameObject awakeningBanner;
+        [SerializeField] private CanvasGroup awakeningCanvasGroup;
+        [SerializeField] private TMPro.TMP_Text awakeningTitleText;
+        [SerializeField] private TMPro.TMP_Text awakeningSubtitleText;
+        [SerializeField] private TMPro.TMP_Text awakeningQuoteText;
+
         [Header("Player Reference (Optional)")]
         [SerializeField] private PlayerController player;
 
@@ -813,85 +821,146 @@ namespace TheLastEmpire
             Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
             if (hudCanvas == null) yield break;
 
-            GameObject bannerObj = new GameObject("AmnesiaAwakeningBanner");
-            bannerObj.transform.SetParent(hudCanvas.transform, false);
+            GameObject bannerObj = awakeningBanner;
+            bool isCustomBanner = (bannerObj != null);
+            bool isInstantiated = false;
 
-            RectTransform bannerRect = bannerObj.AddComponent<RectTransform>();
-            bannerRect.anchorMin = new Vector2(0.5f, 1f);
-            bannerRect.anchorMax = new Vector2(0.5f, 1f);
-            bannerRect.pivot = new Vector2(0.5f, 1f);
-            bannerRect.anchoredPosition = new Vector2(0f, -30f);
-            bannerRect.sizeDelta = new Vector2(760f, 125f);
+            // 1. Try finding in scene if not assigned
+            if (bannerObj == null)
+            {
+                Transform found = hudCanvas.transform.Find("AwakeningBanner_HUD") 
+                               ?? hudCanvas.transform.Find("AmnesiaAwakeningBanner")
+                               ?? hudCanvas.transform.Find("AwakeningBanner");
+                if (found != null)
+                {
+                    bannerObj = found.gameObject;
+                    isCustomBanner = true;
+                }
+            }
 
-            CanvasGroup bannerGroup = bannerObj.AddComponent<CanvasGroup>();
+            // 2. Try loading from Resources Prefabs if still null
+            if (bannerObj == null)
+            {
+                GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/AmnesiaAwakeningBanner");
+                if (prefab != null)
+                {
+                    bannerObj = Instantiate(prefab, hudCanvas.transform, false);
+                    isCustomBanner = true;
+                    isInstantiated = true;
+                }
+            }
+
+            CanvasGroup bannerGroup = awakeningCanvasGroup;
+            TMPro.TMP_Text titleText = awakeningTitleText;
+            TMPro.TMP_Text subText = awakeningSubtitleText;
+            TMPro.TMP_Text clueText = awakeningQuoteText;
+
+            if (isCustomBanner && bannerObj != null)
+            {
+                bannerObj.SetActive(true);
+
+                if (bannerGroup == null)
+                {
+                    bannerGroup = bannerObj.GetComponent<CanvasGroup>();
+                    if (bannerGroup == null) bannerGroup = bannerObj.AddComponent<CanvasGroup>();
+                }
+
+                // Auto-hook texts if not explicitly assigned
+                if (titleText == null || subText == null || clueText == null)
+                {
+                    TMPro.TMP_Text[] allTexts = bannerObj.GetComponentsInChildren<TMPro.TMP_Text>(true);
+                    foreach (var t in allTexts)
+                    {
+                        string lower = t.gameObject.name.ToLower();
+                        if (titleText == null && lower.Contains("title")) titleText = t;
+                        else if (subText == null && (lower.Contains("sub") || lower.Contains("role") || lower.Contains("desc"))) subText = t;
+                        else if (clueText == null && (lower.Contains("quote") || lower.Contains("clue") || lower.Contains("msg") || lower.Contains("text"))) clueText = t;
+                    }
+                }
+            }
+            else
+            {
+                // Procedural Fallback (Clean Dark Sci-Fi Window)
+                bannerObj = new GameObject("AmnesiaAwakeningBanner");
+                bannerObj.transform.SetParent(hudCanvas.transform, false);
+                isInstantiated = true;
+
+                RectTransform bannerRect = bannerObj.AddComponent<RectTransform>();
+                bannerRect.anchorMin = new Vector2(0.5f, 1f);
+                bannerRect.anchorMax = new Vector2(0.5f, 1f);
+                bannerRect.pivot = new Vector2(0.5f, 1f);
+                bannerRect.anchoredPosition = new Vector2(0f, -30f);
+                bannerRect.sizeDelta = new Vector2(760f, 125f);
+
+                bannerGroup = bannerObj.AddComponent<CanvasGroup>();
+
+                // Translucent dark glass background (No solid border covering it)
+                UnityEngine.UI.Image bgImg = bannerObj.AddComponent<UnityEngine.UI.Image>();
+                bgImg.color = new Color(0.05f, 0.07f, 0.12f, 0.90f);
+                bgImg.raycastTarget = false;
+
+                // Header Title
+                GameObject titleObj = new GameObject("Title");
+                titleObj.transform.SetParent(bannerObj.transform, false);
+                titleText = titleObj.AddComponent<TMPro.TextMeshProUGUI>();
+                titleText.fontSize = 15;
+                titleText.fontStyle = TMPro.FontStyles.Bold;
+                titleText.alignment = TMPro.TextAlignmentOptions.Center;
+                titleText.raycastTarget = false;
+                RectTransform tRect = titleObj.GetComponent<RectTransform>();
+                tRect.anchorMin = new Vector2(0f, 1f);
+                tRect.anchorMax = new Vector2(1f, 1f);
+                tRect.pivot = new Vector2(0.5f, 1f);
+                tRect.anchoredPosition = new Vector2(0f, -10f);
+                tRect.sizeDelta = new Vector2(720f, 22f);
+
+                // Subtitle
+                GameObject subObj = new GameObject("Subtitle");
+                subObj.transform.SetParent(bannerObj.transform, false);
+                subText = subObj.AddComponent<TMPro.TextMeshProUGUI>();
+                subText.fontSize = 11;
+                subText.color = new Color(0.7f, 0.8f, 0.9f, 0.8f);
+                subText.alignment = TMPro.TextAlignmentOptions.Center;
+                subText.raycastTarget = false;
+                RectTransform sRect = subObj.GetComponent<RectTransform>();
+                sRect.anchorMin = new Vector2(0f, 1f);
+                sRect.anchorMax = new Vector2(1f, 1f);
+                sRect.pivot = new Vector2(0.5f, 1f);
+                sRect.anchoredPosition = new Vector2(0f, -32f);
+                sRect.sizeDelta = new Vector2(720f, 16f);
+
+                // Clue Quote
+                GameObject clueObj = new GameObject("Quote");
+                clueObj.transform.SetParent(bannerObj.transform, false);
+                clueText = clueObj.AddComponent<TMPro.TextMeshProUGUI>();
+                clueText.fontSize = 13;
+                clueText.color = Color.white;
+                clueText.alignment = TMPro.TextAlignmentOptions.Center;
+                clueText.raycastTarget = false;
+                RectTransform cRect = clueObj.GetComponent<RectTransform>();
+                cRect.anchorMin = new Vector2(0f, 0f);
+                cRect.anchorMax = new Vector2(1f, 1f);
+                cRect.offsetMin = new Vector2(20f, 8f);
+                cRect.offsetMax = new Vector2(-20f, -48f);
+            }
+
             bannerGroup.alpha = 0f;
             bannerGroup.blocksRaycasts = false; // Never block player clicks or gunshots
 
-            // Background Glass Panel
-            UnityEngine.UI.Image bgImg = bannerObj.AddComponent<UnityEngine.UI.Image>();
-            bgImg.color = new Color(0.06f, 0.07f, 0.09f, 0.94f);
-            bgImg.raycastTarget = false;
-
-            // Border (Glow in character's theme color)
-            GameObject borderObj = new GameObject("Border");
-            borderObj.transform.SetParent(bannerObj.transform, false);
-            UnityEngine.UI.Image borderImg = borderObj.AddComponent<UnityEngine.UI.Image>();
-            borderImg.color = new Color(charData.themeColor.r, charData.themeColor.g, charData.themeColor.b, 0.85f);
-            borderImg.raycastTarget = false;
-            RectTransform bRect = borderObj.GetComponent<RectTransform>();
-            bRect.anchorMin = Vector2.zero;
-            bRect.anchorMax = Vector2.one;
-            bRect.offsetMin = new Vector2(-2f, -2f);
-            bRect.offsetMax = new Vector2(2f, 2f);
-            borderObj.transform.SetAsFirstSibling();
-
-            // Header Title
-            GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(bannerObj.transform, false);
-            TMPro.TMP_Text titleText = titleObj.AddComponent<TMPro.TextMeshProUGUI>();
-            titleText.text = $"AWAKENING MEMORY / {charData.characterName.ToUpper()}";
-            titleText.fontSize = 15;
-            titleText.fontStyle = TMPro.FontStyles.Bold;
-            titleText.color = charData.themeColor;
-            titleText.alignment = TMPro.TextAlignmentOptions.Center;
-            titleText.raycastTarget = false;
-            RectTransform tRect = titleObj.GetComponent<RectTransform>();
-            tRect.anchorMin = new Vector2(0f, 1f);
-            tRect.anchorMax = new Vector2(1f, 1f);
-            tRect.pivot = new Vector2(0.5f, 1f);
-            tRect.anchoredPosition = new Vector2(0f, -10f);
-            tRect.sizeDelta = new Vector2(720f, 22f);
-
-            // Subtitle
-            GameObject subObj = new GameObject("Subtitle");
-            subObj.transform.SetParent(bannerObj.transform, false);
-            TMPro.TMP_Text subText = subObj.AddComponent<TMPro.TextMeshProUGUI>();
-            subText.text = $"{charData.characterTitle} - {charData.roleCategory}";
-            subText.fontSize = 11;
-            subText.color = new Color(0.7f, 0.75f, 0.85f, 0.75f);
-            subText.alignment = TMPro.TextAlignmentOptions.Center;
-            subText.raycastTarget = false;
-            RectTransform sRect = subObj.GetComponent<RectTransform>();
-            sRect.anchorMin = new Vector2(0f, 1f);
-            sRect.anchorMax = new Vector2(1f, 1f);
-            sRect.pivot = new Vector2(0.5f, 1f);
-            sRect.anchoredPosition = new Vector2(0f, -32f);
-            sRect.sizeDelta = new Vector2(720f, 16f);
-
-            // Clue Quote
-            GameObject clueObj = new GameObject("Quote");
-            clueObj.transform.SetParent(bannerObj.transform, false);
-            TMPro.TMP_Text clueText = clueObj.AddComponent<TMPro.TextMeshProUGUI>();
-            clueText.text = $"<i>{charData.amnesiaWakingClue}</i>";
-            clueText.fontSize = 13;
-            clueText.color = Color.white;
-            clueText.alignment = TMPro.TextAlignmentOptions.Center;
-            clueText.raycastTarget = false;
-            RectTransform cRect = clueObj.GetComponent<RectTransform>();
-            cRect.anchorMin = new Vector2(0f, 0f);
-            cRect.anchorMax = new Vector2(1f, 1f);
-            cRect.offsetMin = new Vector2(20f, 8f);
-            cRect.offsetMax = new Vector2(-20f, -48f);
+            // Populate character monologue data
+            if (titleText != null)
+            {
+                titleText.text = $"AWAKENING MEMORY / {charData.characterName.ToUpper()}";
+                titleText.color = charData.themeColor;
+            }
+            if (subText != null)
+            {
+                subText.text = $"{charData.characterTitle} - {charData.roleCategory}";
+            }
+            if (clueText != null)
+            {
+                clueText.text = $"<i>{charData.amnesiaWakingClue}</i>";
+            }
 
             // Smooth Fade In
             float elapsed = 0f;
@@ -917,7 +986,14 @@ namespace TheLastEmpire
                 yield return null;
             }
 
-            Destroy(bannerObj);
+            if (isInstantiated)
+            {
+                Destroy(bannerObj);
+            }
+            else
+            {
+                bannerObj.SetActive(false);
+            }
         }
     }
 }
