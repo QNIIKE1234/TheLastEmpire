@@ -121,6 +121,8 @@ namespace TheLastEmpire
         [Header("Hunger System")]
         [SerializeField] private float maxHunger = 100f;
         [SerializeField] private float currentHunger = 100f;
+        [Tooltip("ตัวคูณอัตราการลดของพลังงาน/ความหิว (0.5 = ลดช้าลงเท่าตัว หรืออึดขึ้น 2 เท่า)")]
+        [SerializeField] private float hungerDepletionMultiplier = 0.5f;
 
         private float _hungerDamageTimer = 0f;
 
@@ -267,7 +269,7 @@ namespace TheLastEmpire
 
         public void DrainHunger(float amount)
         {
-            currentHunger = Mathf.Max(0f, currentHunger - amount);
+            currentHunger = Mathf.Max(0f, currentHunger - amount * hungerDepletionMultiplier);
             OnHungerChanged?.Invoke();
         }
 
