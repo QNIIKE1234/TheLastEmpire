@@ -263,6 +263,38 @@ MonoBehaviour:
   moneyPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
   isBoss: 0
   customLootTable:
+  - itemName: Contaminated Flesh
+    minQuantity: 1
+    maxQuantity: 2
+    probability: 0.25
+  - itemName: Torn Infected Cloth
+    minQuantity: 1
+    maxQuantity: 2
+    probability: 0.25
+  - itemName: Rotten Bone Claw
+    minQuantity: 1
+    maxQuantity: 2
+    probability: 0.25
+  - itemName: Decayed Infected Fang
+    minQuantity: 1
+    maxQuantity: 2
+    probability: 0.25
+  - itemName: Tainted Ichor Vial
+    minQuantity: 1
+    maxQuantity: 2
+    probability: 0.25
+  - itemName: Concentrated Virus Strain
+    minQuantity: 1
+    maxQuantity: 1
+    probability: 0.05
+  - itemName: Hardened Spine Segment
+    minQuantity: 1
+    maxQuantity: 1
+    probability: 0.05
+  - itemName: Toxic Bile Sac
+    minQuantity: 1
+    maxQuantity: 1
+    probability: 0.05
   - itemName: Bread
     minQuantity: 1
     maxQuantity: 3
