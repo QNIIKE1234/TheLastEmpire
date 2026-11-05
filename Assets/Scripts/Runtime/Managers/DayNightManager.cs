@@ -106,6 +106,10 @@ namespace TheLastEmpire
         public float PhaseTimer => _phaseTimer;
         public float CurrentPhaseDuration => GetCurrentPhaseDuration();
         public float RemainingPhaseTime => Mathf.Max(0f, GetCurrentPhaseDuration() - _phaseTimer);
+        public float DayDuration => dayDuration;
+        public float DuskDuration => duskDuration;
+        public float NightDuration => nightDuration;
+        public TextMeshProUGUI TimeText => timeText;
 
         public float PhaseProgress
         {
@@ -151,6 +155,21 @@ namespace TheLastEmpire
                 NightDarknessController.Instance.DisableDarknessOverlay = false;
             }
             ResetDayCount();
+            EnsureTimeHUDController();
+        }
+
+        public void EnsureTimeHUDController()
+        {
+            if (TimeHUDController.Instance == null)
+            {
+                GameObject hudObj = GameObject.Find("Time_HUD");
+                if (hudObj != null)
+                {
+                    TimeHUDController ctrl = hudObj.GetComponent<TimeHUDController>();
+                    if (ctrl == null) ctrl = hudObj.AddComponent<TimeHUDController>();
+                    ctrl.InitializeHUD();
+                }
+            }
         }
 
         public void ResetDayCount()
@@ -349,28 +368,41 @@ namespace TheLastEmpire
         {
             if (timeText == null) return;
 
-            float remainingTime = Mathf.Max(0f, currentDuration - _phaseTimer);
             string label;
             Color labelColor;
+            float remainingTime;
 
             switch (_currentPhase)
             {
                 case TimePhase.Dusk:
                     label = "DUSK";
-                    labelColor = new Color(1f, 0.6f, 0.2f);
+                    labelColor = new Color(1f, 0.55f, 0.20f);
+                    remainingTime = Mathf.Max(0f, duskDuration - _phaseTimer);
                     break;
                 case TimePhase.Night:
                     label = "NIGHT";
-                    labelColor = new Color(0.4f, 0.8f, 1f);
+                    labelColor = new Color(0.50f, 0.80f, 1f);
+                    remainingTime = Mathf.Max(0f, nightDuration - _phaseTimer);
                     break;
                 case TimePhase.Day:
                 default:
-                    label = "DAY";
-                    labelColor = new Color(1f, 0.85f, 0.2f);
+                    float halfDay = dayDuration * 0.5f;
+                    if (_phaseTimer < halfDay)
+                    {
+                        label = "DAWN";
+                        labelColor = new Color(1f, 0.82f, 0.40f);
+                        remainingTime = Mathf.Max(0f, halfDay - _phaseTimer);
+                    }
+                    else
+                    {
+                        label = "NOON";
+                        labelColor = new Color(1f, 0.95f, 0.50f);
+                        remainingTime = Mathf.Max(0f, dayDuration - _phaseTimer);
+                    }
                     break;
             }
 
-            timeText.text = $"{label} ({Mathf.CeilToInt(remainingTime)}s)";
+            timeText.text = $"DAY {DayCount} - {label} ({Mathf.CeilToInt(remainingTime)}s)";
             timeText.color = labelColor;
         }
 
@@ -459,6 +491,11 @@ namespace TheLastEmpire
                 if (Camera.main != null)
                 {
                     Camera.main.backgroundColor = GetTargetCameraColor();
+                }
+
+                if (TimeHUDController.Instance != null)
+                {
+                    TimeHUDController.Instance.SnapToCurrentPhase();
                 }
             }
 
