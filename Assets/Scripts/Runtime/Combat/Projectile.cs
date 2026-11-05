@@ -35,6 +35,14 @@ namespace TheLastEmpire
         [SerializeField] private float trailTime = 0.08f;
         [SerializeField] private float trailStartWidth = 0.15f;
 
+        [Header("Bullet Front Light")]
+        [SerializeField] private bool useBulletLight = true;
+        [SerializeField] private Light bulletLight;
+        [SerializeField] private Color lightColor = new Color(1f, 0.85f, 0.35f, 1f);
+        [SerializeField] private float lightRange = 6f;
+        [SerializeField] private float lightIntensity = 2.5f;
+        [SerializeField] private Vector3 lightOffset = new Vector3(0f, 0f, 0.6f);
+
         [Header("Impact Spark VFX")]
         [SerializeField] private string obstacleHitVfxPoolKey = "PistolFlash";
 
@@ -68,6 +76,69 @@ namespace TheLastEmpire
         public float ExplosionRadius => explosionRadius;
         public TrajectoryMode Trajectory => trajectoryMode;
         public GameObject Owner => _owner;
+        public Light BulletLight => bulletLight;
+
+        public void SetBulletLight(Color color, float range, float intensity)
+        {
+            lightColor = color;
+            lightRange = range;
+            lightIntensity = intensity;
+            if (bulletLight != null)
+            {
+                bulletLight.color = color;
+                bulletLight.range = range;
+                bulletLight.intensity = intensity;
+            }
+        }
+
+        private void SetupBulletLight()
+        {
+            if (!useBulletLight)
+            {
+                if (bulletLight != null) bulletLight.enabled = false;
+                return;
+            }
+
+            if (bulletLight == null)
+            {
+                bulletLight = GetComponentInChildren<Light>();
+            }
+
+            if (bulletLight == null)
+            {
+                GameObject lightObj = new GameObject("FrontLight");
+                lightObj.transform.SetParent(transform, false);
+                lightObj.transform.localPosition = lightOffset;
+                bulletLight = lightObj.AddComponent<Light>();
+                bulletLight.type = LightType.Point;
+                bulletLight.shadows = LightShadows.None;
+            }
+
+            bulletLight.color = lightColor;
+            bulletLight.range = lightRange;
+            bulletLight.intensity = lightIntensity;
+            bulletLight.shadows = LightShadows.None;
+            bulletLight.transform.localPosition = lightOffset;
+            bulletLight.enabled = true;
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (bulletLight == null)
+            {
+                bulletLight = GetComponentInChildren<Light>();
+            }
+            if (bulletLight != null)
+            {
+                bulletLight.color = lightColor;
+                bulletLight.range = lightRange;
+                bulletLight.intensity = lightIntensity;
+                bulletLight.shadows = LightShadows.None;
+                bulletLight.transform.localPosition = lightOffset;
+            }
+        }
+#endif
 
         public void Deflect(Vector3 newDirection, GameObject newOwner)
         {
@@ -96,6 +167,7 @@ namespace TheLastEmpire
             }
 
             SetupTrailRenderer();
+            SetupBulletLight();
 
             // Set initial defaults
             _activeDamage = damage;
@@ -152,6 +224,10 @@ namespace TheLastEmpire
             if (_trail != null)
             {
                 _trail.Clear();
+            }
+            if (bulletLight != null && useBulletLight)
+            {
+                bulletLight.enabled = true;
             }
             _lifeTimer = _activeLifetime;
             _currentFlightTime = 0f;
@@ -367,6 +443,10 @@ namespace TheLastEmpire
             if (_trail != null)
             {
                 _trail.Clear();
+            }
+            if (bulletLight != null)
+            {
+                bulletLight.enabled = false;
             }
 
             if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
