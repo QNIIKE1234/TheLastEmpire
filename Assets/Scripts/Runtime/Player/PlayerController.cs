@@ -1855,7 +1855,7 @@ namespace TheLastEmpire
             float baseRate = activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f;
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
-            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult;
+            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier;
             currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 

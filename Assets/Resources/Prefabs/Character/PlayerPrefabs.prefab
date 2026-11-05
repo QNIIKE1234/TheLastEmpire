@@ -320,6 +320,7 @@ MonoBehaviour:
   meleeWeapons: []
   maxHunger: 100
   currentHunger: 100
+  hungerDepletionMultiplier: 0.5
   gunshotAlertRange: 15
   aoeIndicatorSprite: {fileID: 554067202, guid: c5f526e60cffa994588506483b595174, type: 3}
   aoeIndicatorColor: {r: 1, g: 0, b: 0, a: 0.7}
