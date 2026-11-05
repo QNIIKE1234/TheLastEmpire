@@ -14,6 +14,7 @@ namespace TheLastEmpire
         private Vector3 _startPosition;
         private Vector3 _velocity;
         private float _initialScaleMultiplier = 1f;
+        public static float GlobalScaleMultiplier = 1.5f; // ขยายขนาดตัวเลขดาเมจเพิ่ม 50% (1.5x)
         private Color _baseColor;
         private Color _shadowColor = new Color(0f, 0f, 0f, 0.85f);
         private System.Action<FloatingDamageNumber> _onCompleteCallback;
@@ -91,7 +92,7 @@ namespace TheLastEmpire
                 _baseColor = new Color(0.65f, 0.85f, 1.0f); // Cool silver-cyan for Blocked
                 _mainText.fontSize = 28;
                 _mainText.characterSize = 0.050f;
-                _initialScaleMultiplier = 1.0f;
+                _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.75f;
             }
             else if (isCrit)
@@ -100,7 +101,7 @@ namespace TheLastEmpire
                 _baseColor = new Color(1.0f, 0.28f, 0.10f); // Fiery blazing orange-red
                 _mainText.fontSize = 35;
                 _mainText.characterSize = 0.060f;
-                _initialScaleMultiplier = 1.4f;
+                _initialScaleMultiplier = 1.4f * GlobalScaleMultiplier;
                 _lifetime = 1.0f;
             }
             else
@@ -109,7 +110,7 @@ namespace TheLastEmpire
                 _baseColor = new Color(1.0f, 0.94f, 0.45f); // Vibrant gold-yellow
                 _mainText.fontSize = 30;
                 _mainText.characterSize = 0.055f;
-                _initialScaleMultiplier = 1.0f;
+                _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.85f;
             }
 

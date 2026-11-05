@@ -27,6 +27,8 @@ namespace TheLastEmpire
 
         [Header("Settings")]
         [SerializeField] private int prewarmCount = 25;
+        [Tooltip("สเกลขนาดตัวเลขดาเมจ (1.5 = ขยายเพิ่ม 50%)")]
+        [SerializeField] private float damageNumberScale = 1.5f;
 
         private Queue<FloatingDamageNumber> _pool = new Queue<FloatingDamageNumber>();
         private Transform _container;
@@ -41,6 +43,7 @@ namespace TheLastEmpire
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
+            FloatingDamageNumber.GlobalScaleMultiplier = damageNumberScale;
             InitializePool();
         }
 
