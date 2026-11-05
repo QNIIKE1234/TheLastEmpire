@@ -7676,6 +7676,11 @@ MonoBehaviour:
   gameOverFadeDuration: 1
   pauseGameOnDeath: 0
   randomizeSeedOnRetry: 0
+  awakeningBanner: {fileID: 0}
+  awakeningCanvasGroup: {fileID: 0}
+  awakeningTitleText: {fileID: 0}
+  awakeningSubtitleText: {fileID: 0}
+  awakeningQuoteText: {fileID: 0}
   player: {fileID: 2126918795}
 --- !u!1 &760724545
 GameObject:
@@ -22022,6 +22027,30 @@ PrefabInstance:
     - target: {fileID: 2530340392483531905, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
       propertyPath: m_Name
       value: PlayerPrefabs
+      objectReference: {fileID: 0}
+    - target: {fileID: 6179266660639874407, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6812533249909901277, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 6812533249909901277, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 6812533249909901277, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 6812533249909901277, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.00086
+      objectReference: {fileID: 0}
+    - target: {fileID: 8326059052876887445, guid: b49b788897bfd2b4a90e2ad200a8d37c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

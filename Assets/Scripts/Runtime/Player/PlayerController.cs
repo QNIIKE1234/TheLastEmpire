@@ -55,6 +55,12 @@ namespace TheLastEmpire
         [SerializeField] private Animator animator;
         private Animator _animator;
 
+        [Header("Weapon Visual References (Malee / Range)")]
+        [Tooltip("Reference สำหรับ GameObject อาวุธระยะประชิด (เช่น GameObject 'Malee')")]
+        [SerializeField] private GameObject meleeWeapon;
+        [Tooltip("Reference สำหรับ GameObject อาวุธระยะไกล (เช่น GameObject 'Range')")]
+        [SerializeField] private GameObject rangeWeapon;
+
         [Header("Muzzle Flash Light")]
         [SerializeField] private Light muzzleFlashLight;
         [SerializeField] private Color muzzleLightColor = new Color(1f, 0.72f, 0.28f, 1f);
@@ -106,6 +112,9 @@ namespace TheLastEmpire
         public MeleeWeapon CurrentMeleeWeapon => (meleeWeapons != null && meleeWeapons.Count > 0 && _currentMeleeWeaponIndex >= 0 && _currentMeleeWeaponIndex < meleeWeapons.Count) ? meleeWeapons[_currentMeleeWeaponIndex] : null;
         public string CurrentMeleeWeaponName => CurrentMeleeWeapon != null ? CurrentMeleeWeapon.weaponName : "";
         public System.Collections.Generic.List<MeleeWeapon> MeleeWeaponsList => meleeWeapons;
+
+        public GameObject MeleeWeaponVisual => meleeWeapon;
+        public GameObject RangeWeaponVisual => rangeWeapon;
 
         public event System.Action OnAmmoChanged;
 
@@ -380,6 +389,21 @@ namespace TheLastEmpire
                 ApplyStartingCharacterLoadout();
             }
             OnAmmoChanged?.Invoke();
+
+            EnsureWeaponVisualReferences();
+            if (CurrentWeapon != null)
+            {
+                ShowRangedWeaponVisual();
+            }
+            else if (CurrentMeleeWeapon != null)
+            {
+                ShowMeleeWeaponVisual();
+            }
+            else
+            {
+                if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                if (rangeWeapon != null) rangeWeapon.SetActive(false);
+            }
 
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
         }
@@ -1156,6 +1180,7 @@ namespace TheLastEmpire
 
         private void ShootWeapon()
         {
+            ShowRangedWeaponVisual();
             if (_isReloading) return;
 
             Weapon activeWeapon = CurrentWeapon;
@@ -1380,6 +1405,7 @@ namespace TheLastEmpire
 
         private void MeleeAttack()
         {
+            ShowMeleeWeaponVisual();
             MeleeWeapon activeMelee = CurrentMeleeWeapon;
             float activeRadius = activeMelee != null ? activeMelee.attackRadius : meleeRadius;
             float activeRate = activeMelee != null ? activeMelee.attackRate : meleeRate;
@@ -2355,6 +2381,7 @@ namespace TheLastEmpire
             {
                 _currentMeleeWeaponIndex = -1;
                 Debug.Log($"[PlayerController] Unequipped melee weapon.");
+                if (meleeWeapon != null) meleeWeapon.SetActive(false);
                 OnAmmoChanged?.Invoke();
                 return;
             }
@@ -2372,6 +2399,10 @@ namespace TheLastEmpire
 
             _currentMeleeWeaponIndex = index;
             Debug.Log($"[PlayerController] Equipped melee weapon: {wName}");
+            if (meleeWeapon != null && meleeWeapon.activeSelf)
+            {
+                UpdateChildVisual(meleeWeapon, CurrentMeleeWeaponName);
+            }
             OnAmmoChanged?.Invoke();
         }
 
@@ -2435,6 +2466,7 @@ namespace TheLastEmpire
             {
                 _currentWeaponIndex = -1;
                 Debug.Log($"[PlayerController] Unequipped weapon.");
+                if (rangeWeapon != null) rangeWeapon.SetActive(false);
                 OnAmmoChanged?.Invoke();
                 return;
             }
@@ -2452,6 +2484,10 @@ namespace TheLastEmpire
 
             _currentWeaponIndex = index;
             Debug.Log($"[PlayerController] Switched to weapon: {CurrentWeapon.weaponName}");
+            if (rangeWeapon != null && rangeWeapon.activeSelf)
+            {
+                UpdateChildVisual(rangeWeapon, CurrentWeaponName);
+            }
             
             // Short equip delay
             _fireCooldownTimer = 0.15f; 
@@ -2478,6 +2514,110 @@ namespace TheLastEmpire
                 }
             }
         }
+
+        #region Weapon Visual Management (Malee / Range)
+        public void ShowMeleeWeaponVisual()
+        {
+            EnsureWeaponVisualReferences();
+            if (meleeWeapon != null)
+            {
+                meleeWeapon.SetActive(true);
+                UpdateChildVisual(meleeWeapon, CurrentMeleeWeaponName);
+            }
+            if (rangeWeapon != null)
+            {
+                rangeWeapon.SetActive(false);
+            }
+        }
+
+        public void ShowRangedWeaponVisual()
+        {
+            EnsureWeaponVisualReferences();
+            if (rangeWeapon != null)
+            {
+                rangeWeapon.SetActive(true);
+                UpdateChildVisual(rangeWeapon, CurrentWeaponName);
+            }
+            if (meleeWeapon != null)
+            {
+                meleeWeapon.SetActive(false);
+            }
+        }
+
+        private void EnsureWeaponVisualReferences()
+        {
+            if (meleeWeapon == null)
+            {
+                Transform t = FindDeepChild(transform, "Malee") ?? FindDeepChild(transform, "Melee") ?? FindDeepChild(transform, "MeleeWeapon");
+                if (t != null) meleeWeapon = t.gameObject;
+            }
+            if (rangeWeapon == null)
+            {
+                Transform t = FindDeepChild(transform, "Range") ?? FindDeepChild(transform, "Ranged") ?? FindDeepChild(transform, "RangeWeapon");
+                if (t != null) rangeWeapon = t.gameObject;
+            }
+        }
+
+        private Transform FindDeepChild(Transform parent, string targetName)
+        {
+            if (parent == null) return null;
+            foreach (Transform child in parent)
+            {
+                if (child.name.Equals(targetName, System.StringComparison.OrdinalIgnoreCase))
+                    return child;
+                Transform found = FindDeepChild(child, targetName);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private void UpdateChildVisual(GameObject parentObj, string targetWeaponName)
+        {
+            if (parentObj == null) return;
+            int childCount = parentObj.transform.childCount;
+            if (childCount == 0) return;
+
+            string cleanTarget = (targetWeaponName ?? "").Replace(" ", "").Replace("_", "").ToLowerInvariant();
+            bool anyMatched = false;
+
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = parentObj.transform.GetChild(i);
+                string childClean = child.name.Replace("Weapon_", "").Replace("Weapon", "").Replace("_", "").Replace(" ", "").ToLowerInvariant();
+
+                bool isMatch = !string.IsNullOrEmpty(cleanTarget) &&
+                               (childClean.Contains(cleanTarget) || cleanTarget.Contains(childClean));
+
+                if (isMatch && !anyMatched)
+                {
+                    child.gameObject.SetActive(true);
+                    anyMatched = true;
+                }
+                else
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+
+            // Fallback: If no child matched and none are currently active, activate the first child
+            if (!anyMatched && childCount > 0)
+            {
+                bool hasAnyActive = false;
+                for (int i = 0; i < childCount; i++)
+                {
+                    if (parentObj.transform.GetChild(i).gameObject.activeSelf)
+                    {
+                        hasAnyActive = true;
+                        break;
+                    }
+                }
+                if (!hasAnyActive)
+                {
+                    parentObj.transform.GetChild(0).gameObject.SetActive(true);
+                }
+            }
+        }
+        #endregion
 
         private void AlertEnemiesToGunshot()
         {
