@@ -37,6 +37,63 @@ graph TD
 
 ---
 
+
+---
+
+## 👾 2.1 รายชื่อมอนสเตอร์และการแบ่งเผ่าพันธุ์ (Monster Roster & Factions - 22 Types)
+
+เพื่อรองรับระบบดรอปวัตถุดิบและสร้างความหลากหลายเชิงกลยุทธ์ในการต่อสู้ เกมได้แบ่งศัตรูออกเป็น **3 เผ่าพันธุ์ รวมทั้งหมด 22 ชนิด** (ซอมบี้ 7 ชนิด, หุ่นยนต์ 8 ชนิด, เอเลี่ยน 7 ชนิด) โดยแต่ละเผ่าใช้ Dedicated AI Component และ Prefab ที่แยกจากกันโดยเฉพาะ:
+
+### 🧟 1. เผ่าซอมบี้ (Infected Undead - 7 ชนิด)
+* **AI Component:** `ZombieAI.cs` (Enums: `ZombieType`)
+* **Prefabs Directory:** `Assets/Resources/Prefabs/Character/`
+* **ตารางดรอป:** วัสดุชีวภาพ (`ITEM0036` - `ITEM0045`)
+
+| Prefab Name | ชนิด (Type) | ชื่อเรียก (Display Name) | HP | Move Speed | ดาเมจ | พฤติกรรมเด่น / ท่าพิเศษ |
+| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
+| `ZombieNormal` | Normal (0) | Walker | 70 | 1.2 m/s | 15 | เดินตามผู้เล่นเป็นฝูง ทนทานปานกลาง |
+| `ZombieDog` | Dog (1) | Zombie Dog | 50 | 4.5 m/s | 20 | วิ่งรวดเร็ว กระโจนพุ่งเข้าใส่จากระยะ 4 เมตร |
+| `ZombieBoomer` | Boomer (2) | Boomer | 60 | 2.0 m/s | 15 | ระเบิดพลีชีพสร้างดาเมจ AOE กว้าง 3 เมตร |
+| `ZombieRunner` | Runner (4) | Runner | 65 | 4.0 m/s | 18 | ซอมบี้วิ่งเร็ว วิ่งเข้าประชิดตัวอย่างต่อเนื่อง |
+| `ZombieSpitter` *(ใหม่)* | Spitter (5) | Acid Spitter | 65 | 2.5 m/s | 15 | ยิงกระสุนกรดพิษชีวภาพระยะไกล (3 - 8.5m) |
+| `ZombieTank` *(ใหม่)* | Tank (6) | Zombie Brute | 180 | 1.6 m/s | 25 | ซอมบี้ยักษ์พลังชีวิตสูง ทนการชะงัก (Knockback Force 12) |
+| `ZombieLeader` | Leader (3) - **BOSS** | Zombie Leader | 1500 | 2.5 m/s | 35 | บอส: คำรามบัฟลูกน้อง, กวาด Stomp AOE, พุ่งชน Charge, เข้าสู่ Rage Mode เมื่อเลือด < 30% |
+
+---
+
+### 🤖 2. เผ่าหุ่นยนต์ (Cybernetic Mechs - 8 ชนิด)
+* **AI Component:** `RobotAI.cs` (Enums: `RobotType`, Shield Block: `IDamageable`)
+* **Prefabs Directory:** `Assets/Resources/Prefabs/Character/`
+* **ตารางดรอป:** ชิ้นส่วนโลหะและวงจรจักรกล (`ITEM0046` - `ITEM0055`)
+
+| Prefab Name | ชนิด (Type) | ชื่อเรียก (Display Name) | HP | Move Speed | ดาเมจ | พฤติกรรมเด่น / ท่าพิเศษ |
+| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
+| `RobotNormal` | Normal (0) | Robot Scout | 85 | 3.0 m/s | 16 | หุ่นยนต์ลาดตระเวน ตรวจจับผู้เล่นด้วยเซนเซอร์สายตา (FOV) |
+| `RobotTanker` | Tanker (1) | Shield Mech | 200 | 2.0 m/s | 22 | โล่พลังงานด้านหน้า 180° บล็อกดาเมจผู้เล่นได้ 100% (ขึ้นข้อความ "BLOCKED") |
+| `RobotBlade` | Blade (2) | Blade Strider | 95 | 4.5 m/s | 20 | พุ่งชาร์จแดชฟันประชิด (Dash Slash) อย่างรวดเร็ว |
+| `RobotGunner` | Gunner (3) | Gunner Bot | 80 | 3.0 m/s | 14 | ยิงปืนกลเล็งใส่ผู้เล่นเป็นชุดจากระยะ 5 เมตร |
+| `RobotLaser` | Laser (4) | Laser Sentinel | 100 | 3.0 m/s | 18 | เล็งเส้นเลเซอร์เตือนก่อนยิงลำแสงอนุภาค (Laser Beam Tick DoT) |
+| `RobotDrone` *(ใหม่)* | Drone (6) | Attack Drone | 55 | 5.2 m/s | 12 | โดรนบินสอดแนมความเร็วสูง เคลื่อนที่โฉบเฉี่ยวว่องไว |
+| `RobotKamikaze` *(ใหม่)* | Kamikaze (7) | Bomb Bot | 60 | 4.2 m/s | 20 | หุ่นยนต์ระเบิดพลีชีพ กะพริบไฟฉุกเฉินเตือนแล้วระเบิดทำลายล้าง |
+| `RobotLeader` | Leader (5) - **BOSS** | Mech Overlord | 1600 | 2.5 m/s | 40 | บอสจักรกล: เกราะหนา ยิงปืนกลหนักและลำแสงพิฆาต |
+
+---
+
+### 👽 3. เผ่าเอเลี่ยน (Extraterrestrial Xenomorphs - 7 ชนิด)
+* **AI Component:** `AlienAI.cs` (Enums: `AlienType`)
+* **Prefabs Directory:** `Assets/Resources/Prefabs/Character/`
+* **ตารางดรอป:** สสารต่างดาวและอวัยวะไซโอนิก (`ITEM0056` - `ITEM0065`)
+
+| Prefab Name | ชนิด (Type) | ชื่อเรียก (Display Name) | HP | Move Speed | ดาเมจ | พฤติกรรมเด่น / ท่าพิเศษ |
+| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
+| `AlienNormal` | Normal (0) | Xenomorph Drone | 75 | 3.5 m/s | 16 | สัตว์ต่างดาวพื้นฐาน ก้าวร้าวเป็นพิเศษในเวลากลางคืน (Night Aggro) |
+| `AlienHook` | Hook (1) | Hook Stalker | 90 | 3.5 m/s | 18 | ยิงระยางค์ดึงกระชากตัวผู้เล่น (Grapple Hook Pull) ให้เข้ามาหา |
+| `AlienInvisible` | Invisible (2) | Shadow Lurker | 70 | 3.5 m/s | 22 | ล่องหนพรางตัวโปร่งแสง (Fade Cloaking) จะปรากฏตัวเมื่อเข้าใกล้ 4 เมตร |
+| `AlienSmart` | Smart (3) | Hunter Flanker | 85 | 4.0 m/s | 18 | เคลื่อนที่แบบโอบล้อม (Flanking Strafe) เคลื่อนที่ฉากข้างหลบกระสุน |
+| `AlienSpitter` *(ใหม่)* | Spitter (5) | Plasma Spitter | 75 | 3.0 m/s | 15 | พ่นกระสุนพลาสมาชีวภาพสีม่วงเรืองแสงจากระยะไกล |
+| `AlienCrawler` *(ใหม่)* | Crawler (6) | Skittering Crawler | 60 | 5.0 m/s | 16 | สิ่งมีชีวิตคลานติดพื้นความเร็วสูง เข้าจู่โจมอย่างรวดเร็วและเงียบเชียบ |
+| `AlienLeader` | Leader (4) - **BOSS** | Hive Queen | 1400 | 2.8 m/s | 35 | บอสนางพญาต่างดาว: เสกลูกสมุนเอเลี่ยนออกมาและขว้างพุ่งใส่ผู้เล่น |
+
 ## 📊 2. มาตรฐานระดับความหายากและอัตราดรอป (Rarity & Drop Tier Standards)
 
 | ระดับความหายาก (Tier) | อัตราดรอปมอนทั่วไป (Normal Drop) | อัตราดรอปจากบอส (Boss Drop) | จำนวนที่ดรอป (Qty) | สีธีมประจำระดับ (Rarity Color) | วัตถุประสงค์การใช้งาน |

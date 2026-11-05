@@ -11,7 +11,9 @@ namespace TheLastEmpire
             Hook,
             Invisible,
             Smart,
-            Leader
+            Leader,
+            Spitter,
+            Crawler
         }
 
         [Header("Alien Settings")]
@@ -24,6 +26,11 @@ namespace TheLastEmpire
 
         [Header("Invisible Settings")]
         [SerializeField] private float fadeDistance = 4f;
+
+        [Header("Alien Spitter Settings")]
+        [SerializeField] private float spitCooldown = 3.5f;
+        [SerializeField] private float spitRange = 8f;
+        private float _spitCooldownTimer = 0f;
 
         [Header("Leader Settings")]
         [SerializeField] private GameObject childAlienPrefab;
@@ -46,6 +53,16 @@ namespace TheLastEmpire
         {
             base.Start();
             _spriteRenderer = GetComponent<SpriteRenderer>();
+            if (alienType == AlienType.Normal)
+            {
+                string lowerName = gameObject.name.ToLower();
+                if (lowerName.Contains("hook")) alienType = AlienType.Hook;
+                else if (lowerName.Contains("invisible") || lowerName.Contains("stealth")) alienType = AlienType.Invisible;
+                else if (lowerName.Contains("smart")) alienType = AlienType.Smart;
+                else if (lowerName.Contains("leader") || lowerName.Contains("boss")) alienType = AlienType.Leader;
+                else if (lowerName.Contains("spitter") || lowerName.Contains("acid")) alienType = AlienType.Spitter;
+                else if (lowerName.Contains("crawler") || lowerName.Contains("runner")) alienType = AlienType.Crawler;
+            }
             if (_spriteRenderer != null)
             {
                 _originalColor = _spriteRenderer.color;
@@ -70,6 +87,14 @@ namespace TheLastEmpire
                     moveSpeed = 2.5f;
                     detectionRange = 7f;
                     break;
+                case AlienType.Spitter:
+                    moveSpeed = 3.0f;
+                    detectionRange = 8f;
+                    break;
+                case AlienType.Crawler:
+                    moveSpeed = 5.0f;
+                    detectionRange = 7f;
+                    break;
             }
         }
 
@@ -80,6 +105,7 @@ namespace TheLastEmpire
             // Cooldown timers
             if (_hookCooldownTimer > 0f) _hookCooldownTimer -= Time.fixedDeltaTime;
             if (_spawnCooldownTimer > 0f) _spawnCooldownTimer -= Time.fixedDeltaTime;
+            if (_spitCooldownTimer > 0f) _spitCooldownTimer -= Time.fixedDeltaTime;
 
             // Handle Invisible fade logic
             HandleInvisibilityFade();
@@ -122,6 +148,13 @@ namespace TheLastEmpire
                 float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
                 // Alien Hook: periodic grapple pull
+                // Alien Spitter bio-plasma projectile
+                if (alienType == AlienType.Spitter && _spitCooldownTimer <= 0f && distanceToPlayer >= 2.5f && distanceToPlayer <= spitRange)
+                {
+                    StartCoroutine(ExecuteAlienSpit());
+                    return;
+                }
+
                 if (alienType == AlienType.Hook && _hookCooldownTimer <= 0f && distanceToPlayer <= hookRange && !_isPullingPlayer)
                 {
                     StartCoroutine(ExecuteHookPull());
@@ -268,5 +301,42 @@ namespace TheLastEmpire
                 }
             }
         }
-    }
+    
+        private IEnumerator ExecuteAlienSpit()
+        {
+            _spitCooldownTimer = spitCooldown;
+            currentState = AIState.Telegraph;
+            rb.linearVelocity = Vector3.zero;
+
+            if (_spriteRenderer != null) _spriteRenderer.color = new Color(0.8f, 0.2f, 1f); // Neon purple
+
+            yield return new WaitForSeconds(0.35f);
+
+            if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+
+            if (playerTransform != null)
+            {
+                Vector3 dir = (playerTransform.position - transform.position);
+                dir.y = 0f;
+                dir.Normalize();
+
+                Vector3 spawnPos = transform.position + dir * 0.6f + Vector3.up * 0.3f;
+                GameObject spit = new GameObject("AlienBioPlasma");
+                spit.transform.position = spawnPos;
+                spit.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+
+                SpriteRenderer sr = spit.AddComponent<SpriteRenderer>();
+                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                sr.color = new Color(0.85f, 0.1f, 0.95f); // magenta / violet plasma
+
+                SphereCollider col = spit.AddComponent<SphereCollider>();
+                col.isTrigger = true;
+
+                Projectile proj = spit.AddComponent<Projectile>();
+                proj.Setup(dir, playerTransform.position, gameObject);
+            }
+
+            currentState = AIState.Chase;
+        }
+}
 }

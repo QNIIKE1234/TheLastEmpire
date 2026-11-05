@@ -12,7 +12,9 @@ namespace TheLastEmpire
             Blade,
             Gunner,
             Laser,
-            Leader
+            Leader,
+            Drone,
+            Kamikaze
         }
 
         [Header("Robot Settings")]
@@ -29,6 +31,10 @@ namespace TheLastEmpire
         [SerializeField] private float bladeDashSpeed = 15f;
         [SerializeField] private float bladeDashDuration = 0.25f;
         [SerializeField] private float bladeDashCooldown = 3f;
+
+        [Header("Robot Kamikaze Settings")]
+        [SerializeField] private float kamikazeExplosionRadius = 3f;
+        [SerializeField] private int kamikazeDamage = 40;
 
         [Header("Robot Laser Settings")]
         [SerializeField] private float laserChargeDuration = 1.5f;
@@ -50,6 +56,17 @@ namespace TheLastEmpire
         {
             base.Start();
             _spriteRenderer = GetComponent<SpriteRenderer>();
+            if (robotType == RobotType.Normal)
+            {
+                string lowerName = gameObject.name.ToLower();
+                if (lowerName.Contains("tanker") || lowerName.Contains("tank")) robotType = RobotType.Tanker;
+                else if (lowerName.Contains("blade")) robotType = RobotType.Blade;
+                else if (lowerName.Contains("gunner") || lowerName.Contains("gun")) robotType = RobotType.Gunner;
+                else if (lowerName.Contains("laser")) robotType = RobotType.Laser;
+                else if (lowerName.Contains("leader") || lowerName.Contains("boss")) robotType = RobotType.Leader;
+                else if (lowerName.Contains("drone")) robotType = RobotType.Drone;
+                else if (lowerName.Contains("kamikaze") || lowerName.Contains("bomb") || lowerName.Contains("boomer")) robotType = RobotType.Kamikaze;
+            }
             if (_spriteRenderer != null)
             {
                 _originalColor = _spriteRenderer.color;
@@ -83,6 +100,18 @@ namespace TheLastEmpire
                 case RobotType.Laser:
                     moveSpeed = 3f;
                     detectionRange = 10f;
+                    break;
+                case RobotType.Drone:
+                    moveSpeed = 5.2f;
+                    detectionRange = 9f;
+                    break;
+                case RobotType.Kamikaze:
+                    moveSpeed = 4.2f;
+                    detectionRange = 8f;
+                    break;
+                case RobotType.Leader:
+                    moveSpeed = 2.5f;
+                    detectionRange = 8f;
                     break;
             }
         }
@@ -157,6 +186,13 @@ namespace TheLastEmpire
                     }
 
                     float dist = Vector3.Distance(transform.position, playerTransform.position);
+
+                    // Kamikaze Suicide Explosion
+                    if (robotType == RobotType.Kamikaze && dist <= 2.2f && _actionCooldownTimer <= 0f)
+                    {
+                        StartCoroutine(ExecuteKamikazeExplode());
+                        return;
+                    }
 
                     // Gunner Robot Shooting Action
                     if (robotType == RobotType.Gunner && dist <= shootingDistance && _actionCooldownTimer <= 0f)
@@ -436,5 +472,53 @@ namespace TheLastEmpire
             yield return new WaitForSeconds(duration);
             _spriteRenderer.color = _originalColor;
         }
-    }
+    
+        private IEnumerator ExecuteKamikazeExplode()
+        {
+            _isActionActive = true;
+            _actionCooldownTimer = 99f;
+            rb.linearVelocity = Vector3.zero;
+            currentState = AIState.Telegraph;
+
+            // Flash rapid warning
+            float timer = 0.7f;
+            while (timer > 0f)
+            {
+                timer -= Time.deltaTime;
+                if (_spriteRenderer != null)
+                {
+                    _spriteRenderer.color = (Mathf.Repeat(timer * 15f, 1f) > 0.5f) ? Color.red : Color.yellow;
+                }
+                yield return null;
+            }
+
+            // Explode
+            if (ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool("EnemyExplosion", transform.position, Quaternion.identity);
+            }
+
+            Collider[] hits = Physics.OverlapSphere(transform.position, kamikazeExplosionRadius);
+            foreach (var hit in hits)
+            {
+                if (hit.CompareTag("Player"))
+                {
+                    IDamageable dmg = hit.GetComponent<IDamageable>();
+                    if (dmg != null)
+                    {
+                        dmg.TakeDamage(kamikazeDamage, transform.position);
+                    }
+                }
+            }
+
+            if (health != null)
+            {
+                health.TakeDamage(99999f);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+}
 }

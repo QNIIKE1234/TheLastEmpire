@@ -11,7 +11,9 @@ namespace TheLastEmpire
             Dog,
             Boomer,
             Leader,
-            Runner
+            Runner,
+            Spitter,
+            Tank
         }
 
         [Header("Zombie Settings")]
@@ -21,6 +23,11 @@ namespace TheLastEmpire
         [SerializeField] private float leapCooldown = 4f;
         [SerializeField] private float leapSpeed = 12f;
         [SerializeField] private float leapDuration = 0.3f;
+
+        [Header("Spitter Settings")]
+        [SerializeField] private float spitCooldown = 3.5f;
+        [SerializeField] private float spitRange = 8.5f;
+        private float _spitCooldownTimer = 0f;
 
         [Header("Boomer / Explosion Settings")]
         [SerializeField] private float explosionRadius = 3f;
@@ -207,6 +214,16 @@ namespace TheLastEmpire
                     zombieType = ZombieType.Runner;
                     Debug.Log($"[ZombieAI] Auto-detected type as Runner from GameObject name: {gameObject.name}");
                 }
+                else if (lowerName.Contains("spitter") || lowerName.Contains("acid"))
+                {
+                    zombieType = ZombieType.Spitter;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Spitter from GameObject name: {gameObject.name}");
+                }
+                else if (lowerName.Contains("tank") || lowerName.Contains("brute"))
+                {
+                    zombieType = ZombieType.Tank;
+                    Debug.Log($"[ZombieAI] Auto-detected type as Tank from GameObject name: {gameObject.name}");
+                }
             }
 
             // Define stats depending on ZombieType
@@ -226,6 +243,16 @@ namespace TheLastEmpire
                 case ZombieType.Boomer:
                     moveSpeed = 2f;
                     break;
+                case ZombieType.Spitter:
+                    moveSpeed = 2.5f;
+                    detectionRange = 9f;
+                    break;
+                case ZombieType.Tank:
+                    moveSpeed = 1.6f;
+                    detectionRange = 7f;
+                    staggerDuration = 0.1f;
+                    knockbackForce = 12f;
+                    break;
             }
         }
 
@@ -240,6 +267,7 @@ namespace TheLastEmpire
             }
 
             // Handle dog leap countdown timers
+            if (_spitCooldownTimer > 0f) _spitCooldownTimer -= Time.fixedDeltaTime;
             if (_leapCooldownTimer > 0f) _leapCooldownTimer -= Time.fixedDeltaTime;
             
             if (_isLeaping)
@@ -463,6 +491,13 @@ namespace TheLastEmpire
                 float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
                 // Boomer triggers explosion when very close to player
+                // Spitter periodically spits poison/acid projectile at player
+                if (zombieType == ZombieType.Spitter && _spitCooldownTimer <= 0f && distanceToPlayer >= 3f && distanceToPlayer <= spitRange)
+                {
+                    StartCoroutine(ExecuteSpitterSpit());
+                    return;
+                }
+
                 if (zombieType == ZombieType.Boomer && distanceToPlayer <= 2f && !_isExploding)
                 {
                     TriggerBoomerFuse();
@@ -1425,5 +1460,41 @@ namespace TheLastEmpire
                 _currentChildSpawns = Mathf.Max(0, _currentChildSpawns - 1);
             }
         }
-    }
+    
+        private System.Collections.IEnumerator ExecuteSpitterSpit()
+        {
+            _spitCooldownTimer = spitCooldown;
+            rb.linearVelocity = Vector3.zero;
+            currentState = AIState.Telegraph;
+            if (_spriteRenderer != null) _spriteRenderer.color = new Color(0.2f, 0.9f, 0.2f);
+
+            yield return new WaitForSeconds(0.4f);
+
+            if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+
+            if (playerTransform != null)
+            {
+                Vector3 dir = (playerTransform.position - transform.position);
+                dir.y = 0f;
+                dir.Normalize();
+
+                Vector3 spawnPos = transform.position + dir * 0.6f + Vector3.up * 0.3f;
+                GameObject acid = new GameObject("ZombieAcidSpit");
+                acid.transform.position = spawnPos;
+                acid.transform.localScale = new Vector3(0.22f, 0.22f, 0.22f);
+
+                SpriteRenderer sr = acid.AddComponent<SpriteRenderer>();
+                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                sr.color = new Color(0.35f, 0.95f, 0.15f);
+
+                SphereCollider col = acid.AddComponent<SphereCollider>();
+                col.isTrigger = true;
+
+                Projectile proj = acid.AddComponent<Projectile>();
+                proj.Setup(dir, playerTransform.position, gameObject);
+            }
+
+            currentState = AIState.Chase;
+        }
+}
 }
