@@ -955,7 +955,15 @@ namespace TheLastEmpire
             }
             if (subText != null)
             {
-                subText.text = $"{charData.characterTitle} - {charData.roleCategory}";
+                if (clueText != null)
+                {
+                    subText.text = $"{charData.characterTitle} - {charData.roleCategory}";
+                }
+                else
+                {
+                    // Fallback เมื่อมีกล่องข้อความแค่ 2 อัน (ให้แสดงทั้งฉายาและข้อความคำพูดในกล่องเดียวกัน)
+                    subText.text = $"{charData.characterTitle} - {charData.roleCategory}\n<i>\"{charData.amnesiaWakingClue}\"</i>";
+                }
             }
             if (clueText != null)
             {
