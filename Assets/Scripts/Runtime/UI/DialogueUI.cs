@@ -50,6 +50,7 @@ namespace TheLastEmpire.UI
         private Coroutine _typewriterCoroutine;
 
         private RectTransform _bodyTextRect;
+        private bool _isProceduralUI = false;
         private bool _savedCursorVisible;
         private CursorLockMode _savedCursorLockState;
 
@@ -161,7 +162,8 @@ namespace TheLastEmpire.UI
                     portraitImage.sprite = portraitToUse;
                     if (boxToToggle != null) boxToToggle.SetActive(true);
 
-                    if (_bodyTextRect != null)
+                    // แก้ไข: ปรับ offsetMin เฉพาะกรณี Procedural UI เท่านั้น เพื่อไม่ให้เขียนทับค่า Left/Right ที่จัดไว้ใน Inspector
+                    if (_bodyTextRect != null && _isProceduralUI)
                     {
                         _bodyTextRect.offsetMin = new Vector2(195f, 30f);
                     }
@@ -170,7 +172,7 @@ namespace TheLastEmpire.UI
                 {
                     if (boxToToggle != null) boxToToggle.SetActive(false);
 
-                    if (_bodyTextRect != null)
+                    if (_bodyTextRect != null && _isProceduralUI)
                     {
                         _bodyTextRect.offsetMin = new Vector2(35f, 30f);
                     }
@@ -270,6 +272,7 @@ namespace TheLastEmpire.UI
         private void CreateProceduralUI()
         {
             if (dialogueContainer != null) return;
+            _isProceduralUI = true;
 
             GameObject canvasObj = new GameObject("DialogueCanvas");
             DontDestroyOnLoad(canvasObj);
