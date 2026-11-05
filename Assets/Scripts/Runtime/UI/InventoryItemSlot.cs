@@ -194,6 +194,10 @@ namespace TheLastEmpire
                         label = "FOOD";
                         color = new Color(1f, 0.647f, 0.235f, 1f);
                         break;
+                    case ItemType.Material:
+                        label = "MATERIAL";
+                        color = new Color(0.35f, 0.85f, 1f, 1f);
+                        break;
                     default:
                         label = "ETC";
                         color = new Color(0.7f, 0.7f, 0.7f, 1f);

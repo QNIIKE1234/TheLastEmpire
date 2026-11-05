@@ -11,7 +11,8 @@ namespace TheLastEmpire
         Money,
         RangedWeapon,
         MeleeWeapon,
-        ThrowingWeapon
+        ThrowingWeapon,
+        Material
     }
 
     [System.Serializable]
