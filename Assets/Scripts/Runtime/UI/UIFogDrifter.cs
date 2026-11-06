@@ -44,8 +44,8 @@ namespace TheLastEmpire
             // Auto-assign smoke sprite if empty
             if (_image != null && _image.sprite == null)
             {
-                Sprite smokeSprite = Resources.Load<Sprite>("Image/UI/Smoke_Puff_VFX") 
-                                  ?? Resources.Load<Sprite>("Image/UI/Smoke_Horizontal_Fog");
+                Sprite smokeSprite = AddressableManager.LoadAsset<Sprite>("Image/UI/Smoke_Puff_VFX") 
+                                  ?? AddressableManager.LoadAsset<Sprite>("Image/UI/Smoke_Horizontal_Fog");
                 if (smokeSprite != null)
                 {
                     _image.sprite = smokeSprite;

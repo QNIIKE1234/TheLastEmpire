@@ -13,11 +13,11 @@ namespace TheLastEmpire
             {
                 if (_instance == null)
                 {
-                    // Attempt to load from Resources (exact path)
-                    _instance = Resources.Load<ItemDatabase>("Database/ItemDatabase");
+                    // Attempt to load from Addressables (exact path) with fallback
+                    _instance = AddressableManager.LoadAsset<ItemDatabase>("Database/ItemDatabase");
                     if (_instance == null)
                     {
-                        _instance = Resources.Load<ItemDatabase>("ItemDatabase");
+                        _instance = AddressableManager.LoadAsset<ItemDatabase>("ItemDatabase");
                     }
                     if (_instance == null)
                     {
@@ -70,8 +70,12 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. Fallback dynamic load: recursively load all ItemData assets from all Resources folders
-            ItemData[] allInResources = Resources.LoadAll<ItemData>("");
+            // 3. Fallback dynamic load: recursively load all ItemData assets from Addressables (label 'ItemData') or Resources
+            IList<ItemData> allInResources = AddressableManager.LoadAssetsByLabel<ItemData>("ItemData");
+            if (allInResources == null || allInResources.Count == 0)
+            {
+                allInResources = Resources.LoadAll<ItemData>("");
+            }
             foreach (ItemData item in allInResources)
             {
                 if (item != null)

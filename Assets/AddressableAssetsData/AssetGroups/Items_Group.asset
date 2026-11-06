@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Items_Group
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Items_Group
+  m_GUID: b18e4957244902d4b97a53e0a4ff09e6
+  m_SerializeEntries:
+  - m_GUID: 22a88b85bfc54016b9796b836487ced1
+    m_Address: Prefabs/Item/BoltPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Item
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 57c93f12bcf32f341b9aed622a810e4a
+    m_Address: Prefabs/Item/ItemPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Item
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d2987ed20067a51498c56e074c78952c
+    m_Address: Prefabs/Item/PostalBulletPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Item
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9a39ff27e36a7646a81e435a4c2ff9f
+    m_Address: Prefabs/Item/ThrowingWeaponPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Item
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 65b4081c916ea1f4984dba329b255ea9, type: 2}
+    - {fileID: 11400000, guid: 869da3241fc8aad4b8b6c65acac0c812, type: 2}

@@ -19,7 +19,7 @@ namespace TheLastEmpire
             {
                 if (_cachedInstance == null)
                 {
-                    _cachedInstance = Resources.Load<CharacterDatabase>("Database/CharacterDatabase");
+                    _cachedInstance = AddressableManager.LoadAsset<CharacterDatabase>("Database/CharacterDatabase");
                     if (_cachedInstance == null)
                     {
                         var all = Resources.LoadAll<CharacterDatabase>("");

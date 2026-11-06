@@ -178,7 +178,7 @@ namespace TheLastEmpire
         {
             if (_menuFrameSprite != null) return _menuFrameSprite;
 
-            Sprite[] sprites = Resources.LoadAll<Sprite>("Image/UI/exec-7b2b05d1-d8f6-4ee8-b21d-8ee6ba816922");
+            Sprite[] sprites = AddressableManager.LoadAllSprites("Image/UI/exec-7b2b05d1-d8f6-4ee8-b21d-8ee6ba816922");
             foreach (Sprite sprite in sprites)
             {
                 if (sprite != null && sprite.name.EndsWith("_5"))

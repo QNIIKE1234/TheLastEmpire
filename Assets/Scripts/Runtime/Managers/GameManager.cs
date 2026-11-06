@@ -563,7 +563,7 @@ namespace TheLastEmpire
                     GameObject prefab = GetPrefabByName(spawn.enemyPrefabName);
                     if (prefab == null)
                     {
-                        prefab = Resources.Load<GameObject>($"Prefabs/Character/{spawn.enemyPrefabName}");
+                        prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{spawn.enemyPrefabName}");
                     }
                     if (prefab != null)
                     {

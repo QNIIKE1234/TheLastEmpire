@@ -216,7 +216,7 @@ namespace TheLastEmpire
 
             if (targetVolumeProfile == null)
             {
-                targetVolumeProfile = Resources.Load<VolumeProfile>("Settings/DefaultVolumeProfile");
+                targetVolumeProfile = AddressableManager.LoadAsset<VolumeProfile>("Settings/DefaultVolumeProfile");
             }
         }
 

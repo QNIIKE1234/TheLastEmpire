@@ -390,7 +390,7 @@ namespace TheLastEmpire
             root = GameObject.Find(RootDesignName);
 
             Transform folder = EnsureFolder(root.transform, folderName);
-            GameObject prefab = Resources.Load<GameObject>(resourcePath);
+            GameObject prefab = AddressableManager.LoadAsset<GameObject>(resourcePath);
 
             GameObject spawned;
             if (prefab != null)
@@ -422,7 +422,7 @@ namespace TheLastEmpire
             root = GameObject.Find(RootDesignName);
 
             Transform folder = EnsureFolder(root.transform, EnemySpawnsFolderName);
-            GameObject prefab = Resources.Load<GameObject>(resourcePath);
+            GameObject prefab = AddressableManager.LoadAsset<GameObject>(resourcePath);
 
             GameObject spawned;
             if (prefab != null)
@@ -478,7 +478,7 @@ namespace TheLastEmpire
             root = GameObject.Find(RootDesignName);
 
             Transform folder = EnsureFolder(root.transform, NPCSpawnsFolderName);
-            GameObject npcPrefab = Resources.Load<GameObject>("Prefabs/Character/NPCPrefabs");
+            GameObject npcPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Character/NPCPrefabs");
 
             GameObject spawned;
             if (npcPrefab != null)
@@ -702,7 +702,7 @@ namespace TheLastEmpire
             // Reconstruct Enemies
             foreach (var en in data.enemySpawns)
             {
-                GameObject prefab = Resources.Load<GameObject>($"Prefabs/Character/{en.enemyPrefabName}");
+                GameObject prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{en.enemyPrefabName}");
                 GameObject obj = prefab != null ? (GameObject)PrefabUtility.InstantiatePrefab(prefab, enemyF) : GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 obj.name = en.enemyPrefabName;
                 obj.transform.SetParent(enemyF, false);
@@ -734,7 +734,7 @@ namespace TheLastEmpire
             // Reconstruct NPCs
             foreach (var npc in data.npcSpawns)
             {
-                GameObject npcPrefab = Resources.Load<GameObject>("Prefabs/Character/NPCPrefabs");
+                GameObject npcPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Character/NPCPrefabs");
                 GameObject obj = npcPrefab != null ? (GameObject)PrefabUtility.InstantiatePrefab(npcPrefab, npcF) : GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 obj.name = $"NPC_{npc.npcType}";
                 obj.transform.SetParent(npcF, false);
@@ -755,11 +755,11 @@ namespace TheLastEmpire
             GameObject prefab = null;
             if (!string.IsNullOrEmpty(placed.resourcePath))
             {
-                prefab = Resources.Load<GameObject>(placed.resourcePath);
+                prefab = AddressableManager.LoadAsset<GameObject>(placed.resourcePath);
             }
             if (prefab == null && !string.IsNullOrEmpty(placed.prefabName))
             {
-                prefab = Resources.Load<GameObject>($"Prefabs/Environment/{placed.prefabName}");
+                prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/{placed.prefabName}");
             }
 
             GameObject obj = prefab != null ? (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent) : GameObject.CreatePrimitive(PrimitiveType.Cube);

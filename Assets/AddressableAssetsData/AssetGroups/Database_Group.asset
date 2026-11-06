@@ -1,0 +1,558 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Database_Group
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Database_Group
+  m_GUID: 729d463011fd48945b0646578d0b5b14
+  m_SerializeEntries:
+  - m_GUID: 0156f235935a4cbe810c0209e37a4e75
+    m_Address: Database/ItemData/ITEM0024_Revolver
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0474284a0f7c41759bf6f9bbfffcd5e2
+    m_Address: Database/ItemData/ITEM0033_Bandage
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 09c29e7b085f4374a38c65f3133b0e88
+    m_Address: Database/ItemData/ITEM0028_HeavyAmmo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 09c9afc59a28a1a4ba357112b40aaec5
+    m_Address: Database/ItemDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0cd5bacb7fb84334fe52369c28f5709a
+    m_Address: Database/ItemData/ITEM0045_TitanSkullCrest
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0ef27a5537be62543bd247f172f26a7e
+    m_Address: Database/ItemData/ITEM0005_ETC
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1258372f3b20a084a89ef7499d832894
+    m_Address: Database/ItemData/ITEM0011_RifleAmmo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12ec120ad219279409d3230f5d7c7d63
+    m_Address: Database/ItemData/ITEM0047_TornCopperWiring
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1dad086b212f6cd25dcc7c0ad2cbb001
+    m_Address: Database/ItemData/ITEM0053_AdvancedNeuralProcessor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1dba39513afd085dcab656ce9efd4ad6
+    m_Address: Database/ItemData/ITEM0038_RottenBoneClaw
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21107c27d04dedbcb16e61806a8477f7
+    m_Address: Database/ItemData/ITEM0065_GravitationalBioOrgan
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21a4f829c774b544891f32b6bb9e1751
+    m_Address: Database/ItemData/ITEM0010_ShotgunAmmo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 222f30f19aa445ab99ba63e95e7764e0
+    m_Address: Database/ItemData/ITEM0030_CannedFood
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 23f27b1a708957d40bd1d82af9109670
+    m_Address: Database/DialogueDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27aeb4710cfe4359ad2edcaeeaf74dab
+    m_Address: Database/ItemData/ITEM0022_SMG
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29748bd8c38e2734e9a328da32e89353
+    m_Address: Database/ItemData/ITEM0008_Rifle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b8b6fb77fb248bb9e70317e50ea6777
+    m_Address: Database/ItemData/ITEM0016_FireAxe
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2ea07830d8ba3dd42bb76d5b684f0b26
+    m_Address: Database/Characters/CHAR_02_Juggernaut
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f5aa5e0ab314f89be7b2d4a7a672a82
+    m_Address: Database/ItemData/ITEM0031_CookedMeat
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f87ac0e0ad096546b98c7063f7f4e13
+    m_Address: Database/ItemData/ITEM0014_Machete
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3542f5143f7311d463f0da9e72f95330
+    m_Address: Database/ItemData/ITEM0043_ToxicBileSac
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 367b81fe3d09402e9ff9715e12f7896a
+    m_Address: Database/ItemData/ITEM0027_Crossbow
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39b522640cb26b796486211cfd3ae028
+    m_Address: Database/ItemData/ITEM0058_XenoNerveTendril
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3f7828ce7a0055c4fa22a5c0ab4eb0e0
+    m_Address: Database/Characters/CHAR_01_Vanguard
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4392ef4321caffa4baeea2bb0ddb9dd0
+    m_Address: Database/ItemData/ITEM0006_Pistol
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 44636907921414bdd8ac8ddd500921e8
+    m_Address: Database/ItemData/ITEM0062_ChameleonPhaseMembrane
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f4973cc90fd6a7aef8b9753dbd1e5b6
+    m_Address: Database/ItemData/ITEM0060_PrismaticStinger
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4fbfbb77ec0c8434eb190b26b727c30f
+    m_Address: Database/ItemData/ITEM0013_BaseballBat
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 517bae9a5ddb4522ad3256572a318f6a
+    m_Address: Database/ItemData/ITEM0034_FirstAidKit
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 55edfcb65aa0261e977537bb4910a768
+    m_Address: Database/ItemData/ITEM0063_PsionicResonatorGland
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 561922f3be8b4874d865a5c039258817
+    m_Address: Database/ItemData/ITEM0002_Ammo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56b668d5a62c4cdf91e1f82e00e206f6
+    m_Address: Database/ItemData/ITEM0023_SniperRifle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5b121d0431f244aaa3690940750aaad4
+    m_Address: Database/ItemData/ITEM0021_Chainsaw
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5dc4bf239ec50812d559c4cb12524772
+    m_Address: Database/ItemData/ITEM0055_MilitaryOverdriveServo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e175f6be7adb280998b6e0635af01a3
+    m_Address: Database/ItemData/ITEM0061_BioPlasmaSac
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6395292e7a4b04cb474a114f3c91b3f5
+    m_Address: Database/ItemData/ITEM0044_PulsingAbominationHeart
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 652910bc57c615f555a19db935ae89d9
+    m_Address: Database/ItemData/ITEM0037_TornInfectedCloth
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6986434e85f82ccbe3917db7cae43641
+    m_Address: Database/ItemData/ITEM0049_BasicLogicChip
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b84a587c25be99cd246bb4595b6ca12
+    m_Address: Database/ItemData/ITEM0059_CrackedAlienSporeHusk
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6d8e83d34559827a2918b701034ec824
+    m_Address: Database/ItemData/ITEM0064_OverlordXenocrystalCore
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e078f72ffab7514bb76c21f650d3e3b
+    m_Address: Database/ItemData/ITEM0009_PistolAmmo
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e839f29d0cdee40c85d6cbe13db9710
+    m_Address: Database/ItemData/ITEM0042_HardenedSpineSegment
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71dd317db511f229a866223a24bb4258
+    m_Address: Database/ItemData/ITEM0040_TaintedIchorVial
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 725ba2c42c94dd646bcf4498146bb33d
+    m_Address: Database/Characters/CHAR_05_Scavenger
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 83e41ba92c74dd546bcf4498146bb44e
+    m_Address: Database/Characters/CHAR_06_Rebel
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 83f84ddebe1e65d70ae0133eaabd95c8
+    m_Address: Database/ItemData/ITEM0050_SyntheticMachineOil
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 893a1c00ae710b0552979c5ae4dcd541
+    m_Address: Database/ItemData/ITEM0041_ConcentratedVirusStrain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8cd6bf53ca51ce645bdb64adeac82f78
+    m_Address: Database/ItemData/ITEM0015_Grenade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9029310fddffd4b3de4aa30866b0673a
+    m_Address: Database/ItemData/ITEM0051_HighCapacityCapacitor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 932483d85c764320b9bded3bae727763
+    m_Address: Database/ItemData/ITEM0026_RocketLauncher
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 937a7e48effd46a69cfceabc42e91264
+    m_Address: Database/ItemData/ITEM0019_SurvivalSpear
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94f52cb03d85ee657cdf5509257cc55f
+    m_Address: Database/Characters/CHAR_07_Demolitionist
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95cc56183ae9bac443361e89b13a6948
+    m_Address: Database/ItemData/ITEM0039_DecayedInfectedFang
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95fd6585d752e0e48a8b8282112c8499
+    m_Address: Database/ItemData/ITEM0012_Knife
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 99259f2e874f60343bc28d427eb691cb
+    m_Address: Database/ItemData/ITEM0001_Potion
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 994b8a468fb719744bf6cb1e0d620037
+    m_Address: Database/ItemData/ITEM0007_Shotgun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aab770a039b211079208af11f57b2977
+    m_Address: Database/ItemData/ITEM0057_PhosphorescentAcidBlood
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aaf71c175b2ae0b41a1b35f90bd26f72
+    m_Address: Database/PlayerConfig
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ae91fa7f1ddd06d337fae2e716cf36b6
+    m_Address: Database/ItemData/ITEM0052_ReinforcedTitaniumPlate
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc04b1b423c12ae4287121dc9e204dbc
+    m_Address: Database/CharacterDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc5c2bcbeba1464da87e8562a362b745
+    m_Address: Database/ItemData/ITEM0056_ChitinCarapaceShard
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c01d51d8583a450fc6c85fbd5c27bc15
+    m_Address: Database/ItemData/ITEM0036_ContaminatedFlesh
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c33302859d1f46628b64be3284327d23
+    m_Address: Database/ItemData/ITEM0035_AdrenalineShot
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c57362eb3b667684faa92d3844ba41b6
+    m_Address: Database/Characters/CHAR_04_Marksman
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c809ad8b25e9ef1fa8bf97de5ce53597
+    m_Address: Database/ItemData/ITEM0048_HydraulicPistonBolt
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cc190728f5674b67a51afeb3a29c53f7
+    m_Address: Database/ItemData/ITEM0032_EnergyBar
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0bcb8dc8d676ba428263cdcb07a2324
+    m_Address: Database/ItemData/ITEM0003_Bread
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d154e9c79a08ee640a2c7a2e64bd9777
+    m_Address: Database/ItemData/ITEM0004_Money
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5adf9ecd3bd43557facb3d2cd0097e1
+    m_Address: Database/ItemData/ITEM0054_MiniatureFusionReactor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6ab827423dd4d4eac4dbe6fbc494216
+    m_Address: Database/ItemData/ITEM0018_Sledgehammer
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d8bcac8c8b914302b655e905f951abbe
+    m_Address: Database/ItemData/ITEM0029_Bolts
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d93f24f877830ff7830e92d270d35ddc
+    m_Address: Database/ItemData/ITEM0046_ScrapMetalPlate
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e448b9ce40024846b2fce004f8d6ab08
+    m_Address: Database/ItemData/ITEM0025_Flamethrower
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eb6fbcd0d1a8e3641b6087b92eda6d22
+    m_Address: Database/Characters/CHAR_03_Phantom
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ef37c829a98648b68123793cf4176320
+    m_Address: Database/ItemData/ITEM0020_StunBaton
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa5a96377fad19c49847b964d507970c
+    m_Address: Database/ShopDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fbc7773ce3004d9384a2a397832820b7
+    m_Address: Database/ItemData/ITEM0017_Katana
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 21c6471553bdbac4993312d0c04b5d41, type: 2}
+    - {fileID: 11400000, guid: e570f4ec74df67f41b5ec8d89f218080, type: 2}

@@ -838,10 +838,10 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Try loading from Resources Prefabs if still null
+            // 2. Try loading from Addressables (or Resources fallback) if still null
             if (bannerObj == null)
             {
-                GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/AmnesiaAwakeningBanner");
+                GameObject prefab = AddressableManager.LoadAsset<GameObject>("Prefabs/UI/AmnesiaAwakeningBanner");
                 if (prefab != null)
                 {
                     bannerObj = Instantiate(prefab, hudCanvas.transform, false);

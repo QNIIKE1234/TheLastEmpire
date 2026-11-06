@@ -53,10 +53,15 @@ namespace TheLastEmpire
             _templatesByBiome.Clear();
             _templatesById.Clear();
 
-            TextAsset[] templateAssets = Resources.LoadAll<TextAsset>("Stages");
-            if (templateAssets == null || templateAssets.Length == 0)
+            IList<TextAsset> templateAssets = AddressableManager.LoadAssetsByLabel<TextAsset>("Stage");
+            if (templateAssets == null || templateAssets.Count == 0)
             {
-                Debug.Log("[StageTemplateManager] No JSON templates found under Resources/Stages/.");
+                templateAssets = Resources.LoadAll<TextAsset>("Stages");
+            }
+
+            if (templateAssets == null || templateAssets.Count == 0)
+            {
+                Debug.Log("[StageTemplateManager] No JSON templates found under Addressables (label 'Stage') or Resources/Stages/.");
                 _isInitialized = true;
                 return;
             }

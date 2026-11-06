@@ -135,11 +135,11 @@ namespace TheLastEmpire
 
             if (_poolDictionary == null || !_poolDictionary.ContainsKey(trimmedKey))
             {
-                // Auto-fallback check: Try loading from Resources/Prefabs/Item/{trimmedKey} or BoltPrefabs
-                GameObject loadedPrefab = Resources.Load<GameObject>($"Prefabs/Item/{trimmedKey}");
+                // Auto-fallback check: Try loading from Addressables (or Resources fallback) Prefabs/Item/{trimmedKey} or BoltPrefabs
+                GameObject loadedPrefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Item/{trimmedKey}");
                 if (loadedPrefab == null && trimmedKey.Equals("Bolt001", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    loadedPrefab = Resources.Load<GameObject>("Prefabs/Item/BoltPrefabs");
+                    loadedPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BoltPrefabs");
                 }
 
                 if (loadedPrefab != null)

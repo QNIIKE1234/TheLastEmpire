@@ -83,10 +83,10 @@ namespace TheLastEmpire.Story
             {
                 if (_instance == null)
                 {
-                    _instance = Resources.Load<DialogueDatabase>("Database/DialogueDatabase");
+                    _instance = AddressableManager.LoadAsset<DialogueDatabase>("Database/DialogueDatabase");
                     if (_instance == null)
                     {
-                        _instance = Resources.Load<DialogueDatabase>("DialogueDatabase");
+                        _instance = AddressableManager.LoadAsset<DialogueDatabase>("DialogueDatabase");
                     }
                     if (_instance == null)
                     {

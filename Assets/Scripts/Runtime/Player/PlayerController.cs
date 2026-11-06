@@ -2171,7 +2171,7 @@ namespace TheLastEmpire
 
                 // 9. Hunting Crossbow
                 Projectile boltProjPrefab = projectilePrefab;
-                GameObject boltObj = Resources.Load<GameObject>("Prefabs/Item/BoltPrefabs");
+                GameObject boltObj = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BoltPrefabs");
                 if (boltObj != null)
                 {
                     Projectile loadedBolt = boltObj.GetComponent<Projectile>();

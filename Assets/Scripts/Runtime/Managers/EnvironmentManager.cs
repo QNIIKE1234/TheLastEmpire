@@ -1716,23 +1716,23 @@ namespace TheLastEmpire
 
         private GameObject ResolveTemplatePrefab(string prefabName, string resourcePath)
         {
-            // 1. Try direct resourcePath if provided
+            // 1. Try direct resourcePath if provided via Addressables (with Resources fallback)
             if (!string.IsNullOrEmpty(resourcePath))
             {
-                GameObject res = Resources.Load<GameObject>(resourcePath);
+                GameObject res = AddressableManager.LoadAsset<GameObject>(resourcePath);
                 if (res != null) return res;
             }
 
-            // 2. Try common Environment folders in Resources
+            // 2. Try common Environment folders in Addressables (with Resources fallback)
             if (!string.IsNullOrEmpty(prefabName))
             {
-                GameObject res = Resources.Load<GameObject>($"Prefabs/Environment/{prefabName}");
+                GameObject res = AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/{prefabName}");
                 if (res != null) return res;
 
-                res = Resources.Load<GameObject>($"Prefabs/Environment/Building/{prefabName}");
+                res = AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/Building/{prefabName}");
                 if (res != null) return res;
 
-                res = Resources.Load<GameObject>($"Prefabs/{prefabName}");
+                res = AddressableManager.LoadAsset<GameObject>($"Prefabs/{prefabName}");
                 if (res != null) return res;
 
                 // Search in configured biomeConfigs

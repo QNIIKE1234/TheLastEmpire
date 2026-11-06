@@ -291,7 +291,7 @@ namespace TheLastEmpire
         private void SpawnDirectly(Vector3 pos)
         {
             string prefabPath = GetPrefabPathForType(_selectedType);
-            GameObject prefab = Resources.Load<GameObject>(prefabPath);
+            GameObject prefab = AddressableManager.LoadAsset<GameObject>(prefabPath);
             if (prefab != null)
             {
                 GameObject obj = Instantiate(prefab, pos, Quaternion.identity);
@@ -302,7 +302,7 @@ namespace TheLastEmpire
         private void SpawnInEditMode(Vector3 pos)
         {
             string prefabPath = GetPrefabPathForType(_selectedType);
-            GameObject prefab = Resources.Load<GameObject>(prefabPath);
+            GameObject prefab = AddressableManager.LoadAsset<GameObject>(prefabPath);
             if (prefab != null)
             {
                 GameObject obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab);

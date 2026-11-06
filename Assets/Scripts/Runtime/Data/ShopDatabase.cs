@@ -20,7 +20,11 @@ namespace TheLastEmpire
             {
                 if (_instance == null)
                 {
-                    _instance = Resources.Load<ShopDatabase>("ShopDatabase");
+                    _instance = AddressableManager.LoadAsset<ShopDatabase>("Database/ShopDatabase");
+                    if (_instance == null)
+                    {
+                        _instance = AddressableManager.LoadAsset<ShopDatabase>("ShopDatabase");
+                    }
                     if (_instance == null)
                     {
                         ShopDatabase[] databases = Resources.FindObjectsOfTypeAll<ShopDatabase>();

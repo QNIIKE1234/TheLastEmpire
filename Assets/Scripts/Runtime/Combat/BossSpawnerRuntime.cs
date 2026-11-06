@@ -189,10 +189,10 @@ namespace TheLastEmpire
                 enemy = ObjectPoolManager.Instance.SpawnFromPool(poolKey, position, Quaternion.identity);
             }
 
-            // 2. Fallback to direct Resources.Load if pool didn't spawn
+            // 2. Fallback to AddressableManager (with Resources fallback) if pool didn't spawn
             if (enemy == null && !string.IsNullOrEmpty(prefabResourcePath))
             {
-                GameObject prefab = Resources.Load<GameObject>(prefabResourcePath);
+                GameObject prefab = AddressableManager.LoadAsset<GameObject>(prefabResourcePath);
                 if (prefab != null)
                 {
                     enemy = Instantiate(prefab, position, Quaternion.identity);
