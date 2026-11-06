@@ -11,9 +11,9 @@ namespace TheLastEmpire.Editor
     /// </summary>
     public static class CharacterAssetCreator
     {
-        private const string CharDir = "Assets/Resources/Database/Characters";
-        private const string DbDir = "Assets/Resources/Database";
-        private const string DatabaseAssetPath = "Assets/Resources/Database/CharacterDatabase.asset";
+        private const string CharDir = "Assets/Resources_Addressable/Database/Characters";
+        private const string DbDir = "Assets/Resources_Addressable/Database";
+        private const string DatabaseAssetPath = "Assets/Resources_Addressable/Database/CharacterDatabase.asset";
 
         [MenuItem("The Last Empire/Characters/Ensure Missing Character Assets Exist (Safe)", priority = 1)]
         public static void EnsureMissingCharacterAssetsExist()

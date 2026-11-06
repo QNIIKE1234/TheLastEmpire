@@ -16,14 +16,14 @@ namespace TheLastEmpire.Editor
         [MenuItem("Tools/Ensure Dialogue Database Exists")]
         public static void EnsureDialogueDatabaseExists()
         {
-            string folderPath = "Assets/Resources/Database";
-            if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            string folderPath = "Assets/Resources_Addressable/Database";
+            if (!AssetDatabase.IsValidFolder("Assets/Resources_Addressable"))
             {
-                AssetDatabase.CreateFolder("Assets", "Resources");
+                AssetDatabase.CreateFolder("Assets", "Resources_Addressable");
             }
             if (!AssetDatabase.IsValidFolder(folderPath))
             {
-                AssetDatabase.CreateFolder("Assets/Resources", "Database");
+                AssetDatabase.CreateFolder("Assets/Resources_Addressable", "Database");
             }
 
             string assetPath = $"{folderPath}/DialogueDatabase.asset";
