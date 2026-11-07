@@ -43,6 +43,22 @@ namespace TheLastEmpire
         [SerializeField] private Button toolsTabButton;
         [SerializeField] private Button specialTabButton;
 
+        [Header("Category Tab Sprites (สลับรูป Sprite ตอนเลือกหมวดหมู่)")]
+        [Tooltip("Sprite ตอนที่ปุ่มหมวดหมู่ถูกเลือก (เช่น กรอบสีเหลืองตามรูป)")]
+        [SerializeField] private Sprite selectedTabSprite;
+
+        [Tooltip("Sprite ตอนที่ปุ่มหมวดหมู่ไม่ได้เลือก (เช่น กรอบสีดำตามรูป)")]
+        [SerializeField] private Sprite unselectedTabSprite;
+
+        [Header("Category Tab Images (Optional: ลากใส่เฉพาะกรณี Image ไม่ได้อยู่บนตัว Button เดียวกัน)")]
+        [SerializeField] private Image buildingTabImage;
+        [SerializeField] private Image utilityTabImage;
+        [SerializeField] private Image defenseTabImage;
+        [SerializeField] private Image weaponsTabImage;
+        [SerializeField] private Image consumablesTabImage;
+        [SerializeField] private Image toolsTabImage;
+        [SerializeField] private Image specialTabImage;
+
         [Header("Thumbnail Slots (รายการแถวคราฟต์ฝั่งขวา)")]
         [Tooltip("ลากแถว CraftThumbnail ทั้งหมดที่วางอยู่ในหน้าต่าง UI ใส่ที่นี่ (เช่น 6 แถว) เพื่อวนเซตข้อมูลซ้ำ ไม่สร้างใหม่ ไม่เปลือง Memory")]
         [SerializeField] private List<CraftThumbnail> thumbnailSlots = new List<CraftThumbnail>();
@@ -322,6 +338,11 @@ namespace TheLastEmpire
 
         public void SelectCategory(CraftingCategory category)
         {
+            if (_isOpen && _currentCategory == category && string.IsNullOrEmpty(_currentSearchQuery) && _filteredRecipes.Count > 0)
+            {
+                return;
+            }
+
             _currentCategory = category;
             _currentPage = 0;
             UpdateCategoryTabButtons();
@@ -378,20 +399,43 @@ namespace TheLastEmpire
 
         private void UpdateCategoryTabButtons()
         {
-            SetTabInteractable(buildingTabButton, _currentCategory != CraftingCategory.Building);
-            SetTabInteractable(utilityTabButton, _currentCategory != CraftingCategory.Utility);
-            SetTabInteractable(defenseTabButton, _currentCategory != CraftingCategory.Defense);
-            SetTabInteractable(weaponsTabButton, _currentCategory != CraftingCategory.Weapons);
-            SetTabInteractable(consumablesTabButton, _currentCategory != CraftingCategory.Consumables);
-            SetTabInteractable(toolsTabButton, _currentCategory != CraftingCategory.Tools);
-            SetTabInteractable(specialTabButton, _currentCategory != CraftingCategory.Special);
+            UpdateTabVisual(buildingTabButton, buildingTabImage, _currentCategory == CraftingCategory.Building);
+            UpdateTabVisual(utilityTabButton, utilityTabImage, _currentCategory == CraftingCategory.Utility);
+            UpdateTabVisual(defenseTabButton, defenseTabImage, _currentCategory == CraftingCategory.Defense);
+            UpdateTabVisual(weaponsTabButton, weaponsTabImage, _currentCategory == CraftingCategory.Weapons);
+            UpdateTabVisual(consumablesTabButton, consumablesTabImage, _currentCategory == CraftingCategory.Consumables);
+            UpdateTabVisual(toolsTabButton, toolsTabImage, _currentCategory == CraftingCategory.Tools);
+            UpdateTabVisual(specialTabButton, specialTabImage, _currentCategory == CraftingCategory.Special);
         }
 
-        private static void SetTabInteractable(Button tabButton, bool interactable)
+        private void UpdateTabVisual(Button tabButton, Image explicitImage, bool isSelected)
         {
             if (tabButton != null)
             {
-                tabButton.interactable = interactable;
+                // ถ้ามี sprite สลับ ให้เปิด interactable ไว้เสมอเพื่อให้แสดงสี sprite ได้ชัดเจนไม่โดน disabled gray-out
+                tabButton.interactable = selectedTabSprite != null ? true : !isSelected;
+            }
+
+            Image targetImg = explicitImage;
+            if (targetImg == null && tabButton != null)
+            {
+                targetImg = tabButton.image;
+                if (targetImg == null)
+                {
+                    targetImg = tabButton.GetComponent<Image>();
+                }
+            }
+
+            if (targetImg != null)
+            {
+                if (isSelected && selectedTabSprite != null)
+                {
+                    targetImg.sprite = selectedTabSprite;
+                }
+                else if (!isSelected && unselectedTabSprite != null)
+                {
+                    targetImg.sprite = unselectedTabSprite;
+                }
             }
         }
 
