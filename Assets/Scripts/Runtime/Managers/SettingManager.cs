@@ -48,6 +48,12 @@ namespace TheLastEmpire
         public const string PrefBloodGore = "Setting_BloodGore";
         public const string PrefLowHealthVignette = "Setting_LowHealthVignette";
 
+        // Legacy key fallbacks
+        public const string LegacyMasterVolume = "MasterVolume";
+        public const string LegacyBgmVolume = "BGMVolume";
+        public const string LegacySfxVolume = "SFXVolume";
+        public const string LegacyFullscreen = "Fullscreen";
+
         // =========================================================================
         //  Default Values
         // =========================================================================
@@ -402,8 +408,8 @@ namespace TheLastEmpire
                 if (graphicPanel != null && graphicPanel.transform.childCount == 0)
                 {
                     BuildToggleRow(graphicPanel.transform, toggleTemplate, "V-Sync (Vertical Sync)", _vSync, out vSyncToggle);
-                    BuildToggleRow(graphicPanel.transform, toggleTemplate, "High Dynamic Shadows", _shadowQuality > 0, null);
-                    BuildToggleRow(graphicPanel.transform, toggleTemplate, "Anti-Aliasing Smoothing", _antiAliasing > 0, null);
+                    BuildToggleRow(graphicPanel.transform, toggleTemplate, "High Dynamic Shadows", _shadowQuality > 0, out _);
+                    BuildToggleRow(graphicPanel.transform, toggleTemplate, "Anti-Aliasing Smoothing", _antiAliasing > 0, out _);
                 }
 
                 // 5. หมวด ACCESSORY: Minimap, Health Bars, Blood & Gore, Vignette
