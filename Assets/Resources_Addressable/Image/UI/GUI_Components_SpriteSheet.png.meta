@@ -250,7 +250,7 @@ TextureImporter:
         width: 165
         height: 169
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -272,7 +272,7 @@ TextureImporter:
         width: 176
         height: 173
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -281,6 +281,94 @@ TextureImporter:
       bones: []
       spriteID: d852226c4deb4564ab9b4cb4d64aa8fe
       internalID: 291192042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_8
+      rect:
+        serializedVersion: 2
+        x: 870
+        y: 829
+        width: 212
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 48, y: 51, z: 47, w: 54}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a4eb8ed4ea2ac5489e63f92e09ea5c9
+      internalID: 736444636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_9
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 818
+        width: 229
+        height: 234
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce851ac28c467a643869e7fef8ab20e6
+      internalID: -723996172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_10
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 83
+        width: 251
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d1a3abebe748904ebd2bbcd7fffda20
+      internalID: -756729801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_11
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 84
+        width: 251
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f214f8cab6640f408cee5cf65685086
+      internalID: 1392438031
       vertices: []
       indices: 
       edges: []
@@ -301,12 +389,16 @@ TextureImporter:
     nameFileIdTable:
       GUI_Components_SpriteSheet_0: 678071038
       GUI_Components_SpriteSheet_1: 239875553
+      GUI_Components_SpriteSheet_10: -756729801
+      GUI_Components_SpriteSheet_11: 1392438031
       GUI_Components_SpriteSheet_2: -1878221628
       GUI_Components_SpriteSheet_3: -1865382333
       GUI_Components_SpriteSheet_4: -738567984
       GUI_Components_SpriteSheet_5: -155456331
       GUI_Components_SpriteSheet_6: 1485025381
       GUI_Components_SpriteSheet_7: 291192042
+      GUI_Components_SpriteSheet_8: 736444636
+      GUI_Components_SpriteSheet_9: -723996172
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

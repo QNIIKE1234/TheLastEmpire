@@ -32,21 +32,19 @@ namespace TheLastEmpire
         [Tooltip("Content GameObject — วาง InventoryItemSlot ลูกไว้ข้างในได้เลย")]
         [SerializeField] private GameObject itemSlotsContainer;
 
+        [Header("Item Slots (รายการช่องกระเป๋า)")]
+        [Tooltip("ลากแถว InventoryItemSlot ทั้งหมดที่วางอยู่ในหน้าต่างกระเป๋าใส่ที่นี่ (เช่น 7 ช่อง) เพื่อวนเซตข้อมูลซ้ำ ไม่ Instantiate ใหม่")]
+        [SerializeField] private List<InventoryItemSlot> itemSlots = new List<InventoryItemSlot>();
+
         [Header("Pagination")]
-        [Tooltip("จำนวน Slot ต่อหน้า — ควรตรงกับจำนวน InventoryItemSlot ที่วางใน Editor")]
-        [SerializeField] private int slotsPerPage = 8;
+        [Tooltip("จำนวน Slot ต่อหน้า (ถ้าลาก itemSlots ไว้จะอิงตามจำนวนช่องใน List อัตโนมัติ)")]
+        [SerializeField] private int slotsPerPage = 7;
         [Tooltip("ปุ่มไปหน้าก่อนหน้า")]
         [SerializeField] private UnityEngine.UI.Button prevPageButton;
         [Tooltip("ปุ่มไปหน้าถัดไป")]
         [SerializeField] private UnityEngine.UI.Button nextPageButton;
         [Tooltip("TMP_Text แสดง '1 / 3'")]
         [SerializeField] private TMPro.TMP_Text pageIndicatorText;
-
-
-
-        // ===== Internal Pool (built-in) =====
-        private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
-        private int _activeSlotCount = 0;
 
         // ===== Pagination State =====
         private int _currentPage = 0;   // 0-indexed
@@ -117,68 +115,33 @@ namespace TheLastEmpire
         }
 
         // =====================================================
-        //  Slot Pool — Built-in, ไม่ต้องแยก Component
+        //  Item Slots Scanner
         // =====================================================
 
         /// <summary>
-        /// สแกน InventoryItemSlot ที่มีอยู่แล้วใน itemSlotsContainer ใส่เข้า Pool
-        /// วางหลาย ๆ ตัวไว้ใน Editor → Pool จะ reuse พวกมันแทน Instantiate
+        /// สแกนหา InventoryItemSlot ที่วางอยู่ใน Editor
+        /// หากผู้ใช้ยังไม่ได้ลาก itemSlots ใน Inspector จะดึงจากลูกของ _itemContainer / itemSlotsContainer ให้อัตโนมัติ
         /// </summary>
-        private void ScanExistingSlots()
+        public void ScanExistingSlots()
         {
-            _slotPool.Clear();
-            foreach (Transform child in _itemContainer.transform)
+            if (itemSlots == null)
             {
-                InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
-                if (slot != null)
-                {
-                    slot.gameObject.SetActive(false);
-                    _slotPool.Add(slot);
-                }
-            }
-        }
-
-        /// <summary>
-        /// ดึง Slot ถัดไปจาก Pool ถ้าหมดจะ Instantiate ตัวแรกใน pool มาเพิ่ม (expand ครั้งเดียว)
-        /// </summary>
-        private InventoryItemSlot GetSlot()
-        {
-            if (_activeSlotCount >= _slotPool.Count)
-            {
-                // Pool หมด — clone จาก slot แรกที่มีอยู่ (ถ้ามี) หรือ bail
-                if (_slotPool.Count == 0)
-                {
-                    Debug.LogWarning("[InventoryUI] No InventoryItemSlot found in container. Place at least one in the Editor.");
-                    return null;
-                }
-                InventoryItemSlot clone = Instantiate(_slotPool[0], _itemContainer.transform);
-                clone.name = $"ItemSlot_{_slotPool.Count:00}";
-                _slotPool.Add(clone);
-                Debug.LogWarning($"[InventoryUI] Slot pool expanded to {_slotPool.Count}. Consider placing more slots in the Editor.");
+                itemSlots = new List<InventoryItemSlot>();
             }
 
-            InventoryItemSlot s = _slotPool[_activeSlotCount];
-            s.gameObject.SetActive(true);
-            _activeSlotCount++;
-            return s;
-        }
-
-        /// <summary>
-        /// เรียกก่อน Refresh ทุกครั้ง — reset ตัวนับ
-        /// </summary>
-        private void PoolBeginFrame() => _activeSlotCount = 0;
-
-        /// <summary>
-        /// เรียกหลัง Refresh ทุกครั้ง — ซ่อน Slot ที่ไม่ได้ใช้
-        /// </summary>
-        private void PoolEndFrame()
-        {
-            for (int i = _activeSlotCount; i < _slotPool.Count; i++)
+            if (itemSlots.Count == 0)
             {
-                if (_slotPool[i].gameObject.activeSelf)
+                Transform containerT = _itemContainer != null ? _itemContainer.transform : (itemSlotsContainer != null ? itemSlotsContainer.transform : null);
+                if (containerT != null)
                 {
-                    _slotPool[i].Clear();
-                    _slotPool[i].gameObject.SetActive(false);
+                    foreach (Transform child in containerT)
+                    {
+                        InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
+                        if (slot != null && !itemSlots.Contains(slot))
+                        {
+                            itemSlots.Add(slot);
+                        }
+                    }
                 }
             }
         }
@@ -282,14 +245,16 @@ namespace TheLastEmpire
                     _healthText.text = $"HP: <color=#1bff33>{Mathf.RoundToInt(health.CurrentHealth)}</color> / {Mathf.RoundToInt(health.MaxHealth)}";
             }
 
-            if (_itemContainer == null) return;
+            ScanExistingSlots();
+
+            if (itemSlots == null || itemSlots.Count == 0) return;
 
             // รวบ item ทั้งหมดเป็น list เพื่อ slice ตาม page
             Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
             var itemList = new List<KeyValuePair<string, int>>(quantities);
 
             // คำนวณ totalPages
-            int pageSize = Mathf.Max(1, slotsPerPage);
+            int pageSize = itemSlots.Count > 0 ? itemSlots.Count : Mathf.Max(1, slotsPerPage);
             _totalPages  = Mathf.Max(1, Mathf.CeilToInt((float)itemList.Count / pageSize));
             _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
 
@@ -303,152 +268,90 @@ namespace TheLastEmpire
             if (prevPageButton != null) { prevPageButton.gameObject.SetActive(multiPage); prevPageButton.interactable = _currentPage > 0; }
             if (nextPageButton != null) { nextPageButton.gameObject.SetActive(multiPage); nextPageButton.interactable = _currentPage < _totalPages - 1; }
 
-            // slice items ตาม page
             int startIdx = _currentPage * pageSize;
-            int endIdx   = Mathf.Min(startIdx + pageSize, itemList.Count);
 
-            // 2. ใช้ Pool path ถ้ามี slot อยู่ใน pool, fallback ถ้าไม่มี
-            if (_slotPool.Count > 0)
+            PlayerController player = _playerInventory.GetComponent<PlayerController>();
+            string equippedWeapon = player != null ? (player.CurrentWeaponName  ?? "").ToLower().Trim() : "";
+            string equippedMelee  = player != null ? (player.CurrentMeleeWeaponName ?? "").ToLower().Trim() : "";
+
+            if (itemList.Count == 0)
             {
-                // ===== Pool Path (Zero GC) =====
-                PlayerController player = _playerInventory.GetComponent<PlayerController>();
-                string equippedWeapon = player != null ? (player.CurrentWeaponName  ?? "").ToLower().Trim() : "";
-                string equippedMelee  = player != null ? (player.CurrentMeleeWeaponName ?? "").ToLower().Trim() : "";
-
-                PoolBeginFrame();
-
-                if (itemList.Count == 0)
+                // ถ้าไม่มีไอเทม ให้ช่องแรกแสดงข้อความว่าว่าง และซ่อนช่องที่เหลือ
+                for (int i = 0; i < itemSlots.Count; i++)
                 {
-                    InventoryItemSlot emptySlot = GetSlot();
-                    if (emptySlot != null)
-                        emptySlot.SetData("- Empty -", 0, null, false, null);
+                    if (itemSlots[i] == null) continue;
+                    if (i == 0)
+                    {
+                        itemSlots[i].gameObject.SetActive(true);
+                        itemSlots[i].SetData("- Empty -", 0, null, false, null);
+                    }
+                    else
+                    {
+                        itemSlots[i].gameObject.SetActive(false);
+                    }
+                }
+                return;
+            }
+
+            // วนเซตข้อมูลลงในช่องที่มีอยู่เดิม ไม่ instantiate ใหม่ ไม่สร้างขยะใน memory (แบบเดียวกับ CraftController และ ShopUI)
+            for (int i = 0; i < itemSlots.Count; i++)
+            {
+                InventoryItemSlot slot = itemSlots[i];
+                if (slot == null) continue;
+
+                int itemIndex = startIdx + i;
+                if (itemIndex < itemList.Count)
+                {
+                    slot.gameObject.SetActive(true);
+
+                    var pair    = itemList[itemIndex];
+                    string key      = pair.Key;
+                    string cleanKey = (key ?? "").ToLower().Trim();
+
+                    ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
+                    
+                    bool isWeapon = false;
+                    bool isUsable = false;
+
+                    if (itemData != null)
+                    {
+                        isWeapon = itemData.type == ItemType.RangedWeapon || 
+                                   itemData.type == ItemType.MeleeWeapon || 
+                                   itemData.type == ItemType.ThrowingWeapon;
+                        
+                        isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread;
+                    }
+
+                    bool isEquipped = false;
+                    if (isWeapon)
+                    {
+                        bool eqW = !string.IsNullOrEmpty(equippedWeapon) && 
+                                   (cleanKey.Contains(equippedWeapon) || equippedWeapon.Contains(cleanKey) || 
+                                   (cleanKey.Contains("pist") && equippedWeapon.Contains("pist")));
+                        
+                        bool eqM = !string.IsNullOrEmpty(equippedMelee) && 
+                                   (cleanKey.Contains(equippedMelee) || equippedMelee.Contains(cleanKey));
+                        
+                        isEquipped = eqW || eqM;
+                    }
+
+                    Sprite icon = itemData != null ? itemData.icon : null;
+
+                    slot.SetData(
+                        itemName:   key,
+                        quantity:   pair.Value,
+                        icon:       icon,
+                        isEquipped: isEquipped,
+                        onClickUse: isUsable
+                            ? (name) => { _playerInventory.UseItem(name); RefreshUI(); }
+                            : (System.Action<string>)null
+                    );
                 }
                 else
                 {
-                    // แสดงเฉพาะ item ในหน้านี้
-                    for (int i = startIdx; i < endIdx; i++)
-                    {
-                        var pair    = itemList[i];
-                        string key      = pair.Key;
-                        string cleanKey = (key ?? "").ToLower().Trim();
-
-                        ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(key) : null;
-                        
-                        bool isWeapon = false;
-                        bool isUsable = false;
-
-                        if (itemData != null)
-                        {
-                            isWeapon = itemData.type == ItemType.RangedWeapon || 
-                                       itemData.type == ItemType.MeleeWeapon || 
-                                       itemData.type == ItemType.ThrowingWeapon;
-                            
-                            isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread;
-                        }
-
-                        bool isEquipped = false;
-                        if (isWeapon)
-                        {
-                            bool eqW = !string.IsNullOrEmpty(equippedWeapon) && 
-                                       (cleanKey.Contains(equippedWeapon) || equippedWeapon.Contains(cleanKey) || 
-                                       (cleanKey.Contains("pist") && equippedWeapon.Contains("pist")));
-                            
-                            bool eqM = !string.IsNullOrEmpty(equippedMelee) && 
-                                       (cleanKey.Contains(equippedMelee) || equippedMelee.Contains(cleanKey));
-                            
-                            isEquipped = eqW || eqM;
-                        }
-
-                        Sprite icon = itemData != null ? itemData.icon : null;
-
-                        InventoryItemSlot slot = GetSlot();
-                        if (slot == null) break;
-
-                        slot.SetData(
-                            itemName:   key,
-                            quantity:   pair.Value,
-                            icon:       icon,
-                            isEquipped: isEquipped,
-                            onClickUse: isUsable
-                                ? (name) => { _playerInventory.UseItem(name); RefreshUI(); }
-                                : (System.Action<string>)null
-                        );
-                    }
+                    slot.gameObject.SetActive(false);
                 }
-
-                PoolEndFrame();
             }
-            else
-            {
-                // ===== Fallback Path =====
-                Debug.LogWarning("[InventoryUI] ไม่พบ InventoryItemSlot ใน _itemContainer เลย! กรุณาเพิ่มสคริปต์ InventoryItemSlot ใส่ UI ของคุณ หรือเช็คว่าลาก Content มาถูกช่องหรือไม่");
-            }
-        }
-
-        // =====================================================
-        //  Legacy fallback row builder (ใช้เมื่อไม่มี slot ใน pool)
-        // =====================================================
-
-        private void CreateItemRow(string itemName, string textContent, Color textColor, bool isUsable)
-        {
-            GameObject row = new GameObject("ItemRow");
-            row.transform.SetParent(_itemContainer.transform, false);
-
-            Image rowBg = row.AddComponent<Image>();
-            rowBg.color = new Color(1f, 1f, 1f, 0.04f);
-
-            RectTransform rect = row.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(500f, 50f);
-
-            if (isUsable)
-            {
-                Button btn = row.AddComponent<Button>();
-                ColorBlock colors = btn.colors;
-                colors.normalColor      = new Color(1f, 1f, 1f, 0.04f);
-                colors.highlightedColor = new Color(1f, 1f, 1f, 0.12f);
-                colors.pressedColor     = new Color(1f, 1f, 1f, 0.2f);
-                colors.selectedColor    = new Color(1f, 1f, 1f, 0.04f);
-                btn.colors = colors;
-                btn.onClick.AddListener(() =>
-                {
-                    if (_playerInventory != null && _playerInventory.UseItem(itemName))
-                        RefreshUI();
-                });
-            }
-
-            bool hasIcon = false;
-            ItemData data = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
-            if (data != null && data.icon != null)
-            {
-                GameObject iconObj = new GameObject("ItemIcon");
-                iconObj.transform.SetParent(row.transform, false);
-                Image iconImg = iconObj.AddComponent<Image>();
-                iconImg.sprite = data.icon;
-                iconImg.preserveAspect = true;
-
-                RectTransform iconRect = iconObj.GetComponent<RectTransform>();
-                iconRect.anchorMin = new Vector2(0f, 0.5f);
-                iconRect.anchorMax = new Vector2(0f, 0.5f);
-                iconRect.pivot     = new Vector2(0f, 0.5f);
-                iconRect.anchoredPosition = new Vector2(12f, 0f);
-                iconRect.sizeDelta = new Vector2(32f, 32f);
-                hasIcon = true;
-            }
-
-            GameObject textObj = new GameObject("ItemText");
-            textObj.transform.SetParent(row.transform, false);
-
-            TMP_Text rowText = textObj.AddComponent<TextMeshProUGUI>();
-            rowText.text      = textContent;
-            rowText.fontSize  = 24;
-            rowText.color     = textColor;
-            rowText.alignment = TextAlignmentOptions.Left;
-
-            RectTransform textRect = textObj.GetComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0f, 0f);
-            textRect.anchorMax = new Vector2(1f, 1f);
-            textRect.offsetMin = new Vector2(hasIcon ? 56f : 15f, 5f);
-            textRect.offsetMax = new Vector2(-15f, -5f);
         }
 
         // =====================================================
