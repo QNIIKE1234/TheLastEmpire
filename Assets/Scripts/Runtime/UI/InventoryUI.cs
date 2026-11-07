@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 
 namespace TheLastEmpire
@@ -13,8 +14,12 @@ namespace TheLastEmpire
             {
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject("InventoryUIManager");
-                    _instance = go.AddComponent<InventoryUI>();
+                    _instance = UnityEngine.Object.FindFirstObjectByType<InventoryUI>();
+                    if (_instance == null)
+                    {
+                        GameObject go = new GameObject("InventoryUIManager");
+                        _instance = go.AddComponent<InventoryUI>();
+                    }
                 }
                 return _instance;
             }
@@ -112,6 +117,30 @@ namespace TheLastEmpire
         {
             if (_playerInventory != null)
                 _playerInventory.OnInventoryChanged -= RefreshUI;
+        }
+
+        private void Update()
+        {
+            if (!_isOpen) return;
+
+            // ตรวจสอบ Hover + กดเลข 1 - 5 เพื่อ Assign ของลง Quick Slot ทันที
+            if (InventoryItemSlot.HoveredSlot != null && !string.IsNullOrEmpty(InventoryItemSlot.HoveredSlot.CurrentItemName))
+            {
+                string hoveredItem = InventoryItemSlot.HoveredSlot.CurrentItemName;
+                if (Keyboard.current != null)
+                {
+                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
+                        QuickSlotController.Instance?.AssignSlot(0, hoveredItem);
+                    else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
+                        QuickSlotController.Instance?.AssignSlot(1, hoveredItem);
+                    else if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame)
+                        QuickSlotController.Instance?.AssignSlot(2, hoveredItem);
+                    else if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame)
+                        QuickSlotController.Instance?.AssignSlot(3, hoveredItem);
+                    else if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame)
+                        QuickSlotController.Instance?.AssignSlot(4, hoveredItem);
+                }
+            }
         }
 
         // =====================================================

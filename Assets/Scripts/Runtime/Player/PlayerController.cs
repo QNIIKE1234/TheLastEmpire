@@ -1123,15 +1123,21 @@ namespace TheLastEmpire
 
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToQuickSlot(0);
-                if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToQuickSlot(1);
-                if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToQuickSlot(2);
-                if (Keyboard.current.digit4Key.wasPressedThisFrame) SwitchToQuickSlot(3);
-                if (Keyboard.current.digit5Key.wasPressedThisFrame) SwitchToQuickSlot(4);
-                if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToQuickSlot(5);
-                if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToQuickSlot(6);
-                if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToQuickSlot(7);
-                if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToQuickSlot(8);
+                bool isUIBlocked = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) ||
+                                   (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps);
+
+                if (!isUIBlocked)
+                {
+                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) UseQuickSlotOrWeapon(0);
+                    if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) UseQuickSlotOrWeapon(1);
+                    if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) UseQuickSlotOrWeapon(2);
+                    if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) UseQuickSlotOrWeapon(3);
+                    if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame) UseQuickSlotOrWeapon(4);
+                    if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToQuickSlot(5);
+                    if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToQuickSlot(6);
+                    if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToQuickSlot(7);
+                    if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToQuickSlot(8);
+                }
 
                 if (Keyboard.current.xKey.wasPressedThisFrame)
                 {
@@ -2694,6 +2700,18 @@ namespace TheLastEmpire
                     SwitchToMeleeWeapon(nextIndex);
                     return;
                 }
+            }
+        }
+
+        public void UseQuickSlotOrWeapon(int slotIndex)
+        {
+            if (QuickSlotController.Instance != null && QuickSlotController.Instance.HasSlot(slotIndex))
+            {
+                QuickSlotController.Instance.UseSlot(slotIndex);
+            }
+            else
+            {
+                SwitchToQuickSlot(slotIndex);
             }
         }
 

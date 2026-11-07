@@ -1,17 +1,23 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 
 namespace TheLastEmpire
 {
     /// <summary>
     /// Component สำหรับ Item Slot 1 ช่องใน Inventory UI.
-    /// ลาก Script นี้ใส่บน Prefab ของ Item Slot แล้ว Assign ช่องใน Inspector
-    /// จากนั้นเรียก SetData() เพื่อเซทข้อมูลไอเทมได้เลย
+    /// รองรับทั้ง Hover + กดเลข 1-5 และ Drag & Drop ไปยัง Quick Slot
     /// </summary>
-    public class InventoryItemSlot : MonoBehaviour
+    public class InventoryItemSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
     {
+        public static string DraggedItemName { get; private set; }
+        public static InventoryItemSlot HoveredSlot { get; private set; }
+
+        private static GameObject _dragGhostObj;
+        private static Image _dragGhostImage;
+
         [Header("UI References")]
         [Tooltip("Image สำหรับแสดง Icon ของไอเทม")]
         [SerializeField] private Image itemIcon;
@@ -40,6 +46,20 @@ namespace TheLastEmpire
         // ข้อมูล Item ปัจจุบันที่ Slot นี้แสดง
         private string _currentItemName;
         private Action<string> _onClickCallback;
+
+        public string CurrentItemName => _currentItemName;
+
+        private void Awake()
+        {
+            // ตรวจสอบให้แน่ใจว่ามี Graphic รับ Raycast เพื่อให้รับ Hover และ Drag ได้ทั่วทั้งช่อง
+            Image img = GetComponent<Image>();
+            if (img == null)
+            {
+                img = gameObject.AddComponent<Image>();
+                img.color = Color.clear;
+                img.raycastTarget = true;
+            }
+        }
 
         // =====================================================
         // Palette สีตามประเภทไอเทม
@@ -224,6 +244,121 @@ namespace TheLastEmpire
                 _ => "Select"
             };
         }
-        // Removed inner enum and resolve methods
+
+        // =====================================================
+        //  Hover & Drag & Drop Handlers
+        // =====================================================
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!string.IsNullOrEmpty(_currentItemName) && _currentItemName != "- Empty -")
+            {
+                HoveredSlot = this;
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (HoveredSlot == this)
+            {
+                HoveredSlot = null;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (HoveredSlot == this)
+            {
+                HoveredSlot = null;
+            }
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (string.IsNullOrEmpty(_currentItemName) || _currentItemName == "- Empty -")
+                return;
+
+            DraggedItemName = _currentItemName;
+
+            Canvas rootCanvas = GetComponentInParent<Canvas>();
+            if (rootCanvas != null)
+            {
+                if (_dragGhostObj == null)
+                {
+                    _dragGhostObj = new GameObject("Inventory_DragGhost");
+                    _dragGhostObj.transform.SetParent(rootCanvas.transform, false);
+
+                    _dragGhostImage = _dragGhostObj.AddComponent<Image>();
+                    _dragGhostImage.raycastTarget = false; // สำคัญมาก ห้ามบล็อก OnDrop
+
+                    CanvasGroup cg = _dragGhostObj.AddComponent<CanvasGroup>();
+                    cg.alpha = 0.85f;
+                    cg.blocksRaycasts = false;
+
+                    RectTransform rt = _dragGhostObj.GetComponent<RectTransform>();
+                    rt.sizeDelta = new Vector2(80f, 80f);
+                }
+                else
+                {
+                    _dragGhostObj.transform.SetParent(rootCanvas.transform, false);
+                    _dragGhostObj.SetActive(true);
+                }
+
+                if (itemIcon != null && itemIcon.sprite != null)
+                {
+                    _dragGhostImage.sprite = itemIcon.sprite;
+                    _dragGhostImage.color = Color.white;
+                }
+                else
+                {
+                    _dragGhostImage.sprite = null;
+                    _dragGhostImage.color = new Color(1f, 1f, 1f, 0.4f);
+                }
+
+                UpdateGhostPosition(rootCanvas, eventData.position);
+                _dragGhostObj.transform.SetAsLastSibling();
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (string.IsNullOrEmpty(DraggedItemName) || _dragGhostObj == null) return;
+
+            Canvas rootCanvas = GetComponentInParent<Canvas>();
+            if (rootCanvas != null)
+            {
+                UpdateGhostPosition(rootCanvas, eventData.position);
+            }
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            DraggedItemName = null;
+            if (_dragGhostObj != null)
+            {
+                _dragGhostObj.SetActive(false);
+            }
+        }
+
+        private void UpdateGhostPosition(Canvas rootCanvas, Vector2 screenPos)
+        {
+            if (_dragGhostObj == null || rootCanvas == null) return;
+
+            if (rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                _dragGhostObj.transform.position = screenPos;
+            }
+            else
+            {
+                if (RectTransformUtility.ScreenPointToWorldPointInRectangle(rootCanvas.transform as RectTransform, screenPos, rootCanvas.worldCamera, out Vector3 worldPoint))
+                {
+                    _dragGhostObj.transform.position = worldPoint;
+                }
+                else
+                {
+                    _dragGhostObj.transform.position = screenPos;
+                }
+            }
+        }
     }
 }
