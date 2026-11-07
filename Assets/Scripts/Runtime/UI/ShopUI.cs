@@ -202,11 +202,31 @@ namespace TheLastEmpire
 
             bool isBuy = mode == ShopMode.Buy;
 
-            if (tabBuyButton != null) tabBuyButton.interactable = !isBuy;
-            if (tabSellButton != null) tabSellButton.interactable = isBuy;
+            UpdateTabButton(tabBuyButton, isBuy);
+            UpdateTabButton(tabSellButton, !isBuy);
 
             ScanExistingSlots();
             RefreshUI();
+        }
+
+        private void UpdateTabButton(Button btn, bool isSelected)
+        {
+            if (btn == null) return;
+            btn.interactable = !isSelected;
+
+            ColorBlock cb = btn.colors;
+            // แท็บที่เลือกอยู่: ให้แสดงสว่างเต็ม 100%
+            cb.disabledColor = new Color(1f, 1f, 1f, 1f);
+            // แท็บที่ไม่ได้เลือก: ให้แสดงสีมืดลง/จางลง (60%)
+            cb.normalColor = new Color(0.65f, 0.65f, 0.65f, 0.6f);
+            cb.highlightedColor = new Color(0.85f, 0.85f, 0.85f, 0.9f);
+            btn.colors = cb;
+
+            TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.color = isSelected ? Color.black : new Color(0.2f, 0.2f, 0.2f, 0.65f);
+            }
         }
 
         /// <summary>
