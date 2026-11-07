@@ -8,6 +8,7 @@ namespace TheLastEmpire.Editor
     {
         private static bool showIdentity = true;
         private static bool showCombat = true;
+        private static bool showSanity = true;
         private static bool showMobility = true;
         private static bool showHunger = true;
         private static bool showLoadout = true;
@@ -90,7 +91,22 @@ namespace TheLastEmpire.Editor
                 EditorGUILayout.Space(4);
             }
 
-            // 6. Starting Arsenal & Inventory Supplies
+            // 6. Sanity & Mental Fortitude Section
+            showSanity = DrawSectionFoldout("🧠 Sanity & Mental Fortitude", showSanity, new Color(0.2f, 0.8f, 0.95f));
+            if (showSanity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("maxSanity"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("sanityDepletionMultiplier"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("sanityDamageTakenPercent"));
+                EditorGUILayout.Space(4);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("nightSanityDepletionRate"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("daySanityRecoveryRate"));
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space(4);
+            }
+
+            // 7. Starting Arsenal & Inventory Supplies
             showLoadout = DrawSectionFoldout("🎒 Starting Arsenal & Supplies", showLoadout, new Color(0.4f, 0.8f, 0.95f));
             if (showLoadout)
             {

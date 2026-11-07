@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Adrenaline Shot
   description: Military-grade auto-injector. Rapid nanite coagulation grants extreme
-    healing of 150 HP.
-  icon: {fileID: 1380806476, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
+    healing of 150 HP and surges 40 Sanity.
+  icon: {fileID: 21300035, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}
   type: 0
   restorationValue: 150
+  sanityRestorationValue: 40
   defaultQuantity: 1
   themeColor: {r: 0.1, g: 1, b: 0.6, a: 1}
   dropMaterial: {fileID: 2100000, guid: 273f3dd732b9dfa42b4a28620dd3ddab, type: 2}

@@ -17,7 +17,7 @@ MonoBehaviour:
   characterTitle: Anarchist Brawler
   roleCategory: Brawler / Close Quarters
   characterPortrait: {fileID: 21300000, guid: c8f2a931de6741b590e87a2c1145b23d, type: 3}
-  characterModelPrefab: {fileID: 100000, guid: 6ea6b422190fd884eae44c0a785f2e16, type: 3}
+  characterModelPrefab: {fileID: 100000, guid: b48e91c7d52a46f19a38b7c54e92d614, type: 3}
   loreSynopsis: Former wasteland riot punk armed with custom spiked weaponry. Awakens
     amidst smoldering bar barricades, defying both imperial enforcers and necrotic
     swarms.
@@ -26,6 +26,11 @@ MonoBehaviour:
   themeColor: {r: 0.98, g: 0.2, b: 0.4, a: 1}
   maxHealth: 110
   maxHunger: 100
+  maxSanity: 90
+  sanityDepletionMultiplier: 1.05
+  sanityDamageTakenPercent: 0.1
+  nightSanityDepletionRate: 0.55
+  daySanityRecoveryRate: 0.2
   baseMeleeDamage: 16
   baseRangedDamage: 8
   critChanceBonus: 0.15

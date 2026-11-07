@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Energy Bar
   description: Dense military survival ration chocolate bar. Quick boost, restores
-    35 Hunger.
-  icon: {fileID: 1765106222, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
+    35 Hunger and 20 Sanity.
+  icon: {fileID: 21300032, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}
   type: 2
   restorationValue: 35
+  sanityRestorationValue: 20
   defaultQuantity: 1
   themeColor: {r: 0.9, g: 0.6, b: 0.3, a: 1}
   dropMaterial: {fileID: 2100000, guid: 4f9da2d218b027d4395a62f4b7bdb2aa, type: 2}

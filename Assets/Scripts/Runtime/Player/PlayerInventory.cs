@@ -238,36 +238,75 @@ namespace TheLastEmpire
             else if (itemData.type == ItemType.Potion)
             {
                 Health health = GetComponent<Health>();
-                if (health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth)
+                PlayerController player = GetComponent<PlayerController>();
+                bool canHeal = health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth;
+                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
+
+                if (canHeal || canRestoreSanity)
                 {
                     if (RemoveItem(itemName))
                     {
-                        float healAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 100f;
-                        health.Heal(healAmount);
-                        Debug.Log($"[PlayerInventory] Used {itemName}! Healed {healAmount} HP. Current Health: {health.CurrentHealth}");
+                        if (canHeal)
+                        {
+                            float healAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 100f;
+                            health.Heal(healAmount);
+                        }
+                        if (itemData.sanityRestorationValue > 0f && player != null)
+                        {
+                            player.RestoreSanity(itemData.sanityRestorationValue);
+                        }
+                        Debug.Log($"[PlayerInventory] Used {itemName}! HP: {health?.CurrentHealth}, Sanity: {player?.CurrentSanity}");
                         return true;
                     }
                 }
                 else
                 {
-                    Debug.Log("[PlayerInventory] Health is already full or player is dead.");
+                    Debug.Log("[PlayerInventory] Health and Sanity are already full or player is dead.");
                 }
             }
             else if (itemData.type == ItemType.Bread)
             {
                 PlayerController player = GetComponent<PlayerController>();
-                if (player != null && !player.PlayerHealth.IsDead && player.CurrentHunger < player.MaxHunger)
+                bool canEat = player != null && !player.PlayerHealth.IsDead && player.CurrentHunger < player.MaxHunger;
+                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
+
+                if (canEat || canRestoreSanity)
                 {
                     if (RemoveItem(itemName))
                     {
-                        float restoreAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 25f;
-                        player.EatBread(restoreAmount);
+                        if (canEat)
+                        {
+                            float restoreAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 25f;
+                            player.EatBread(restoreAmount);
+                        }
+                        if (itemData.sanityRestorationValue > 0f)
+                        {
+                            player.RestoreSanity(itemData.sanityRestorationValue);
+                        }
+                        Debug.Log($"[PlayerInventory] Consumed {itemName}! Hunger: {player.CurrentHunger}, Sanity: {player.CurrentSanity}");
                         return true;
                     }
                 }
                 else
                 {
-                    Debug.Log("[PlayerInventory] Hunger is already full or player is dead.");
+                    Debug.Log("[PlayerInventory] Hunger and Sanity are already full or player is dead.");
+                }
+            }
+            else if (itemData.sanityRestorationValue > 0f)
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && !player.PlayerHealth.IsDead && player.CurrentSanity < player.MaxSanity)
+                {
+                    if (RemoveItem(itemName))
+                    {
+                        player.RestoreSanity(itemData.sanityRestorationValue);
+                        Debug.Log($"[PlayerInventory] Used {itemName}! Restored {itemData.sanityRestorationValue} Sanity. Current: {player.CurrentSanity}");
+                        return true;
+                    }
+                }
+                else
+                {
+                    Debug.Log("[PlayerInventory] Sanity is already full or player is dead.");
                 }
             }
 

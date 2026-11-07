@@ -52,6 +52,8 @@ namespace TheLastEmpire
 
         [Header("Stats & Settings")]
         public float restorationValue; // HP healed or Hunger restored
+        [Tooltip("Sanity restored when consumed (e.g. Coffee, Pills, Energy Bar)")]
+        public float sanityRestorationValue = 0f; // Sanity restored
         public int defaultQuantity = 1;
         public Color themeColor = Color.white; // Theme color for drops/prompts
         public Material dropMaterial;
@@ -83,6 +85,7 @@ namespace TheLastEmpire
             SerializedProperty icon = serializedObject.FindProperty("icon");
             SerializedProperty type = serializedObject.FindProperty("type");
             SerializedProperty restorationValue = serializedObject.FindProperty("restorationValue");
+            SerializedProperty sanityRestorationValue = serializedObject.FindProperty("sanityRestorationValue");
             SerializedProperty defaultQuantity = serializedObject.FindProperty("defaultQuantity");
             SerializedProperty themeColor = serializedObject.FindProperty("themeColor");
             SerializedProperty dropMaterial = serializedObject.FindProperty("dropMaterial");
@@ -102,6 +105,7 @@ namespace TheLastEmpire
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Stats & Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(restorationValue);
+            EditorGUILayout.PropertyField(sanityRestorationValue);
             EditorGUILayout.PropertyField(defaultQuantity);
             EditorGUILayout.PropertyField(themeColor);
             EditorGUILayout.PropertyField(dropMaterial);

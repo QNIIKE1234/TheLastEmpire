@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Canned Food
   description: Preserved canned beef and vegetables. Hearty nutrition, restores 45
-    Hunger.
-  icon: {fileID: 1915830447, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
+    Hunger and 15 Sanity.
+  icon: {fileID: 21300030, guid: 1a0d3e65f356b4c45a47efb79d0d6895, type: 3}
   type: 2
   restorationValue: 45
+  sanityRestorationValue: 15
   defaultQuantity: 1
   themeColor: {r: 0.95, g: 0.7, b: 0.4, a: 1}
   dropMaterial: {fileID: 2100000, guid: 4f9da2d218b027d4395a62f4b7bdb2aa, type: 2}

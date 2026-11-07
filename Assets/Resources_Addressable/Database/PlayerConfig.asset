@@ -18,6 +18,11 @@ MonoBehaviour:
   dashDuration: 0.25
   dashCooldown: 0.8
   maxHunger: 100
+  maxSanity: 100
+  sanityDepletionMultiplier: 1
+  sanityDamageTakenPercent: 0.1
+  nightSanityDepletionRate: 0.5
+  daySanityRecoveryRate: 0.2
   startingMoney: 250
   startingItems:
   - Pistol

@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: ITEM0003_Bread
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Bread
-  description: 
-  icon: {fileID: 31462518, guid: bddb817137cb8eb42958dae007d7f9a0, type: 3}
+  description: Fresh survival bread ration. Restores 25 Hunger and 10 Sanity.
+  icon: {fileID: 21300003, guid: 1a0d3e65f356b4c45a47efb79d0d6895, type: 3}
   type: 2
   restorationValue: 25
+  sanityRestorationValue: 10
   defaultQuantity: 1
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   dropMaterial: {fileID: 2100000, guid: 4f9da2d218b027d4395a62f4b7bdb2aa, type: 2}

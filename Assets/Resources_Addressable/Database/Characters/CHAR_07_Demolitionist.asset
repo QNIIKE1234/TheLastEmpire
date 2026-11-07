@@ -25,6 +25,11 @@ MonoBehaviour:
   themeColor: {r: 0.96, g: 0.45, b: 0.05, a: 1}
   maxHealth: 105
   maxHunger: 105
+  maxSanity: 105
+  sanityDepletionMultiplier: 0.95
+  sanityDamageTakenPercent: 0.1
+  nightSanityDepletionRate: 0.5
+  daySanityRecoveryRate: 0.2
   baseMeleeDamage: 11
   baseRangedDamage: 12
   critChanceBonus: 0.05

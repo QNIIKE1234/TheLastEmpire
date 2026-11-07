@@ -219,6 +219,11 @@ namespace TheLastEmpire
                 currentHunger = maxHunger;
                 if (activeCharacterData.maxSanity > 0f) maxSanity = activeCharacterData.maxSanity;
                 currentSanity = maxSanity;
+                if (activeCharacterData.sanityDepletionMultiplier > 0f) sanityDepletionMultiplier = activeCharacterData.sanityDepletionMultiplier;
+                if (activeCharacterData.sanityDamageTakenPercent > 0f) sanityDamageTakenPercent = activeCharacterData.sanityDamageTakenPercent;
+                if (activeCharacterData.nightSanityDepletionRate > 0f) nightSanityDepletionRate = activeCharacterData.nightSanityDepletionRate;
+                if (activeCharacterData.daySanityRecoveryRate > 0f) daySanityRecoveryRate = activeCharacterData.daySanityRecoveryRate;
+                OnSanityChanged?.Invoke();
                 startingReserveAmmo = activeCharacterData.startingPistolAmmo;
 
                 _health = GetComponent<Health>();
@@ -253,6 +258,11 @@ namespace TheLastEmpire
                 maxHunger = playerConfig.maxHunger;
                 if (playerConfig.maxSanity > 0f) maxSanity = playerConfig.maxSanity;
                 currentSanity = maxSanity;
+                if (playerConfig.sanityDepletionMultiplier > 0f) sanityDepletionMultiplier = playerConfig.sanityDepletionMultiplier;
+                if (playerConfig.sanityDamageTakenPercent > 0f) sanityDamageTakenPercent = playerConfig.sanityDamageTakenPercent;
+                if (playerConfig.nightSanityDepletionRate > 0f) nightSanityDepletionRate = playerConfig.nightSanityDepletionRate;
+                if (playerConfig.daySanityRecoveryRate > 0f) daySanityRecoveryRate = playerConfig.daySanityRecoveryRate;
+                OnSanityChanged?.Invoke();
 
                 _health = GetComponent<Health>();
                 if (_health != null)
@@ -1972,6 +1982,13 @@ namespace TheLastEmpire
                 }
             }
 
+            // ฟื้นฟูสติจากรัศมีแคมป์ไฟ / Safe Zone / Light Aura (ทำงานต่อเนื่องแม้ในตอนกลางคืน)
+            if (_activeSanityAuraBonus > 0f && currentSanity < maxSanity)
+            {
+                currentSanity = Mathf.Min(maxSanity, currentSanity + (_activeSanityAuraBonus * Time.deltaTime));
+                OnSanityChanged?.Invoke();
+            }
+
             // เมื่อค่าสติหมด (0) จะเกิดอาการหลอน / เสียขวัญ (Mental Breakdown) โดนดาเมจเป็นระยะ
             if (currentSanity <= 0f)
             {
@@ -2023,6 +2040,52 @@ namespace TheLastEmpire
             if (amount <= 0f) return;
             currentSanity = Mathf.Min(maxSanity, currentSanity + amount);
             OnSanityChanged?.Invoke();
+        }
+
+        [Header("Combat Sanity Recovery")]
+        [Tooltip("ค่าสติที่ฟื้นฟูเมื่อกำจัดศัตรูทั่วไป (Normal Kill)")]
+        [SerializeField] private float sanityOnKillNormal = 4.0f;
+        [Tooltip("ค่าสติที่ฟื้นฟูเมื่อกำจัดศัตรูระดับสูง/Elite/Boss (เลือด >= 150)")]
+        [SerializeField] private float sanityOnKillElite = 20.0f;
+
+        private float _activeSanityAuraBonus = 0f;
+
+        /// <summary>
+        /// Registers a safe zone / light / campfire sanity recovery aura.
+        /// </summary>
+        public void AddSanityAura(float regenRatePerSec)
+        {
+            _activeSanityAuraBonus += regenRatePerSec;
+        }
+
+        /// <summary>
+        /// Unregisters a safe zone / light / campfire sanity recovery aura.
+        /// </summary>
+        public void RemoveSanityAura(float regenRatePerSec)
+        {
+            _activeSanityAuraBonus = Mathf.Max(0f, _activeSanityAuraBonus - regenRatePerSec);
+        }
+
+        /// <summary>
+        /// Called when an enemy is defeated in combat to reward sanity.
+        /// </summary>
+        public void OnEnemyDefeated(BaseEnemyAI enemy)
+        {
+            if (enemy == null || (_health != null && _health.IsDead)) return;
+
+            Health eHealth = enemy.GetComponent<Health>();
+            float maxHp = eHealth != null ? eHealth.MaxHealth : 50f;
+            string eName = enemy.gameObject.name;
+            bool isElite = maxHp >= 150f || eName.Contains("Boss") || eName.Contains("Titan") || eName.Contains("Abomination");
+            float gain = isElite ? sanityOnKillElite : sanityOnKillNormal;
+
+            if (activeCharacterData != null && activeCharacterData.rebelMeleeKillHungerRestore > 0f)
+            {
+                gain += 2.0f;
+            }
+
+            RestoreSanity(gain);
+            Debug.Log($"[PlayerController] Defeated {eName}! Regained {gain:F1} Sanity. ({currentSanity:F1}/{maxSanity})");
         }
 
         private void ApplyStartingCharacterLoadout()

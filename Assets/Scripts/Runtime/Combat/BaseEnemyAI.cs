@@ -240,6 +240,16 @@ namespace TheLastEmpire
         {
             Debug.Log($"[BaseEnemyAI] Defeated {gameObject.name}");
 
+            // Reward sanity to the player upon kill
+            if (playerTransform != null)
+            {
+                PlayerController pc = playerTransform.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.OnEnemyDefeated(this);
+                }
+            }
+
             if (!string.IsNullOrEmpty(poolKey) && ObjectPoolManager.Instance != null)
             {
                 health.ResetHealth();

@@ -88,6 +88,22 @@ namespace TheLastEmpire
         [Range(10f, 300f)]
         public float maxSanity = 100f;
 
+        [Range(0.1f, 3.0f)]
+        [Tooltip("ตัวคูณอัตราการลดของค่าสติโดยรวม (1.0 = ปกติ, 0.7 = จิตใจแข็งแกร่งสติลดช้าลง, 1.3 = หวาดระแวงง่ายสติลดเร็ว)")]
+        public float sanityDepletionMultiplier = 1.0f;
+
+        [Range(0.01f, 0.50f)]
+        [Tooltip("เปอร์เซ็นต์ของความเสียหายที่ได้รับที่จะถูกหักออกจากค่าสติ (0.10 = 10% ของดาเมจที่ได้รับ)")]
+        public float sanityDamageTakenPercent = 0.10f;
+
+        [Range(0.05f, 2.0f)]
+        [Tooltip("อัตราการลดของค่าสติต่อวินาทีในตอนกลางคืน")]
+        public float nightSanityDepletionRate = 0.5f;
+
+        [Range(0.05f, 2.0f)]
+        [Tooltip("อัตราการฟื้นฟูค่าสติต่อวินาทีเมื่ออยู่อย่างปลอดภัยในตอนกลางวัน")]
+        public float daySanityRecoveryRate = 0.2f;
+
         [Tooltip("Base damage added to melee attacks.")]
         public int baseMeleeDamage = 10;
 
@@ -291,7 +307,7 @@ namespace TheLastEmpire
         /// </summary>
         public string GetFormattedAttributesString()
         {
-            return $"- Max HP: <b>{maxHealth}</b>\n- Max Hunger: <b>{maxHunger}</b>\n- Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
+            return $"- Max HP: <b>{maxHealth}</b> | Hunger: <b>{maxHunger}</b> | Sanity: <b>{maxSanity}</b>\n- Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
         }
     }
 }
