@@ -18,6 +18,23 @@ namespace TheLastEmpire
             BuildMaterialsAndPrefab(true);
         }
 
+        [MenuItem("Tools/The Last Empire/Clean Orphaned Scene Ghost Operators")]
+        public static void CleanOrphanedSceneObjects()
+        {
+            var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int count = 0;
+            foreach (var go in allObjects)
+            {
+                if (go != null && go.name.Contains("ChibiGhostOperator") && go.scene.IsValid() && go.scene.isLoaded)
+                {
+                    Undo.DestroyObjectImmediate(go);
+                    count++;
+                }
+            }
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+            Debug.Log($"[ChibiGhostOperatorBuilder] Successfully cleaned {count} orphaned ChibiGhostOperator instances from scene.");
+        }
+
         public static void BuildMaterialsAndPrefab(bool showDialog)
         {
             Shader urpLit = Shader.Find("Universal Render Pipeline/Lit");
