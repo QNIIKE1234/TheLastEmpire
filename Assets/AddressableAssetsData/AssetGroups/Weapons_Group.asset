@@ -14,25 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Weapons_Group
   m_GUID: 0f674fd1ec1db084a934ed16769b3099
-  m_SerializeEntries:
-  - m_GUID: 70847408d43e3d744a0a36c932edcbc9
-    m_Address: Prefabs/Weapon/Weapon_Pistol
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Weapon
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 72ffb607862a27744a2ec15f91ba7e10
-    m_Address: Prefabs/Weapon/Weapon_Knife
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Weapon
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9a1569efdd99a9c4794f23789d02406e
-    m_Address: Prefabs/Weapon/Weapon_SMG
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Weapon
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
   m_SchemaSet:

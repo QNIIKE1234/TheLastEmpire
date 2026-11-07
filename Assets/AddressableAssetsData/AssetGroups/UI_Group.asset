@@ -14,19 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: UI_Group
   m_GUID: 889d2ba3f9d30df44b6eaa30209392e7
-  m_SerializeEntries:
-  - m_GUID: a7d6287b764d99a4093d7f6f9241a531
-    m_Address: Prefabs/UI/CharacterSelectModal
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - UI
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c5c79feb69cd501478884c50ebe8a4b2
-    m_Address: Prefabs/UI/InventoryItemSlot
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - UI
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
   m_SchemaSet:
