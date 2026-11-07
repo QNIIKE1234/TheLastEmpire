@@ -85,6 +85,9 @@ namespace TheLastEmpire
         [Range(10f, 300f)]
         public float maxHunger = 100f;
 
+        [Range(10f, 300f)]
+        public float maxSanity = 100f;
+
         [Tooltip("Base damage added to melee attacks.")]
         public int baseMeleeDamage = 10;
 

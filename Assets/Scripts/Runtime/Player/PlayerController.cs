@@ -130,6 +130,32 @@ namespace TheLastEmpire
         public float CurrentHunger => currentHunger;
         public event System.Action OnHungerChanged;
 
+        [Header("Sanity System (ค่าสติ - Brain / Eye Bar)")]
+        [SerializeField] private float maxSanity = 100f;
+        [SerializeField] private float currentSanity = 100f;
+        [Tooltip("ตัวคูณอัตราการลดของค่าสติโดยรวม (1.0 = ปกติ, 0.5 = ลดช้าลงเท่าตัว)")]
+        [SerializeField] private float sanityDepletionMultiplier = 1.0f;
+        [Tooltip("อัตราการลดของค่าสติต่อวินาทีในตอนกลางคืน (เช่น 0.5f/วิ)")]
+        [SerializeField] private float nightSanityDepletionRate = 0.5f;
+        [Tooltip("ตัวคูณการลดค่าสติเมื่ออยู่ใน Combat ตอนกลางคืน (เช่น 2.0 = ลดเร็วขึ้น 2 เท่า)")]
+        [SerializeField] private float combatNightSanityMultiplier = 2.0f;
+        [Tooltip("อัตราการลดของค่าสติต่อวินาทีเมื่ออยู่ใน Combat ตอนกลางวัน")]
+        [SerializeField] private float combatDaySanityDepletionRate = 0.3f;
+        [Tooltip("เปอร์เซ็นต์ของความเสียหายที่ได้รับที่จะถูกหักออกจากค่าสติ (0.10 = 10% ของดาเมจที่โดนกัด/โจมตี)")]
+        [SerializeField] private float sanityDamageTakenPercent = 0.10f;
+        [Tooltip("อัตราการฟื้นฟูค่าสติต่อวินาทีเมื่ออยู่อย่างปลอดภัยในตอนกลางวัน (ไม่อยู่ใน Combat)")]
+        [SerializeField] private float daySanityRecoveryRate = 0.2f;
+        [Tooltip("ระยะเวลาคงสถานะ Combat หลังจากโจมตีหรือโดนโจมตี (วินาที)")]
+        [SerializeField] private float combatDuration = 5.0f;
+
+        private float _combatTimer = 0f;
+        private float _sanityDamageTimer = 0f;
+
+        public float MaxSanity => maxSanity;
+        public float CurrentSanity => currentSanity;
+        public bool IsInCombat => _combatTimer > 0f;
+        public event System.Action OnSanityChanged;
+
         private bool _isSprinting = false;
         public bool IsSprinting => _isSprinting;
 
@@ -191,6 +217,8 @@ namespace TheLastEmpire
                 dashCooldown = activeCharacterData.dashCooldown;
                 maxHunger = activeCharacterData.maxHunger;
                 currentHunger = maxHunger;
+                if (activeCharacterData.maxSanity > 0f) maxSanity = activeCharacterData.maxSanity;
+                currentSanity = maxSanity;
                 startingReserveAmmo = activeCharacterData.startingPistolAmmo;
 
                 _health = GetComponent<Health>();
@@ -223,6 +251,8 @@ namespace TheLastEmpire
                 dashDuration = playerConfig.dashDuration;
                 dashCooldown = playerConfig.dashCooldown;
                 maxHunger = playerConfig.maxHunger;
+                if (playerConfig.maxSanity > 0f) maxSanity = playerConfig.maxSanity;
+                currentSanity = maxSanity;
 
                 _health = GetComponent<Health>();
                 if (_health != null)
@@ -327,6 +357,7 @@ namespace TheLastEmpire
                 }
             }
             _health.onDeath.AddListener(HandlePlayerDeath);
+            _health.onDamageTaken.AddListener(HandleDamageTaken);
 
             // Bind Inventory component or dynamically attach it
             _inventory = GetComponent<PlayerInventory>();
@@ -415,6 +446,7 @@ namespace TheLastEmpire
             if (_health != null)
             {
                 _health.onDeath.RemoveListener(HandlePlayerDeath);
+                _health.onDamageTaken.RemoveListener(HandleDamageTaken);
             }
         }
 
@@ -512,6 +544,7 @@ namespace TheLastEmpire
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
             _isSprinting = !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
+            UpdateSanity();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
             {
@@ -1183,6 +1216,7 @@ namespace TheLastEmpire
         private void ShootWeapon()
         {
             ShowRangedWeaponVisual();
+            TriggerCombatState();
             if (_isReloading) return;
 
             Weapon activeWeapon = CurrentWeapon;
@@ -1408,6 +1442,7 @@ namespace TheLastEmpire
         private void MeleeAttack()
         {
             ShowMeleeWeaponVisual();
+            TriggerCombatState();
             MeleeWeapon activeMelee = CurrentMeleeWeapon;
             float activeRadius = activeMelee != null ? activeMelee.attackRadius : meleeRadius;
             float activeRate = activeMelee != null ? activeMelee.attackRate : meleeRate;
@@ -1893,6 +1928,101 @@ namespace TheLastEmpire
             }
 
             OnHungerChanged?.Invoke();
+        }
+
+        private void UpdateSanity()
+        {
+            if (_health != null && _health.IsDead) return;
+
+            if (_combatTimer > 0f)
+            {
+                _combatTimer -= Time.deltaTime;
+            }
+
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
+            bool inCombat = _combatTimer > 0f;
+
+            if (isNight)
+            {
+                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา
+                float rate = nightSanityDepletionRate;
+                if (inCombat)
+                {
+                    // ถ้ากำลังต่อสู้ (Combat) ตอนกลางคืน ลดเร็วขึ้นตามตัวคูณ
+                    rate *= combatNightSanityMultiplier;
+                }
+                float delta = rate * sanityDepletionMultiplier * Time.deltaTime;
+                currentSanity = Mathf.Max(0f, currentSanity - delta);
+                OnSanityChanged?.Invoke();
+            }
+            else if (inCombat)
+            {
+                // กลางวันแต่ติด Combat
+                float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * Time.deltaTime;
+                currentSanity = Mathf.Max(0f, currentSanity - delta);
+                OnSanityChanged?.Invoke();
+            }
+            else
+            {
+                // กลางวันและปลอดภัย: ค่อยๆ ฟื้นฟูสติกลับคืนมา
+                if (currentSanity < maxSanity && daySanityRecoveryRate > 0f)
+                {
+                    currentSanity = Mathf.Min(maxSanity, currentSanity + (daySanityRecoveryRate * Time.deltaTime));
+                    OnSanityChanged?.Invoke();
+                }
+            }
+
+            // เมื่อค่าสติหมด (0) จะเกิดอาการหลอน / เสียขวัญ (Mental Breakdown) โดนดาเมจเป็นระยะ
+            if (currentSanity <= 0f)
+            {
+                _sanityDamageTimer += Time.deltaTime;
+                if (_sanityDamageTimer >= 3.0f)
+                {
+                    _sanityDamageTimer = 0f;
+                    if (_health != null && !_health.IsDead)
+                    {
+                        _health.TakeDamage(5f);
+                        Debug.Log("[PlayerController] Mental breakdown! Took 5 damage due to 0 Sanity.");
+                    }
+                }
+            }
+            else
+            {
+                _sanityDamageTimer = 0f;
+            }
+        }
+
+        private void HandleDamageTaken(float damageAmount)
+        {
+            TriggerCombatState(combatDuration);
+
+            // ลดค่าสติทีละ 10% ของดาเมจที่ได้รับเมื่อโดนกัด/โดนโจมตี
+            float sanityLoss = damageAmount * sanityDamageTakenPercent * sanityDepletionMultiplier;
+            if (sanityLoss > 0f)
+            {
+                DrainSanity(sanityLoss);
+                Debug.Log($"[PlayerController] Took {damageAmount} damage! Sanity dropped by {sanityLoss:F1} (Current Sanity: {currentSanity:F1}/{maxSanity})");
+            }
+        }
+
+        public void TriggerCombatState(float duration = -1f)
+        {
+            float dur = duration > 0f ? duration : combatDuration;
+            _combatTimer = Mathf.Max(_combatTimer, dur);
+        }
+
+        public void DrainSanity(float amount)
+        {
+            if (amount <= 0f) return;
+            currentSanity = Mathf.Max(0f, currentSanity - (amount * sanityDepletionMultiplier));
+            OnSanityChanged?.Invoke();
+        }
+
+        public void RestoreSanity(float amount)
+        {
+            if (amount <= 0f) return;
+            currentSanity = Mathf.Min(maxSanity, currentSanity + amount);
+            OnSanityChanged?.Invoke();
         }
 
         private void ApplyStartingCharacterLoadout()

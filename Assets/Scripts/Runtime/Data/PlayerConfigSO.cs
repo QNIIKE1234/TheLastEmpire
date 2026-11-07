@@ -17,6 +17,7 @@ namespace TheLastEmpire
 
         [Header("Survival")]
         public float maxHunger = 100f;
+        public float maxSanity = 100f;
 
         [Header("Starting Loadout")]
         [Tooltip("จำนวนเงินเริ่มต้น")]

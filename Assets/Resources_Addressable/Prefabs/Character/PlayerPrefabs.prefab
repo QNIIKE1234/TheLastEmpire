@@ -321,6 +321,15 @@ MonoBehaviour:
   maxHunger: 100
   currentHunger: 100
   hungerDepletionMultiplier: 0.5
+  maxSanity: 100
+  currentSanity: 100
+  sanityDepletionMultiplier: 1
+  nightSanityDepletionRate: 0.5
+  combatNightSanityMultiplier: 2
+  combatDaySanityDepletionRate: 0.3
+  sanityDamageTakenPercent: 0.1
+  daySanityRecoveryRate: 0.2
+  combatDuration: 5
   gunshotAlertRange: 15
   aoeIndicatorSprite: {fileID: 554067202, guid: c5f526e60cffa994588506483b595174, type: 3}
   aoeIndicatorColor: {r: 0.3735848, g: 0, b: 0, a: 0.7}

@@ -9,6 +9,9 @@ namespace TheLastEmpire
         [SerializeField] private UnityEngine.UI.Image hpBarFillHUD;
         [SerializeField] private UnityEngine.UI.Slider hungerSliderHUD;
         [SerializeField] private UnityEngine.UI.Image hungerBarFillHUD;
+        [SerializeField] private UnityEngine.UI.Slider sanitySliderHUD;
+        [SerializeField] private UnityEngine.UI.Image sanityBarFillHUD;
+        [SerializeField] private TMPro.TMP_Text sanityTextHUD;
         [SerializeField] private UnityEngine.UI.Image weaponImage;
         [SerializeField] private UnityEngine.UI.Image ammoImage;
         [SerializeField] private TMPro.TMP_Text ammoTextHUD;
@@ -46,11 +49,14 @@ namespace TheLastEmpire
 
         private UnityEngine.UI.Slider _hpBarSlider;
         private UnityEngine.UI.Slider _hungerSlider;
+        private UnityEngine.UI.Slider _sanitySlider;
         private TMPro.TMP_Text _ammoText;
         private UnityEngine.UI.Image _hpBarFill;
         private UnityEngine.UI.Image _hungerBarFill;
+        private UnityEngine.UI.Image _sanityBarFill;
         private TMPro.TMP_Text _hpText;
         private TMPro.TMP_Text _hungerTextText;
+        private TMPro.TMP_Text _sanityText;
         private UnityEngine.UI.Image _weaponImage;
         private UnityEngine.UI.Image _ammoImage;
         private TMPro.TMP_Text _charBadgeText;
@@ -70,6 +76,7 @@ namespace TheLastEmpire
             {
                 player.OnAmmoChanged += UpdateHUD;
                 player.OnHungerChanged += UpdateHUD;
+                player.OnSanityChanged += UpdateHUD;
 
                 Health pHealth = player.GetComponent<Health>() ?? player.PlayerHealth;
                 if (pHealth != null)
@@ -133,6 +140,7 @@ namespace TheLastEmpire
             {
                 player.OnAmmoChanged -= UpdateHUD;
                 player.OnHungerChanged -= UpdateHUD;
+                player.OnSanityChanged -= UpdateHUD;
 
                 Health pHealth = player.GetComponent<Health>() ?? player.PlayerHealth;
                 if (pHealth != null)
@@ -152,14 +160,32 @@ namespace TheLastEmpire
         {
             // 1. Check if user assigned their own UI references in Inspector
             if (hpBarSliderHUD != null || ammoTextHUD != null || hpBarFillHUD != null || hpTextHUD != null || 
-                hungerSliderHUD != null || hungerBarFillHUD != null || weaponImage != null || ammoImage != null)
+                hungerSliderHUD != null || hungerBarFillHUD != null || sanitySliderHUD != null || sanityBarFillHUD != null || weaponImage != null || ammoImage != null)
             {
                 _hpBarSlider = hpBarSliderHUD;
                 _hungerSlider = hungerSliderHUD;
+                _sanitySlider = sanitySliderHUD;
                 _ammoText = ammoTextHUD;
                 _hpBarFill = hpBarFillHUD;
                 _hungerBarFill = hungerBarFillHUD;
+                _sanityBarFill = sanityBarFillHUD;
                 _hpText = hpTextHUD;
+                _sanityText = sanityTextHUD;
+
+                // Smart auto-detection for Sanity Slider (Eye / Brain Slider) if not assigned
+                if (_sanitySlider == null)
+                {
+                    GameObject brainObj = GameObject.Find("Brain_slider");
+                    if (brainObj != null)
+                    {
+                        _sanitySlider = brainObj.GetComponent<UnityEngine.UI.Slider>();
+                        if (_sanityBarFill == null)
+                        {
+                            Transform fillT = brainObj.transform.Find("Fill Area/Fill");
+                            if (fillT != null) _sanityBarFill = fillT.GetComponent<UnityEngine.UI.Image>();
+                        }
+                    }
+                }
 
                 ResolveWeaponAndAmmoImages();
                 return;
@@ -431,6 +457,30 @@ namespace TheLastEmpire
             if (_hungerTextText != null)
             {
                 _hungerTextText.text = $"HUNGER: {Mathf.RoundToInt(player.CurrentHunger)} / {Mathf.RoundToInt(player.MaxHunger)}";
+            }
+
+            // 2.5 Update Sanity Bar (Brain / Eye Slider)
+            float sanityRatio = player.MaxSanity > 0f ? Mathf.Clamp01(player.CurrentSanity / player.MaxSanity) : 0f;
+            if (_sanitySlider != null)
+            {
+                _sanitySlider.maxValue = player.MaxSanity;
+                _sanitySlider.value = player.CurrentSanity;
+            }
+            else if (_sanityBarFill != null)
+            {
+                if (_sanityBarFill.type == UnityEngine.UI.Image.Type.Filled)
+                {
+                    _sanityBarFill.fillAmount = sanityRatio;
+                }
+                else
+                {
+                    _sanityBarFill.rectTransform.localScale = new Vector3(sanityRatio, 1f, 1f);
+                }
+            }
+
+            if (_sanityText != null)
+            {
+                _sanityText.text = $"SANITY: {Mathf.RoundToInt(player.CurrentSanity)} / {Mathf.RoundToInt(player.MaxSanity)}";
             }
 
             // 3. Update Weapon & Ammo Visuals
