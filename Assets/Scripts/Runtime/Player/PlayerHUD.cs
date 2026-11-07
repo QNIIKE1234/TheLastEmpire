@@ -78,6 +78,12 @@ namespace TheLastEmpire
                 player.OnHungerChanged += UpdateHUD;
                 player.OnSanityChanged += UpdateHUD;
 
+                PlayerInventory pInv = player.GetComponent<PlayerInventory>();
+                if (pInv != null)
+                {
+                    pInv.OnInventoryChanged += UpdateHUD;
+                }
+
                 Health pHealth = player.GetComponent<Health>() ?? player.PlayerHealth;
                 if (pHealth != null)
                 {
@@ -141,6 +147,12 @@ namespace TheLastEmpire
                 player.OnAmmoChanged -= UpdateHUD;
                 player.OnHungerChanged -= UpdateHUD;
                 player.OnSanityChanged -= UpdateHUD;
+
+                PlayerInventory pInv = player.GetComponent<PlayerInventory>();
+                if (pInv != null)
+                {
+                    pInv.OnInventoryChanged -= UpdateHUD;
+                }
 
                 Health pHealth = player.GetComponent<Health>() ?? player.PlayerHealth;
                 if (pHealth != null)
@@ -505,17 +517,40 @@ namespace TheLastEmpire
             Sprite weaponSprite = null;
             Sprite ammoSprite = null;
 
-            if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
+            if (player.IsHoldingConsumable)
             {
-                currentWeaponName = player.CurrentWeapon.weaponName;
-                currentAmmoType = player.CurrentWeapon.ammoType;
-                weaponSprite = player.CurrentWeapon.icon;
+                currentWeaponName = player.HeldConsumableName;
+                if (!string.IsNullOrEmpty(currentWeaponName) && ItemDatabase.Instance != null)
+                {
+                    ItemData cData = ItemDatabase.Instance.GetItemByName(currentWeaponName);
+                    if (cData != null)
+                    {
+                        weaponSprite = cData.icon;
+                    }
+                }
+                ammoSprite = null; // No ammo sprite for consumables
             }
-            else if (player.CurrentMeleeWeapon != null && !string.IsNullOrEmpty(player.CurrentMeleeWeapon.weaponName))
+            else if (player.IsHoldingMelee)
             {
-                currentWeaponName = player.CurrentMeleeWeapon.weaponName;
-                weaponSprite = player.CurrentMeleeWeapon.icon;
-                currentAmmoType = null; // Melee weapons do not consume ammo
+                if (player.CurrentMeleeWeapon != null && !string.IsNullOrEmpty(player.CurrentMeleeWeapon.weaponName))
+                {
+                    currentWeaponName = player.CurrentMeleeWeapon.weaponName;
+                    weaponSprite = player.CurrentMeleeWeapon.icon;
+                }
+                else
+                {
+                    currentWeaponName = player.CurrentMeleeWeaponName;
+                }
+                ammoSprite = null; // Melee weapons do not consume ammo
+            }
+            else
+            {
+                if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
+                {
+                    currentWeaponName = player.CurrentWeapon.weaponName;
+                    currentAmmoType = player.CurrentWeapon.ammoType;
+                    weaponSprite = player.CurrentWeapon.icon;
+                }
             }
 
             // Lookup weapon icon in ItemDatabase if not assigned on weapon object
@@ -529,7 +564,7 @@ namespace TheLastEmpire
             }
 
             // Lookup ammo icon in ItemDatabase if wielding a firearm
-            if (player.CurrentWeapon != null)
+            if (player.IsHoldingRanged && player.CurrentWeapon != null)
             {
                 if (string.IsNullOrEmpty(currentAmmoType))
                 {
@@ -574,7 +609,7 @@ namespace TheLastEmpire
             // Apply Ammo Image
             if (_ammoImage != null)
             {
-                if (ammoSprite != null)
+                if (ammoSprite != null && player.IsHoldingRanged)
                 {
                     _ammoImage.sprite = ammoSprite;
                     _ammoImage.enabled = true;
@@ -590,7 +625,18 @@ namespace TheLastEmpire
             // Update Ammo / Weapon Text HUD
             if (_ammoText != null)
             {
-                if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
+                if (player.IsHoldingConsumable)
+                {
+                    PlayerInventory inv = player.GetComponent<PlayerInventory>();
+                    int count = inv != null ? inv.GetItemCount(player.HeldConsumableName) : 0;
+                    _ammoText.text = $"<color=#ffeb3b>x{count}</color> <color=#cfd8dc>USE</color>";
+                }
+                else if (player.IsHoldingMelee)
+                {
+                    string meleeName = showWeaponName ? $"{player.CurrentMeleeWeaponName.ToUpper()}: " : "";
+                    _ammoText.text = $"{meleeName}<color=#a0e0a0>MELEE</color>";
+                }
+                else if (player.CurrentWeapon != null && !string.IsNullOrEmpty(player.CurrentWeapon.weaponName))
                 {
                     string weaponPrefix = showWeaponName ? $"{player.CurrentWeaponName.ToUpper()}: " : "";
                     if (player.IsReloading)
@@ -601,11 +647,6 @@ namespace TheLastEmpire
                     {
                         _ammoText.text = $"{weaponPrefix}<color=#00e5ff>{player.CurrentMagazine}</color> / <color=#cfd8dc>{player.CurrentReserveAmmo}</color>";
                     }
-                }
-                else if (player.CurrentMeleeWeapon != null && !string.IsNullOrEmpty(player.CurrentMeleeWeapon.weaponName))
-                {
-                    string meleeName = showWeaponName ? $"{player.CurrentMeleeWeaponName.ToUpper()}: " : "";
-                    _ammoText.text = $"{meleeName}<color=#a0e0a0>MELEE</color>";
                 }
                 else
                 {

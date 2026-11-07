@@ -1,0 +1,41 @@
+newmtl Brass
+Ka 0.180 0.100 0.025
+Kd 0.720 0.430 0.100
+Ks 0.420 0.310 0.140
+Ns 60
+illum 2
+
+newmtl BrassLight
+Ka 0.240 0.150 0.040
+Kd 0.910 0.650 0.200
+Ks 0.500 0.390 0.170
+Ns 72
+illum 2
+
+newmtl BrassDark
+Ka 0.080 0.050 0.015
+Kd 0.310 0.190 0.045
+Ks 0.220 0.170 0.080
+Ns 45
+illum 2
+
+newmtl Copper
+Ka 0.160 0.045 0.020
+Kd 0.700 0.220 0.080
+Ks 0.350 0.180 0.100
+Ns 64
+illum 2
+
+newmtl CopperLight
+Ka 0.240 0.080 0.025
+Kd 0.930 0.380 0.120
+Ks 0.480 0.260 0.120
+Ns 72
+illum 2
+
+newmtl Primer
+Ka 0.080 0.085 0.090
+Kd 0.340 0.360 0.370
+Ks 0.350 0.360 0.370
+Ns 56
+illum 2

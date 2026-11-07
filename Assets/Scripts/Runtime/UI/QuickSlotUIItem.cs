@@ -144,6 +144,12 @@ namespace TheLastEmpire
             if (!string.IsNullOrEmpty(InventoryItemSlot.DraggedItemName))
             {
                 string droppedItem = InventoryItemSlot.DraggedItemName;
+                if (!QuickSlotController.IsItemQuickSlotEligible(droppedItem))
+                {
+                    Debug.LogWarning($"[QuickSlot] Cannot drop '{droppedItem}' onto Quick Slot {slotIndex + 1}: Item is not eligible (Ammo/Material cannot be quick-slotted)!");
+                    return;
+                }
+
                 if (QuickSlotController.Instance != null)
                 {
                     QuickSlotController.Instance.AssignSlot(slotIndex, droppedItem);
@@ -157,7 +163,7 @@ namespace TheLastEmpire
 
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                QuickSlotController.Instance.UseSlot(slotIndex);
+                QuickSlotController.Instance.SelectSlot(slotIndex);
             }
             else if (eventData.button == PointerEventData.InputButton.Right)
             {

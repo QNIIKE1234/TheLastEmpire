@@ -116,6 +116,99 @@ namespace TheLastEmpire
         public GameObject MeleeWeaponVisual => meleeWeapon;
         public GameObject RangeWeaponVisual => rangeWeapon;
 
+        public enum HeldItemType
+        {
+            None,
+            Ranged,
+            Melee,
+            Consumable
+        }
+
+        private HeldItemType _heldItemType = HeldItemType.Ranged;
+        private string _heldConsumableName = "";
+
+        public HeldItemType CurrentHeldType => _heldItemType;
+        public bool IsHoldingRanged => _heldItemType == HeldItemType.Ranged && CurrentWeapon != null;
+        public bool IsHoldingMelee => _heldItemType == HeldItemType.Melee && CurrentMeleeWeapon != null;
+        public bool IsHoldingConsumable => _heldItemType == HeldItemType.Consumable && !string.IsNullOrEmpty(_heldConsumableName);
+        public string HeldConsumableName => _heldConsumableName;
+
+        public string ActiveHeldItemName
+        {
+            get
+            {
+                if (IsHoldingRanged) return CurrentWeaponName;
+                if (IsHoldingMelee) return CurrentMeleeWeaponName;
+                if (IsHoldingConsumable) return _heldConsumableName;
+                return "";
+            }
+        }
+
+        public void SetHeldRangedWeapon(string weaponName)
+        {
+            _heldItemType = HeldItemType.Ranged;
+            _heldConsumableName = "";
+            int idx = -1;
+            if (weapons != null)
+            {
+                idx = weapons.FindIndex(w => w.weaponName.Equals(weaponName, System.StringComparison.OrdinalIgnoreCase));
+                if (idx < 0)
+                {
+                    idx = weapons.FindIndex(w => w.weaponName.IndexOf(weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0 || weaponName.IndexOf(w.weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+            }
+            if (idx >= 0)
+            {
+                SwitchToWeapon(idx);
+            }
+            else
+            {
+                ShowRangedWeaponVisual();
+                OnAmmoChanged?.Invoke();
+            }
+        }
+
+        public void SetHeldMeleeWeapon(string weaponName)
+        {
+            _heldItemType = HeldItemType.Melee;
+            _heldConsumableName = "";
+            int idx = -1;
+            if (meleeWeapons != null)
+            {
+                idx = meleeWeapons.FindIndex(w => w.weaponName.Equals(weaponName, System.StringComparison.OrdinalIgnoreCase));
+                if (idx < 0)
+                {
+                    idx = meleeWeapons.FindIndex(w => w.weaponName.IndexOf(weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0 || weaponName.IndexOf(w.weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+            }
+            if (idx >= 0)
+            {
+                SwitchToMeleeWeapon(idx);
+            }
+            else
+            {
+                ShowMeleeWeaponVisual();
+                OnAmmoChanged?.Invoke();
+            }
+        }
+
+        public void SetHeldConsumable(string consumableName)
+        {
+            _heldItemType = HeldItemType.Consumable;
+            _heldConsumableName = consumableName;
+
+            EnsureWeaponVisualReferences();
+            if (rangeWeapon != null) rangeWeapon.SetActive(false);
+            if (meleeWeapon != null) meleeWeapon.SetActive(false);
+
+            OnAmmoChanged?.Invoke();
+        }
+
+        public void NotifyWeaponChanged()
+        {
+            OnAmmoChanged?.Invoke();
+        }
+
         public event System.Action OnAmmoChanged;
 
         [Header("Hunger System")]
@@ -1094,23 +1187,29 @@ namespace TheLastEmpire
                         _fireBufferTimer = 0.18f; // 180ms responsive buffer window
                     }
 
-                    bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic;
-                    bool wantToShoot = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
+                    bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic && IsHoldingRanged;
+                    bool wantToAttack = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
 
-                    if (wantToShoot && _fireCooldownTimer <= 0f && _meleeAnimTimer <= 0f)
+                    if (wantToAttack && _meleeAnimTimer <= 0f)
                     {
-                        _fireBufferTimer = 0f;
-                        ShootWeapon();
+                        if (IsHoldingRanged && _fireCooldownTimer <= 0f && !_isReloading)
+                        {
+                            _fireBufferTimer = 0f;
+                            ShootWeapon();
+                        }
+                        else if (IsHoldingMelee && _meleeCooldownTimer <= 0f)
+                        {
+                            _fireBufferTimer = 0f;
+                            MeleeAttack();
+                        }
+                        else if (IsHoldingConsumable)
+                        {
+                            _fireBufferTimer = 0f;
+                            QuickSlotController.Instance?.UseActiveHeldItem();
+                        }
                     }
-                    if (Mouse.current.rightButton.wasPressedThisFrame)
-                    {
-                        _meleeBufferTimer = 0.22f;
-                    }
-                    if (_meleeBufferTimer > 0f && _meleeCooldownTimer <= 0f)
-                    {
-                        _meleeBufferTimer = 0f;
-                        MeleeAttack();
-                    }
+
+                    // เอาคลิกขวาตีใกล้ออกตามที่ผู้เล่นต้องการ (อาวุธใช้งานได้แค่อย่างเดียวต่อครั้ง)
                 }
 
                 // Scroll wheel weapon cycling
@@ -1132,11 +1231,11 @@ namespace TheLastEmpire
 
                 if (!isUIBlocked)
                 {
-                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) UseQuickSlotOrWeapon(0);
-                    if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) UseQuickSlotOrWeapon(1);
-                    if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) UseQuickSlotOrWeapon(2);
-                    if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) UseQuickSlotOrWeapon(3);
-                    if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame) UseQuickSlotOrWeapon(4);
+                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(0);
+                    if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(1);
+                    if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(2);
+                    if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(3);
+                    if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(4);
                     if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToQuickSlot(5);
                     if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToQuickSlot(6);
                     if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToQuickSlot(7);
@@ -1148,7 +1247,7 @@ namespace TheLastEmpire
                     CycleMeleeWeapon(1);
                 }
 
-                if (Keyboard.current.fKey.wasPressedThisFrame && _meleeCooldownTimer <= 0f)
+                if (Keyboard.current.fKey.wasPressedThisFrame && IsHoldingMelee && _meleeCooldownTimer <= 0f)
                 {
                     MeleeAttack();
                 }
@@ -2664,6 +2763,15 @@ namespace TheLastEmpire
                 _currentMeleeWeaponIndex = -1;
                 Debug.Log($"[PlayerController] Unequipped melee weapon.");
                 if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                if (CurrentWeapon != null)
+                {
+                    _heldItemType = HeldItemType.Ranged;
+                    ShowRangedWeaponVisual();
+                }
+                else
+                {
+                    _heldItemType = HeldItemType.None;
+                }
                 OnAmmoChanged?.Invoke();
                 return;
             }
@@ -2680,6 +2788,10 @@ namespace TheLastEmpire
             }
 
             _currentMeleeWeaponIndex = index;
+            _heldItemType = HeldItemType.Melee;
+            _heldConsumableName = "";
+            ShowMeleeWeaponVisual();
+
             Debug.Log($"[PlayerController] Equipped melee weapon: {wName}");
             if (meleeWeapon != null && meleeWeapon.activeSelf)
             {
@@ -2761,6 +2873,15 @@ namespace TheLastEmpire
                 _currentWeaponIndex = -1;
                 Debug.Log($"[PlayerController] Unequipped weapon.");
                 if (rangeWeapon != null) rangeWeapon.SetActive(false);
+                if (CurrentMeleeWeapon != null)
+                {
+                    _heldItemType = HeldItemType.Melee;
+                    ShowMeleeWeaponVisual();
+                }
+                else
+                {
+                    _heldItemType = HeldItemType.None;
+                }
                 OnAmmoChanged?.Invoke();
                 return;
             }
@@ -2777,6 +2898,9 @@ namespace TheLastEmpire
             }
 
             _currentWeaponIndex = index;
+            _heldItemType = HeldItemType.Ranged;
+            _heldConsumableName = "";
+            ShowRangedWeaponVisual();
             Debug.Log($"[PlayerController] Switched to weapon: {CurrentWeapon.weaponName}");
             if (rangeWeapon != null && rangeWeapon.activeSelf)
             {

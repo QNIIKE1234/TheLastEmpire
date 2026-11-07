@@ -112,7 +112,6 @@ namespace TheLastEmpire.Editor
             }
             Debug.Log("[QuickSlotBaker] Successfully setup ShiftSkillHUD on Shiftskill object!");
         }
-        }
     }
 }
 

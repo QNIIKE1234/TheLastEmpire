@@ -123,11 +123,11 @@ namespace TheLastEmpire
         {
             if (!_isOpen) return;
 
-            // ตรวจสอบ Hover + กดเลข 1 - 5 เพื่อ Assign ของลง Quick Slot ทันที
+            // ตรวจสอบ Hover + กดเลข 1 - 5 เพื่อ Assign ของลง Quick Slot ทันที (ดักเฉพาะไอเทมที่ใช้ได้ ไม่เอากระสุน/วัสดุ)
             if (InventoryItemSlot.HoveredSlot != null && !string.IsNullOrEmpty(InventoryItemSlot.HoveredSlot.CurrentItemName))
             {
                 string hoveredItem = InventoryItemSlot.HoveredSlot.CurrentItemName;
-                if (Keyboard.current != null)
+                if (QuickSlotController.IsItemQuickSlotEligible(hoveredItem) && Keyboard.current != null)
                 {
                     if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
                         QuickSlotController.Instance?.AssignSlot(0, hoveredItem);
