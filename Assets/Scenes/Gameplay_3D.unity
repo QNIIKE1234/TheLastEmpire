@@ -4917,6 +4917,14 @@ MonoBehaviour:
   moneyTextHUD: {fileID: 1178188949}
   healthTextHUD: {fileID: 0}
   itemSlotsContainer: {fileID: 45743703}
+  itemSlots:
+  - {fileID: 1905188090892504043}
+  - {fileID: 1761763811}
+  - {fileID: 279352196}
+  - {fileID: 763723721}
+  - {fileID: 919032619}
+  - {fileID: 1178074460}
+  - {fileID: 170321668}
   slotsPerPage: 7
   prevPageButton: {fileID: 308034699}
   nextPageButton: {fileID: 156612389}
@@ -5616,6 +5624,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 170321666}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &170321668 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 170321666}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &170329877
 GameObject:
   m_ObjectHideFlags: 0
@@ -8914,6 +8933,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 279352194}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &279352196 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 279352194}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &279485752
 GameObject:
   m_ObjectHideFlags: 0
@@ -23735,6 +23765,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 763723719}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &763723721 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 763723719}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &766642275
 GameObject:
   m_ObjectHideFlags: 0
@@ -27453,6 +27494,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 919032617}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &919032619 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 919032617}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &922643699
 GameObject:
   m_ObjectHideFlags: 0
@@ -36147,6 +36199,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1178074458}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1178074460 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1178074458}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1178188947
 GameObject:
   m_ObjectHideFlags: 0
@@ -54491,6 +54554,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1761763809}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1761763811 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1761763809}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1001 &1767220959
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66645,6 +66719,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1905188090892504041}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1905188090892504043 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1905188090892504041}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1001 &3098174082453885499
 PrefabInstance:
   m_ObjectHideFlags: 0
