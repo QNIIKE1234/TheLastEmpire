@@ -38,6 +38,7 @@ namespace TheLastEmpire
         private int _activeSlotIndex = 0;
         private PlayerInventory _inventory;
         private PlayerController _player;
+        private bool _isInitialized = false;
 
         public int ActiveSlotIndex => _activeSlotIndex;
 
@@ -48,6 +49,38 @@ namespace TheLastEmpire
             inventory = inv != null ? inv : (p != null ? p.GetComponent<PlayerInventory>() : null);
             _inventory = inventory;
             HookPlayerReferences();
+        }
+
+        /// <summary>
+        /// เตรียมความพร้อมระบบ QuickSlot ตั้งแต่เริ่มเกม แม้ว่า Panel Inventory จะปิดอยู่
+        /// รีเซ็ตช่องทั้งหมดและล้าง PlayerPrefs ไม่ให้ไอเทมเก่า (เช่น ขนมปัง) ค้างข้ามเกม
+        /// </summary>
+        public void EnsureInitialized()
+        {
+            if (_instance == null || _instance == this)
+            {
+                _instance = this;
+            }
+
+            if (_isInitialized) return;
+            _isInitialized = true;
+
+            HookPlayerReferences();
+            DiscoverSlots();
+            ClearSavedSlotsOnGameStart();
+            EnsureDefaultStartingSlots();
+            SelectSlot(_activeSlotIndex);
+            RefreshUI();
+        }
+
+        public void ClearSavedSlotsOnGameStart()
+        {
+            for (int i = 0; i < MaxSlots; i++)
+            {
+                PlayerPrefs.DeleteKey($"{PrefsPrefix}{i}");
+                _slotItemNames[i] = "";
+            }
+            PlayerPrefs.Save();
         }
 
         private void Awake()
@@ -70,22 +103,17 @@ namespace TheLastEmpire
                 }
             }
 
-            if (quickSlotHUD == null) quickSlotHUD = gameObject;
-            DiscoverSlots();
-            LoadSavedSlots();
+            EnsureInitialized();
         }
 
         private void Start()
         {
-            HookPlayerReferences();
-            EnsureDefaultStartingSlots();
-            SelectSlot(_activeSlotIndex);
-            RefreshUI();
+            EnsureInitialized();
         }
 
         private void OnEnable()
         {
-            HookPlayerReferences();
+            EnsureInitialized();
             DiscoverSlots();
             RefreshUI();
         }
@@ -177,42 +205,40 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ตั้งค่าเริ่มต้นถ้า QuickSlot ยังไม่มี: ช่อง 1 = ปืนเริ่มต้น, ช่อง 2 = มีด Knife
+        /// ตั้งค่าเริ่มต้นถ้า QuickSlot ยังไม่มี: ช่อง 1 = ปืนเริ่มต้น, ช่อง 2 = มีด/หอกเริ่มต้น, ช่อง 3-5 ว่างเปล่า
         /// </summary>
         public void EnsureDefaultStartingSlots()
         {
             HookPlayerReferences();
 
             // ช่อง 1 (Index 0): ปืนเริ่มต้น
-            if (string.IsNullOrEmpty(_slotItemNames[0]) || !IsItemQuickSlotEligible(_slotItemNames[0]))
+            string startingGun = "Rifle";
+            if (_player != null && _player.WeaponsList != null && _player.WeaponsList.Count > 0)
             {
-                string startingGun = "Rifle";
-                if (_player != null && _player.WeaponsList != null && _player.WeaponsList.Count > 0)
-                {
-                    startingGun = !string.IsNullOrEmpty(_player.CurrentWeaponName) ? _player.CurrentWeaponName : _player.WeaponsList[0].weaponName;
-                }
-                else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 0)
-                {
-                    startingGun = _player.ActiveCharacterData.startingWeapons[0];
-                }
-                _slotItemNames[0] = startingGun;
-                SaveSlot(0);
+                startingGun = !string.IsNullOrEmpty(_player.CurrentWeaponName) ? _player.CurrentWeaponName : _player.WeaponsList[0].weaponName;
             }
-
-            // ช่อง 2 (Index 1): มีด Knife
-            if (string.IsNullOrEmpty(_slotItemNames[1]) || !IsItemQuickSlotEligible(_slotItemNames[1]))
+            else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 0)
             {
-                string startingMelee = "Knife";
-                if (_player != null && _player.MeleeWeaponsList != null && _player.MeleeWeaponsList.Count > 0)
-                {
-                    startingMelee = !string.IsNullOrEmpty(_player.CurrentMeleeWeaponName) ? _player.CurrentMeleeWeaponName : _player.MeleeWeaponsList[0].weaponName;
-                }
-                else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 1)
-                {
-                    startingMelee = _player.ActiveCharacterData.startingWeapons[1];
-                }
-                _slotItemNames[1] = startingMelee;
-                SaveSlot(1);
+                startingGun = _player.ActiveCharacterData.startingWeapons[0];
+            }
+            _slotItemNames[0] = startingGun;
+
+            // ช่อง 2 (Index 1): มีด Knife หรือหอก Spear เริ่มต้น
+            string startingMelee = "Knife";
+            if (_player != null && _player.MeleeWeaponsList != null && _player.MeleeWeaponsList.Count > 0)
+            {
+                startingMelee = !string.IsNullOrEmpty(_player.CurrentMeleeWeaponName) ? _player.CurrentMeleeWeaponName : _player.MeleeWeaponsList[0].weaponName;
+            }
+            else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 1)
+            {
+                startingMelee = _player.ActiveCharacterData.startingWeapons[1];
+            }
+            _slotItemNames[1] = startingMelee;
+
+            // ช่อง 3 - 5: ให้ว่างเปล่าเสมอเมื่อเริ่มเกมใหม่
+            for (int i = 2; i < MaxSlots; i++)
+            {
+                _slotItemNames[i] = "";
             }
         }
 
@@ -300,6 +326,7 @@ namespace TheLastEmpire
         /// </summary>
         public void AssignSlot(int index, string itemName)
         {
+            EnsureInitialized();
             if (index < 0 || index >= MaxSlots) return;
             if (string.IsNullOrEmpty(itemName) || itemName == "- Empty -") return;
 
@@ -331,6 +358,7 @@ namespace TheLastEmpire
         /// </summary>
         public void ClearSlot(int index)
         {
+            EnsureInitialized();
             if (index < 0 || index >= MaxSlots) return;
 
             ClearSlotDataOnly(index);
@@ -361,12 +389,14 @@ namespace TheLastEmpire
 
         public bool HasSlot(int index)
         {
+            EnsureInitialized();
             if (index < 0 || index >= MaxSlots) return false;
             return !string.IsNullOrEmpty(_slotItemNames[index]);
         }
 
         public string GetSlotItem(int index)
         {
+            EnsureInitialized();
             if (index < 0 || index >= MaxSlots) return null;
             return _slotItemNames[index];
         }
@@ -377,6 +407,7 @@ namespace TheLastEmpire
         /// </summary>
         public void SelectSlot(int index)
         {
+            EnsureInitialized();
             if (index < 0 || index >= MaxSlots) return;
 
             string itemName = _slotItemNames[index];

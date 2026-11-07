@@ -69,36 +69,42 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Try Addressables Synchronous Load (WaitForCompletion)
-            try
+#if UNITY_EDITOR
+            // 2. In Unity Editor, load directly from AssetDatabase to avoid Addressable missing-key exceptions
+            T editorAsset = LoadAssetInEditor<T>(normalizedKey);
+            if (editorAsset != null)
             {
-                AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(normalizedKey);
-                T result = handle.WaitForCompletion();
+                return editorAsset;
+            }
+#endif
 
-                if (handle.Status == AsyncOperationStatus.Succeeded && result != null)
+            // 3. Try Addressables only if catalog contains this key
+            if (HasAddressableKey(normalizedKey))
+            {
+                try
                 {
-                    if (Instance != null)
+                    AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(normalizedKey);
+                    T result = handle.WaitForCompletion();
+
+                    if (handle.Status == AsyncOperationStatus.Succeeded && result != null)
                     {
-                        Instance._loadedAssetHandles[normalizedKey] = handle;
+                        if (Instance != null)
+                        {
+                            Instance._loadedAssetHandles[normalizedKey] = handle;
+                        }
+                        return result;
                     }
-                    return result;
-                }
-                else
-                {
-                    if (handle.IsValid())
+                    else if (handle.IsValid())
                     {
                         Addressables.Release(handle);
                     }
                 }
-            }
-            catch
-            {
-                // Key not found in Addressables catalog; proceed to fallbacks
+                catch { }
             }
 
-            // 3. Fallback: If normalizedKey has folder, try filename only in Addressables
+            // 4. Fallback: If normalizedKey has folder, try filename only in Addressables if key exists
             string filenameOnly = System.IO.Path.GetFileNameWithoutExtension(normalizedKey);
-            if (!string.Equals(filenameOnly, normalizedKey, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(filenameOnly, normalizedKey, StringComparison.OrdinalIgnoreCase) && HasAddressableKey(filenameOnly))
             {
                 try
                 {
@@ -120,15 +126,6 @@ namespace TheLastEmpire
                 }
                 catch { }
             }
-
-#if UNITY_EDITOR
-            // 4. Editor Fallback: Direct search in AssetDatabase
-            T editorAsset = LoadAssetInEditor<T>(normalizedKey);
-            if (editorAsset != null)
-            {
-                return editorAsset;
-            }
-#endif
 
             // 5. Fallback: Resources.Load
             T resFallback = Resources.Load<T>(normalizedKey);
@@ -160,27 +157,35 @@ namespace TheLastEmpire
                 }
             }
 
-            try
+#if UNITY_EDITOR
+            T editorAsset = LoadAssetInEditor<T>(normalizedKey);
+            if (editorAsset != null)
             {
-                AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(normalizedKey);
-                T result = await handle.Task;
-
-                if (handle.Status == AsyncOperationStatus.Succeeded && result != null)
-                {
-                    if (Instance != null)
-                    {
-                        Instance._loadedAssetHandles[normalizedKey] = handle;
-                    }
-                    return result;
-                }
-                else
-                {
-                    if (handle.IsValid()) Addressables.Release(handle);
-                }
+                return editorAsset;
             }
-            catch (Exception ex)
+#endif
+
+            if (HasAddressableKey(normalizedKey))
             {
-                Debug.LogWarning($"[AddressableManager] Addressables async failed for '{key}', checking fallbacks: {ex.Message}");
+                try
+                {
+                    AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(normalizedKey);
+                    T result = await handle.Task;
+
+                    if (handle.Status == AsyncOperationStatus.Succeeded && result != null)
+                    {
+                        if (Instance != null)
+                        {
+                            Instance._loadedAssetHandles[normalizedKey] = handle;
+                        }
+                        return result;
+                    }
+                    else
+                    {
+                        if (handle.IsValid()) Addressables.Release(handle);
+                    }
+                }
+                catch { }
             }
 
             // Fallback to synchronous loader (Editor / Resources)
@@ -202,30 +207,45 @@ namespace TheLastEmpire
                 }
             }
 
-            try
+#if UNITY_EDITOR
+            List<T> editorList = LoadAssetsByLabelInEditor<T>(label);
+            if (editorList != null && editorList.Count > 0)
             {
-                AsyncOperationHandle<IList<T>> handle = Addressables.LoadAssetsAsync<T>(label, null);
-                IList<T> results = handle.WaitForCompletion();
+                return editorList;
+            }
+#endif
 
-                if (handle.Status == AsyncOperationStatus.Succeeded && results != null)
-                {
-                    if (Instance != null)
-                    {
-                        Instance._loadedLabelHandles[label] = handle;
-                    }
-                    return results;
-                }
-                else
-                {
-                    if (handle.IsValid()) Addressables.Release(handle);
-                    return new List<T>();
-                }
-            }
-            catch (Exception ex)
+            if (HasAddressableKey(label))
             {
-                Debug.LogWarning($"[AddressableManager] Exception loading label '{label}': {ex.Message}");
-                return new List<T>();
+                try
+                {
+                    AsyncOperationHandle<IList<T>> handle = Addressables.LoadAssetsAsync<T>(label, null);
+                    IList<T> results = handle.WaitForCompletion();
+
+                    if (handle.Status == AsyncOperationStatus.Succeeded && results != null)
+                    {
+                        if (Instance != null)
+                        {
+                            Instance._loadedLabelHandles[label] = handle;
+                        }
+                        return results;
+                    }
+                    else if (handle.IsValid())
+                    {
+                        Addressables.Release(handle);
+                    }
+                }
+                catch { }
             }
+
+            // Fallback: Resources.LoadAll
+            T[] resAll = Resources.LoadAll<T>(label);
+            if (resAll != null && resAll.Length > 0) return resAll;
+
+            resAll = Resources.LoadAll<T>($"{label}s");
+            if (resAll != null && resAll.Length > 0) return resAll;
+
+            return new List<T>();
         }
 
         // ==========================================
@@ -243,30 +263,45 @@ namespace TheLastEmpire
                 }
             }
 
-            try
+#if UNITY_EDITOR
+            List<T> editorList = LoadAssetsByLabelInEditor<T>(label);
+            if (editorList != null && editorList.Count > 0)
             {
-                AsyncOperationHandle<IList<T>> handle = Addressables.LoadAssetsAsync<T>(label, null);
-                IList<T> results = await handle.Task;
+                return editorList;
+            }
+#endif
 
-                if (handle.Status == AsyncOperationStatus.Succeeded && results != null)
-                {
-                    if (Instance != null)
-                    {
-                        Instance._loadedLabelHandles[label] = handle;
-                    }
-                    return results;
-                }
-                else
-                {
-                    if (handle.IsValid()) Addressables.Release(handle);
-                    return new List<T>();
-                }
-            }
-            catch (Exception ex)
+            if (HasAddressableKey(label))
             {
-                Debug.LogWarning($"[AddressableManager] Exception loading label '{label}': {ex.Message}");
-                return new List<T>();
+                try
+                {
+                    AsyncOperationHandle<IList<T>> handle = Addressables.LoadAssetsAsync<T>(label, null);
+                    IList<T> results = await handle.Task;
+
+                    if (handle.Status == AsyncOperationStatus.Succeeded && results != null)
+                    {
+                        if (Instance != null)
+                        {
+                            Instance._loadedLabelHandles[label] = handle;
+                        }
+                        return results;
+                    }
+                    else if (handle.IsValid())
+                    {
+                        Addressables.Release(handle);
+                    }
+                }
+                catch { }
             }
+
+            // Fallback: Resources.LoadAll
+            T[] resAll = Resources.LoadAll<T>(label);
+            if (resAll != null && resAll.Length > 0) return resAll;
+
+            resAll = Resources.LoadAll<T>($"{label}s");
+            if (resAll != null && resAll.Length > 0) return resAll;
+
+            return new List<T>();
         }
 
         // ==========================================
@@ -424,6 +459,29 @@ namespace TheLastEmpire
             _loadedLabelHandles.Clear();
         }
 
+        /// <summary>
+        /// ตรวจสอบว่า key นี้มีอยู่ใน Addressables Catalog หรือไม่ ก่อนเรียก LoadAssetAsync เพื่อป้องกัน InvalidKeyException สีแดงใน Console
+        /// </summary>
+        public static bool HasAddressableKey(object key)
+        {
+            if (key == null) return false;
+            try
+            {
+                if (Addressables.ResourceLocators != null)
+                {
+                    foreach (var locator in Addressables.ResourceLocators)
+                    {
+                        if (locator != null && locator.Locate(key, typeof(UnityEngine.Object), out var locations))
+                        {
+                            if (locations != null && locations.Count > 0) return true;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
+
         private static string NormalizeKey(string key)
         {
             if (string.IsNullOrEmpty(key)) return string.Empty;
@@ -442,12 +500,21 @@ namespace TheLastEmpire
 #if UNITY_EDITOR
         private static T LoadAssetInEditor<T>(string key) where T : UnityEngine.Object
         {
-            // Try direct path in Assets/Resources_Addressable
+            if (string.IsNullOrEmpty(key)) return null;
+
+            // 1. Direct path check if starts with Assets/
+            if (key.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            {
+                T direct = AssetDatabase.LoadAssetAtPath<T>(key);
+                if (direct != null) return direct;
+            }
+
+            // 2. Direct path in Assets/Resources_Addressable
             string p1 = $"Assets/Resources_Addressable/{key}";
             T obj = AssetDatabase.LoadAssetAtPath<T>(p1);
             if (obj != null) return obj;
 
-            // Try with extensions
+            // 3. Try with common extensions in Assets/Resources_Addressable
             string[] extensions = { ".prefab", ".asset", ".png", ".jpg", ".json", ".txt" };
             foreach (var ext in extensions)
             {
@@ -455,17 +522,70 @@ namespace TheLastEmpire
                 if (obj != null) return obj;
             }
 
-            // Search by filename in Resources_Addressable
-            string fname = System.IO.Path.GetFileNameWithoutExtension(key);
-            string[] guids = AssetDatabase.FindAssets($"{fname} t:{typeof(T).Name}", new[] { "Assets/Resources_Addressable" });
-            if (guids != null && guids.Length > 0)
+            // 4. Try path directly under Assets/{key} (e.g. Assets/Settings/DefaultVolumeProfile.asset)
+            string pAssets = $"Assets/{key}";
+            obj = AssetDatabase.LoadAssetAtPath<T>(pAssets);
+            if (obj != null) return obj;
+            foreach (var ext in extensions)
             {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-                obj = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+                obj = AssetDatabase.LoadAssetAtPath<T>($"{pAssets}{ext}");
                 if (obj != null) return obj;
             }
 
+            // 5. Search by filename across the entire project
+            string fname = System.IO.Path.GetFileNameWithoutExtension(key);
+            if (!string.IsNullOrEmpty(fname))
+            {
+                string[] guids = AssetDatabase.FindAssets($"{fname} t:{typeof(T).Name}");
+                if (guids != null && guids.Length > 0)
+                {
+                    foreach (var g in guids)
+                    {
+                        string assetPath = AssetDatabase.GUIDToAssetPath(g);
+                        obj = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+                        if (obj != null) return obj;
+                    }
+                }
+            }
+
             return null;
+        }
+
+        private static List<T> LoadAssetsByLabelInEditor<T>(string label) where T : UnityEngine.Object
+        {
+            if (string.IsNullOrEmpty(label)) return null;
+
+            List<T> list = new List<T>();
+            string[] searchFolders = new[] {
+                $"Assets/Resources_Addressable/{label}",
+                $"Assets/Resources_Addressable/{label}s",
+                "Assets/Resources_Addressable"
+            };
+
+            List<string> validFolders = new List<string>();
+            foreach (var f in searchFolders)
+            {
+                if (AssetDatabase.IsValidFolder(f)) validFolders.Add(f);
+            }
+
+            if (validFolders.Count > 0)
+            {
+                string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", validFolders.ToArray());
+                if (guids != null && guids.Length > 0)
+                {
+                    foreach (var guid in guids)
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        T item = AssetDatabase.LoadAssetAtPath<T>(path);
+                        if (item != null && !list.Contains(item))
+                        {
+                            list.Add(item);
+                        }
+                    }
+                }
+            }
+
+            return list;
         }
 #endif
     }

@@ -574,6 +574,12 @@ namespace TheLastEmpire
                 if (rangeWeapon != null) rangeWeapon.SetActive(false);
             }
 
+            // เตรียมความพร้อม QuickSlot ตั้งแต่เริ่มเกม แม้ว่า Inventory จะยังไม่ได้เปิด
+            if (QuickSlot != null)
+            {
+                QuickSlot.EnsureInitialized();
+            }
+
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
         }
 
