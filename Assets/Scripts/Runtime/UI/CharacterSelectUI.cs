@@ -28,9 +28,44 @@ namespace TheLastEmpire
         [SerializeField] private TMP_Text shiftAbilityDescLabel;
         [SerializeField] private TMP_Text loadoutLabel;
 
-        [Header("Operative Portrait Artwork")]
-        [Tooltip("The Image component on ModalCharacter where character artwork is displayed.")]
+        [Header("Operative Portrait Artwork (Legacy 2D Image Fallback)")]
+        [Tooltip("The Image component on ModalCharacter where character artwork is displayed (ใช้เป็น fallback เมื่อไม่มี GameObject ตัวละคร).")]
         [SerializeField] private Image characterPortraitImage;
+
+        [Header("Operative GameObjects (ตัวละครติด Bone & Animation แต่ละตัว)")]
+        [Tooltip("Transform พ่อที่เก็บตัวละครทั้งหมด เช่น GameObject ชื่อ 'Character'")]
+        [SerializeField] private Transform characterContainer;
+
+        [Tooltip("GameObject ตัวละคร The Vanguard")]
+        [SerializeField] private GameObject vanguardObject;
+
+        [Tooltip("GameObject ตัวละคร The Juggernaut")]
+        [SerializeField] private GameObject juggernautObject;
+
+        [Tooltip("GameObject ตัวละคร The Phantom")]
+        [SerializeField] private GameObject phantomObject;
+
+        [Tooltip("GameObject ตัวละคร The Marksman")]
+        [SerializeField] private GameObject marksmanObject;
+
+        [Tooltip("GameObject ตัวละคร The Scavenger")]
+        [SerializeField] private GameObject scavengerObject;
+
+        [Tooltip("GameObject ตัวละคร The Rebel")]
+        [SerializeField] private GameObject rebelObject;
+
+        [Tooltip("GameObject ตัวละคร The Demolitionist")]
+        [SerializeField] private GameObject demolitionistObject;
+
+        [System.Serializable]
+        public struct CustomCharacterObjectEntry
+        {
+            public string characterId;
+            public GameObject characterObject;
+        }
+
+        [Tooltip("ช่องใส่ GameObject ตัวละครเพิ่มเติมอื่นๆ")]
+        [SerializeField] private List<CustomCharacterObjectEntry> customCharacterObjects = new List<CustomCharacterObjectEntry>();
 
         [Header("Operative Portraits (Scene References)")]
         [Tooltip("Artwork for The Vanguard")]
@@ -113,18 +148,21 @@ namespace TheLastEmpire
             }
 
             EnsurePortraitReference();
+            AutoBindCharacterObjects();
         }
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
             EnsurePortraitReference();
+            AutoBindCharacterObjects();
         }
 #endif
 
         private void OnEnable()
         {
             EnsurePortraitReference();
+            AutoBindCharacterObjects();
             InitializeRoster();
         }
 
@@ -225,6 +263,80 @@ namespace TheLastEmpire
             return null;
         }
 
+        /// <summary>
+        /// สแกนหา GameObject ของตัวละครทั้ง 7 ตัวใต้ characterContainer หรือใน Hierarchy อัตโนมัติหากยังไม่ได้ลากใส่
+        /// </summary>
+        [ContextMenu("Auto Bind Character GameObjects")]
+        public void AutoBindCharacterObjects()
+        {
+            if (characterContainer == null)
+            {
+                Transform found = transform.Find("ModalPanel/Character");
+                if (found == null) found = transform.Find("Character");
+                if (found == null)
+                {
+                    var allTransforms = GetComponentsInChildren<Transform>(true);
+                    foreach (var t in allTransforms)
+                    {
+                        if (t.name.Equals("Character", StringComparison.OrdinalIgnoreCase) && t != transform)
+                        {
+                            found = t;
+                            break;
+                        }
+                    }
+                }
+                characterContainer = found;
+            }
+
+            if (characterContainer != null)
+            {
+                foreach (Transform child in characterContainer)
+                {
+                    string name = child.name.ToUpperInvariant();
+                    if (name.Contains("VANGUARD") && vanguardObject == null) vanguardObject = child.gameObject;
+                    else if (name.Contains("JUGGERNAUT") && juggernautObject == null) juggernautObject = child.gameObject;
+                    else if (name.Contains("PHANTOM") && phantomObject == null) phantomObject = child.gameObject;
+                    else if ((name.Contains("MARKSMAN") || name.Contains("MASKMAN")) && marksmanObject == null) marksmanObject = child.gameObject;
+                    else if (name.Contains("SCAVENGER") && scavengerObject == null) scavengerObject = child.gameObject;
+                    else if (name.Contains("REBEL") && rebelObject == null) rebelObject = child.gameObject;
+                    else if ((name.Contains("DEMOLITION") || name.Contains("DEMOLITIONIST")) && demolitionistObject == null) demolitionistObject = child.gameObject;
+                }
+            }
+        }
+
+        public GameObject GetObjectForCharacter(CharacterData ch)
+        {
+            if (ch == null) return null;
+            string id = !string.IsNullOrEmpty(ch.characterId) ? ch.characterId.ToUpperInvariant() : "";
+
+            switch (id)
+            {
+                case "VANGUARD": return vanguardObject;
+                case "JUGGERNAUT": return juggernautObject;
+                case "PHANTOM": return phantomObject;
+                case "MARKSMAN": return marksmanObject;
+                case "SCAVENGER": return scavengerObject;
+                case "REBEL": return rebelObject;
+                case "DEMOLITIONIST": return demolitionistObject;
+            }
+
+            if (customCharacterObjects != null)
+            {
+                var entry = customCharacterObjects.Find(e => !string.IsNullOrEmpty(e.characterId) && e.characterId.Equals(ch.characterId, StringComparison.OrdinalIgnoreCase));
+                if (entry.characterObject != null) return entry.characterObject;
+            }
+
+            return null;
+        }
+
+        private void SetCharacterObjectActive(GameObject go, bool isActive)
+        {
+            if (go != null && go.activeSelf != isActive)
+            {
+                go.SetActive(isActive);
+            }
+        }
+
         public void InitializeRoster()
         {
             _roster = (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters.Count > 0)
@@ -292,23 +404,53 @@ namespace TheLastEmpire
             if (ch == null) return;
             _selectedCharacterId = ch.characterId;
 
-            // 1. Update Character Portrait Artwork (ModalCharacter)
+            // 1. สลับเปิดเฉพาะ GameObject ตัวละครที่เลือก (Active) และปิดตัวอื่นๆ (Inactive) เพื่อให้เล่น Animation/Bone
+            AutoBindCharacterObjects();
+            GameObject activeObj = GetObjectForCharacter(ch);
+
+            SetCharacterObjectActive(vanguardObject, activeObj == vanguardObject);
+            SetCharacterObjectActive(juggernautObject, activeObj == juggernautObject);
+            SetCharacterObjectActive(phantomObject, activeObj == phantomObject);
+            SetCharacterObjectActive(marksmanObject, activeObj == marksmanObject);
+            SetCharacterObjectActive(scavengerObject, activeObj == scavengerObject);
+            SetCharacterObjectActive(rebelObject, activeObj == rebelObject);
+            SetCharacterObjectActive(demolitionistObject, activeObj == demolitionistObject);
+
+            if (customCharacterObjects != null)
+            {
+                for (int i = 0; i < customCharacterObjects.Count; i++)
+                {
+                    GameObject customGo = customCharacterObjects[i].characterObject;
+                    if (customGo != null)
+                    {
+                        SetCharacterObjectActive(customGo, activeObj == customGo);
+                    }
+                }
+            }
+
+            // ถ้ามี GameObject ตัวละครที่เลือกเปิดอยู่ ให้ซ่อน 2D Image แบบเก่า (ModalCharacter) เพื่อไม่ให้ภาพซ้อนกัน
             EnsurePortraitReference();
             if (characterPortraitImage != null)
             {
-                Sprite portrait = GetPortraitForCharacter(ch);
-                if (portrait != null)
+                if (activeObj != null)
                 {
-                    characterPortraitImage.sprite = portrait;
-                    characterPortraitImage.gameObject.SetActive(true);
-                    characterPortraitImage.enabled = true;
-                    characterPortraitImage.color = Color.white;
+                    characterPortraitImage.gameObject.SetActive(false);
                 }
                 else
                 {
-                    // If no artwork is configured for this operative, hide to avoid displaying mismatched character
-                    characterPortraitImage.sprite = null;
-                    characterPortraitImage.color = new Color(1f, 1f, 1f, 0f);
+                    characterPortraitImage.gameObject.SetActive(true);
+                    Sprite portrait = GetPortraitForCharacter(ch);
+                    if (portrait != null)
+                    {
+                        characterPortraitImage.sprite = portrait;
+                        characterPortraitImage.enabled = true;
+                        characterPortraitImage.color = Color.white;
+                    }
+                    else
+                    {
+                        characterPortraitImage.sprite = null;
+                        characterPortraitImage.color = new Color(1f, 1f, 1f, 0f);
+                    }
                 }
             }
 
