@@ -539,13 +539,15 @@ namespace TheLastEmpire
             bool isShootingNow = _shootSprintLockTimer > 0f || _shootAnimLayerTimer > 0f || (Mouse.current != null && Mouse.current.leftButton.isPressed && CurrentWeapon != null && !_isReloading);
             if (isShootingNow) _activeShiftAbility?.OnShiftReleased();
 
+            bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
+
             if (Keyboard.current != null)
             {
-                if (!isShootingNow && Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (!isShootingNow && !isShiftOnCooldown && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (!isShootingNow && Keyboard.current.shiftKey.isPressed)
+                if (!isShootingNow && !isShiftOnCooldown && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
@@ -557,7 +559,8 @@ namespace TheLastEmpire
             _activeShiftAbility?.UpdateAbility();
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
-            _isSprinting = !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+            bool canSprint = !isShiftOnCooldown;
+            _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             UpdateSanity();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
@@ -949,7 +952,8 @@ namespace TheLastEmpire
             {
                 float baseSpeed = moveSpeed;
                 float currentSpeed = baseSpeed;
-                bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+                bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
+                bool isShiftHeld = !isShiftOnCooldown && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
 
                 if (_shootSprintLockTimer > 0f)
                 {

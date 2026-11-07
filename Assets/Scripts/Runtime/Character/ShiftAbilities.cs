@@ -12,11 +12,16 @@ namespace TheLastEmpire
         public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Adrenaline Rush";
         public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "+75% Speed, +30% Attack Rate, 20% Dmg Resistance, Rapid Hunger Drain";
         public bool IsActive => _isActive;
-        public float CooldownRemaining => 0f;
-        public float CooldownDuration => 0f;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.shiftCooldown > 0f)
+            ? _player.ActiveCharacterData.shiftCooldown
+            : 4.0f;
 
         private PlayerController _player;
         private bool _isActive = false;
+        private float _cooldownTimer = 0f;
+        private float _activeTime = 0f;
+        private const float MaxActiveDuration = 4.0f;
 
         public void Initialize(PlayerController player)
         {
@@ -27,24 +32,45 @@ namespace TheLastEmpire
 
         public void OnShiftHeld()
         {
-            if (_player == null || _player.CurrentHunger <= 0f)
+            if (_player == null || _player.CurrentHunger <= 0f || _cooldownTimer > 0f)
             {
                 if (_isActive) OnShiftReleased();
                 return;
             }
 
-            _isActive = true;
+            if (!_isActive)
+            {
+                _isActive = true;
+                _activeTime = 0f;
+            }
         }
 
         public void OnShiftReleased()
         {
-            _isActive = false;
+            if (_isActive)
+            {
+                _isActive = false;
+                _cooldownTimer = CooldownDuration;
+            }
         }
 
         public void UpdateAbility()
         {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
             if (_isActive && _player != null)
             {
+                _activeTime += Time.deltaTime;
+                if (_activeTime >= MaxActiveDuration)
+                {
+                    OnShiftReleased();
+                    return;
+                }
+
                 // Extra hunger drain applied during adrenaline state (configured in CharacterData)
                 float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.adrenalineHungerDrainRate : 1.5f;
                 _player.DrainHunger(Time.deltaTime * drainRate);
@@ -164,12 +190,17 @@ namespace TheLastEmpire
         public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Shadow Step";
         public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Phase into shadow, walk through enemies, guaranteed critical strike on exit";
         public bool IsActive => _isInShadow;
-        public float CooldownRemaining => 0f;
-        public float CooldownDuration => 0f;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.shiftCooldown > 0f)
+            ? _player.ActiveCharacterData.shiftCooldown
+            : 5.0f;
 
         private PlayerController _player;
         private bool _isInShadow = false;
         private bool _hasGuaranteedCrit = false;
+        private float _cooldownTimer = 0f;
+        private float _activeTime = 0f;
+        private const float MaxShadowDuration = 4.0f;
         private SpriteRenderer _sr;
         private Color _originalColor = Color.white;
 
@@ -189,7 +220,7 @@ namespace TheLastEmpire
 
         public void OnShiftHeld()
         {
-            if (_player == null || _player.CurrentHunger <= 0f)
+            if (_player == null || _player.CurrentHunger <= 0f || _cooldownTimer > 0f)
             {
                 if (_isInShadow) OnShiftReleased();
                 return;
@@ -198,6 +229,7 @@ namespace TheLastEmpire
             if (!_isInShadow)
             {
                 _isInShadow = true;
+                _activeTime = 0f;
                 if (_sr != null)
                 {
                     _sr.color = new Color(0.4f, 0.5f, 1f, 0.45f); // Ghost blue tint
@@ -211,6 +243,7 @@ namespace TheLastEmpire
             {
                 _isInShadow = false;
                 _hasGuaranteedCrit = true; // Next attack lands critical damage!
+                _cooldownTimer = CooldownDuration;
                 if (_sr != null)
                 {
                     _sr.color = _originalColor;
@@ -225,8 +258,21 @@ namespace TheLastEmpire
 
         public void UpdateAbility()
         {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
             if (_isInShadow && _player != null)
             {
+                _activeTime += Time.deltaTime;
+                if (_activeTime >= MaxShadowDuration)
+                {
+                    OnShiftReleased();
+                    return;
+                }
+
                 // Extra hunger drain applied in shadow form
                 float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shadowHungerDrainRate : 2.5f;
                 _player.DrainHunger(Time.deltaTime * drainRate);
@@ -248,11 +294,14 @@ namespace TheLastEmpire
         public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Eagle Eye";
         public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Tactical stance: camera zooms out, expanded weapon range, piercing bullets";
         public bool IsActive => _isAiming;
-        public float CooldownRemaining => 0f;
-        public float CooldownDuration => 0f;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.shiftCooldown > 0f)
+            ? _player.ActiveCharacterData.shiftCooldown
+            : 3.0f;
 
         private PlayerController _player;
         private bool _isAiming = false;
+        private float _cooldownTimer = 0f;
         private Camera _cam;
         private float _defaultCamSize = 5.0f;
         private float _targetCamSize = 7.0f;
@@ -273,7 +322,7 @@ namespace TheLastEmpire
 
         public void OnShiftHeld()
         {
-            if (_player == null || _player.CurrentHunger <= 0f)
+            if (_player == null || _player.CurrentHunger <= 0f || _cooldownTimer > 0f)
             {
                 if (_isAiming) OnShiftReleased();
                 return;
@@ -284,11 +333,21 @@ namespace TheLastEmpire
 
         public void OnShiftReleased()
         {
-            _isAiming = false;
+            if (_isAiming)
+            {
+                _isAiming = false;
+                _cooldownTimer = CooldownDuration;
+            }
         }
 
         public void UpdateAbility()
         {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
             if (_cam != null)
             {
                 float zoomMult = (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.eagleEyeZoomMultiplier : 1.30f;
@@ -612,11 +671,16 @@ namespace TheLastEmpire
         public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Toxic Trail";
         public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Leaves toxic cloud trail that slows enemies with poison DoT";
         public bool IsActive => _isActive;
-        public float CooldownRemaining => 0f;
-        public float CooldownDuration => 0f;
+        public float CooldownRemaining => _cooldownTimer;
+        public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.shiftCooldown > 0f)
+            ? _player.ActiveCharacterData.shiftCooldown
+            : 4.0f;
 
         private PlayerController _player;
         private bool _isActive = false;
+        private float _cooldownTimer = 0f;
+        private float _activeTime = 0f;
+        private const float MaxTrailDuration = 4.0f;
         private float _cloudSpawnTimer = 0f;
         private const float CloudInterval = 0.22f;
 
@@ -629,24 +693,45 @@ namespace TheLastEmpire
 
         public void OnShiftHeld()
         {
-            if (_player == null || _player.CurrentHunger <= 0f)
+            if (_player == null || _player.CurrentHunger <= 0f || _cooldownTimer > 0f)
             {
                 if (_isActive) OnShiftReleased();
                 return;
             }
 
-            _isActive = true;
+            if (!_isActive)
+            {
+                _isActive = true;
+                _activeTime = 0f;
+            }
         }
 
         public void OnShiftReleased()
         {
-            _isActive = false;
+            if (_isActive)
+            {
+                _isActive = false;
+                _cooldownTimer = CooldownDuration;
+            }
         }
 
         public void UpdateAbility()
         {
+            if (_cooldownTimer > 0f)
+            {
+                _cooldownTimer -= Time.deltaTime;
+                if (_cooldownTimer < 0f) _cooldownTimer = 0f;
+            }
+
             if (_isActive && _player != null)
             {
+                _activeTime += Time.deltaTime;
+                if (_activeTime >= MaxTrailDuration)
+                {
+                    OnShiftReleased();
+                    return;
+                }
+
                 float drainRate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.toxicHungerDrainRate : 1.8f;
                 _player.DrainHunger(Time.deltaTime * drainRate);
 

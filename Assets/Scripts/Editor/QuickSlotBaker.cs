@@ -69,10 +69,50 @@ namespace TheLastEmpire.Editor
 
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(controller);
+
+            // 3. Setup Shiftskill HUD ด้วยถ้ามีใน Scene
+            SetupShiftSkillHUDInternal(false);
+
             EditorSceneManager.MarkSceneDirty(hud.scene);
 
-            EditorUtility.DisplayDialog("QuickSlot Setup", "ติดตั้ง QuickSlotController และเชื่อมต่อ QuickSlot 1 - 5 สำเร็จเรียบร้อย!", "OK");
+            EditorUtility.DisplayDialog("QuickSlot Setup", "ติดตั้ง QuickSlotController และเชื่อมต่อ QuickSlot 1 - 5 พร้อม Shift Skill HUD สำเร็จเรียบร้อย!", "OK");
             Debug.Log("[QuickSlotBaker] Successfully setup QuickSlot HUD and registered all slots!");
+        }
+
+        [MenuItem("Tools/The Last Empire/Setup Shift Skill HUD", false, 111)]
+        public static void SetupShiftSkillHUDMenu()
+        {
+            SetupShiftSkillHUDInternal(true);
+        }
+
+        private static void SetupShiftSkillHUDInternal(bool showDialog)
+        {
+            GameObject skillObj = GameObject.Find("Shiftskill");
+            if (skillObj == null)
+            {
+                if (showDialog)
+                    EditorUtility.DisplayDialog("Shift Skill Setup", "ไม่พบ GameObject ชื่อ 'Shiftskill' ใน Scene ปัจจุบัน!", "OK");
+                return;
+            }
+
+            Undo.RegisterFullObjectHierarchyUndo(skillObj, "Setup Shift Skill HUD");
+
+            ShiftSkillHUD hud = skillObj.GetComponent<ShiftSkillHUD>();
+            if (hud == null)
+            {
+                hud = Undo.AddComponent<ShiftSkillHUD>(skillObj);
+            }
+            hud.ResolveReferences();
+            EditorUtility.SetDirty(hud);
+            EditorSceneManager.MarkSceneDirty(skillObj.scene);
+
+            if (showDialog)
+            {
+                EditorUtility.DisplayDialog("Shift Skill Setup", "ติดตั้ง ShiftSkillHUD และตั้งค่า Cooldown Image / Text สำเร็จเรียบร้อย!", "OK");
+            }
+            Debug.Log("[QuickSlotBaker] Successfully setup ShiftSkillHUD on Shiftskill object!");
+        }
         }
     }
 }
+
