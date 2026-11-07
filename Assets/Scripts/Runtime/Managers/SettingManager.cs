@@ -69,7 +69,6 @@ namespace TheLastEmpire
         [SerializeField] private Button defaultButton;
         [SerializeField] private Button applyButton;
         [SerializeField] private Button exitButton;
-        [SerializeField] private Button saveAndBackButton;
 
         public enum SettingTab { General, Control, Sound, Graphic, Accessory }
         private SettingTab _currentTab = SettingTab.General;
@@ -290,17 +289,13 @@ namespace TheLastEmpire
                 {
                     defaultButton = btn;
                 }
-                else if (applyButton == null && (bName.Contains("apply") || textContent.Contains("apply")))
+                else if (applyButton == null && (bName.Contains("apply") || bName.Contains("save") || textContent.Contains("apply") || textContent.Contains("save")))
                 {
                     applyButton = btn;
                 }
                 else if (exitButton == null && (bName.Contains("exit") || textContent.Contains("exit")))
                 {
                     exitButton = btn;
-                }
-                else if (saveAndBackButton == null && (bName.Contains("save") || bName.Contains("back") || bName.Contains("close") || textContent.Contains("save") || textContent.Contains("back") || textContent.Contains("close")))
-                {
-                    saveAndBackButton = btn;
                 }
 
                 // Category Tab Buttons
@@ -376,14 +371,8 @@ namespace TheLastEmpire
 
             if (exitButton != null)
             {
-                exitButton.onClick.RemoveListener(CloseSettingsModal);
-                exitButton.onClick.AddListener(CloseSettingsModal);
-            }
-
-            if (saveAndBackButton != null)
-            {
-                saveAndBackButton.onClick.RemoveListener(OnSaveAndBack);
-                saveAndBackButton.onClick.AddListener(OnSaveAndBack);
+                exitButton.onClick.RemoveListener(OnExitClicked);
+                exitButton.onClick.AddListener(OnExitClicked);
             }
 
             // Category Tab Buttons
@@ -440,7 +429,6 @@ namespace TheLastEmpire
             defaultButton = other.defaultButton;
             applyButton = other.applyButton;
             exitButton = other.exitButton;
-            saveAndBackButton = other.saveAndBackButton;
 
             ResolveModalRoot();
             AutoWireUIElements();
@@ -561,23 +549,40 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// Saves current settings to disk and applies them to engine.
+        /// Saves current settings to disk, applies them to engine, and closes the modal.
         /// </summary>
         public void OnApplySettings()
         {
             SaveSettings();
             ApplySettings();
-            Debug.Log("[SettingManager] Settings applied successfully.");
+            CloseSettingsModal();
+            Debug.Log("[SettingManager] Settings applied and modal closed.");
         }
 
         /// <summary>
-        /// Saves current settings to disk and closes the modal.
+        /// Action for the Exit button:
+        /// - If in MainMenu scene: Quits the game.
+        /// - If in Gameplay scene (or any non-MainMenu scene): Returns to MainMenu.
         /// </summary>
-        public void OnSaveAndBack()
+        public void OnExitClicked()
         {
-            SaveSettings();
-            ApplySettings();
-            CloseSettingsModal();
+            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (sceneName.Equals("MainMenu", StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.Log("[SettingManager] Exit clicked in MainMenu -> Quitting game.");
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            }
+            else
+            {
+                Debug.Log("[SettingManager] Exit clicked in Gameplay -> Returning to MainMenu.");
+                Time.timeScale = 1f;
+                CloseSettingsModal();
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            }
         }
 
         /// <summary>
