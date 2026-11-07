@@ -206,7 +206,7 @@ TextureImporter:
         width: 263
         height: 142
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 53, y: 46, z: 54, w: 48}
       customData: 
       outline: []
@@ -215,6 +215,72 @@ TextureImporter:
       bones: []
       spriteID: 3d266be321ad44c44b13b99518709a59
       internalID: -738567984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_5
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 324
+        width: 210
+        height: 206
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 42, y: 42, z: 42, w: 44}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b16475e3154207c429d822131e820d75
+      internalID: -155456331
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_6
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 75
+        width: 165
+        height: 169
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb6279cd2c79fc14b885a998bd5d2a9b
+      internalID: 1485025381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GUI_Components_SpriteSheet_7
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 74
+        width: 176
+        height: 173
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d852226c4deb4564ab9b4cb4d64aa8fe
+      internalID: 291192042
       vertices: []
       indices: 
       edges: []
@@ -238,6 +304,9 @@ TextureImporter:
       GUI_Components_SpriteSheet_2: -1878221628
       GUI_Components_SpriteSheet_3: -1865382333
       GUI_Components_SpriteSheet_4: -738567984
+      GUI_Components_SpriteSheet_5: -155456331
+      GUI_Components_SpriteSheet_6: 1485025381
+      GUI_Components_SpriteSheet_7: 291192042
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
