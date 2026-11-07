@@ -5,29 +5,12 @@ using UnityEngine;
 
 namespace TheLastEmpire
 {
-    [InitializeOnLoad]
     public static class ChibiGhostOperatorBuilder
     {
         private const string ModelAssetPath = "Assets/GeneratedModels/ChibiGhostOperator/ChibiGhostOperator.obj";
         private const string MatFolderPath = "Assets/Materials/ChibiGhostOperator";
         private const string TexFolderPath = "Assets/Materials/ChibiGhostOperator/Textures";
-        private const string PrefabOutputPath = "Assets/Resources/Prefabs/Character/ChibiGhostOperator.prefab";
-
-        static ChibiGhostOperatorBuilder()
-        {
-            EditorApplication.delayCall += EnsureBuiltOnce;
-        }
-
-        private static void EnsureBuiltOnce()
-        {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-            if (!File.Exists(ModelAssetPath)) return;
-
-            if (!File.Exists(PrefabOutputPath))
-            {
-                BuildMaterialsAndPrefab(false);
-            }
-        }
+        private const string PrefabOutputPath = "Assets/Resources_Addressable/Prefabs/Character/Model/ChibiGhostOperator.prefab";
 
         [MenuItem("Tools/The Last Empire/Build Chibi Ghost Operator (Materials + Prefab)")]
         public static void BuildFromMenu()
@@ -105,37 +88,52 @@ namespace TheLastEmpire
 
             if (modelAsset != null)
             {
-                GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
-                instance.name = "ChibiGhostOperator";
-                instance.transform.position = Vector3.zero;
-                instance.transform.rotation = Quaternion.identity;
-                instance.transform.localScale = Vector3.one;
-
-                foreach (MeshRenderer mr in instance.GetComponentsInChildren<MeshRenderer>(true))
+                string dir = Path.GetDirectoryName(PrefabOutputPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 {
-                    Material[] shared = mr.sharedMaterials;
-                    for (int i = 0; i < shared.Length; i++)
-                    {
-                        if (shared[i] != null)
-                        {
-                            string cleanName = shared[i].name.Replace(" (Instance)", "").Trim();
-                            if (loadedMats.TryGetValue(cleanName, out Material mapped))
-                            {
-                                shared[i] = mapped;
-                            }
-                        }
-                    }
-                    mr.sharedMaterials = shared;
+                    Directory.CreateDirectory(dir);
                 }
 
-                CapsuleCollider col = instance.GetComponent<CapsuleCollider>();
-                if (col == null) col = instance.AddComponent<CapsuleCollider>();
-                col.center = new Vector3(0f, 1.0f, 0f);
-                col.height = 2.0f;
-                col.radius = 0.42f;
+                GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
+                try
+                {
+                    instance.name = "ChibiGhostOperator";
+                    instance.transform.position = Vector3.zero;
+                    instance.transform.rotation = Quaternion.identity;
+                    instance.transform.localScale = Vector3.one;
 
-                PrefabUtility.SaveAsPrefabAsset(instance, PrefabOutputPath);
-                Object.DestroyImmediate(instance);
+                    foreach (MeshRenderer mr in instance.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        Material[] shared = mr.sharedMaterials;
+                        for (int i = 0; i < shared.Length; i++)
+                        {
+                            if (shared[i] != null)
+                            {
+                                string cleanName = shared[i].name.Replace(" (Instance)", "").Trim();
+                                if (loadedMats.TryGetValue(cleanName, out Material mapped))
+                                {
+                                    shared[i] = mapped;
+                                }
+                            }
+                        }
+                        mr.sharedMaterials = shared;
+                    }
+
+                    CapsuleCollider col = instance.GetComponent<CapsuleCollider>();
+                    if (col == null) col = instance.AddComponent<CapsuleCollider>();
+                    col.center = new Vector3(0f, 1.0f, 0f);
+                    col.height = 2.0f;
+                    col.radius = 0.42f;
+
+                    PrefabUtility.SaveAsPrefabAsset(instance, PrefabOutputPath);
+                }
+                finally
+                {
+                    if (instance != null)
+                    {
+                        Object.DestroyImmediate(instance);
+                    }
+                }
             }
 
             AssetDatabase.SaveAssets();
