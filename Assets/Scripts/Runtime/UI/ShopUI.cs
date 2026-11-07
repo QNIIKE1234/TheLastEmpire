@@ -23,14 +23,11 @@ namespace TheLastEmpire
     }
 
     /// <summary>
-    /// ShopUI — ใช้ pattern เดียวกับ InventoryUI ทุกอย่าง
-    /// Pool, Pagination, InventoryItemSlot เหมือนกันหมด แค่เปลี่ยน Logic เป็น Buy
-    ///
-    /// Setup:
-    ///   1. Dup Panel จาก Inventory มาแล้วลาก Script นี้ใส่
-    ///   2. Assign ช่องใน Inspector
-    ///   3. เพิ่ม ShopItem[] ใน Inspector
-    ///   4. เรียก ShopUI.Instance.OpenShop() จาก NPC / Trigger
+    /// ShopUI — จัดการหน้าร้านค้า ซื้อ/ขาย
+    /// ใช้ Pattern เดียวกับ CraftController:
+    /// - อ้างอิงแถว InventoryItemSlot เดิมที่มีอยู่แล้วใน UI (itemSlots)
+    /// - วน SetData ซ้ำ ไม่ Instantiate ใหม่ ไม่สร้างขยะใน Memory
+    /// - ระบบ Pagination อิงตามจำนวน Slots ในหน้าอัตโนมัติ
     /// </summary>
     public class ShopUI : MonoBehaviour, IPopUp
     {
@@ -44,11 +41,16 @@ namespace TheLastEmpire
         [SerializeField] private GameObject shopPanel;
         [SerializeField] private TMP_Text walletText;
         [SerializeField] private TMP_Text shopTitleText;
-        [Tooltip("Content GO ที่มี InventoryItemSlot ลูก — เหมือน Inventory")]
+        [Tooltip("Content GO ที่มี InventoryItemSlot ลูก (Optional: หากไม่ลาก itemSlots ระบบจะดึงลูกจาก Container นี้ให้อัตโนมัติ)")]
         [SerializeField] private GameObject itemSlotsContainer;
 
+        [Header("Item Slots (รายการแถวสินค้า)")]
+        [Tooltip("ลากแถว InventoryItemSlot ทั้งหมดที่วางอยู่ในหน้าต่าง UI ใส่ที่นี่ (เช่น 7-8 แถว) เพื่อวนเซตข้อมูลซ้ำ ไม่สร้างใหม่")]
+        [SerializeField] private List<InventoryItemSlot> itemSlots = new List<InventoryItemSlot>();
+
         [Header("Pagination")]
-        [SerializeField] private int slotsPerPage = 8;
+        [Tooltip("จำนวนแถวต่อ 1 หน้า (ถ้าลาก itemSlots ไว้จะอิงตามจำนวนช่องใน List อัตโนมัติ)")]
+        [SerializeField] private int slotsPerPage = 7;
         [SerializeField] private Button prevPageButton;
         [SerializeField] private Button nextPageButton;
         [SerializeField] private TMP_Text pageIndicatorText;
@@ -57,20 +59,17 @@ namespace TheLastEmpire
         [SerializeField] private Button tabBuyButton;
         [SerializeField] private Button tabSellButton;
 
-
         [Header("Shop Stock")]
         [Tooltip("รายการสินค้าในร้านนี้ (เผื่ออยากตั้ง default ไว้)")]
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
         private bool _isFree = false;
 
         // =====================================================
-        //  Internal Pool (same pattern as InventoryUI)
+        //  Internal State
         // =====================================================
 
-        private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
-        private int _activeSlotCount = 0;
-        private int _currentPage     = 0;
-        private int _totalPages      = 1;
+        private int _currentPage = 0;
+        private int _totalPages  = 1;
 
         public enum ShopMode { Buy, Sell }
         private ShopMode _currentMode = ShopMode.Buy;
@@ -91,15 +90,16 @@ namespace TheLastEmpire
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
 
+                ScanExistingSlots();
+
+                if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
+                if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
+                
+                if (tabBuyButton != null) tabBuyButton.onClick.AddListener(() => SwitchTab(ShopMode.Buy));
+                if (tabSellButton != null) tabSellButton.onClick.AddListener(() => SwitchTab(ShopMode.Sell));
+
                 if (shopPanel != null)
                 {
-                    ScanExistingSlots();
-                    if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
-                    if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
-                    
-                    if (tabBuyButton != null) tabBuyButton.onClick.AddListener(() => SwitchTab(ShopMode.Buy));
-                    if (tabSellButton != null) tabSellButton.onClick.AddListener(() => SwitchTab(ShopMode.Sell));
-
                     shopPanel.SetActive(false);
                 }
             }
@@ -118,53 +118,27 @@ namespace TheLastEmpire
         }
 
         // =====================================================
-        //  Slot Pool (identical to InventoryUI)
+        //  Slots Setup (Same as CraftController)
         // =====================================================
 
-        private void ScanExistingSlots()
+        public void ScanExistingSlots()
         {
-            _slotPool.Clear();
-            if (itemSlotsContainer == null) return;
-
-            foreach (Transform child in itemSlotsContainer.transform)
+            if (itemSlots == null)
             {
-                InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
-                if (slot != null)
-                {
-                    slot.gameObject.SetActive(false);
-                    _slotPool.Add(slot);
-                }
+                itemSlots = new List<InventoryItemSlot>();
             }
-        }
 
-        private InventoryItemSlot GetSlot()
-        {
-            if (_activeSlotCount >= _slotPool.Count)
+            // ถ้าใน Inspector ยังไม่ได้ลากใส่ ให้ดึงจากลูกของ itemSlotsContainer อัตโนมัติ
+            if (itemSlots.Count == 0 && itemSlotsContainer != null)
             {
-                if (_slotPool.Count == 0)
+                foreach (Transform child in itemSlotsContainer.transform)
                 {
-                    Debug.LogWarning("[ShopUI] No InventoryItemSlot found in current container.");
-                    return null;
-                }
-                InventoryItemSlot clone = Instantiate(_slotPool[0], itemSlotsContainer.transform);
-                clone.name = $"ShopSlot_{_slotPool.Count:00}";
-                _slotPool.Add(clone);
-            }
-            InventoryItemSlot s = _slotPool[_activeSlotCount++];
-            s.gameObject.SetActive(true);
-            return s;
-        }
-
-        private void PoolBeginFrame() => _activeSlotCount = 0;
-
-        private void PoolEndFrame()
-        {
-            for (int i = _activeSlotCount; i < _slotPool.Count; i++)
-            {
-                if (_slotPool[i].gameObject.activeSelf)
-                {
-                    _slotPool[i].Clear();
-                    _slotPool[i].gameObject.SetActive(false);
+                    InventoryItemSlot slot = child.GetComponent<InventoryItemSlot>();
+                    if (slot == null) slot = child.GetComponentInChildren<InventoryItemSlot>(true);
+                    if (slot != null && !itemSlots.Contains(slot))
+                    {
+                        itemSlots.Add(slot);
+                    }
                 }
             }
         }
@@ -186,11 +160,12 @@ namespace TheLastEmpire
                 _isFree = isFree;
             }
 
-            _isOpen      = true;
+            ScanExistingSlots();
+
+            _isOpen = true;
             SwitchTab(ShopMode.Buy);
 
             if (shopPanel != null) shopPanel.SetActive(true);
-            // ไม่หยุดเวลาแล้ว
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);
         }
@@ -205,7 +180,6 @@ namespace TheLastEmpire
             UpdateTabButton(tabBuyButton, isBuy);
             UpdateTabButton(tabSellButton, !isBuy);
 
-            ScanExistingSlots();
             RefreshUI();
         }
 
@@ -236,7 +210,6 @@ namespace TheLastEmpire
         {
             _isOpen = false;
             if (shopPanel != null) shopPanel.SetActive(false);
-            // ไม่คืนค่าเวลาแล้ว
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Remove(this);
         }
@@ -265,7 +238,12 @@ namespace TheLastEmpire
 
         public void RefreshUI()
         {
-            if (itemSlotsContainer == null) return;
+            if (itemSlots == null || itemSlots.Count == 0)
+            {
+                ScanExistingSlots();
+            }
+
+            if (itemSlots == null || itemSlots.Count == 0) return;
 
             if (walletText != null && _playerInventory != null)
                 walletText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>";
@@ -275,7 +253,7 @@ namespace TheLastEmpire
 
             if (_currentMode == ShopMode.Buy)
             {
-                totalItems = shopItems.Count;
+                totalItems = shopItems != null ? shopItems.Count : 0;
             }
             else
             {
@@ -286,7 +264,8 @@ namespace TheLastEmpire
                 }
             }
 
-            int pageSize = Mathf.Max(1, slotsPerPage);
+            // ถ้ามี slot อยู่ใน List จะใช้จำนวน slot นั้นเป็นขนาดต่อหน้าทันที (เช่น 7-8 ช่องตาม UI)
+            int pageSize = itemSlots.Count > 0 ? itemSlots.Count : Mathf.Max(1, slotsPerPage);
             _totalPages  = Mathf.Max(1, Mathf.CeilToInt((float)totalItems / pageSize));
             _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
 
@@ -296,33 +275,60 @@ namespace TheLastEmpire
                 pageIndicatorText.gameObject.SetActive(multiPage);
                 if (multiPage) pageIndicatorText.text = $"{_currentPage + 1} / {_totalPages}";
             }
-            if (prevPageButton != null) { prevPageButton.gameObject.SetActive(multiPage); prevPageButton.interactable = _currentPage > 0; }
-            if (nextPageButton != null) { nextPageButton.gameObject.SetActive(multiPage); nextPageButton.interactable = _currentPage < _totalPages - 1; }
+            if (prevPageButton != null)
+            {
+                prevPageButton.gameObject.SetActive(multiPage);
+                prevPageButton.interactable = _currentPage > 0;
+            }
+            if (nextPageButton != null)
+            {
+                nextPageButton.gameObject.SetActive(multiPage);
+                nextPageButton.interactable = _currentPage < _totalPages - 1;
+            }
 
             int startIdx = _currentPage * pageSize;
-            int endIdx   = Mathf.Min(startIdx + pageSize, totalItems);
-
-            PoolBeginFrame();
 
             if (totalItems == 0)
             {
-                InventoryItemSlot empty = GetSlot();
-                if (empty != null) empty.SetData("- No Items -", 0, null, false, null);
-            }
-            else
-            {
-                for (int i = startIdx; i < endIdx; i++)
+                // ถ้าไม่มีไอเทม ให้ช่องแรกแสดงข้อความว่าไม่มีของ และซ่อนช่องที่เหลือ
+                for (int i = 0; i < itemSlots.Count; i++)
                 {
-                    InventoryItemSlot slot = GetSlot();
-                    if (slot == null) break;
+                    if (itemSlots[i] == null) continue;
+                    if (i == 0)
+                    {
+                        itemSlots[i].gameObject.SetActive(true);
+                        itemSlots[i].SetData("- No Items -", 0, null, false, null);
+                    }
+                    else
+                    {
+                        itemSlots[i].gameObject.SetActive(false);
+                    }
+                }
+                return;
+            }
+
+            // วนเซตข้อมูลลงในช่องที่มีอยู่เดิม ไม่ instantiate ใหม่ ไม่สร้างขยะใน memory (แบบเดียวกับ CraftController)
+            for (int i = 0; i < itemSlots.Count; i++)
+            {
+                InventoryItemSlot slot = itemSlots[i];
+                if (slot == null) continue;
+
+                int itemIndex = startIdx + i;
+                if (itemIndex < totalItems)
+                {
+                    slot.gameObject.SetActive(true);
 
                     if (_currentMode == ShopMode.Buy)
                     {
-                        ShopItemConfig item = shopItems[i];
-                        if (item.item == null) continue;
+                        ShopItemConfig item = shopItems[itemIndex];
+                        if (item.item == null)
+                        {
+                            slot.gameObject.SetActive(false);
+                            continue;
+                        }
 
                         int displayPrice = _isFree ? 0 : item.price;
-                        bool canAfford  = _playerInventory != null && _playerInventory.CanAfford(displayPrice);
+                        bool canAfford   = _playerInventory != null && _playerInventory.CanAfford(displayPrice);
 
                         // ชื่อ + จำนวนที่จะได้รับ เช่น Ammo x30
                         string displayName = item.item.defaultQuantity > 1 
@@ -341,7 +347,7 @@ namespace TheLastEmpire
                     }
                     else // Sell Mode
                     {
-                        var pair = sellItems[i];
+                        var pair = sellItems[itemIndex];
                         string itemName = pair.Key;
                         int currentQty = pair.Value;
 
@@ -350,7 +356,7 @@ namespace TheLastEmpire
                         
                         // สมมติราคาขาย = 50% ของราคาซื้อ ถ้าหาเจอใน shopItems, ถ้าไม่เจอให้ขาย 10 บาท
                         int sellPrice = 10;
-                        var shopItem = shopItems.Find(s => s.item != null && s.item.itemName == itemName);
+                        var shopItem = shopItems != null ? shopItems.Find(s => s.item != null && s.item.itemName == itemName) : default;
                         if (shopItem.item != null) sellPrice = Mathf.Max(1, shopItem.price / 2);
 
                         // ชื่อไอเทม + x จำนวนที่มีในกระเป๋า (เพื่อให้รู้ว่ากำลังจะขายอะไร)
@@ -367,9 +373,12 @@ namespace TheLastEmpire
                         );
                     }
                 }
+                else
+                {
+                    // ช่องเกินจากจำนวนสินค้าในหน้านี้ ให้ซ่อนไป
+                    slot.gameObject.SetActive(false);
+                }
             }
-
-            PoolEndFrame();
         }
 
         // =====================================================
@@ -380,7 +389,7 @@ namespace TheLastEmpire
         {
             if (_playerInventory == null) return;
 
-            ShopItemConfig item = shopItems.Find(s => s.item != null && s.item.itemName == realItemName);
+            ShopItemConfig item = shopItems != null ? shopItems.Find(s => s.item != null && s.item.itemName == realItemName) : default;
             if (item.item == null) return;
 
             int price = _isFree ? 0 : item.price;
