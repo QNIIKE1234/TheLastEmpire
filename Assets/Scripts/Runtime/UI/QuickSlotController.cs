@@ -20,20 +20,7 @@ namespace TheLastEmpire
             {
                 if (_instance == null)
                 {
-                    _instance = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>();
-                    if (_instance == null)
-                    {
-                        GameObject hud = GameObject.Find("QuickSlot_HUD");
-                        if (hud != null)
-                        {
-                            _instance = hud.AddComponent<QuickSlotController>();
-                        }
-                        else
-                        {
-                            GameObject go = new GameObject("QuickSlotController");
-                            _instance = go.AddComponent<QuickSlotController>();
-                        }
-                    }
+                    _instance = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>(FindObjectsInactive.Include);
                 }
                 return _instance;
             }
@@ -60,38 +47,32 @@ namespace TheLastEmpire
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OnSceneLoaded()
         {
-            if (_instance == null)
-            {
-                var found = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>();
-                if (found != null)
-                {
-                    _instance = found;
-                }
-                else
-                {
-                    GameObject hud = GameObject.Find("QuickSlot_HUD");
-                    if (hud != null)
-                    {
-                        _instance = hud.AddComponent<QuickSlotController>();
-                    }
-                }
-            }
+            _instance = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>(FindObjectsInactive.Include);
         }
 
         private void Awake()
         {
-            if (_instance == null)
+            if (_instance == null || _instance == this)
             {
                 _instance = this;
             }
-            else if (_instance != this)
+            else
             {
-                Destroy(gameObject);
-                return;
+                // ถ้า Instance เดิมไม่มีช่อง slots (เช่น เป็น dummy) ให้แทนที่ด้วยตัว UI จริงใน Scene
+                if (_instance.slotItems == null || _instance.slotItems.Count == 0)
+                {
+                    _instance = this;
+                }
+                else
+                {
+                    Destroy(this); // ทำลายเฉพาะ Component ที่ซ้ำ ห้ามทำลาย GameObject UI ของ Scene เด็ดขาด!
+                    return;
+                }
             }
 
-            LoadSavedSlots();
+            if (quickSlotHUD == null) quickSlotHUD = gameObject;
             DiscoverSlots();
+            LoadSavedSlots();
         }
 
         private void Start()
@@ -105,6 +86,7 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             HookPlayerReferences();
+            DiscoverSlots();
             RefreshUI();
         }
 
@@ -249,7 +231,7 @@ namespace TheLastEmpire
         {
             if (quickSlotHUD == null)
             {
-                quickSlotHUD = GameObject.Find("QuickSlot_HUD");
+                quickSlotHUD = gameObject;
             }
 
             if (slotItems == null)
@@ -423,8 +405,10 @@ namespace TheLastEmpire
 
             ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
             ItemType itemType = itemData != null ? itemData.type : ItemType.ETC;
+            string cleanItem = itemName.ToLower();
 
-            bool isRanged = (itemType == ItemType.RangedWeapon) ||
+            bool isRanged = (itemType == ItemType.RangedWeapon || itemType == ItemType.ThrowingWeapon) ||
+                            cleanItem.Contains("grenade") || cleanItem.Contains("bomb") ||
                             (_player.WeaponsList != null && _player.WeaponsList.Exists(w => w.weaponName.Equals(itemName, StringComparison.OrdinalIgnoreCase)));
 
             bool isMelee = (itemType == ItemType.MeleeWeapon) ||
@@ -619,7 +603,8 @@ namespace TheLastEmpire
                 }
 
                 bool isSelected = (i == _activeSlotIndex);
-                slotItems[i].SetData(itemName, icon, count, isConsumable, isSelected);
+                bool showCount = isConsumable || (itemData != null && itemData.type == ItemType.ThrowingWeapon) || itemName.ToLower().Contains("grenade");
+                slotItems[i].SetData(itemName, icon, count, showCount, isSelected);
             }
         }
     }

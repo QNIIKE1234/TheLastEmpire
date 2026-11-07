@@ -157,6 +157,31 @@ namespace TheLastEmpire
                     idx = weapons.FindIndex(w => w.weaponName.IndexOf(weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0 || weaponName.IndexOf(w.weaponName, System.StringComparison.OrdinalIgnoreCase) >= 0);
                 }
             }
+
+            // ถ้าไม่มีใน weapons ให้สร้าง Weapon object ขึ้นมาอัตโนมัติจาก ItemDatabase (เช่น Grenade หรือปืนที่เก็บได้)
+            if (idx < 0 && ItemDatabase.Instance != null && weapons != null)
+            {
+                ItemData data = ItemDatabase.Instance.GetItemByName(weaponName);
+                if (data != null && (data.type == ItemType.RangedWeapon || data.type == ItemType.ThrowingWeapon))
+                {
+                    Weapon newWeapon = new Weapon(data);
+                    if (string.IsNullOrEmpty(newWeapon.projectileVisualId))
+                    {
+                        newWeapon.projectileVisualId = ResolveProjectileVisualId(newWeapon);
+                    }
+                    if (newWeapon.projectilePrefab == null)
+                    {
+                        if (data.type == ItemType.ThrowingWeapon || weaponName.IndexOf("grenade", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            newWeapon.projectilePrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/ThrowingWeaponPrefabs")?.GetComponent<Projectile>();
+                        }
+                        if (newWeapon.projectilePrefab == null) newWeapon.projectilePrefab = projectilePrefab;
+                    }
+                    weapons.Add(newWeapon);
+                    idx = weapons.Count - 1;
+                }
+            }
+
             if (idx >= 0)
             {
                 SwitchToWeapon(idx);
@@ -1291,10 +1316,11 @@ namespace TheLastEmpire
 
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
 
-            // Attack action maps to left click / shooting
-            if (value.isPressed && _fireCooldownTimer <= 0f && !_isDashing)
+            // Attack action ส่งต่อไปยังระบบ Buffer เดียวกันใน Update() เพื่อให้เลือกใช้ตามไอเทมที่ถืออยู่จริง (มีด/หอก/ปืน/ของกิน)
+            // ป้องกันบัคที่เมื่อถืออาวุธประชิด (เช่น มีด หอก) แล้วระบบเผลอสั่งยิงปืนซ้ำซ้อน
+            if (value.isPressed && !_isDashing)
             {
-                ShootWeapon();
+                _fireBufferTimer = 0.18f;
             }
         }
 
@@ -2656,6 +2682,33 @@ namespace TheLastEmpire
                 };
                 crossbow.Initialize(10);
                 weapons.Add(crossbow);
+
+                // 10. Grenade (Throwing Weapon)
+                Projectile grenadeProjPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/ThrowingWeaponPrefabs")?.GetComponent<Projectile>();
+                if (grenadeProjPrefab == null)
+                {
+                    grenadeProjPrefab = projectilePrefab;
+                }
+
+                Weapon grenade = new Weapon
+                {
+                    weaponName = "Grenade",
+                    projectilePrefab = grenadeProjPrefab,
+                    projectileVisualId = "Grenade",
+                    fireRate = 0.6f,
+                    magazineSize = 1,
+                    reloadDuration = 0.4f,
+                    damage = 200f,
+                    range = 15f,
+                    canPierce = false,
+                    spreadAngle = 0f,
+                    pelletsPerShot = 1,
+                    isAutomatic = false,
+                    ammoType = "Grenade",
+                    vfxPoolKey = "Explosion"
+                };
+                grenade.Initialize(0); // กระสุนสำรองดึงตามจำนวนใน Inventory
+                weapons.Add(grenade);
             }
             else
             {
@@ -2801,16 +2854,17 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(weaponName)) return false;
 
+            // Check if player has it in inventory bag (or has stack count > 0, e.g. Grenade)
+            if (_inventory != null)
+            {
+                if (_inventory.GetItemCount(weaponName) > 0) return true;
+                if (_inventory.Items != null && _inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
+            }
+
             // Check if it's one of the active operative's starting weapons
             if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
             {
                 if (activeCharacterData.startingWeapons.Exists(sw => IsWeaponNameMatch(sw, weaponName))) return true;
-            }
-
-            // Check if player has it in inventory bag
-            if (_inventory != null && _inventory.Items != null)
-            {
-                if (_inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
             }
 
             return false;
@@ -2820,16 +2874,17 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(weaponName)) return false;
 
+            // Check if player has it in inventory bag
+            if (_inventory != null)
+            {
+                if (_inventory.GetItemCount(weaponName) > 0) return true;
+                if (_inventory.Items != null && _inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
+            }
+
             // Check if it's one of the active operative's starting weapons
             if (activeCharacterData != null && activeCharacterData.startingWeapons != null)
             {
                 if (activeCharacterData.startingWeapons.Exists(sw => IsWeaponNameMatch(sw, weaponName))) return true;
-            }
-
-            // Check if player has it in inventory bag
-            if (_inventory != null && _inventory.Items != null)
-            {
-                if (_inventory.Items.Exists(item => IsWeaponNameMatch(item, weaponName))) return true;
             }
 
             return false;
@@ -2988,6 +3043,18 @@ namespace TheLastEmpire
                 UpdateChildVisual(rangeWeapon, CurrentWeaponName);
             }
             
+            // ถ้ากระสุนในแม็กกาซีนเป็น 0 (เช่น เพิ่งสลับมาระเบิด) ให้ดึงจากกระสุนสำรองมาบรรจุทันทีถ้ามี
+            if (weapons[index].currentMagazine <= 0)
+            {
+                int reserve = GetAmmoReserveCount(weapons[index].ammoType);
+                if (reserve > 0)
+                {
+                    int toLoad = Mathf.Min(weapons[index].magazineSize, reserve);
+                    weapons[index].currentMagazine = toLoad;
+                    ConsumeAmmo(weapons[index].ammoType, toLoad);
+                }
+            }
+
             // Short equip delay
             _fireCooldownTimer = 0.15f; 
             

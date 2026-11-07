@@ -192,6 +192,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8be393a8a3685048b204518ee85a721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Projectile
+  visualEntries:
+  - id: ArrowShaft
+    visualObject: {fileID: 2189503872343229726}
   speed: 45
   damage: 70
   decreseMulti: 0.1
