@@ -1623,14 +1623,75 @@ namespace TheLastEmpire
                             effectiveFalloffDist = 22f; // Marksman maintains high damage at sniper ranges
                         }
 
-                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce, activeWeapon.weaponName, effectiveFalloffDist);
-                        Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
+                        string visualId = ResolveProjectileVisualId(activeWeapon);
+                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
+                        Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Visual ID: {visualId} | Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
                     
                     // Pass the aim target point for Arced trajectories
-                    proj.Setup(bulletDir, _aimTargetPoint, gameObject);
+                    string arcVisualId = activeWeapon != null ? ResolveProjectileVisualId(activeWeapon) : "";
+                    proj.Setup(bulletDir, _aimTargetPoint, gameObject, arcVisualId);
                 }
             }
+        }
+
+        /// <summary>
+        /// คำนวณหา ID ของโมเดลกระสุน/ระเบิดสำหรับเปิดตาใน Projectile (เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow)
+        /// </summary>
+        public string ResolveProjectileVisualId(Weapon weapon)
+        {
+            if (weapon == null) return "";
+            if (!string.IsNullOrEmpty(weapon.projectileVisualId)) return weapon.projectileVisualId;
+
+            string wName = weapon.weaponName != null ? weapon.weaponName.Trim() : "";
+            string aType = weapon.ammoType != null ? weapon.ammoType.Trim() : "";
+
+            // 1. ตรวจสอบจาก ItemData ของอาวุธใน ItemDatabase
+            if (ItemDatabase.Instance != null && !string.IsNullOrEmpty(wName))
+            {
+                ItemData wData = ItemDatabase.Instance.GetItemByName(wName);
+                if (wData != null)
+                {
+                    if (wData.weaponConfig != null && !string.IsNullOrEmpty(wData.weaponConfig.projectileVisualId))
+                    {
+                        return wData.weaponConfig.projectileVisualId;
+                    }
+                    if (!string.IsNullOrEmpty(wData.name))
+                    {
+                        string cleanAssetName = wData.name;
+                        if (cleanAssetName.Contains("Grenade")) return "ITEM0008_Grenade";
+                        if (cleanAssetName.Contains("Arrow") || cleanAssetName.Contains("Bolt")) return "ITEM0010_Arrow";
+                        if (cleanAssetName.Contains("Bullet") || cleanAssetName.Contains("Ammo")) return "ITEM0009_Bullet";
+                    }
+                }
+            }
+
+            // 2. ตรวจสอบจาก Ammo ItemData
+            if (ItemDatabase.Instance != null && !string.IsNullOrEmpty(aType))
+            {
+                ItemData aData = ItemDatabase.Instance.GetItemByName(aType);
+                if (aData != null && !string.IsNullOrEmpty(aData.name))
+                {
+                    string cleanAmmoName = aData.name;
+                    if (cleanAmmoName.Contains("Bullet") || cleanAmmoName.Contains("Ammo")) return "ITEM0009_Bullet";
+                    if (cleanAmmoName.Contains("Arrow") || cleanAmmoName.Contains("Bolt")) return "ITEM0010_Arrow";
+                }
+            }
+
+            // 3. Fallback วิเคราะห์จากชื่ออาวุธ / กระสุน
+            string lowerW = wName.ToLower();
+            string lowerA = aType.ToLower();
+
+            if (lowerW.Contains("grenade") || lowerA.Contains("grenade"))
+                return "ITEM0008_Grenade";
+
+            if (lowerW.Contains("crossbow") || lowerW.Contains("bow") || lowerA.Contains("bolt") || lowerA.Contains("arrow"))
+                return "ITEM0010_Arrow";
+
+            if (lowerA.Contains("ammo") || lowerW.Contains("pistol") || lowerW.Contains("rifle") || lowerW.Contains("shotgun") || lowerW.Contains("smg") || lowerW.Contains("revolver"))
+                return "ITEM0009_Bullet";
+
+            return wName;
         }
 
         private void MeleeAttack()
@@ -3274,6 +3335,9 @@ namespace TheLastEmpire
         [Tooltip("ชื่อ Pool Key สำหรับ Muzzle Flash (ตอนยิง)")]
         public string vfxPoolKey;
 
+        [Tooltip("ID ของโมเดลกระสุน/ระเบิดสำหรับเปิดตาใน Projectile เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow")]
+        public string projectileVisualId;
+
         public void Initialize(int startingReserve)
         {
             string lowerName = (weaponName ?? "").ToLower().Trim();
@@ -3322,6 +3386,7 @@ namespace TheLastEmpire
                 isAutomatic = data.weaponConfig.isAutomatic;
                 ammoType = data.weaponConfig.ammoType;
                 vfxPoolKey = data.weaponConfig.vfxPoolKey;
+                projectileVisualId = data.weaponConfig.projectileVisualId;
                 if (string.IsNullOrEmpty(vfxPoolKey) || vfxPoolKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
                 {
                     vfxPoolKey = "PistolFlash";

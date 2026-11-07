@@ -38,6 +38,9 @@ namespace TheLastEmpire
         [Header("Visuals")]
         [Tooltip("Muzzle flash VFX pool key")]
         public string vfxPoolKey;
+
+        [Tooltip("ID ของโมเดลกระสุน/ระเบิดสำหรับเปิดตาใน Projectile เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow")]
+        public string projectileVisualId;
     }
 
     [CreateAssetMenu(fileName = "NewItemData", menuName = "TheLastEmpire/Item Data")]

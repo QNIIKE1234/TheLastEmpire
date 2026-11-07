@@ -8,9 +8,33 @@ namespace TheLastEmpire
         Arced
     }
 
+    [System.Serializable]
+    public class ProjectileVisualEntry
+    {
+        [Tooltip("ID หรือชื่อของกระสุน/ระเบิด เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow หรือ Grenade, Rifle, Crossbow")]
+        public string id;
+
+        [Tooltip("GameObject โมเดลที่จะเปิดใช้งาน (เปิดตา) เมื่อไอดีตรงกัน")]
+        public GameObject visualObject;
+
+        public ProjectileVisualEntry() {}
+
+        public ProjectileVisualEntry(string id, GameObject visualObject)
+        {
+            this.id = id;
+            this.visualObject = visualObject;
+        }
+    }
+
     [RequireComponent(typeof(Rigidbody))]
     public class Projectile : MonoBehaviour
     {
+        [Header("Visual Models Mapping")]
+        [Tooltip("รายการจับคู่ ID กับ GameObject โมเดล เพื่อเปิดตา (SetActive) เฉพาะโมเดลที่ตรงกับกระสุนหรือระเบิดที่ยิง")]
+        [SerializeField] private System.Collections.Generic.List<ProjectileVisualEntry> visualEntries = new System.Collections.Generic.List<ProjectileVisualEntry>();
+
+        public System.Collections.Generic.List<ProjectileVisualEntry> VisualEntries => visualEntries;
+
         [Header("Settings")]
         [SerializeField] private float speed = 12f;
         [SerializeField] private float damage = 20;
@@ -137,6 +161,55 @@ namespace TheLastEmpire
                 bulletLight.shadows = LightShadows.None;
                 bulletLight.transform.localPosition = lightOffset;
             }
+
+            // ถ้า visualEntries ยังว่างอยู่ ให้พยายาม Auto-discover จาก Child Models
+            if (visualEntries == null || visualEntries.Count == 0)
+            {
+                AutoPopulateVisualEntriesFromChildren();
+            }
+        }
+
+        public void AutoPopulateVisualEntriesFromChildren()
+        {
+            if (visualEntries == null) visualEntries = new System.Collections.Generic.List<ProjectileVisualEntry>();
+            if (visualEntries.Count > 0) return;
+
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            foreach (var child in children)
+            {
+                if (child == transform) continue;
+                if (child.name.Equals("Sphere", System.StringComparison.OrdinalIgnoreCase)) continue;
+                if (child.name.Equals("FrontLight", System.StringComparison.OrdinalIgnoreCase)) continue;
+                if (child.name.Equals("default", System.StringComparison.OrdinalIgnoreCase)) continue;
+
+                // ตรวจสอบว่า child ตัวนี้หรือลูกของมันมี Renderer
+                if (child.GetComponentInChildren<Renderer>(true) != null)
+                {
+                    bool alreadyHasParent = false;
+                    foreach (var entry in visualEntries)
+                    {
+                        if (entry != null && entry.visualObject != null && child.IsChildOf(entry.visualObject.transform))
+                        {
+                            alreadyHasParent = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyHasParent)
+                    {
+                        visualEntries.Add(new ProjectileVisualEntry(child.name, child.gameObject));
+                    }
+                }
+            }
+        }
+
+        [ContextMenu("Auto Populate Visual Entries from Children")]
+        private void ContextMenuAutoPopulate()
+        {
+            if (visualEntries == null) visualEntries = new System.Collections.Generic.List<ProjectileVisualEntry>();
+            visualEntries.Clear();
+            AutoPopulateVisualEntriesFromChildren();
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif
 
@@ -219,6 +292,8 @@ namespace TheLastEmpire
             }
         }
 
+        private string _activeVisualId = "";
+
         private void OnEnable()
         {
             if (_trail != null)
@@ -237,6 +312,138 @@ namespace TheLastEmpire
                 _hitTargets = new System.Collections.Generic.List<IDamageable>();
             }
             _hitTargets.Clear();
+
+            // นำโมเดล Visual กลับมาแสดงผลตามที่ตั้งค่าไว้
+            if (!string.IsNullOrEmpty(_activeVisualId))
+            {
+                ApplyVisual(_activeVisualId);
+            }
+            else if (visualEntries != null && visualEntries.Count > 0 && visualEntries[0] != null && visualEntries[0].visualObject != null)
+            {
+                ApplyVisual(visualEntries[0].id);
+            }
+        }
+
+        /// <summary>
+        /// สลับเปิด/ปิด GameObject โมเดลตามไอดี (เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow)
+        /// เปิดตา GO ที่ตรงกับไอดี และปิดตา GO ตัวอื่นๆ ทั้งหมด
+        /// </summary>
+        public void ApplyVisual(string visualId)
+        {
+            if (string.IsNullOrEmpty(visualId)) return;
+            _activeVisualId = visualId;
+
+            string cleanTarget = visualId.Trim().ToLower();
+            bool matchedAny = false;
+
+            // 1. ตรวจสอบจาก visualEntries ใน Inspector ก่อน
+            if (visualEntries != null && visualEntries.Count > 0)
+            {
+                int bestMatchIdx = -1;
+
+                // Match pass 1: Exact match
+                for (int i = 0; i < visualEntries.Count; i++)
+                {
+                    var entry = visualEntries[i];
+                    if (entry == null || entry.visualObject == null || string.IsNullOrEmpty(entry.id)) continue;
+
+                    string entryIdClean = entry.id.Trim().ToLower();
+                    if (entryIdClean == cleanTarget)
+                    {
+                        bestMatchIdx = i;
+                        break;
+                    }
+                }
+
+                // Match pass 2: Substring / Contains match
+                if (bestMatchIdx < 0)
+                {
+                    for (int i = 0; i < visualEntries.Count; i++)
+                    {
+                        var entry = visualEntries[i];
+                        if (entry == null || entry.visualObject == null || string.IsNullOrEmpty(entry.id)) continue;
+
+                        string entryIdClean = entry.id.Trim().ToLower();
+                        if (entryIdClean.Contains(cleanTarget) || cleanTarget.Contains(entryIdClean))
+                        {
+                            bestMatchIdx = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (bestMatchIdx >= 0)
+                {
+                    matchedAny = true;
+                    for (int i = 0; i < visualEntries.Count; i++)
+                    {
+                        var entry = visualEntries[i];
+                        if (entry != null && entry.visualObject != null)
+                        {
+                            bool shouldBeActive = (i == bestMatchIdx);
+                            entry.visualObject.SetActive(shouldBeActive);
+
+                            // ถ้า Parent ของโมเดลถูกปิดอยู่ (เช่น Parent 'Bullet') ให้เปิดตา Parent ด้วย
+                            if (shouldBeActive && entry.visualObject.transform.parent != null && entry.visualObject.transform.parent != transform)
+                            {
+                                entry.visualObject.transform.parent.gameObject.SetActive(true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Fallback: ถ้าใน visualEntries ยังไม่ได้ตั้งค่า ให้ค้นหาจากชื่อ Child GameObjects โดยตรง
+            if (!matchedAny)
+            {
+                Transform[] allChildren = GetComponentsInChildren<Transform>(true);
+                Transform targetChild = null;
+
+                foreach (var child in allChildren)
+                {
+                    if (child == transform) continue;
+                    if (child.name.Equals("Sphere", System.StringComparison.OrdinalIgnoreCase)) continue;
+                    if (child.name.Equals("FrontLight", System.StringComparison.OrdinalIgnoreCase)) continue;
+
+                    string cName = child.name.Trim().ToLower();
+                    if (cName == cleanTarget || cName.Contains(cleanTarget) || cleanTarget.Contains(cName))
+                    {
+                        targetChild = child;
+                        break;
+                    }
+                }
+
+                if (targetChild != null)
+                {
+                    matchedAny = true;
+                    if (visualEntries != null)
+                    {
+                        foreach (var entry in visualEntries)
+                        {
+                            if (entry != null && entry.visualObject != null)
+                            {
+                                entry.visualObject.SetActive(entry.visualObject == targetChild.gameObject);
+                            }
+                        }
+                    }
+
+                    targetChild.gameObject.SetActive(true);
+                    if (targetChild.parent != null && targetChild.parent != transform)
+                    {
+                        targetChild.parent.gameObject.SetActive(true);
+                    }
+                }
+            }
+
+            // 3. ปิดตา Sphere Placeholder อัตโนมัติเมื่อโมเดล 3D ถูกเปิดใช้งาน
+            if (matchedAny)
+            {
+                Transform sphere = transform.Find("Sphere");
+                if (sphere != null)
+                {
+                    sphere.gameObject.SetActive(false);
+                }
+            }
         }
 
         private void Update()
@@ -279,11 +486,16 @@ namespace TheLastEmpire
             }
         }
 
-        public void Setup(Vector3 direction, Vector3 targetPoint, GameObject owner)
+        public void Setup(Vector3 direction, Vector3 targetPoint, GameObject owner, string visualId = "")
         {
             _owner = owner;
             _targetPoint = targetPoint;
             _startPoint = transform.position;
+
+            if (!string.IsNullOrEmpty(visualId))
+            {
+                ApplyVisual(visualId);
+            }
 
             if (trajectoryMode == TrajectoryMode.Arced)
             {
@@ -304,7 +516,7 @@ namespace TheLastEmpire
             }
         }
 
-        public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f)
+        public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f, string visualId = "")
         {
             _activeDamage = damageVal;
             _activeLifetime = lifetimeVal;
@@ -312,6 +524,12 @@ namespace TheLastEmpire
             _lifeTimer = lifetimeVal; // Update active timer
             _weaponName = weaponName;
             _maxFalloffDistance = (maxFalloffRange > 0f) ? maxFalloffRange : DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
+
+            string targetVisual = !string.IsNullOrEmpty(visualId) ? visualId : weaponName;
+            if (!string.IsNullOrEmpty(targetVisual))
+            {
+                ApplyVisual(targetVisual);
+            }
         }
 
         private void OnTriggerEnter(Collider collision)

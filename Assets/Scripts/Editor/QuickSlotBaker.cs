@@ -112,6 +112,93 @@ namespace TheLastEmpire.Editor
             }
             Debug.Log("[QuickSlotBaker] Successfully setup ShiftSkillHUD on Shiftskill object!");
         }
+
+        [MenuItem("Tools/The Last Empire/Setup Projectile Visual Mappings", false, 112)]
+        public static void SetupProjectileVisualMappings()
+        {
+            // 1. Setup ThrowingWeaponPrefabs
+            string throwingPath = "Assets/Resources_Addressable/Prefabs/Item/ThrowingWeaponPrefabs.prefab";
+            GameObject throwingObj = AssetDatabase.LoadAssetAtPath<GameObject>(throwingPath);
+            if (throwingObj != null)
+            {
+                Projectile proj = throwingObj.GetComponent<Projectile>();
+                if (proj != null)
+                {
+                    SerializedObject so = new SerializedObject(proj);
+                    SerializedProperty entriesProp = so.FindProperty("visualEntries");
+                    if (entriesProp != null)
+                    {
+                        entriesProp.ClearArray();
+
+                        Transform grenade1 = throwingObj.transform.Find("ITEM0008_Grenade");
+                        if (grenade1 != null)
+                        {
+                            int idx = entriesProp.arraySize++;
+                            SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
+                            elem.FindPropertyRelative("id").stringValue = "ITEM0008_Grenade";
+                            elem.FindPropertyRelative("visualObject").objectReferenceValue = grenade1.gameObject;
+                        }
+
+                        Transform grenade2 = throwingObj.transform.Find("Weapon_Grenade");
+                        if (grenade2 != null)
+                        {
+                            int idx = entriesProp.arraySize++;
+                            SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
+                            elem.FindPropertyRelative("id").stringValue = "Weapon_Grenade";
+                            elem.FindPropertyRelative("visualObject").objectReferenceValue = grenade2.gameObject;
+                        }
+
+                        so.ApplyModifiedProperties();
+                        EditorUtility.SetDirty(throwingObj);
+                        Debug.Log("[QuickSlotBaker] Successfully mapped ThrowingWeaponPrefabs visuals!");
+                    }
+                }
+            }
+
+            // 2. Setup PostalBulletPrefabs
+            string bulletPath = "Assets/Resources_Addressable/Prefabs/Item/PostalBulletPrefabs.prefab";
+            GameObject bulletObj = AssetDatabase.LoadAssetAtPath<GameObject>(bulletPath);
+            if (bulletObj != null)
+            {
+                Projectile proj = bulletObj.GetComponent<Projectile>();
+                if (proj != null)
+                {
+                    SerializedObject so = new SerializedObject(proj);
+                    SerializedProperty entriesProp = so.FindProperty("visualEntries");
+                    if (entriesProp != null)
+                    {
+                        entriesProp.ClearArray();
+
+                        Transform bulletChild = bulletObj.transform.Find("Bullet/ITEM0009_Bullet");
+                        if (bulletChild == null) bulletChild = bulletObj.transform.Find("ITEM0009_Bullet");
+                        if (bulletChild != null)
+                        {
+                            int idx = entriesProp.arraySize++;
+                            SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
+                            elem.FindPropertyRelative("id").stringValue = "ITEM0009_Bullet";
+                            elem.FindPropertyRelative("visualObject").objectReferenceValue = bulletChild.gameObject;
+                        }
+
+                        Transform arrowChild = bulletObj.transform.Find("Bullet/ITEM0010_Arrow");
+                        if (arrowChild == null) arrowChild = bulletObj.transform.Find("ITEM0010_Arrow");
+                        if (arrowChild != null)
+                        {
+                            int idx = entriesProp.arraySize++;
+                            SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
+                            elem.FindPropertyRelative("id").stringValue = "ITEM0010_Arrow";
+                            elem.FindPropertyRelative("visualObject").objectReferenceValue = arrowChild.gameObject;
+                        }
+
+                        so.ApplyModifiedProperties();
+                        EditorUtility.SetDirty(bulletObj);
+                        Debug.Log("[QuickSlotBaker] Successfully mapped PostalBulletPrefabs visuals!");
+                    }
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            EditorUtility.DisplayDialog("Projectile Visual Setup", "ตั้งค่าโมเดล Visual สำหรับ ThrowingWeaponPrefabs และ PostalBulletPrefabs เรียบร้อย!", "OK");
+        }
     }
 }
 
