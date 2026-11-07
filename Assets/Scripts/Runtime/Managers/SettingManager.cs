@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -6,8 +7,11 @@ using TMPro;
 namespace TheLastEmpire
 {
     /// <summary>
-    /// Manages audio volume (Master, BGM, SFX) and display settings (Fullscreen).
-    /// Handles persistent storage via PlayerPrefs, real-time audio listeners, and UI bindings for the Settings Modal.
+    /// SettingManager — ควบคุมระบบการตั้งค่าทั้งหมดของเกม (Audio Volume, Display Mode, Tabs)
+    /// ทำหน้าที่เป็น Single Source of Truth สำหรับ Settings:
+    /// - จัดการ UI Sliders, Percentage Text, Checkbox/Toggle, Buttons (Default, Apply, Exit)
+    /// - สลับ Category Tabs (General, Control, Sound, Graphic, Accessory)
+    /// - จัดเก็บและโหลดค่าผ่าน PlayerPrefs พร้อมส่ง Event แจ้งเตือนระบบเสียง/หน้าจอ
     /// </summary>
     public class SettingManager : MonoBehaviour
     {
@@ -30,9 +34,23 @@ namespace TheLastEmpire
         public const float DefaultSfxVolume = 1.0f;
         public const bool DefaultFullscreen = true;
 
-        [Header("Modal Root & Windows")]
-        [Tooltip("The root GameObject of the Settings Modal. If left empty, will default to this GameObject.")]
+        [Header("Modal Root Window")]
+        [Tooltip("The root GameObject of the Settings Modal (e.g. SettingPanel). Toggled on Open/Close.")]
         [SerializeField] private GameObject modalRoot;
+
+        [Header("Category Tabs (Sidebar)")]
+        [SerializeField] private Button generalTabBtn;
+        [SerializeField] private Button controlTabBtn;
+        [SerializeField] private Button soundTabBtn;
+        [SerializeField] private Button graphicTabBtn;
+        [SerializeField] private Button accessoryTabBtn;
+
+        [Header("Category Panels (Optional - Switched when tabs clicked)")]
+        [SerializeField] private GameObject generalPanel;
+        [SerializeField] private GameObject controlPanel;
+        [SerializeField] private GameObject soundPanel;
+        [SerializeField] private GameObject graphicPanel;
+        [SerializeField] private GameObject accessoryPanel;
 
         [Header("Audio Sliders & Percentage Texts")]
         [SerializeField] private Slider masterVolumeSlider;
@@ -49,7 +67,12 @@ namespace TheLastEmpire
 
         [Header("Action Buttons")]
         [SerializeField] private Button defaultButton;
+        [SerializeField] private Button applyButton;
+        [SerializeField] private Button exitButton;
         [SerializeField] private Button saveAndBackButton;
+
+        public enum SettingTab { General, Control, Sound, Graphic, Accessory }
+        private SettingTab _currentTab = SettingTab.General;
 
         // Current runtime values
         private float _masterVolume = DefaultMasterVolume;
@@ -62,8 +85,9 @@ namespace TheLastEmpire
         public float BgmVolume => _bgmVolume;
         public float SfxVolume => _sfxVolume;
         public bool IsFullscreen => _isFullscreen;
+        public SettingTab CurrentTab => _currentTab;
 
-        // Global Event Callbacks for other systems (e.g. BGM music players or SFX emitters)
+        // Global Event Callbacks for audio/display subsystems
         public static event Action<float> OnMasterVolumeChanged;
         public static event Action<float> OnBgmVolumeChanged;
         public static event Action<float> OnSfxVolumeChanged;
@@ -81,17 +105,12 @@ namespace TheLastEmpire
             }
             else if (Instance != this)
             {
-                // If another instance already exists (e.g., loaded across scenes), sync references if needed
                 Instance.SyncUIReferencesFrom(this);
                 Destroy(gameObject);
                 return;
             }
 
-            if (modalRoot == null)
-            {
-                modalRoot = gameObject;
-            }
-
+            ResolveModalRoot();
             LoadSettings();
             AutoWireUIElements();
             BindUIEvents();
@@ -101,6 +120,35 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             RefreshUI();
+        }
+
+        private void ResolveModalRoot()
+        {
+            if (modalRoot == null || modalRoot == gameObject || modalRoot.name == "Setting")
+            {
+                // ตรวจสอบว่ามี Parent หรือ Child ชื่อ SettingPanel หรือไม่ เพื่อให้เปิด/ปิดได้ทั้งกรอบ
+                Transform panel = transform.Find("SettingPanel");
+                if (panel == null && transform.parent != null)
+                {
+                    if (transform.parent.name.Contains("Setting"))
+                    {
+                        panel = transform.parent;
+                    }
+                    else
+                    {
+                        panel = transform.parent.Find("SettingPanel");
+                    }
+                }
+
+                if (panel != null)
+                {
+                    modalRoot = panel.gameObject;
+                }
+                else if (modalRoot == null)
+                {
+                    modalRoot = gameObject;
+                }
+            }
         }
 
         /// <summary>
@@ -191,6 +239,7 @@ namespace TheLastEmpire
         {
             Transform searchRoot = modalRoot != null ? modalRoot.transform : transform;
 
+            // 1. Sliders & Percentage Texts
             Slider[] sliders = searchRoot.GetComponentsInChildren<Slider>(true);
             foreach (Slider s in sliders)
             {
@@ -198,19 +247,16 @@ namespace TheLastEmpire
                 Transform parent = s.transform.parent;
                 string pName = parent != null ? parent.name.ToLowerInvariant() : "";
 
-                // Find Master Volume Slider
                 if (masterVolumeSlider == null && (sName.Contains("master") || pName.Contains("master")))
                 {
                     masterVolumeSlider = s;
                     masterVolumeValueText = FindValueTextInRow(s.transform);
                 }
-                // Find BGM Music Volume Slider
                 else if (bgmVolumeSlider == null && (sName.Contains("bgm") || sName.Contains("music") || pName.Contains("bgm") || pName.Contains("music")))
                 {
                     bgmVolumeSlider = s;
                     bgmVolumeValueText = FindValueTextInRow(s.transform);
                 }
-                // Find SFX Sound Volume Slider
                 else if (sfxVolumeSlider == null && (sName.Contains("sfx") || sName.Contains("sound") || pName.Contains("sfx") || pName.Contains("sound")))
                 {
                     sfxVolumeSlider = s;
@@ -218,7 +264,6 @@ namespace TheLastEmpire
                 }
             }
 
-            // Fallback for index-based slider assignment if names didn't match
             if (sliders.Length >= 3)
             {
                 if (masterVolumeSlider == null) { masterVolumeSlider = sliders[0]; masterVolumeValueText = FindValueTextInRow(sliders[0].transform); }
@@ -226,13 +271,13 @@ namespace TheLastEmpire
                 if (sfxVolumeSlider == null) { sfxVolumeSlider = sliders[2]; sfxVolumeValueText = FindValueTextInRow(sliders[2].transform); }
             }
 
-            // Find Fullscreen Toggle
+            // 2. Fullscreen Toggle
             if (fullscreenToggle == null)
             {
                 fullscreenToggle = searchRoot.GetComponentInChildren<Toggle>(true);
             }
 
-            // Find Buttons
+            // 3. Buttons (Default, Apply, Exit, Save & Back, Category Tabs)
             Button[] buttons = searchRoot.GetComponentsInChildren<Button>(true);
             foreach (Button btn in buttons)
             {
@@ -240,16 +285,35 @@ namespace TheLastEmpire
                 TMP_Text bText = btn.GetComponentInChildren<TMP_Text>(true);
                 string textContent = bText != null ? bText.text.ToLowerInvariant() : "";
 
-                // Default Button
+                // Action Buttons
                 if (defaultButton == null && (bName.Contains("default") || textContent.Contains("default")))
                 {
                     defaultButton = btn;
                 }
-                // Save & Back Button
-                else if (saveAndBackButton == null && (bName.Contains("save") || bName.Contains("back") || bName.Contains("close") || textContent.Contains("save") || textContent.Contains("back")))
+                else if (applyButton == null && (bName.Contains("apply") || textContent.Contains("apply")))
+                {
+                    applyButton = btn;
+                }
+                else if (exitButton == null && (bName.Contains("exit") || textContent.Contains("exit")))
+                {
+                    exitButton = btn;
+                }
+                else if (saveAndBackButton == null && (bName.Contains("save") || bName.Contains("back") || bName.Contains("close") || textContent.Contains("save") || textContent.Contains("back") || textContent.Contains("close")))
                 {
                     saveAndBackButton = btn;
                 }
+
+                // Category Tab Buttons
+                if (generalTabBtn == null && (bName == "general" || textContent.Contains("general")))
+                    generalTabBtn = btn;
+                else if (controlTabBtn == null && (bName == "control" || textContent.Contains("control")))
+                    controlTabBtn = btn;
+                else if (soundTabBtn == null && (bName == "sound" || textContent.Contains("sound")))
+                    soundTabBtn = btn;
+                else if (graphicTabBtn == null && (bName == "graphic" || textContent.Contains("graphic")))
+                    graphicTabBtn = btn;
+                else if (accessoryTabBtn == null && (bName.Contains("acces") || textContent.Contains("acces")))
+                    accessoryTabBtn = btn;
             }
         }
 
@@ -297,18 +361,56 @@ namespace TheLastEmpire
                 fullscreenToggle.onValueChanged.AddListener(OnFullscreenToggleChanged);
             }
 
-            // Default Button
+            // Action Buttons
             if (defaultButton != null)
             {
                 defaultButton.onClick.RemoveListener(OnResetDefault);
                 defaultButton.onClick.AddListener(OnResetDefault);
             }
 
-            // Save & Back Button
+            if (applyButton != null)
+            {
+                applyButton.onClick.RemoveListener(OnApplySettings);
+                applyButton.onClick.AddListener(OnApplySettings);
+            }
+
+            if (exitButton != null)
+            {
+                exitButton.onClick.RemoveListener(CloseSettingsModal);
+                exitButton.onClick.AddListener(CloseSettingsModal);
+            }
+
             if (saveAndBackButton != null)
             {
                 saveAndBackButton.onClick.RemoveListener(OnSaveAndBack);
                 saveAndBackButton.onClick.AddListener(OnSaveAndBack);
+            }
+
+            // Category Tab Buttons
+            if (generalTabBtn != null)
+            {
+                generalTabBtn.onClick.RemoveAllListeners();
+                generalTabBtn.onClick.AddListener(() => SwitchCategoryTab(SettingTab.General));
+            }
+            if (controlTabBtn != null)
+            {
+                controlTabBtn.onClick.RemoveAllListeners();
+                controlTabBtn.onClick.AddListener(() => SwitchCategoryTab(SettingTab.Control));
+            }
+            if (soundTabBtn != null)
+            {
+                soundTabBtn.onClick.RemoveAllListeners();
+                soundTabBtn.onClick.AddListener(() => SwitchCategoryTab(SettingTab.Sound));
+            }
+            if (graphicTabBtn != null)
+            {
+                graphicTabBtn.onClick.RemoveAllListeners();
+                graphicTabBtn.onClick.AddListener(() => SwitchCategoryTab(SettingTab.Graphic));
+            }
+            if (accessoryTabBtn != null)
+            {
+                accessoryTabBtn.onClick.RemoveAllListeners();
+                accessoryTabBtn.onClick.AddListener(() => SwitchCategoryTab(SettingTab.Accessory));
             }
         }
 
@@ -316,6 +418,18 @@ namespace TheLastEmpire
         {
             if (other == null) return;
             modalRoot = other.modalRoot;
+            generalTabBtn = other.generalTabBtn;
+            controlTabBtn = other.controlTabBtn;
+            soundTabBtn = other.soundTabBtn;
+            graphicTabBtn = other.graphicTabBtn;
+            accessoryTabBtn = other.accessoryTabBtn;
+
+            generalPanel = other.generalPanel;
+            controlPanel = other.controlPanel;
+            soundPanel = other.soundPanel;
+            graphicPanel = other.graphicPanel;
+            accessoryPanel = other.accessoryPanel;
+
             masterVolumeSlider = other.masterVolumeSlider;
             masterVolumeValueText = other.masterVolumeValueText;
             bgmVolumeSlider = other.bgmVolumeSlider;
@@ -324,8 +438,11 @@ namespace TheLastEmpire
             sfxVolumeValueText = other.sfxVolumeValueText;
             fullscreenToggle = other.fullscreenToggle;
             defaultButton = other.defaultButton;
+            applyButton = other.applyButton;
+            exitButton = other.exitButton;
             saveAndBackButton = other.saveAndBackButton;
 
+            ResolveModalRoot();
             AutoWireUIElements();
             BindUIEvents();
             RefreshUI();
@@ -367,6 +484,23 @@ namespace TheLastEmpire
             {
                 fullscreenToggle.SetIsOnWithoutNotify(_isFullscreen);
             }
+        }
+
+        // =========================================================================
+        //  Category Tabs
+        // =========================================================================
+
+        public void SwitchCategoryTab(SettingTab tab)
+        {
+            _currentTab = tab;
+
+            if (generalPanel != null) generalPanel.SetActive(tab == SettingTab.General);
+            if (controlPanel != null) controlPanel.SetActive(tab == SettingTab.Control);
+            if (soundPanel != null) soundPanel.SetActive(tab == SettingTab.Sound);
+            if (graphicPanel != null) graphicPanel.SetActive(tab == SettingTab.Graphic);
+            if (accessoryPanel != null) accessoryPanel.SetActive(tab == SettingTab.Accessory);
+
+            Debug.Log($"[SettingManager] Switched to tab: {tab}");
         }
 
         // =========================================================================
@@ -427,6 +561,16 @@ namespace TheLastEmpire
         }
 
         /// <summary>
+        /// Saves current settings to disk and applies them to engine.
+        /// </summary>
+        public void OnApplySettings()
+        {
+            SaveSettings();
+            ApplySettings();
+            Debug.Log("[SettingManager] Settings applied successfully.");
+        }
+
+        /// <summary>
         /// Saves current settings to disk and closes the modal.
         /// </summary>
         public void OnSaveAndBack()
@@ -441,6 +585,7 @@ namespace TheLastEmpire
         /// </summary>
         public void OpenSettingsModal()
         {
+            ResolveModalRoot();
             LoadSettings();
             if (modalRoot != null)
             {
@@ -454,6 +599,7 @@ namespace TheLastEmpire
         /// </summary>
         public void CloseSettingsModal()
         {
+            ResolveModalRoot();
             if (modalRoot != null)
             {
                 modalRoot.SetActive(false);

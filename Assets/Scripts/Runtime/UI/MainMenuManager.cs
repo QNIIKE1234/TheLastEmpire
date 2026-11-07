@@ -40,11 +40,6 @@ namespace TheLastEmpire
         [SerializeField] private GameObject characterSelectModalObj;
         [SerializeField] private TMP_Text titleLabel;
         [SerializeField] private Button closeControlsBtn;
-        [SerializeField] private Button closeSettingsBtn;
-        [SerializeField] private Slider masterVolumeSlider;
-        [SerializeField] private Slider bgmVolumeSlider;
-        [SerializeField] private Slider sfxVolumeSlider;
-        [SerializeField] private Toggle fullscreenToggle;
         [SerializeField] private GameObject fadeOverlayObj;
         [SerializeField] private CanvasGroup fadeOverlayGroup;
 
@@ -58,9 +53,9 @@ namespace TheLastEmpire
             Canvas canvas, CanvasGroup canvasGroup,
             Button newGame, Button cont, Button controls, Button settings, Button quit,
             GameObject controlsModal, GameObject settingsModal,
-            TMP_Text title, Button closeControls, Button closeSettings,
-            Slider masterSlider, Slider bgmSlider, Slider sfxSlider, Toggle fsToggle,
-            GameObject fadeObj, CanvasGroup fadeGrp,
+            TMP_Text title, Button closeControls, Button closeSettings = null,
+            Slider masterSlider = null, Slider bgmSlider = null, Slider sfxSlider = null, Toggle fsToggle = null,
+            GameObject fadeObj = null, CanvasGroup fadeGrp = null,
             GameObject charModal = null)
         {
             menuCanvas = canvas;
@@ -75,11 +70,6 @@ namespace TheLastEmpire
             characterSelectModalObj = charModal;
             titleLabel = title;
             closeControlsBtn = closeControls;
-            closeSettingsBtn = closeSettings;
-            masterVolumeSlider = masterSlider;
-            bgmVolumeSlider = bgmSlider;
-            sfxVolumeSlider = sfxSlider;
-            fullscreenToggle = fsToggle;
             fadeOverlayObj = fadeObj;
             fadeOverlayGroup = fadeGrp;
         }
@@ -314,7 +304,19 @@ namespace TheLastEmpire
             }
             else if (settingsModalObj != null)
             {
-                settingsModalObj.SetActive(true);
+                SettingManager sm = settingsModalObj.GetComponentInChildren<SettingManager>(true);
+                if (sm == null && settingsModalObj.transform.parent != null)
+                {
+                    sm = settingsModalObj.transform.parent.GetComponentInChildren<SettingManager>(true);
+                }
+                if (sm != null)
+                {
+                    sm.OpenSettingsModal();
+                }
+                else
+                {
+                    settingsModalObj.SetActive(true);
+                }
             }
         }
 
@@ -326,7 +328,19 @@ namespace TheLastEmpire
             }
             else if (settingsModalObj != null)
             {
-                settingsModalObj.SetActive(false);
+                SettingManager sm = settingsModalObj.GetComponentInChildren<SettingManager>(true);
+                if (sm == null && settingsModalObj.transform.parent != null)
+                {
+                    sm = settingsModalObj.transform.parent.GetComponentInChildren<SettingManager>(true);
+                }
+                if (sm != null)
+                {
+                    sm.CloseSettingsModal();
+                }
+                else
+                {
+                    settingsModalObj.SetActive(false);
+                }
             }
         }
 
@@ -445,53 +459,6 @@ namespace TheLastEmpire
                 closeControlsBtn.onClick.RemoveAllListeners();
                 closeControlsBtn.onClick.AddListener(OnCloseControls);
             }
-            if (closeSettingsBtn != null)
-            {
-                closeSettingsBtn.onClick.RemoveAllListeners();
-                closeSettingsBtn.onClick.AddListener(OnCloseSettings);
-            }
-
-            if (masterVolumeSlider != null)
-            {
-                masterVolumeSlider.value = PlayerPrefs.GetFloat("MasterVolume", 1.0f);
-                masterVolumeSlider.onValueChanged.RemoveAllListeners();
-                masterVolumeSlider.onValueChanged.AddListener((val) =>
-                {
-                    AudioListener.volume = val;
-                    PlayerPrefs.SetFloat("MasterVolume", val);
-                });
-            }
-
-            if (bgmVolumeSlider != null)
-            {
-                bgmVolumeSlider.value = PlayerPrefs.GetFloat("BGMVolume", 0.85f);
-                bgmVolumeSlider.onValueChanged.RemoveAllListeners();
-                bgmVolumeSlider.onValueChanged.AddListener((val) =>
-                {
-                    PlayerPrefs.SetFloat("BGMVolume", val);
-                });
-            }
-
-            if (sfxVolumeSlider != null)
-            {
-                sfxVolumeSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1.0f);
-                sfxVolumeSlider.onValueChanged.RemoveAllListeners();
-                sfxVolumeSlider.onValueChanged.AddListener((val) =>
-                {
-                    PlayerPrefs.SetFloat("SFXVolume", val);
-                });
-            }
-
-            if (fullscreenToggle != null)
-            {
-                fullscreenToggle.isOn = Screen.fullScreen;
-                fullscreenToggle.onValueChanged.RemoveAllListeners();
-                fullscreenToggle.onValueChanged.AddListener((isFs) =>
-                {
-                    Screen.fullScreen = isFs;
-                    PlayerPrefs.SetInt("Fullscreen", isFs ? 1 : 0);
-                });
-            }
 
             if (fadeOverlayObj != null)
             {
@@ -523,7 +490,6 @@ namespace TheLastEmpire
             AttachHoverEffect(settingsBtn);
             AttachHoverEffect(quitBtn);
             AttachHoverEffect(closeControlsBtn);
-            AttachHoverEffect(closeSettingsBtn);
         }
 
         // =========================================================================
