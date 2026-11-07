@@ -105,6 +105,12 @@ namespace TheLastEmpire
                 KillAllBosses();
             }
 
+            // F8 key: Toggle Free Craft Mode
+            if (Keyboard.current.f8Key.wasPressedThisFrame)
+            {
+                ToggleFreeCraftMode();
+            }
+
             // Toast message countdown
             if (_toastTimer > 0f)
             {
@@ -373,7 +379,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss Spawner [B]", "Time Cheat [T/N]" };
+                string[] tabNames = new string[] { "Boss [B]", "Time [T/N]", "Craft [F8]" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -382,9 +388,13 @@ namespace TheLastEmpire
                 {
                     DrawBossSpawnerTab();
                 }
-                else
+                else if (_selectedTab == 1)
                 {
                     DrawTimeCheatTab();
+                }
+                else
+                {
+                    DrawCraftCheatTab();
                 }
             }
             GUILayout.EndArea();
@@ -723,6 +733,59 @@ namespace TheLastEmpire
             };
             s.normal.textColor = Color.gray;
             return s;
+        }
+
+        private void ToggleFreeCraftMode()
+        {
+            if (CraftController.Instance != null)
+            {
+                CraftController.Instance.ToggleFreeCraft();
+            }
+            else
+            {
+                CraftingDatabase.IsFreeCraft = !CraftingDatabase.IsFreeCraft;
+            }
+            bool isFree = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
+            ShowToast(isFree ? "🔨 โหมด Free Craft: เปิด [ON] (คราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "🔨 โหมด Free Craft: ปิด [OFF] (ใช้วัตถุดิบตามปกติ)");
+        }
+
+        private void DrawCraftCheatTab()
+        {
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
+            GUILayout.Label("🔨 ระบบคราฟต์ & วัตถุดิบ", titleStyle);
+            GUILayout.Space(8);
+
+            bool isFree = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
+
+            GUI.backgroundColor = isFree ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
+            string btnText = isFree ? "★ โหมด Free Craft: [เปิดอยู่ / ON]" : "โหมด Free Craft: [ปิดอยู่ / OFF]";
+            if (GUILayout.Button(btnText, GUILayout.Height(40)))
+            {
+                ToggleFreeCraftMode();
+            }
+
+            GUI.backgroundColor = Color.white;
+            GUILayout.Space(6);
+            GUILayout.Label("รายละเอียดสูตร:", EditorStylesBold());
+            GUILayout.Label(isFree
+                ? "• สามารถกดคราฟต์ไอเทมได้ทุกชิ้นทันที\n• ไม่ต้องมีวัตถุดิบในกระเป๋า\n• ไม่หักไอเทมใดๆ ออกจากตัว\n• กด [F8] เพื่อเปิด/ปิดได้ตลอดเวลา"
+                : "• โหมดปกติ: ต้องใช้วัตถุดิบตามสูตร\n• กด [F8] เพื่อเปิดโหมด Free Craft", EditorStylesMini());
+
+            GUILayout.Space(12);
+            GUI.backgroundColor = new Color(1f, 0.8f, 0.2f);
+            if (GUILayout.Button("เปิด/ปิด หน้าต่างคราฟต์ [C]", GUILayout.Height(32)))
+            {
+                if (CraftController.Instance != null)
+                {
+                    CraftController.Instance.ToggleCraftMenu();
+                }
+            }
         }
 
         #endregion

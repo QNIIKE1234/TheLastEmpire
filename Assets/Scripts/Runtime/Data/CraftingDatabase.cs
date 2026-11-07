@@ -183,6 +183,11 @@ namespace TheLastEmpire
         [Header("All Crafting Recipes")]
         public List<CraftingRecipe> recipes = new List<CraftingRecipe>();
 
+        /// <summary>
+        /// โหมด Free Craft: เมื่อเปิดเป็น true จะสามารถคราฟต์ได้ทุกสูตรโดยไม่ต้องมีวัตถุดิบ และไม่หักของออกจากกระเป๋า
+        /// </summary>
+        public static bool IsFreeCraft { get; set; } = false;
+
         private void OnValidate()
         {
             if (recipes == null) return;
@@ -236,10 +241,12 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ตรวจสอบว่าผู้เล่นมีวัตถุดิบในกระเป๋าครบตามสูตรหรือไม่
+        /// ตรวจสอบว่าผู้เล่นมีวัตถุดิบในกระเป๋าครบตามสูตรหรือไม่ (หากเปิด IsFreeCraft จะเป็น true เสมอ)
         /// </summary>
         public bool CanCraft(CraftingRecipe recipe, PlayerInventory inventory)
         {
+            if (IsFreeCraft) return true;
+
             if (recipe == null || inventory == null || recipe.ingredients == null || recipe.ingredients.Count == 0)
                 return false;
 

@@ -260,9 +260,11 @@ namespace TheLastEmpire
         {
             if (_currentRecipe == null) return;
 
+            bool isFreeCraft = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
+
             List<CraftingIngredient> ingredients = _currentRecipe.ingredients;
             int requiredCount = ingredients != null ? Mathf.Min(ingredients.Count, CraftingRecipe.MaxIngredients) : 0;
-            bool canCraftAll = requiredCount > 0;
+            bool canCraftAll = isFreeCraft || (requiredCount > 0);
 
             for (int i = 0; i < ingredientSlots.Count; i++)
             {
@@ -275,7 +277,7 @@ namespace TheLastEmpire
                     string ingName = ing.ResolvedItemName;
                     Sprite ingIcon = ing.ResolvedIcon;
                     int ownedAmount = playerInventory != null ? playerInventory.GetItemCount(ingName) : 0;
-                    bool hasEnough = ownedAmount >= ing.amount;
+                    bool hasEnough = isFreeCraft || (ownedAmount >= ing.amount);
 
                     if (!hasEnough)
                     {
@@ -297,8 +299,12 @@ namespace TheLastEmpire
                 }
             }
 
-            // หากยังไม่ได้ลาก ingredientSlots แต่เช็กจาก CraftingDatabase โดยตรง
-            if (ingredientSlots.Count == 0 && CraftingDatabase.Instance != null)
+            // หากเปิด Free Craft หรือไม่ได้ลาก ingredientSlots แต่เช็กจาก CraftingDatabase โดยตรง
+            if (isFreeCraft)
+            {
+                canCraftAll = true;
+            }
+            else if (ingredientSlots.Count == 0 && CraftingDatabase.Instance != null)
             {
                 canCraftAll = CraftingDatabase.Instance.CanCraft(_currentRecipe, playerInventory);
             }

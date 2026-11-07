@@ -83,6 +83,13 @@ namespace TheLastEmpire
         [Tooltip("ปุ่มลัดสำหรับเปิด/ปิดหน้าต่างคราฟต์ (ค่าเริ่มต้น: ปุ่ม C)")]
         [SerializeField] private Key toggleCraftKey = Key.C;
 
+        [Header("Cheat / Debug Settings")]
+        [Tooltip("เปิดโหมด Free Craft: คราฟต์ได้ทุกสูตรโดยไม่ต้องมีวัตถุดิบ และไม่หักของออกจากกระเป๋า")]
+        [SerializeField] private bool freeCraftMode = false;
+
+        [Tooltip("ปุ่มลัดสำหรับสลับโหมด Free Craft ทันทีในเกม (ค่าเริ่มต้น: ปุ่ม F8)")]
+        [SerializeField] private Key toggleFreeCraftKey = Key.F8;
+
         private readonly List<CraftingRecipe> _filteredRecipes = new List<CraftingRecipe>();
 
         private CraftingCategory _currentCategory = CraftingCategory.Building;
@@ -95,6 +102,17 @@ namespace TheLastEmpire
 
         public bool IsOpen => _isOpen;
         public CraftingCategory CurrentCategory => _currentCategory;
+
+        public bool FreeCraftMode
+        {
+            get => freeCraftMode || CraftingDatabase.IsFreeCraft;
+            set
+            {
+                freeCraftMode = value;
+                CraftingDatabase.IsFreeCraft = value;
+                RefreshActiveThumbnailsState();
+            }
+        }
 
         public event Action<CraftingRecipe> OnRecipeCrafted;
 
@@ -112,6 +130,11 @@ namespace TheLastEmpire
             {
                 Destroy(gameObject);
                 return;
+            }
+
+            if (freeCraftMode)
+            {
+                CraftingDatabase.IsFreeCraft = true;
             }
 
             if (craftingDatabase == null)
@@ -135,7 +158,15 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (!enableShortcutKey || Keyboard.current == null) return;
+            if (Keyboard.current == null) return;
+
+            // F8 (หรือปุ่มที่ตั้งไว้): สลับโหมด Free Craft
+            if (Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame)
+            {
+                ToggleFreeCraft();
+            }
+
+            if (!enableShortcutKey) return;
 
             // ไม่กดเปิดทับถ้าผู้เล่นกำลังพิมพ์ในช่อง Search อยู่
             if (searchInputField != null && searchInputField.isFocused) return;
@@ -144,6 +175,14 @@ namespace TheLastEmpire
             {
                 ToggleCraftMenu();
             }
+        }
+
+        [ContextMenu("Toggle Free Craft")]
+        public void ToggleFreeCraft()
+        {
+            FreeCraftMode = !FreeCraftMode;
+            Debug.Log($"[CraftController] Free Craft Mode: {(FreeCraftMode ? "ENABLED (เปิดโหมดคราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "DISABLED (ปิดโหมดคราฟต์ฟรี)")}");
+            RefreshActiveThumbnailsState();
         }
 
         private void OnDestroy()
@@ -548,24 +587,32 @@ namespace TheLastEmpire
                 craftingDatabase = CraftingDatabase.Instance;
             }
 
-            // 1. ตรวจสอบว่ามีวัตถุดิบครบทุกชิ้นหรือไม่
-            if (recipe.ingredients == null || recipe.ingredients.Count == 0) return false;
-            for (int i = 0; i < recipe.ingredients.Count; i++)
+            bool isFree = FreeCraftMode;
+
+            // 1. ตรวจสอบว่ามีวัตถุดิบครบทุกชิ้นหรือไม่ (ถ้าไม่ใช่โหมด Free Craft)
+            if (!isFree)
             {
-                CraftingIngredient ing = recipe.ingredients[i];
-                string reqName = ing.ResolvedItemName;
-                if (string.IsNullOrEmpty(reqName) || _playerInventory.GetItemCount(reqName) < ing.amount)
+                if (recipe.ingredients == null || recipe.ingredients.Count == 0) return false;
+                for (int i = 0; i < recipe.ingredients.Count; i++)
                 {
-                    Debug.Log($"[CraftController] Not enough '{reqName}' to craft '{recipe.recipeName}'.");
-                    return false;
+                    CraftingIngredient ing = recipe.ingredients[i];
+                    string reqName = ing.ResolvedItemName;
+                    if (string.IsNullOrEmpty(reqName) || _playerInventory.GetItemCount(reqName) < ing.amount)
+                    {
+                        Debug.Log($"[CraftController] Not enough '{reqName}' to craft '{recipe.recipeName}'.");
+                        return false;
+                    }
                 }
             }
 
-            // 2. หักวัตถุดิบทั้งหมดออกจาก PlayerInventory
-            for (int i = 0; i < recipe.ingredients.Count; i++)
+            // 2. หักวัตถุดิบทั้งหมดออกจาก PlayerInventory (ถ้าไม่ใช่โหมด Free Craft)
+            if (!isFree && recipe.ingredients != null)
             {
-                CraftingIngredient ing = recipe.ingredients[i];
-                _playerInventory.RemoveItem(ing.ResolvedItemName, ing.amount);
+                for (int i = 0; i < recipe.ingredients.Count; i++)
+                {
+                    CraftingIngredient ing = recipe.ingredients[i];
+                    _playerInventory.RemoveItem(ing.ResolvedItemName, ing.amount);
+                }
             }
 
             // 3. มอบไอเทมผลลัพธ์เข้า PlayerInventory
@@ -581,7 +628,14 @@ namespace TheLastEmpire
                 _playerInventory.AddItem(resultName, resultAmount);
             }
 
-            Debug.Log($"[CraftController] Crafted '{resultName}' x{resultAmount}!");
+            if (isFree)
+            {
+                Debug.Log($"[CraftController] [FreeCraft] Crafted '{resultName}' x{resultAmount} (ฟรี ไม่เสียวัตถุดิบ)!");
+            }
+            else
+            {
+                Debug.Log($"[CraftController] Crafted '{resultName}' x{resultAmount}!");
+            }
             OnRecipeCrafted?.Invoke(recipe);
 
             // 4. รีเฟรชสถานะปุ่มและจำนวนของทันที
