@@ -1636,17 +1636,33 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// คำนวณหา ID ของโมเดลกระสุน/ระเบิดสำหรับเปิดตาใน Projectile (เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow)
+        /// คำนวณหา ID ของโมเดลกระสุน/ระเบิดสำหรับเปิดตาใน Projectile (เช่น Bullet, Arrow, Grenade)
+        /// แยกประเภทชัดเจน: หน้าไม้/ธนู -> "Arrow", ปืนทุกชนิด -> "Bullet", ระเบิด -> "Grenade"
         /// </summary>
         public string ResolveProjectileVisualId(Weapon weapon)
         {
-            if (weapon == null) return "";
+            if (weapon == null) return "Bullet";
             if (!string.IsNullOrEmpty(weapon.projectileVisualId)) return weapon.projectileVisualId;
 
             string wName = weapon.weaponName != null ? weapon.weaponName.Trim() : "";
             string aType = weapon.ammoType != null ? weapon.ammoType.Trim() : "";
+            string lowerW = wName.ToLower();
+            string lowerA = aType.ToLower();
 
-            // 1. ตรวจสอบจาก ItemData ของอาวุธใน ItemDatabase
+            // 1. ธนู / หน้าไม้ / ลูกธนู (Bow / Crossbow / Bolts / Arrow) -> Arrow
+            if (lowerW.Contains("crossbow") || lowerW.Contains("bow") || 
+                lowerA.Contains("bolt") || lowerA.Contains("arrow"))
+            {
+                return "Arrow";
+            }
+
+            // 2. ระเบิด (Grenade / Bomb) -> Grenade
+            if (lowerW.Contains("grenade") || lowerA.Contains("grenade") || lowerW.Contains("bomb"))
+            {
+                return "Grenade";
+            }
+
+            // 3. ตรวจสอบจาก ItemData ของอาวุธใน ItemDatabase
             if (ItemDatabase.Instance != null && !string.IsNullOrEmpty(wName))
             {
                 ItemData wData = ItemDatabase.Instance.GetItemByName(wName);
@@ -1658,40 +1674,35 @@ namespace TheLastEmpire
                     }
                     if (!string.IsNullOrEmpty(wData.name))
                     {
-                        string cleanAssetName = wData.name;
-                        if (cleanAssetName.Contains("Grenade")) return "ITEM0008_Grenade";
-                        if (cleanAssetName.Contains("Arrow") || cleanAssetName.Contains("Bolt")) return "ITEM0010_Arrow";
-                        if (cleanAssetName.Contains("Bullet") || cleanAssetName.Contains("Ammo")) return "ITEM0009_Bullet";
+                        string cleanAssetName = wData.name.ToLower();
+                        if (cleanAssetName.Contains("crossbow") || cleanAssetName.Contains("bow") || cleanAssetName.Contains("arrow") || cleanAssetName.Contains("bolt"))
+                            return "Arrow";
+                        if (cleanAssetName.Contains("grenade") || cleanAssetName.Contains("bomb"))
+                            return "Grenade";
+                        if (cleanAssetName.Contains("bullet") || cleanAssetName.Contains("ammo"))
+                            return "Bullet";
                     }
                 }
             }
 
-            // 2. ตรวจสอบจาก Ammo ItemData
+            // 4. ตรวจสอบจาก Ammo ItemData
             if (ItemDatabase.Instance != null && !string.IsNullOrEmpty(aType))
             {
                 ItemData aData = ItemDatabase.Instance.GetItemByName(aType);
                 if (aData != null && !string.IsNullOrEmpty(aData.name))
                 {
-                    string cleanAmmoName = aData.name;
-                    if (cleanAmmoName.Contains("Bullet") || cleanAmmoName.Contains("Ammo")) return "ITEM0009_Bullet";
-                    if (cleanAmmoName.Contains("Arrow") || cleanAmmoName.Contains("Bolt")) return "ITEM0010_Arrow";
+                    string cleanAmmoName = aData.name.ToLower();
+                    if (cleanAmmoName.Contains("arrow") || cleanAmmoName.Contains("bolt"))
+                        return "Arrow";
+                    if (cleanAmmoName.Contains("grenade") || cleanAmmoName.Contains("bomb"))
+                        return "Grenade";
+                    if (cleanAmmoName.Contains("bullet") || cleanAmmoName.Contains("ammo"))
+                        return "Bullet";
                 }
             }
 
-            // 3. Fallback วิเคราะห์จากชื่ออาวุธ / กระสุน
-            string lowerW = wName.ToLower();
-            string lowerA = aType.ToLower();
-
-            if (lowerW.Contains("grenade") || lowerA.Contains("grenade"))
-                return "ITEM0008_Grenade";
-
-            if (lowerW.Contains("crossbow") || lowerW.Contains("bow") || lowerA.Contains("bolt") || lowerA.Contains("arrow"))
-                return "ITEM0010_Arrow";
-
-            if (lowerA.Contains("ammo") || lowerW.Contains("pistol") || lowerW.Contains("rifle") || lowerW.Contains("shotgun") || lowerW.Contains("smg") || lowerW.Contains("revolver"))
-                return "ITEM0009_Bullet";
-
-            return wName;
+            // 5. ปืนทุกชนิด (Pistol, Rifle, Shotgun, SMG, Sniper, Revolver ฯลฯ) -> เป็น Bullet
+            return "Bullet";
         }
 
         private void MeleeAttack()
@@ -2454,6 +2465,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Pistol",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = fireRate > 0f ? fireRate : 0.4f,
                     magazineSize = magazineSize > 0 ? magazineSize : 12,
                     reloadDuration = reloadDuration > 0f ? reloadDuration : 1.0f,
@@ -2474,6 +2486,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Rifle",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 0.12f,
                     magazineSize = 30,
                     reloadDuration = 1.5f,
@@ -2494,6 +2507,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Shotgun",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 0.7f,
                     magazineSize = 6,
                     reloadDuration = 2.0f,
@@ -2514,6 +2528,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "SMG",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 0.08f,
                     magazineSize = 35,
                     reloadDuration = 1.2f,
@@ -2534,6 +2549,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Sniper Rifle",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 1.2f,
                     magazineSize = 5,
                     reloadDuration = 2.2f,
@@ -2554,6 +2570,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Revolver",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 0.65f,
                     magazineSize = 6,
                     reloadDuration = 1.8f,
@@ -2574,6 +2591,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Flamethrower",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 0.1f,
                     magazineSize = 50,
                     reloadDuration = 2.5f,
@@ -2594,6 +2612,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Rocket Launcher",
                     projectilePrefab = projectilePrefab,
+                    projectileVisualId = "Bullet",
                     fireRate = 1.5f,
                     magazineSize = 1,
                     reloadDuration = 2.5f,
@@ -2622,6 +2641,7 @@ namespace TheLastEmpire
                 {
                     weaponName = "Crossbow",
                     projectilePrefab = boltProjPrefab,
+                    projectileVisualId = "Arrow",
                     fireRate = 1.0f,
                     magazineSize = 1,
                     reloadDuration = 1.2f,

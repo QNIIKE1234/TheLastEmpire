@@ -135,7 +135,7 @@ namespace TheLastEmpire.Editor
                         {
                             int idx = entriesProp.arraySize++;
                             SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
-                            elem.FindPropertyRelative("id").stringValue = "ITEM0008_Grenade";
+                            elem.FindPropertyRelative("id").stringValue = "Grenade";
                             elem.FindPropertyRelative("visualObject").objectReferenceValue = grenade1.gameObject;
                         }
 
@@ -144,7 +144,7 @@ namespace TheLastEmpire.Editor
                         {
                             int idx = entriesProp.arraySize++;
                             SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
-                            elem.FindPropertyRelative("id").stringValue = "Weapon_Grenade";
+                            elem.FindPropertyRelative("id").stringValue = "Grenade";
                             elem.FindPropertyRelative("visualObject").objectReferenceValue = grenade2.gameObject;
                         }
 
@@ -155,9 +155,14 @@ namespace TheLastEmpire.Editor
                 }
             }
 
-            // 2. Setup PostalBulletPrefabs
-            string bulletPath = "Assets/Resources_Addressable/Prefabs/Item/PostalBulletPrefabs.prefab";
+            // 2. Setup BulletPrefabs / PostalBulletPrefabs
+            string bulletPath = "Assets/Resources_Addressable/Prefabs/Item/BulletPrefabs.prefab";
             GameObject bulletObj = AssetDatabase.LoadAssetAtPath<GameObject>(bulletPath);
+            if (bulletObj == null)
+            {
+                bulletPath = "Assets/Resources_Addressable/Prefabs/Item/PostalBulletPrefabs.prefab";
+                bulletObj = AssetDatabase.LoadAssetAtPath<GameObject>(bulletPath);
+            }
             if (bulletObj != null)
             {
                 Projectile proj = bulletObj.GetComponent<Projectile>();
@@ -175,7 +180,7 @@ namespace TheLastEmpire.Editor
                         {
                             int idx = entriesProp.arraySize++;
                             SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
-                            elem.FindPropertyRelative("id").stringValue = "ITEM0009_Bullet";
+                            elem.FindPropertyRelative("id").stringValue = "Bullet";
                             elem.FindPropertyRelative("visualObject").objectReferenceValue = bulletChild.gameObject;
                         }
 
@@ -185,7 +190,7 @@ namespace TheLastEmpire.Editor
                         {
                             int idx = entriesProp.arraySize++;
                             SerializedProperty elem = entriesProp.GetArrayElementAtIndex(idx);
-                            elem.FindPropertyRelative("id").stringValue = "ITEM0010_Arrow";
+                            elem.FindPropertyRelative("id").stringValue = "Arrow";
                             elem.FindPropertyRelative("visualObject").objectReferenceValue = arrowChild.gameObject;
                         }
 

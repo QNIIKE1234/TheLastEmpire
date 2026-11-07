@@ -325,7 +325,7 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// สลับเปิด/ปิด GameObject โมเดลตามไอดี (เช่น ITEM0008_Grenade, ITEM0009_Bullet, ITEM0010_Arrow)
+        /// สลับเปิด/ปิด GameObject โมเดลตามไอดี (เช่น Bullet, Arrow, Grenade หรือ ITEM0009_Bullet, ITEM0010_Arrow)
         /// เปิดตา GO ที่ตรงกับไอดี และปิดตา GO ตัวอื่นๆ ทั้งหมด
         /// </summary>
         public void ApplyVisual(string visualId)
@@ -334,6 +334,7 @@ namespace TheLastEmpire
             _activeVisualId = visualId;
 
             string cleanTarget = visualId.Trim().ToLower();
+            string normTarget = NormalizeVisualKey(cleanTarget);
             bool matchedAny = false;
 
             // 1. ตรวจสอบจาก visualEntries ใน Inspector ก่อน
@@ -341,7 +342,7 @@ namespace TheLastEmpire
             {
                 int bestMatchIdx = -1;
 
-                // Match pass 1: Exact match
+                // Match pass 1: Exact match on id
                 for (int i = 0; i < visualEntries.Count; i++)
                 {
                     var entry = visualEntries[i];
@@ -355,7 +356,24 @@ namespace TheLastEmpire
                     }
                 }
 
-                // Match pass 2: Substring / Contains match
+                // Match pass 2: Normalized alias match (Bullet vs Arrow vs Grenade)
+                if (bestMatchIdx < 0 && !string.IsNullOrEmpty(normTarget))
+                {
+                    for (int i = 0; i < visualEntries.Count; i++)
+                    {
+                        var entry = visualEntries[i];
+                        if (entry == null || entry.visualObject == null) continue;
+
+                        string entryNorm = NormalizeVisualKey(entry.id);
+                        if (!string.IsNullOrEmpty(entryNorm) && entryNorm == normTarget)
+                        {
+                            bestMatchIdx = i;
+                            break;
+                        }
+                    }
+                }
+
+                // Match pass 3: Substring / Contains match on entry.id
                 if (bestMatchIdx < 0)
                 {
                     for (int i = 0; i < visualEntries.Count; i++)
@@ -365,6 +383,25 @@ namespace TheLastEmpire
 
                         string entryIdClean = entry.id.Trim().ToLower();
                         if (entryIdClean.Contains(cleanTarget) || cleanTarget.Contains(entryIdClean))
+                        {
+                            bestMatchIdx = i;
+                            break;
+                        }
+                    }
+                }
+
+                // Match pass 4: Check entry.visualObject GameObject name (e.g. ITEM0009_Bullet, ITEM0010_Arrow)
+                if (bestMatchIdx < 0)
+                {
+                    for (int i = 0; i < visualEntries.Count; i++)
+                    {
+                        var entry = visualEntries[i];
+                        if (entry == null || entry.visualObject == null) continue;
+
+                        string voNameClean = entry.visualObject.name.Trim().ToLower();
+                        string voNorm = NormalizeVisualKey(voNameClean);
+                        if (voNameClean == cleanTarget || (!string.IsNullOrEmpty(normTarget) && voNorm == normTarget) ||
+                            voNameClean.Contains(cleanTarget) || cleanTarget.Contains(voNameClean))
                         {
                             bestMatchIdx = i;
                             break;
@@ -406,7 +443,9 @@ namespace TheLastEmpire
                     if (child.name.Equals("FrontLight", System.StringComparison.OrdinalIgnoreCase)) continue;
 
                     string cName = child.name.Trim().ToLower();
-                    if (cName == cleanTarget || cName.Contains(cleanTarget) || cleanTarget.Contains(cName))
+                    string cNorm = NormalizeVisualKey(cName);
+                    if (cName == cleanTarget || (!string.IsNullOrEmpty(normTarget) && cNorm == normTarget) ||
+                        cName.Contains(cleanTarget) || cleanTarget.Contains(cName))
                     {
                         targetChild = child;
                         break;
@@ -435,15 +474,32 @@ namespace TheLastEmpire
                 }
             }
 
-            // 3. ปิดตา Sphere Placeholder อัตโนมัติเมื่อโมเดล 3D ถูกเปิดใช้งาน
+            // 3. ปิดตา Sphere Placeholder และ Root MeshRenderer อัตโนมัติเมื่อโมเดล 3D ถูกเปิดใช้งาน
             if (matchedAny)
             {
+                var rootMr = GetComponent<MeshRenderer>();
+                if (rootMr != null) rootMr.enabled = false;
+
                 Transform sphere = transform.Find("Sphere");
                 if (sphere != null)
                 {
                     sphere.gameObject.SetActive(false);
                 }
             }
+        }
+
+        private static string NormalizeVisualKey(string rawId)
+        {
+            if (string.IsNullOrEmpty(rawId)) return "";
+            string lower = rawId.Trim().ToLower();
+            if (lower.Contains("arrow") || lower.Contains("bolt") || lower.Contains("bow") || lower.Contains("crossbow"))
+                return "arrow";
+            if (lower.Contains("bullet") || lower.Contains("ammo") || lower.Contains("pistol") || lower.Contains("rifle") || 
+                lower.Contains("shotgun") || lower.Contains("smg") || lower.Contains("sniper") || lower.Contains("revolver"))
+                return "bullet";
+            if (lower.Contains("grenade") || lower.Contains("bomb"))
+                return "grenade";
+            return lower;
         }
 
         private void Update()
