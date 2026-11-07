@@ -2884,7 +2884,7 @@ namespace TheLastEmpire
         {
             if (QuickSlotController.Instance != null && QuickSlotController.Instance.HasSlot(slotIndex))
             {
-                QuickSlotController.Instance.UseSlot(slotIndex);
+                QuickSlotController.Instance.SelectSlot(slotIndex);
             }
             else
             {

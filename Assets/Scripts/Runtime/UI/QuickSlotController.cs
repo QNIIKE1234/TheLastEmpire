@@ -217,9 +217,9 @@ namespace TheLastEmpire
                 {
                     startingGun = !string.IsNullOrEmpty(_player.CurrentWeaponName) ? _player.CurrentWeaponName : _player.WeaponsList[0].weaponName;
                 }
-                else if (_player != null && _player.ActiveCharacterData != null && !string.IsNullOrEmpty(_player.ActiveCharacterData.startingWeapon))
+                else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 0)
                 {
-                    startingGun = _player.ActiveCharacterData.startingWeapon;
+                    startingGun = _player.ActiveCharacterData.startingWeapons[0];
                 }
                 _slotItemNames[0] = startingGun;
                 SaveSlot(0);
@@ -232,6 +232,10 @@ namespace TheLastEmpire
                 if (_player != null && _player.MeleeWeaponsList != null && _player.MeleeWeaponsList.Count > 0)
                 {
                     startingMelee = !string.IsNullOrEmpty(_player.CurrentMeleeWeaponName) ? _player.CurrentMeleeWeaponName : _player.MeleeWeaponsList[0].weaponName;
+                }
+                else if (_player != null && _player.ActiveCharacterData != null && _player.ActiveCharacterData.startingWeapons != null && _player.ActiveCharacterData.startingWeapons.Count > 1)
+                {
+                    startingMelee = _player.ActiveCharacterData.startingWeapons[1];
                 }
                 _slotItemNames[1] = startingMelee;
                 SaveSlot(1);
@@ -355,6 +359,15 @@ namespace TheLastEmpire
         {
             if (index < 0 || index >= MaxSlots) return;
 
+            ClearSlotDataOnly(index);
+            RefreshUI();
+            Debug.Log($"[QuickSlot] Cleared Slot {index + 1}");
+        }
+
+        private void ClearSlotDataOnly(int index)
+        {
+            if (index < 0 || index >= MaxSlots) return;
+
             _slotItemNames[index] = "";
             SaveSlot(index);
 
@@ -362,9 +375,14 @@ namespace TheLastEmpire
             {
                 SwitchToAvailableWeapon();
             }
+        }
 
-            RefreshUI();
-            Debug.Log($"[QuickSlot] Cleared Slot {index + 1}");
+        /// <summary>
+        /// ใช้งานหรือเลือก Quick Slot (รองรับทั้ง UseSlot และ SelectSlot)
+        /// </summary>
+        public void UseSlot(int index)
+        {
+            SelectSlot(index);
         }
 
         public bool HasSlot(int index)
@@ -478,7 +496,16 @@ namespace TheLastEmpire
                 int countAfter = _inventory.GetItemCount(consumableName);
                 if (countAfter <= 0)
                 {
-                    // กินหมดแล้ว ให้สลับกลับไปถืออาวุธ
+                    // กินหมดแล้ว เคลียร์ช่อง Quick Slot ที่ใส่ไอเทมนี้ทันทีตามคำสั่งผู้ใช้
+                    for (int i = 0; i < MaxSlots; i++)
+                    {
+                        if (!string.IsNullOrEmpty(_slotItemNames[i]) && _slotItemNames[i].Equals(consumableName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ClearSlotDataOnly(i);
+                        }
+                    }
+
+                    // สลับกลับไปถืออาวุธ
                     SwitchToAvailableWeapon();
                 }
                 else
@@ -529,6 +556,7 @@ namespace TheLastEmpire
 
         /// <summary>
         /// อัปเดตการแสดงผล HUD ทั้ง 5 ช่อง และไฮไลต์ช่องที่กำลังเลือกอยู่
+        /// ตรวจสอบอัตโนมัติ: ถ้าไม่มีของ (count <= 0 หรือไม่ได้ถือครอง) ให้เคลียร์ QuickSlot ให้ว่างทันที
         /// </summary>
         public void RefreshUI()
         {
@@ -555,14 +583,39 @@ namespace TheLastEmpire
                 int count = _inventory != null ? _inventory.GetItemCount(itemName) : 0;
 
                 bool isConsumable = false;
+                bool isWeapon = false;
                 if (itemData != null)
                 {
                     isConsumable = itemData.type == ItemType.Potion || itemData.type == ItemType.Bread;
+                    isWeapon = itemData.type == ItemType.RangedWeapon || itemData.type == ItemType.MeleeWeapon || itemData.type == ItemType.ThrowingWeapon;
                 }
                 else
                 {
                     string lower = itemName.ToLower();
-                    isConsumable = lower.Contains("bread") || lower.Contains("potion");
+                    isConsumable = lower.Contains("bread") || lower.Contains("potion") || lower.Contains("food");
+                    isWeapon = !isConsumable;
+                }
+
+                // 🛑 ตรวจสอบ: ถ้าเป็นของกิน/ยา แล้วจำนวนหมด (count <= 0) ให้เคลียร์ QuickSlot ให้ว่างทันที
+                if (isConsumable && _inventory != null && count <= 0)
+                {
+                    Debug.Log($"[QuickSlot] Auto-clearing Slot {i + 1} ('{itemName}') because quantity reached 0.");
+                    ClearSlotDataOnly(i);
+                    slotItems[i].SetData("", null, 0, false, false);
+                    continue;
+                }
+
+                // 🛑 ตรวจสอบ: ถ้าเป็นอาวุธ แต่ผู้เล่นไม่ได้ถือครอง (ไม่มีในคลัง/กระเป๋า) ให้เคลียร์ QuickSlot ให้ว่างทันที
+                if (isWeapon && _player != null && (_player.WeaponsList.Count > 0 || _player.MeleeWeaponsList.Count > 0))
+                {
+                    bool hasAccess = _player.HasRangedWeaponAccess(itemName) || _player.HasMeleeWeaponAccess(itemName);
+                    if (!hasAccess)
+                    {
+                        Debug.Log($"[QuickSlot] Auto-clearing Slot {i + 1} ('{itemName}') because player does not own this weapon.");
+                        ClearSlotDataOnly(i);
+                        slotItems[i].SetData("", null, 0, false, false);
+                        continue;
+                    }
                 }
 
                 bool isSelected = (i == _activeSlotIndex);
