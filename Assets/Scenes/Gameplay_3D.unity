@@ -7386,6 +7386,8 @@ MonoBehaviour:
   - {fileID: 1192936418}
   - {fileID: 1959781247}
   - {fileID: 149902527}
+  player: {fileID: 2126918795}
+  inventory: {fileID: 0}
 --- !u!1 &231417295
 GameObject:
   m_ObjectHideFlags: 0
@@ -17046,6 +17048,7 @@ GameObject:
   - component: {fileID: 535676567}
   - component: {fileID: 535676569}
   - component: {fileID: 535676568}
+  - component: {fileID: 535676570}
   m_Layer: 5
   m_Name: Shiftskill
   m_TagString: Untagged
@@ -17113,6 +17116,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 535676566}
   m_CullTransparentMesh: 1
+--- !u!114 &535676570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535676566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6b300ff25d02dd428e7eb6b455b428d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ShiftSkillHUD
+  cooldownImage: {fileID: 1372687564}
+  iconImage: {fileID: 1416529301}
+  cooldownText: {fileID: 0}
+  fillRecovers: 1
+  player: {fileID: 2126918795}
 --- !u!1 &537482342
 GameObject:
   m_ObjectHideFlags: 0
@@ -23639,6 +23659,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03ab714e93df7b9439a13f5fa20c7c99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.PlayerHUD
+  player: {fileID: 2126918795}
   hpBarSliderHUD: {fileID: 1728834901}
   hpBarFillHUD: {fileID: 1991869279}
   hungerSliderHUD: {fileID: 1240337552}
@@ -23646,8 +23667,8 @@ MonoBehaviour:
   sanitySliderHUD: {fileID: 2039140679}
   sanityBarFillHUD: {fileID: 2122960013}
   sanityTextHUD: {fileID: 0}
-  weaponImage: {fileID: 297593180}
-  ammoImage: {fileID: 1509549020}
+  weaponImage: {fileID: 1509549020}
+  ammoImage: {fileID: 297593180}
   ammoTextHUD: {fileID: 774198700}
   hpTextHUD: {fileID: 1321644320}
   showWeaponName: 0
@@ -47058,10 +47079,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 894916203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -72.7, y: 81.1}
-  m_SizeDelta: {x: -100, y: 200}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -85, y: 0}
+  m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1509549020
 MonoBehaviour:

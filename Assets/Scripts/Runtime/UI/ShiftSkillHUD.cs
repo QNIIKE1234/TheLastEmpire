@@ -27,28 +27,17 @@ namespace TheLastEmpire
         [Tooltip("true = ค่อยๆ เติมภาพสว่างขึ้นจาก 0 ถึง 1 เมื่อคูลดาวน์ลดลง (เหมาะกับกรณี Cooldown เป็นรูปสว่างวางทับเงาดำ)\nfalse = ภาพเต็ม 1 แล้วลดลงเหลือ 0 (กรณี Cooldown เป็น Mask สีดำ)")]
         [SerializeField] private bool fillRecovers = true;
 
+        [Header("External References")]
+        [Tooltip("Reference ไปยัง PlayerController ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private PlayerController player;
+
         private PlayerController _player;
         private bool _wasOnCooldown = false;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void AutoHookScene()
+        public void SetPlayer(PlayerController p)
         {
-            if (Instance == null)
-            {
-                ShiftSkillHUD existing = UnityEngine.Object.FindFirstObjectByType<ShiftSkillHUD>();
-                if (existing != null)
-                {
-                    Instance = existing;
-                }
-                else
-                {
-                    GameObject skillObj = GameObject.Find("Shiftskill");
-                    if (skillObj != null)
-                    {
-                        Instance = skillObj.AddComponent<ShiftSkillHUD>();
-                    }
-                }
-            }
+            player = p;
+            _player = p;
         }
 
         private void Awake()
@@ -130,7 +119,7 @@ namespace TheLastEmpire
         {
             if (_player == null)
             {
-                _player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                _player = player;
             }
         }
 

@@ -62,14 +62,13 @@ namespace TheLastEmpire
         private TMPro.TMP_Text _charBadgeText;
         private TMPro.TMP_Text _shiftSkillText;
 
+        public void SetPlayer(PlayerController p)
+        {
+            player = p;
+        }
+
         private void Start()
         {
-            // Auto-detect player in the scene/hierarchy if not manually assigned
-            if (player == null)
-            {
-                player = Object.FindFirstObjectByType<PlayerController>();
-            }
-
             SetupHUD();
 
             if (player != null)
@@ -183,21 +182,6 @@ namespace TheLastEmpire
                 _sanityBarFill = sanityBarFillHUD;
                 _hpText = hpTextHUD;
                 _sanityText = sanityTextHUD;
-
-                // Smart auto-detection for Sanity Slider (Eye / Brain Slider) if not assigned
-                if (_sanitySlider == null)
-                {
-                    GameObject brainObj = GameObject.Find("Brain_slider");
-                    if (brainObj != null)
-                    {
-                        _sanitySlider = brainObj.GetComponent<UnityEngine.UI.Slider>();
-                        if (_sanityBarFill == null)
-                        {
-                            Transform fillT = brainObj.transform.Find("Fill Area/Fill");
-                            if (fillT != null) _sanityBarFill = fillT.GetComponent<UnityEngine.UI.Image>();
-                        }
-                    }
-                }
 
                 ResolveWeaponAndAmmoImages();
                 return;

@@ -61,6 +61,11 @@ namespace TheLastEmpire
         [Tooltip("Reference สำหรับ GameObject อาวุธระยะไกล (เช่น GameObject 'Range')")]
         [SerializeField] private GameObject rangeWeapon;
 
+        [Header("UI System References")]
+        [Tooltip("Reference ไปยัง QuickSlotController ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private QuickSlotController quickSlotController;
+        public QuickSlotController QuickSlot => quickSlotController != null ? quickSlotController : QuickSlotController.Instance;
+
         [Header("Muzzle Flash Light")]
         [SerializeField] private Light muzzleFlashLight;
         [SerializeField] private Color muzzleLightColor = new Color(1f, 0.72f, 0.28f, 1f);
@@ -1230,7 +1235,7 @@ namespace TheLastEmpire
                         else if (IsHoldingConsumable)
                         {
                             _fireBufferTimer = 0f;
-                            QuickSlotController.Instance?.UseActiveHeldItem();
+                            QuickSlot?.UseActiveHeldItem();
                         }
                     }
 
@@ -1256,11 +1261,11 @@ namespace TheLastEmpire
 
                 if (!isUIBlocked)
                 {
-                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(0);
-                    if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(1);
-                    if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(2);
-                    if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(3);
-                    if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame) QuickSlotController.Instance?.SelectSlot(4);
+                    if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) QuickSlot?.SelectSlot(0);
+                    if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) QuickSlot?.SelectSlot(1);
+                    if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) QuickSlot?.SelectSlot(2);
+                    if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) QuickSlot?.SelectSlot(3);
+                    if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame) QuickSlot?.SelectSlot(4);
                     if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToQuickSlot(5);
                     if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToQuickSlot(6);
                     if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToQuickSlot(7);
@@ -1634,7 +1639,11 @@ namespace TheLastEmpire
                                 itemDamage = item.damage;
 
                                 // If attackRadius is configured in ItemData, calculate bullet lifetime based on projectile speed
-                                if (item.attackRadius > 0.01f && proj.Speed > 0.01f)
+                                if (item.type == ItemType.ThrowingWeapon || (proj != null && proj.Trajectory == TrajectoryMode.Arced))
+                                {
+                                    weaponRange = 5.0f; // Give sufficient flight time for arced throwing weapons
+                                }
+                                else if (item.attackRadius > 0.01f && proj.Speed > 0.01f)
                                 {
                                     weaponRange = item.attackRadius / proj.Speed;
                                 }
@@ -2957,9 +2966,9 @@ namespace TheLastEmpire
 
         public void UseQuickSlotOrWeapon(int slotIndex)
         {
-            if (QuickSlotController.Instance != null && QuickSlotController.Instance.HasSlot(slotIndex))
+            if (QuickSlot != null && QuickSlot.HasSlot(slotIndex))
             {
-                QuickSlotController.Instance.SelectSlot(slotIndex);
+                QuickSlot.SelectSlot(slotIndex);
             }
             else
             {

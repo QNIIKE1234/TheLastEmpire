@@ -14,17 +14,7 @@ namespace TheLastEmpire
     /// </summary>
     public class QuickSlotController : MonoBehaviour
     {
-        public static QuickSlotController Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>(FindObjectsInactive.Include);
-                }
-                return _instance;
-            }
-        }
+        public static QuickSlotController Instance => _instance;
         private static QuickSlotController _instance;
 
         public const int MaxSlots = 5;
@@ -37,6 +27,13 @@ namespace TheLastEmpire
         [Tooltip("รายการ QuickSlotUIItem ทั้ง 5 ช่อง (ถ้าว่างจะ Auto-discover จาก QuickSlot_HUD)")]
         [SerializeField] private List<QuickSlotUIItem> slotItems = new List<QuickSlotUIItem>();
 
+        [Header("External References")]
+        [Tooltip("Reference ไปยัง PlayerController ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private PlayerController player;
+
+        [Tooltip("Reference ไปยัง PlayerInventory ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private PlayerInventory inventory;
+
         private string[] _slotItemNames = new string[MaxSlots];
         private int _activeSlotIndex = 0;
         private PlayerInventory _inventory;
@@ -44,10 +41,13 @@ namespace TheLastEmpire
 
         public int ActiveSlotIndex => _activeSlotIndex;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void OnSceneLoaded()
+        public void SetPlayer(PlayerController p, PlayerInventory inv = null)
         {
-            _instance = UnityEngine.Object.FindFirstObjectByType<QuickSlotController>(FindObjectsInactive.Include);
+            player = p;
+            _player = p;
+            inventory = inv != null ? inv : (p != null ? p.GetComponent<PlayerInventory>() : null);
+            _inventory = inventory;
+            HookPlayerReferences();
         }
 
         private void Awake()
@@ -99,7 +99,7 @@ namespace TheLastEmpire
         {
             if (_player == null)
             {
-                _player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                _player = player;
                 if (_player != null)
                 {
                     _player.OnAmmoChanged -= RefreshUI;
@@ -109,15 +109,7 @@ namespace TheLastEmpire
 
             if (_inventory == null)
             {
-                if (_player != null)
-                {
-                    _inventory = _player.GetComponent<PlayerInventory>();
-                }
-                else
-                {
-                    _inventory = UnityEngine.Object.FindFirstObjectByType<PlayerInventory>();
-                }
-
+                _inventory = inventory != null ? inventory : (_player != null ? _player.GetComponent<PlayerInventory>() : null);
                 if (_inventory != null)
                 {
                     _inventory.OnInventoryChanged -= RefreshUI;

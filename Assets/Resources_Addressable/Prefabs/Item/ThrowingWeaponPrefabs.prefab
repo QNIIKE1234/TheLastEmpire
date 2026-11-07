@@ -156,10 +156,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8be393a8a3685048b204518ee85a721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Projectile
+  visualEntries:
+  - id: Grenade
+    visualObject: {fileID: 4119309844532587486}
+  - id: Weapon_Grenade
+    visualObject: {fileID: 7340656506242641387}
+  - id: ITEM0008_Grenade
+    visualObject: {fileID: 4119309844532587486}
   speed: 15
   damage: 100
   decreseMulti: 0
-  lifetime: 0.15
+  lifetime: 3
   poolKey: ThrowingWeapon
   isExplosive: 1
   explosionRadius: 2.5
@@ -253,7 +260,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -0.192, z: 0}
-  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4184229865087500348}

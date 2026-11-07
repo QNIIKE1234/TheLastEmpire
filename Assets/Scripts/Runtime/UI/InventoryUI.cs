@@ -8,27 +8,23 @@ namespace TheLastEmpire
 {
     public class InventoryUI : MonoBehaviour, IPopUp
     {
-        public static InventoryUI Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = UnityEngine.Object.FindFirstObjectByType<InventoryUI>();
-                    if (_instance == null)
-                    {
-                        GameObject go = new GameObject("InventoryUIManager");
-                        _instance = go.AddComponent<InventoryUI>();
-                    }
-                }
-                return _instance;
-            }
-        }
+        public static InventoryUI Instance => _instance;
         private static InventoryUI _instance;
 
         [Header("UI Customization")]
         [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f);
         [SerializeField] private Color accentColor = new Color(0.95f, 0.75f, 0.2f, 1f);
+
+        [Header("External References")]
+        [Tooltip("Reference ไปยัง PlayerController ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private PlayerController player;
+
+        [Tooltip("Reference ไปยัง PlayerInventory ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private PlayerInventory playerInventory;
+
+        [Tooltip("Reference ไปยัง QuickSlotController ใน Scene (ตั้งค่าผ่าน Inspector หรือ Baker)")]
+        [SerializeField] private QuickSlotController quickSlotController;
+        public QuickSlotController QuickSlot => quickSlotController != null ? quickSlotController : QuickSlotController.Instance;
 
         [Header("UI References (Optional)")]
         [SerializeField] private GameObject inventoryPanel;
@@ -130,15 +126,15 @@ namespace TheLastEmpire
                 if (QuickSlotController.IsItemQuickSlotEligible(hoveredItem) && Keyboard.current != null)
                 {
                     if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
-                        QuickSlotController.Instance?.AssignSlot(0, hoveredItem);
+                        QuickSlot?.AssignSlot(0, hoveredItem);
                     else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
-                        QuickSlotController.Instance?.AssignSlot(1, hoveredItem);
+                        QuickSlot?.AssignSlot(1, hoveredItem);
                     else if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame)
-                        QuickSlotController.Instance?.AssignSlot(2, hoveredItem);
+                        QuickSlot?.AssignSlot(2, hoveredItem);
                     else if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame)
-                        QuickSlotController.Instance?.AssignSlot(3, hoveredItem);
+                        QuickSlot?.AssignSlot(3, hoveredItem);
                     else if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame)
-                        QuickSlotController.Instance?.AssignSlot(4, hoveredItem);
+                        QuickSlot?.AssignSlot(4, hoveredItem);
                 }
             }
         }
@@ -179,16 +175,36 @@ namespace TheLastEmpire
         //  Public API
         // =====================================================
 
+        public void SetReferences(PlayerController p, PlayerInventory inv = null, QuickSlotController qs = null)
+        {
+            player = p;
+            playerInventory = inv != null ? inv : (p != null ? p.GetComponent<PlayerInventory>() : null);
+            quickSlotController = qs;
+            _playerInventory = playerInventory;
+            if (_playerInventory != null)
+            {
+                _playerInventory.OnInventoryChanged -= RefreshUI;
+                _playerInventory.OnInventoryChanged += RefreshUI;
+            }
+        }
+
         private void FindInventory()
         {
             if (_playerInventory == null)
             {
-                PlayerController player = Object.FindFirstObjectByType<PlayerController>();
-                if (player != null)
+                if (playerInventory != null)
+                {
+                    _playerInventory = playerInventory;
+                }
+                else if (player != null)
                 {
                     _playerInventory = player.GetComponent<PlayerInventory>();
-                    if (_playerInventory != null)
-                        _playerInventory.OnInventoryChanged += RefreshUI;
+                }
+
+                if (_playerInventory != null)
+                {
+                    _playerInventory.OnInventoryChanged -= RefreshUI;
+                    _playerInventory.OnInventoryChanged += RefreshUI;
                 }
             }
         }
