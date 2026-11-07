@@ -116,6 +116,47 @@ namespace TheLastEmpire
                     }
                 }
             }
+
+            // Close when pressing E or Escape while LootUI is open
+            if (_isOpen && Time.frameCount > _justOpenedFrame)
+            {
+                bool closePressed = false;
+                if (UnityEngine.InputSystem.Keyboard.current != null)
+                {
+                    if (UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame || 
+                        UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+                    {
+                        closePressed = true;
+                    }
+                }
+#if ENABLE_LEGACY_INPUT_MANAGER
+                if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Escape))
+                {
+                    closePressed = true;
+                }
+#endif
+                if (closePressed)
+                {
+                    Close();
+                    return;
+                }
+
+                // Auto close if player walked away
+                if (_currentContainer != null)
+                {
+                    GameObject player = GameObject.FindGameObjectWithTag("Player");
+                    if (player != null)
+                    {
+                        float dist = Vector3.Distance(player.transform.position, _currentContainer.transform.position);
+                        float maxRadius = (_currentContainer.interactionRadius > 0f ? _currentContainer.interactionRadius : 2.5f) + 1.5f;
+                        if (dist > maxRadius)
+                        {
+                            Close();
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         private void ScanExistingSlots()
@@ -244,6 +285,10 @@ namespace TheLastEmpire
             if (_panelObject != null)
             {
                 _panelObject.SetActive(true);
+            }
+            if (_canvasObject != null && _canvasObject != _panelObject)
+            {
+                _canvasObject.SetActive(true);
             }
 
             if (PopUpManager.Instance != null) PopUpManager.Instance.Push(this);

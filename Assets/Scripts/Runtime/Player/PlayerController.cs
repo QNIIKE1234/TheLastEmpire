@@ -159,6 +159,9 @@ namespace TheLastEmpire
         private bool _isSprinting = false;
         public bool IsSprinting => _isSprinting;
 
+        private bool _isSitting = false;
+        public bool IsSitting => _isSitting;
+
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
         private float _fireBufferTimer = 0f;
@@ -497,6 +500,8 @@ namespace TheLastEmpire
 
             if (_animator != null)
             {
+                _isSitting = false;
+                _animator.SetBool("IsSitting", false);
                 _animator.SetFloat("Speed", 0f);
                 _animator.SetBool("IsRunning", false);
                 _animator.SetBool("IsDashing", false);
@@ -706,17 +711,74 @@ namespace TheLastEmpire
             }
 
             float moveMagnitude = _moveInput.magnitude;
+            if (_isSitting && moveMagnitude > 0.1f)
+            {
+                SetSitting(false);
+            }
             _animator.SetFloat("Speed", moveMagnitude);
             _animator.SetBool("IsRunning", _isSprinting && moveMagnitude > 0.1f);
-            _animator.SetBool("HasGun", CurrentWeapon != null);
+            _animator.SetBool("IsSitting", _isSitting);
+            _animator.SetBool("HasGun", CurrentWeapon != null && !_isSitting);
             if (_shootAnimLayerTimer > 0f) _shootAnimLayerTimer -= Time.deltaTime;
             if (_meleeAnimTimer > 0f) _meleeAnimTimer -= Time.deltaTime;
             if (_animator.layerCount > 1)
             {
-                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing;
+                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isSitting;
                 _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
             }
             _animator.SetBool("IsDashing", _isDashing);
+        }
+
+        public void ToggleSit()
+        {
+            SetSitting(!_isSitting);
+        }
+
+        public void SetSitting(bool sit)
+        {
+            if (_isSitting == sit) return;
+            _isSitting = sit;
+
+            if (_animator == null)
+                _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+
+            if (_isSitting)
+            {
+                _moveInput = Vector2.zero;
+                _isSprinting = false;
+                _shootAnimLayerTimer = 0f;
+                _meleeAnimTimer = 0f;
+                if (_rb != null) _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
+                if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                if (rangeWeapon != null) rangeWeapon.SetActive(false);
+                if (_animator != null)
+                {
+                    _animator.SetBool("IsSitting", true);
+                    _animator.SetFloat("Speed", 0f);
+                    _animator.SetBool("IsRunning", false);
+                    if (_animator.layerCount > 1)
+                    {
+                        _animator.SetLayerWeight(1, 0f);
+                        _animator.Play("UpperBody_Empty", 1, 0f);
+                    }
+                    _animator.CrossFadeInFixedTime("Sit", 0.18f, 0);
+                }
+            }
+            else
+            {
+                if (_animator != null)
+                {
+                    _animator.SetBool("IsSitting", false);
+                }
+                if (CurrentWeapon != null)
+                {
+                    ShowRangedWeaponVisual();
+                }
+                else if (CurrentMeleeWeapon != null)
+                {
+                    ShowMeleeWeaponVisual();
+                }
+            }
         }
 
         private void UpdateIndicators()
@@ -979,8 +1041,11 @@ namespace TheLastEmpire
                 if (direction.sqrMagnitude > 0.01f)
                 {
                     _aimDirection = direction;
-                    // Rotate the player to face aiming direction
-                    transform.forward = _aimDirection;
+                    // Rotate the player to face aiming direction (unless sitting)
+                    if (!_isSitting)
+                    {
+                        transform.forward = _aimDirection;
+                    }
                 }
             }
         }
@@ -994,6 +1059,7 @@ namespace TheLastEmpire
             if (Mouse.current != null)
             {
                 // Ignore attacks only if clicking over interactive UI elements (Buttons, Sliders, InputFields, Scrollbars)
+                bool hitInteractiveUI = false;
                 if (UnityEngine.EventSystems.EventSystem.current != null && 
                     UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
                 {
@@ -1004,7 +1070,6 @@ namespace TheLastEmpire
                     var results = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
                     UnityEngine.EventSystems.EventSystem.current.RaycastAll(pointerData, results);
 
-                    bool hitInteractiveUI = false;
                     foreach (var r in results)
                     {
                         if (r.gameObject != null && (
@@ -1015,31 +1080,33 @@ namespace TheLastEmpire
                             break;
                         }
                     }
-                    if (hitInteractiveUI) return;
                 }
 
-                // Buffer click input so rapid clicks or walking clicks near cooldown boundaries are never dropped
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (!hitInteractiveUI)
                 {
-                    _fireBufferTimer = 0.18f; // 180ms responsive buffer window
-                }
+                    // Buffer click input so rapid clicks or walking clicks near cooldown boundaries are never dropped
+                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                    {
+                        _fireBufferTimer = 0.18f; // 180ms responsive buffer window
+                    }
 
-                bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic;
-                bool wantToShoot = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
+                    bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic;
+                    bool wantToShoot = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
 
-                if (wantToShoot && _fireCooldownTimer <= 0f && _meleeAnimTimer <= 0f)
-                {
-                    _fireBufferTimer = 0f;
-                    ShootWeapon();
-                }
-                if (Mouse.current.rightButton.wasPressedThisFrame)
-                {
-                    _meleeBufferTimer = 0.22f;
-                }
-                if (_meleeBufferTimer > 0f && _meleeCooldownTimer <= 0f)
-                {
-                    _meleeBufferTimer = 0f;
-                    MeleeAttack();
+                    if (wantToShoot && _fireCooldownTimer <= 0f && _meleeAnimTimer <= 0f)
+                    {
+                        _fireBufferTimer = 0f;
+                        ShootWeapon();
+                    }
+                    if (Mouse.current.rightButton.wasPressedThisFrame)
+                    {
+                        _meleeBufferTimer = 0.22f;
+                    }
+                    if (_meleeBufferTimer > 0f && _meleeCooldownTimer <= 0f)
+                    {
+                        _meleeBufferTimer = 0f;
+                        MeleeAttack();
+                    }
                 }
 
                 // Scroll wheel weapon cycling
@@ -1086,6 +1153,10 @@ namespace TheLastEmpire
                 if (Keyboard.current.qKey.wasPressedThisFrame)
                 {
                     TryTalk();
+                }
+                if (Keyboard.current.zKey.wasPressedThisFrame && !_isDashing)
+                {
+                    ToggleSit();
                 }
             }
         }
@@ -1138,16 +1209,17 @@ namespace TheLastEmpire
 
         private void TryInteract()
         {
-            if (WorldMapManager.Instance == null) return;
-
-            // 1. Check if standing in any TransitionPortal trigger zone
-            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
-            foreach (TransitionPortal portal in portals)
+            // 1. Check if standing in any TransitionPortal trigger zone (only active if WorldMapManager exists)
+            if (WorldMapManager.Instance != null)
             {
-                if (portal != null && portal.IsPlayerInRange())
+                TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+                foreach (TransitionPortal portal in portals)
                 {
-                    portal.TriggerTransition(this);
-                    return; // successfully transitioned via portal, skip normal interactions!
+                    if (portal != null && portal.IsPlayerInRange())
+                    {
+                        portal.TriggerTransition(this);
+                        return; // successfully transitioned via portal, skip normal interactions!
+                    }
                 }
             }
 
@@ -1170,7 +1242,8 @@ namespace TheLastEmpire
             {
                 if (container == null) continue;
                 float dist = Vector3.Distance(transform.position, container.transform.position);
-                if (dist <= container.interactionRadius && dist < minContainerDist)
+                float radius = container.interactionRadius > 0f ? container.interactionRadius : 2.5f;
+                if (dist <= radius && dist < minContainerDist)
                 {
                     minContainerDist = dist;
                     closestContainer = container;
@@ -1179,7 +1252,8 @@ namespace TheLastEmpire
             if (closestContainer != null)
             {
                 PlayerInventory inv = GetComponent<PlayerInventory>();
-                if (inv != null && LootUI.Instance != null)
+                if (inv == null) inv = _inventory;
+                if (LootUI.Instance != null && inv != null)
                 {
                     LootUI.Instance.Open(closestContainer, inv);
                     return; // Opened Loot UI, skip other interactions!
@@ -1225,6 +1299,7 @@ namespace TheLastEmpire
 
         private void ShootWeapon()
         {
+            if (_isSitting) SetSitting(false);
             ShowRangedWeaponVisual();
             TriggerCombatState();
             if (_isReloading) return;
@@ -1451,6 +1526,7 @@ namespace TheLastEmpire
 
         private void MeleeAttack()
         {
+            if (_isSitting) SetSitting(false);
             ShowMeleeWeaponVisual();
             TriggerCombatState();
             MeleeWeapon activeMelee = CurrentMeleeWeapon;
@@ -1627,6 +1703,7 @@ namespace TheLastEmpire
 
         private void StartDash()
         {
+            if (_isSitting) SetSitting(false);
             _isDashing = true;
             _dashTimer = dashDuration;
             _dashCooldownTimer = dashCooldown;
@@ -2865,7 +2942,8 @@ namespace TheLastEmpire
             {
                 if (container == null) continue;
                 float dist = Vector3.Distance(transform.position, container.transform.position);
-                if (dist <= container.interactionRadius && dist < minContainerDist)
+                float radius = container.interactionRadius > 0f ? container.interactionRadius : 2.5f;
+                if (dist <= radius && dist < minContainerDist)
                 {
                     minContainerDist = dist;
                     closestContainer = container;

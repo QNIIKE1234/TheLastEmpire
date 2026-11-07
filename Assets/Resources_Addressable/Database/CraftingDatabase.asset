@@ -1,0 +1,1563 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4a8e910f2b347d19a85c6d7e201f3b4, type: 3}
+  m_Name: CraftingDatabase
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.CraftingDatabase
+  recipes:
+  - recipeId: CRAFT0001
+    recipeName: Wooden Floor Foundation
+    category: 0
+    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItemName: Wooden Floor Foundation
+    resultAmount: 1
+    description: Basic wooden floor foundation for building survivor shelters.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 6
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 2
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 1
+  - recipeId: CRAFT0002
+    recipeName: Wooden Wall Panel
+    category: 0
+    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItemName: Wooden Wall Panel
+    resultAmount: 1
+    description: Sturdy timber wall panel reinforced with nails and plant fiber.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 8
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 3
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 4
+  - recipeId: CRAFT0003
+    recipeName: Wooden Window Wall
+    category: 0
+    resultItem: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+    resultItemName: Wooden Window Wall
+    resultAmount: 1
+    description: Wooden wall section with a salvaged glass window slot for firing and visibility.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 6
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 3
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 2
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 1
+  - recipeId: CRAFT0004
+    recipeName: Reinforced Wooden Door
+    category: 0
+    resultItem: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+    resultItemName: Reinforced Wooden Door
+    resultAmount: 1
+    description: Lockable survivor door with spring hinges and scrap metal plating.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 6
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 4
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 1
+  - recipeId: CRAFT0005
+    recipeName: Stone & Brick Wall
+    category: 0
+    resultItem: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+    resultItemName: Stone & Brick Wall
+    resultAmount: 1
+    description: Heavy masonry wall built from rough stone, ceramic shards, and resin mortar.
+    ingredients:
+    - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+      itemName: Rough Stone
+      amount: 10
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 4
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 2
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 2
+  - recipeId: CRAFT0006
+    recipeName: Scrap Metal Wall
+    category: 0
+    resultItem: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    resultItemName: Scrap Metal Wall
+    resultAmount: 1
+    description: Corrugated scrap metal wall braced with steel pipes.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 6
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 3
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 4
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 2
+  - recipeId: CRAFT0007
+    recipeName: Armored Titanium Wall
+    category: 0
+    resultItem: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    resultItemName: Armored Titanium Wall
+    resultAmount: 1
+    description: Military-grade titanium bunker wall capable of withstanding boss attacks.
+    ingredients:
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 4
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 6
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 3
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 4
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 2
+  - recipeId: CRAFT0008
+    recipeName: Motorized Blast Door
+    category: 0
+    resultItem: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+    resultItemName: Motorized Blast Door
+    resultAmount: 1
+    description: Automated heavy bunker door powered by overdrive servos and logic chips.
+    ingredients:
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 5
+    - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+      itemName: Military Overdrive Servo
+      amount: 2
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 4
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 2
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 3
+  - recipeId: CRAFT0009
+    recipeName: Survivor Campfire
+    category: 1
+    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItemName: Survivor Campfire
+    resultAmount: 1
+    description: Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z).
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 5
+    - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+      itemName: Rough Stone
+      amount: 6
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 4
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 2
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 1
+  - recipeId: CRAFT0010
+    recipeName: Survivor Workbench
+    category: 1
+    resultItem: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    resultItemName: Survivor Workbench
+    resultAmount: 1
+    description: Crafting station equipped with tools for assembling weapons and base structures.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 8
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 4
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 2
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 4
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 2
+  - recipeId: CRAFT0011
+    recipeName: Wooden Storage Crate
+    category: 1
+    resultItem: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+    resultItemName: Wooden Storage Crate
+    resultAmount: 1
+    description: Reinforced wooden chest for storing extra weapons, ammo, and crafting materials.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 6
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 3
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 2
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 1
+  - recipeId: CRAFT0012
+    recipeName: Water Purifier Station
+    category: 1
+    resultItem: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+    resultItemName: Water Purifier Station
+    resultAmount: 1
+    description: Filtration rig that distills contaminated water into clean drinking water.
+    ingredients:
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 2
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 3
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 4
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 2
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 2
+  - recipeId: CRAFT0013
+    recipeName: Survivor Sleeping Bedroll
+    category: 1
+    resultItem: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+    resultItemName: Survivor Sleeping Bedroll
+    resultAmount: 1
+    description: Insulated leather and cloth bedroll for resting and setting your respawn point.
+    ingredients:
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 5
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 6
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 8
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 2
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 1
+  - recipeId: CRAFT0014
+    recipeName: Sanity Beacon Lantern
+    category: 1
+    resultItem: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+    resultItemName: Sanity Beacon Lantern
+    resultAmount: 1
+    description: Warm high-power camp lamp that wards off darkness and restores Sanity in a wide zone.
+    ingredients:
+    - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+      itemName: High-Capacity Capacitor
+      amount: 2
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 3
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 2
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 2
+    - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+      itemName: Refined Fuel Can
+      amount: 1
+  - recipeId: CRAFT0015
+    recipeName: Compact Fusion Generator
+    category: 1
+    resultItem: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+    resultItemName: Compact Fusion Generator
+    resultAmount: 1
+    description: High-output reactor station that powers base defenses and advanced workbenches.
+    ingredients:
+    - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+      itemName: Miniature Fusion Reactor
+      amount: 1
+    - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+      itemName: Advanced Neural Processor
+      amount: 1
+    - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+      itemName: High-Capacity Capacitor
+      amount: 3
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 3
+    - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+      itemName: Torn Copper Wiring
+      amount: 5
+  - recipeId: CRAFT0016
+    recipeName: Wooden Spike Barricade
+    category: 2
+    resultItem: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+    resultItemName: Wooden Spike Barricade
+    resultAmount: 1
+    description: Defensive timber barricade lined with sharpened bone claws to impale zombies.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 6
+    - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+      itemName: Rotten Bone Claw
+      amount: 4
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 2
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 3
+  - recipeId: CRAFT0017
+    recipeName: Razor Wire Barricade
+    category: 2
+    resultItem: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+    resultItemName: Razor Wire Barricade
+    resultAmount: 1
+    description: Entangling copper and steel wire barrier studded with infected fangs.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 3
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 4
+    - item: {fileID: 11400000, guid: 95cc56183ae9bac443361e89b13a6948, type: 2}
+      itemName: Decayed Infected Fang
+      amount: 5
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 4
+  - recipeId: CRAFT0018
+    recipeName: Chitin Carapace Wall
+    category: 2
+    resultItem: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+    resultItemName: Chitin Carapace Wall
+    resultAmount: 1
+    description: Acid-resistant defensive wall plated with alien chitin and hardened spine segments.
+    ingredients:
+    - item: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+      itemName: Chitin Carapace Shard
+      amount: 6
+    - item: {fileID: 11400000, guid: 6e839f29d0cdee40c85d6cbe13db9710, type: 2}
+      itemName: Hardened Spine Segment
+      amount: 3
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 4
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 3
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 2
+  - recipeId: CRAFT0019
+    recipeName: Snap-Jaw Bear Trap
+    category: 2
+    resultItem: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+    resultItemName: Snap-Jaw Bear Trap
+    resultAmount: 1
+    description: Heavy spring-loaded floor trap that immobilizes and bleeds approaching enemies.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 3
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 3
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 2
+    - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+      itemName: Rotten Bone Claw
+      amount: 3
+  - recipeId: CRAFT0020
+    recipeName: Corrosive Bile Landmine
+    category: 2
+    resultItem: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
+    resultItemName: Corrosive Bile Landmine
+    resultAmount: 1
+    description: Proximity mine packed with toxic bile and alien acid blood.
+    ingredients:
+    - item: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
+      itemName: Toxic Bile Sac
+      amount: 2
+    - item: {fileID: 11400000, guid: aab770a039b211079208af11f57b2977, type: 2}
+      itemName: Phosphorescent Acid Blood
+      amount: 2
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 3
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 1
+  - recipeId: CRAFT0021
+    recipeName: Automated Sentry Turret
+    category: 2
+    resultItem: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+    resultItemName: Automated Sentry Turret
+    resultAmount: 1
+    description: AI-controlled perimeter turret that automatically targets hostile enemies.
+    ingredients:
+    - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+      itemName: Advanced Neural Processor
+      amount: 1
+    - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+      itemName: Military Overdrive Servo
+      amount: 2
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 3
+    - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+      itemName: High-Capacity Capacitor
+      amount: 2
+    - item: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
+      itemName: Rifle Ammo
+      amount: 30
+  - recipeId: CRAFT0022
+    recipeName: Xenocrystal Shock Tower
+    category: 2
+    resultItem: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+    resultItemName: Xenocrystal Shock Tower
+    resultAmount: 1
+    description: High-voltage alien defense pylon that chains bio-plasma lightning across hordes.
+    ingredients:
+    - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
+      itemName: Bio-Plasma Sac
+      amount: 2
+    - item: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+      itemName: Overlord Xenocrystal Core
+      amount: 1
+    - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+      itemName: Miniature Fusion Reactor
+      amount: 1
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 3
+    - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+      itemName: Torn Copper Wiring
+      amount: 4
+  - recipeId: CRAFT0023
+    recipeName: Knife
+    category: 3
+    resultItem: {fileID: 11400000, guid: 95fd6585d752e0e48a8b8282112c8499, type: 2}
+    resultItemName: Knife
+    resultAmount: 1
+    description: Fast survival combat knife crafted from sharpened scrap metal.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 10
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 10
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 10
+  - recipeId: CRAFT0024
+    recipeName: Baseball Bat
+    category: 3
+    resultItem: {fileID: 11400000, guid: 4fbfbb77ec0c8434eb190b26b727c30f, type: 2}
+    resultItemName: Baseball Bat
+    resultAmount: 1
+    description: Heavy hardwood bat reinforced with nails and leather grip.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 30
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 20
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 10
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 10
+  - recipeId: CRAFT0025
+    recipeName: Survival Spear
+    category: 3
+    resultItem: {fileID: 11400000, guid: 937a7e48effd46a69cfceabc42e91264, type: 2}
+    resultItemName: Survival Spear
+    resultAmount: 1
+    description: Long-reach polearm tipped with a combat knife and bone claws.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 30
+    - item: {fileID: 11400000, guid: 95fd6585d752e0e48a8b8282112c8499, type: 2}
+      itemName: Knife
+      amount: 1
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 20
+    - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+      itemName: Rotten Bone Claw
+      amount: 20
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 10
+  - recipeId: CRAFT0026
+    recipeName: Machete
+    category: 3
+    resultItem: {fileID: 11400000, guid: 2f87ac0e0ad096546b98c7063f7f4e13, type: 2}
+    resultItemName: Machete
+    resultAmount: 1
+    description: Heavy cleaving blade serrated with decayed infected fangs.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 30
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 10
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 20
+    - item: {fileID: 11400000, guid: 95cc56183ae9bac443361e89b13a6948, type: 2}
+      itemName: Decayed Infected Fang
+      amount: 30
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 10
+  - recipeId: CRAFT0027
+    recipeName: Fire Axe
+    category: 3
+    resultItem: {fileID: 11400000, guid: 2b8b6fb77fb248bb9e70317e50ea6777, type: 2}
+    resultItemName: Fire Axe
+    resultAmount: 1
+    description: High-impact rescue axe reinforced with hardened spine segments.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 40
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 20
+    - item: {fileID: 11400000, guid: 6e839f29d0cdee40c85d6cbe13db9710, type: 2}
+      itemName: Hardened Spine Segment
+      amount: 2
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 20
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 10
+  - recipeId: CRAFT0028
+    recipeName: Sledgehammer
+    category: 3
+    resultItem: {fileID: 11400000, guid: d6ab827423dd4d4eac4dbe6fbc494216, type: 2}
+    resultItemName: Sledgehammer
+    resultAmount: 1
+    description: Crushing two-handed hammer built from steel pipe and hydraulic piston bolts.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 20
+    - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+      itemName: Rough Stone
+      amount: 50
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 40
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 20
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 20
+  - recipeId: CRAFT0029
+    recipeName: Katana
+    category: 3
+    resultItem: {fileID: 11400000, guid: fbc7773ce3004d9384a2a397832820b7, type: 2}
+    resultItemName: Katana
+    resultAmount: 1
+    description: Razor-sharp titanium blade forged with alien chitin and prismatic stingers.
+    ingredients:
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: 4f4973cc90fd6a7aef8b9753dbd1e5b6, type: 2}
+      itemName: Prismatic Stinger
+      amount: 2
+    - item: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+      itemName: Chitin Carapace Shard
+      amount: 30
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 20
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 20
+  - recipeId: CRAFT0030
+    recipeName: Stun Baton
+    category: 3
+    resultItem: {fileID: 11400000, guid: ef37c829a98648b68123793cf4176320, type: 2}
+    resultItemName: Stun Baton
+    resultAmount: 1
+    description: Electrified riot baton powered by high-capacity capacitors.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 20
+    - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+      itemName: High-Capacity Capacitor
+      amount: 2
+    - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+      itemName: Torn Copper Wiring
+      amount: 30
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 1
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 20
+  - recipeId: CRAFT0031
+    recipeName: Chainsaw
+    category: 3
+    resultItem: {fileID: 11400000, guid: 5b121d0431f244aaa3690940750aaad4, type: 2}
+    resultItemName: Chainsaw
+    resultAmount: 1
+    description: Motorized ripper powered by an overdrive servo and refined fuel.
+    ingredients:
+    - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+      itemName: Military Overdrive Servo
+      amount: 1
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 30
+    - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
+      itemName: Synthetic Machine Oil
+      amount: 20
+    - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+      itemName: Refined Fuel Can
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 40
+  - recipeId: CRAFT0032
+    recipeName: Crossbow
+    category: 3
+    resultItem: {fileID: 11400000, guid: 367b81fe3d09402e9ff9715e12f7896a, type: 2}
+    resultItemName: Crossbow
+    resultAmount: 1
+    description: Silent precision launcher strung with high-tension xeno nerve tendrils.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 40
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 20
+    - item: {fileID: 11400000, guid: 39b522640cb26b796486211cfd3ae028, type: 2}
+      itemName: Xeno Nerve Tendril
+      amount: 20
+    - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+      itemName: Sturdy Rope
+      amount: 20
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 20
+  - recipeId: CRAFT0033
+    recipeName: Pistol
+    category: 3
+    resultItem: {fileID: 11400000, guid: 4392ef4321caffa4baeea2bb0ddb9dd0, type: 2}
+    resultItemName: Pistol
+    resultAmount: 1
+    description: Reliable semi-automatic 9mm sidearm assembled from salvaged gun parts.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 10
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 20
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 20
+    - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
+      itemName: Synthetic Machine Oil
+      amount: 10
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 10
+  - recipeId: CRAFT0034
+    recipeName: Revolver
+    category: 3
+    resultItem: {fileID: 11400000, guid: 0156f235935a4cbe810c0209e37a4e75, type: 2}
+    resultItemName: Revolver
+    resultAmount: 1
+    description: High-caliber six-shooter with heavy stopping power.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 30
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 20
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 20
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 10
+  - recipeId: CRAFT0035
+    recipeName: Shotgun
+    category: 3
+    resultItem: {fileID: 11400000, guid: 994b8a468fb719744bf6cb1e0d620037, type: 2}
+    resultItemName: Shotgun
+    resultAmount: 1
+    description: Close-quarters pump shotgun that fires wide buckshot spreads.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 30
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 40
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 20
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 20
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 20
+  - recipeId: CRAFT0036
+    recipeName: SMG
+    category: 3
+    resultItem: {fileID: 11400000, guid: 27aeb4710cfe4359ad2edcaeeaf74dab, type: 2}
+    resultItemName: SMG
+    resultAmount: 1
+    description: Rapid-fire submachine gun with stabilized recoil.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 30
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 30
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 1
+    - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
+      itemName: Synthetic Machine Oil
+      amount: 20
+  - recipeId: CRAFT0037
+    recipeName: Rifle
+    category: 3
+    resultItem: {fileID: 11400000, guid: 29748bd8c38e2734e9a328da32e89353, type: 2}
+    resultItemName: Rifle
+    resultAmount: 1
+    description: Automatic assault rifle built with reinforced titanium receiver plates.
+    ingredients:
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 30
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 30
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 20
+    - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
+      itemName: Synthetic Machine Oil
+      amount: 20
+  - recipeId: CRAFT0038
+    recipeName: Sniper Rifle
+    category: 3
+    resultItem: {fileID: 11400000, guid: 56b668d5a62c4cdf91e1f82e00e206f6, type: 2}
+    resultItemName: Sniper Rifle
+    resultAmount: 1
+    description: Long-range precision rifle with optical glass scope and neural stabilizer.
+    ingredients:
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 3
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 30
+    - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+      itemName: Advanced Neural Processor
+      amount: 1
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 20
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 20
+  - recipeId: CRAFT0039
+    recipeName: Flamethrower
+    category: 3
+    resultItem: {fileID: 11400000, guid: e448b9ce40024846b2fce004f8d6ab08, type: 2}
+    resultItemName: Flamethrower
+    resultAmount: 1
+    description: Heavy incendiary projector fueled by refined gasoline and bio-plasma.
+    ingredients:
+    - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+      itemName: Refined Fuel Can
+      amount: 30
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 30
+    - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
+      itemName: Bio-Plasma Sac
+      amount: 1
+    - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+      itemName: Hydraulic Piston Bolt
+      amount: 20
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 30
+  - recipeId: CRAFT0040
+    recipeName: Rocket Launcher
+    category: 3
+    resultItem: {fileID: 11400000, guid: 932483d85c764320b9bded3bae727763, type: 2}
+    resultItemName: Rocket Launcher
+    resultAmount: 1
+    description: Devastating anti-boss ordnance launcher with gravitational guidance.
+    ingredients:
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 4
+    - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+      itemName: Miniature Fusion Reactor
+      amount: 1
+    - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+      itemName: Advanced Neural Processor
+      amount: 1
+    - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+      itemName: Military Overdrive Servo
+      amount: 2
+    - item: {fileID: 11400000, guid: 21107c27d04dedbcb16e61806a8477f7, type: 2}
+      itemName: Gravitational Bio-Organ
+      amount: 1
+  - recipeId: CRAFT0041
+    recipeName: Grenade
+    category: 3
+    resultItem: {fileID: 11400000, guid: 8cd6bf53ca51ce645bdb64adeac82f78, type: 2}
+    resultItemName: Grenade
+    resultAmount: 2
+    description: Fragmentation explosive packed with gunpowder and ceramic shrapnel.
+    ingredients:
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 20
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 20
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 30
+    - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+      itemName: Spring Steel Coil
+      amount: 10
+  - recipeId: CRAFT0042
+    recipeName: Pistol Ammo
+    category: 3
+    resultItem: {fileID: 11400000, guid: 6e078f72ffab7514bb76c21f650d3e3b, type: 2}
+    resultItemName: Pistol Ammo
+    resultAmount: 15
+    description: Crafts a 15-round batch of standard pistol ammunition.
+    ingredients:
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 10
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 10
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 10
+  - recipeId: CRAFT0043
+    recipeName: Shotgun Ammo
+    category: 3
+    resultItem: {fileID: 11400000, guid: 21a4f829c774b544891f32b6bb9e1751, type: 2}
+    resultItemName: Shotgun Ammo
+    resultAmount: 10
+    description: Crafts 10 shells of 12-gauge buckshot ammunition.
+    ingredients:
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 10
+    - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+      itemName: Box of Nails
+      amount: 20
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 20
+  - recipeId: CRAFT0044
+    recipeName: Rifle Ammo
+    category: 3
+    resultItem: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
+    resultItemName: Rifle Ammo
+    resultAmount: 20
+    description: Crafts 20 rounds of high-velocity rifle ammunition.
+    ingredients:
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 20
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 20
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 10
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 10
+  - recipeId: CRAFT0045
+    recipeName: Heavy Ammo
+    category: 3
+    resultItem: {fileID: 11400000, guid: 09c29e7b085f4374a38c65f3133b0e88, type: 2}
+    resultItemName: Heavy Ammo
+    resultAmount: 8
+    description: Crafts 8 heavy rounds/fuel charges for Flamethrower and Rocket Launcher.
+    ingredients:
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 30
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 1
+    - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+      itemName: Refined Fuel Can
+      amount: 10
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 20
+  - recipeId: CRAFT0046
+    recipeName: Bolts
+    category: 3
+    resultItem: {fileID: 11400000, guid: d8bcac8c8b914302b655e905f951abbe, type: 2}
+    resultItemName: Bolts
+    resultAmount: 12
+    description: Crafts 12 balanced crossbow bolts tipped with ceramic and bone.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 20
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 20
+    - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+      itemName: Rotten Bone Claw
+      amount: 20
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 20
+  - recipeId: CRAFT0047
+    recipeName: Bandage
+    category: 4
+    resultItem: {fileID: 11400000, guid: 0474284a0f7c41759bf6f9bbfffcd5e2, type: 2}
+    resultItemName: Bandage
+    resultAmount: 2
+    description: Sterilized cloth dressing for stopping bleeding and restoring HP.
+    ingredients:
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 3
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 2
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+  - recipeId: CRAFT0048
+    recipeName: Potion
+    category: 4
+    resultItem: {fileID: 11400000, guid: 99259f2e874f60343bc28d427eb691cb, type: 2}
+    resultItemName: Potion
+    resultAmount: 1
+    description: Concentrated restorative tonic distilled from herbs and purified ichor.
+    ingredients:
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 3
+    - item: {fileID: 11400000, guid: 71dd317db511f229a866223a24bb4258, type: 2}
+      itemName: Tainted Ichor Vial
+      amount: 1
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1
+  - recipeId: CRAFT0049
+    recipeName: First Aid Kit
+    category: 4
+    resultItem: {fileID: 11400000, guid: 517bae9a5ddb4522ad3256572a318f6a, type: 2}
+    resultItemName: First Aid Kit
+    resultAmount: 1
+    description: Complete field medical kit that restores a large amount of health.
+    ingredients:
+    - item: {fileID: 11400000, guid: 0474284a0f7c41759bf6f9bbfffcd5e2, type: 2}
+      itemName: Bandage
+      amount: 2
+    - item: {fileID: 11400000, guid: 99259f2e874f60343bc28d427eb691cb, type: 2}
+      itemName: Potion
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+    - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+      itemName: Scrap Leather
+      amount: 1
+    - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+      itemName: Duct Tape
+      amount: 1
+  - recipeId: CRAFT0050
+    recipeName: Adrenaline Shot
+    category: 4
+    resultItem: {fileID: 11400000, guid: c33302859d1f46628b64be3284327d23, type: 2}
+    resultItemName: Adrenaline Shot
+    resultAmount: 1
+    description: Emergency combat injector synthesized from virus strains and xeno venom.
+    ingredients:
+    - item: {fileID: 11400000, guid: 893a1c00ae710b0552979c5ae4dcd541, type: 2}
+      itemName: Concentrated Virus Strain
+      amount: 1
+    - item: {fileID: 11400000, guid: 71dd317db511f229a866223a24bb4258, type: 2}
+      itemName: Tainted Ichor Vial
+      amount: 2
+    - item: {fileID: 11400000, guid: 4f4973cc90fd6a7aef8b9753dbd1e5b6, type: 2}
+      itemName: Prismatic Stinger
+      amount: 1
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+  - recipeId: CRAFT0051
+    recipeName: Bread
+    category: 4
+    resultItem: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
+    resultItemName: Bread
+    resultAmount: 2
+    description: Baked survivor flatbread made from ground plant fiber and filtered water.
+    ingredients:
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 4
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1
+  - recipeId: CRAFT0052
+    recipeName: Cooked Meat
+    category: 4
+    resultItem: {fileID: 11400000, guid: 2f5aa5e0ab314f89be7b2d4a7a672a82, type: 2}
+    resultItemName: Cooked Meat
+    resultAmount: 1
+    description: Flame-roasted meat purified with charcoal heat and clean water.
+    ingredients:
+    - item: {fileID: 11400000, guid: c01d51d8583a450fc6c85fbd5c27bc15, type: 2}
+      itemName: Contaminated Flesh
+      amount: 2
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 2
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+  - recipeId: CRAFT0053
+    recipeName: Canned Food
+    category: 4
+    resultItem: {fileID: 11400000, guid: 222f30f19aa445ab99ba63e95e7764e0, type: 2}
+    resultItemName: Canned Food
+    resultAmount: 1
+    description: Preserved ration tin packed with cooked meat and herbs.
+    ingredients:
+    - item: {fileID: 11400000, guid: 2f5aa5e0ab314f89be7b2d4a7a672a82, type: 2}
+      itemName: Cooked Meat
+      amount: 1
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 1
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 2
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1
+  - recipeId: CRAFT0054
+    recipeName: Energy Bar
+    category: 4
+    resultItem: {fileID: 11400000, guid: cc190728f5674b67a51afeb3a29c53f7, type: 2}
+    resultItemName: Energy Bar
+    resultAmount: 2
+    description: High-calorie survival bar that restores both health and Sanity.
+    ingredients:
+    - item: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
+      itemName: Bread
+      amount: 1
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 3
+    - item: {fileID: 11400000, guid: 6b84a587c25be99cd246bb4595b6ca12, type: 2}
+      itemName: Cracked Alien Spore Husk
+      amount: 1
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 1
+  - recipeId: CRAFT0055
+    recipeName: Hot Black Coffee
+    category: 4
+    resultItem: {fileID: 11400000, guid: 5bec8bfe0b3551b6b5d650db983c2f1d, type: 2}
+    resultItemName: Hot Black Coffee
+    resultAmount: 1
+    description: Freshly brewed hot coffee that clears the mind and restores Sanity.
+    ingredients:
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 2
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 2
+  - recipeId: CRAFT0056
+    recipeName: Herbal Calming Tea
+    category: 4
+    resultItem: {fileID: 11400000, guid: 26b0a1a06da45c91b81bde61afc9e69c, type: 2}
+    resultItemName: Herbal Calming Tea
+    resultAmount: 1
+    description: Warm aromatic herbal infusion that relieves stress and restores Sanity.
+    ingredients:
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 4
+    - item: {fileID: 11400000, guid: 6b84a587c25be99cd246bb4595b6ca12, type: 2}
+      itemName: Cracked Alien Spore Husk
+      amount: 1
+  - recipeId: CRAFT0057
+    recipeName: Pack of Cigarettes
+    category: 4
+    resultItem: {fileID: 11400000, guid: 35c7890337a75ee39e36355994ee829a, type: 2}
+    resultItemName: Pack of Cigarettes
+    resultAmount: 1
+    description: Hand-rolled dried leaf cigarettes for calming nerves in the apocalypse.
+    ingredients:
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 5
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 1
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 1
+  - recipeId: CRAFT0058
+    recipeName: Anti-Panic Sedatives
+    category: 4
+    resultItem: {fileID: 11400000, guid: c2948ab0e41b5484a7045e53e51fae7e, type: 2}
+    resultItemName: Anti-Panic Sedatives
+    resultAmount: 1
+    description: Potent pharmaceutical sedatives that rapidly restore depleted Sanity.
+    ingredients:
+    - item: {fileID: 11400000, guid: 55edfcb65aa0261e977537bb4910a768, type: 2}
+      itemName: Psionic Resonator Gland
+      amount: 1
+    - item: {fileID: 11400000, guid: 71dd317db511f229a866223a24bb4258, type: 2}
+      itemName: Tainted Ichor Vial
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+  - recipeId: CRAFT0059
+    recipeName: Sturdy Rope
+    category: 5
+    resultItem: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+    resultItemName: Sturdy Rope
+    resultAmount: 2
+    description: Braided survival rope woven from plant fibers and cloth strips.
+    ingredients:
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 4
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 2
+  - recipeId: CRAFT0060
+    recipeName: Charcoal Lump
+    category: 5
+    resultItem: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+    resultItemName: Charcoal Lump
+    resultAmount: 3
+    description: Kiln-charred wood logs used for fuel, filters, and gunpowder.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 2
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 2
+  - recipeId: CRAFT0061
+    recipeName: Gunpowder Mix
+    category: 5
+    resultItem: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+    resultItemName: Gunpowder Mix
+    resultAmount: 2
+    description: Explosive black powder ground from sulfur, charcoal, and ceramic.
+    ingredients:
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 2
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 2
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 1
+  - recipeId: CRAFT0062
+    recipeName: Box of Nails
+    category: 5
+    resultItem: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+    resultItemName: Box of Nails
+    resultAmount: 2
+    description: Forged construction nails cut from scrap metal plates.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1
+  - recipeId: CRAFT0063
+    recipeName: Duct Tape
+    category: 5
+    resultItem: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+    resultItemName: Duct Tape
+    resultAmount: 2
+    description: Heavy-duty adhesive tape made from rubber strips, cloth, and glue.
+    ingredients:
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 2
+    - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+      itemName: Industrial Glue
+      amount: 1
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 2
+  - recipeId: CRAFT0064
+    recipeName: Industrial Glue
+    category: 5
+    resultItem: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+    resultItemName: Industrial Glue
+    resultAmount: 2
+    description: Strong chemical bonding agent refined from hardened resin and bile.
+    ingredients:
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 2
+    - item: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
+      itemName: Toxic Bile Sac
+      amount: 1
+    - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+      itemName: Clean Water Filter
+      amount: 1
+  - recipeId: CRAFT0065
+    recipeName: Refined Fuel Can
+    category: 5
+    resultItem: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+    resultItemName: Refined Fuel Can
+    resultAmount: 1
+    description: Volatile liquid fuel distilled from synthetic machine oil and bio-plasma.
+    ingredients:
+    - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
+      itemName: Synthetic Machine Oil
+      amount: 2
+    - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
+      itemName: Bio-Plasma Sac
+      amount: 1
+    - item: {fileID: 11400000, guid: e06abf3b26ba51e496b927d77ad10358, type: 2}
+      itemName: Sulfur Powder
+      amount: 2
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 1
+  - recipeId: CRAFT0066
+    recipeName: Clean Water Filter
+    category: 5
+    resultItem: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+    resultItemName: Clean Water Filter
+    resultAmount: 1
+    description: Activated charcoal water filter for purifying contaminated liquids.
+    ingredients:
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 3
+    - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+      itemName: Clean Glass Bottle
+      amount: 1
+    - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
+      itemName: Torn Infected Cloth
+      amount: 2
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 2
+  - recipeId: CRAFT0067
+    recipeName: Copper Wire Spool
+    category: 5
+    resultItem: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+    resultItemName: Copper Wire Spool
+    resultAmount: 2
+    description: Insulated copper wiring salvaged and wound onto a clean spool.
+    ingredients:
+    - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+      itemName: Torn Copper Wiring
+      amount: 3
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 1
+    - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+      itemName: Scrap Steel Pipe
+      amount: 1
+  - recipeId: CRAFT0068
+    recipeName: Nostalgic Cassette Tape
+    category: 6
+    resultItem: {fileID: 11400000, guid: 051f9cb7a337585080a03919fb0a8e71, type: 2}
+    resultItemName: Nostalgic Cassette Tape
+    resultAmount: 1
+    description: Restored music cassette imbued with soothing psionic resonance.
+    ingredients:
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 1
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 2
+    - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+      itemName: Rubber Strips
+      amount: 1
+    - item: {fileID: 11400000, guid: 55edfcb65aa0261e977537bb4910a768, type: 2}
+      itemName: Psionic Resonator Gland
+      amount: 1
+  - recipeId: CRAFT0069
+    recipeName: Reinforced Titanium Plate
+    category: 6
+    resultItem: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    resultItemName: Reinforced Titanium Plate
+    resultAmount: 1
+    description: Composite alloy armor plate fused with alien chitin carapace.
+    ingredients:
+    - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+      itemName: Scrap Metal Plate
+      amount: 4
+    - item: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+      itemName: Chitin Carapace Shard
+      amount: 2
+    - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+      itemName: Hardened Resin
+      amount: 2
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 2
+  - recipeId: CRAFT0070
+    recipeName: High-Capacity Capacitor
+    category: 6
+    resultItem: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+    resultItemName: High-Capacity Capacitor
+    resultAmount: 1
+    description: Bio-electric storage cell filled with phosphorescent acid electrolyte.
+    ingredients:
+    - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+      itemName: Torn Copper Wiring
+      amount: 3
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 2
+    - item: {fileID: 11400000, guid: aab770a039b211079208af11f57b2977, type: 2}
+      itemName: Phosphorescent Acid Blood
+      amount: 1
+    - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+      itemName: Ceramic Shard
+      amount: 2
+  - recipeId: CRAFT0071
+    recipeName: Advanced Neural Processor
+    category: 6
+    resultItem: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+    resultItemName: Advanced Neural Processor
+    resultAmount: 1
+    description: Hybrid cybernetic CPU bridging logic chips with xeno nerve tendrils.
+    ingredients:
+    - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+      itemName: Basic Logic Chip
+      amount: 3
+    - item: {fileID: 11400000, guid: 39b522640cb26b796486211cfd3ae028, type: 2}
+      itemName: Xeno Nerve Tendril
+      amount: 2
+    - item: {fileID: 11400000, guid: 55edfcb65aa0261e977537bb4910a768, type: 2}
+      itemName: Psionic Resonator Gland
+      amount: 1
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 2
+  - recipeId: CRAFT0072
+    recipeName: Miniature Fusion Reactor
+    category: 6
+    resultItem: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+    resultItemName: Miniature Fusion Reactor
+    resultAmount: 1
+    description: Compact magnetic-confinement core energized by an Overlord Xenocrystal.
+    ingredients:
+    - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+      itemName: High-Capacity Capacitor
+      amount: 3
+    - item: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+      itemName: Overlord Xenocrystal Core
+      amount: 1
+    - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
+      itemName: Bio-Plasma Sac
+      amount: 2
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 2
+    - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
+      itemName: Refined Fuel Can
+      amount: 2
+  - recipeId: CRAFT0073
+    recipeName: Apex Xenotech Supply Crate
+    category: 6
+    resultItem: {fileID: 11400000, guid: 0ef27a5537be62543bd247f172f26a7e, type: 2}
+    resultItemName: ETC
+    resultAmount: 1
+    description: Masterwork boss trophy synthesis combining Zombie, Robot, and Alien apex cores.
+    ingredients:
+    - item: {fileID: 11400000, guid: 0cd5bacb7fb84334fe52369c28f5709a, type: 2}
+      itemName: Titan Skull Crest
+      amount: 1
+    - item: {fileID: 11400000, guid: 6395292e7a4b04cb474a114f3c91b3f5, type: 2}
+      itemName: Pulsing Abomination Heart
+      amount: 1
+    - item: {fileID: 11400000, guid: 44636907921414bdd8ac8ddd500921e8, type: 2}
+      itemName: Chameleon Phase Membrane
+      amount: 1
+    - item: {fileID: 11400000, guid: 21107c27d04dedbcb16e61806a8477f7, type: 2}
+      itemName: Gravitational Bio-Organ
+      amount: 1
+    - item: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+      itemName: Overlord Xenocrystal Core
+      amount: 1
+  - recipeId: CRAFT0074
+    recipeName: Universal Ammo Pack
+    category: 6
+    resultItem: {fileID: 11400000, guid: 561922f3be8b4874d865a5c039258817, type: 2}
+    resultItemName: Ammo
+    resultAmount: 10
+    description: Field-convertible universal ammunition pack usable with any firearm.
+    ingredients:
+    - item: {fileID: 11400000, guid: 6e078f72ffab7514bb76c21f650d3e3b, type: 2}
+      itemName: Pistol Ammo
+      amount: 5
+    - item: {fileID: 11400000, guid: 21a4f829c774b544891f32b6bb9e1751, type: 2}
+      itemName: Shotgun Ammo
+      amount: 5
+    - item: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
+      itemName: Rifle Ammo
+      amount: 5
+    - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+      itemName: Gunpowder Mix
+      amount: 2
+  - recipeId: CRAFT0075
+    recipeName: Bounty Minting Trade Bundle
+    category: 6
+    resultItem: {fileID: 11400000, guid: d154e9c79a08ee640a2c7a2e64bd9777, type: 2}
+    resultItemName: Cash
+    resultAmount: 100
+    description: Valuable boss specimen and precious metal trade bundle redeemable for 100 Cash.
+    ingredients:
+    - item: {fileID: 11400000, guid: 0cd5bacb7fb84334fe52369c28f5709a, type: 2}
+      itemName: Titan Skull Crest
+      amount: 1
+    - item: {fileID: 11400000, guid: 6395292e7a4b04cb474a114f3c91b3f5, type: 2}
+      itemName: Pulsing Abomination Heart
+      amount: 1
+    - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+      itemName: Reinforced Titanium Plate
+      amount: 1
+    - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+      itemName: Copper Wire Spool
+      amount: 2

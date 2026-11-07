@@ -1102,7 +1102,7 @@ def bind_mesh_to_rig(mesh_obj, rig, is_head=False):
                 continue
             if "Shoulder" in bname and (abs(co.x) < 0.14 or co.z < 1.02):
                 continue
-            if ("Leg" in bname or "Foot" in bname) and (co.z > 0.72 or abs(co.x) > 0.28):
+            if ("Leg" in bname or "Foot" in bname) and (co.z > 0.72 or abs(co.x) > 0.32):
                 continue
             if bname in ("Hips", "Spine", "Chest", "Neck", "Head") and (abs(co.x) > 0.30 or co.z < 0.54):
                 continue
@@ -1151,6 +1151,16 @@ def set_local_euler_deg(bname, rx_deg, ry_deg, rz_deg):
 def set_hips_transform(loc_offset, pitch_deg, yaw_deg, roll_deg):
     pb = rig_obj.pose.bones["Hips"]
     pb.location = Vector(loc_offset)
+    q_pitch = Quaternion(Vector((1, 0, 0)), math.radians(pitch_deg))
+    q_yaw   = Quaternion(Vector((0, 1, 0)), math.radians(yaw_deg))
+    q_roll  = Quaternion(Vector((0, 0, 1)), math.radians(roll_deg))
+    pb.rotation_quaternion = q_yaw @ q_roll @ q_pitch
+    bpy.context.view_layer.update()
+
+def set_hips_world_offset(world_offset, pitch_deg, yaw_deg, roll_deg):
+    pb = rig_obj.pose.bones["Hips"]
+    wx, wy, wz = world_offset
+    pb.location = Vector((wx, wz, -wy))
     q_pitch = Quaternion(Vector((1, 0, 0)), math.radians(pitch_deg))
     q_yaw   = Quaternion(Vector((0, 1, 0)), math.radians(yaw_deg))
     q_roll  = Quaternion(Vector((0, 0, 1)), math.radians(roll_deg))
@@ -1686,6 +1696,43 @@ for f in range(1, 38):
     set_local_euler_deg("Spine", spine_pitch, 0.0, 0.0)
     set_local_euler_deg("Chest", chest_pitch, 0.0, 0.0)
     set_local_euler_deg("Head", head_pitch, head_yaw, 0.0)
+    keyframe_all_bones(f, prev_q)
+
+# 11. Sit (Frames 1..49 — Sitting on the ground with knees bent up / นั่งชันเข่า)
+act_sit = create_new_action("Sit")
+prev_q = {}
+for f in range(1, 50):
+    begin_frame_pose(f)
+    t = (f - 1) / 48.0
+    ang = t * 2.0 * math.pi
+    breath = math.sin(ang)
+
+    set_hips_world_offset((0.0, 0.14, -0.49 + 0.003 * breath), pitch_deg=-10.0 + 0.8 * breath, yaw_deg=0.0, roll_deg=0.0)
+    set_local_euler_deg("Spine", 14.0 - 1.2 * breath, 0.0, 0.0)
+    set_local_euler_deg("Chest", 11.0 - 1.5 * breath, 0.0, 0.0)
+    set_local_euler_deg("Neck", -4.0 + 0.8 * breath, 0.0, 0.0)
+    set_local_euler_deg("Head", -3.0 + 1.8 * breath, 1.5 * math.sin(ang), 2.2 + 1.0 * math.cos(ang))
+
+    aim_two_bone_ik("LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
+                    target_world_pos=(0.155, -0.15, 0.115),
+                    pole_world_vec=(0.19, -0.22, 1.0))
+    aim_two_bone_ik("RightUpperLeg", "RightLowerLeg", "RightFoot",
+                    target_world_pos=(-0.155, -0.15, 0.115),
+                    pole_world_vec=(-0.19, -0.22, 1.0))
+
+    swing_bone_zero_twist(rig_obj.pose.bones["LeftFoot"], Vector((0.175, -0.35, 0.035)))
+    swing_bone_zero_twist(rig_obj.pose.bones["RightFoot"], Vector((-0.175, -0.35, 0.035)))
+
+    aim_two_bone_ik("LeftUpperArm", "LeftLowerArm", "LeftHand",
+                    target_world_pos=(0.11, -0.24, 0.44 + 0.006 * breath),
+                    pole_world_vec=(0.52, 0.12, -0.32))
+    aim_two_bone_ik("RightUpperArm", "RightLowerArm", "RightHand",
+                    target_world_pos=(-0.11, -0.25, 0.43 + 0.006 * breath),
+                    pole_world_vec=(-0.52, 0.12, -0.32))
+
+    swing_bone_zero_twist(rig_obj.pose.bones["LeftHand"], Vector((-0.03, -0.28, 0.40 + 0.006 * breath)))
+    swing_bone_zero_twist(rig_obj.pose.bones["RightHand"], Vector((0.03, -0.29, 0.39 + 0.006 * breath)))
+
     keyframe_all_bones(f, prev_q)
 
 # Set active action back to Idle at frame 1

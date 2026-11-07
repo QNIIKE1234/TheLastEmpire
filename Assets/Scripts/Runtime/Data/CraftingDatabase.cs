@@ -1,0 +1,259 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace TheLastEmpire
+{
+    /// <summary>
+    /// หมวดหมู่การคราฟต์ตามหน้าต่าง UI (Building, Utility, Defense, Weapons, Consumables, Tools, Special)
+    /// </summary>
+    public enum CraftingCategory
+    {
+        Building,
+        Utility,
+        Defense,
+        Weapons,
+        Consumables,
+        Tools,
+        Special
+    }
+
+    /// <summary>
+    /// ข้อมูลวัตถุดิบแต่ละชิ้นที่ใช้ในการคราฟต์ (สูงสุดไม่เกิน 5 ชนิดต่อ 1 สูตร)
+    /// </summary>
+    [Serializable]
+    public struct CraftingIngredient
+    {
+        [Tooltip("อ้างอิง ItemData ของวัตถุดิบจาก ItemDatabase")]
+        public ItemData item;
+
+        [Tooltip("ชื่อไอเทมวัตถุดิบ (ซิงก์อัตโนมัติจาก ItemData หรือระบุชื่อโดยตรง)")]
+        public string itemName;
+
+        [Tooltip("จำนวนที่ต้องใช้")]
+        [Min(1)]
+        public int amount;
+
+        public CraftingIngredient(ItemData item, string itemName, int amount)
+        {
+            this.item = item;
+            this.itemName = item != null && !string.IsNullOrEmpty(item.itemName) ? item.itemName : itemName;
+            this.amount = Mathf.Max(1, amount);
+        }
+
+        public string ResolvedItemName =>
+            item != null && !string.IsNullOrEmpty(item.itemName) ? item.itemName : itemName;
+
+        public Sprite ResolvedIcon =>
+            item != null ? item.icon : (ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName)?.icon : null);
+    }
+
+    /// <summary>
+    /// สูตรการคราฟต์ 1 รายการ (ใช้วัตถุดิบสูงสุด 5 อย่าง -> ได้ผลลัพธ์ 1 อย่างพร้อมจำนวน)
+    /// </summary>
+    [Serializable]
+    public class CraftingRecipe
+    {
+        public const int MaxIngredients = 5;
+
+        [Header("Recipe Identity")]
+        [Tooltip("รหัสสูตรคราฟต์ เช่น CRAFT0001")]
+        public string recipeId;
+
+        [Tooltip("ชื่อที่แสดงในหน้า UI คราฟต์")]
+        public string recipeName;
+
+        [Tooltip("หมวดหมู่ของไอเทมคราฟต์")]
+        public CraftingCategory category;
+
+        [Header("Craft Result (ของที่ได้จากการคราฟต์)")]
+        [Tooltip("ไอเทมผลลัพธ์ที่ได้จากการคราฟต์")]
+        public ItemData resultItem;
+
+        [Tooltip("ชื่อไอเทมผลลัพธ์ (ซิงก์อัตโนมัติจาก resultItem หรือใช้ระบุชื่อสิ่งปลูกสร้าง)")]
+        public string resultItemName;
+
+        [Tooltip("จำนวนผลลัพธ์ที่ได้ต่อการคราฟต์ 1 ครั้ง")]
+        [Min(1)]
+        public int resultAmount = 1;
+
+        [TextArea(1, 3)]
+        [Tooltip("คำอธิบายสูตรคราฟต์")]
+        public string description;
+
+        [Header("Required Ingredients (สูงสุด 5 อย่าง)")]
+        [Tooltip("รายการวัตถุดิบที่ต้องใช้ (จำกัดไม่เกิน 5 ชนิด)")]
+        public List<CraftingIngredient> ingredients = new List<CraftingIngredient>();
+
+        public string ResolvedResultName =>
+            !string.IsNullOrEmpty(resultItemName)
+                ? resultItemName
+                : (resultItem != null && !string.IsNullOrEmpty(resultItem.itemName) ? resultItem.itemName : recipeName);
+
+        public Sprite ResolvedResultIcon =>
+            resultItem != null
+                ? resultItem.icon
+                : (ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(ResolvedResultName)?.icon : null);
+
+        public void Validate()
+        {
+            if (resultAmount < 1)
+            {
+                resultAmount = 1;
+            }
+
+            if (resultItem != null && !string.IsNullOrEmpty(resultItem.itemName))
+            {
+                if (string.IsNullOrEmpty(resultItemName))
+                {
+                    resultItemName = resultItem.itemName;
+                }
+                if (string.IsNullOrEmpty(recipeName))
+                {
+                    recipeName = resultItemName;
+                }
+            }
+
+            if (ingredients == null)
+            {
+                ingredients = new List<CraftingIngredient>();
+                return;
+            }
+
+            if (ingredients.Count > MaxIngredients)
+            {
+                ingredients.RemoveRange(MaxIngredients, ingredients.Count - MaxIngredients);
+            }
+
+            for (int i = 0; i < ingredients.Count; i++)
+            {
+                CraftingIngredient ing = ingredients[i];
+                if (ing.amount < 1)
+                {
+                    ing.amount = 1;
+                }
+                if (ing.item != null && !string.IsNullOrEmpty(ing.item.itemName))
+                {
+                    ing.itemName = ing.item.itemName;
+                }
+                ingredients[i] = ing;
+            }
+        }
+    }
+
+    /// <summary>
+    /// ScriptableObject Database สำหรับเก็บสูตรคราฟต์ทั้งหมดของเกม
+    /// </summary>
+    [CreateAssetMenu(fileName = "CraftingDatabase", menuName = "TheLastEmpire/Crafting Database")]
+    public class CraftingDatabase : ScriptableObject
+    {
+        private static CraftingDatabase _instance;
+        public static CraftingDatabase Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = AddressableManager.LoadAsset<CraftingDatabase>("Database/CraftingDatabase");
+                    if (_instance == null)
+                    {
+                        _instance = AddressableManager.LoadAsset<CraftingDatabase>("CraftingDatabase");
+                    }
+                    if (_instance == null)
+                    {
+                        CraftingDatabase[] databases = Resources.LoadAll<CraftingDatabase>("");
+                        if (databases.Length > 0)
+                        {
+                            _instance = databases[0];
+                        }
+                    }
+                    if (_instance == null)
+                    {
+                        CraftingDatabase[] databases = Resources.FindObjectsOfTypeAll<CraftingDatabase>();
+                        if (databases.Length > 0)
+                        {
+                            _instance = databases[0];
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        [Header("All Crafting Recipes")]
+        public List<CraftingRecipe> recipes = new List<CraftingRecipe>();
+
+        private void OnValidate()
+        {
+            if (recipes == null) return;
+            for (int i = 0; i < recipes.Count; i++)
+            {
+                recipes[i]?.Validate();
+            }
+        }
+
+        /// <summary>
+        /// ดึงรายการสูตรคราฟต์ตามหมวดหมู่ (เช่น Building, Utility, Defense, Weapons, Consumables, Tools, Special)
+        /// </summary>
+        public List<CraftingRecipe> GetRecipesByCategory(CraftingCategory category)
+        {
+            List<CraftingRecipe> result = new List<CraftingRecipe>();
+            if (recipes == null) return result;
+
+            foreach (CraftingRecipe recipe in recipes)
+            {
+                if (recipe != null && recipe.category == category)
+                {
+                    result.Add(recipe);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ค้นหาสูตรคราฟต์ด้วยคำค้นหา (Search Bar) และกรองตามหมวดหมู่ได้
+        /// </summary>
+        public List<CraftingRecipe> SearchRecipes(string searchQuery, CraftingCategory? categoryFilter = null)
+        {
+            List<CraftingRecipe> result = new List<CraftingRecipe>();
+            if (recipes == null) return result;
+
+            string query = string.IsNullOrWhiteSpace(searchQuery) ? string.Empty : searchQuery.Trim();
+
+            foreach (CraftingRecipe recipe in recipes)
+            {
+                if (recipe == null) continue;
+                if (categoryFilter.HasValue && recipe.category != categoryFilter.Value) continue;
+
+                if (string.IsNullOrEmpty(query) ||
+                    (!string.IsNullOrEmpty(recipe.recipeName) && recipe.recipeName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(recipe.ResolvedResultName) && recipe.ResolvedResultName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    result.Add(recipe);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ตรวจสอบว่าผู้เล่นมีวัตถุดิบในกระเป๋าครบตามสูตรหรือไม่
+        /// </summary>
+        public bool CanCraft(CraftingRecipe recipe, PlayerInventory inventory)
+        {
+            if (recipe == null || inventory == null || recipe.ingredients == null || recipe.ingredients.Count == 0)
+                return false;
+
+            foreach (CraftingIngredient ing in recipe.ingredients)
+            {
+                string reqName = ing.ResolvedItemName;
+                if (string.IsNullOrEmpty(reqName)) return false;
+
+                if (inventory.GetItemCount(reqName) < ing.amount)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+}
