@@ -43,21 +43,18 @@ namespace TheLastEmpire
         [SerializeField] private Button toolsTabButton;
         [SerializeField] private Button specialTabButton;
 
-        [Header("Category Tab Sprites (สลับรูป Sprite ตอนเลือกหมวดหมู่)")]
+        [Header("Category Tab Sprites & Colors (สลับรูปและสีข้อความตอนเลือกหมวดหมู่)")]
         [Tooltip("Sprite ตอนที่ปุ่มหมวดหมู่ถูกเลือก (เช่น กรอบสีเหลืองตามรูป)")]
         [SerializeField] private Sprite selectedTabSprite;
 
         [Tooltip("Sprite ตอนที่ปุ่มหมวดหมู่ไม่ได้เลือก (เช่น กรอบสีดำตามรูป)")]
         [SerializeField] private Sprite unselectedTabSprite;
 
-        [Header("Category Tab Images (Optional: ลากใส่เฉพาะกรณี Image ไม่ได้อยู่บนตัว Button เดียวกัน)")]
-        [SerializeField] private Image buildingTabImage;
-        [SerializeField] private Image utilityTabImage;
-        [SerializeField] private Image defenseTabImage;
-        [SerializeField] private Image weaponsTabImage;
-        [SerializeField] private Image consumablesTabImage;
-        [SerializeField] private Image toolsTabImage;
-        [SerializeField] private Image specialTabImage;
+        [Tooltip("สีข้อความ TextMeshPro ตอนถูกเลือก (ค่าเริ่มต้น: สีดำ)")]
+        [SerializeField] private Color selectedTabTextColor = Color.black;
+
+        [Tooltip("สีข้อความ TextMeshPro ตอนไม่ได้เลือก (ค่าเริ่มต้น: สีขาว)")]
+        [SerializeField] private Color unselectedTabTextColor = Color.white;
 
         [Header("Thumbnail Slots (รายการแถวคราฟต์ฝั่งขวา)")]
         [Tooltip("ลากแถว CraftThumbnail ทั้งหมดที่วางอยู่ในหน้าต่าง UI ใส่ที่นี่ (เช่น 6 แถว) เพื่อวนเซตข้อมูลซ้ำ ไม่สร้างใหม่ ไม่เปลือง Memory")]
@@ -399,31 +396,31 @@ namespace TheLastEmpire
 
         private void UpdateCategoryTabButtons()
         {
-            UpdateTabVisual(buildingTabButton, buildingTabImage, _currentCategory == CraftingCategory.Building);
-            UpdateTabVisual(utilityTabButton, utilityTabImage, _currentCategory == CraftingCategory.Utility);
-            UpdateTabVisual(defenseTabButton, defenseTabImage, _currentCategory == CraftingCategory.Defense);
-            UpdateTabVisual(weaponsTabButton, weaponsTabImage, _currentCategory == CraftingCategory.Weapons);
-            UpdateTabVisual(consumablesTabButton, consumablesTabImage, _currentCategory == CraftingCategory.Consumables);
-            UpdateTabVisual(toolsTabButton, toolsTabImage, _currentCategory == CraftingCategory.Tools);
-            UpdateTabVisual(specialTabButton, specialTabImage, _currentCategory == CraftingCategory.Special);
+            UpdateTabVisual(buildingTabButton, _currentCategory == CraftingCategory.Building);
+            UpdateTabVisual(utilityTabButton, _currentCategory == CraftingCategory.Utility);
+            UpdateTabVisual(defenseTabButton, _currentCategory == CraftingCategory.Defense);
+            UpdateTabVisual(weaponsTabButton, _currentCategory == CraftingCategory.Weapons);
+            UpdateTabVisual(consumablesTabButton, _currentCategory == CraftingCategory.Consumables);
+            UpdateTabVisual(toolsTabButton, _currentCategory == CraftingCategory.Tools);
+            UpdateTabVisual(specialTabButton, _currentCategory == CraftingCategory.Special);
         }
 
-        private void UpdateTabVisual(Button tabButton, Image explicitImage, bool isSelected)
+        private void UpdateTabVisual(Button tabButton, bool isSelected)
         {
-            if (tabButton != null)
-            {
-                // ถ้ามี sprite สลับ ให้เปิด interactable ไว้เสมอเพื่อให้แสดงสี sprite ได้ชัดเจนไม่โดน disabled gray-out
-                tabButton.interactable = selectedTabSprite != null ? true : !isSelected;
-            }
+            if (tabButton == null) return;
 
-            Image targetImg = explicitImage;
-            if (targetImg == null && tabButton != null)
+            // คง interactable ไว้เสมอเพื่อไม่ให้โดน disabled gray-out ทับสี
+            tabButton.interactable = true;
+
+            // 1. ดึง Image จากตัว Button (GetComponent หรือ button.image) เพื่อสลับ Sprite
+            Image targetImg = tabButton.GetComponent<Image>();
+            if (targetImg == null)
             {
                 targetImg = tabButton.image;
-                if (targetImg == null)
-                {
-                    targetImg = tabButton.GetComponent<Image>();
-                }
+            }
+            if (targetImg == null)
+            {
+                targetImg = tabButton.GetComponentInChildren<Image>();
             }
 
             if (targetImg != null)
@@ -436,6 +433,13 @@ namespace TheLastEmpire
                 {
                     targetImg.sprite = unselectedTabSprite;
                 }
+            }
+
+            // 2. ดึง TextMeshPro จากลูก (GetComponentInChildren) เพื่อเปลี่ยนสีตัวหนังสือ (เลือก = สีดำ, ไม่ได้เลือก = สีขาว)
+            TMP_Text label = tabButton.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.color = isSelected ? selectedTabTextColor : unselectedTabTextColor;
             }
         }
 
