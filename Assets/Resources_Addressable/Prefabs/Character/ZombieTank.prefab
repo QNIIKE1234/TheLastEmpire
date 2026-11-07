@@ -137,6 +137,137 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &4337029207840842656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3998046081901967642}
+  m_Layer: 0
+  m_Name: Zombie_Fat_Dummy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3998046081901967642
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4337029207840842656}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4542968226088585282}
+  m_Father: {fileID: 2278688315463160727}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4737209522651372409
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4542968226088585282}
+  - component: {fileID: 1719516152088473864}
+  - component: {fileID: 2808356061363606940}
+  m_Layer: 0
+  m_Name: default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4542968226088585282
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4737209522651372409}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3998046081901967642}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &1719516152088473864
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4737209522651372409}
+  m_Mesh: {fileID: -2432090755550338912, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+--- !u!23 &2808356061363606940
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4737209522651372409}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: -6496729394897012754, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -6521795672192326098, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: 9171952328373019990, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: 6645885694005375520, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -8725624188449797229, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -3535325713736149448, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: 3759393524657527047, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -1070587001286095999, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -1131234473653997816, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: -8896051167825165466, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5020151313939889713
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,11 +396,37 @@ MonoBehaviour:
   explosionVfxPoolKey: EnemyExplosion
   explosionVfxScaleMultiplier: 1
   buffRadius: 6
-  childZombiePrefab: {fileID: 0}
   spawnCooldown: 10
   maxChildSpawns: 3
+  minionSpawnPool: []
+  childZombiePrefab: {fileID: 0}
   childPoolKey: Zombie001
   throwMinionAtPlayer: 1
+  chargeCooldown: 6
+  chargeSpeed: 22
+  chargeDuration: 0.45
+  chargeWindupDuration: 0.65
+  minChargeDistance: 5
+  maxChargeDistance: 12.5
+  chargeContactDamage: 25
+  chargeContactKnockback: 10
+  chargePathWidth: 1.8
+  chargeTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.45}
+  stompAttackRange: 4.8
+  stompRadius: 4.5
+  stompDamage: 45
+  stompTelegraphDuration: 1
+  stompCooldown: 5
+  stompKnockbackForce: 13
+  stompVfxPoolKey: EnemyExplosion
+  stompTelegraphSprite: {fileID: 0}
+  stompTelegraphColor: {r: 1, g: 0.15, b: 0.15, a: 0.45}
+  rageHealthThreshold: 0.3
+  rageSpeedMultiplier: 2
+  rageSkillCooldownMultiplier: 0.5
+  rageTelegraphSpeedMultiplier: 0.7
+  rageChargeSpeedMultiplier: 1.35
+  rageTint: {r: 1, g: 0.22, b: 0.15, a: 1}
 --- !u!114 &-5781105677173290729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -735,69 +892,3 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &7047814550813167004
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2278688315463160727}
-    m_Modifications:
-    - target: {fileID: 5131734176372414464, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_SortingLayer
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6773102575665589820, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-      propertyPath: m_Name
-      value: Zombie_Fat_Dummy
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
---- !u!4 &3998046081901967642 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6247957527450154118, guid: 85f16e4346201ae43b900d008608ae46, type: 3}
-  m_PrefabInstance: {fileID: 7047814550813167004}
-  m_PrefabAsset: {fileID: 0}
