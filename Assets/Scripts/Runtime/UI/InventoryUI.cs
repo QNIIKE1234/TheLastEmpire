@@ -37,10 +37,9 @@ namespace TheLastEmpire
         [Tooltip("ลากแถว InventoryItemSlot ทั้งหมดที่วางอยู่ในหน้าต่างกระเป๋าใส่ที่นี่ (เช่น 7 ช่อง) เพื่อวนเซตข้อมูลซ้ำ ไม่ Instantiate ใหม่")]
         [SerializeField] private List<InventoryItemSlot> itemSlots = new List<InventoryItemSlot>();
 
-        [Header("Close / Back Buttons")]
-        [Tooltip("ปุ่มปิดหน้าต่างกระเป๋า (Optional: หากเว้นว่างระบบจะค้นหาปุ่มชื่อ Close หรือ Back ในแผงให้อัตโนมัติ)")]
-        [SerializeField] private UnityEngine.UI.Button closeButton;
-        [Tooltip("ปุ่ม Back สำหรับปิดหน้าต่างกระเป๋า (Optional)")]
+        [Header("Back / Close Button")]
+        [Tooltip("ปุ่ม Back สำหรับปิดหน้าต่างกระเป๋า (Optional: หากเว้นว่างระบบจะค้นหาปุ่มชื่อ Back หรือ Close ในแผงให้อัตโนมัติ)")]
+        [UnityEngine.Serialization.FormerlySerializedAs("closeButton")]
         [SerializeField] private UnityEngine.UI.Button backButton;
 
         [Header("Pagination")]
@@ -294,11 +293,6 @@ namespace TheLastEmpire
         /// </summary>
         public void HookCloseButtons()
         {
-            if (closeButton != null)
-            {
-                closeButton.onClick.RemoveListener(CloseInventory);
-                closeButton.onClick.AddListener(CloseInventory);
-            }
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(CloseInventory);

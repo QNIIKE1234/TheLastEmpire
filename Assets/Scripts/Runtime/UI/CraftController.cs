@@ -31,10 +31,8 @@ namespace TheLastEmpire
         [Tooltip("ช่องค้นหาชื่อไอเทมมุมซ้ายบน (Search)")]
         [SerializeField] private TMP_InputField searchInputField;
 
-        [Tooltip("ปุ่มกากบาทหรือปุ่มปิดหน้าต่างคราฟต์ (Optional)")]
-        [SerializeField] private Button closeButton;
-
-        [Tooltip("ปุ่ม Back ย้อนกลับหรือปิดหน้าต่างคราฟต์ (Optional)")]
+        [Tooltip("ปุ่ม Back / ปิดหน้าต่างคราฟต์ (Optional)")]
+        [UnityEngine.Serialization.FormerlySerializedAs("closeButton")]
         [SerializeField] private Button backButton;
 
         [Header("Category Buttons (แถบหมวดหมู่ฝั่งซ้าย 7 หมวด)")]
@@ -312,11 +310,6 @@ namespace TheLastEmpire
                 prevPageButton.onClick.AddListener(PrevPage);
             if (nextPageButton != null)
                 nextPageButton.onClick.AddListener(NextPage);
-            if (closeButton != null)
-            {
-                closeButton.onClick.RemoveListener(CloseCraftMenu);
-                closeButton.onClick.AddListener(CloseCraftMenu);
-            }
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(CloseCraftMenu);
