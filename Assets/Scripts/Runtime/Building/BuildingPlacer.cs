@@ -150,6 +150,7 @@ namespace TheLastEmpire
 
             _ghostInstance = Instantiate(sourcePrefab);
             _ghostInstance.name = $"[Ghost]_{_activeData.buildingName}";
+            _ghostInstance.SetActive(true);
 
             // ปิด Collider, NavMeshObstacle, Light, Audio, และ Scripts อื่นๆ บนตัว Ghost ทั้งหมด
             Collider[] colliders = _ghostInstance.GetComponentsInChildren<Collider>(true);
@@ -244,11 +245,13 @@ namespace TheLastEmpire
 
             Vector3 hitPoint = Vector3.zero;
             bool hitGround = false;
+            Collider hitGroundCollider = null;
 
             if (Physics.Raycast(ray, out RaycastHit hit, 150f, groundLayerMask, QueryTriggerInteraction.Ignore))
             {
                 hitPoint = hit.point;
                 hitGround = true;
+                hitGroundCollider = hit.collider;
             }
             else
             {
@@ -292,8 +295,9 @@ namespace TheLastEmpire
             }
 
             // 2. ตรวจสอบการชนกับสิ่งกีดขวาง (OverlapBox)
-            Vector3 center = _currentPlacementPosition + Vector3.up * (_activeData.footprintSize.y * 0.5f);
-            Vector3 halfExtents = _activeData.footprintSize * 0.48f;
+            // ยก center ขึ้นเล็กน้อย (+0.05f) และลด halfExtents (0.45f) เพื่อไม่ให้ชนพื้นผิวด้านล่าง
+            Vector3 center = _currentPlacementPosition + Vector3.up * (_activeData.footprintSize.y * 0.5f + 0.05f);
+            Vector3 halfExtents = new Vector3(_activeData.footprintSize.x * 0.45f, _activeData.footprintSize.y * 0.45f, _activeData.footprintSize.z * 0.45f);
 
             Collider[] hits = Physics.OverlapBox(center, halfExtents, _currentPlacementRotation, obstacleLayerMask, QueryTriggerInteraction.Ignore);
             bool isObstructed = false;
@@ -301,14 +305,27 @@ namespace TheLastEmpire
             foreach (Collider c in hits)
             {
                 if (c == null || c.isTrigger) continue;
+                if (_ghostInstance != null && (c.gameObject == _ghostInstance || c.transform.IsChildOf(_ghostInstance.transform))) continue;
+
                 if (player != null && (c.gameObject == player.gameObject || c.transform.IsChildOf(player.transform)))
                 {
                     isObstructed = true; // ห้ามวางทับตัวผู้เล่น
                     break;
                 }
 
-                // ข้าม Collider พื้นดิน
-                if (((1 << c.gameObject.layer) & groundLayerMask) != 0 && c.gameObject.name.ToLowerInvariant().Contains("ground"))
+                // ข้าม Collider พื้นดินที่ยิง Raycast โดน หรือชื่อที่เป็นพื้นผิว
+                if (hitGroundCollider != null && (c == hitGroundCollider || c.transform.IsChildOf(hitGroundCollider.transform)))
+                {
+                    continue;
+                }
+
+                if (c.GetComponentInParent<Terrain>() != null)
+                {
+                    continue;
+                }
+
+                string colName = c.gameObject.name.ToLowerInvariant();
+                if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("plane") || colName.Contains("terrain"))
                 {
                     continue;
                 }
@@ -392,6 +409,7 @@ namespace TheLastEmpire
             // 2. เกิดสิ่งปลูกสร้างจริงลงในฉาก
             GameObject instance = Instantiate(_activeData.prefab, _currentPlacementPosition, _currentPlacementRotation);
             instance.name = $"{_activeData.buildingName}_{System.DateTime.Now.Ticks % 10000}";
+            instance.SetActive(true);
 
             BuildingObject buildingComp = instance.GetComponent<BuildingObject>();
             if (buildingComp == null)

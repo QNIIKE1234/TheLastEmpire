@@ -92,7 +92,7 @@ namespace TheLastEmpire
         {
             if (recipe == null) return null;
 
-            // ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์
+            // 1. ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์
             foreach (var b in allBuildings)
             {
                 if (b == null) continue;
@@ -103,7 +103,55 @@ namespace TheLastEmpire
                     return b;
                 }
             }
+
+            // 2. ถ้าเป็นหมวดหมู่ Building หรือ Defense แต่ยังไม่มี BuildingData ให้สร้าง Fallback BuildingData อัตโนมัติทันที
+            if (recipe.category == CraftingCategory.Building || recipe.category == CraftingCategory.Defense)
+            {
+                BuildingData fallback = CreateFallbackBuildingData(recipe);
+                allBuildings.Add(fallback);
+                return fallback;
+            }
+
             return null;
+        }
+
+        private BuildingData CreateFallbackBuildingData(CraftingRecipe recipe)
+        {
+            BuildingData data = ScriptableObject.CreateInstance<BuildingData>();
+            data.buildingId = !string.IsNullOrEmpty(recipe.recipeId) ? recipe.recipeId : $"BUILD_{recipe.recipeName.Replace(" ", "")}";
+            data.buildingName = recipe.recipeName;
+            data.category = recipe.category;
+            data.description = recipe.description;
+            data.CopyFromRecipe(recipe);
+
+            string rName = recipe.recipeName.ToLowerInvariant();
+            Vector3 size = new Vector3(2f, 1.5f, 2f);
+            if (rName.Contains("floor") || rName.Contains("foundation"))
+            {
+                size = new Vector3(3f, 0.25f, 3f);
+            }
+            else if (rName.Contains("wall") || rName.Contains("door") || rName.Contains("window"))
+            {
+                size = new Vector3(3f, 2.5f, 0.4f);
+            }
+            else if (rName.Contains("barricade"))
+            {
+                size = new Vector3(2.5f, 1.2f, 0.8f);
+            }
+
+            data.footprintSize = size;
+            data.maxHealth = 300f;
+            data.buildRange = 6.5f;
+
+            GameObject fallbackObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fallbackObj.name = $"Prefab_{data.buildingName}";
+            fallbackObj.transform.localScale = size;
+            fallbackObj.AddComponent<BuildingObject>();
+            fallbackObj.SetActive(false);
+            DontDestroyOnLoad(fallbackObj);
+
+            data.prefab = fallbackObj;
+            return data;
         }
 
         public bool HasBuildingForRecipe(CraftingRecipe recipe)

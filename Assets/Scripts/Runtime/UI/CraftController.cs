@@ -103,6 +103,9 @@ namespace TheLastEmpire
         public bool IsOpen => _isOpen;
         public CraftingCategory CurrentCategory => _currentCategory;
 
+        private Button _freeCraftButton;
+        private TMP_Text _freeCraftButtonText;
+
         public bool FreeCraftMode
         {
             get => freeCraftMode || CraftingDatabase.IsFreeCraft;
@@ -110,6 +113,7 @@ namespace TheLastEmpire
             {
                 freeCraftMode = value;
                 CraftingDatabase.IsFreeCraft = value;
+                UpdateFreeCraftButtonVisuals();
                 RefreshActiveThumbnailsState();
             }
         }
@@ -131,6 +135,12 @@ namespace TheLastEmpire
                 Destroy(gameObject);
                 return;
             }
+
+#if UNITY_EDITOR
+            // ในโหมด Unity Editor ให้เปิด Free Craft เป็นค่าเริ่มต้นเสมอ เพื่อให้ทดสอบได้ทันที
+            freeCraftMode = true;
+            CraftingDatabase.IsFreeCraft = true;
+#endif
 
             if (freeCraftMode)
             {
@@ -154,14 +164,25 @@ namespace TheLastEmpire
         private void Start()
         {
             FindPlayerInventory();
+            if (craftPanel != null && craftPanel.activeSelf)
+            {
+                EnsureFreeCraftButtonCreated();
+                UpdateFreeCraftButtonVisuals();
+            }
         }
 
         private void Update()
         {
             if (Keyboard.current == null) return;
 
-            // F8 (หรือปุ่มที่ตั้งไว้): สลับโหมด Free Craft
-            if (Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame)
+            // สลับโหมด Free Craft ด้วย F8, F1, หรือปุ่ม ~ (Backquote)
+            bool toggleFreePressed = false;
+            if (Keyboard.current.f8Key != null && Keyboard.current.f8Key.wasPressedThisFrame) toggleFreePressed = true;
+            if (Keyboard.current.backquoteKey != null && Keyboard.current.backquoteKey.wasPressedThisFrame) toggleFreePressed = true;
+            if (Keyboard.current.f1Key != null && Keyboard.current.f1Key.wasPressedThisFrame) toggleFreePressed = true;
+            if (toggleFreeCraftKey != Key.None && Keyboard.current[toggleFreeCraftKey] != null && Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame) toggleFreePressed = true;
+
+            if (toggleFreePressed)
             {
                 ToggleFreeCraft();
             }
@@ -182,7 +203,62 @@ namespace TheLastEmpire
         {
             FreeCraftMode = !FreeCraftMode;
             Debug.Log($"[CraftController] Free Craft Mode: {(FreeCraftMode ? "ENABLED (เปิดโหมดคราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "DISABLED (ปิดโหมดคราฟต์ฟรี)")}");
+            UpdateFreeCraftButtonVisuals();
             RefreshActiveThumbnailsState();
+        }
+
+        private void EnsureFreeCraftButtonCreated()
+        {
+            if (_freeCraftButton != null || craftPanel == null) return;
+
+            GameObject btnObj = new GameObject("FreeCraftToggleBtn");
+            btnObj.transform.SetParent(craftPanel.transform, false);
+
+            RectTransform rt = btnObj.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(300f, 420f);
+            rt.sizeDelta = new Vector2(210f, 40f);
+
+            Image img = btnObj.AddComponent<Image>();
+            img.color = new Color(0.15f, 0.15f, 0.18f, 0.95f);
+
+            _freeCraftButton = btnObj.AddComponent<Button>();
+            _freeCraftButton.onClick.AddListener(ToggleFreeCraft);
+
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            RectTransform textRt = textObj.AddComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+
+            _freeCraftButtonText = textObj.AddComponent<TextMeshProUGUI>();
+            if (pageNumberText != null && pageNumberText.font != null)
+            {
+                _freeCraftButtonText.font = pageNumberText.font;
+            }
+            _freeCraftButtonText.alignment = TextAlignmentOptions.Center;
+            _freeCraftButtonText.fontSize = 20f;
+            _freeCraftButtonText.fontStyle = FontStyles.Bold;
+
+            UpdateFreeCraftButtonVisuals();
+        }
+
+        private void UpdateFreeCraftButtonVisuals()
+        {
+            if (_freeCraftButtonText != null)
+            {
+                bool isFree = FreeCraftMode;
+                _freeCraftButtonText.text = isFree ? "⚡ FREE CRAFT: ON" : "FREE CRAFT: OFF";
+                _freeCraftButtonText.color = isFree ? new Color(1f, 0.82f, 0.15f, 1f) : new Color(0.7f, 0.7f, 0.7f, 1f);
+                if (_freeCraftButton != null && _freeCraftButton.GetComponent<Image>() != null)
+                {
+                    _freeCraftButton.GetComponent<Image>().color = isFree ? new Color(0.28f, 0.22f, 0.05f, 0.95f) : new Color(0.15f, 0.15f, 0.18f, 0.95f);
+                }
+            }
         }
 
         private void OnDestroy()
@@ -341,6 +417,9 @@ namespace TheLastEmpire
             {
                 craftPanel.SetActive(true);
             }
+
+            EnsureFreeCraftButtonCreated();
+            UpdateFreeCraftButtonVisuals();
 
             if (PopUpManager.Instance != null)
             {
