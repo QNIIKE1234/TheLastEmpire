@@ -11,6 +11,12 @@ namespace TheLastEmpire
         [Header("Inventory Status")]
         [SerializeField] private int money = 0;
         [SerializeField] private List<string> items = new List<string>();
+
+        [Header("Inventory Capacity")]
+        [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
+        [Range(18, 30)]
+        [SerializeField] private int maxSlots = 20;
+
         [Header("Starting Loadout")]
         [SerializeField] private PlayerConfigSO playerConfig;
         
@@ -20,6 +26,9 @@ namespace TheLastEmpire
 
         public int Money => money;
         public List<string> Items => items;
+        public int MaxSlots => maxSlots;
+        public int UsedSlots => GetItemQuantities().Count;
+        public bool IsInventoryFull => UsedSlots >= maxSlots;
 
         public event System.Action<int> OnMoneyChanged;
         public event System.Action<string> OnItemCollected;
@@ -57,7 +66,14 @@ namespace TheLastEmpire
                 List<string> startItems = playerConfig != null ? playerConfig.startingItems : defaultStartingItems;
                 int startAmmo = playerConfig != null ? playerConfig.startingPistolAmmo : defaultPistolAmmo;
                 
-                if (playerConfig != null) money = playerConfig.startingMoney;
+                if (playerConfig != null)
+                {
+                    money = playerConfig.startingMoney;
+                    if (playerConfig.maxInventorySlots >= 18)
+                    {
+                        maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 30);
+                    }
+                }
 
                 foreach (string item in startItems)
                 {
@@ -97,30 +113,82 @@ namespace TheLastEmpire
             return true;
         }
 
-
-        public void AddItem(string itemName, int quantity = 1)
+        /// <summary>
+        /// กำหนดความจุช่องกระเป๋าเก็บของให้ตัวละคร (บังคับอยู่ในช่วง 18 - 30 ช่อง)
+        /// </summary>
+        public void SetMaxSlots(int slots)
         {
-            string finalName = itemName;
+            maxSlots = Mathf.Clamp(slots, 18, 30);
+            Debug.Log($"[PlayerInventory] Max inventory slots configured to: {maxSlots}");
+            OnInventoryChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// ตรวจสอบว่าในกระเป๋ามีไอเทมชนิดนี้อยู่แล้วหรือไม่ (Case-insensitive)
+        /// </summary>
+        public bool HasItem(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName) || items == null) return false;
+            string clean = itemName.Trim().ToLower();
+            return items.Exists(x => x != null && x.Trim().ToLower() == clean);
+        }
+
+        /// <summary>
+        /// แปลงชื่อไอเทมทั่วไป เช่น "Ammo" ให้เป็นชนิดกระสุนที่ตรงกับอาวุธของผู้เล่น
+        /// </summary>
+        public string ResolveItemName(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName)) return string.Empty;
             if (string.Equals(itemName, "Ammo", System.StringComparison.OrdinalIgnoreCase))
             {
-                // Auto-resolve generic ammo into weapon specific ammo
-                finalName = "Pistol Ammo"; // default fallback
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && player.CurrentWeapon != null)
                 {
                     string lowerName = (player.CurrentWeapon.weaponName ?? "").ToLower().Trim();
-                    if (lowerName.Contains("rifl")) finalName = "Rifle Ammo";
-                    else if (lowerName.Contains("shot")) finalName = "Shotgun Ammo";
+                    if (lowerName.Contains("rifl")) return "Rifle Ammo";
+                    else if (lowerName.Contains("shot")) return "Shotgun Ammo";
                 }
+                return "Pistol Ammo";
+            }
+            return itemName.Trim();
+        }
+
+        /// <summary>
+        /// ตรวจสอบว่าสามารถเก็บไอเทมชนิดนี้ลงกระเป๋าได้หรือไม่ (ถ้ามีอยู่แล้วจะสแตกได้เสมอ ถ้าเป็นชิ้นใหม่ต้องมีช่องว่างเหลือ)
+        /// </summary>
+        public bool CanAddItem(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName)) return false;
+            string resolved = ResolveItemName(itemName);
+
+            // ถ้ามีไอเทมชนิดนี้อยู่แล้วในกระเป๋า จะซ้อนทับลงช่องเดิมได้ทันที ไม่กิน Slot ใหม่
+            if (HasItem(resolved)) return true;
+
+            // ถ้าเป็นไอเทมชนิดใหม่ ตรวจสอบว่าจำนวนช่องที่ใช้ยังไม่เกินความจุสูงสุด
+            return UsedSlots < maxSlots;
+        }
+
+        public bool AddItem(string itemName, int quantity = 1)
+        {
+            if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
+
+            string finalName = ResolveItemName(itemName);
+
+            // ตรวจสอบความจุช่องกระเป๋า: ถ้าเป็นไอเทมชนิดใหม่และช่องเต็มแล้ว ไม่อนุญาตให้เก็บ
+            if (!HasItem(finalName) && UsedSlots >= maxSlots)
+            {
+                Debug.LogWarning($"[PlayerInventory] Cannot collect '{finalName}': Inventory is full ({UsedSlots}/{maxSlots} slots used)!");
+                return false;
             }
 
             for (int i = 0; i < quantity; i++)
             {
                 items.Add(finalName);
             }
-            Debug.Log($"[PlayerInventory] Picked up item: {finalName} x{quantity}! Inventory size: {items.Count}");
+            Debug.Log($"[PlayerInventory] Picked up item: {finalName} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
             OnItemCollected?.Invoke(finalName);
             OnInventoryChanged?.Invoke();
+            return true;
         }
 
         public bool RemoveItem(string itemName, int quantity = 1)

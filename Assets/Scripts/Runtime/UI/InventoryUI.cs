@@ -279,9 +279,13 @@ namespace TheLastEmpire
         {
             if (_playerInventory == null) return;
 
-            // 1. Update currency and health status
+            // 1. Update currency, health status, and backpack slot capacity
             if (_moneyText != null)
-                _moneyText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>";
+            {
+                string bagColor = _playerInventory.IsInventoryFull ? "#FF5555" : "#FFA834";
+                string bagStatus = _playerInventory.IsInventoryFull ? " (FULL)" : "";
+                _moneyText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>   |   Bag: <color={bagColor}><b>{_playerInventory.UsedSlots}/{_playerInventory.MaxSlots}</b></color>{bagStatus}";
+            }
 
             if (_healthText != null)
             {

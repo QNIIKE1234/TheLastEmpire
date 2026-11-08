@@ -361,6 +361,11 @@ namespace TheLastEmpire
                     _health.SetMaxHealth(activeCharacterData.maxHealth, true);
                 }
 
+                if (_inventory != null && activeCharacterData.maxInventorySlots >= 18)
+                {
+                    _inventory.SetMaxSlots(activeCharacterData.maxInventorySlots);
+                }
+
                 InitShiftAbility();
 
                 if (activeCharacterData.characterModelPrefab != null)
@@ -1459,12 +1464,18 @@ namespace TheLastEmpire
             if (item.IsMoney)
             {
                 _inventory.AddMoney(item.MoneyAmount);
+                item.Collect();
             }
             else
             {
+                if (!_inventory.CanAddItem(item.ItemName))
+                {
+                    Debug.LogWarning($"[PlayerController] Cannot collect '{item.ItemName}': Inventory full ({_inventory.UsedSlots}/{_inventory.MaxSlots} slots used)!");
+                    return;
+                }
                 _inventory.AddItem(item.ItemName, item.Quantity);
+                item.Collect();
             }
-            item.Collect();
             OnAmmoChanged?.Invoke();
         }
 
@@ -2451,6 +2462,11 @@ namespace TheLastEmpire
             // Grant starting inventory supplies
             if (_inventory != null)
             {
+                if (activeCharacterData.maxInventorySlots >= 18)
+                {
+                    _inventory.SetMaxSlots(activeCharacterData.maxInventorySlots);
+                }
+
                 if (activeCharacterData.startingMoney > 0)
                 {
                     _inventory.AddMoney(activeCharacterData.startingMoney);

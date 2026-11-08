@@ -398,9 +398,16 @@ namespace TheLastEmpire
                                 if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
                                 {
                                     LootSlot innerSlot = _currentContainer.itemsInside[index];
-                                    _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
-                                    _currentContainer.itemsInside.RemoveAt(index);
-                                    RefreshUI();
+                                    if (_playerInventory.CanAddItem(innerSlot.itemName))
+                                    {
+                                        _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
+                                        _currentContainer.itemsInside.RemoveAt(index);
+                                        RefreshUI();
+                                    }
+                                    else
+                                    {
+                                        Debug.LogWarning($"[LootUI] Cannot take '{innerSlot.itemName}': Inventory full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
+                                    }
                                 }
                             },
                             customButtonText: "TAKE"
@@ -453,9 +460,16 @@ namespace TheLastEmpire
                         if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
                         {
                             LootSlot innerSlot = _currentContainer.itemsInside[index];
-                            _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
-                            _currentContainer.itemsInside.RemoveAt(index);
-                            RefreshUI();
+                            if (_playerInventory.CanAddItem(innerSlot.itemName))
+                            {
+                                _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
+                                _currentContainer.itemsInside.RemoveAt(index);
+                                RefreshUI();
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"[LootUI] Cannot take '{innerSlot.itemName}': Inventory full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
+                            }
                         }
                     });
                 }
@@ -478,12 +492,19 @@ namespace TheLastEmpire
                 _currentContainer.moneyAmount = 0;
             }
 
-            foreach (LootSlot slot in _currentContainer.itemsInside)
+            for (int i = _currentContainer.itemsInside.Count - 1; i >= 0; i--)
             {
-                _playerInventory.AddItem(slot.itemName, slot.quantity);
+                LootSlot slot = _currentContainer.itemsInside[i];
+                if (_playerInventory.CanAddItem(slot.itemName))
+                {
+                    _playerInventory.AddItem(slot.itemName, slot.quantity);
+                    _currentContainer.itemsInside.RemoveAt(i);
+                }
             }
-            _currentContainer.itemsInside.Clear();
-            _currentContainer.isSearched = true;
+            if (_currentContainer.itemsInside.Count == 0)
+            {
+                _currentContainer.isSearched = true;
+            }
 
             Close();
         }

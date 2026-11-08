@@ -142,6 +142,7 @@ namespace TheLastEmpire.Editor
             data.starvationInterval = 2.0f;
             data.foodHealBonus = 0f;
 
+            data.maxInventorySlots = 22; // Imperial Vanguard (22 ช่อง)
             data.startingMoney = 100;
             data.startingRations = 2;
             data.startingPistolAmmo = 60;
@@ -222,6 +223,7 @@ namespace TheLastEmpire.Editor
             data.starvationInterval = 2.0f;
             data.foodHealBonus = 0f;
 
+            data.maxInventorySlots = 26; // Heavy Juggernaut (26 ช่อง)
             data.startingMoney = 50;
             data.startingRations = 2;
             data.startingPistolAmmo = 20;
@@ -297,6 +299,7 @@ namespace TheLastEmpire.Editor
             data.starvationInterval = 2.0f;
             data.foodHealBonus = 0f;
 
+            data.maxInventorySlots = 18; // Stealth Phantom (18 ช่อง - Min cap)
             data.startingMoney = 150;
             data.startingRations = 2;
             data.startingPistolAmmo = 40;
@@ -374,6 +377,7 @@ namespace TheLastEmpire.Editor
             data.starvationInterval = 2.0f;
             data.foodHealBonus = 0f;
 
+            data.maxInventorySlots = 18; // Sharpshooter Marksman (18 ช่อง - Min cap)
             data.startingMoney = 80;
             data.startingRations = 2;
             data.startingPistolAmmo = 30;
@@ -452,6 +456,7 @@ namespace TheLastEmpire.Editor
             data.starvationInterval = 2.0f;
             data.foodHealBonus = 10f; // Passive: Eating food gives +10 HP
 
+            data.maxInventorySlots = 30; // Hoarder Scavenger (30 ช่อง - Max cap)
             data.startingMoney = 300;
             data.startingRations = 2;
             data.startingPistolAmmo = 0;
@@ -511,6 +516,7 @@ namespace TheLastEmpire.Editor
                 data.dashSpeed = 16f;
                 data.dashDuration = 0.25f;
                 data.dashCooldown = 0.70f;
+                data.maxInventorySlots = 20; // Brawler Rebel (20 ช่อง)
                 data.startingMoney = 120;
                 data.startingRations = 2;
                 data.startingPistolAmmo = 24;
@@ -586,6 +592,7 @@ namespace TheLastEmpire.Editor
                 data.dashSpeed = 14f;
                 data.dashDuration = 0.25f;
                 data.dashCooldown = 0.80f;
+                data.maxInventorySlots = 24; // Trapper Demolitionist (24 ช่อง)
                 data.startingMoney = 90;
                 data.startingRations = 2;
                 data.startingPistolAmmo = 36;

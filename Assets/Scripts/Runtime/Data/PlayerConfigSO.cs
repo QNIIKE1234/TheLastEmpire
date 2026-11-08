@@ -28,6 +28,10 @@ namespace TheLastEmpire
         public float daySanityRecoveryRate = 0.2f;
 
         [Header("Starting Loadout")]
+        [Tooltip("ความจุช่องเก็บของในกระเป๋าเริ่มต้น (ขั้นต่ำ 18, สูงสุด 30)")]
+        [Range(18, 30)]
+        public int maxInventorySlots = 20;
+
         [Tooltip("จำนวนเงินเริ่มต้น")]
         public int startingMoney = 0;
         

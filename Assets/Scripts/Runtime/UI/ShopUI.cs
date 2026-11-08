@@ -394,6 +394,18 @@ namespace TheLastEmpire
 
             int price = _isFree ? 0 : item.price;
 
+            if (!_playerInventory.CanAfford(price))
+            {
+                Debug.LogWarning($"[ShopUI] Not enough money to buy {item.item.itemName} (${price})!");
+                return;
+            }
+
+            if (!_playerInventory.CanAddItem(item.item.itemName))
+            {
+                Debug.LogWarning($"[ShopUI] Cannot buy {item.item.itemName}: Inventory is full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
+                return;
+            }
+
             if (!_playerInventory.SpendMoney(price)) return;
 
             // AddItem ให้ตามจำนวน defaultQuantity ที่ตั้งไว้ใน ItemData

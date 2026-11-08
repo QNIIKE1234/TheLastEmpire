@@ -172,6 +172,11 @@ namespace TheLastEmpire
         [Tooltip("Bonus HP healed whenever consuming food/bread (Scavenger perk: +10 HP).")]
         public float foodHealBonus = 0f;
 
+        [Header("=== INVENTORY & STORAGE ===")]
+        [Range(18, 30)]
+        [Tooltip("ความจุช่องเก็บของในกระเป๋าสำหรับตัวละครนี้ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
+        public int maxInventorySlots = 20;
+
         [Header("=== STARTING ARSENAL & LOADOUT ===")]
         [Tooltip("Starting credits / gold in player pouch.")]
         public int startingMoney = 100;
@@ -307,7 +312,7 @@ namespace TheLastEmpire
         /// </summary>
         public string GetFormattedAttributesString()
         {
-            return $"- Max HP: <b>{maxHealth}</b> | Hunger: <b>{maxHunger}</b> | Sanity: <b>{maxSanity}</b>\n- Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
+            return $"- Max HP: <b>{maxHealth}</b> | Hunger: <b>{maxHunger}</b> | Sanity: <b>{maxSanity}</b>\n- Backpack: <b>{maxInventorySlots} Slots</b> | Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
         }
     }
 }

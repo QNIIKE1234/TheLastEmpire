@@ -111,6 +111,8 @@ namespace TheLastEmpire.Editor
             if (showLoadout)
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("maxInventorySlots"));
+                EditorGUILayout.Space(2);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("startingMoney"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("startingRations"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("startingWeapons"), true);
