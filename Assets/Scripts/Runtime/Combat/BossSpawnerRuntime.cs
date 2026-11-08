@@ -83,22 +83,6 @@ namespace TheLastEmpire
                 TogglePlayerLight();
             }
 
-            // B key: Spawn Boss
-            if (Keyboard.current.bKey.wasPressedThisFrame)
-            {
-                bool isShift = Keyboard.current.shiftKey.isPressed;
-                if (isShift)
-                {
-                    // Shift + B: Boss Rush (3 Bosses)
-                    SpawnBossRush(3);
-                }
-                else
-                {
-                    // B: Single Boss in front of player
-                    SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
-                }
-            }
-
             // K key (or Ctrl + K): Kill all bosses/enemies
             if (Keyboard.current.kKey.wasPressedThisFrame)
             {
@@ -379,7 +363,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss [B]", "Time [T/N]", "Craft [F8]" };
+                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Craft [F8]" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -420,13 +404,13 @@ namespace TheLastEmpire
 
             // Quick Spawns
             GUI.backgroundColor = new Color(0.9f, 0.6f, 0.1f);
-            if (GUILayout.Button("เสก Boss [กด B]", GUILayout.Height(34)))
+            if (GUILayout.Button("เสก Boss (เดี่ยว)", GUILayout.Height(34)))
             {
                 SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
             }
 
             GUI.backgroundColor = new Color(0.85f, 0.35f, 0.1f);
-            if (GUILayout.Button("เสก Boss Rush (3 ตัว) [Shift+B]", GUILayout.Height(28)))
+            if (GUILayout.Button("เสก Boss Rush (3 ตัว)", GUILayout.Height(28)))
             {
                 SpawnBossRush(3);
             }
