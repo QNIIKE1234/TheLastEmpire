@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0007_ArmoredTitaniumWall
   buildingName: Armored Titanium Wall
   category: 0
-  icon: {fileID: 21300007, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Military-grade titanium bunker wall capable of withstanding boss attacks.
   prefab: {fileID: 6907021585975881307, guid: 45ef1828a9ae3e344be8e6a154d8b572, type: 3}
   ghostPrefab: {fileID: 0}
@@ -28,19 +28,4 @@ MonoBehaviour:
   maxHealth: 1200
   damageResistance: 0.4
   storageSlots: 0
-  ingredients:
-  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
-    itemName: Reinforced Titanium Plate
-    amount: 4
-  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
-    itemName: Scrap Metal Plate
-    amount: 6
-  - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
-    itemName: Hydraulic Piston Bolt
-    amount: 3
-  - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
-    itemName: Scrap Steel Pipe
-    amount: 4
-  - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
-    itemName: Industrial Glue
-    amount: 2
+  ingredients: []

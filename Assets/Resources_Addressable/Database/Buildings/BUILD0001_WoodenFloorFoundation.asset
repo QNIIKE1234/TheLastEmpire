@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0001_WoodenFloorFoundation
   buildingName: Wooden Floor Foundation
   category: 0
-  icon: {fileID: 21300001, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Basic wooden floor foundation for building survivor shelters.
   prefab: {fileID: 5219003266989968065, guid: 7a443629fde70ed40aa07647b8140dde, type: 3}
   ghostPrefab: {fileID: 0}
@@ -28,13 +28,4 @@ MonoBehaviour:
   maxHealth: 200
   damageResistance: 0
   storageSlots: 0
-  ingredients:
-  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
-    itemName: Wood Log
-    amount: 6
-  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
-    itemName: Box of Nails
-    amount: 2
-  - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
-    itemName: Sturdy Rope
-    amount: 1
+  ingredients: []

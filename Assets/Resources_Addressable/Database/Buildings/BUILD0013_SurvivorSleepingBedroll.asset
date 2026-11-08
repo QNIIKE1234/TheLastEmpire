@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0013_SurvivorSleepingBedroll
   buildingName: Survivor Sleeping Bedroll
   category: 1
-  icon: {fileID: 21300013, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Insulated leather and cloth bedroll for resting and setting your respawn
     point.
   prefab: {fileID: 185975714278661533, guid: 73c82cd67638890499e637b9df15ad62, type: 3}
@@ -29,19 +29,4 @@ MonoBehaviour:
   maxHealth: 150
   damageResistance: 0
   storageSlots: 18
-  ingredients:
-  - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
-    itemName: Scrap Leather
-    amount: 5
-  - item: {fileID: 11400000, guid: 652910bc57c615f555a19db935ae89d9, type: 2}
-    itemName: Torn Infected Cloth
-    amount: 6
-  - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
-    itemName: Plant Fiber
-    amount: 8
-  - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
-    itemName: Sturdy Rope
-    amount: 2
-  - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
-    itemName: Duct Tape
-    amount: 1
+  ingredients: []

@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0010_SurvivorWorkbench
   buildingName: Survivor Workbench
   category: 1
-  icon: {fileID: 21300010, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Crafting station equipped with tools for assembling weapons and base
     structures.
   prefab: {fileID: 3023190700650451203, guid: d0ec78a59f81d4f42a2f376f34892d53, type: 3}
@@ -29,19 +29,4 @@ MonoBehaviour:
   maxHealth: 250
   damageResistance: 0
   storageSlots: 26
-  ingredients:
-  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
-    itemName: Wood Log
-    amount: 8
-  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
-    itemName: Scrap Metal Plate
-    amount: 4
-  - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
-    itemName: Scrap Steel Pipe
-    amount: 2
-  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
-    itemName: Box of Nails
-    amount: 4
-  - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
-    itemName: Duct Tape
-    amount: 2
+  ingredients: []

@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0021_AutomatedSentryTurret
   buildingName: Automated Sentry Turret
   category: 2
-  icon: {fileID: 21300021, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: AI-controlled perimeter turret that automatically targets hostile
     enemies.
   prefab: {fileID: 5288515284170663127, guid: baff167aca720944380b06b050e4ac66, type: 3}
@@ -29,19 +29,4 @@ MonoBehaviour:
   maxHealth: 450
   damageResistance: 0.15
   storageSlots: 28
-  ingredients:
-  - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
-    itemName: Advanced Neural Processor
-    amount: 1
-  - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
-    itemName: Military Overdrive Servo
-    amount: 2
-  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
-    itemName: Reinforced Titanium Plate
-    amount: 3
-  - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
-    itemName: High-Capacity Capacitor
-    amount: 2
-  - item: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
-    itemName: Rifle Ammo
-    amount: 30
+  ingredients: []

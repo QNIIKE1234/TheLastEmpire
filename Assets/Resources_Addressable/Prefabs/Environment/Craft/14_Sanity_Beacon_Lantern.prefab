@@ -141,6 +141,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 2.2}
   m_Center: {x: 0, y: 0, z: 1.1}
+--- !u!114 &16842131988676769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540521851067841333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14ff9a1ba9284a048d5181e567f71f1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::SanityBeaconBuilding
+  sanityRegenRate: 2.5
+  beaconRadius: 10
+  beaconLight: {fileID: 0}
+  minIntensity: 2
+  maxIntensity: 3.2
+  pulseSpeed: 1.5
 --- !u!1 &7511034541370869337
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,7 +203,7 @@ Light:
   m_Type: 2
   m_Color: {r: 0.35, g: 0.85, b: 1, a: 1}
   m_Intensity: 2.5
-  m_Range: 12
+  m_Range: 14
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -238,20 +256,3 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!114 &16842131988676769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 540521851067841333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14ff9a1ba9284a048d5181e567f71f1a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TheLastEmpire::SanityBeaconBuilding
-  sanityRegenRate: 2.5
-  beaconRadius: 10
-  minIntensity: 2
-  maxIntensity: 3.2
-  pulseSpeed: 1.5

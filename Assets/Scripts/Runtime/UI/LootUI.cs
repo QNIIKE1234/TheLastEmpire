@@ -56,6 +56,8 @@ namespace TheLastEmpire
         private int _justOpenedFrame = -1;
 
         public bool IsOpen => _isOpen;
+        public LootContainer CurrentContainer => _currentContainer;
+        public LootContainer ActiveContainer => _currentContainer;
 
         private void Awake()
         {

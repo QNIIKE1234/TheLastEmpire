@@ -153,9 +153,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e99b9e5923e343d3817224206bbf454d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire::DoorBuilding
-  doorType: 1
+  doorType: 0
   isOpen: 0
-  animationSpeed: 4
+  animationSpeed: 5
   interactionDistance: 2.5
-  autoClose: 1
+  autoClose: 0
   autoCloseDelay: 8
+  doorLeaf: {fileID: 0}
+  doorBlockerCollider: {fileID: 0}
