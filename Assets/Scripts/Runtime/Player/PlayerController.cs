@@ -331,11 +331,6 @@ namespace TheLastEmpire
             InitIndicators();
         }
 
-        private void OnDestroy()
-        {
-            if (Instance == this) Instance = null;
-        }
-
         private void ApplyPlayerConfig()
         {
             if (activeCharacterData == null)
@@ -593,6 +588,11 @@ namespace TheLastEmpire
 
         private void OnDestroy()
         {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
             if (_health != null)
             {
                 _health.onDeath.RemoveListener(HandlePlayerDeath);
