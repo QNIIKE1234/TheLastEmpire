@@ -356,13 +356,26 @@ namespace TheLastEmpire
             bool hitGround = false;
             Collider hitGroundCollider = null;
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 150f, groundLayerMask, QueryTriggerInteraction.Ignore))
+            // ค้นหาพื้นผิววางสิ่งปลูกสร้าง โดยข้ามสิ่งปลูกสร้างเดิม (BuildingObject) เพื่อไม่ให้เกิดปัญหาวางซ้อนเกยลอยฟ้า
+            RaycastHit[] allHits = Physics.RaycastAll(ray, 150f, groundLayerMask, QueryTriggerInteraction.Ignore);
+            Array.Sort(allHits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (var h in allHits)
             {
-                hitPoint = hit.point;
+                if (_ghostInstance != null && (h.collider.gameObject == _ghostInstance || h.collider.transform.IsChildOf(_ghostInstance.transform)))
+                    continue;
+
+                // ข้ามสิ่งปลูกสร้างเดิม (ไม่ใช้หลังคาหรือขอบกำแพงเดิมเป็นพื้นวาง)
+                if (h.collider.GetComponentInParent<BuildingObject>() != null)
+                    continue;
+
+                hitPoint = h.point;
                 hitGround = true;
-                hitGroundCollider = hit.collider;
+                hitGroundCollider = h.collider;
+                break;
             }
-            else
+
+            if (!hitGround)
             {
                 Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
                 if (groundPlane.Raycast(ray, out float enter))
@@ -438,21 +451,24 @@ namespace TheLastEmpire
                     break;
                 }
 
-                // ข้าม Collider พื้นดินที่ยิง Raycast โดน หรือชื่อที่เป็นพื้นผิว
-                if (hitGroundCollider != null && (c == hitGroundCollider || c.transform.IsChildOf(hitGroundCollider.transform)))
+                // ข้าม Collider พื้นดินที่ยิง Raycast โดน หรือชื่อที่เป็นพื้นผิว (ห้ามข้ามสิ่งปลูกสร้างเดิม)
+                if (c.GetComponentInParent<BuildingObject>() == null)
                 {
-                    continue;
-                }
+                    if (hitGroundCollider != null && (c == hitGroundCollider || c.transform.IsChildOf(hitGroundCollider.transform)))
+                    {
+                        continue;
+                    }
 
-                if (c.GetComponentInParent<Terrain>() != null)
-                {
-                    continue;
-                }
+                    if (c.GetComponentInParent<Terrain>() != null)
+                    {
+                        continue;
+                    }
 
-                string colName = c.gameObject.name.ToLowerInvariant();
-                if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("plane") || colName.Contains("terrain"))
-                {
-                    continue;
+                    string colName = c.gameObject.name.ToLowerInvariant();
+                    if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("plane") || colName.Contains("terrain"))
+                    {
+                        continue;
+                    }
                 }
 
                 isObstructed = true;
