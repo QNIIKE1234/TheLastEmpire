@@ -35,6 +35,13 @@ namespace TheLastEmpire
         [Tooltip("Prefab สำหรับเงาพรีวิวโปร่งใส (หากเว้นว่าง ระบบจะคัดลอก Mesh จาก Prefab ตัวจริงให้อัตโนมัติ)")]
         public GameObject ghostPrefab;
 
+        [Header("Orientation & Offset")]
+        [Tooltip("การหมุนชดเชยเริ่มต้นของโมเดล (องศา) เช่น ถ้าโมเดลเอียงมาจาก FBX ให้หมุนชดเชยที่นี่")]
+        public Vector3 rotationOffset = Vector3.zero;
+
+        [Tooltip("ระยะยกหรือขยับชดเชยแกน Y/X/Z จากจุดปะทะพื้นดิน")]
+        public Vector3 positionOffset = Vector3.zero;
+
         [Header("Placement Settings")]
         [Tooltip("ขนาดกล่องพื้นที่วาง (กว้าง X, สูง Y, ลึก Z) สำหรับเช็คการชนตอนวาง")]
         public Vector3 footprintSize = new Vector3(1.5f, 1.5f, 1.5f);

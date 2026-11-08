@@ -278,8 +278,23 @@ namespace TheLastEmpire
                 hitPoint.z = Mathf.Round(hitPoint.z / g) * g;
             }
 
-            _currentPlacementPosition = hitPoint;
-            _currentPlacementRotation = Quaternion.Euler(0f, _currentRotationY, 0f);
+            // คำนวณการหมุน: อิงตามค่าเริ่มต้นของ Prefab (เช่น โมเดลที่นำเข้าจาก FBX ที่มีแกน X = -90)
+            // ร่วมกับ rotationOffset จาก BuildingData แล้วจึงหมุนตามแกน Y (yaw) ที่ผู้เล่นสั่งหมุน
+            Quaternion baseRotation = Quaternion.identity;
+            if (_activeData != null)
+            {
+                if (_activeData.prefab != null)
+                {
+                    baseRotation = _activeData.prefab.transform.rotation;
+                }
+                if (_activeData.rotationOffset != Vector3.zero)
+                {
+                    baseRotation *= Quaternion.Euler(_activeData.rotationOffset);
+                }
+            }
+
+            _currentPlacementPosition = hitPoint + (_activeData != null ? _activeData.positionOffset : Vector3.zero);
+            _currentPlacementRotation = Quaternion.Euler(0f, _currentRotationY, 0f) * baseRotation;
 
             _ghostInstance.transform.position = _currentPlacementPosition;
             _ghostInstance.transform.rotation = _currentPlacementRotation;
@@ -299,7 +314,8 @@ namespace TheLastEmpire
             Vector3 center = _currentPlacementPosition + Vector3.up * (_activeData.footprintSize.y * 0.5f + 0.05f);
             Vector3 halfExtents = new Vector3(_activeData.footprintSize.x * 0.45f, _activeData.footprintSize.y * 0.45f, _activeData.footprintSize.z * 0.45f);
 
-            Collider[] hits = Physics.OverlapBox(center, halfExtents, _currentPlacementRotation, obstacleLayerMask, QueryTriggerInteraction.Ignore);
+            Quaternion boxOrientation = Quaternion.Euler(0f, _currentRotationY, 0f);
+            Collider[] hits = Physics.OverlapBox(center, halfExtents, boxOrientation, obstacleLayerMask, QueryTriggerInteraction.Ignore);
             bool isObstructed = false;
 
             foreach (Collider c in hits)

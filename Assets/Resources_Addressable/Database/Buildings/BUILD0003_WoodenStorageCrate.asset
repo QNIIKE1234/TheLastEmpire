@@ -20,6 +20,8 @@ MonoBehaviour:
     materials.
   prefab: {fileID: 392883636860911503, guid: 303232d1452e32646b23670e4c4d74f8, type: 3}
   ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
   footprintSize: {x: 1.2, y: 1, z: 1.2}
   buildRange: 6
   snapToGrid: 0

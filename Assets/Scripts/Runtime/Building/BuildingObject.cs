@@ -92,8 +92,19 @@ namespace TheLastEmpire
 
             if (data != null)
             {
-                _navObstacle.size = data.footprintSize;
-                _navObstacle.center = new Vector3(0, data.footprintSize.y * 0.5f, 0);
+                Vector3 worldCenter = Vector3.up * (data.footprintSize.y * 0.5f);
+                _navObstacle.center = transform.InverseTransformDirection(worldCenter);
+
+                Vector3 worldSize = data.footprintSize;
+                Vector3 localX = transform.InverseTransformDirection(Vector3.right);
+                Vector3 localY = transform.InverseTransformDirection(Vector3.up);
+                Vector3 localZ = transform.InverseTransformDirection(Vector3.forward);
+
+                _navObstacle.size = new Vector3(
+                    Mathf.Abs(localX.x) * worldSize.x + Mathf.Abs(localY.x) * worldSize.y + Mathf.Abs(localZ.x) * worldSize.z,
+                    Mathf.Abs(localX.y) * worldSize.x + Mathf.Abs(localY.y) * worldSize.y + Mathf.Abs(localZ.y) * worldSize.z,
+                    Mathf.Abs(localX.z) * worldSize.x + Mathf.Abs(localY.z) * worldSize.y + Mathf.Abs(localZ.z) * worldSize.z
+                );
             }
             else
             {

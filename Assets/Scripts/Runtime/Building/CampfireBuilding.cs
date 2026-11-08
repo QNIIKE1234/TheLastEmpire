@@ -34,14 +34,11 @@ namespace TheLastEmpire
                 fireLight = GetComponentInChildren<Light>();
             }
 
-            // ตั้งค่า SphereCollider Trigger สำหรับเช็คระยะผู้เล่น
-            SphereCollider sphere = GetComponent<SphereCollider>();
-            if (sphere == null)
-            {
-                sphere = gameObject.AddComponent<SphereCollider>();
-            }
-            sphere.isTrigger = true;
-            sphere.radius = auraRadius;
+            // สร้าง Trigger สำหรับเช็คระยะออร่ากองไฟ (Aura Trigger) แยกต่างหาก ไม่ทับ Physical Collider
+            SphereCollider auraTrigger = gameObject.AddComponent<SphereCollider>();
+            auraTrigger.isTrigger = true;
+            auraTrigger.radius = auraRadius;
+            auraTrigger.center = Vector3.zero;
         }
 
         private void Update()

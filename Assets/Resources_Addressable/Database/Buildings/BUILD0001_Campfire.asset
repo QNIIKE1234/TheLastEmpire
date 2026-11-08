@@ -20,6 +20,8 @@ MonoBehaviour:
     nearby (Press Z).
   prefab: {fileID: 5086415955843939209, guid: d27f8af6c3254694cafb706e1b7d706a, type: 3}
   ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
   footprintSize: {x: 1.5, y: 1.2, z: 1.5}
   buildRange: 6.5
   snapToGrid: 0
