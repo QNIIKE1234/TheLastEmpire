@@ -15628,9 +15628,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3161b50b02a3d47bf05b2ef234f8c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.DayNightManager
-  dayDuration: 200
-  duskDuration: 12
-  nightDuration: 100
+  fullDayDuration: 360
+  dayDuration: 180
+  duskDuration: 45
+  nightDuration: 135
   fadeSpeed: 1.2
   cycleSpeedMultiplier: 1
   dawnSunColor: {r: 1, g: 0.92, b: 0.55, a: 1}

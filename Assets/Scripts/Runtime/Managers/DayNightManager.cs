@@ -15,9 +15,14 @@ namespace TheLastEmpire
         }
 
         [Header("Timing Settings (Day-Night Cycle)")]
+        [Tooltip("ความยาว 1 วันเต็มในเกม (วินาทีจริง) = 360 วินาที (6 นาที)")]
+        [SerializeField] private float fullDayDuration = 360f;
+        [Tooltip("ช่วงกลางวัน 06:00 - 18:00 (12 ชม. ในเกม) = 180 วินาที")]
         [SerializeField] private float dayDuration = 180f;
-        [SerializeField] private float duskDuration = 12f;
-        [SerializeField] private float nightDuration = 120f;
+        [Tooltip("ช่วงพลบค่ำ 18:00 - 21:00 (3 ชม. ในเกม) = 45 วินาที")]
+        [SerializeField] private float duskDuration = 45f;
+        [Tooltip("ช่วงกลางคืน 21:00 - 06:00 (9 ชม. ในเกม) = 135 วินาที")]
+        [SerializeField] private float nightDuration = 135f;
         [Tooltip("Smooth fade duration into darkness/dusk (seconds)")]
         [SerializeField] private float fadeSpeed = 1.2f;
 
@@ -147,6 +152,24 @@ namespace TheLastEmpire
             else
             {
                 Destroy(gameObject);
+                return;
+            }
+
+            // บังคับใช้รอบเวลา 360 วินาที (ความเร็วคงที่สม่ำเสมอ 15 วินาทีต่อ 1 ชม. ในเกม)
+            if (Mathf.Abs((dayDuration + duskDuration + nightDuration) - 360f) > 0.5f)
+            {
+                ApplyUniformCycle(360f);
+            }
+        }
+
+        private void OnValidate()
+        {
+            if (fullDayDuration > 0f)
+            {
+                float secPerHour = fullDayDuration / 24f;
+                dayDuration = secPerHour * 12f;
+                duskDuration = secPerHour * 3f;
+                nightDuration = secPerHour * 9f;
             }
         }
 
@@ -608,12 +631,30 @@ namespace TheLastEmpire
         }
 
 
+        /// <summary>
+        /// ตั้งค่ารอบเวลา 24 ชั่วโมงในเกมให้เดินด้วยความเร็วคงที่สม่ำเสมอตลอดทั้งวัน
+        /// เช่น 360 วินาที = 15 วินาทีต่อ 1 ชั่วโมงในเกม
+        /// กลางวัน (06:00 - 18:00 = 12 ชม.) = 180 วินาที
+        /// พลบค่ำ (18:00 - 21:00 = 3 ชม.) = 45 วินาที
+        /// กลางคืน (21:00 - 06:00 = 9 ชม.) = 135 วินาที
+        /// </summary>
+        public void ApplyUniformCycle(float totalSeconds = 360f)
+        {
+            fullDayDuration = totalSeconds;
+            float secPerHour = totalSeconds / 24f; // 15s / in-game hour
+            dayDuration = secPerHour * 12f;       // 180s (12 hours)
+            duskDuration = secPerHour * 3f;       // 45s (3 hours)
+            nightDuration = secPerHour * 9f;      // 135s (9 hours)
+            Debug.Log($"[DayNightManager] Uniform 24h cycle applied: Total={totalSeconds}s (Day={dayDuration}s, Dusk={duskDuration}s, Night={nightDuration}s, {secPerHour:F1}s/hour)");
+        }
+
         public void SetCycleDurations(float day, float dusk, float night)
         {
             dayDuration = Mathf.Max(1f, day);
             duskDuration = Mathf.Max(1f, dusk);
             nightDuration = Mathf.Max(1f, night);
-            Debug.Log($"[DayNightManager] Cycle updated: Day={dayDuration}s, Dusk={duskDuration}s, Night={nightDuration}s");
+            fullDayDuration = dayDuration + duskDuration + nightDuration;
+            Debug.Log($"[DayNightManager] Cycle updated: Day={dayDuration}s, Dusk={duskDuration}s, Night={nightDuration}s (Total={fullDayDuration}s)");
         }
         public void ToggleTimePhase()
         {
