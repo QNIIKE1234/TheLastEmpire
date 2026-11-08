@@ -160,7 +160,7 @@ namespace TheLastEmpire
             if (_currentTarget != null)
             {
                 IDamageable currentDam = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
-                if (currentDam == null || currentDam.IsDead || Vector3.Distance(transform.position, _currentTarget.position) > targetingRange)
+                if (currentDam == null || currentDam.IsDead || _currentTarget.IsChildOf(transform) || Vector3.Distance(transform.position, _currentTarget.position) > targetingRange)
                 {
                     _currentTarget = null;
                 }
@@ -174,10 +174,35 @@ namespace TheLastEmpire
 
             foreach (var col in hits)
             {
-                if (col.CompareTag("Player") || col.GetComponent<PlayerController>() != null)
+                if (col == null) continue;
+
+                // 1. ห้ามเล็งตัวเองและชิ้นส่วนของตัวเองเด็ดขาด
+                if (col.transform == transform || col.transform.IsChildOf(transform))
                 {
                     continue;
                 }
+
+                // 2. ห้ามเล็งผู้เล่น
+                if (col.CompareTag("Player") || col.GetComponentInParent<PlayerController>() != null)
+                {
+                    continue;
+                }
+
+                // 3. ห้ามเล็งสิ่งปลูกสร้างพวกเดียวกัน (เช่น กำแพง, แคมป์ไฟ, ป้อมอื่น)
+                if (col.GetComponentInParent<BuildingObject>() != null)
+                {
+                    continue;
+                }
+
+                // 4. ต้องเป็นศัตรูเท่านั้น (Alien, Zombie, Robot, Tag: Enemy, หรือมี BaseEnemyAI)
+                bool isEnemy = col.CompareTag("Enemy") ||
+                               col.GetComponentInParent<BaseEnemyAI>() != null ||
+                               col.gameObject.name.IndexOf("Alien", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               col.gameObject.name.IndexOf("Zombie", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               col.gameObject.name.IndexOf("Robot", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               col.gameObject.name.IndexOf("Enemy", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (!isEnemy) continue;
 
                 IDamageable dam = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
                 if (dam != null && !dam.IsDead)
@@ -210,7 +235,11 @@ namespace TheLastEmpire
 
         private void FireAtTarget()
         {
-            if (_currentTarget == null) return;
+            if (_currentTarget == null || _currentTarget == transform || _currentTarget.IsChildOf(transform))
+            {
+                _currentTarget = null;
+                return;
+            }
 
             if (!infiniteAmmo)
             {

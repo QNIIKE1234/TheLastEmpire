@@ -109,9 +109,19 @@ namespace TheLastEmpire
 
             foreach (Collider hit in hits)
             {
-                if (hit == null || hit.gameObject == gameObject) continue;
+                if (hit == null) continue;
+                if (hit.transform == transform || hit.transform.IsChildOf(transform)) continue;
+                if (hit.CompareTag("Player") || hit.GetComponentInParent<PlayerController>() != null) continue;
+                if (hit.GetComponentInParent<BuildingObject>() != null) continue;
 
-                if (hit.CompareTag("Enemy") || hit.name.Contains("Alien") || hit.name.Contains("Zombie") || hit.name.Contains("Robot"))
+                bool isEnemy = hit.CompareTag("Enemy") ||
+                               hit.GetComponentInParent<BaseEnemyAI>() != null ||
+                               hit.gameObject.name.IndexOf("Alien", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               hit.gameObject.name.IndexOf("Zombie", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               hit.gameObject.name.IndexOf("Robot", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               hit.gameObject.name.IndexOf("Enemy", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (isEnemy)
                 {
                     IDamageable damageable = hit.GetComponent<IDamageable>() ?? hit.GetComponentInParent<IDamageable>();
                     if (damageable != null && !damageable.IsDead)
