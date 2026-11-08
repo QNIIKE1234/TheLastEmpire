@@ -56,6 +56,10 @@ namespace TheLastEmpire
         [Tooltip("สีข้อความ TextMeshPro ตอนไม่ได้เลือก (ค่าเริ่มต้น: สีขาว)")]
         [SerializeField] private Color unselectedTabTextColor = Color.white;
 
+        [Header("Description Panel (พาเนลแสดงรายละเอียดฝั่งขวา)")]
+        [Tooltip("พาเนลแสดงไอคอน ชื่อ และคำอธิบายไอเทมที่เลือกอยู่ฝั่งขวา")]
+        [SerializeField] private CraftDescriptionPanel descriptionPanel;
+
         [Header("Thumbnail Slots (รายการแถวคราฟต์ฝั่งขวา)")]
         [Tooltip("ลากแถว CraftThumbnail ทั้งหมดที่วางอยู่ในหน้าต่าง UI ใส่ที่นี่ (เช่น 6 แถว) เพื่อวนเซตข้อมูลซ้ำ ไม่สร้างใหม่ ไม่เปลือง Memory")]
         [SerializeField] private List<CraftThumbnail> thumbnailSlots = new List<CraftThumbnail>();
@@ -97,6 +101,12 @@ namespace TheLastEmpire
         private int _currentPage = 0;
         private int _totalPages = 1;
         private bool _isOpen = false;
+
+        private CraftingRecipe _selectedRecipe;
+        private CraftThumbnail _selectedThumbnail;
+
+        public CraftingRecipe SelectedRecipe => _selectedRecipe;
+        public CraftDescriptionPanel DescriptionPanel => descriptionPanel;
 
         private PlayerInventory _playerInventory;
 
@@ -150,6 +160,11 @@ namespace TheLastEmpire
             if (craftingDatabase == null)
             {
                 craftingDatabase = CraftingDatabase.Instance;
+            }
+
+            if (descriptionPanel == null && craftPanel != null)
+            {
+                descriptionPanel = craftPanel.GetComponentInChildren<CraftDescriptionPanel>(true);
             }
 
             ScanExistingThumbnails();
@@ -460,9 +475,43 @@ namespace TheLastEmpire
 
             _currentCategory = category;
             _currentPage = 0;
+            _selectedRecipe = null;
+            _selectedThumbnail = null;
             UpdateCategoryTabButtons();
             RebuildFilteredList();
             RefreshUI();
+        }
+
+        /// <summary>
+        /// เลือกแถวคราฟต์ที่ต้องการ: เปิดกรอบ Selected และส่งข้อมูลสูตรคราฟต์ไปยัง Description Panel ฝั่งขวา
+        /// </summary>
+        public void SelectRecipe(CraftThumbnail thumbnail, CraftingRecipe recipe)
+        {
+            _selectedRecipe = recipe;
+            _selectedThumbnail = thumbnail;
+
+            if (thumbnailSlots != null)
+            {
+                for (int i = 0; i < thumbnailSlots.Count; i++)
+                {
+                    CraftThumbnail slot = thumbnailSlots[i];
+                    if (slot != null)
+                    {
+                        bool isSelected = (slot == thumbnail) || (slot.CurrentRecipe != null && recipe != null && slot.CurrentRecipe == recipe);
+                        slot.SetSelected(isSelected);
+                    }
+                }
+            }
+
+            if (descriptionPanel != null)
+            {
+                descriptionPanel.DisplayRecipe(recipe);
+            }
+        }
+
+        private void HandleThumbnailSelected(CraftThumbnail thumbnail, CraftingRecipe recipe)
+        {
+            SelectRecipe(thumbnail, recipe);
         }
 
         // เมธอดเสริมเผื่อลากใส่ OnClick() ของปุ่มใน Inspector โดยตรง
@@ -486,6 +535,8 @@ namespace TheLastEmpire
         {
             _currentSearchQuery = searchText ?? string.Empty;
             _currentPage = 0;
+            _selectedRecipe = null;
+            _selectedThumbnail = null;
             RebuildFilteredList();
             RefreshUI();
         }
@@ -605,6 +656,10 @@ namespace TheLastEmpire
 
             int startIndex = _currentPage * pageSize;
 
+            CraftThumbnail firstValidThumb = null;
+            CraftingRecipe firstValidRecipe = null;
+            bool currentSelectionFoundOnPage = false;
+
             // วนเซตข้อมูลลงในช่องที่มีอยู่เดิม ไม่สร้างใหม่ ไม่เปลือง Memory
             for (int i = 0; i < thumbnailSlots.Count; i++)
             {
@@ -616,12 +671,48 @@ namespace TheLastEmpire
                 {
                     CraftingRecipe recipe = _filteredRecipes[recipeIndex];
                     thumb.gameObject.SetActive(true);
-                    thumb.SetData(recipe, _playerInventory, HandleThumbnailCraftClicked);
+                    thumb.SetData(recipe, _playerInventory, HandleThumbnailCraftClicked, HandleThumbnailSelected);
+
+                    if (firstValidThumb == null)
+                    {
+                        firstValidThumb = thumb;
+                        firstValidRecipe = recipe;
+                    }
+
+                    if (_selectedRecipe != null && recipe == _selectedRecipe)
+                    {
+                        currentSelectionFoundOnPage = true;
+                        thumb.SetSelected(true);
+                    }
+                    else
+                    {
+                        thumb.SetSelected(false);
+                    }
                 }
                 else
                 {
                     thumb.Clear();
                     thumb.gameObject.SetActive(false);
+                }
+            }
+
+            // จัดการพาเนลรายละเอียด: ถ้ายังไม่ได้เลือก หรือไอเทมเดิมไม่ได้อยู่ในหน้านี้ ให้เลือกไอเทมแรกของหน้าเป็นค่าเริ่มต้น
+            if (!currentSelectionFoundOnPage && firstValidRecipe != null)
+            {
+                SelectRecipe(firstValidThumb, firstValidRecipe);
+            }
+            else if (currentSelectionFoundOnPage && _selectedRecipe != null)
+            {
+                if (descriptionPanel != null)
+                {
+                    descriptionPanel.DisplayRecipe(_selectedRecipe);
+                }
+            }
+            else if (firstValidRecipe == null)
+            {
+                if (descriptionPanel != null)
+                {
+                    descriptionPanel.Clear();
                 }
             }
         }

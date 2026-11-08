@@ -86,6 +86,13 @@ namespace TheLastEmpire
         [Tooltip("Image ไอคอนรูปประแจบนปุ่มคราฟต์ (Optional)")]
         [SerializeField] private Image craftButtonIcon;
 
+        [Header("Selection UI (การเลือกแถว)")]
+        [Tooltip("GameObject แสดงกรอบ Selected เมื่อแถวนี้ถูกเลือก")]
+        [SerializeField] private GameObject selectedObject;
+
+        [Tooltip("Button สำหรับคลิกเลือกแถวนี้ (ค่าเริ่มต้นคือ Button บน Root)")]
+        [SerializeField] private Button rowSelectButton;
+
         [Header("Visual State Settings (สีปุ่ม & สีตัวเลขตามรูป UI)")]
         [Tooltip("Sprite ปุ่มเมื่อคราฟต์ได้ (สีเหลือง) - Optional ถ้าไม่ใส่จะใช้การเปลี่ยนสี Color แทน")]
         [SerializeField] private Sprite canCraftButtonSprite;
@@ -107,8 +114,22 @@ namespace TheLastEmpire
 
         private CraftingRecipe _currentRecipe;
         private Action<CraftingRecipe> _onClickCraft;
+        private Action<CraftThumbnail, CraftingRecipe> _onSelected;
 
         public CraftingRecipe CurrentRecipe => _currentRecipe;
+        public GameObject SelectedObject => selectedObject;
+        public Button RowSelectButton => rowSelectButton;
+
+        /// <summary>
+        /// เปิด/ปิดการแสดงผลกรอบ Selected ของแถวนี้
+        /// </summary>
+        public void SetSelected(bool isSelected)
+        {
+            if (selectedObject != null)
+            {
+                selectedObject.SetActive(isSelected);
+            }
+        }
 
         private void Awake()
         {
@@ -162,6 +183,21 @@ namespace TheLastEmpire
                 }
             }
 
+            // Auto-bind Selected GameObject และ Button บน Root สำหรับคลิกเลือกแถว
+            if (selectedObject == null)
+            {
+                Transform t = transform.Find("Selected");
+                if (t != null)
+                {
+                    selectedObject = t.gameObject;
+                }
+            }
+
+            if (rowSelectButton == null)
+            {
+                rowSelectButton = GetComponent<Button>();
+            }
+
             // Auto-bind ช่องวัตถุดิบสูงสุด 5 ช่องจาก ingredientsContainer (ถ้ามีการระบุ Container ไว้)
             if ((ingredientSlots == null || ingredientSlots.Count == 0) && ingredientsContainer != null)
             {
@@ -197,14 +233,19 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// เซตข้อมูลสูตรคราฟต์ลงใน Thumbnail แถวนี้
+        /// เซตข้อมูลสูตรคราฟต์ลงใน Thumbnail แถวนี้ พร้อมผูก Callback เมื่อกดคราฟต์หรือคลิกเลือกแถว
         /// </summary>
-        public void SetData(CraftingRecipe recipe, PlayerInventory playerInventory, Action<CraftingRecipe> onClickCraft)
+        public void SetData(
+            CraftingRecipe recipe,
+            PlayerInventory playerInventory,
+            Action<CraftingRecipe> onClickCraft,
+            Action<CraftThumbnail, CraftingRecipe> onSelected = null)
         {
             AutoBindIfNeeded();
 
             _currentRecipe = recipe;
             _onClickCraft = onClickCraft;
+            _onSelected = onSelected;
 
             if (recipe == null)
             {
@@ -250,6 +291,12 @@ namespace TheLastEmpire
             {
                 craftButton.onClick.RemoveAllListeners();
                 craftButton.onClick.AddListener(HandleCraftButtonClicked);
+            }
+
+            if (rowSelectButton != null)
+            {
+                rowSelectButton.onClick.RemoveAllListeners();
+                rowSelectButton.onClick.AddListener(HandleRowSelectedClicked);
             }
         }
 
@@ -371,13 +418,32 @@ namespace TheLastEmpire
                 craftButton.onClick.RemoveAllListeners();
                 craftButton.interactable = false;
             }
+
+            if (rowSelectButton != null)
+            {
+                rowSelectButton.onClick.RemoveAllListeners();
+            }
+
+            if (selectedObject != null)
+            {
+                selectedObject.SetActive(false);
+            }
         }
 
         private void HandleCraftButtonClicked()
         {
             if (_currentRecipe != null)
             {
+                _onSelected?.Invoke(this, _currentRecipe);
                 _onClickCraft?.Invoke(_currentRecipe);
+            }
+        }
+
+        private void HandleRowSelectedClicked()
+        {
+            if (_currentRecipe != null)
+            {
+                _onSelected?.Invoke(this, _currentRecipe);
             }
         }
     }
