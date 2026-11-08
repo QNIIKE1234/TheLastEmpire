@@ -49,7 +49,7 @@ namespace TheLastEmpire
         {
             if (Instance == null)
             {
-                BuildingManager existing = Object.FindFirstObjectByType<BuildingManager>();
+                BuildingManager existing = UnityEngine.Object.FindFirstObjectByType<BuildingManager>();
                 if (existing != null)
                 {
                     Instance = existing;
