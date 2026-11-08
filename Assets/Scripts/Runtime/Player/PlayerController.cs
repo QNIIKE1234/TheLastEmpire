@@ -1145,6 +1145,7 @@ namespace TheLastEmpire
         {
             if (Camera.main == null) return;
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
 
             // Aim towards mouse position in world space using 3D raycast on X/Z plane
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -1186,7 +1187,9 @@ namespace TheLastEmpire
         private void HandleDirectInput()
         {
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
             if ((InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || (LootUI.Instance != null && LootUI.Instance.IsOpen)) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
 
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
@@ -1263,7 +1266,8 @@ namespace TheLastEmpire
             if (Keyboard.current != null)
             {
                 bool isUIBlocked = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) ||
-                                   (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps);
+                                   (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) ||
+                                   (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode);
 
                 if (!isUIBlocked)
                 {
@@ -1326,6 +1330,7 @@ namespace TheLastEmpire
             }
 
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
 
             // Attack action ส่งต่อไปยังระบบ Buffer เดียวกันใน Update() เพื่อให้เลือกใช้ตามไอเทมที่ถืออยู่จริง (มีด/หอก/ปืน/ของกิน)
             // ป้องกันบัคที่เมื่อถืออาวุธประชิด (เช่น มีด หอก) แล้วระบบเผลอสั่งยิงปืนซ้ำซ้อน
@@ -1338,6 +1343,7 @@ namespace TheLastEmpire
         private void OnInteract(InputValue value)
         {
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
 
             if (value.isPressed)
             {
@@ -3312,6 +3318,7 @@ namespace TheLastEmpire
         private void TryTalk()
         {
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode) return;
 
             NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
             foreach (NPCController npc in npcs)

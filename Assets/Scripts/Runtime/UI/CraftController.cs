@@ -565,6 +565,28 @@ namespace TheLastEmpire
 
         private void HandleThumbnailCraftClicked(CraftingRecipe recipe)
         {
+            if (recipe == null) return;
+
+            // ตรวจสอบว่าเป็นสิ่งปลูกสร้างหรือไม่ ถ้าใช่ ให้ปิดหน้าต่างคราฟต์แล้วเข้าสู่โหมดเล็งวาง (Build Mode) ทันที
+            if (BuildingManager.Instance != null && BuildingPlacer.Instance != null)
+            {
+                BuildingData bData = BuildingManager.Instance.GetBuildingDataForRecipe(recipe);
+                if (bData != null)
+                {
+                    FindPlayerInventory();
+                    bool canBuild = FreeCraftMode || (craftingDatabase != null ? craftingDatabase.CanCraft(recipe, _playerInventory) : true);
+                    if (!canBuild)
+                    {
+                        Debug.Log($"[CraftController] Not enough materials to build '{bData.buildingName}'!");
+                        return;
+                    }
+
+                    CloseCraftMenu();
+                    BuildingPlacer.Instance.StartPlacement(bData, recipe);
+                    return;
+                }
+            }
+
             TryCraftRecipe(recipe);
         }
 
