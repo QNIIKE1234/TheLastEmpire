@@ -24,6 +24,11 @@ namespace TheLastEmpire
 
         [Header("Light Flickering")]
         [SerializeField] private Light fireLight;
+        public Light FireLight
+        {
+            get => fireLight;
+            set => fireLight = value;
+        }
         [SerializeField] private float minIntensity = 2.2f;
         [SerializeField] private float maxIntensity = 3.8f;
         [SerializeField] private float lightRange = 10.0f;
@@ -80,7 +85,7 @@ namespace TheLastEmpire
             SphereCollider auraTrigger = gameObject.AddComponent<SphereCollider>();
             auraTrigger.isTrigger = true;
             auraTrigger.radius = auraRadius;
-            auraTrigger.center = new Vector3(0f, 0f, 0.4f);
+            auraTrigger.center = transform.InverseTransformPoint(transform.position + Vector3.up * 0.4f);
         }
 
         private void Update()

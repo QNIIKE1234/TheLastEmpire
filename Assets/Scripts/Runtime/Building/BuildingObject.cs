@@ -22,6 +22,12 @@ namespace TheLastEmpire
         [Tooltip("เพิ่ม NavMeshObstacle อัตโนมัติหรือไม่ เพื่อให้มอนสเตอร์เดินอ้อมสิ่งปลูกสร้างนี้")]
         [SerializeField] private bool autoAddNavMeshObstacle = true;
 
+        public bool AutoAddNavMeshObstacle
+        {
+            get => autoAddNavMeshObstacle;
+            set => autoAddNavMeshObstacle = value;
+        }
+
         [Header("Dismantle Settings")]
         [Tooltip("เปอร์เซ็นต์วัตถุดิบที่จะได้คืนเมื่อผู้เล่นรื้อถอน (ค่าเริ่มต้น 50%)")]
         [Range(0f, 1f)]
