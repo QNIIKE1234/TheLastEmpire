@@ -11,6 +11,9 @@ GameObject:
   - component: {fileID: 559814994540269781}
   - component: {fileID: 5530003772343293215}
   - component: {fileID: 1735104167187676131}
+  - component: {fileID: 8360173033561659866}
+  - component: {fileID: 4916425600816273348}
+  - component: {fileID: 4898179803029435896}
   m_Layer: 0
   m_Name: 16_Wooden_Spike_Barricade
   m_TagString: Untagged
@@ -95,3 +98,57 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8360173033561659866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5643138084421969388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
+  data: {fileID: 0}
+  currentHealth: 250
+  autoAddNavMeshObstacle: 1
+  dismantleRefundRatio: 0.5
+  canBeDamagedByPlayer: 0
+  hitVfxPrefab: {fileID: 0}
+  destroyVfxPrefab: {fileID: 0}
+--- !u!65 &4916425600816273348
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5643138084421969388}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.5, y: 0.8, z: 1.2}
+  m_Center: {x: 0, y: 0, z: 0.6}
+--- !u!114 &4898179803029435896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5643138084421969388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e65f0859aaffa8a45b98828d0079770e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.SpikeBarricadeBuilding
+  thornsDamage: 25
+  damageCooldown: 0.8

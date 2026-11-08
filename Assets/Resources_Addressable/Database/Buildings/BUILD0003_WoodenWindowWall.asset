@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0003_WoodenWindowWall
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0003_WoodenWindowWall
+  buildingName: Wooden Window Wall
+  category: 0
+  icon: {fileID: 0}
+  description: Wooden wall section with a salvaged glass window slot for firing and
+    visibility.
+  prefab: {fileID: 4999588511031610035, guid: a76805ed0fde99d44ad31fe62170e5d7, type: 3}
+  ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  footprintSize: {x: 3, y: 2.5, z: 0.4}
+  buildRange: 7
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 250
+  damageResistance: 0
+  storageSlots: 0
+  ingredients:
+  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    itemName: Wood Log
+    amount: 6
+  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+    itemName: Box of Nails
+    amount: 3
+  - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+    itemName: Clean Glass Bottle
+    amount: 2
+  - item: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
+    itemName: Duct Tape
+    amount: 1

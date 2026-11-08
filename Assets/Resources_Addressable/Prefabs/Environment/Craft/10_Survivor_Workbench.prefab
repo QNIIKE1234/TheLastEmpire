@@ -11,6 +11,9 @@ GameObject:
   - component: {fileID: 8598036235150637966}
   - component: {fileID: 5174933695646130167}
   - component: {fileID: 6663926501844688530}
+  - component: {fileID: 5120821379907467313}
+  - component: {fileID: 5175613259596402263}
+  - component: {fileID: 5198692293094310813}
   m_Layer: 0
   m_Name: 10_Survivor_Workbench
   m_TagString: Untagged
@@ -95,3 +98,65 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5120821379907467313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3023190700650451203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
+  data: {fileID: 0}
+  currentHealth: 250
+  autoAddNavMeshObstacle: 1
+  dismantleRefundRatio: 0.5
+  canBeDamagedByPlayer: 0
+  hitVfxPrefab: {fileID: 0}
+  destroyVfxPrefab: {fileID: 0}
+--- !u!65 &5175613259596402263
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3023190700650451203}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 1.2, z: 1.2}
+  m_Center: {x: 0, y: 0, z: 0.6}
+--- !u!114 &5198692293094310813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3023190700650451203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
+  containerName: Survivor Workbench
+  maxStorageSlots: 26
+  moneyAmount: 0
+  itemsInside: []
+  randomizeLoot: 0
+  minRandomCash: 0
+  maxRandomCash: 30
+  possibleLoot: []
+  isSearched: 0
+  interactionRadius: 2.5

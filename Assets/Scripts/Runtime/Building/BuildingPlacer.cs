@@ -39,6 +39,7 @@ namespace TheLastEmpire
         private Material _ghostMaterialInstance;
 
         private float _currentRotationY = 0f;
+        private float _lastRotationY = 0f;
         private bool _isValidPlacement = false;
         private Vector3 _currentPlacementPosition;
         private Quaternion _currentPlacementRotation;
@@ -119,7 +120,7 @@ namespace TheLastEmpire
 
             _activeData = data;
             _activeRecipe = recipe;
-            _currentRotationY = 0f;
+            _currentRotationY = _lastRotationY;
             _suppressAttackTimer = 0.35f;
 
             CreateGhostInstance();
@@ -230,9 +231,16 @@ namespace TheLastEmpire
 
         private void HandleRotationInput()
         {
-            if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+            float rotateDelta = 0f;
+
+            if (Keyboard.current != null)
             {
-                _currentRotationY = (_currentRotationY + 45f) % 360f;
+                if (Keyboard.current.rKey.wasPressedThisFrame)
+                {
+                    // กด Shift + R หมุนทวนเข็ม (-45°), กด R หมุนตามเข็ม (+45°)
+                    bool isShift = Keyboard.current.shiftKey.isPressed;
+                    rotateDelta = isShift ? -45f : 45f;
+                }
             }
 
             if (Mouse.current != null)
@@ -240,10 +248,35 @@ namespace TheLastEmpire
                 float scroll = Mouse.current.scroll.ReadValue().y;
                 if (Mathf.Abs(scroll) > 0.05f)
                 {
-                    float delta = scroll > 0 ? 45f : -45f;
-                    _currentRotationY = (_currentRotationY + delta + 360f) % 360f;
+                    rotateDelta = scroll > 0 ? 45f : -45f;
                 }
             }
+
+            if (Mathf.Abs(rotateDelta) > 0.01f)
+            {
+                RotateGhost(rotateDelta);
+            }
+        }
+
+        public void RotateGhost(float deltaDegrees)
+        {
+            float snapped = Mathf.Round(_currentRotationY / 45f) * 45f;
+            _currentRotationY = (snapped + deltaDegrees) % 360f;
+            if (_currentRotationY < 0f) _currentRotationY += 360f;
+            _lastRotationY = _currentRotationY;
+
+            if (_ghostInstance != null && _activeData != null)
+            {
+                Quaternion baseRotation = _activeData.prefab != null ? _activeData.prefab.transform.rotation : Quaternion.identity;
+                if (_activeData.rotationOffset != Vector3.zero)
+                {
+                    baseRotation *= Quaternion.Euler(_activeData.rotationOffset);
+                }
+                _currentPlacementRotation = Quaternion.Euler(0f, _currentRotationY, 0f) * baseRotation;
+                _ghostInstance.transform.rotation = _currentPlacementRotation;
+            }
+
+            Debug.Log($"[BuildingPlacer] Rotated building: {_currentRotationY}° (Delta: {deltaDegrees:+#;-#;0}°)");
         }
 
         private void UpdateGhostPositionAndValidation()
@@ -468,6 +501,25 @@ namespace TheLastEmpire
             {
                 CancelPlacement();
             }
+        }
+
+        private void OnGUI()
+        {
+            if (!IsInBuildMode) return;
+
+            GUIStyle style = new GUIStyle(GUI.skin.box);
+            style.fontSize = 14;
+            style.fontStyle = FontStyle.Bold;
+            style.normal.textColor = Color.white;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            string text = $"[R] หมุนโมเดล ({_currentRotationY:0}°)  |  [LMB] วาง  |  [RMB / ESC] ยกเลิก";
+            float w = 460f;
+            float h = 36f;
+            float x = (Screen.width - w) * 0.5f;
+            float y = Screen.height - h - 25f;
+
+            GUI.Box(new Rect(x, y, w, h), text, style);
         }
     }
 }

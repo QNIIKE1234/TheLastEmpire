@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 4828380656635622206}
   - component: {fileID: 2138739991766491048}
   - component: {fileID: 2968097928780820620}
+  - component: {fileID: 3713060086021387898}
+  - component: {fileID: 5935856922310985647}
   m_Layer: 0
   m_Name: 07_Armored_Titanium_Wall
   m_TagString: Untagged
@@ -96,3 +98,43 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &3713060086021387898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6907021585975881307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
+  data: {fileID: 0}
+  currentHealth: 250
+  autoAddNavMeshObstacle: 1
+  dismantleRefundRatio: 0.5
+  canBeDamagedByPlayer: 0
+  hitVfxPrefab: {fileID: 0}
+  destroyVfxPrefab: {fileID: 0}
+--- !u!65 &5935856922310985647
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6907021585975881307}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 0.5, z: 2.5}
+  m_Center: {x: 0, y: 0, z: 1.25}

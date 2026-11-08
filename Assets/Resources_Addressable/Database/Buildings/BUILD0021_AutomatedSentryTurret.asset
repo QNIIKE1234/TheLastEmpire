@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0021_AutomatedSentryTurret
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0021_AutomatedSentryTurret
+  buildingName: Automated Sentry Turret
+  category: 2
+  icon: {fileID: 0}
+  description: AI-controlled perimeter turret that automatically targets hostile
+    enemies.
+  prefab: {fileID: 5288515284170663127, guid: baff167aca720944380b06b050e4ac66, type: 3}
+  ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  footprintSize: {x: 1.5, y: 2, z: 1.5}
+  buildRange: 6
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 450
+  damageResistance: 0.15
+  storageSlots: 28
+  ingredients:
+  - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+    itemName: Advanced Neural Processor
+    amount: 1
+  - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+    itemName: Military Overdrive Servo
+    amount: 2
+  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    itemName: Reinforced Titanium Plate
+    amount: 3
+  - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+    itemName: High-Capacity Capacitor
+    amount: 2
+  - item: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
+    itemName: Rifle Ammo
+    amount: 30

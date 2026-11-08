@@ -104,6 +104,8 @@ GameObject:
   - component: {fileID: 3736573335373038884}
   - component: {fileID: 3817968300327327697}
   - component: {fileID: 3802607813680812657}
+  - component: {fileID: 3265249293675530581}
+  - component: {fileID: 4376099540804749461}
   m_Layer: 0
   m_Name: Apoc_Prop_Campfire
   m_TagString: Untagged
@@ -197,6 +199,47 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &3265249293675530581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5181920028806212340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
+  data: {fileID: 0}
+  currentHealth: 250
+  autoAddNavMeshObstacle: 1
+  dismantleRefundRatio: 0.5
+  canBeDamagedByPlayer: 0
+  hitVfxPrefab: {fileID: 0}
+  destroyVfxPrefab: {fileID: 0}
+--- !u!114 &4376099540804749461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5181920028806212340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2126f93496a088449af18255b1c957e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.CampfireBuilding
+  auraRadius: 5
+  sanityRegenRate: 3
+  fireLight: {fileID: 5538877764347737221}
+  minIntensity: 2.2
+  maxIntensity: 3.8
+  lightRange: 10
+  lightColor: {r: 1, g: 0.62, b: 0.22, a: 1}
+  nightVisionBonus: 0.4
+  visionAuraRadius: 6.5
+  lightHoleRadius: 0.26
 --- !u!1 &5525457179692397551
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,7 +266,7 @@ Transform:
   m_GameObject: {fileID: 5525457179692397551}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.45}
+  m_LocalPosition: {x: 0.0043730587, y: 0.01257433, z: 0.18638013}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

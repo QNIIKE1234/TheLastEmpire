@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0012_WaterPurifierStation
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0012_WaterPurifierStation
+  buildingName: Water Purifier Station
+  category: 1
+  icon: {fileID: 0}
+  description: Filtration rig that distills contaminated water into clean drinking
+    water.
+  prefab: {fileID: 2118915970292689051, guid: 331fe08fc33d90b4ca286ba6eac3ec66, type: 3}
+  ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  footprintSize: {x: 1.5, y: 2, z: 1.5}
+  buildRange: 6
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 250
+  damageResistance: 0
+  storageSlots: 22
+  ingredients:
+  - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+    itemName: Clean Water Filter
+    amount: 2
+  - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+    itemName: Clean Glass Bottle
+    amount: 3
+  - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+    itemName: Charcoal Lump
+    amount: 4
+  - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+    itemName: Scrap Steel Pipe
+    amount: 2
+  - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
+    itemName: Rubber Strips
+    amount: 2

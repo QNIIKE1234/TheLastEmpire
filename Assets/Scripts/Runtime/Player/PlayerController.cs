@@ -716,7 +716,11 @@ namespace TheLastEmpire
 
                 if (Keyboard.current.rKey.wasPressedThisFrame)
                 {
-                    TryStartReload();
+                    // ถ้ากำลังอยู่ในโหมดวางสิ่งปลูกสร้าง (Build Mode) ปุ่ม R จะใช้หมุนโมเดลสิ่งปลูกสร้าง ห้ามรีโหลดปืน
+                    if (BuildingPlacer.Instance == null || !BuildingPlacer.Instance.IsInBuildMode)
+                    {
+                        TryStartReload();
+                    }
                 }
             }
 
