@@ -39,6 +39,7 @@ namespace TheLastEmpire.Editor
             GameObject cratePrefab = SetupStorageCratePrefab();
             BuildingData crateData = SetupBuildingData("BUILD0003_WoodenStorageCrate", "Wooden Storage Crate", CraftingCategory.Utility, 
                 cratePrefab, new Vector3(1.2f, 1.0f, 1.2f), 300f, 6.0f, "Reinforced storage chest for storing extra weapons, ammo, and crafting materials.");
+            crateData.storageSlots = 24;
 
             // Sync with CraftingDatabase recipes
             SyncWithCraftingDatabase(campfireData, barricadeData, crateData);
@@ -252,6 +253,7 @@ namespace TheLastEmpire.Editor
                 container = root.AddComponent<LootContainer>();
             }
             container.containerName = "Survivor Storage Crate";
+            container.maxStorageSlots = 24;
             container.randomizeLoot = false;
             container.interactionRadius = 2.5f;
 

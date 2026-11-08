@@ -42,6 +42,10 @@ namespace TheLastEmpire
         [Header("Loot Container Details")]
         [Tooltip("Name of the container displayed in the UI (e.g. Wooden Crate, Locker, Dead Corpse).")]
         public string containerName = "Wood Crate";
+
+        [Tooltip("จำนวนช่องเก็บของสูงสุดของสิ่งปลูกสร้าง/ภาชนะนี้ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
+        [Range(18, 30)]
+        public int maxStorageSlots = 24;
         
         [Tooltip("The amount of money contained inside (overridden if randomizeLoot is enabled).")]
         public int moneyAmount = 0;

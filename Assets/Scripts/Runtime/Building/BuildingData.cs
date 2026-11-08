@@ -65,6 +65,11 @@ namespace TheLastEmpire
         [Range(0f, 0.9f)]
         public float damageResistance = 0f;
 
+        [Header("Storage & Capacity")]
+        [Tooltip("จำนวนช่องเก็บของสำหรับสิ่งปลูกสร้างนี้ (หากเป็นสิ่งปลูกสร้างที่เก็บของได้ ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
+        [Range(0, 30)]
+        public int storageSlots = 0;
+
         [Header("Crafting Requirements (วัตถุดิบที่ใช้)")]
         [Tooltip("รายการวัตถุดิบที่ต้องใช้ในการสร้าง (ดึงมาจากสูตรคราฟต์หรือกำหนดเฉพาะ)")]
         public List<CraftingIngredient> ingredients = new List<CraftingIngredient>();
