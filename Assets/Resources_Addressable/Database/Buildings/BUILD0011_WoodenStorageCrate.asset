@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0011_WoodenStorageCrate
   buildingName: Wooden Storage Crate
   category: 1
-  icon: {fileID: 21300011, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Reinforced wooden chest for storing extra weapons, ammo, and crafting
     materials.
   prefab: {fileID: 2588784614452041733, guid: 54be73452e128d847aa4f9afa561e8fd, type: 3}
@@ -29,16 +29,4 @@ MonoBehaviour:
   maxHealth: 300
   damageResistance: 0
   storageSlots: 24
-  ingredients:
-  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
-    itemName: Wood Log
-    amount: 6
-  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
-    itemName: Box of Nails
-    amount: 3
-  - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
-    itemName: Scrap Leather
-    amount: 2
-  - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
-    itemName: Sturdy Rope
-    amount: 1
+  ingredients: []

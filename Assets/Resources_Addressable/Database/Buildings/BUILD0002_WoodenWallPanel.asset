@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0002_WoodenWallPanel
   buildingName: Wooden Wall Panel
   category: 0
-  icon: {fileID: 21300002, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+  icon: {fileID: 0}
   description: Sturdy timber wall panel reinforced with nails and plant fiber.
   prefab: {fileID: 5873577624830059652, guid: e7689c2354df9624c832f235aa3e2394, type: 3}
   ghostPrefab: {fileID: 0}
@@ -28,13 +28,4 @@ MonoBehaviour:
   maxHealth: 300
   damageResistance: 0
   storageSlots: 0
-  ingredients:
-  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
-    itemName: Wood Log
-    amount: 8
-  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
-    itemName: Box of Nails
-    amount: 3
-  - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
-    itemName: Plant Fiber
-    amount: 4
+  ingredients: []
