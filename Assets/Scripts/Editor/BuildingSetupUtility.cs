@@ -95,6 +95,22 @@ namespace TheLastEmpire.Editor
                 sc.center = new Vector3(0, 0.4f, 0);
             }
 
+            // Ensure Light exists
+            Light fireLight = root.GetComponentInChildren<Light>();
+            if (fireLight == null)
+            {
+                GameObject lightObj = new GameObject("Campfire_PointLight");
+                lightObj.transform.SetParent(root.transform, false);
+                lightObj.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+
+                fireLight = lightObj.AddComponent<Light>();
+                fireLight.type = LightType.Point;
+                fireLight.color = new Color(1.0f, 0.62f, 0.22f);
+                fireLight.range = 10.0f;
+                fireLight.intensity = 3.0f;
+                fireLight.shadows = LightShadows.Soft;
+            }
+
             GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(root, targetPath);
             GameObject.DestroyImmediate(root);
             return savedPrefab;

@@ -47,6 +47,7 @@ Shader "Custom/NightDarknessOverlay"
             float _GlobalDarknessAlpha;    // 0.0 (Day) -> 1.0 (Full Night)
             float _GlobalDuskAlpha;        // 0.0 -> 1.0 during Dusk, 0 at Night
             float2 _GlobalPlayerScreenPos; // Viewport position of player (0..1, 0..1)
+            float4 _GlobalCampfireScreenPos; // Viewport position of nearest campfire (xy = pos, z = radius, w = active)
             float _GlobalHasTorchLight;    // 1 if torch/flashlight on, 0 if off
             float _GlobalAspect;           // Screen aspect ratio for circular light
 
@@ -89,14 +90,32 @@ Shader "Custom/NightDarknessOverlay"
                 float outer = max(inner + 0.08, _OuterRadius + flicker);
 
                 // Smooth gradual distance decay
-                float falloff = smoothstep(inner, outer, dist);
-                falloff = pow(falloff, 1.2); // Cinematic natural light falloff curve
+                float playerFalloff = smoothstep(inner, outer, dist);
+                float finalFalloff = playerFalloff;
+
+                // Campfire dynamic light cut-through
+                if (_GlobalCampfireScreenPos.w > 0.5)
+                {
+                    float2 cDiff = input.uv - _GlobalCampfireScreenPos.xy;
+                    cDiff.x *= _GlobalAspect;
+                    float cDist = length(cDiff);
+                    float cRadius = _GlobalCampfireScreenPos.z;
+                    float cFlicker = flicker * 0.5;
+                    float cInner = max(0.01, cRadius * 0.35 + cFlicker);
+                    float cOuter = max(cInner + 0.06, cRadius + cFlicker);
+                    float campfireFalloff = smoothstep(cInner, cOuter, cDist);
+
+                    // Combine lights: whichever illuminates more takes precedence
+                    finalFalloff = min(playerFalloff, campfireFalloff);
+                }
+
+                finalFalloff = pow(finalFalloff, 1.2); // Cinematic natural light falloff curve
 
                 float hasTorch = saturate(_GlobalHasTorchLight);
 
                 // Outside the light, reach 90% darkness as requested (0.90)
                 float maxDark = lerp(0.96, _MaxDarkness, hasTorch);
-                float darkness = lerp(maxDark, falloff * maxDark, hasTorch);
+                float darkness = lerp(maxDark, finalFalloff * maxDark, hasTorch);
 
                 float nightAlpha = darkness * darkAlpha;
                 return half4(_NightColor.rgb, nightAlpha);

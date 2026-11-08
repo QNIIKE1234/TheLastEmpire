@@ -15,6 +15,7 @@ namespace TheLastEmpire
         private static readonly int PropPlayerScreenPos = Shader.PropertyToID("_GlobalPlayerScreenPos");
         private static readonly int PropAspect = Shader.PropertyToID("_GlobalAspect");
         private static readonly int PropHasTorchLight = Shader.PropertyToID("_GlobalHasTorchLight");
+        private static readonly int PropCampfireScreenPos = Shader.PropertyToID("_GlobalCampfireScreenPos");
 
         [Header("Light / Flashlight Settings")]
         [SerializeField] private bool hasTorchLight = true;
@@ -32,7 +33,9 @@ namespace TheLastEmpire
         private float _playerSearchTimer = 0f;
         private GameObject _overlayCanvasObj;
         private Material _darknessMaterial;
+        private float _currentVisionMultiplier = 1.0f;
 
+        public float VisionBonusMultiplier { get; set; } = 1.0f;
         public bool HasTorchLight => hasTorchLight;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -148,10 +151,62 @@ namespace TheLastEmpire
                 }
             }
 
+            // ตรวจสอบว่าผู้เล่นอยู่ใกล้กองไฟ (Campfire) หรือไม่ หากอยู่ใกล้จะได้รับโบนัสขยายระยะการมองเห็น +40%
+            float targetVisionBonus = 1.0f;
+            CampfireBuilding closestCampfire = null;
+            float closestDist = float.MaxValue;
+
+            if (_cachedPlayer != null)
+            {
+                Vector3 pPos = _cachedPlayer.transform.position;
+                for (int i = 0; i < CampfireBuilding.ActiveCampfires.Count; i++)
+                {
+                    CampfireBuilding cb = CampfireBuilding.ActiveCampfires[i];
+                    if (cb == null) continue;
+
+                    float d = Vector3.Distance(pPos, cb.transform.position);
+                    if (d <= cb.VisionAuraRadius)
+                    {
+                        targetVisionBonus = Mathf.Max(targetVisionBonus, 1.0f + cb.NightVisionBonus);
+                    }
+
+                    if (d < closestDist)
+                    {
+                        closestDist = d;
+                        closestCampfire = cb;
+                    }
+                }
+            }
+
+            VisionBonusMultiplier = targetVisionBonus;
+            _currentVisionMultiplier = Mathf.MoveTowards(_currentVisionMultiplier, VisionBonusMultiplier, Time.deltaTime * 1.5f);
+
+            float currentInner = innerRadius * _currentVisionMultiplier;
+            float currentOuter = outerRadius * _currentVisionMultiplier;
+
+            // ส่งพิกัดของกองไฟที่ใกล้ที่สุดเข้า Shader เพื่อเจาะรูสว่างบนหน้าจอมืด
+            Camera mainCam = Camera.main;
+            if (closestCampfire != null && mainCam != null && closestDist < 35f)
+            {
+                Vector3 vp = mainCam.WorldToViewportPoint(closestCampfire.transform.position + Vector3.up * 0.4f);
+                if (vp.z > 0 && vp.x >= -0.2f && vp.x <= 1.2f && vp.y >= -0.2f && vp.y <= 1.2f)
+                {
+                    Shader.SetGlobalVector(PropCampfireScreenPos, new Vector4(vp.x, vp.y, closestCampfire.LightHoleRadius, 1f));
+                }
+                else
+                {
+                    Shader.SetGlobalVector(PropCampfireScreenPos, Vector4.zero);
+                }
+            }
+            else
+            {
+                Shader.SetGlobalVector(PropCampfireScreenPos, Vector4.zero);
+            }
+
             if (_darknessMaterial != null)
             {
-                _darknessMaterial.SetFloat("_InnerRadius", innerRadius);
-                _darknessMaterial.SetFloat("_OuterRadius", outerRadius);
+                _darknessMaterial.SetFloat("_InnerRadius", currentInner);
+                _darknessMaterial.SetFloat("_OuterRadius", currentOuter);
                 _darknessMaterial.SetFloat("_MaxDarkness", maxDarkness);
             }
         }
