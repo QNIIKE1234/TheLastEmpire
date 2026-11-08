@@ -83,6 +83,11 @@ namespace TheLastEmpire
                     if (closeButton != null) closeButton.onClick.AddListener(Close);
 
                     _canvasObject.SetActive(false);
+                    if (promptText != null)
+                    {
+                        promptText.alignment = TextAlignmentOptions.Center;
+                        promptText.enableWordWrapping = false;
+                    }
                     if (promptPanel != null) 
                     {
                         promptPanel.SetActive(false);
@@ -224,6 +229,8 @@ namespace TheLastEmpire
             _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
 
             promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
+            promptText.alignment = TextAlignmentOptions.Center;
+            promptText.enableWordWrapping = false;
 
             RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
             if (promptRect != null)
@@ -248,6 +255,8 @@ namespace TheLastEmpire
             _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
 
             promptText.text = fullPromptText;
+            promptText.alignment = TextAlignmentOptions.Center;
+            promptText.enableWordWrapping = fullPromptText.Contains("\n");
 
             RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
             if (promptRect != null)

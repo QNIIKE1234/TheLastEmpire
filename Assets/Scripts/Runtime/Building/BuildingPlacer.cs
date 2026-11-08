@@ -356,7 +356,10 @@ namespace TheLastEmpire
             bool hitGround = false;
             Collider hitGroundCollider = null;
 
-            // ค้นหาพื้นผิววางสิ่งปลูกสร้าง โดยข้ามสิ่งปลูกสร้างเดิม (BuildingObject) เพื่อไม่ให้เกิดปัญหาวางซ้อนเกยลอยฟ้า
+            // ค้นหาพื้นผิววางสิ่งปลูกสร้าง:
+            // - อนุญาตให้วางบนพื้นดิน (Terrain, Ground)
+            // - อนุญาตให้วางบน Floor/Foundation (เช่น แคมป์ไฟ, กล่องเก็บของ, โต๊ะคราฟต์, กำแพง บนพื้นไม้)
+            // - ข้ามสิ่งปลูกสร้างแนวตั้งอื่นๆ (เช่น ขอบกำแพง, ประตู, หลังคา) เพื่อไม่ให้เกิดปัญหาวางซ้อนเกยลอยฟ้า
             RaycastHit[] allHits = Physics.RaycastAll(ray, 150f, groundLayerMask, QueryTriggerInteraction.Ignore);
             Array.Sort(allHits, (a, b) => a.distance.CompareTo(b.distance));
 
@@ -365,9 +368,15 @@ namespace TheLastEmpire
                 if (_ghostInstance != null && (h.collider.gameObject == _ghostInstance || h.collider.transform.IsChildOf(_ghostInstance.transform)))
                     continue;
 
-                // ข้ามสิ่งปลูกสร้างเดิม (ไม่ใช้หลังคาหรือขอบกำแพงเดิมเป็นพื้นวาง)
-                if (h.collider.GetComponentInParent<BuildingObject>() != null)
-                    continue;
+                BuildingObject bObj = h.collider.GetComponentInParent<BuildingObject>();
+                if (bObj != null)
+                {
+                    // ข้ามสิ่งปลูกสร้างที่ไม่ใช่พื้น (Floor / Foundation)
+                    if (!IsFloorBuilding(bObj))
+                    {
+                        continue;
+                    }
+                }
 
                 hitPoint = h.point;
                 hitGround = true;
@@ -440,6 +449,8 @@ namespace TheLastEmpire
             Collider[] hits = Physics.OverlapBox(center, halfExtents, boxOrientation, obstacleLayerMask, QueryTriggerInteraction.Ignore);
             bool isObstructed = false;
 
+            BuildingObject groundBObj = hitGroundCollider != null ? hitGroundCollider.GetComponentInParent<BuildingObject>() : null;
+
             foreach (Collider c in hits)
             {
                 if (c == null || c.isTrigger) continue;
@@ -451,24 +462,53 @@ namespace TheLastEmpire
                     break;
                 }
 
-                // ข้าม Collider พื้นดินที่ยิง Raycast โดน หรือชื่อที่เป็นพื้นผิว (ห้ามข้ามสิ่งปลูกสร้างเดิม)
-                if (c.GetComponentInParent<BuildingObject>() == null)
+                // ข้าม Collider พื้นผิวที่ยิง Raycast โดนตรงๆ
+                if (hitGroundCollider != null && (c == hitGroundCollider || c.transform.IsChildOf(hitGroundCollider.transform)))
                 {
-                    if (hitGroundCollider != null && (c == hitGroundCollider || c.transform.IsChildOf(hitGroundCollider.transform)))
+                    continue;
+                }
+
+                if (c.GetComponentInParent<Terrain>() != null)
+                {
+                    continue;
+                }
+
+                string colName = c.gameObject.name.ToLowerInvariant();
+                if (colName.Contains("ground") || colName.Contains("plane") || colName.Contains("terrain"))
+                {
+                    continue;
+                }
+
+                BuildingObject existingBObj = c.GetComponentInParent<BuildingObject>();
+                if (existingBObj != null)
+                {
+                    // หากวัตถุนี้เป็นส่วนหนึ่งของพื้นรองรับที่ยิง Raycast โดน
+                    if (groundBObj != null && existingBObj == groundBObj && IsFloorBuilding(existingBObj))
                     {
                         continue;
                     }
 
-                    if (c.GetComponentInParent<Terrain>() != null)
+                    // หากวัตถุข้างใต้เป็นพื้น (Floor / Foundation) และสิ่งที่กำลังสร้างไม่ใช่ Floor ที่ทับซ้อนตรงๆ
+                    // เช่น สร้างแคมป์ไฟ, โต๊ะคราฟต์, เตียง, กำแพง บนพื้นไม้ -> อนุญาตให้วางได้ (ไม่นับเป็นสิ่งกีดขวาง)
+                    if (IsFloorBuilding(existingBObj) && !IsFloorData(_activeData))
                     {
                         continue;
                     }
 
-                    string colName = c.gameObject.name.ToLowerInvariant();
-                    if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("plane") || colName.Contains("terrain"))
+                    // ข้อยกเว้นพิเศษสำหรับแคมป์ไฟและอุปกรณ์ใช้สอย
+                    if ((IsCampfire(_activeData) || IsFloorBuilding(existingBObj)) && !IsFloorData(_activeData))
                     {
                         continue;
                     }
+
+                    isObstructed = true;
+                    break;
+                }
+
+                // สำหรับ Collider อื่นที่ไม่ใช่ BuildingObject แต่ชื่อมี floor
+                if (colName.Contains("floor"))
+                {
+                    continue;
                 }
 
                 isObstructed = true;
@@ -608,6 +648,38 @@ namespace TheLastEmpire
             float y = Screen.height - h - 25f;
 
             GUI.Box(new Rect(x, y, w, h), text, style);
+        }
+
+        private static bool IsFloorBuilding(BuildingObject bObj)
+        {
+            if (bObj == null) return false;
+            if (bObj.Data != null)
+            {
+                if (IsFloorData(bObj.Data)) return true;
+            }
+            string goName = bObj.gameObject.name;
+            return goName.IndexOf("floor", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   goName.IndexOf("foundation", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsFloorData(BuildingData data)
+        {
+            if (data == null) return false;
+            string id = data.buildingId ?? "";
+            string bName = data.buildingName ?? "";
+            return id.IndexOf("Floor", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   id.IndexOf("Foundation", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   bName.IndexOf("Floor", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   bName.IndexOf("Foundation", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsCampfire(BuildingData data)
+        {
+            if (data == null) return false;
+            string id = data.buildingId ?? "";
+            string bName = data.buildingName ?? "";
+            return id.IndexOf("Campfire", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   bName.IndexOf("Campfire", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }
