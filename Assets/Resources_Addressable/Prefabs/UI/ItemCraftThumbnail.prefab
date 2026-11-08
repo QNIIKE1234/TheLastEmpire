@@ -286,7 +286,7 @@ GameObject:
   - component: {fileID: 8683381258516348916}
   - component: {fileID: 5189424612474515786}
   m_Layer: 5
-  m_Name: icon (1)
+  m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -332,21 +332,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.5939252, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 678071038, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 736444636, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 1
+  m_FillAmount: 0
   m_FillClockwise: 1
-  m_FillOrigin: 0
+  m_FillOrigin: 2
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 3
 --- !u!1 &925473418389996013
@@ -2750,6 +2750,8 @@ MonoBehaviour:
   craftButton: {fileID: 5257410343232150072}
   craftButtonBackground: {fileID: 5526011068021266229}
   craftButtonIcon: {fileID: 7427493323633066597}
+  craftHoldFillImage: {fileID: 5189424612474515786}
+  holdDuration: 1
   selectedObject: {fileID: 3445724391622050484}
   rowSelectButton: {fileID: 27508833352985408}
   canCraftButtonSprite: {fileID: 678071038, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
@@ -2870,8 +2872,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1485025381, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 678071038, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4

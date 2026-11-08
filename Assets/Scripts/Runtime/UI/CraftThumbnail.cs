@@ -86,6 +86,13 @@ namespace TheLastEmpire
         [Tooltip("Image ไอคอนรูปประแจบนปุ่มคราฟต์ (Optional)")]
         [SerializeField] private Image craftButtonIcon;
 
+        [Header("Hold To Craft Settings")]
+        [Tooltip("Image แบบ Filled (Radial 360) สำหรับแสดงหลอดการกดค้าง")]
+        [SerializeField] private Image craftHoldFillImage;
+
+        [Tooltip("ระยะเวลากดค้างก่อนคราฟต์ (วินาที) ค่าเริ่มต้น 1 วินาที")]
+        [SerializeField] private float holdDuration = 1.0f;
+
         [Header("Selection UI (การเลือกแถว)")]
         [Tooltip("GameObject แสดงกรอบ Selected เมื่อแถวนี้ถูกเลือก")]
         [SerializeField] private GameObject selectedObject;
@@ -116,9 +123,15 @@ namespace TheLastEmpire
         private Action<CraftingRecipe> _onClickCraft;
         private Action<CraftThumbnail, CraftingRecipe> _onSelected;
 
+        private bool _isHolding;
+        private bool _hasCraftedThisHold;
+        private float _holdTimer;
+
         public CraftingRecipe CurrentRecipe => _currentRecipe;
         public GameObject SelectedObject => selectedObject;
         public Button RowSelectButton => rowSelectButton;
+        public Image CraftHoldFillImage => craftHoldFillImage;
+        public float HoldDuration { get => holdDuration; set => holdDuration = value; }
 
         /// <summary>
         /// เปิด/ปิดการแสดงผลกรอบ Selected ของแถวนี้
@@ -134,6 +147,57 @@ namespace TheLastEmpire
         private void Awake()
         {
             AutoBindIfNeeded();
+            SetupHoldTrigger();
+        }
+
+        private void OnDisable()
+        {
+            CancelHold();
+        }
+
+        private void Update()
+        {
+            if (_isHolding)
+            {
+                if (craftButton == null || !craftButton.interactable || _currentRecipe == null)
+                {
+                    CancelHold();
+                    return;
+                }
+
+                _holdTimer += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(_holdTimer / Mathf.Max(0.001f, holdDuration));
+
+                if (craftHoldFillImage != null)
+                {
+                    craftHoldFillImage.fillAmount = progress;
+                }
+
+                if (_holdTimer >= holdDuration && !_hasCraftedThisHold)
+                {
+                    _hasCraftedThisHold = true;
+                    _isHolding = false;
+                    _holdTimer = 0f;
+
+                    if (craftHoldFillImage != null)
+                    {
+                        craftHoldFillImage.fillAmount = 0f;
+                    }
+
+                    ExecuteCraft();
+                }
+            }
+            else
+            {
+                if (craftHoldFillImage != null && craftHoldFillImage.fillAmount > 0f)
+                {
+                    craftHoldFillImage.fillAmount = Mathf.MoveTowards(
+                        craftHoldFillImage.fillAmount,
+                        0f,
+                        Time.unscaledDeltaTime * 5f
+                    );
+                }
+            }
         }
 
 #if UNITY_EDITOR
@@ -181,6 +245,22 @@ namespace TheLastEmpire
                         break;
                     }
                 }
+            }
+
+            // Auto-bind Fill Image สำหรับหลอดการกดค้าง (Hold to Craft)
+            if (craftHoldFillImage == null && craftButton != null)
+            {
+                Transform fillT = craftButton.transform.Find("Fill");
+                if (fillT != null)
+                {
+                    craftHoldFillImage = fillT.GetComponent<Image>();
+                }
+            }
+
+            if (craftHoldFillImage != null)
+            {
+                craftHoldFillImage.fillAmount = 0f;
+                craftHoldFillImage.raycastTarget = false;
             }
 
             // Auto-bind Selected GameObject และ Button บน Root สำหรับคลิกเลือกแถว
@@ -286,11 +366,13 @@ namespace TheLastEmpire
 
             // 3. ตั้งค่าช่องวัตถุดิบ (1 ถึง 5 ช่อง) และปุ่มกดคราฟต์
             RefreshState(playerInventory);
+            SetupHoldTrigger();
+            CancelHold();
 
             if (craftButton != null)
             {
                 craftButton.onClick.RemoveAllListeners();
-                craftButton.onClick.AddListener(HandleCraftButtonClicked);
+                craftButton.onClick.AddListener(HandleCraftButtonClick);
             }
 
             if (rowSelectButton != null)
@@ -386,6 +468,7 @@ namespace TheLastEmpire
         /// </summary>
         public void Clear()
         {
+            CancelHold();
             _currentRecipe = null;
             _onClickCraft = null;
 
@@ -430,7 +513,83 @@ namespace TheLastEmpire
             }
         }
 
-        private void HandleCraftButtonClicked()
+        private void SetupHoldTrigger()
+        {
+            if (craftButton != null)
+            {
+                CraftHoldTrigger holdTrigger = craftButton.GetComponent<CraftHoldTrigger>();
+                if (holdTrigger == null)
+                {
+                    holdTrigger = craftButton.gameObject.AddComponent<CraftHoldTrigger>();
+                }
+                holdTrigger.Initialize(OnCraftPointerDown, OnCraftPointerUp, OnCraftPointerExit);
+            }
+        }
+
+        private void OnCraftPointerDown()
+        {
+            HandleRowSelectedClicked();
+
+            if (craftButton == null || !craftButton.interactable || _currentRecipe == null)
+            {
+                _isHolding = false;
+                return;
+            }
+
+            if (holdDuration <= 0f)
+            {
+                ExecuteCraft();
+                return;
+            }
+
+            _isHolding = true;
+            _hasCraftedThisHold = false;
+            _holdTimer = 0f;
+
+            if (craftHoldFillImage != null)
+            {
+                craftHoldFillImage.fillAmount = 0f;
+            }
+        }
+
+        private void OnCraftPointerUp()
+        {
+            _isHolding = false;
+            _hasCraftedThisHold = false;
+            _holdTimer = 0f;
+        }
+
+        private void OnCraftPointerExit()
+        {
+            _isHolding = false;
+            _holdTimer = 0f;
+        }
+
+        public void CancelHold()
+        {
+            _isHolding = false;
+            _hasCraftedThisHold = false;
+            _holdTimer = 0f;
+
+            if (craftHoldFillImage != null)
+            {
+                craftHoldFillImage.fillAmount = 0f;
+            }
+        }
+
+        private void HandleCraftButtonClick()
+        {
+            if (holdDuration <= 0f)
+            {
+                ExecuteCraft();
+            }
+            else
+            {
+                HandleRowSelectedClicked();
+            }
+        }
+
+        private void ExecuteCraft()
         {
             if (_currentRecipe != null)
             {

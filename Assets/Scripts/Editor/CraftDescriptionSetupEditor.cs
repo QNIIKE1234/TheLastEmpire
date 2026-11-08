@@ -63,6 +63,21 @@ namespace TheLastEmpire.Editor
                 }
             }
 
+            // 3. ผูก craftHoldFillImage (Button/Fill)
+            Transform fillTrans = prefab.transform.Find("Button/Fill");
+            if (fillTrans != null)
+            {
+                Image fillImg = fillTrans.GetComponent<Image>();
+                if (fillImg != null)
+                {
+                    SerializedProperty fillProp = so.FindProperty("craftHoldFillImage");
+                    if (fillProp != null)
+                    {
+                        fillProp.objectReferenceValue = fillImg;
+                    }
+                }
+            }
+
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(prefab);
             AssetDatabase.SaveAssets();
