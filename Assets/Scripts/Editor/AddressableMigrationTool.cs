@@ -11,15 +11,6 @@ namespace TheLastEmpire.Editor
 {
     public static class AddressableMigrationTool
     {
-        [InitializeOnLoadMethod]
-        private static void AutoSyncAddressables()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                SyncAllAddressables(false);
-            };
-        }
-
         [MenuItem("The Last Empire/Migrate Resources to Addressables")]
         public static void MigrateAll()
         {

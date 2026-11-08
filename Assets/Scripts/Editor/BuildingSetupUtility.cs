@@ -126,7 +126,6 @@ namespace TheLastEmpire.Editor
                 CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 600f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes.")
         };
 
-        [InitializeOnLoadMethod]
         [MenuItem("Tools/The Last Empire/Setup All 22 Craft Buildings and Data", false, 110)]
         public static void SetupAllBuildings()
         {

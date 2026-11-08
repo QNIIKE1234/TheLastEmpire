@@ -50,15 +50,6 @@ namespace TheLastEmpire.Editor
             "BUILD0022_XenocrystalShockTower"
         };
 
-        [InitializeOnLoadMethod]
-        public static void InitializeOnLoad()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                ExecuteSliceAndLink(false);
-            };
-        }
-
         [MenuItem("Tools/The Last Empire/Slice and Link Building Sprites")]
         public static void SliceAndLinkAll()
         {
