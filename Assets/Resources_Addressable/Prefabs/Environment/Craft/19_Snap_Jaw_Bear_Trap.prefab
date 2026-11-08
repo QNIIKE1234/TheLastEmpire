@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1214386172104668773}
   - component: {fileID: 2441262756662212048}
   - component: {fileID: 8919840180025972309}
+  - component: {fileID: 9547832069331059}
   m_Layer: 0
   m_Name: 19_Snap_Jaw_Bear_Trap
   m_TagString: Untagged
@@ -134,3 +135,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2, y: 1.2, z: 0.3}
   m_Center: {x: 0, y: 0, z: 0.15}
+--- !u!114 &9547832069331059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3397248276238399157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f2b0c63bfe845b7a104763767a7d551, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::BearTrapBuilding
+  snapDamage: 120
+  rootDuration: 3.5
+  isSprung: 0
+  interactionDistance: 2.2

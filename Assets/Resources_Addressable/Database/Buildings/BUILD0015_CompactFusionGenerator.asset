@@ -29,4 +29,19 @@ MonoBehaviour:
   maxHealth: 500
   damageResistance: 0.2
   storageSlots: 30
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+    itemName: Miniature Fusion Reactor
+    amount: 1
+  - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+    itemName: Advanced Neural Processor
+    amount: 1
+  - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+    itemName: High-Capacity Capacitor
+    amount: 3
+  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    itemName: Reinforced Titanium Plate
+    amount: 3
+  - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+    itemName: Torn Copper Wiring
+    amount: 5

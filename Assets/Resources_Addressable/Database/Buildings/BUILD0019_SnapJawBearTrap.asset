@@ -29,4 +29,16 @@ MonoBehaviour:
   maxHealth: 150
   damageResistance: 0
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    itemName: Scrap Metal Plate
+    amount: 3
+  - item: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+    itemName: Spring Steel Coil
+    amount: 3
+  - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+    itemName: Hydraulic Piston Bolt
+    amount: 2
+  - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+    itemName: Rotten Bone Claw
+    amount: 3

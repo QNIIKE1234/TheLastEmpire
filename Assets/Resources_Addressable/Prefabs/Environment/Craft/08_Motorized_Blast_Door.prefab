@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7228145804228550940}
   - component: {fileID: 2527576161116925556}
   - component: {fileID: 5487942972311165709}
+  - component: {fileID: 28817802492427315}
   m_Layer: 0
   m_Name: 08_Motorized_Blast_Door
   m_TagString: Untagged
@@ -140,3 +141,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.5, y: 0.5, z: 2.5}
   m_Center: {x: 0, y: 0, z: 1.25}
+--- !u!114 &28817802492427315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2852490359783157972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e99b9e5923e343d3817224206bbf454d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::DoorBuilding
+  doorType: 1
+  isOpen: 0
+  animationSpeed: 4
+  interactionDistance: 2.5
+  autoClose: 1
+  autoCloseDelay: 8

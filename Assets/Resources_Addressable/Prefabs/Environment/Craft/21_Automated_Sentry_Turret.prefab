@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7201066834462765868}
   - component: {fileID: 6529684794742002119}
   - component: {fileID: 327293938880490804}
+  - component: {fileID: 7047775411325996}
   m_Layer: 0
   m_Name: 21_Automated_Sentry_Turret
   m_TagString: Untagged
@@ -163,3 +164,23 @@ MonoBehaviour:
   possibleLoot: []
   isSearched: 0
   interactionRadius: 2.5
+--- !u!114 &7047775411325996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5288515284170663127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55d44b557a004e62b991899406b30577, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::SentryTurretBuilding
+  targetingRange: 14
+  rotationSpeed: 180
+  fireRate: 5
+  damagePerShot: 15
+  infiniteAmmo: 1
+  maxAmmo: 200
+  currentAmmo: 200
+  interactionDistance: 2.5

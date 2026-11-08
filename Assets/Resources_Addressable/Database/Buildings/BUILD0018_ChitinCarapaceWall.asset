@@ -29,4 +29,19 @@ MonoBehaviour:
   maxHealth: 800
   damageResistance: 0.25
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+    itemName: Chitin Carapace Shard
+    amount: 6
+  - item: {fileID: 11400000, guid: 6e839f29d0cdee40c85d6cbe13db9710, type: 2}
+    itemName: Hardened Spine Segment
+    amount: 3
+  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    itemName: Scrap Metal Plate
+    amount: 4
+  - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+    itemName: Hardened Resin
+    amount: 3
+  - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+    itemName: Industrial Glue
+    amount: 2

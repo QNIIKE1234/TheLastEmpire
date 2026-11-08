@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 380958031636219383}
   - component: {fileID: 3275299430344685233}
   - component: {fileID: 5208063594617314108}
+  - component: {fileID: 24098077543114148}
   m_Layer: 0
   m_Name: 11_Wooden_Storage_Crate
   m_TagString: Untagged
@@ -161,3 +162,18 @@ MonoBehaviour:
   possibleLoot: []
   isSearched: 0
   interactionRadius: 2.5
+--- !u!114 &24098077543114148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2588784614452041733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13d1601b02804dd3bf38179ceb9ba6c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::StorageCrateBuilding
+  openAngle: -60
+  animationSpeed: 8
+  interactionDistance: 2.5

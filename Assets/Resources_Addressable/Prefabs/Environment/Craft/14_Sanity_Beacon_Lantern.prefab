@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1702062143757265481}
   - component: {fileID: 4043992771331747422}
   - component: {fileID: 7190772532726556165}
+  - component: {fileID: 16842131988676769}
   m_Layer: 0
   m_Name: 14_Sanity_Beacon_Lantern
   m_TagString: Untagged
@@ -237,3 +238,20 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &16842131988676769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 540521851067841333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14ff9a1ba9284a048d5181e567f71f1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::SanityBeaconBuilding
+  sanityRegenRate: 2.5
+  beaconRadius: 10
+  minIntensity: 2
+  maxIntensity: 3.2
+  pulseSpeed: 1.5

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5301524768424297535}
   - component: {fileID: 3520159065708698653}
   - component: {fileID: 6329992824228228183}
+  - component: {fileID: 21560761720870704}
   m_Layer: 0
   m_Name: 12_Water_Purifier_Station
   m_TagString: Untagged
@@ -163,3 +164,20 @@ MonoBehaviour:
   possibleLoot: []
   isSearched: 0
   interactionRadius: 2.5
+--- !u!114 &21560761720870704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118915970292689051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 536891f8afda4d128f28568efe2281fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::WaterPurifierBuilding
+  purifyCycleDuration: 90
+  maxStoredWater: 5
+  currentStoredWater: 1
+  cleanWaterItemName: ITEM0075_CleanGlassBottle
+  interactionDistance: 2.5

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8079321741327207348}
   - component: {fileID: 151209159201675714}
   - component: {fileID: 356057463122268929}
+  - component: {fileID: 12085143579895526}
   m_Layer: 0
   m_Name: 18_Chitin_Carapace_Wall
   m_TagString: Untagged
@@ -137,3 +138,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 0.6, z: 2.5}
   m_Center: {x: 0, y: 0, z: 1.25}
+--- !u!114 &12085143579895526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3609643184559676342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9594d0a0b344cc6bd63a61c9d0fd839, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::ChitinWallBuilding
+  acidSplashDamage: 20
+  reflectCooldown: 0.5

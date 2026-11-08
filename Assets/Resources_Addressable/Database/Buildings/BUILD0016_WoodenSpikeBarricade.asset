@@ -29,4 +29,16 @@ MonoBehaviour:
   maxHealth: 400
   damageResistance: 0
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    itemName: Wood Log
+    amount: 6
+  - item: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+    itemName: Rotten Bone Claw
+    amount: 4
+  - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+    itemName: Sturdy Rope
+    amount: 2
+  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+    itemName: Box of Nails
+    amount: 3

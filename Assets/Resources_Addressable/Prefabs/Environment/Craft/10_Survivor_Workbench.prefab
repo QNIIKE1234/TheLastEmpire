@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5120821379907467313}
   - component: {fileID: 5175613259596402263}
   - component: {fileID: 5198692293094310813}
+  - component: {fileID: 26599229417845227}
   m_Layer: 0
   m_Name: 10_Survivor_Workbench
   m_TagString: Untagged
@@ -160,3 +161,16 @@ MonoBehaviour:
   possibleLoot: []
   isSearched: 0
   interactionRadius: 2.5
+--- !u!114 &26599229417845227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3023190700650451203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 311dc88b66954eaeb9ae786af43d77e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::WorkbenchBuilding
+  interactionDistance: 2.5

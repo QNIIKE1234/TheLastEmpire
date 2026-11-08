@@ -28,4 +28,19 @@ MonoBehaviour:
   maxHealth: 100
   damageResistance: 0
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
+    itemName: Toxic Bile Sac
+    amount: 2
+  - item: {fileID: 11400000, guid: aab770a039b211079208af11f57b2977, type: 2}
+    itemName: Phosphorescent Acid Blood
+    amount: 2
+  - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
+    itemName: Gunpowder Mix
+    amount: 3
+  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    itemName: Scrap Metal Plate
+    amount: 2
+  - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+    itemName: Basic Logic Chip
+    amount: 1

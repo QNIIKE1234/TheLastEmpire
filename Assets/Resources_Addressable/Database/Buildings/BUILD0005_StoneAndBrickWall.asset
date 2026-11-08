@@ -29,4 +29,16 @@ MonoBehaviour:
   maxHealth: 600
   damageResistance: 0.15
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+    itemName: Rough Stone
+    amount: 10
+  - item: {fileID: 11400000, guid: ab6c83b53b805cea8b47516e72eecf70, type: 2}
+    itemName: Ceramic Shard
+    amount: 4
+  - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
+    itemName: Hardened Resin
+    amount: 2
+  - item: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
+    itemName: Industrial Glue
+    amount: 2

@@ -29,4 +29,19 @@ MonoBehaviour:
   maxHealth: 150
   damageResistance: 0
   storageSlots: 20
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    itemName: Wood Log
+    amount: 5
+  - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+    itemName: Rough Stone
+    amount: 6
+  - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+    itemName: Plant Fiber
+    amount: 4
+  - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+    itemName: Charcoal Lump
+    amount: 2
+  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    itemName: Scrap Metal Plate
+    amount: 1

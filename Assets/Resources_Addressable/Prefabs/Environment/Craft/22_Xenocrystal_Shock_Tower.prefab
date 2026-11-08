@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2569617365294509115}
   - component: {fileID: 4596252393288213646}
   - component: {fileID: 1877317631963007382}
+  - component: {fileID: 2009312026227313}
   m_Layer: 0
   m_Name: 22_Xenocrystal_Shock_Tower
   m_TagString: Untagged
@@ -138,3 +139,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 1.5, z: 3}
   m_Center: {x: 0, y: 0, z: 1.5}
+--- !u!114 &2009312026227313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2173606525678917498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df69513851844fea874de462d3a17c25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::ShockTowerBuilding
+  shockDamage: 80
+  dischargeRange: 11
+  dischargeInterval: 2.5
+  maxChainTargets: 4
+  stunDuration: 1.5

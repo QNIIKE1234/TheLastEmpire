@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2968097928780820620}
   - component: {fileID: 3713060086021387898}
   - component: {fileID: 5935856922310985647}
+  - component: {fileID: 31355118297828006}
   m_Layer: 0
   m_Name: 07_Armored_Titanium_Wall
   m_TagString: Untagged
@@ -138,3 +139,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 0.5, z: 2.5}
   m_Center: {x: 0, y: 0, z: 1.25}
+--- !u!114 &31355118297828006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6907021585975881307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86abbf3278654b2b8b1b282aa6b32f64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::WallBuilding
+  wallType: 3
+  repairAmountPerInteract: 100
+  interactionDistance: 2.5

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 149182339849042804}
   - component: {fileID: 2788268045232990501}
   - component: {fileID: 3759110531878140918}
+  - component: {fileID: 19342184351386601}
   m_Layer: 0
   m_Name: 13_Survivor_Sleeping_Bedroll
   m_TagString: Untagged
@@ -158,3 +159,18 @@ MonoBehaviour:
   possibleLoot: []
   isSearched: 0
   interactionRadius: 2.5
+--- !u!114 &19342184351386601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 185975714278661533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e856b5890634316b26c3cc241f72ff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire::BedrollBuilding
+  hpRestoredOnSleep: 50
+  sanityRestoredOnSleep: 50
+  interactionDistance: 2.5

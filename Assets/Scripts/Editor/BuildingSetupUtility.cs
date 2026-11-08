@@ -130,6 +130,7 @@ namespace TheLastEmpire.Editor
         [MenuItem("Tools/The Last Empire/Setup All 22 Craft Buildings and Data", false, 110)]
         public static void SetupAllBuildings()
         {
+            // Execute automated setup for all 22 craft buildings
             EnsureDirectories();
 
             const string iconSheetPath = "Assets/Resources_Addressable/Image/UI/BUILDING1TO22.png";
@@ -225,37 +226,83 @@ namespace TheLastEmpire.Editor
             box.isTrigger = cfg.isTrapTrigger;
 
             // 3. Special components
-            if (cfg.name.Contains("Campfire"))
+            switch (cfg.id)
             {
-                ConfigureCampfireOnGameObject(root);
-            }
-            else if (cfg.name.Contains("Lantern"))
-            {
-                Transform lightTr = root.transform.Find("Point Light");
-                GameObject lightObj;
-                if (lightTr == null)
-                {
-                    lightObj = new GameObject("Point Light");
-                    lightObj.transform.SetParent(root.transform, false);
-                }
-                else
-                {
-                    lightObj = lightTr.gameObject;
-                }
+                case "BUILD0001_WoodenFloorFoundation":
+                    if (root.GetComponent<FloorBuilding>() == null) root.AddComponent<FloorBuilding>();
+                    break;
 
-                lightObj.transform.localPosition = new Vector3(0f, 0f, 1.5f);
-                Light lanternLight = lightObj.GetComponent<Light>();
-                if (lanternLight == null) lanternLight = lightObj.AddComponent<Light>();
-                lanternLight.type = LightType.Point;
-                lanternLight.color = new Color(0.35f, 0.85f, 1.0f, 1f); // Calm blue-cyan beacon
-                lanternLight.range = 12.0f;
-                lanternLight.intensity = 2.5f;
-                lanternLight.shadows = LightShadows.Soft;
-            }
-            else if (cfg.name.Contains("Barricade"))
-            {
-                SpikeBarricadeBuilding spike = root.GetComponent<SpikeBarricadeBuilding>();
-                if (spike == null) spike = root.AddComponent<SpikeBarricadeBuilding>();
+                case "BUILD0002_WoodenWallPanel":
+                case "BUILD0005_StoneAndBrickWall":
+                case "BUILD0006_ScrapMetalWall":
+                case "BUILD0007_ArmoredTitaniumWall":
+                    if (root.GetComponent<WallBuilding>() == null) root.AddComponent<WallBuilding>();
+                    break;
+
+                case "BUILD0003_WoodenWindowWall":
+                    if (root.GetComponent<WindowWallBuilding>() == null) root.AddComponent<WindowWallBuilding>();
+                    break;
+
+                case "BUILD0004_ReinforcedWoodenDoor":
+                case "BUILD0008_MotorizedBlastDoor":
+                    if (root.GetComponent<DoorBuilding>() == null) root.AddComponent<DoorBuilding>();
+                    break;
+
+                case "BUILD0009_SurvivorCampfire":
+                    ConfigureCampfireOnGameObject(root);
+                    break;
+
+                case "BUILD0010_SurvivorWorkbench":
+                    if (root.GetComponent<WorkbenchBuilding>() == null) root.AddComponent<WorkbenchBuilding>();
+                    break;
+
+                case "BUILD0011_WoodenStorageCrate":
+                    if (root.GetComponent<StorageCrateBuilding>() == null) root.AddComponent<StorageCrateBuilding>();
+                    break;
+
+                case "BUILD0012_WaterPurifierStation":
+                    if (root.GetComponent<WaterPurifierBuilding>() == null) root.AddComponent<WaterPurifierBuilding>();
+                    break;
+
+                case "BUILD0013_SurvivorSleepingBedroll":
+                    if (root.GetComponent<BedrollBuilding>() == null) root.AddComponent<BedrollBuilding>();
+                    break;
+
+                case "BUILD0014_SanityBeaconLantern":
+                    ConfigureSanityBeaconOnGameObject(root);
+                    break;
+
+                case "BUILD0015_CompactFusionGenerator":
+                    if (root.GetComponent<GeneratorBuilding>() == null) root.AddComponent<GeneratorBuilding>();
+                    break;
+
+                case "BUILD0016_WoodenSpikeBarricade":
+                    if (root.GetComponent<SpikeBarricadeBuilding>() == null) root.AddComponent<SpikeBarricadeBuilding>();
+                    break;
+
+                case "BUILD0017_RazorWireBarricade":
+                    if (root.GetComponent<RazorWireBuilding>() == null) root.AddComponent<RazorWireBuilding>();
+                    break;
+
+                case "BUILD0018_ChitinCarapaceWall":
+                    if (root.GetComponent<ChitinWallBuilding>() == null) root.AddComponent<ChitinWallBuilding>();
+                    break;
+
+                case "BUILD0019_SnapJawBearTrap":
+                    if (root.GetComponent<BearTrapBuilding>() == null) root.AddComponent<BearTrapBuilding>();
+                    break;
+
+                case "BUILD0020_CorrosiveBileLandmine":
+                    if (root.GetComponent<BileLandmineBuilding>() == null) root.AddComponent<BileLandmineBuilding>();
+                    break;
+
+                case "BUILD0021_AutomatedSentryTurret":
+                    if (root.GetComponent<SentryTurretBuilding>() == null) root.AddComponent<SentryTurretBuilding>();
+                    break;
+
+                case "BUILD0022_XenocrystalShockTower":
+                    if (root.GetComponent<ShockTowerBuilding>() == null) root.AddComponent<ShockTowerBuilding>();
+                    break;
             }
 
             if (cfg.storageSlots > 0)
@@ -335,6 +382,38 @@ namespace TheLastEmpire.Editor
             fireLight.shadows = LightShadows.Soft;
 
             cb.FireLight = fireLight;
+        }
+
+        private static void ConfigureSanityBeaconOnGameObject(GameObject root)
+        {
+            SanityBeaconBuilding beacon = root.GetComponent<SanityBeaconBuilding>();
+            if (beacon == null) beacon = root.AddComponent<SanityBeaconBuilding>();
+
+            BuildingObject bo = root.GetComponent<BuildingObject>();
+            if (bo == null) bo = root.AddComponent<BuildingObject>();
+            bo.AutoAddNavMeshObstacle = true;
+            bo.CanBeDamagedByPlayer = false;
+
+            Transform lightTr = root.transform.Find("Point Light");
+            GameObject lightObj;
+            if (lightTr == null)
+            {
+                lightObj = new GameObject("Point Light");
+                lightObj.transform.SetParent(root.transform, false);
+            }
+            else
+            {
+                lightObj = lightTr.gameObject;
+            }
+
+            lightObj.transform.localPosition = new Vector3(0f, 0f, 1.5f);
+            Light lanternLight = lightObj.GetComponent<Light>();
+            if (lanternLight == null) lanternLight = lightObj.AddComponent<Light>();
+            lanternLight.type = LightType.Point;
+            lanternLight.color = new Color(0.35f, 0.85f, 1.0f, 1f); // Calm blue-cyan beacon
+            lanternLight.range = 14.0f;
+            lanternLight.intensity = 2.5f;
+            lanternLight.shadows = LightShadows.Soft;
         }
 
         private static void SetupCampfirePrefabAtPath(string path)

@@ -29,4 +29,16 @@ MonoBehaviour:
   maxHealth: 300
   damageResistance: 0
   storageSlots: 24
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    itemName: Wood Log
+    amount: 6
+  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+    itemName: Box of Nails
+    amount: 3
+  - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+    itemName: Scrap Leather
+    amount: 2
+  - item: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
+    itemName: Sturdy Rope
+    amount: 1
