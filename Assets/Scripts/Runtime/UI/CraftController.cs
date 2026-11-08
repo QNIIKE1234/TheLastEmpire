@@ -34,6 +34,9 @@ namespace TheLastEmpire
         [Tooltip("ปุ่มกากบาทหรือปุ่มปิดหน้าต่างคราฟต์ (Optional)")]
         [SerializeField] private Button closeButton;
 
+        [Tooltip("ปุ่ม Back ย้อนกลับหรือปิดหน้าต่างคราฟต์ (Optional)")]
+        [SerializeField] private Button backButton;
+
         [Header("Category Buttons (แถบหมวดหมู่ฝั่งซ้าย 7 หมวด)")]
         [SerializeField] private Button buildingTabButton;
         [SerializeField] private Button utilityTabButton;
@@ -310,7 +313,36 @@ namespace TheLastEmpire
             if (nextPageButton != null)
                 nextPageButton.onClick.AddListener(NextPage);
             if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(CloseCraftMenu);
                 closeButton.onClick.AddListener(CloseCraftMenu);
+            }
+            if (backButton != null)
+            {
+                backButton.onClick.RemoveListener(CloseCraftMenu);
+                backButton.onClick.AddListener(CloseCraftMenu);
+            }
+
+            // Auto-wire buttons named Close / Back / Cancel
+            Transform searchRoot = craftPanel != null ? craftPanel.transform : transform;
+            Button[] allBtns = searchRoot.GetComponentsInChildren<Button>(true);
+            foreach (Button btn in allBtns)
+            {
+                if (btn == prevPageButton || btn == nextPageButton || btn == buildingTabButton ||
+                    btn == utilityTabButton || btn == defenseTabButton || btn == weaponsTabButton ||
+                    btn == consumablesTabButton || btn == toolsTabButton || btn == specialTabButton) continue;
+
+                string btnName = btn.gameObject.name.ToLowerInvariant();
+                TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>(true);
+                string textContent = btnText != null ? btnText.text.ToLowerInvariant() : "";
+
+                if (btnName == "close" || btnName == "back" || btnName.Contains("closebtn") || btnName.Contains("backbtn") ||
+                    textContent == "back" || textContent == "close" || textContent == "x")
+                {
+                    btn.onClick.RemoveListener(CloseCraftMenu);
+                    btn.onClick.AddListener(CloseCraftMenu);
+                }
+            }
 
             if (searchInputField != null)
             {
@@ -465,6 +497,14 @@ namespace TheLastEmpire
                 CloseCraftMenu();
             }
         }
+
+        // Aliases สำหรับลากใส่ Button OnClick ใน Inspector ได้ทันที
+        public void OpenBuilding() => OpenCraftMenu();
+        public void CloseBuilding() => CloseCraftMenu();
+        public void ToggleBuilding() => ToggleCraftMenu();
+        public void OnBackButtonClicked() => CloseCraftMenu();
+        public void Close() => CloseCraftMenu();
+        public void Open() => OpenCraftMenu();
 
         public void SelectCategory(CraftingCategory category)
         {

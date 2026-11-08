@@ -37,6 +37,12 @@ namespace TheLastEmpire
         [Tooltip("ลากแถว InventoryItemSlot ทั้งหมดที่วางอยู่ในหน้าต่างกระเป๋าใส่ที่นี่ (เช่น 7 ช่อง) เพื่อวนเซตข้อมูลซ้ำ ไม่ Instantiate ใหม่")]
         [SerializeField] private List<InventoryItemSlot> itemSlots = new List<InventoryItemSlot>();
 
+        [Header("Close / Back Buttons")]
+        [Tooltip("ปุ่มปิดหน้าต่างกระเป๋า (Optional: หากเว้นว่างระบบจะค้นหาปุ่มชื่อ Close หรือ Back ในแผงให้อัตโนมัติ)")]
+        [SerializeField] private UnityEngine.UI.Button closeButton;
+        [Tooltip("ปุ่ม Back สำหรับปิดหน้าต่างกระเป๋า (Optional)")]
+        [SerializeField] private UnityEngine.UI.Button backButton;
+
         [Header("Pagination")]
         [Tooltip("จำนวน Slot ต่อหน้า (ถ้าลาก itemSlots ไว้จะอิงตามจำนวนช่องใน List อัตโนมัติ)")]
         [SerializeField] private int slotsPerPage = 7;
@@ -89,7 +95,8 @@ namespace TheLastEmpire
                     if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
                     if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
 
-
+                    // Hook close / back buttons
+                    HookCloseButtons();
 
                     _canvasObject.SetActive(false);
                 }
@@ -246,6 +253,77 @@ namespace TheLastEmpire
             if (_isOpen)
             {
                 ToggleInventory();
+            }
+        }
+
+        /// <summary>
+        /// เปิดหน้าต่าง Inventory (สำหรับผูกกับ OnClick ของ Button)
+        /// </summary>
+        public void OpenInventory()
+        {
+            if (!_isOpen)
+            {
+                ToggleInventory();
+            }
+        }
+
+        /// <summary>
+        /// ปิดหน้าต่าง Inventory (สำหรับผูกกับ OnClick ของ Button หรือปุ่ม Back)
+        /// </summary>
+        public void CloseInventory()
+        {
+            if (_isOpen)
+            {
+                ToggleInventory();
+            }
+        }
+
+        /// <summary>
+        /// ปุ่ม Back สำหรับปิดหน้าต่างกระเป๋า
+        /// </summary>
+        public void OnBackButtonClicked()
+        {
+            CloseInventory();
+        }
+
+        public void Close() => CloseInventory();
+        public void Open() => OpenInventory();
+
+        /// <summary>
+        /// ค้นหาและผูก Event ให้กับปุ่ม Close / Back อัตโนมัติ
+        /// </summary>
+        public void HookCloseButtons()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(CloseInventory);
+                closeButton.onClick.AddListener(CloseInventory);
+            }
+            if (backButton != null)
+            {
+                backButton.onClick.RemoveListener(CloseInventory);
+                backButton.onClick.AddListener(CloseInventory);
+            }
+
+            // Auto-discover buttons named Close, Back, Cancel under inventoryPanel
+            Transform container = inventoryPanel != null ? inventoryPanel.transform : (_panelObject != null ? _panelObject.transform : transform);
+            if (container != null)
+            {
+                Button[] allBtns = container.GetComponentsInChildren<Button>(true);
+                foreach (Button btn in allBtns)
+                {
+                    if (btn == prevPageButton || btn == nextPageButton) continue;
+                    string btnName = btn.gameObject.name.ToLowerInvariant();
+                    TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>(true);
+                    string textContent = btnText != null ? btnText.text.ToLowerInvariant() : "";
+
+                    if (btnName == "close" || btnName == "back" || btnName.Contains("closebtn") || btnName.Contains("backbtn") ||
+                        textContent == "back" || textContent == "close" || textContent == "x")
+                    {
+                        btn.onClick.RemoveListener(CloseInventory);
+                        btn.onClick.AddListener(CloseInventory);
+                    }
+                }
             }
         }
 

@@ -1059,6 +1059,14 @@ namespace TheLastEmpire
         {
             CloseSettingsModal();
         }
+
+        // Aliases สำหรับลากใส่ Button OnClick ใน Inspector ได้ทันที
+        public void OpenSetting() => OpenSettingsModal();
+        public void CloseSetting() => CloseSettingsModal();
+        public void ToggleSetting() => ToggleSettingsModal();
+        public void OnBackButtonClicked() => CloseSettingsModal();
+        public void Close() => CloseSettingsModal();
+        public void Open() => OpenSettingsModal();
     }
 
     /// <summary>
