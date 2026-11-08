@@ -14,7 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Prefabs_Group
   m_GUID: 069c4c1e853c9394d96813f79e3d0a4f
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 303232d1452e32646b23670e4c4d74f8
+    m_Address: Prefabs/Building/Building_StorageCrate
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87b0dc3fdef7e4a4dbae76863ccc9f58
+    m_Address: Prefabs/Building/Building_Barricade
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d27f8af6c3254694cafb706e1b7d706a
+    m_Address: Prefabs/Building/Building_Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
   m_SchemaSet:

@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -14,11 +14,529 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Environment_Group
   m_GUID: 513f08aecfce788458bcdb6ca82be252
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 022e3703e8c1d7b4e83ddc89d2866455
+    m_Address: Prefabs/Environment/Craft/05_Stone_and_Brick_Wall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 05a3cc62f944c064b806a8270a211541
+    m_Address: Prefabs/Environment/Building/Tree_Broadleaf
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0ac42922ae55bbc4a97eb6158f9b826b
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Sandbag_Pile
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0c524cf54744e5243bca743d37df9797
+    m_Address: Prefabs/Environment/Craft/18_Chitin_Carapace_Wall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0e96757b9e89cd440bce320a83e0e101
+    m_Address: Prefabs/Environment/Building/Apoc_House_03_Salvaged_Tin_Shack
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1046eb18b367dbb47a5d89857aa805df
+    m_Address: Prefabs/Environment/Building/House_Suburban_B
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 11682ae192125d742af9f807ca2b0c22
+    m_Address: Prefabs/Environment/Building/Prop_TrafficCone
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1349901d7e8aed540a93bb966c7a789b
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Downed_Traffic_Light
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16b384526f39aef46b839dd9309d57a6
+    m_Address: Prefabs/Environment/Building/Bush_Hedge
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 178f32e919efec043b63f258a68acd2f
+    m_Address: Prefabs/Environment/Apoc_Vehicle_03_Abandoned_Bus
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20290a8e15a55c64ba4a91b08525184b
+    m_Address: Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 202c25754d4d01041929af0ed0d69b1e
+    m_Address: Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27ddbf03a4c38ea48b0f34055884d3b3
+    m_Address: Prefabs/Environment/Building/Tree_Dead
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2852744a3f0492a409e506c87825ae8d
+    m_Address: Prefabs/Environment/Building/House_Suburban_C
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e8eb63b9b8dd1c489c6a521802e72cd
+    m_Address: Prefabs/Environment/Building/Apoc_Tree_03_Mutated_Overgrown_Pine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 331fe08fc33d90b4ca286ba6eac3ec66
+    m_Address: Prefabs/Environment/Craft/12_Water_Purifier_Station
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37513c80895abf34cae38698a8db96c4
+    m_Address: Prefabs/Environment/Building/Apoc_Building_03_Narrow_Signal_Tower
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 38e2f0c32839de54e9a63e595de34474
     m_Address: Prefabs/Environment/Apoc_Prop_Campfire
     m_ReadOnly: 0
     m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39bf801cbe224f0488123d6866ab5b6c
+    m_Address: Prefabs/Environment/Apoc_Motorcycle_03_Abandoned_Dirt_Bike
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 43e5686bad56fd14fa3a0c8e7d465cc9
+    m_Address: Prefabs/Environment/Vehicle_Police_Sedan
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 442275b7fd95e9c4786bc0aa71b8e587
+    m_Address: Prefabs/Environment/Craft/09_Survivor_Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 45ef1828a9ae3e344be8e6a154d8b572
+    m_Address: Prefabs/Environment/Craft/07_Armored_Titanium_Wall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46cc7eb7bc6ae76459c3bb818c5c38e2
+    m_Address: Prefabs/Environment/Apoc_Vehicle_01_Damaged_Van
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 483e15721c3445c41a069e16df82b8bc
+    m_Address: Prefabs/Environment/Craft/22_Xenocrystal_Shock_Tower
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 500ed1a2348f0b247b2045d391d67176
+    m_Address: Prefabs/Environment/Building/Apoc_House_01_Brick_Rowhouse
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5174a01c34c7bd448b99fcf4232ca7ab
+    m_Address: Prefabs/Environment/Building/building
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5311c09b985d1064bb6ec81f8e830d45
+    m_Address: Prefabs/Environment/Craft/14_Sanity_Beacon_Lantern
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 54be73452e128d847aa4f9afa561e8fd
+    m_Address: Prefabs/Environment/Craft/11_Wooden_Storage_Crate
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 57e65bbaf7a16864a8d3cbe5392dd225
+    m_Address: Prefabs/Environment/Apoc_Motorcycle_01_Rusted_Scrambler
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5dc47874b82e8f84b89cbda4c02d6640
+    m_Address: Prefabs/Environment/Building/Apoc_Building_06_Ruined_Clinic_Lowrise
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 623ebb1408c20d1419b3228663e33e6b
+    m_Address: Prefabs/Environment/Building/Street
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6285cb9d619c9a645a1c6c2db10f4057
+    m_Address: Prefabs/Environment/Craft/16_Wooden_Spike_Barricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6378d7cba54e94d4e90ea202d31d95d1
+    m_Address: Prefabs/Environment/Craft/15_Compact_Fusion_Generator
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e2c82c6c3ef1a14bbc058792ae68b85
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Damaged_Road_Sign
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 73c82cd67638890499e637b9df15ad62
+    m_Address: Prefabs/Environment/Craft/13_Survivor_Sleeping_Bedroll
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7a443629fde70ed40aa07647b8140dde
+    m_Address: Prefabs/Environment/Craft/01_Wooden_Floor_Foundation
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7c1b46ba73bbd6b4f95adba1d17fcbe5
+    m_Address: Prefabs/Environment/Building/Prop_Mailbox
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7e15d9dc5f0ab9240a69a9c89633d18a
+    m_Address: Prefabs/Environment/Craft/17_Razor_Wire_Barricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 86e5277865b3ad24eaecd6e91ac1c51f
+    m_Address: Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 870b353327dd3d243bd7a715cb4d5ecc
+    m_Address: Prefabs/Environment/Craft/08_Motorized_Blast_Door
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8aff93598522b414387c6b9a490f3aea
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Broken_Streetlight
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c2583bac9af154408b8e67410ad964e
+    m_Address: Prefabs/Environment/Building/Prop_Streetlight
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9273adfd30855f347a76b3b81fafdf68
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Concrete_Barricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94afea871e9caf94e8f7de95bf3c6279
+    m_Address: Prefabs/Environment/Building/Apoc_Building_04_Industrial_Hospital_Ruin
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 959cf87bf1803474890b74732a059a3f
+    m_Address: Prefabs/Environment/Vehicle_Motorcycle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95a9f67dfe539334ca24644ce7881d93
+    m_Address: Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96549b1097fe21c40a3a24742b774a7a
+    m_Address: Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9965458308698ed45bd3d72666a11698
+    m_Address: Prefabs/Environment/Building/Apoc_Tree_02_Scorched_Dead_Tree
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a6ecc9599101214a8a01ded98619e66
+    m_Address: Prefabs/Environment/Craft/06_Scrap_Metal_Wall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9dff0088add6f1c40b1f7aec10501534
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Abandoned_Generator
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a76805ed0fde99d44ad31fe62170e5d7
+    m_Address: Prefabs/Environment/Craft/03_Wooden_Window_Wall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa96ec9d920e3d04da748b4f774510d7
+    m_Address: Prefabs/Environment/Apoc_Vehicle_02_Ruined_Truck
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad0354885e3379a458addb4d01a886b0
+    m_Address: Prefabs/Environment/Craft/Apoc_Prop_Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b4dfb4987df4fc547b550454e1d2c328
+    m_Address: Prefabs/Environment/Building/Tree_Pine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b5695d85b07253e4a94d1ef322661ec3
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Rusty_Drum_Stack
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8fcfd6f83a2f1b4c88800976931865d
+    m_Address: Prefabs/Environment/Craft/20_Corrosive_Bile_Landmine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b97b8c584b3878b4dbea9ef449b04fce
+    m_Address: Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: baff167aca720944380b06b050e4ac66
+    m_Address: Prefabs/Environment/Craft/21_Automated_Sentry_Turret
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc3252fd4bb3535499c18bc997c90378
+    m_Address: Prefabs/Environment/Apoc_Motorcycle_02_Smashed_Scooter
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bda2fa9135e8ddf44b601c5543d86bf8
+    m_Address: Prefabs/Environment/Building/Bush_Flowering
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bea97d93b8049974db9e11793caf8398
+    m_Address: Prefabs/Environment/Building/House_Suburban_A
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bf8a5d39594bc7b4d93e546c57110b37
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c173589a71837dc4185d97de532767df
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Broken_Utility_Pole
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ca64b3f41bbfecc46b5578ee9cdcaadc
+    m_Address: Prefabs/Environment/Vehicle_Sedan
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cfa1a3191c2c5474a9620a67cce301eb
+    m_Address: Prefabs/Environment/Building/Prop_Bench
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0d9a80444277f741bc1a6787e8ccc6a
+    m_Address: Prefabs/Environment/Building/Apoc_House_02_Concrete_Duplex
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0ec78a59f81d4f42a2f376f34892d53
+    m_Address: Prefabs/Environment/Craft/10_Survivor_Workbench
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1b4f737ec367b7478373b46cecca42e
+    m_Address: Prefabs/Environment/Building/Apoc_Tree_01_Withered_Street_Oak
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: da00badcdc845d54483edf8060314896
+    m_Address: Prefabs/Environment/Craft/04_Reinforced_Wooden_Door
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e67f214630e1d424da6397563fcfdcd0
+    m_Address: Prefabs/Environment/Craft/19_Snap_Jaw_Bear_Trap
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e7689c2354df9624c832f235aa3e2394
+    m_Address: Prefabs/Environment/Craft/02_Wooden_Wall_Panel
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Craft
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ebd77166f5aee7c47bd3917ac5bd8595
+    m_Address: Prefabs/Environment/Building/Bush_Round
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f5148dbb20f4a0c4d93e2626a7e294d3
+    m_Address: Prefabs/Environment/Building/Apoc_Prop_Ruined_Bus_Stop
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0

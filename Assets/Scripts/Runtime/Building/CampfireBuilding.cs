@@ -35,14 +35,14 @@ namespace TheLastEmpire
         [SerializeField] private Color lightColor = new Color(1.0f, 0.62f, 0.22f);
 
         [Header("Night Vision Expansion")]
-        [Tooltip("เปอร์เซ็นต์ขยายระยะการมองเห็นตอนกลางคืนเมื่ออยู่ใกล้กองไฟ (0.40 = +40%)")]
-        [SerializeField] private float nightVisionBonus = 0.40f;
+        [Tooltip("เปอร์เซ็นต์ขยายระยะการมองเห็นตอนกลางคืนเมื่ออยู่ใกล้กองไฟ (0.70 = +70%)")]
+        [SerializeField] private float nightVisionBonus = 0.70f;
 
-        [Tooltip("รัศมีตรวจจับว่าผู้เล่นอยู่ใกล้กองไฟเพื่อให้โบนัสการมองเห็น 40% (เมตร)")]
-        [SerializeField] private float visionAuraRadius = 6.5f;
+        [Tooltip("รัศมีตรวจจับว่าผู้เล่นอยู่ใกล้กองไฟเพื่อให้โบนัสการมองเห็น 70% (เมตร)")]
+        [SerializeField] private float visionAuraRadius = 8.0f;
 
         [Tooltip("รัศมีวงสว่างของกองไฟบนหน้าจอ Shader (Viewport Radius)")]
-        [SerializeField] private float lightHoleRadius = 0.26f;
+        [SerializeField] private float lightHoleRadius = 0.38f;
 
         public float VisionAuraRadius => visionAuraRadius;
         public float NightVisionBonus => nightVisionBonus;

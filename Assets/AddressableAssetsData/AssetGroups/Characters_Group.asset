@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -18,27 +18,182 @@ MonoBehaviour:
   - m_GUID: 04ffd531ebffbfe4b966cc38e37f68dc
     m_Address: Prefabs/Character/Model/Chibi_PunkGirl_Rigged
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Character
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0522a0c809c9fad4caa342b4e339c09b
     m_Address: Prefabs/Character/Model/ChibiGhostOperator
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 066bde0e128a18a4f9a0e11a016becf1
+    m_Address: Prefabs/Character/EnemyPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1703143e0cb2a957b7ed683bc5657a8d
+    m_Address: Prefabs/Character/RobotNormal
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 197e506e87172557fb03582cc761b653
+    m_Address: Prefabs/Character/RobotTanker
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 19d242d59e0ee1f42bd2a4126bab80a5
+    m_Address: Prefabs/Character/RobotGunner
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 19ea2a18d1bfc1f79d85a00ad71b48ff
+    m_Address: Prefabs/Character/RobotLaser
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b78d2f4887e95e9632ceb38b7e2f9dc
+    m_Address: Prefabs/Character/AlienInvisible
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 302340225a168ff44b264d5a1b2dd2ff
     m_Address: Prefabs/Character/Model/Chibi_TacticalGirl_Rigged
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 31b397e1d7a18ec9966a0977f448372f
+    m_Address: Prefabs/Character/AlienHook
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 320257d2bc67378498b8d32e8acb2c99
+    m_Address: Prefabs/Character/ZombieDog
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 44c1f1983f74cc62cae6ec5d4a7fe55d
+    m_Address: Prefabs/Character/RobotLeader
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4c9baab1ae60f9f4cab252ab18b892b7
+    m_Address: Prefabs/Character/NPCPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5dc0f554246ce530c882a3e8ac314186
+    m_Address: Prefabs/Character/AlienCrawler
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6d07d001757ed0f4f804509afba6dee6
+    m_Address: Prefabs/Character/ZombieLeader
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 76dd5cbbfefc29a438a6fe4fb42cdf4f
     m_Address: Prefabs/Character/Model/SkullOperator_Mesh
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a8146696e1c31f44afc068661e5a49f
+    m_Address: Prefabs/Character/ZombieBoomer
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8e9c44a49cf812a4b8262c91f3dffb0a
+    m_Address: Prefabs/Character/ZombieRunner
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 917a1eb1e6118b9ed33c72a0041d28c4
+    m_Address: Prefabs/Character/ZombieTank
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96afe61a72528143a5a44db570246f35
+    m_Address: Prefabs/Character/AlienLeader
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5868527b1406bd7a54462ef73679cc1
+    m_Address: Prefabs/Character/RobotKamikaze
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b49b788897bfd2b4a90e2ad200a8d37c
+    m_Address: Prefabs/Character/PlayerPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: db7944e2bac936f4889a50d115dbf9b7
     m_Address: Prefabs/Character/Model/Chibi_Base_Rigged
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dd9fd913f8ef39dc667a97817876f8b5
+    m_Address: Prefabs/Character/AlienNormal
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ddfe10a1267574c469430b67bfa0cd14
+    m_Address: Prefabs/Character/ZombieNormal
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df874172aa9460b28744da99e18eebae
+    m_Address: Prefabs/Character/ZombieSpitter
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f40f036bf66bfd472dc4f987d0f9e969
+    m_Address: Prefabs/Character/RobotBlade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f8db8221617ddc386b96132c62c75c93
+    m_Address: Prefabs/Character/AlienSmart
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fc84366ea4bbe8d769a1bf95842de4f8
+    m_Address: Prefabs/Character/AlienSpitter
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe8b06865f31b813ecb67673298d91ba
+    m_Address: Prefabs/Character/RobotDrone
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}

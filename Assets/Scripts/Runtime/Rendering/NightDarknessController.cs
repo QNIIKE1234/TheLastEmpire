@@ -151,7 +151,7 @@ namespace TheLastEmpire
                 }
             }
 
-            // ตรวจสอบว่าผู้เล่นอยู่ใกล้กองไฟ (Campfire) หรือไม่ หากอยู่ใกล้จะได้รับโบนัสขยายระยะการมองเห็น +40%
+            // ตรวจสอบว่าผู้เล่นอยู่ใกล้กองไฟ (Campfire) หรือไม่ หากอยู่ใกล้จะได้รับโบนัสขยายระยะการมองเห็น +70%
             float targetVisionBonus = 1.0f;
             CampfireBuilding closestCampfire = null;
             float closestDist = float.MaxValue;
@@ -184,6 +184,10 @@ namespace TheLastEmpire
             float currentInner = innerRadius * _currentVisionMultiplier;
             float currentOuter = outerRadius * _currentVisionMultiplier;
 
+            // เมื่ออยู่ใกล้กองไฟ (Campfire) ขยายระยะการมองเห็น +70% และลดความมืดลงเหลือเพียง 30% (เปิดการมองเห็นสว่างชัดเจน 70%)
+            float campfireInfluence = Mathf.Clamp01((_currentVisionMultiplier - 1.0f) / 0.70f);
+            float currentMaxDarkness = Mathf.Lerp(maxDarkness, 0.30f, campfireInfluence);
+
             // ส่งพิกัดของกองไฟที่ใกล้ที่สุดเข้า Shader เพื่อเจาะรูสว่างบนหน้าจอมืด
             Camera mainCam = Camera.main;
             if (closestCampfire != null && mainCam != null && closestDist < 35f)
@@ -207,7 +211,7 @@ namespace TheLastEmpire
             {
                 _darknessMaterial.SetFloat("_InnerRadius", currentInner);
                 _darknessMaterial.SetFloat("_OuterRadius", currentOuter);
-                _darknessMaterial.SetFloat("_MaxDarkness", maxDarkness);
+                _darknessMaterial.SetFloat("_MaxDarkness", currentMaxDarkness);
             }
         }
 
