@@ -131,10 +131,25 @@ namespace TheLastEmpire
         {
             if (allBuildings == null || allBuildings.Count == 0)
             {
-                BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
-                if (loaded != null && loaded.Length > 0)
+#if UNITY_EDITOR
+                string[] guids = UnityEditor.AssetDatabase.FindAssets("t:BuildingData");
+                foreach (string guid in guids)
                 {
-                    allBuildings.AddRange(loaded);
+                    string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                    BuildingData bd = UnityEditor.AssetDatabase.LoadAssetAtPath<BuildingData>(path);
+                    if (bd != null && !allBuildings.Contains(bd))
+                    {
+                        allBuildings.Add(bd);
+                    }
+                }
+#endif
+                if (allBuildings.Count == 0)
+                {
+                    BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
+                    if (loaded != null && loaded.Length > 0)
+                    {
+                        allBuildings.AddRange(loaded);
+                    }
                 }
             }
         }

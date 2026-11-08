@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0002_WoodenSpikeBarricade
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0002_WoodenSpikeBarricade
+  buildingName: Razor Wire Barricade
+  category: 2
+  icon: {fileID: 0}
+  description: Entangling copper and steel wire barrier studded with infected fangs.
+  prefab: {fileID: 999669488809590575, guid: 87b0dc3fdef7e4a4dbae76863ccc9f58, type: 3}
+  ghostPrefab: {fileID: 0}
+  footprintSize: {x: 2.5, y: 1.2, z: 0.8}
+  buildRange: 6
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 400
+  damageResistance: 0
+  ingredients:
+  - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
+    itemName: Scrap Steel Pipe
+    amount: 3
+  - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+    itemName: Copper Wire Spool
+    amount: 4
+  - item: {fileID: 11400000, guid: 95cc56183ae9bac443361e89b13a6948, type: 2}
+    itemName: Decayed Infected Fang
+    amount: 5
+  - item: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
+    itemName: Box of Nails
+    amount: 4

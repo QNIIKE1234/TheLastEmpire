@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0001_Campfire
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0001_Campfire
+  buildingName: Survivor Campfire
+  category: 1
+  icon: {fileID: 0}
+  description: Placeable campfire with cooking pot. Restores Sanity when sitting
+    nearby (Press Z).
+  prefab: {fileID: 5086415955843939209, guid: d27f8af6c3254694cafb706e1b7d706a, type: 3}
+  ghostPrefab: {fileID: 0}
+  footprintSize: {x: 1.5, y: 1.2, z: 1.5}
+  buildRange: 6.5
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 150
+  damageResistance: 0
+  ingredients:
+  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    itemName: Wood Log
+    amount: 5
+  - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+    itemName: Rough Stone
+    amount: 6
+  - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+    itemName: Plant Fiber
+    amount: 4
+  - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+    itemName: Charcoal Lump
+    amount: 2
+  - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    itemName: Scrap Metal Plate
+    amount: 1
