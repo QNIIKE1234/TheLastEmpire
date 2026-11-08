@@ -6,6 +6,8 @@ namespace TheLastEmpire
 {
     public class PlayerInventory : MonoBehaviour
     {
+        public static PlayerInventory Instance { get; private set; }
+
         [Header("Inventory Status")]
         [SerializeField] private int money = 0;
         [SerializeField] private List<string> items = new List<string>();
@@ -22,6 +24,22 @@ namespace TheLastEmpire
         public event System.Action<int> OnMoneyChanged;
         public event System.Action<string> OnItemCollected;
         public event System.Action OnInventoryChanged;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
 
         private void Start()
         {

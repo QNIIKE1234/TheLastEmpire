@@ -89,7 +89,6 @@ namespace TheLastEmpire
 
             _navObstacle.carving = true;
             _navObstacle.carveOnlyStationary = false;
-            _navObstacle.timeToStationary = 0.1f;
 
             if (data != null)
             {
@@ -125,7 +124,7 @@ namespace TheLastEmpire
             // แสดงตัวเลขดาเมจบนจอ
             if (DamageNumberManager.Instance != null)
             {
-                DamageNumberManager.Instance.SpawnDamageNumber(actualDamage, spawnPos, isCrit);
+                DamageNumberManager.Instance.SpawnDamageNumber(spawnPos, actualDamage, isCrit);
             }
 
             if (hitVfxPrefab != null)
@@ -181,3 +180,4 @@ namespace TheLastEmpire
         }
     }
 }
+
