@@ -620,6 +620,14 @@ namespace TheLastEmpire
             IDamageable damageable = collision.GetComponent<IDamageable>();
             if (damageable != null)
             {
+                // ไม่ให้กระสุนของผู้เล่นทำลายสิ่งปลูกสร้างของฝ่ายผู้เล่นเอง
+                BuildingObject building = collision.GetComponentInParent<BuildingObject>();
+                if (building != null && !building.CanBeDamagedByPlayer && _owner != null && _owner.CompareTag("Player"))
+                {
+                    DeactivateProjectile();
+                    return;
+                }
+
                 if (isExplosive)
                 {
                     Explode();
@@ -705,6 +713,12 @@ namespace TheLastEmpire
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
+                    BuildingObject building = target.GetComponentInParent<BuildingObject>();
+                    if (building != null && !building.CanBeDamagedByPlayer && _owner != null && _owner.CompareTag("Player"))
+                    {
+                        continue;
+                    }
+
                     float distFromCenter = Vector3.Distance(transform.position, target.transform.position);
                     DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, explosionRadius, _owner);
                     damageable.TakeDamage(dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);

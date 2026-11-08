@@ -27,6 +27,16 @@ namespace TheLastEmpire
         [Range(0f, 1f)]
         [SerializeField] private float dismantleRefundRatio = 0.5f;
 
+        [Header("Damage Settings")]
+        [Tooltip("อนุญาตให้ผู้เล่นโจมตีทำลายสิ่งปลูกสร้างชิ้นนี้ได้ด้วยอาวุธทั่วไปหรือไม่ (ค่าเริ่มต้น: false เพื่อป้องกันการเผลอฟันพัง)")]
+        [SerializeField] private bool canBeDamagedByPlayer = false;
+
+        public bool CanBeDamagedByPlayer
+        {
+            get => canBeDamagedByPlayer;
+            set => canBeDamagedByPlayer = value;
+        }
+
         [Header("Audio & VFX")]
         [SerializeField] private GameObject hitVfxPrefab;
         [SerializeField] private GameObject destroyVfxPrefab;

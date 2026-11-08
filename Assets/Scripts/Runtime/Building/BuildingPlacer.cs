@@ -42,8 +42,10 @@ namespace TheLastEmpire
         private bool _isValidPlacement = false;
         private Vector3 _currentPlacementPosition;
         private Quaternion _currentPlacementRotation;
+        private float _suppressAttackTimer = 0f;
 
         public bool IsInBuildMode => _activeData != null && _ghostInstance != null;
+        public bool ShouldBlockCombat => IsInBuildMode || _suppressAttackTimer > 0f;
         public BuildingData ActiveBuilding => _activeData;
 
         public event Action<BuildingData> OnBuildModeStarted;
@@ -93,6 +95,11 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (_suppressAttackTimer > 0f)
+            {
+                _suppressAttackTimer -= Time.deltaTime;
+            }
+
             if (!IsInBuildMode) return;
 
             HandleCancelInput();
@@ -113,6 +120,7 @@ namespace TheLastEmpire
             _activeData = data;
             _activeRecipe = recipe;
             _currentRotationY = 0f;
+            _suppressAttackTimer = 0.35f;
 
             CreateGhostInstance();
             OnBuildModeStarted?.Invoke(_activeData);
@@ -124,6 +132,8 @@ namespace TheLastEmpire
         /// </summary>
         public void CancelPlacement()
         {
+            _suppressAttackTimer = 0.35f;
+
             if (_ghostInstance != null)
             {
                 Destroy(_ghostInstance);
@@ -441,6 +451,7 @@ namespace TheLastEmpire
             }
 
             Debug.Log($"[BuildingPlacer] Successfully placed '{_activeData.buildingName}' at {_currentPlacementPosition}!");
+            _suppressAttackTimer = 0.35f;
             OnBuildingPlaced?.Invoke(buildingComp);
 
             // 4. ถ้ากด Shift ค้างไว้ จะอนุญาตให้วางต่อชิ้นถัดไปได้ (หากยังมีของพอ)
