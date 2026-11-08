@@ -63,40 +63,24 @@ namespace TheLastEmpire
         private void Awake()
         {
             _flickerSeed = Random.Range(0f, 1000f);
-            EnsureFireLightCreated();
+            if (fireLight == null)
+            {
+                fireLight = GetComponentInChildren<Light>();
+            }
         }
 
         private void Start()
-        {
-            EnsureFireLightCreated();
-
-            // สร้าง Trigger สำหรับเช็คระยะออร่ากองไฟ (Aura Trigger) แยกต่างหาก ไม่ทับ Physical Collider
-            SphereCollider auraTrigger = gameObject.AddComponent<SphereCollider>();
-            auraTrigger.isTrigger = true;
-            auraTrigger.radius = auraRadius;
-            auraTrigger.center = Vector3.zero;
-        }
-
-        private void EnsureFireLightCreated()
         {
             if (fireLight == null)
             {
                 fireLight = GetComponentInChildren<Light>();
             }
 
-            if (fireLight == null)
-            {
-                GameObject lightObj = new GameObject("Campfire_PointLight");
-                lightObj.transform.SetParent(transform, false);
-                lightObj.transform.localPosition = new Vector3(0f, 0.6f, 0f);
-
-                fireLight = lightObj.AddComponent<Light>();
-                fireLight.type = LightType.Point;
-                fireLight.color = lightColor;
-                fireLight.range = lightRange;
-                fireLight.intensity = (minIntensity + maxIntensity) * 0.5f;
-                fireLight.shadows = LightShadows.Soft;
-            }
+            // สร้าง Trigger สำหรับเช็คระยะออร่ากองไฟ (Aura Trigger) แยกต่างหาก ไม่ทับ Physical Collider
+            SphereCollider auraTrigger = gameObject.AddComponent<SphereCollider>();
+            auraTrigger.isTrigger = true;
+            auraTrigger.radius = auraRadius;
+            auraTrigger.center = new Vector3(0f, 0f, 0.4f);
         }
 
         private void Update()

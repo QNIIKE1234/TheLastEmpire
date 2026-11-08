@@ -24,8 +24,9 @@ namespace TheLastEmpire.Editor
         {
             EnsureDirectories();
 
-            // 1. Setup Campfire
+            // 1. Setup Campfire (Both Building and Environment prefabs)
             GameObject campfirePrefab = SetupCampfirePrefab();
+            SetupEnvironmentCampfirePrefab();
             BuildingData campfireData = SetupBuildingData("BUILD0001_Campfire", "Survivor Campfire", CraftingCategory.Utility, 
                 campfirePrefab, new Vector3(1.5f, 1.2f, 1.5f), 150f, 6.5f, "Placeable campfire with cooking pot. Restores Sanity when sitting nearby.");
 
@@ -58,62 +59,128 @@ namespace TheLastEmpire.Editor
         {
             string targetPath = $"{PrefabFolder}/Building_Campfire.prefab";
             GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(targetPath);
-            if (existing != null) return existing;
-
-            // Base source: Apoc_Prop_Campfire
-            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources_Addressable/Prefabs/Environment/Apoc_Prop_Campfire.prefab");
             GameObject root;
-            if (source != null)
+
+            if (existing != null)
             {
-                root = (GameObject)PrefabUtility.InstantiatePrefab(source);
+                root = (GameObject)PrefabUtility.InstantiatePrefab(existing);
                 PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             }
             else
             {
-                root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                root.transform.localScale = new Vector3(1.2f, 0.3f, 1.2f);
+                GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources_Addressable/Prefabs/Environment/Apoc_Prop_Campfire.prefab");
+                if (source != null)
+                {
+                    root = (GameObject)PrefabUtility.InstantiatePrefab(source);
+                    PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                }
+                else
+                {
+                    root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    root.transform.localScale = new Vector3(1.2f, 0.3f, 1.2f);
+                }
             }
 
             root.name = "Building_Campfire";
 
-            if (root.GetComponent<BuildingObject>() == null)
-            {
-                root.AddComponent<BuildingObject>();
-            }
+            BuildingObject bo = root.GetComponent<BuildingObject>();
+            if (bo == null) bo = root.AddComponent<BuildingObject>();
 
-            if (root.GetComponent<CampfireBuilding>() == null)
-            {
-                root.AddComponent<CampfireBuilding>();
-            }
+            CampfireBuilding cb = root.GetComponent<CampfireBuilding>();
+            if (cb == null) cb = root.AddComponent<CampfireBuilding>();
 
-            // Ensure collider exists
+            // Ensure collider exists with correct local center (Local Z is World UP!)
             Collider col = root.GetComponent<Collider>();
             if (col == null)
             {
                 SphereCollider sc = root.AddComponent<SphereCollider>();
                 sc.radius = 0.8f;
-                sc.center = new Vector3(0, 0.4f, 0);
+                sc.center = new Vector3(0f, 0f, 0.4f);
+            }
+            else if (col is SphereCollider existingSc)
+            {
+                existingSc.center = new Vector3(0f, 0f, 0.4f);
+                existingSc.radius = 0.8f;
+                existingSc.isTrigger = false;
             }
 
-            // Ensure Light exists
-            Light fireLight = root.GetComponentInChildren<Light>();
-            if (fireLight == null)
+            // Ensure Point Light exists directly inside the Prefab hierarchy at the flame center
+            Transform lightTr = root.transform.Find("Point Light");
+            if (lightTr == null) lightTr = root.transform.Find("Campfire_PointLight");
+            GameObject lightObj;
+            if (lightTr == null)
             {
-                GameObject lightObj = new GameObject("Campfire_PointLight");
+                lightObj = new GameObject("Point Light");
                 lightObj.transform.SetParent(root.transform, false);
-                lightObj.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            }
+            else
+            {
+                lightObj = lightTr.gameObject;
+                lightObj.name = "Point Light";
+            }
 
-                fireLight = lightObj.AddComponent<Light>();
-                fireLight.type = LightType.Point;
-                fireLight.color = new Color(1.0f, 0.62f, 0.22f);
-                fireLight.range = 10.0f;
-                fireLight.intensity = 3.0f;
-                fireLight.shadows = LightShadows.Soft;
+            // Local coordinates: root is rotated -90 on X, so Local Z is World UP!
+            lightObj.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+            lightObj.transform.localRotation = Quaternion.identity;
+
+            Light fireLight = lightObj.GetComponent<Light>();
+            if (fireLight == null) fireLight = lightObj.AddComponent<Light>();
+            fireLight.type = LightType.Point;
+            fireLight.color = new Color(1.0f, 0.62f, 0.22f, 1f); // Warm flame orange
+            fireLight.range = 10.0f;
+            fireLight.intensity = 3.0f;
+            fireLight.shadows = LightShadows.Soft;
+
+            // Link fireLight directly on CampfireBuilding component in the prefab
+            SerializedObject so = new SerializedObject(cb);
+            SerializedProperty lightProp = so.FindProperty("fireLight");
+            if (lightProp != null)
+            {
+                lightProp.objectReferenceValue = fireLight;
+                so.ApplyModifiedPropertiesWithoutUndo();
             }
 
             GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(root, targetPath);
             GameObject.DestroyImmediate(root);
             return savedPrefab;
+        }
+
+        private static void SetupEnvironmentCampfirePrefab()
+        {
+            string targetPath = "Assets/Resources_Addressable/Prefabs/Environment/Apoc_Prop_Campfire.prefab";
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(targetPath);
+            if (existing == null) return;
+
+            GameObject root = (GameObject)PrefabUtility.InstantiatePrefab(existing);
+            PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+
+            Transform lightTr = root.transform.Find("Point Light");
+            if (lightTr == null) lightTr = root.transform.Find("Campfire_PointLight");
+            GameObject lightObj;
+            if (lightTr == null)
+            {
+                lightObj = new GameObject("Point Light");
+                lightObj.transform.SetParent(root.transform, false);
+            }
+            else
+            {
+                lightObj = lightTr.gameObject;
+                lightObj.name = "Point Light";
+            }
+
+            lightObj.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+            lightObj.transform.localRotation = Quaternion.identity;
+
+            Light fireLight = lightObj.GetComponent<Light>();
+            if (fireLight == null) fireLight = lightObj.AddComponent<Light>();
+            fireLight.type = LightType.Point;
+            fireLight.color = new Color(1.0f, 0.62f, 0.22f, 1f);
+            fireLight.range = 10.0f;
+            fireLight.intensity = 3.0f;
+            fireLight.shadows = LightShadows.Soft;
+
+            PrefabUtility.SaveAsPrefabAsset(root, targetPath);
+            GameObject.DestroyImmediate(root);
         }
 
         private static GameObject SetupBarricadePrefab()
