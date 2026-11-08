@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace TheLastEmpire
 {
@@ -10,7 +11,17 @@ namespace TheLastEmpire
 
         private Stack<IPopUp> _popUpStack = new Stack<IPopUp>();
 
-        public bool HasActivePopUps => _popUpStack.Count > 0;
+        public bool HasActivePopUps
+        {
+            get
+            {
+                while (_popUpStack.Count > 0 && _popUpStack.Peek() == null)
+                {
+                    _popUpStack.Pop();
+                }
+                return _popUpStack.Count > 0;
+            }
+        }
 
         private void Awake()
         {
@@ -38,16 +49,28 @@ namespace TheLastEmpire
         {
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (_popUpStack.Count > 0)
+                if (HasActivePopUps)
                 {
                     Pop();
+                }
+                else
+                {
+                    // ถ้าไม่มี PopUp ใดๆ เปิดอยู่ และอยู่ใน Gameplay (ไม่ใช่ MainMenu) ให้กด ESC เพื่อเปิดหน้าต่าง Setting
+                    string sceneName = SceneManager.GetActiveScene().name;
+                    if (!sceneName.Equals("MainMenu", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (SettingManager.Instance != null)
+                        {
+                            SettingManager.Instance.ToggleSettingsModal();
+                        }
+                    }
                 }
             }
         }
 
         public void Push(IPopUp popup)
         {
-            if (!_popUpStack.Contains(popup))
+            if (popup != null && !_popUpStack.Contains(popup))
             {
                 _popUpStack.Push(popup);
             }
@@ -55,10 +78,14 @@ namespace TheLastEmpire
 
         public void Pop()
         {
-            if (_popUpStack.Count > 0)
+            while (_popUpStack.Count > 0)
             {
                 IPopUp popup = _popUpStack.Pop();
-                popup.ClosePopUp();
+                if (popup != null)
+                {
+                    popup.ClosePopUp();
+                    break;
+                }
             }
         }
 

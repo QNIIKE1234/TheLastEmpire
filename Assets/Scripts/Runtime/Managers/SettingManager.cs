@@ -15,7 +15,7 @@ namespace TheLastEmpire
     /// 4. Graphic (ระดับกราฟิก, V-Sync, ลิมิตเฟรมเรต, เงา, Anti-Aliasing)
     /// 5. Accessory (เรดาร์แผนที่, หลอดเลือดศัตรู, เอฟเฟกต์เลือด, ขอบจอแดง)
     /// </summary>
-    public class SettingManager : MonoBehaviour
+    public class SettingManager : MonoBehaviour, IPopUp
     {
         public static SettingManager Instance { get; private set; }
 
@@ -118,6 +118,7 @@ namespace TheLastEmpire
         [SerializeField] private Button defaultButton;
         [SerializeField] private Button applyButton;
         [SerializeField] private Button exitButton;
+        [SerializeField] private Button closeButton;
 
         // 1. General Controls
         [Header("1. General Controls")]
@@ -700,6 +701,7 @@ namespace TheLastEmpire
                 if (defaultButton == null && (bName.Contains("default") || textContent.Contains("default"))) defaultButton = btn;
                 else if (applyButton == null && (bName.Contains("apply") || bName.Contains("save") || textContent.Contains("apply") || textContent.Contains("save"))) applyButton = btn;
                 else if (exitButton == null && (bName.Contains("exit") || textContent.Contains("exit"))) exitButton = btn;
+                else if (closeButton == null && (bName.Contains("close") || bName == "cancel" || bName == "back" || textContent.Contains("close") || textContent.Contains("cancel"))) closeButton = btn;
 
                 // Category Tabs
                 if (generalTabBtn == null && (bName == "general" || textContent.Contains("general"))) generalTabBtn = btn;
@@ -727,6 +729,11 @@ namespace TheLastEmpire
             {
                 exitButton.onClick.RemoveListener(OnExitClicked);
                 exitButton.onClick.AddListener(OnExitClicked);
+            }
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(CloseSettingsModal);
+                closeButton.onClick.AddListener(CloseSettingsModal);
             }
 
             // Category Tab Buttons
@@ -997,6 +1004,15 @@ namespace TheLastEmpire
             }
         }
 
+        public bool IsOpen
+        {
+            get
+            {
+                if (modalRoot == null) ResolveModalRoot();
+                return modalRoot != null && modalRoot.activeSelf;
+            }
+        }
+
         public void OpenSettingsModal()
         {
             ResolveModalRoot();
@@ -1005,6 +1021,10 @@ namespace TheLastEmpire
             if (modalRoot != null)
             {
                 modalRoot.SetActive(true);
+            }
+            if (PopUpManager.Instance != null)
+            {
+                PopUpManager.Instance.Push(this);
             }
             RefreshUI();
             SwitchCategoryTab(_currentTab);
@@ -1017,6 +1037,27 @@ namespace TheLastEmpire
             {
                 modalRoot.SetActive(false);
             }
+            if (PopUpManager.Instance != null)
+            {
+                PopUpManager.Instance.Remove(this);
+            }
+        }
+
+        public void ToggleSettingsModal()
+        {
+            if (IsOpen)
+            {
+                CloseSettingsModal();
+            }
+            else
+            {
+                OpenSettingsModal();
+            }
+        }
+
+        public void ClosePopUp()
+        {
+            CloseSettingsModal();
         }
     }
 
