@@ -83,25 +83,25 @@ namespace TheLastEmpire.Editor
 
             // --- หมวดที่ 2: สาธารณูปโภคและแคมป์ (Utility) ---
             new CraftBuildConfig("BUILD0009_SurvivorCampfire", "CRAFT0009", "Survivor Campfire", "09_Survivor_Campfire.prefab",
-                CraftingCategory.Utility, new Vector3(1.5f, 1.2f, 1.5f), 150f, 0f, 6.5f, 20, false, false, "Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z)."),
+                CraftingCategory.Utility, new Vector3(1.5f, 1.2f, 1.5f), 150f, 0f, 6.5f, 0, false, false, "Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z)."),
             
             new CraftBuildConfig("BUILD0010_SurvivorWorkbench", "CRAFT0010", "Survivor Workbench", "10_Survivor_Workbench.prefab",
-                CraftingCategory.Utility, new Vector3(2.0f, 1.2f, 1.2f), 250f, 0f, 6.0f, 26, false, false, "Crafting station equipped with tools for assembling weapons and base structures."),
+                CraftingCategory.Utility, new Vector3(2.0f, 1.2f, 1.2f), 250f, 0f, 6.0f, 0, false, false, "Crafting station equipped with tools for assembling weapons and base structures."),
             
             new CraftBuildConfig("BUILD0011_WoodenStorageCrate", "CRAFT0011", "Wooden Storage Crate", "11_Wooden_Storage_Crate.prefab",
                 CraftingCategory.Utility, new Vector3(1.2f, 1.0f, 1.2f), 300f, 0f, 6.0f, 24, false, false, "Reinforced wooden chest for storing extra weapons, ammo, and crafting materials."),
             
             new CraftBuildConfig("BUILD0012_WaterPurifierStation", "CRAFT0012", "Water Purifier Station", "12_Water_Purifier_Station.prefab",
-                CraftingCategory.Utility, new Vector3(1.5f, 2.0f, 1.5f), 250f, 0f, 6.0f, 22, false, false, "Filtration rig that distills contaminated water into clean drinking water."),
+                CraftingCategory.Utility, new Vector3(1.5f, 2.0f, 1.5f), 250f, 0f, 6.0f, 0, false, false, "Filtration rig that distills contaminated water into clean drinking water."),
             
             new CraftBuildConfig("BUILD0013_SurvivorSleepingBedroll", "CRAFT0013", "Survivor Sleeping Bedroll", "13_Survivor_Sleeping_Bedroll.prefab",
-                CraftingCategory.Utility, new Vector3(1.2f, 0.4f, 2.2f), 150f, 0f, 6.0f, 18, false, false, "Insulated leather and cloth bedroll for resting and setting your respawn point."),
+                CraftingCategory.Utility, new Vector3(1.2f, 0.4f, 2.2f), 150f, 0f, 6.0f, 0, false, false, "Insulated leather and cloth bedroll for resting and setting your respawn point."),
             
             new CraftBuildConfig("BUILD0014_SanityBeaconLantern", "CRAFT0014", "Sanity Beacon Lantern", "14_Sanity_Beacon_Lantern.prefab",
                 CraftingCategory.Utility, new Vector3(1.0f, 2.2f, 1.0f), 200f, 0f, 6.5f, 0, false, false, "Warm high-power camp lamp that wards off darkness and restores Sanity in a wide zone."),
             
             new CraftBuildConfig("BUILD0015_CompactFusionGenerator", "CRAFT0015", "Compact Fusion Generator", "15_Compact_Fusion_Generator.prefab",
-                CraftingCategory.Utility, new Vector3(2.0f, 2.2f, 2.0f), 500f, 0.20f, 6.0f, 30, false, false, "High-output reactor station that powers base defenses and advanced workbenches."),
+                CraftingCategory.Utility, new Vector3(2.0f, 2.2f, 2.0f), 500f, 0.20f, 6.0f, 0, false, false, "High-output reactor station that powers base defenses and advanced workbenches."),
 
             // --- หมวดที่ 3: แนวป้องกันและกับดัก (Defense) ---
             new CraftBuildConfig("BUILD0016_WoodenSpikeBarricade", "CRAFT0016", "Wooden Spike Barricade", "16_Wooden_Spike_Barricade.prefab",
@@ -120,7 +120,7 @@ namespace TheLastEmpire.Editor
                 CraftingCategory.Defense, new Vector3(1.0f, 0.3f, 1.0f), 100f, 0f, 6.0f, 0, false, true, "Proximity mine packed with toxic bile and alien acid blood."),
             
             new CraftBuildConfig("BUILD0021_AutomatedSentryTurret", "CRAFT0021", "Automated Sentry Turret", "21_Automated_Sentry_Turret.prefab",
-                CraftingCategory.Defense, new Vector3(1.5f, 2.0f, 1.5f), 450f, 0.15f, 6.0f, 28, false, false, "AI-controlled perimeter turret that automatically targets hostile enemies."),
+                CraftingCategory.Defense, new Vector3(1.5f, 2.0f, 1.5f), 450f, 0.15f, 6.0f, 0, false, false, "AI-controlled perimeter turret that automatically targets hostile enemies."),
             
             new CraftBuildConfig("BUILD0022_XenocrystalShockTower", "CRAFT0022", "Xenocrystal Shock Tower", "22_Xenocrystal_Shock_Tower.prefab",
                 CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 600f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes.")
@@ -305,14 +305,31 @@ namespace TheLastEmpire.Editor
                     break;
             }
 
+            // Link BuildingData asset if already existing in DatabaseFolder
+            BuildingData bData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{DatabaseFolder}/{cfg.id}.asset");
+            if (bData != null)
+            {
+                SerializedObject so = new SerializedObject(bo);
+                SerializedProperty dataProp = so.FindProperty("data");
+                if (dataProp != null)
+                {
+                    dataProp.objectReferenceValue = bData;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+
+            LootContainer container = root.GetComponent<LootContainer>();
             if (cfg.storageSlots > 0)
             {
-                LootContainer container = root.GetComponent<LootContainer>();
                 if (container == null) container = root.AddComponent<LootContainer>();
                 container.containerName = cfg.name;
                 container.maxStorageSlots = cfg.storageSlots;
                 container.randomizeLoot = false;
                 container.interactionRadius = 2.5f;
+            }
+            else if (container != null)
+            {
+                GameObject.DestroyImmediate(container);
             }
 
             GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
@@ -427,6 +444,26 @@ namespace TheLastEmpire.Editor
             PrefabUtility.UnpackPrefabInstance(root, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 
             ConfigureCampfireOnGameObject(root);
+
+            LootContainer container = root.GetComponent<LootContainer>();
+            if (container != null) GameObject.DestroyImmediate(container);
+
+            BuildingObject bo = root.GetComponent<BuildingObject>();
+            if (bo != null)
+            {
+                BuildingData bData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{DatabaseFolder}/BUILD0009_SurvivorCampfire.asset");
+                if (bData == null) bData = AssetDatabase.LoadAssetAtPath<BuildingData>($"{DatabaseFolder}/BUILD0001_Campfire.asset");
+                if (bData != null)
+                {
+                    SerializedObject so = new SerializedObject(bo);
+                    SerializedProperty dataProp = so.FindProperty("data");
+                    if (dataProp != null)
+                    {
+                        dataProp.objectReferenceValue = bData;
+                        so.ApplyModifiedPropertiesWithoutUndo();
+                    }
+                }
+            }
 
             PrefabUtility.SaveAsPrefabAsset(root, path);
             GameObject.DestroyImmediate(root);

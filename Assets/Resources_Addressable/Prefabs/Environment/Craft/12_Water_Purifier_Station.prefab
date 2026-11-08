@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 6933119242764176225}
   - component: {fileID: 5301524768424297535}
   - component: {fileID: 3520159065708698653}
-  - component: {fileID: 6329992824228228183}
   - component: {fileID: 21560761720870704}
   m_Layer: 0
   m_Name: 12_Water_Purifier_Station
@@ -114,7 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 26d5342dd81b57541b01c0afc63eebe9, type: 2}
   currentHealth: 250
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
@@ -142,28 +141,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 1.5, z: 2}
   m_Center: {x: 0, y: 0, z: 1}
---- !u!114 &6329992824228228183
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2118915970292689051}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
-  containerName: Water Purifier Station
-  maxStorageSlots: 22
-  moneyAmount: 0
-  itemsInside: []
-  randomizeLoot: 0
-  minRandomCash: 0
-  maxRandomCash: 30
-  possibleLoot: []
-  isSearched: 0
-  interactionRadius: 2.5
 --- !u!114 &21560761720870704
 MonoBehaviour:
   m_ObjectHideFlags: 0

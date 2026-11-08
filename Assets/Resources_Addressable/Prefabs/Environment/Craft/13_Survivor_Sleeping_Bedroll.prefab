@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 7059160312091311928}
   - component: {fileID: 149182339849042804}
   - component: {fileID: 2788268045232990501}
-  - component: {fileID: 3759110531878140918}
   - component: {fileID: 19342184351386601}
   m_Layer: 0
   m_Name: 13_Survivor_Sleeping_Bedroll
@@ -109,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: ea819f78b37fe434f8bfccd2f77dfe63, type: 2}
   currentHealth: 250
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
@@ -137,28 +136,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2, y: 2.2, z: 0.4}
   m_Center: {x: 0, y: 0, z: 0.2}
---- !u!114 &3759110531878140918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 185975714278661533}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
-  containerName: Survivor Sleeping Bedroll
-  maxStorageSlots: 18
-  moneyAmount: 0
-  itemsInside: []
-  randomizeLoot: 0
-  minRandomCash: 0
-  maxRandomCash: 30
-  possibleLoot: []
-  isSearched: 0
-  interactionRadius: 2.5
 --- !u!114 &19342184351386601
 MonoBehaviour:
   m_ObjectHideFlags: 0

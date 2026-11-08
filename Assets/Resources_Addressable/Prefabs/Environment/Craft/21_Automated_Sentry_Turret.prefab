@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2081224056978710478}
   - component: {fileID: 7201066834462765868}
   - component: {fileID: 6529684794742002119}
-  - component: {fileID: 327293938880490804}
   - component: {fileID: 7047775411325996}
   m_Layer: 0
   m_Name: 21_Automated_Sentry_Turret
@@ -114,7 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a705e3c23f038bc428caf2ff242ed881, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 52f26a91080b9844db5d7e732c18eaa2, type: 2}
   currentHealth: 250
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
@@ -142,28 +141,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 1.5, z: 2}
   m_Center: {x: 0, y: 0, z: 1}
---- !u!114 &327293938880490804
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5288515284170663127}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
-  containerName: Automated Sentry Turret
-  maxStorageSlots: 28
-  moneyAmount: 0
-  itemsInside: []
-  randomizeLoot: 0
-  minRandomCash: 0
-  maxRandomCash: 30
-  possibleLoot: []
-  isSearched: 0
-  interactionRadius: 2.5
 --- !u!114 &7047775411325996
 MonoBehaviour:
   m_ObjectHideFlags: 0
