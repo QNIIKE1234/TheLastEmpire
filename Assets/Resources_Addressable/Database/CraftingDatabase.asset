@@ -16,9 +16,10 @@ MonoBehaviour:
   - recipeId: CRAFT0001
     recipeName: Wooden Floor Foundation
     category: 0
-    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Wooden Floor Foundation
     resultAmount: 1
+    icon: {fileID: 21300001, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Basic wooden floor foundation for building survivor shelters.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -33,9 +34,10 @@ MonoBehaviour:
   - recipeId: CRAFT0002
     recipeName: Wooden Wall Panel
     category: 0
-    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Wooden Wall Panel
     resultAmount: 1
+    icon: {fileID: 21300002, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Sturdy timber wall panel reinforced with nails and plant fiber.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -50,10 +52,12 @@ MonoBehaviour:
   - recipeId: CRAFT0003
     recipeName: Wooden Window Wall
     category: 0
-    resultItem: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Wooden Window Wall
     resultAmount: 1
-    description: Wooden wall section with a salvaged glass window slot for firing and visibility.
+    icon: {fileID: 21300003, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Wooden wall section with a salvaged glass window slot for firing
+      and visibility.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
       itemName: Wood Log
@@ -70,9 +74,10 @@ MonoBehaviour:
   - recipeId: CRAFT0004
     recipeName: Reinforced Wooden Door
     category: 0
-    resultItem: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Reinforced Wooden Door
     resultAmount: 1
+    icon: {fileID: 21300004, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Lockable survivor door with spring hinges and scrap metal plating.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -90,10 +95,12 @@ MonoBehaviour:
   - recipeId: CRAFT0005
     recipeName: Stone & Brick Wall
     category: 0
-    resultItem: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Stone & Brick Wall
     resultAmount: 1
-    description: Heavy masonry wall built from rough stone, ceramic shards, and resin mortar.
+    icon: {fileID: 21300005, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Heavy masonry wall built from rough stone, ceramic shards, and resin
+      mortar.
     ingredients:
     - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
       itemName: Rough Stone
@@ -110,9 +117,10 @@ MonoBehaviour:
   - recipeId: CRAFT0006
     recipeName: Scrap Metal Wall
     category: 0
-    resultItem: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Scrap Metal Wall
     resultAmount: 1
+    icon: {fileID: 21300006, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Corrugated scrap metal wall braced with steel pipes.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -130,10 +138,12 @@ MonoBehaviour:
   - recipeId: CRAFT0007
     recipeName: Armored Titanium Wall
     category: 0
-    resultItem: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Armored Titanium Wall
     resultAmount: 1
-    description: Military-grade titanium bunker wall capable of withstanding boss attacks.
+    icon: {fileID: 21300007, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Military-grade titanium bunker wall capable of withstanding boss
+      attacks.
     ingredients:
     - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
       itemName: Reinforced Titanium Plate
@@ -153,10 +163,12 @@ MonoBehaviour:
   - recipeId: CRAFT0008
     recipeName: Motorized Blast Door
     category: 0
-    resultItem: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Motorized Blast Door
     resultAmount: 1
-    description: Automated heavy bunker door powered by overdrive servos and logic chips.
+    icon: {fileID: 21300008, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Automated heavy bunker door powered by overdrive servos and logic
+      chips.
     ingredients:
     - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
       itemName: Reinforced Titanium Plate
@@ -176,10 +188,12 @@ MonoBehaviour:
   - recipeId: CRAFT0009
     recipeName: Survivor Campfire
     category: 1
-    resultItem: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Survivor Campfire
     resultAmount: 1
-    description: Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z).
+    icon: {fileID: 21300009, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Placeable campfire with cooking pot. Restores Sanity when sitting
+      nearby (Press Z).
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
       itemName: Wood Log
@@ -199,10 +213,12 @@ MonoBehaviour:
   - recipeId: CRAFT0010
     recipeName: Survivor Workbench
     category: 1
-    resultItem: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Survivor Workbench
     resultAmount: 1
-    description: Crafting station equipped with tools for assembling weapons and base structures.
+    icon: {fileID: 21300010, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Crafting station equipped with tools for assembling weapons and
+      base structures.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
       itemName: Wood Log
@@ -222,10 +238,12 @@ MonoBehaviour:
   - recipeId: CRAFT0011
     recipeName: Wooden Storage Crate
     category: 1
-    resultItem: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Wooden Storage Crate
     resultAmount: 1
-    description: Reinforced wooden chest for storing extra weapons, ammo, and crafting materials.
+    icon: {fileID: 21300011, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Reinforced wooden chest for storing extra weapons, ammo, and crafting
+      materials.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
       itemName: Wood Log
@@ -242,10 +260,12 @@ MonoBehaviour:
   - recipeId: CRAFT0012
     recipeName: Water Purifier Station
     category: 1
-    resultItem: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Water Purifier Station
     resultAmount: 1
-    description: Filtration rig that distills contaminated water into clean drinking water.
+    icon: {fileID: 21300012, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Filtration rig that distills contaminated water into clean drinking
+      water.
     ingredients:
     - item: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
       itemName: Clean Water Filter
@@ -265,10 +285,12 @@ MonoBehaviour:
   - recipeId: CRAFT0013
     recipeName: Survivor Sleeping Bedroll
     category: 1
-    resultItem: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Survivor Sleeping Bedroll
     resultAmount: 1
-    description: Insulated leather and cloth bedroll for resting and setting your respawn point.
+    icon: {fileID: 21300013, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Insulated leather and cloth bedroll for resting and setting your
+      respawn point.
     ingredients:
     - item: {fileID: 11400000, guid: 4493460e88b2580390d7e55afcba9d2a, type: 2}
       itemName: Scrap Leather
@@ -288,10 +310,12 @@ MonoBehaviour:
   - recipeId: CRAFT0014
     recipeName: Sanity Beacon Lantern
     category: 1
-    resultItem: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Sanity Beacon Lantern
     resultAmount: 1
-    description: Warm high-power camp lamp that wards off darkness and restores Sanity in a wide zone.
+    icon: {fileID: 21300014, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Warm high-power camp lamp that wards off darkness and restores Sanity
+      in a wide zone.
     ingredients:
     - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
       itemName: High-Capacity Capacitor
@@ -311,10 +335,12 @@ MonoBehaviour:
   - recipeId: CRAFT0015
     recipeName: Compact Fusion Generator
     category: 1
-    resultItem: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Compact Fusion Generator
     resultAmount: 1
-    description: High-output reactor station that powers base defenses and advanced workbenches.
+    icon: {fileID: 21300015, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: High-output reactor station that powers base defenses and advanced
+      workbenches.
     ingredients:
     - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
       itemName: Miniature Fusion Reactor
@@ -334,10 +360,12 @@ MonoBehaviour:
   - recipeId: CRAFT0016
     recipeName: Wooden Spike Barricade
     category: 2
-    resultItem: {fileID: 11400000, guid: 1dba39513afd085dcab656ce9efd4ad6, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Wooden Spike Barricade
     resultAmount: 1
-    description: Defensive timber barricade lined with sharpened bone claws to impale zombies.
+    icon: {fileID: 21300016, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Defensive timber barricade lined with sharpened bone claws to impale
+      zombies.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
       itemName: Wood Log
@@ -354,9 +382,10 @@ MonoBehaviour:
   - recipeId: CRAFT0017
     recipeName: Razor Wire Barricade
     category: 2
-    resultItem: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Razor Wire Barricade
     resultAmount: 1
+    icon: {fileID: 21300017, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Entangling copper and steel wire barrier studded with infected fangs.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
@@ -374,10 +403,12 @@ MonoBehaviour:
   - recipeId: CRAFT0018
     recipeName: Chitin Carapace Wall
     category: 2
-    resultItem: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Chitin Carapace Wall
     resultAmount: 1
-    description: Acid-resistant defensive wall plated with alien chitin and hardened spine segments.
+    icon: {fileID: 21300018, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Acid-resistant defensive wall plated with alien chitin and hardened
+      spine segments.
     ingredients:
     - item: {fileID: 11400000, guid: bc5c2bcbeba1464da87e8562a362b745, type: 2}
       itemName: Chitin Carapace Shard
@@ -397,10 +428,12 @@ MonoBehaviour:
   - recipeId: CRAFT0019
     recipeName: Snap-Jaw Bear Trap
     category: 2
-    resultItem: {fileID: 11400000, guid: f9067e3b0afa5c9aaf5d5b3a514aa997, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Snap-Jaw Bear Trap
     resultAmount: 1
-    description: Heavy spring-loaded floor trap that immobilizes and bleeds approaching enemies.
+    icon: {fileID: 21300019, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: Heavy spring-loaded floor trap that immobilizes and bleeds approaching
+      enemies.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
       itemName: Scrap Metal Plate
@@ -417,9 +450,10 @@ MonoBehaviour:
   - recipeId: CRAFT0020
     recipeName: Corrosive Bile Landmine
     category: 2
-    resultItem: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Corrosive Bile Landmine
     resultAmount: 1
+    icon: {fileID: 21300020, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
     description: Proximity mine packed with toxic bile and alien acid blood.
     ingredients:
     - item: {fileID: 11400000, guid: 3542f5143f7311d463f0da9e72f95330, type: 2}
@@ -440,10 +474,12 @@ MonoBehaviour:
   - recipeId: CRAFT0021
     recipeName: Automated Sentry Turret
     category: 2
-    resultItem: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Automated Sentry Turret
     resultAmount: 1
-    description: AI-controlled perimeter turret that automatically targets hostile enemies.
+    icon: {fileID: 21300021, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: AI-controlled perimeter turret that automatically targets hostile
+      enemies.
     ingredients:
     - item: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
       itemName: Advanced Neural Processor
@@ -463,10 +499,12 @@ MonoBehaviour:
   - recipeId: CRAFT0022
     recipeName: Xenocrystal Shock Tower
     category: 2
-    resultItem: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+    resultItem: {fileID: 0}
     resultItemName: Xenocrystal Shock Tower
     resultAmount: 1
-    description: High-voltage alien defense pylon that chains bio-plasma lightning across hordes.
+    icon: {fileID: 21300022, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
+    description: High-voltage alien defense pylon that chains bio-plasma lightning
+      across hordes.
     ingredients:
     - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
       itemName: Bio-Plasma Sac
@@ -489,6 +527,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 95fd6585d752e0e48a8b8282112c8499, type: 2}
     resultItemName: Knife
     resultAmount: 1
+    icon: {fileID: 0}
     description: Fast survival combat knife crafted from sharpened scrap metal.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -506,6 +545,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 4fbfbb77ec0c8434eb190b26b727c30f, type: 2}
     resultItemName: Baseball Bat
     resultAmount: 1
+    icon: {fileID: 0}
     description: Heavy hardwood bat reinforced with nails and leather grip.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -526,6 +566,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 937a7e48effd46a69cfceabc42e91264, type: 2}
     resultItemName: Survival Spear
     resultAmount: 1
+    icon: {fileID: 0}
     description: Long-reach polearm tipped with a combat knife and bone claws.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -549,6 +590,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 2f87ac0e0ad096546b98c7063f7f4e13, type: 2}
     resultItemName: Machete
     resultAmount: 1
+    icon: {fileID: 0}
     description: Heavy cleaving blade serrated with decayed infected fangs.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -572,6 +614,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 2b8b6fb77fb248bb9e70317e50ea6777, type: 2}
     resultItemName: Fire Axe
     resultAmount: 1
+    icon: {fileID: 0}
     description: High-impact rescue axe reinforced with hardened spine segments.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -595,7 +638,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: d6ab827423dd4d4eac4dbe6fbc494216, type: 2}
     resultItemName: Sledgehammer
     resultAmount: 1
-    description: Crushing two-handed hammer built from steel pipe and hydraulic piston bolts.
+    icon: {fileID: 0}
+    description: Crushing two-handed hammer built from steel pipe and hydraulic piston
+      bolts.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
       itemName: Scrap Steel Pipe
@@ -618,7 +663,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: fbc7773ce3004d9384a2a397832820b7, type: 2}
     resultItemName: Katana
     resultAmount: 1
-    description: Razor-sharp titanium blade forged with alien chitin and prismatic stingers.
+    icon: {fileID: 0}
+    description: Razor-sharp titanium blade forged with alien chitin and prismatic
+      stingers.
     ingredients:
     - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
       itemName: Reinforced Titanium Plate
@@ -641,6 +688,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: ef37c829a98648b68123793cf4176320, type: 2}
     resultItemName: Stun Baton
     resultAmount: 1
+    icon: {fileID: 0}
     description: Electrified riot baton powered by high-capacity capacitors.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
@@ -664,6 +712,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 5b121d0431f244aaa3690940750aaad4, type: 2}
     resultItemName: Chainsaw
     resultAmount: 1
+    icon: {fileID: 0}
     description: Motorized ripper powered by an overdrive servo and refined fuel.
     ingredients:
     - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
@@ -687,6 +736,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 367b81fe3d09402e9ff9715e12f7896a, type: 2}
     resultItemName: Crossbow
     resultAmount: 1
+    icon: {fileID: 0}
     description: Silent precision launcher strung with high-tension xeno nerve tendrils.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -710,7 +760,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 4392ef4321caffa4baeea2bb0ddb9dd0, type: 2}
     resultItemName: Pistol
     resultAmount: 1
-    description: Reliable semi-automatic 9mm sidearm assembled from salvaged gun parts.
+    icon: {fileID: 0}
+    description: Reliable semi-automatic 9mm sidearm assembled from salvaged gun
+      parts.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
       itemName: Scrap Steel Pipe
@@ -733,6 +785,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 0156f235935a4cbe810c0209e37a4e75, type: 2}
     resultItemName: Revolver
     resultAmount: 1
+    icon: {fileID: 0}
     description: High-caliber six-shooter with heavy stopping power.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
@@ -756,6 +809,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 994b8a468fb719744bf6cb1e0d620037, type: 2}
     resultItemName: Shotgun
     resultAmount: 1
+    icon: {fileID: 0}
     description: Close-quarters pump shotgun that fires wide buckshot spreads.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
@@ -779,6 +833,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 27aeb4710cfe4359ad2edcaeeaf74dab, type: 2}
     resultItemName: SMG
     resultAmount: 1
+    icon: {fileID: 0}
     description: Rapid-fire submachine gun with stabilized recoil.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
@@ -802,7 +857,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 29748bd8c38e2734e9a328da32e89353, type: 2}
     resultItemName: Rifle
     resultAmount: 1
-    description: Automatic assault rifle built with reinforced titanium receiver plates.
+    icon: {fileID: 0}
+    description: Automatic assault rifle built with reinforced titanium receiver
+      plates.
     ingredients:
     - item: {fileID: 11400000, guid: 20f43ee2c1955a38b66148ea226b10c1, type: 2}
       itemName: Scrap Steel Pipe
@@ -825,6 +882,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 56b668d5a62c4cdf91e1f82e00e206f6, type: 2}
     resultItemName: Sniper Rifle
     resultAmount: 1
+    icon: {fileID: 0}
     description: Long-range precision rifle with optical glass scope and neural stabilizer.
     ingredients:
     - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
@@ -848,6 +906,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: e448b9ce40024846b2fce004f8d6ab08, type: 2}
     resultItemName: Flamethrower
     resultAmount: 1
+    icon: {fileID: 0}
     description: Heavy incendiary projector fueled by refined gasoline and bio-plasma.
     ingredients:
     - item: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
@@ -871,6 +930,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 932483d85c764320b9bded3bae727763, type: 2}
     resultItemName: Rocket Launcher
     resultAmount: 1
+    icon: {fileID: 0}
     description: Devastating anti-boss ordnance launcher with gravitational guidance.
     ingredients:
     - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
@@ -894,6 +954,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 8cd6bf53ca51ce645bdb64adeac82f78, type: 2}
     resultItemName: Grenade
     resultAmount: 2
+    icon: {fileID: 0}
     description: Fragmentation explosive packed with gunpowder and ceramic shrapnel.
     ingredients:
     - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
@@ -917,6 +978,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 6e078f72ffab7514bb76c21f650d3e3b, type: 2}
     resultItemName: Pistol Ammo
     resultAmount: 15
+    icon: {fileID: 0}
     description: Crafts a 15-round batch of standard pistol ammunition.
     ingredients:
     - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
@@ -934,6 +996,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 21a4f829c774b544891f32b6bb9e1751, type: 2}
     resultItemName: Shotgun Ammo
     resultAmount: 10
+    icon: {fileID: 0}
     description: Crafts 10 shells of 12-gauge buckshot ammunition.
     ingredients:
     - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
@@ -954,6 +1017,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 1258372f3b20a084a89ef7499d832894, type: 2}
     resultItemName: Rifle Ammo
     resultAmount: 20
+    icon: {fileID: 0}
     description: Crafts 20 rounds of high-velocity rifle ammunition.
     ingredients:
     - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
@@ -974,6 +1038,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 09c29e7b085f4374a38c65f3133b0e88, type: 2}
     resultItemName: Heavy Ammo
     resultAmount: 8
+    icon: {fileID: 0}
     description: Crafts 8 heavy rounds/fuel charges for Flamethrower and Rocket Launcher.
     ingredients:
     - item: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
@@ -994,6 +1059,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: d8bcac8c8b914302b655e905f951abbe, type: 2}
     resultItemName: Bolts
     resultAmount: 12
+    icon: {fileID: 0}
     description: Crafts 12 balanced crossbow bolts tipped with ceramic and bone.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -1014,6 +1080,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 0474284a0f7c41759bf6f9bbfffcd5e2, type: 2}
     resultItemName: Bandage
     resultAmount: 2
+    icon: {fileID: 0}
     description: Sterilized cloth dressing for stopping bleeding and restoring HP.
     ingredients:
     - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
@@ -1031,7 +1098,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 99259f2e874f60343bc28d427eb691cb, type: 2}
     resultItemName: Potion
     resultAmount: 1
-    description: Concentrated restorative tonic distilled from herbs and purified ichor.
+    icon: {fileID: 0}
+    description: Concentrated restorative tonic distilled from herbs and purified
+      ichor.
     ingredients:
     - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
       itemName: Clean Glass Bottle
@@ -1051,6 +1120,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 517bae9a5ddb4522ad3256572a318f6a, type: 2}
     resultItemName: First Aid Kit
     resultAmount: 1
+    icon: {fileID: 0}
     description: Complete field medical kit that restores a large amount of health.
     ingredients:
     - item: {fileID: 11400000, guid: 0474284a0f7c41759bf6f9bbfffcd5e2, type: 2}
@@ -1074,7 +1144,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: c33302859d1f46628b64be3284327d23, type: 2}
     resultItemName: Adrenaline Shot
     resultAmount: 1
-    description: Emergency combat injector synthesized from virus strains and xeno venom.
+    icon: {fileID: 0}
+    description: Emergency combat injector synthesized from virus strains and xeno
+      venom.
     ingredients:
     - item: {fileID: 11400000, guid: 893a1c00ae710b0552979c5ae4dcd541, type: 2}
       itemName: Concentrated Virus Strain
@@ -1094,7 +1166,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
     resultItemName: Bread
     resultAmount: 2
-    description: Baked survivor flatbread made from ground plant fiber and filtered water.
+    icon: {fileID: 0}
+    description: Baked survivor flatbread made from ground plant fiber and filtered
+      water.
     ingredients:
     - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
       itemName: Plant Fiber
@@ -1111,6 +1185,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 2f5aa5e0ab314f89be7b2d4a7a672a82, type: 2}
     resultItemName: Cooked Meat
     resultAmount: 1
+    icon: {fileID: 0}
     description: Flame-roasted meat purified with charcoal heat and clean water.
     ingredients:
     - item: {fileID: 11400000, guid: c01d51d8583a450fc6c85fbd5c27bc15, type: 2}
@@ -1131,6 +1206,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 222f30f19aa445ab99ba63e95e7764e0, type: 2}
     resultItemName: Canned Food
     resultAmount: 1
+    icon: {fileID: 0}
     description: Preserved ration tin packed with cooked meat and herbs.
     ingredients:
     - item: {fileID: 11400000, guid: 2f5aa5e0ab314f89be7b2d4a7a672a82, type: 2}
@@ -1151,6 +1227,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: cc190728f5674b67a51afeb3a29c53f7, type: 2}
     resultItemName: Energy Bar
     resultAmount: 2
+    icon: {fileID: 0}
     description: High-calorie survival bar that restores both health and Sanity.
     ingredients:
     - item: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
@@ -1171,6 +1248,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 5bec8bfe0b3551b6b5d650db983c2f1d, type: 2}
     resultItemName: Hot Black Coffee
     resultAmount: 1
+    icon: {fileID: 0}
     description: Freshly brewed hot coffee that clears the mind and restores Sanity.
     ingredients:
     - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
@@ -1191,7 +1269,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 26b0a1a06da45c91b81bde61afc9e69c, type: 2}
     resultItemName: Herbal Calming Tea
     resultAmount: 1
-    description: Warm aromatic herbal infusion that relieves stress and restores Sanity.
+    icon: {fileID: 0}
+    description: Warm aromatic herbal infusion that relieves stress and restores
+      Sanity.
     ingredients:
     - item: {fileID: 11400000, guid: 8891acf415ce52b3b29399f981bc15c1, type: 2}
       itemName: Clean Glass Bottle
@@ -1211,6 +1291,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 35c7890337a75ee39e36355994ee829a, type: 2}
     resultItemName: Pack of Cigarettes
     resultAmount: 1
+    icon: {fileID: 0}
     description: Hand-rolled dried leaf cigarettes for calming nerves in the apocalypse.
     ingredients:
     - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
@@ -1231,6 +1312,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: c2948ab0e41b5484a7045e53e51fae7e, type: 2}
     resultItemName: Anti-Panic Sedatives
     resultAmount: 1
+    icon: {fileID: 0}
     description: Potent pharmaceutical sedatives that rapidly restore depleted Sanity.
     ingredients:
     - item: {fileID: 11400000, guid: 55edfcb65aa0261e977537bb4910a768, type: 2}
@@ -1251,6 +1333,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: a4fb60ca5c755b02a0e05fa165ed885d, type: 2}
     resultItemName: Sturdy Rope
     resultAmount: 2
+    icon: {fileID: 0}
     description: Braided survival rope woven from plant fibers and cloth strips.
     ingredients:
     - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
@@ -1265,6 +1348,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
     resultItemName: Charcoal Lump
     resultAmount: 3
+    icon: {fileID: 0}
     description: Kiln-charred wood logs used for fuel, filters, and gunpowder.
     ingredients:
     - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
@@ -1279,6 +1363,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: eecc2e950f3e5ec7b73199e6977bd088, type: 2}
     resultItemName: Gunpowder Mix
     resultAmount: 2
+    icon: {fileID: 0}
     description: Explosive black powder ground from sulfur, charcoal, and ceramic.
     ingredients:
     - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
@@ -1296,6 +1381,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 508f17e153005d519e1fac245a39573c, type: 2}
     resultItemName: Box of Nails
     resultAmount: 2
+    icon: {fileID: 0}
     description: Forged construction nails cut from scrap metal plates.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -1310,6 +1396,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: a771c06e791459eab9154206973d2307, type: 2}
     resultItemName: Duct Tape
     resultAmount: 2
+    icon: {fileID: 0}
     description: Heavy-duty adhesive tape made from rubber strips, cloth, and glue.
     ingredients:
     - item: {fileID: 11400000, guid: c1d743b267f4547cb8c7bcbea89692e5, type: 2}
@@ -1327,6 +1414,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 8b56c3e6cdb951a386efccae026e849c, type: 2}
     resultItemName: Industrial Glue
     resultAmount: 2
+    icon: {fileID: 0}
     description: Strong chemical bonding agent refined from hardened resin and bile.
     ingredients:
     - item: {fileID: 11400000, guid: ce8f8ce82e6b56c18d595f8f2a7d6ae7, type: 2}
@@ -1344,6 +1432,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 183589b3f3b452b58438369321aab325, type: 2}
     resultItemName: Refined Fuel Can
     resultAmount: 1
+    icon: {fileID: 0}
     description: Volatile liquid fuel distilled from synthetic machine oil and bio-plasma.
     ingredients:
     - item: {fileID: 11400000, guid: 83f84ddebe1e65d70ae0133eaabd95c8, type: 2}
@@ -1364,6 +1453,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 5d25b1c873b855ef99d2f2eb600b01b9, type: 2}
     resultItemName: Clean Water Filter
     resultAmount: 1
+    icon: {fileID: 0}
     description: Activated charcoal water filter for purifying contaminated liquids.
     ingredients:
     - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
@@ -1384,6 +1474,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
     resultItemName: Copper Wire Spool
     resultAmount: 2
+    icon: {fileID: 0}
     description: Insulated copper wiring salvaged and wound onto a clean spool.
     ingredients:
     - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
@@ -1401,6 +1492,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 051f9cb7a337585080a03919fb0a8e71, type: 2}
     resultItemName: Nostalgic Cassette Tape
     resultAmount: 1
+    icon: {fileID: 0}
     description: Restored music cassette imbued with soothing psionic resonance.
     ingredients:
     - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
@@ -1421,6 +1513,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
     resultItemName: Reinforced Titanium Plate
     resultAmount: 1
+    icon: {fileID: 0}
     description: Composite alloy armor plate fused with alien chitin carapace.
     ingredients:
     - item: {fileID: 11400000, guid: d93f24f877830ff7830e92d270d35ddc, type: 2}
@@ -1441,6 +1534,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
     resultItemName: High-Capacity Capacitor
     resultAmount: 1
+    icon: {fileID: 0}
     description: Bio-electric storage cell filled with phosphorescent acid electrolyte.
     ingredients:
     - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
@@ -1461,6 +1555,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 1dad086b212f6cd25dcc7c0ad2cbb001, type: 2}
     resultItemName: Advanced Neural Processor
     resultAmount: 1
+    icon: {fileID: 0}
     description: Hybrid cybernetic CPU bridging logic chips with xeno nerve tendrils.
     ingredients:
     - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
@@ -1481,6 +1576,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
     resultItemName: Miniature Fusion Reactor
     resultAmount: 1
+    icon: {fileID: 0}
     description: Compact magnetic-confinement core energized by an Overlord Xenocrystal.
     ingredients:
     - item: {fileID: 11400000, guid: 9029310fddffd4b3de4aa30866b0673a, type: 2}
@@ -1504,7 +1600,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 0ef27a5537be62543bd247f172f26a7e, type: 2}
     resultItemName: ETC
     resultAmount: 1
-    description: Masterwork boss trophy synthesis combining Zombie, Robot, and Alien apex cores.
+    icon: {fileID: 0}
+    description: Masterwork boss trophy synthesis combining Zombie, Robot, and Alien
+      apex cores.
     ingredients:
     - item: {fileID: 11400000, guid: 0cd5bacb7fb84334fe52369c28f5709a, type: 2}
       itemName: Titan Skull Crest
@@ -1527,6 +1625,7 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: 561922f3be8b4874d865a5c039258817, type: 2}
     resultItemName: Ammo
     resultAmount: 10
+    icon: {fileID: 0}
     description: Field-convertible universal ammunition pack usable with any firearm.
     ingredients:
     - item: {fileID: 11400000, guid: 6e078f72ffab7514bb76c21f650d3e3b, type: 2}
@@ -1547,7 +1646,9 @@ MonoBehaviour:
     resultItem: {fileID: 11400000, guid: d154e9c79a08ee640a2c7a2e64bd9777, type: 2}
     resultItemName: Cash
     resultAmount: 100
-    description: Valuable boss specimen and precious metal trade bundle redeemable for 100 Cash.
+    icon: {fileID: 0}
+    description: Valuable boss specimen and precious metal trade bundle redeemable
+      for 100 Cash.
     ingredients:
     - item: {fileID: 11400000, guid: 0cd5bacb7fb84334fe52369c28f5709a, type: 2}
       itemName: Titan Skull Crest

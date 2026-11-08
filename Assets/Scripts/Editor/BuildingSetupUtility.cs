@@ -132,6 +132,25 @@ namespace TheLastEmpire.Editor
         {
             EnsureDirectories();
 
+            const string iconSheetPath = "Assets/Resources_Addressable/Image/UI/BUILDING1TO22.png";
+            
+            // ตรวจสอบและตัดรูป BUILDING1TO22.png
+            SliceAndLinkBuildingSprites.ProcessBackgroundTransparency();
+            SliceAndLinkBuildingSprites.SliceSpriteSheet();
+
+            UnityEngine.Object[] spriteAssets = AssetDatabase.LoadAllAssetsAtPath(iconSheetPath);
+            Dictionary<string, Sprite> spriteMap = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+            if (spriteAssets != null)
+            {
+                foreach (var obj in spriteAssets)
+                {
+                    if (obj is Sprite s)
+                    {
+                        spriteMap[s.name] = s;
+                    }
+                }
+            }
+
             CraftingDatabase db = AssetDatabase.LoadAssetAtPath<CraftingDatabase>("Assets/Resources_Addressable/Database/CraftingDatabase.asset");
 
             List<BuildingData> createdBuildings = new List<BuildingData>();
@@ -142,7 +161,7 @@ namespace TheLastEmpire.Editor
                 GameObject configuredPrefab = SetupCraftBuildingPrefab(cfg);
                 if (configuredPrefab != null)
                 {
-                    BuildingData bData = SetupBuildingData(cfg, configuredPrefab, db);
+                    BuildingData bData = SetupBuildingData(cfg, configuredPrefab, db, spriteMap);
                     if (bData != null)
                     {
                         createdBuildings.Add(bData);
@@ -158,10 +177,15 @@ namespace TheLastEmpire.Editor
             // Sync legacy assets so existing scenes/references maintain compatibility
             SyncLegacyBuildingData(createdBuildings);
 
+            if (db != null)
+            {
+                EditorUtility.SetDirty(db);
+            }
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"[BuildingSetupUtility] Successfully configured and referenced ALL {createdBuildings.Count} Craft Building Prefabs and BuildingData assets!");
+            Debug.Log($"[BuildingSetupUtility] Successfully configured and referenced ALL {createdBuildings.Count} Craft Building Prefabs and BuildingData assets with icons!");
         }
 
         private static void EnsureDirectories()
@@ -329,7 +353,7 @@ namespace TheLastEmpire.Editor
             GameObject.DestroyImmediate(root);
         }
 
-        private static BuildingData SetupBuildingData(CraftBuildConfig cfg, GameObject prefab, CraftingDatabase db)
+        private static BuildingData SetupBuildingData(CraftBuildConfig cfg, GameObject prefab, CraftingDatabase db, Dictionary<string, Sprite> spriteMap)
         {
             string assetPath = $"{DatabaseFolder}/{cfg.id}.asset";
             BuildingData data = AssetDatabase.LoadAssetAtPath<BuildingData>(assetPath);
@@ -350,6 +374,11 @@ namespace TheLastEmpire.Editor
             data.storageSlots = cfg.storageSlots;
             data.description = cfg.desc;
 
+            if (spriteMap != null && spriteMap.TryGetValue(cfg.id, out Sprite iconSprite))
+            {
+                data.icon = iconSprite;
+            }
+
             // Sync from recipe
             if (db != null && db.recipes != null)
             {
@@ -363,6 +392,13 @@ namespace TheLastEmpire.Editor
                     data.prefab = prefab;
                     data.footprintSize = cfg.footprint;
                     data.storageSlots = cfg.storageSlots;
+
+                    if (spriteMap != null && spriteMap.TryGetValue(cfg.id, out Sprite spr))
+                    {
+                        data.icon = spr;
+                        recipe.icon = spr;
+                        recipe.resultItem = null; // Clear out accidental Wood Log pointer
+                    }
                 }
             }
 
@@ -383,6 +419,7 @@ namespace TheLastEmpire.Editor
                 {
                     legacyCamp.prefab = campfire.prefab;
                     legacyCamp.storageSlots = campfire.storageSlots;
+                    legacyCamp.icon = campfire.icon;
                     EditorUtility.SetDirty(legacyCamp);
                 }
             }
@@ -393,6 +430,7 @@ namespace TheLastEmpire.Editor
                 if (legacyBarr != null)
                 {
                     legacyBarr.prefab = barricade.prefab;
+                    legacyBarr.icon = barricade.icon;
                     EditorUtility.SetDirty(legacyBarr);
                 }
             }
@@ -404,6 +442,7 @@ namespace TheLastEmpire.Editor
                 {
                     legacyCrate.prefab = crate.prefab;
                     legacyCrate.storageSlots = crate.storageSlots;
+                    legacyCrate.icon = crate.icon;
                     EditorUtility.SetDirty(legacyCrate);
                 }
             }

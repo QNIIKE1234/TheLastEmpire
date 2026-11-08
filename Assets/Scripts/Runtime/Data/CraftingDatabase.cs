@@ -77,6 +77,9 @@ namespace TheLastEmpire
         [Min(1)]
         public int resultAmount = 1;
 
+        [Tooltip("รูปไอคอนของผลลัพธ์ (Optional หากต้องการเจาะจงรูปไอคอน เช่น สิ่งปลูกสร้าง หรือไอคอนเฉพาะ)")]
+        public Sprite icon;
+
         [TextArea(1, 3)]
         [Tooltip("คำอธิบายสูตรคราฟต์")]
         public string description;
@@ -90,10 +93,50 @@ namespace TheLastEmpire
                 ? resultItemName
                 : (resultItem != null && !string.IsNullOrEmpty(resultItem.itemName) ? resultItem.itemName : recipeName);
 
-        public Sprite ResolvedResultIcon =>
-            resultItem != null
-                ? resultItem.icon
-                : (ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(ResolvedResultName)?.icon : null);
+        public Sprite ResolvedResultIcon
+        {
+            get
+            {
+                if (icon != null)
+                {
+                    return icon;
+                }
+
+                if (category == CraftingCategory.Building || category == CraftingCategory.Utility || category == CraftingCategory.Defense)
+                {
+                    if (BuildingManager.Instance != null)
+                    {
+                        BuildingData bData = BuildingManager.Instance.GetBuildingDataForRecipe(this);
+                        if (bData != null && bData.icon != null)
+                        {
+                            return bData.icon;
+                        }
+                    }
+                }
+
+                if (resultItem != null && resultItem.icon != null)
+                {
+                    return resultItem.icon;
+                }
+
+                if (ItemDatabase.Instance != null)
+                {
+                    Sprite itemIcon = ItemDatabase.Instance.GetItemByName(ResolvedResultName)?.icon;
+                    if (itemIcon != null) return itemIcon;
+                }
+
+                if (BuildingManager.Instance != null)
+                {
+                    BuildingData bData = BuildingManager.Instance.GetBuildingDataForRecipe(this);
+                    if (bData != null && bData.icon != null)
+                    {
+                        return bData.icon;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         public void Validate()
         {
