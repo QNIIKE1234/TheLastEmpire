@@ -49,6 +49,13 @@ namespace TheLastEmpire
         {
             if (Instance == null)
             {
+                BuildingManager existing = Object.FindFirstObjectByType<BuildingManager>();
+                if (existing != null)
+                {
+                    Instance = existing;
+                    return;
+                }
+
                 GameObject obj = new GameObject("BuildingManager");
                 Instance = obj.AddComponent<BuildingManager>();
                 obj.AddComponent<BuildingPlacer>();

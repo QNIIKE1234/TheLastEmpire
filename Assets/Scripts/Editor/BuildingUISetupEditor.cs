@@ -23,6 +23,7 @@ namespace TheLastEmpire.Editor
     {
         public static readonly string[] HudNames = new string[]
         {
+            "Build_HUD",
             "Storage_HUD",
             "Workbench_HUD",
             "Campfire_HUD",
@@ -37,11 +38,20 @@ namespace TheLastEmpire.Editor
         public static void SetupBuildingHUDs()
         {
             SetupHUDsInActiveScene();
-            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
-            if (canvasGo != null)
+            GameObject managerGo = GameObject.Find("BuildingManager");
+            if (managerGo != null)
             {
-                Selection.activeGameObject = canvasGo;
-                EditorGUIUtility.PingObject(canvasGo);
+                Selection.activeGameObject = managerGo;
+                EditorGUIUtility.PingObject(managerGo);
+            }
+            else
+            {
+                GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
+                if (canvasGo != null)
+                {
+                    Selection.activeGameObject = canvasGo;
+                    EditorGUIUtility.PingObject(canvasGo);
+                }
             }
         }
 
@@ -109,6 +119,50 @@ namespace TheLastEmpire.Editor
             else
             {
                 Debug.Log("[BuildingUISetup] All Building UI HUDs already exist under BuildingUI_Canvas.");
+            }
+
+            // 2. ตรวจสอบให้แน่ใจว่ามี GameObject ชื่อ BuildingManager อยู่ในฉากสำหรับดูและปรับแต่งใน Inspector
+            GameObject managerGo = GameObject.Find("BuildingManager");
+            if (managerGo == null)
+            {
+                managerGo = new GameObject("BuildingManager");
+                managerGo.AddComponent<BuildingManager>();
+                managerGo.AddComponent<BuildingPlacer>();
+                EditorSceneManager.MarkSceneDirty(currentScene);
+                EditorSceneManager.SaveScene(currentScene);
+                Debug.Log("[BuildingUISetup] Created 'BuildingManager' in scene with BuildingManager and BuildingPlacer components.");
+            }
+            else
+            {
+                bool compAdded = false;
+                if (managerGo.GetComponent<BuildingManager>() == null)
+                {
+                    managerGo.AddComponent<BuildingManager>();
+                    compAdded = true;
+                }
+                if (managerGo.GetComponent<BuildingPlacer>() == null)
+                {
+                    managerGo.AddComponent<BuildingPlacer>();
+                    compAdded = true;
+                }
+                if (compAdded)
+                {
+                    EditorSceneManager.MarkSceneDirty(currentScene);
+                    EditorSceneManager.SaveScene(currentScene);
+                }
+            }
+
+            BuildingPlacer placer = managerGo.GetComponent<BuildingPlacer>();
+            if (placer != null && placer.BuildPromptHUD == null)
+            {
+                Transform buildHud = canvasGo.transform.Find("Build_HUD");
+                if (buildHud != null)
+                {
+                    placer.BuildPromptHUD = buildHud.gameObject;
+                    EditorUtility.SetDirty(placer);
+                    EditorSceneManager.MarkSceneDirty(currentScene);
+                    EditorSceneManager.SaveScene(currentScene);
+                }
             }
         }
     }

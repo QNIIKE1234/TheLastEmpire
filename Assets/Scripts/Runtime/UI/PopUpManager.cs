@@ -49,6 +49,12 @@ namespace TheLastEmpire
         {
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
+                // ถ้ากำลังอยู่ในโหมดเล็งสร้างสิ่งปลูกสร้าง ให้ BuildingPlacer ทำหน้าที่กดยกเลิกการสร้าง ไม่เปิดหน้าต่าง Setting หรือ Pop
+                if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode)
+                {
+                    return;
+                }
+
                 if (HasActivePopUps)
                 {
                     Pop();

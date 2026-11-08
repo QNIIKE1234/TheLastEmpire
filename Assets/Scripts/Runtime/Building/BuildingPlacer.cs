@@ -25,12 +25,21 @@ namespace TheLastEmpire
         [Tooltip("Layer ของสิ่งกีดขวางที่ไม่ให้วางทับ เช่น Default, Enemy, Obstacle")]
         [SerializeField] private LayerMask obstacleLayerMask = ~0;
 
+        [Header("Build Mode UI & Hints")]
+        [Tooltip("UI HUD หรือ GameObject ที่จะเปิดแสดงตอนกำลังเล็งวางสิ่งปลูกสร้าง (สำหรับใส่ Hint วิธีสร้าง เช่น [R] หมุน, [LMB] วาง, [ESC] ยกเลิก)")]
+        [SerializeField] private GameObject buildPromptHUD;
+
+        [Tooltip("รายการ HUD หรือ UI ที่ต้องการให้ปิดอัตโนมัติระหว่างอยู่ในโหมดสร้าง (ผู้ใช้สามารถลาก GameObject ที่ต้องการปิดมาใส่ในนี้ได้)")]
+        [SerializeField] private List<GameObject> hudsToCloseOnBuild = new List<GameObject>();
+
         [Header("Ghost Materials Colors")]
         [SerializeField] private Color validColor = new Color(0.2f, 1.0f, 0.4f, 0.45f);
         [SerializeField] private Color invalidColor = new Color(1.0f, 0.2f, 0.2f, 0.55f);
 
         [Header("Audio & VFX")]
         [SerializeField] private GameObject buildEffectPrefab;
+
+        private readonly List<GameObject> _previouslyActiveHuds = new List<GameObject>();
 
         private BuildingData _activeData;
         private CraftingRecipe _activeRecipe;
@@ -49,6 +58,14 @@ namespace TheLastEmpire
         public bool ShouldBlockCombat => IsInBuildMode || _suppressAttackTimer > 0f;
         public BuildingData ActiveBuilding => _activeData;
 
+        public GameObject BuildPromptHUD
+        {
+            get => buildPromptHUD;
+            set => buildPromptHUD = value;
+        }
+
+        public List<GameObject> HudsToCloseOnBuild => hudsToCloseOnBuild;
+
         public event Action<BuildingData> OnBuildModeStarted;
         public event Action OnBuildModeEnded;
         public event Action<BuildingObject> OnBuildingPlaced;
@@ -63,6 +80,16 @@ namespace TheLastEmpire
             {
                 Destroy(this);
                 return;
+            }
+
+            if (buildPromptHUD == null)
+            {
+                GameObject canvas = GameObject.Find("BuildingUI_Canvas");
+                if (canvas != null)
+                {
+                    Transform t = canvas.transform.Find("Build_HUD");
+                    if (t != null) buildPromptHUD = t.gameObject;
+                }
             }
 
             CreateGhostMaterial();
@@ -123,6 +150,26 @@ namespace TheLastEmpire
             _currentRotationY = _lastRotationY;
             _suppressAttackTimer = 0.35f;
 
+            // 1. ปิด HUD ต่างๆ ที่ระบุไว้ในรายการ hudsToCloseOnBuild
+            _previouslyActiveHuds.Clear();
+            if (hudsToCloseOnBuild != null)
+            {
+                foreach (var hud in hudsToCloseOnBuild)
+                {
+                    if (hud != null && hud.activeSelf)
+                    {
+                        _previouslyActiveHuds.Add(hud);
+                        hud.SetActive(false);
+                    }
+                }
+            }
+
+            // 2. เปิด buildPromptHUD เพื่อแสดง Hint ปุ่มกดวิธีสร้าง
+            if (buildPromptHUD != null)
+            {
+                buildPromptHUD.SetActive(true);
+            }
+
             CreateGhostInstance();
             OnBuildModeStarted?.Invoke(_activeData);
             Debug.Log($"[BuildingPlacer] Entered build mode for '{data.buildingName}'. Press R to rotate, LMB to place, RMB/ESC to cancel.");
@@ -144,6 +191,25 @@ namespace TheLastEmpire
             _activeData = null;
             _activeRecipe = null;
             _ghostRenderers.Clear();
+
+            // 1. ซ่อน buildPromptHUD
+            if (buildPromptHUD != null)
+            {
+                buildPromptHUD.SetActive(false);
+            }
+
+            // 2. คืนค่าสถานะเปิด HUD ต่างๆ ที่เคยถูกปิดไปตอนเริ่มเล็งสร้าง
+            if (_previouslyActiveHuds.Count > 0)
+            {
+                foreach (var hud in _previouslyActiveHuds)
+                {
+                    if (hud != null)
+                    {
+                        hud.SetActive(true);
+                    }
+                }
+                _previouslyActiveHuds.Clear();
+            }
 
             OnBuildModeEnded?.Invoke();
         }
@@ -445,9 +511,26 @@ namespace TheLastEmpire
         {
             if (_activeData == null || _activeData.prefab == null) return;
 
-            PlayerInventory inv = PlayerInventory.Instance;
+            // 1. เกิดสิ่งปลูกสร้างจริงลงในฉากก่อน
+            GameObject instance = Instantiate(_activeData.prefab, _currentPlacementPosition, _currentPlacementRotation);
+            if (instance == null)
+            {
+                Debug.LogError($"[BuildingPlacer] Failed to instantiate prefab for '{_activeData.buildingName}'!");
+                return;
+            }
 
-            // 1. หักวัตถุดิบออกจากกระเป๋า (ถ้าไม่ใช่โหมด Free Craft)
+            instance.name = $"{_activeData.buildingName}_{System.DateTime.Now.Ticks % 10000}";
+            instance.SetActive(true);
+
+            BuildingObject buildingComp = instance.GetComponent<BuildingObject>();
+            if (buildingComp == null)
+            {
+                buildingComp = instance.AddComponent<BuildingObject>();
+            }
+            buildingComp.Initialize(_activeData);
+
+            // 2. เมื่อวางบนพื้นสำเร็จเรียบร้อยแล้ว จึงค่อยหักวัตถุดิบออกจากกระเป๋า (ถ้าไม่ใช่โหมด Free Craft)
+            PlayerInventory inv = PlayerInventory.Instance;
             if (!CraftingDatabase.IsFreeCraft && inv != null)
             {
                 List<CraftingIngredient> ingredients = _activeData.ingredients;
@@ -464,18 +547,6 @@ namespace TheLastEmpire
                     }
                 }
             }
-
-            // 2. เกิดสิ่งปลูกสร้างจริงลงในฉาก
-            GameObject instance = Instantiate(_activeData.prefab, _currentPlacementPosition, _currentPlacementRotation);
-            instance.name = $"{_activeData.buildingName}_{System.DateTime.Now.Ticks % 10000}";
-            instance.SetActive(true);
-
-            BuildingObject buildingComp = instance.GetComponent<BuildingObject>();
-            if (buildingComp == null)
-            {
-                buildingComp = instance.AddComponent<BuildingObject>();
-            }
-            buildingComp.Initialize(_activeData);
 
             // 3. แสดง VFX ก่อสร้าง
             if (buildEffectPrefab != null)
@@ -505,7 +576,8 @@ namespace TheLastEmpire
 
         private void OnGUI()
         {
-            if (!IsInBuildMode) return;
+            // หากมี buildPromptHUD เปิดใช้งานอยู่แล้ว ให้ซ่อน GUI ดั้งเดิม
+            if (!IsInBuildMode || (buildPromptHUD != null && buildPromptHUD.activeSelf)) return;
 
             GUIStyle style = new GUIStyle(GUI.skin.box);
             style.fontSize = 14;
@@ -513,7 +585,7 @@ namespace TheLastEmpire
             style.normal.textColor = Color.white;
             style.alignment = TextAnchor.MiddleCenter;
 
-            string text = $"[R] หมุนโมเดล ({_currentRotationY:0}°)  |  [LMB] วาง  |  [RMB / ESC] ยกเลิก";
+            string text = $"[R] หมุนโมเดล ({_currentRotationY:0}°)  |  [LMB] วาง  |  [ESC / RMB] ยกเลิก";
             float w = 460f;
             float h = 36f;
             float x = (Screen.width - w) * 0.5f;
