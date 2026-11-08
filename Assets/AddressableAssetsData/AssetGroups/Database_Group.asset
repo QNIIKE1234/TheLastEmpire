@@ -22,8 +22,23 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 042b460a0bdafe9478bd56f4d5766584
+    m_Address: Database/Buildings/BUILD0022_XenocrystalShockTower
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0474284a0f7c41759bf6f9bbfffcd5e2
     m_Address: Database/ItemData/ITEM0033_Bandage
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 051f9cb7a337585080a03919fb0a8e71
+    m_Address: Database/ItemData/ITEM0080_NostalgicCassetteTape
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -43,10 +58,12 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b8e7d6c5a4f342109876543210fedcba
-    m_Address: Database/CraftingDatabase
+  - m_GUID: 0c30523abe8379d468f6b98f0ed91409
+    m_Address: Database/Buildings/BUILD0007_ArmoredTitaniumWall
     m_ReadOnly: 0
     m_SerializedLabels:
+    - Building
+    - BuildingData
     - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0cd5bacb7fb84334fe52369c28f5709a
@@ -77,6 +94,13 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 183589b3f3b452b58438369321aab325
+    m_Address: Database/ItemData/ITEM0086_RefinedFuelCan
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1dad086b212f6cd25dcc7c0ad2cbb001
     m_Address: Database/ItemData/ITEM0053_AdvancedNeuralProcessor
     m_ReadOnly: 0
@@ -84,8 +108,30 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1db86840c50913244829ef12c5efac4d
+    m_Address: Database/Buildings/BUILD0011_WoodenStorageCrate
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1dba39513afd085dcab656ce9efd4ad6
     m_Address: Database/ItemData/ITEM0038_RottenBoneClaw
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1e70517d8f1e5683902d9ed5eaff6329
+    m_Address: Database/ItemData/ITEM0068_PlantFiber
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20f43ee2c1955a38b66148ea226b10c1
+    m_Address: Database/ItemData/ITEM0072_ScrapSteelPipe
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -97,6 +143,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - Database
     - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2173cfabf4cecc54e9685e027c87efa2
+    m_Address: Database/Buildings/BUILD0017_RazorWireBarricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 21a4f829c774b544891f32b6bb9e1751
     m_Address: Database/ItemData/ITEM0010_ShotgunAmmo
@@ -118,6 +172,21 @@ MonoBehaviour:
     m_SerializedLabels:
     - Database
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 26b0a1a06da45c91b81bde61afc9e69c
+    m_Address: Database/ItemData/ITEM0079_HerbalCalmingTea
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 26d5342dd81b57541b01c0afc63eebe9
+    m_Address: Database/Buildings/BUILD0012_WaterPurifierStation
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 27aeb4710cfe4359ad2edcaeeaf74dab
     m_Address: Database/ItemData/ITEM0022_SMG
     m_ReadOnly: 0
@@ -132,6 +201,14 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a7994027b658aa48bfc126f372ddb6f
+    m_Address: Database/Buildings/BUILD0008_MotorizedBlastDoor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2b8b6fb77fb248bb9e70317e50ea6777
     m_Address: Database/ItemData/ITEM0016_FireAxe
     m_ReadOnly: 0
@@ -139,11 +216,27 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b96783ea1701fb44a85f8b1e9fb4d95
+    m_Address: Database/Buildings/BUILD0003_WoodenStorageCrate
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2ea07830d8ba3dd42bb76d5b684f0b26
     m_Address: Database/Characters/CHAR_02_Juggernaut
     m_ReadOnly: 0
     m_SerializedLabels:
     - Characters
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2efcc7b34c3d696458c1aec498648ff0
+    m_Address: Database/Buildings/BUILD0001_WoodenFloorFoundation
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
     - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2f5aa5e0ab314f89be7b2d4a7a672a82
@@ -162,6 +255,13 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3542f5143f7311d463f0da9e72f95330
     m_Address: Database/ItemData/ITEM0043_ToxicBileSac
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35c7890337a75ee39e36355994ee829a
+    m_Address: Database/ItemData/ITEM0077_PackOfCigarettes
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -202,6 +302,21 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4493460e88b2580390d7e55afcba9d2a
+    m_Address: Database/ItemData/ITEM0081_ScrapLeather
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4549687aef315154eaf1be4b6c0fe844
+    m_Address: Database/Buildings/BUILD0015_CompactFusionGenerator
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4f4973cc90fd6a7aef8b9753dbd1e5b6
     m_Address: Database/ItemData/ITEM0060_PrismaticStinger
     m_ReadOnly: 0
@@ -216,8 +331,30 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 508f17e153005d519e1fac245a39573c
+    m_Address: Database/ItemData/ITEM0070_BoxOfNails
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 517bae9a5ddb4522ad3256572a318f6a
     m_Address: Database/ItemData/ITEM0034_FirstAidKit
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 52f26a91080b9844db5d7e732c18eaa2
+    m_Address: Database/Buildings/BUILD0021_AutomatedSentryTurret
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 550f1bdb10365b69924de10f3bf8a061
+    m_Address: Database/ItemData/ITEM0073_CharcoalLump
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -246,6 +383,20 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b121d0431f244aaa3690940750aaad4
     m_Address: Database/ItemData/ITEM0021_Chainsaw
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5bec8bfe0b3551b6b5d650db983c2f1d
+    m_Address: Database/ItemData/ITEM0076_HotBlackCoffee
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5d25b1c873b855ef99d2f2eb600b01b9
+    m_Address: Database/ItemData/ITEM0090_CleanWaterFilter
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -328,6 +479,14 @@ MonoBehaviour:
     - Characters
     - Database
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 786dc1a74d3936b428ac09adb979cfb2
+    m_Address: Database/Buildings/BUILD0014_SanityBeaconLantern
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 83e41ba92c74dd546bcf4498146bb44e
     m_Address: Database/Characters/CHAR_06_Rebel
     m_ReadOnly: 0
@@ -342,8 +501,38 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8697da7288b77584fbe77758b8fb234c
+    m_Address: Database/Buildings/BUILD0019_SnapJawBearTrap
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8891acf415ce52b3b29399f981bc15c1
+    m_Address: Database/ItemData/ITEM0075_CleanGlassBottle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88b23b3a70559fd48854673281564a92
+    m_Address: Database/Buildings/BUILD0002_WoodenSpikeBarricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 893a1c00ae710b0552979c5ae4dcd541
     m_Address: Database/ItemData/ITEM0041_ConcentratedVirusStrain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b56c3e6cdb951a386efccae026e849c
+    m_Address: Database/ItemData/ITEM0083_IndustrialGlue
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -362,6 +551,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - Database
     - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 91ee4939fa32cb449bf7ab85251bd26b
+    m_Address: Database/Buildings/BUILD0016_WoodenSpikeBarricade
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 932483d85c764320b9bded3bae727763
     m_Address: Database/ItemData/ITEM0026_RocketLauncher
@@ -398,6 +595,22 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96720c8a3ae23604ba1802489301e764
+    m_Address: Database/Buildings/BUILD0002_WoodenWallPanel
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96fcd081d4ad3b948b16f3146fe33505
+    m_Address: Database/Buildings/BUILD0006_ScrapMetalWall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 99259f2e874f60343bc28d427eb691cb
     m_Address: Database/ItemData/ITEM0001_Potion
     m_ReadOnly: 0
@@ -407,6 +620,27 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 994b8a468fb719744bf6cb1e0d620037
     m_Address: Database/ItemData/ITEM0007_Shotgun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a4fb60ca5c755b02a0e05fa165ed885d
+    m_Address: Database/ItemData/ITEM0069_SturdyRope
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a771c06e791459eab9154206973d2307
+    m_Address: Database/ItemData/ITEM0071_DuctTape
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa42a20ac588549da8cb1c3254184959
+    m_Address: Database/ItemData/ITEM0066_WoodLog
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -425,12 +659,41 @@ MonoBehaviour:
     m_SerializedLabels:
     - Database
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ab6c83b53b805cea8b47516e72eecf70
+    m_Address: Database/ItemData/ITEM0089_CeramicShard
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ae91fa7f1ddd06d337fae2e716cf36b6
     m_Address: Database/ItemData/ITEM0052_ReinforcedTitaniumPlate
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
     - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b306a996c8ed29e40bba40ada60f09e8
+    m_Address: Database/Buildings/BUILD0005_StoneAndBrickWall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8e7d6c5a4f342109876543210fedcba
+    m_Address: Database/CraftingDatabase
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb6179b1fca50f34bab5b9195d830e9e
+    m_Address: Database/Buildings/BUILD0003_WoodenWindowWall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bc04b1b423c12ae4287121dc9e204dbc
     m_Address: Database/CharacterDatabase
@@ -447,6 +710,20 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c01d51d8583a450fc6c85fbd5c27bc15
     m_Address: Database/ItemData/ITEM0036_ContaminatedFlesh
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c1d743b267f4547cb8c7bcbea89692e5
+    m_Address: Database/ItemData/ITEM0084_RubberStrips
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c2948ab0e41b5484a7045e53e51fae7e
+    m_Address: Database/ItemData/ITEM0078_AntiPanicSedatives
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
@@ -473,12 +750,43 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c919a70b27500ec4ba3eda9b1e20fbf8
+    m_Address: Database/Buildings/BUILD0018_ChitinCarapaceWall
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cac5e1366680b164c8a3a2d8237b5391
+    m_Address: Database/Buildings/BUILD0009_SurvivorCampfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cc190728f5674b67a51afeb3a29c53f7
     m_Address: Database/ItemData/ITEM0032_EnergyBar
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
     - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce8f8ce82e6b56c18d595f8f2a7d6ae7
+    m_Address: Database/ItemData/ITEM0088_HardenedResin
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf2b293ff2d972d47ba2e5c3bda9d59c
+    m_Address: Database/Buildings/BUILD0004_ReinforcedWoodenDoor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d0bcb8dc8d676ba428263cdcb07a2324
     m_Address: Database/ItemData/ITEM0003_Bread
@@ -522,12 +830,51 @@ MonoBehaviour:
     - Database
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e017291815416ea4b9e72146e673941d
+    m_Address: Database/Buildings/BUILD0010_SurvivorWorkbench
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e06abf3b26ba51e496b927d77ad10358
+    m_Address: Database/ItemData/ITEM0085_SulfurPowder
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3102af20ff05e546b9bfc3adb2f5c9e
+    m_Address: Database/Buildings/BUILD0001_Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e448b9ce40024846b2fce004f8d6ab08
     m_Address: Database/ItemData/ITEM0025_Flamethrower
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database
     - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e4603ffa2c6103d4fa0d3ebde778304c
+    m_Address: Database/Buildings/BUILD0020_CorrosiveBileLandmine
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ea819f78b37fe434f8bfccd2f77dfe63
+    m_Address: Database/Buildings/BUILD0013_SurvivorSleepingBedroll
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Building
+    - BuildingData
+    - Database
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eb6fbcd0d1a8e3641b6087b92eda6d22
     m_Address: Database/Characters/CHAR_03_Phantom
@@ -536,8 +883,36 @@ MonoBehaviour:
     - Characters
     - Database
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ee790a4345c4543c95332f301f2618c6
+    m_Address: Database/ItemData/ITEM0082_CopperWireSpool
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eecc2e950f3e5ec7b73199e6977bd088
+    m_Address: Database/ItemData/ITEM0074_GunpowderMix
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ef37c829a98648b68123793cf4176320
     m_Address: Database/ItemData/ITEM0020_StunBaton
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f9067e3b0afa5c9aaf5d5b3a514aa997
+    m_Address: Database/ItemData/ITEM0087_SpringSteelCoil
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Database
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f95e9d2fa432524b84a103481f40b3d9
+    m_Address: Database/ItemData/ITEM0067_RoughStone
     m_ReadOnly: 0
     m_SerializedLabels:
     - Database

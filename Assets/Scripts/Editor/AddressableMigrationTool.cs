@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -9,15 +11,30 @@ namespace TheLastEmpire.Editor
 {
     public static class AddressableMigrationTool
     {
+        [InitializeOnLoadMethod]
+        private static void AutoSyncAddressables()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                SyncAllAddressables(false);
+            };
+        }
+
         [MenuItem("The Last Empire/Migrate Resources to Addressables")]
         public static void MigrateAll()
         {
-            Debug.Log("[AddressableMigrationTool] Starting Addressables migration...");
+            SyncAllAddressables(true);
+        }
 
+        public static void SyncAllAddressables(bool verbose = false)
+        {
             AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
-                Debug.LogError("[AddressableMigrationTool] AddressableAssetSettings not found! Please create Addressables settings first.");
+                if (verbose)
+                {
+                    Debug.LogError("[AddressableMigrationTool] AddressableAssetSettings not found! Please create Addressables settings first.");
+                }
                 return;
             }
 
@@ -34,16 +51,16 @@ namespace TheLastEmpire.Editor
             MoveFolderIfPresent("Assets/Resources/Stages", "Assets/Resources_Addressable/Stages");
             MoveFolderIfPresent("Assets/Resources/Database", "Assets/Resources_Addressable/Database");
 
-            AssetDatabase.Refresh();
-
             // 2. Register all assets in Assets/Resources_Addressable to Addressables
-            RegisterAddressablesInFolder(targetFolder, settings);
+            int registered = RegisterAddressablesInFolder(targetFolder, settings);
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
 
-            Debug.Log("[AddressableMigrationTool] Migration completed successfully!");
+            if (verbose || registered > 0)
+            {
+                Debug.Log($"[AddressableMigrationTool] Addressables sync completed. Total synchronized assets: {registered}");
+            }
         }
 
         private static void MoveFolderIfPresent(string source, string destination)
@@ -62,17 +79,18 @@ namespace TheLastEmpire.Editor
             }
         }
 
-        public static void RegisterAddressablesInFolder(string rootFolder, AddressableAssetSettings settings)
+        public static int RegisterAddressablesInFolder(string rootFolder, AddressableAssetSettings settings)
         {
-            if (!Directory.Exists(rootFolder)) return;
+            if (!Directory.Exists(rootFolder) || settings == null) return 0;
 
             string[] allAssetPaths = Directory.GetFiles(rootFolder, "*.*", SearchOption.AllDirectories);
             int count = 0;
+            bool modified = false;
 
             foreach (string filePath in allAssetPaths)
             {
                 string unityPath = filePath.Replace('\\', '/');
-                if (unityPath.EndsWith(".meta")) continue;
+                if (unityPath.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)) continue;
 
                 // Relative path under rootFolder (e.g. "Prefabs/Item/BoltPrefabs.prefab")
                 string relativePath = unityPath.Substring(rootFolder.Length).TrimStart('/');
@@ -91,37 +109,55 @@ namespace TheLastEmpire.Editor
                 string guid = AssetDatabase.AssetPathToGUID(unityPath);
                 if (string.IsNullOrEmpty(guid)) continue;
 
-                var entry = settings.CreateOrMoveEntry(guid, group, false, false);
+                AddressableAssetEntry entry = settings.FindAssetEntry(guid);
+                if (entry == null || entry.parentGroup != group || entry.address != addressKey)
+                {
+                    entry = settings.CreateOrMoveEntry(guid, group, false, false);
+                    if (entry != null)
+                    {
+                        entry.address = addressKey;
+                        modified = true;
+                    }
+                }
+
                 if (entry != null)
                 {
-                    entry.address = addressKey;
-
                     // Add labels
                     List<string> labels = DetermineLabels(relativePath);
                     foreach (var lbl in labels)
                     {
                         settings.AddLabel(lbl);
-                        entry.SetLabel(lbl, true, false);
+                        if (!entry.labels.Contains(lbl))
+                        {
+                            entry.SetLabel(lbl, true, false);
+                            modified = true;
+                        }
                     }
 
                     count++;
                 }
             }
 
-            Debug.Log($"[AddressableMigrationTool] Registered {count} assets in Addressables.");
+            if (modified)
+            {
+                EditorUtility.SetDirty(settings);
+            }
+
+            return count;
         }
 
         private static string DetermineGroupName(string relativePath)
         {
-            if (relativePath.StartsWith("Prefabs/Environment", System.StringComparison.OrdinalIgnoreCase)) return "Environment_Group";
-            if (relativePath.StartsWith("Prefabs/Character", System.StringComparison.OrdinalIgnoreCase)) return "Characters_Group";
-            if (relativePath.StartsWith("Prefabs/Item", System.StringComparison.OrdinalIgnoreCase)) return "Items_Group";
-            if (relativePath.StartsWith("Prefabs/Weapon", System.StringComparison.OrdinalIgnoreCase)) return "Weapons_Group";
-            if (relativePath.StartsWith("Prefabs/UI", System.StringComparison.OrdinalIgnoreCase)) return "UI_Group";
-            if (relativePath.StartsWith("Prefabs", System.StringComparison.OrdinalIgnoreCase)) return "Prefabs_Group";
-            if (relativePath.StartsWith("Image", System.StringComparison.OrdinalIgnoreCase)) return "Images_Group";
-            if (relativePath.StartsWith("Stages", System.StringComparison.OrdinalIgnoreCase)) return "Stages_Group";
-            if (relativePath.StartsWith("Database", System.StringComparison.OrdinalIgnoreCase)) return "Database_Group";
+            if (relativePath.StartsWith("Prefabs/Environment", StringComparison.OrdinalIgnoreCase)) return "Environment_Group";
+            if (relativePath.StartsWith("Prefabs/Character", StringComparison.OrdinalIgnoreCase)) return "Characters_Group";
+            if (relativePath.StartsWith("Prefabs/Item", StringComparison.OrdinalIgnoreCase)) return "Items_Group";
+            if (relativePath.StartsWith("Prefabs/Weapon", StringComparison.OrdinalIgnoreCase)) return "Weapons_Group";
+            if (relativePath.StartsWith("Prefabs/UI", StringComparison.OrdinalIgnoreCase)) return "UI_Group";
+            if (relativePath.StartsWith("Prefabs", StringComparison.OrdinalIgnoreCase)) return "Prefabs_Group";
+            if (relativePath.StartsWith("Image", StringComparison.OrdinalIgnoreCase)) return "Images_Group";
+            if (relativePath.StartsWith("Stages", StringComparison.OrdinalIgnoreCase)) return "Stages_Group";
+            if (relativePath.StartsWith("Database", StringComparison.OrdinalIgnoreCase)) return "Database_Group";
+            if (relativePath.StartsWith("Models", StringComparison.OrdinalIgnoreCase)) return "Environment_Group";
 
             return "Default Local Group";
         }
@@ -130,43 +166,61 @@ namespace TheLastEmpire.Editor
         {
             var labels = new List<string>();
 
-            if (relativePath.StartsWith("Prefabs/Environment", System.StringComparison.OrdinalIgnoreCase))
+            if (relativePath.StartsWith("Prefabs/Environment", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Environment");
-                if (relativePath.Contains("Building")) labels.Add("Building");
+                if (relativePath.IndexOf("Building", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    relativePath.IndexOf("Craft", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    labels.Add("Building");
+                }
+                if (relativePath.IndexOf("Craft", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    labels.Add("Craft");
+                }
                 if (relativePath.Contains("Urban_Obstacles")) labels.Add("Urban_Obstacles");
                 if (relativePath.Contains("Urban_Decorations")) labels.Add("Urban_Decorations");
             }
-            else if (relativePath.StartsWith("Prefabs/Character", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Prefabs/Character", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Character");
             }
-            else if (relativePath.StartsWith("Prefabs/Item", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Prefabs/Item", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Item");
             }
-            else if (relativePath.StartsWith("Prefabs/Weapon", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Prefabs/Weapon", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Weapon");
             }
-            else if (relativePath.StartsWith("Prefabs/UI", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Prefabs/UI", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("UI");
             }
-            else if (relativePath.StartsWith("Image", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Image", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Image");
                 if (relativePath.Contains("UI")) labels.Add("UI");
             }
-            else if (relativePath.StartsWith("Stages", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Stages", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Stage");
             }
-            else if (relativePath.StartsWith("Database", System.StringComparison.OrdinalIgnoreCase))
+            else if (relativePath.StartsWith("Database", StringComparison.OrdinalIgnoreCase))
             {
                 labels.Add("Database");
                 if (relativePath.Contains("ItemData")) labels.Add("ItemData");
                 if (relativePath.Contains("Characters")) labels.Add("Characters");
+                if (relativePath.Contains("Buildings"))
+                {
+                    labels.Add("BuildingData");
+                    labels.Add("Building");
+                }
+            }
+            else if (relativePath.StartsWith("Models", StringComparison.OrdinalIgnoreCase))
+            {
+                labels.Add("Environment");
+                labels.Add("Model");
             }
 
             return labels;
@@ -183,4 +237,4 @@ namespace TheLastEmpire.Editor
         }
     }
 }
-
+#endif

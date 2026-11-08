@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Environment_Group
   m_GUID: 513f08aecfce788458bcdb6ca82be252
   m_SerializeEntries: []
+  - m_GUID: 38e2f0c32839de54e9a63e595de34474
+    m_Address: Prefabs/Environment/Apoc_Prop_Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
   m_SchemaSet:

@@ -193,6 +193,15 @@ namespace TheLastEmpire
 #endif
                 if (allBuildings.Count == 0)
                 {
+                    IList<BuildingData> addrList = AddressableManager.LoadAssetsByLabel<BuildingData>("BuildingData");
+                    if (addrList != null && addrList.Count > 0)
+                    {
+                        allBuildings.AddRange(addrList);
+                    }
+                }
+
+                if (allBuildings.Count == 0)
+                {
                     BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
                     if (loaded != null && loaded.Length > 0)
                     {
