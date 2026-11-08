@@ -48,9 +48,9 @@ namespace TheLastEmpire
         {
             if (_buildingObject != null)
             {
-                return $"<color=yellow><b>[E]</b></color> ซ่อมแซม ({_buildingObject.CurrentHealth:F0}/{_buildingObject.MaxHealth:F0})";
+                return $"<color=yellow><b>[E]</b></color> Repair Wall ({_buildingObject.CurrentHealth:F0}/{_buildingObject.MaxHealth:F0})";
             }
-            return "<color=yellow><b>[E]</b></color> ซ่อมแซม";
+            return "<color=yellow><b>[E]</b></color> Repair Wall";
         }
 
         public void OnInteract()

@@ -68,9 +68,9 @@ namespace TheLastEmpire
 
             if (!infiniteAmmo && currentAmmo < maxAmmo)
             {
-                return $"<color=yellow><b>[E]</b></color> บรรจุกระสุน ({currentAmmo}/{maxAmmo}){powerTag}";
+                return $"<color=yellow><b>[E]</b></color> Reload Ammo ({currentAmmo}/{maxAmmo}){powerTag}";
             }
-            return $"ป้อมปืนกลอัตโนมัติ{powerTag}";
+            return $"Sentry Turret{powerTag}";
         }
 
         public void OnInteract()

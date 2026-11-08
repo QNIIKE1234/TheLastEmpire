@@ -33,8 +33,8 @@ namespace TheLastEmpire
         {
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             return isNight
-                ? "<color=yellow><b>[E]</b></color> บันทึกจุดเกิด  |  <color=#00e5ff><b>[Z]</b></color> นอนข้ามคืน"
-                : "<color=yellow><b>[E]</b></color> บันทึกจุดเกิดใหม่ (Spawn Point)";
+                ? "<color=yellow><b>[E]</b></color> Set Spawn  |  <color=#00e5ff><b>[Z]</b></color> Sleep"
+                : "<color=yellow><b>[E]</b></color> Set Spawn Point";
         }
 
         public void OnInteract()

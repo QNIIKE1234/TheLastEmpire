@@ -40,7 +40,7 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
-            return "<color=yellow><b>[E]</b></color> ติดตั้งกับดักใหม่ (Rearm Trap)";
+            return "<color=yellow><b>[E]</b></color> Rearm Trap";
         }
 
         public void OnInteract()

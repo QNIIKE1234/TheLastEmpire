@@ -62,8 +62,8 @@ namespace TheLastEmpire
         public string GetInteractionPrompt()
         {
             return isOpen 
-                ? "<color=yellow><b>[E]</b></color> ปิดประตู (Close Door)" 
-                : "<color=yellow><b>[E]</b></color> เปิดประตู (Open Door)";
+                ? "<color=yellow><b>[E]</b></color> Close Door" 
+                : "<color=yellow><b>[E]</b></color> Open Door";
         }
 
         public void OnInteract()

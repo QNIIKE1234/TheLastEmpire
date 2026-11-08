@@ -46,9 +46,9 @@ namespace TheLastEmpire
         {
             if (currentStoredWater > 0)
             {
-                return $"<color=yellow><b>[E]</b></color> เก็บน้ำสะอาด ({currentStoredWater}/{maxStoredWater} ขวด)";
+                return $"<color=yellow><b>[E]</b></color> Collect Water ({currentStoredWater}/{maxStoredWater})";
             }
-            return $"กำลังกลั่นน้ำ... <color=#00e5ff>{(ProductionProgress * 100f):F0}%</color>";
+            return $"Purifying Water... <color=#00e5ff>{(ProductionProgress * 100f):F0}%</color>";
         }
 
         public void OnInteract()

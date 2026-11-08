@@ -40,8 +40,8 @@ namespace TheLastEmpire
         public string GetInteractionPrompt()
         {
             return isRunning 
-                ? "<color=yellow><b>[E]</b></color> ปิดเครื่องกำเนิดไฟฟ้า (Power: ON)" 
-                : "<color=yellow><b>[E]</b></color> เปิดเครื่องกำเนิดไฟฟ้า (Power: OFF)";
+                ? "<color=yellow><b>[E]</b></color> Generator (ON)" 
+                : "<color=yellow><b>[E]</b></color> Generator (OFF)";
         }
 
         public void OnInteract()
