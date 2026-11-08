@@ -81,7 +81,7 @@ namespace TheLastEmpire
             _isPlayerNearby = dist <= interactionDistance;
 
             // ตรวจสอบว่า UI คลังเก็บของกำลังเปิดอยู่หรือไม่
-            bool isLootUIActive = LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.ActiveContainer == _lootContainer;
+            bool isLootUIActive = LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == _lootContainer;
             _isLidOpen = isLootUIActive;
 
             if (lidTransform != null)

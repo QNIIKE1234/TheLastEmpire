@@ -37,6 +37,12 @@ namespace TheLastEmpire.Editor
         public static void SetupBuildingHUDs()
         {
             SetupHUDsInActiveScene();
+            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
+            if (canvasGo != null)
+            {
+                Selection.activeGameObject = canvasGo;
+                EditorGUIUtility.PingObject(canvasGo);
+            }
         }
 
         [InitializeOnLoadMethod]
