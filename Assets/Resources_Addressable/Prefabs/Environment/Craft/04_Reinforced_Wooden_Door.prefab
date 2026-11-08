@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 9061217386558353689}
   - component: {fileID: 7471466891250636295}
   - component: {fileID: 36112106706674785}
+  - component: {fileID: 8708349989058622333}
   m_Layer: 0
   m_Name: 04_Reinforced_Wooden_Door
   m_TagString: Untagged
@@ -158,4 +159,20 @@ MonoBehaviour:
   autoClose: 0
   autoCloseDelay: 8
   doorLeaf: {fileID: 0}
-  doorBlockerCollider: {fileID: 0}
+  doorBlockerCollider: {fileID: 7471466891250636295}
+--- !u!208 &8708349989058622333
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2562660870056847878}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.0000002, y: 0.20000018, z: 1.2500001}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_TimeToStationary: 0.5

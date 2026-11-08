@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5301524768424297535}
   - component: {fileID: 3520159065708698653}
   - component: {fileID: 21560761720870704}
+  - component: {fileID: 5578022167380671350}
   m_Layer: 0
   m_Name: 12_Water_Purifier_Station
   m_TagString: Untagged
@@ -158,3 +159,19 @@ MonoBehaviour:
   currentStoredWater: 1
   cleanWaterItemName: ITEM0075_CleanGlassBottle
   interactionDistance: 2.5
+--- !u!208 &5578022167380671350
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118915970292689051}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.7500002, y: 0.75000024, z: 1.0000002}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.0000001}
+  m_TimeToStationary: 0.5

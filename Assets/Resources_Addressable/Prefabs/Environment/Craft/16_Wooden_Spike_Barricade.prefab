@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8360173033561659866}
   - component: {fileID: 4916425600816273348}
   - component: {fileID: 4898179803029435896}
+  - component: {fileID: 2835088803528903276}
   m_Layer: 0
   m_Name: 16_Wooden_Spike_Barricade
   m_TagString: Untagged
@@ -152,3 +153,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.SpikeBarricadeBuilding
   thornsDamage: 25
   damageCooldown: 0.8
+--- !u!208 &2835088803528903276
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5643138084421969388}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.2500002, y: 0.40000013, z: 0.60000014}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.000000059604645, z: 0.6000001}
+  m_TimeToStationary: 0.5

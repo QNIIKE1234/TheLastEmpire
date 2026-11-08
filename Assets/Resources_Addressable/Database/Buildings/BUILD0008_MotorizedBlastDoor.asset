@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0008_MotorizedBlastDoor
   buildingName: Motorized Blast Door
   category: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300008, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
   description: Automated heavy bunker door powered by overdrive servos and logic
     chips.
   prefab: {fileID: 2852490359783157972, guid: 870b353327dd3d243bd7a715cb4d5ecc, type: 3}
@@ -29,4 +29,19 @@ MonoBehaviour:
   maxHealth: 1000
   damageResistance: 0.35
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    itemName: Reinforced Titanium Plate
+    amount: 5
+  - item: {fileID: 11400000, guid: 5dc4bf239ec50812d559c4cb12524772, type: 2}
+    itemName: Military Overdrive Servo
+    amount: 2
+  - item: {fileID: 11400000, guid: c809ad8b25e9ef1fa8bf97de5ce53597, type: 2}
+    itemName: Hydraulic Piston Bolt
+    amount: 4
+  - item: {fileID: 11400000, guid: 6986434e85f82ccbe3917db7cae43641, type: 2}
+    itemName: Basic Logic Chip
+    amount: 2
+  - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
+    itemName: Copper Wire Spool
+    amount: 3

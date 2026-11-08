@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7342741868883718627}
   - component: {fileID: 2168808202294396139}
   - component: {fileID: 14585195926483246}
+  - component: {fileID: 6225199072435953053}
   m_Layer: 0
   m_Name: 15_Compact_Fusion_Generator
   m_TagString: Untagged
@@ -156,3 +157,19 @@ MonoBehaviour:
   isRunning: 1
   powerCoreLight: {fileID: 0}
   interactionDistance: 2.5
+--- !u!208 &6225199072435953053
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6120508798206839399}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.0000002, y: 1.0000002, z: 1.1000003}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.1000001}
+  m_TimeToStationary: 0.5

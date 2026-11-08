@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 108110872190052147}
   - component: {fileID: 8543125771342850602}
   - component: {fileID: 38612159069319336}
+  - component: {fileID: 4569538154578668994}
   m_Layer: 0
   m_Name: 03_Wooden_Window_Wall
   m_TagString: Untagged
@@ -153,3 +154,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire::WindowWallBuilding
   coverDistance: 2
   rangedDamageReduction: 0.5
+--- !u!208 &4569538154578668994
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4999588511031610035}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.5000004, y: 0.20000018, z: 1.2500001}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_TimeToStationary: 0.5

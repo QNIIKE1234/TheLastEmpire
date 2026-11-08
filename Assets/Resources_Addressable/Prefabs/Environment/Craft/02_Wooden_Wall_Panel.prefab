@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7064857854906379839}
   - component: {fileID: 735020816142752689}
   - component: {fileID: 38612159069319336}
+  - component: {fileID: 3860102474761562819}
   m_Layer: 0
   m_Name: 02_Wooden_Wall_Panel
   m_TagString: Untagged
@@ -152,3 +153,19 @@ MonoBehaviour:
   wallType: 0
   repairAmountPerInteract: 50
   interactionDistance: 2.5
+--- !u!208 &3860102474761562819
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5873577624830059652}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.5000004, y: 0.20000018, z: 1.2500001}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_TimeToStationary: 0.5

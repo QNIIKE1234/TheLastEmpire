@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5120821379907467313}
   - component: {fileID: 5175613259596402263}
   - component: {fileID: 26599229417845227}
+  - component: {fileID: 5925963893764420673}
   m_Layer: 0
   m_Name: 10_Survivor_Workbench
   m_TagString: Untagged
@@ -151,3 +152,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire::WorkbenchBuilding
   interactionDistance: 2.5
+--- !u!208 &5925963893764420673
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3023190700650451203}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.0000002, y: 0.60000014, z: 0.60000014}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.000000059604645, z: 0.6000001}
+  m_TimeToStationary: 0.5

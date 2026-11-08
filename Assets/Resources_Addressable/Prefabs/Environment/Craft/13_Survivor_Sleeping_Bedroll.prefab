@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 149182339849042804}
   - component: {fileID: 2788268045232990501}
   - component: {fileID: 19342184351386601}
+  - component: {fileID: 7852424530074477571}
   m_Layer: 0
   m_Name: 13_Survivor_Sleeping_Bedroll
   m_TagString: Untagged
@@ -151,3 +152,19 @@ MonoBehaviour:
   hpRestoredOnSleep: 50
   sanityRestoredOnSleep: 50
   interactionDistance: 2.5
+--- !u!208 &7852424530074477571
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 185975714278661533}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.60000014, y: 1.1000001, z: 0.20000015}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.000000029802322, z: 0.20000003}
+  m_TimeToStationary: 0.5

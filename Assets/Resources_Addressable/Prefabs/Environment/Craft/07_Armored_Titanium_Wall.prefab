@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3713060086021387898}
   - component: {fileID: 5935856922310985647}
   - component: {fileID: 31355118297828006}
+  - component: {fileID: 2846242188830961321}
   m_Layer: 0
   m_Name: 07_Armored_Titanium_Wall
   m_TagString: Untagged
@@ -154,3 +155,19 @@ MonoBehaviour:
   wallType: 0
   repairAmountPerInteract: 50
   interactionDistance: 2.5
+--- !u!208 &2846242188830961321
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6907021585975881307}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.5000004, y: 0.25000018, z: 1.2500002}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_TimeToStationary: 0.5

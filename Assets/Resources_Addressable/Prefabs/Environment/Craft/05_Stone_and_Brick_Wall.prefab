@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6399336177260880420}
   - component: {fileID: 6968058834086567711}
   - component: {fileID: 33855166349514478}
+  - component: {fileID: 6611019141198906578}
   m_Layer: 0
   m_Name: 05_Stone_and_Brick_Wall
   m_TagString: Untagged
@@ -154,3 +155,19 @@ MonoBehaviour:
   wallType: 0
   repairAmountPerInteract: 50
   interactionDistance: 2.5
+--- !u!208 &6611019141198906578
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 419716695886464759}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.5000004, y: 0.25000018, z: 1.2500002}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_TimeToStationary: 0.5

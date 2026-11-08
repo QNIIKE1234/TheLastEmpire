@@ -15,7 +15,7 @@ MonoBehaviour:
   buildingId: BUILD0022_XenocrystalShockTower
   buildingName: Xenocrystal Shock Tower
   category: 2
-  icon: {fileID: 0}
+  icon: {fileID: 21300022, guid: 58f8c1a8bac94155ac6c6139df040816, type: 3}
   description: High-voltage alien defense pylon that chains bio-plasma lightning
     across hordes.
   prefab: {fileID: 2173606525678917498, guid: 483e15721c3445c41a069e16df82b8bc, type: 3}
@@ -29,4 +29,19 @@ MonoBehaviour:
   maxHealth: 600
   damageResistance: 0.2
   storageSlots: 0
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: 5e175f6be7adb280998b6e0635af01a3, type: 2}
+    itemName: Bio-Plasma Sac
+    amount: 2
+  - item: {fileID: 11400000, guid: 6d8e83d34559827a2918b701034ec824, type: 2}
+    itemName: Overlord Xenocrystal Core
+    amount: 1
+  - item: {fileID: 11400000, guid: d5adf9ecd3bd43557facb3d2cd0097e1, type: 2}
+    itemName: Miniature Fusion Reactor
+    amount: 1
+  - item: {fileID: 11400000, guid: ae91fa7f1ddd06d337fae2e716cf36b6, type: 2}
+    itemName: Reinforced Titanium Plate
+    amount: 3
+  - item: {fileID: 11400000, guid: 12ec120ad219279409d3230f5d7c7d63, type: 2}
+    itemName: Torn Copper Wiring
+    amount: 4

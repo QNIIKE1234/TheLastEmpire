@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7201066834462765868}
   - component: {fileID: 6529684794742002119}
   - component: {fileID: 7047775411325996}
+  - component: {fileID: 7154478076914950756}
   m_Layer: 0
   m_Name: 21_Automated_Sentry_Turret
   m_TagString: Untagged
@@ -163,3 +164,19 @@ MonoBehaviour:
   turretHead: {fileID: 0}
   muzzlePoint: {fileID: 0}
   interactionDistance: 2.5
+--- !u!208 &7154478076914950756
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5288515284170663127}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.7500002, y: 0.75000024, z: 1.0000002}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: -0.00000011920929, z: 1.0000001}
+  m_TimeToStationary: 0.5
