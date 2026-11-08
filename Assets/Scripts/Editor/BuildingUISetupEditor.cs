@@ -37,6 +37,7 @@ namespace TheLastEmpire.Editor
         [MenuItem("TheLastEmpire/Setup Building UI HUDs")]
         public static void SetupBuildingHUDs()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
             SetupHUDsInActiveScene();
             GameObject managerGo = GameObject.Find("BuildingManager");
             if (managerGo != null)
@@ -55,14 +56,10 @@ namespace TheLastEmpire.Editor
             }
         }
 
-        [InitializeOnLoadMethod]
-        private static void OnProjectLoaded()
-        {
-            EditorApplication.delayCall += SetupHUDsInActiveScene;
-        }
-
         public static void SetupHUDsInActiveScene()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+
             Scene currentScene = SceneManager.GetActiveScene();
             if (currentScene.name != "Gameplay_3D")
             {

@@ -165,10 +165,7 @@ namespace TheLastEmpire
             }
 
             // 2. เปิด buildPromptHUD เพื่อแสดง Hint ปุ่มกดวิธีสร้าง
-            if (buildPromptHUD != null)
-            {
-                buildPromptHUD.SetActive(true);
-            }
+            ShowBuildPromptHUD();
 
             CreateGhostInstance();
             OnBuildModeStarted?.Invoke(_activeData);
@@ -193,10 +190,7 @@ namespace TheLastEmpire
             _ghostRenderers.Clear();
 
             // 1. ซ่อน buildPromptHUD
-            if (buildPromptHUD != null)
-            {
-                buildPromptHUD.SetActive(false);
-            }
+            HideBuildPromptHUD();
 
             // 2. คืนค่าสถานะเปิด HUD ต่างๆ ที่เคยถูกปิดไปตอนเริ่มเล็งสร้าง
             if (_previouslyActiveHuds.Count > 0)
@@ -630,10 +624,54 @@ namespace TheLastEmpire
             }
         }
 
+        private void ShowBuildPromptHUD()
+        {
+            if (buildPromptHUD == null)
+            {
+                GameObject canvas = GameObject.Find("BuildingUI_Canvas");
+                if (canvas != null)
+                {
+                    Transform t = canvas.transform.Find("Build_HUD");
+                    if (t != null) buildPromptHUD = t.gameObject;
+                }
+            }
+
+            if (buildPromptHUD != null)
+            {
+                // ตรวจสอบเปิด Parent ทั้งหมดของ buildPromptHUD (เช่น Build_HUD, BuildingUI_Canvas) เพื่อให้ UI แสดงผลจริงบนจอ
+                Transform parent = buildPromptHUD.transform.parent;
+                while (parent != null && parent.GetComponent<Canvas>() == null)
+                {
+                    if (!parent.gameObject.activeSelf)
+                    {
+                        parent.gameObject.SetActive(true);
+                    }
+                    parent = parent.parent;
+                }
+
+                buildPromptHUD.SetActive(true);
+            }
+        }
+
+        private void HideBuildPromptHUD()
+        {
+            if (buildPromptHUD != null)
+            {
+                buildPromptHUD.SetActive(false);
+
+                // หาก buildPromptHUD เป็นลูกของ Build_HUD หรือ GameObject ชนิด HUD ให้ซ่อน parent HUD ด้วย
+                Transform parent = buildPromptHUD.transform.parent;
+                if (parent != null && parent.name.EndsWith("_HUD", StringComparison.OrdinalIgnoreCase))
+                {
+                    parent.gameObject.SetActive(false);
+                }
+            }
+        }
+
         private void OnGUI()
         {
-            // หากมี buildPromptHUD เปิดใช้งานอยู่แล้ว ให้ซ่อน GUI ดั้งเดิม
-            if (!IsInBuildMode || (buildPromptHUD != null && buildPromptHUD.activeSelf)) return;
+            // หากมี buildPromptHUD เปิดใช้งานและแสดงอยู่บนจอจริงแล้ว ให้ซ่อน GUI ดั้งเดิม
+            if (!IsInBuildMode || (buildPromptHUD != null && buildPromptHUD.activeInHierarchy)) return;
 
             GUIStyle style = new GUIStyle(GUI.skin.box);
             style.fontSize = 14;
