@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -9,10 +8,11 @@ namespace TheLastEmpire
     /// - หมุนตรวจจับศัตรู 360 องศาในระยะ 14 เมตร
     /// - ล็อกเป้าและยิงกระสุนต่อเนื่อง 5 นัด/วินาที (ดาเมจนัดละ 15 หน่วย)
     /// - หากมีเครื่องปั่นไฟ (Fusion Generator) อยู่ใกล้เคียง จะได้รับโบนัสความเร็วการยิง +25%
-    /// - มีระบบกระสุนภายใน 200 นัด (ผู้เล่นสามารถกด [E] เพื่อเติมกระสุนได้)
+    /// - มีระบบกระสุนภายใน 200 นัด (ผู้เล่นสามารถกด [E] เพื่อเติมกระสุนหรือเปิด Turret_HUD)
+    /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class SentryTurretBuilding : MonoBehaviour
+    public class SentryTurretBuilding : MonoBehaviour, IBuildingInteractable
     {
         [Header("Targeting & Range")]
         [Tooltip("ระยะการตรวจจับและยิงของป้อมปืน (เมตร)")]
@@ -50,12 +50,63 @@ namespace TheLastEmpire
         private Transform _currentTarget;
         private float _fireTimer = 0f;
         private float _scanTimer = 0f;
-        private Transform _playerTransform;
-        private bool _isPlayerNearby = false;
 
         public int CurrentAmmo => currentAmmo;
         public int MaxAmmo => maxAmmo;
         public bool HasTarget => _currentTarget != null;
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.8f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            bool isPowered = GeneratorBuilding.IsPositionPowered(transform.position);
+            string powerTag = isPowered ? " [⚡POWERED]" : "";
+
+            if (!infiniteAmmo && currentAmmo < maxAmmo)
+            {
+                return $"<color=yellow><b>[E]</b></color> บรรจุกระสุน ({currentAmmo}/{maxAmmo}){powerTag}";
+            }
+            return $"ป้อมปืนกลอัตโนมัติ{powerTag}";
+        }
+
+        public void OnInteract()
+        {
+            // ตรวจสอบว่ามี Turret_HUD ให้เปิดหรือไม่
+            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
+            if (canvasGo != null)
+            {
+                Transform hud = canvasGo.transform.Find("Turret_HUD");
+                if (hud != null && hud.childCount > 0)
+                {
+                    hud.gameObject.SetActive(true);
+                    Debug.Log("[SentryTurret] Opened Turret_HUD.");
+                    return;
+                }
+            }
+
+            if (!infiniteAmmo && currentAmmo < maxAmmo)
+            {
+                ReloadAmmo();
+            }
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+        }
 
         private void Awake()
         {
@@ -76,29 +127,13 @@ namespace TheLastEmpire
             }
         }
 
-        private void Start()
-        {
-            FindPlayer();
-        }
-
-        private void FindPlayer()
-        {
-            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
-            if (pc != null)
-            {
-                _playerTransform = pc.transform;
-            }
-        }
-
         private void Update()
         {
             if (_buildingObject != null && _buildingObject.IsDead) return;
 
-            // ตรวจสอบพลังงานจาก Fusion Generator ใกล้เคียง
             bool isPowered = GeneratorBuilding.IsPositionPowered(transform.position);
             float effectiveFireRate = isPowered ? fireRate * 1.25f : fireRate;
 
-            // ค้นหาเป้าหมายทุกๆ 0.2 วินาที
             _scanTimer += Time.deltaTime;
             if (_scanTimer >= 0.2f)
             {
@@ -106,7 +141,6 @@ namespace TheLastEmpire
                 ScanForTarget();
             }
 
-            // หมุนป้อมปืนและยิง
             if (_currentTarget != null)
             {
                 AimAtTarget();
@@ -119,52 +153,40 @@ namespace TheLastEmpire
                     FireAtTarget();
                 }
             }
-
-            // ตรวจสอบผู้เล่นสำหรับเติมกระสุน
-            CheckPlayerInteraction();
         }
 
         private void ScanForTarget()
         {
-            // ตรวจสอบว่าเป้าหมายปัจจุบันยังใช้ได้อยู่หรือไม่
             if (_currentTarget != null)
             {
-                if (!_currentTarget.gameObject.activeInHierarchy || Vector3.Distance(transform.position, _currentTarget.position) > targetingRange)
+                IDamageable currentDam = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
+                if (currentDam == null || currentDam.IsDead || Vector3.Distance(transform.position, _currentTarget.position) > targetingRange)
                 {
                     _currentTarget = null;
-                }
-                else
-                {
-                    IDamageable dmg = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
-                    if (dmg != null && dmg.IsDead)
-                    {
-                        _currentTarget = null;
-                    }
                 }
             }
 
             if (_currentTarget != null) return;
 
-            // สแกนหาศัตรูที่ใกล้ที่สุด
             Collider[] hits = Physics.OverlapSphere(transform.position, targetingRange);
             float closestDist = float.MaxValue;
             Transform bestTarget = null;
 
-            foreach (Collider hit in hits)
+            foreach (var col in hits)
             {
-                if (hit == null || hit.gameObject == gameObject) continue;
-
-                if (hit.CompareTag("Enemy") || hit.name.Contains("Alien") || hit.name.Contains("Zombie") || hit.name.Contains("Robot"))
+                if (col.CompareTag("Player") || col.GetComponent<PlayerController>() != null)
                 {
-                    IDamageable damageable = hit.GetComponent<IDamageable>() ?? hit.GetComponentInParent<IDamageable>();
-                    if (damageable != null && !damageable.IsDead)
+                    continue;
+                }
+
+                IDamageable dam = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
+                if (dam != null && !dam.IsDead)
+                {
+                    float d = Vector3.Distance(transform.position, col.transform.position);
+                    if (d < closestDist)
                     {
-                        float dist = Vector3.Distance(transform.position, hit.transform.position);
-                        if (dist < closestDist)
-                        {
-                            closestDist = dist;
-                            bestTarget = hit.transform;
-                        }
+                        closestDist = d;
+                        bestTarget = col.transform;
                     }
                 }
             }
@@ -174,22 +196,15 @@ namespace TheLastEmpire
 
         private void AimAtTarget()
         {
-            if (_currentTarget == null) return;
+            if (turretHead == null || _currentTarget == null) return;
 
-            Vector3 targetDir = (_currentTarget.position - transform.position);
-            targetDir.y = 0f;
+            Vector3 dir = (_currentTarget.position - turretHead.position);
+            dir.y = 0f;
 
-            if (targetDir.sqrMagnitude > 0.001f)
+            if (dir.sqrMagnitude > 0.001f)
             {
-                Quaternion targetRot = Quaternion.LookRotation(targetDir);
-                if (turretHead != null)
-                {
-                    turretHead.rotation = Quaternion.RotateTowards(turretHead.rotation, targetRot, rotationSpeed * Time.deltaTime);
-                }
-                else
-                {
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
-                }
+                Quaternion targetRot = Quaternion.LookRotation(dir);
+                turretHead.rotation = Quaternion.RotateTowards(turretHead.rotation, targetRot, rotationSpeed * Time.deltaTime);
             }
         }
 
@@ -199,34 +214,22 @@ namespace TheLastEmpire
 
             if (!infiniteAmmo)
             {
-                if (currentAmmo <= 0) return;
+                if (currentAmmo <= 0)
+                {
+                    return;
+                }
                 currentAmmo--;
             }
 
-            IDamageable damageable = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
-            if (damageable != null && !damageable.IsDead)
+            IDamageable dam = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
+            if (dam != null && !dam.IsDead)
             {
-                Vector3 hitPoint = _currentTarget.position + Vector3.up * 0.8f;
-                damageable.TakeDamage(damagePerShot, hitPoint, false);
-            }
-        }
+                dam.TakeDamage(damagePerShot);
 
-        private void CheckPlayerInteraction()
-        {
-            if (_playerTransform == null)
-            {
-                FindPlayer();
-                if (_playerTransform == null) return;
-            }
-
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            _isPlayerNearby = dist <= interactionDistance;
-
-            if (_isPlayerNearby && !infiniteAmmo && currentAmmo < maxAmmo)
-            {
-                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                if (DamageNumberManager.Instance != null)
                 {
-                    ReloadAmmo();
+                    Vector3 hitPos = _currentTarget.position + Vector3.up * 1.0f;
+                    DamageNumberManager.Instance.SpawnDamageNumber(hitPos, damagePerShot, false);
                 }
             }
         }
@@ -240,35 +243,10 @@ namespace TheLastEmpire
                     transform.position + Vector3.up * 1.8f,
                     0f,
                     false,
-                    "RELOADED (200 RDS)"
+                    $"RELOADED ({maxAmmo} RDS)"
                 );
             }
             Debug.Log("[SentryTurret] Turret ammo replenished to maximum.");
         }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.8f);
-                if (screenPos.z > 0)
-                {
-                    float width = 230f;
-                    float height = 38f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    bool isPowered = GeneratorBuilding.IsPositionPowered(transform.position);
-                    GUI.color = isPowered ? new Color(0.4f, 1f, 0.4f, 0.95f) : new Color(1f, 0.85f, 0.3f, 0.95f);
-
-                    string powerTag = isPowered ? "[⚡POWERED +25%]" : "[STANDALONE]";
-                    string text = infiniteAmmo ? $"Sentry Turret {powerTag}" : $"[E] บรรจุกระสุน ({currentAmmo}/{maxAmmo}) {powerTag}";
-                    GUI.Box(rect, text);
-                }
-            }
-        }
     }
 }
-

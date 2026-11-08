@@ -90,26 +90,6 @@ namespace TheLastEmpire
                 lidTransform.localRotation = Quaternion.Slerp(lidTransform.localRotation, targetRot, Time.deltaTime * animationSpeed);
             }
         }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby && (_lootContainer == null || LootUI.Instance == null || !LootUI.Instance.IsOpen))
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.3f);
-                if (screenPos.z > 0)
-                {
-                    float width = 230f;
-                    float height = 38f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    GUI.color = new Color(0.9f, 0.75f, 0.4f, 0.95f);
-                    GUI.Box(rect, "[E] เปิดหีบเก็บของ (Storage Crate)");
-                }
-            }
-        }
     }
 }
 

@@ -134,6 +134,12 @@ namespace TheLastEmpire
         private HeldItemType _heldItemType = HeldItemType.Ranged;
         private string _heldConsumableName = "";
 
+        private enum TargetInteractableType { None, Building, Container, NPC }
+        private TargetInteractableType _bestInteractableType = TargetInteractableType.None;
+        private IBuildingInteractable _closestBuilding;
+        private LootContainer _closestContainer;
+        private NPCController _closestNpc;
+
         public HeldItemType CurrentHeldType => _heldItemType;
         public bool IsHoldingRanged => _heldItemType == HeldItemType.Ranged && CurrentWeapon != null;
         public bool IsHoldingMelee => _heldItemType == HeldItemType.Melee && CurrentMeleeWeapon != null;
@@ -1325,7 +1331,14 @@ namespace TheLastEmpire
                 }
                 if (Keyboard.current.zKey.wasPressedThisFrame && !_isDashing)
                 {
-                    ToggleSit();
+                    if (_bestInteractableType == TargetInteractableType.Building && _closestBuilding != null)
+                    {
+                        _closestBuilding.OnSecondaryInteract();
+                    }
+                    else
+                    {
+                        ToggleSit();
+                    }
                 }
             }
         }
@@ -1403,44 +1416,31 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Check if standing near an NPCController
-            NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
-            foreach (NPCController npc in npcs)
+            // 2. Interacting with the SINGLE closest target detected by UpdateInteractionPrompt!
+            if (_bestInteractableType == TargetInteractableType.Building && _closestBuilding != null && _closestBuilding.CanInteract)
             {
-                if (npc != null && npc.IsPlayerInRange(transform.position))
-                {
-                    npc.Interact();
-                    return; // Interacted with NPC, skip other interactions!
-                }
+                _closestBuilding.OnInteract();
+                return;
             }
 
-            // 3. Check if standing near a LootContainer
-            LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
-            LootContainer closestContainer = null;
-            float minContainerDist = float.MaxValue;
-            foreach (LootContainer container in containers)
-            {
-                if (container == null) continue;
-                float dist = Vector3.Distance(transform.position, container.transform.position);
-                float radius = container.interactionRadius > 0f ? container.interactionRadius : 2.5f;
-                if (dist <= radius && dist < minContainerDist)
-                {
-                    minContainerDist = dist;
-                    closestContainer = container;
-                }
-            }
-            if (closestContainer != null)
+            if (_bestInteractableType == TargetInteractableType.Container && _closestContainer != null)
             {
                 PlayerInventory inv = GetComponent<PlayerInventory>();
                 if (inv == null) inv = _inventory;
                 if (LootUI.Instance != null && inv != null)
                 {
-                    LootUI.Instance.Open(closestContainer, inv);
+                    LootUI.Instance.Open(_closestContainer, inv);
                     return; // Opened Loot UI, skip other interactions!
                 }
             }
 
-            // Standard item collect fallback if not transitioning
+            if (_bestInteractableType == TargetInteractableType.NPC && _closestNpc != null)
+            {
+                _closestNpc.Interact();
+                return; // Interacted with NPC, skip other interactions!
+            }
+
+            // 3. Fallback to CollectibleItem in case no prompt object is active
             CollectibleItem[] collectibles = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
             CollectibleItem closestItem = null;
             float closestDist = float.MaxValue;
@@ -3292,9 +3292,14 @@ namespace TheLastEmpire
             if (isMenuOpen)
             {
                 if (LootUI.Instance != null) LootUI.Instance.HidePrompt();
+                _bestInteractableType = TargetInteractableType.None;
+                _closestBuilding = null;
+                _closestContainer = null;
+                _closestNpc = null;
                 return;
             }
 
+            // 1. Scan Loot Containers
             LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
             LootContainer closestContainer = null;
             float minContainerDist = float.MaxValue;
@@ -3310,53 +3315,106 @@ namespace TheLastEmpire
                 }
             }
 
-            if (closestContainer != null && LootUI.Instance != null)
+            // 2. Scan NPC Controllers
+            NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            NPCController closestNpc = null;
+            float minNpcDist = float.MaxValue;
+            foreach (NPCController npc in npcs)
             {
-                LootUI.Instance.ShowPrompt("Search " + closestContainer.containerName, closestContainer.transform);
-            }
-            else
-            {
-                // Fallback to check if near an NPC Merchant to show interaction prompt!
-                NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
-                NPCController closestNpc = null;
-                float minNpcDist = float.MaxValue;
-                foreach (NPCController npc in npcs)
+                if (npc != null && npc.IsPlayerInRange(transform.position))
                 {
-                    if (npc != null && npc.IsPlayerInRange(transform.position))
+                    float dist = Vector3.Distance(transform.position, npc.transform.position);
+                    if (dist < minNpcDist)
                     {
-                        float dist = Vector3.Distance(transform.position, npc.transform.position);
-                        if (dist < minNpcDist)
-                        {
-                            minNpcDist = dist;
-                            closestNpc = npc;
-                        }
+                        minNpcDist = dist;
+                        closestNpc = npc;
                     }
                 }
+            }
 
-                if (closestNpc != null && LootUI.Instance != null)
+            // 3. Scan Building Interactables
+            IBuildingInteractable closestBuilding = null;
+            float minBuildingDist = float.MaxValue;
+            for (int i = 0; i < BuildingInteractionRegistry.ActiveInteractables.Count; i++)
+            {
+                var building = BuildingInteractionRegistry.ActiveInteractables[i];
+                if (building == null || !building.CanInteract || building.InteractionTransform == null) continue;
+
+                float dist = Vector3.Distance(transform.position, building.InteractionTransform.position);
+                if (dist <= building.InteractionDistance && dist < minBuildingDist)
                 {
-                    if (closestNpc.HasShop && closestNpc.HasDialogue)
+                    minBuildingDist = dist;
+                    closestBuilding = building;
+                }
+            }
+
+            // 4. Find the SINGLE CLOSEST target across all types!
+            float minOverallDist = float.MaxValue;
+            _bestInteractableType = TargetInteractableType.None;
+            _closestBuilding = null;
+            _closestContainer = null;
+            _closestNpc = null;
+
+            if (closestBuilding != null && minBuildingDist < minOverallDist)
+            {
+                minOverallDist = minBuildingDist;
+                _bestInteractableType = TargetInteractableType.Building;
+                _closestBuilding = closestBuilding;
+            }
+
+            if (closestContainer != null && minContainerDist < minOverallDist)
+            {
+                minOverallDist = minContainerDist;
+                _bestInteractableType = TargetInteractableType.Container;
+                _closestContainer = closestContainer;
+                _closestBuilding = null;
+            }
+
+            if (closestNpc != null && minNpcDist < minOverallDist)
+            {
+                minOverallDist = minNpcDist;
+                _bestInteractableType = TargetInteractableType.NPC;
+                _closestNpc = closestNpc;
+                _closestBuilding = null;
+                _closestContainer = null;
+            }
+
+            // 5. Display prompt via LootUI (only one prompt at any given time)
+            if (LootUI.Instance == null) return;
+
+            switch (_bestInteractableType)
+            {
+                case TargetInteractableType.Building:
+                    LootUI.Instance.ShowRawPrompt(_closestBuilding.GetInteractionPrompt(), _closestBuilding.InteractionTransform, _closestBuilding.PromptWorldOffset);
+                    break;
+
+                case TargetInteractableType.Container:
+                    LootUI.Instance.ShowPrompt("Search " + _closestContainer.containerName, _closestContainer.transform);
+                    break;
+
+                case TargetInteractableType.NPC:
+                    if (_closestNpc.HasShop && _closestNpc.HasDialogue)
                     {
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop\n<color=#00e5ff><b>[Q]</b></color> Talk", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop\n<color=#00e5ff><b>[Q]</b></color> Talk", _closestNpc.transform);
                     }
-                    else if (closestNpc.HasShop)
+                    else if (_closestNpc.HasShop)
                     {
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop", _closestNpc.transform);
                     }
-                    else if (closestNpc.HasDialogue)
+                    else if (_closestNpc.HasDialogue)
                     {
-                        LootUI.Instance.ShowRawPrompt($"<color=#00e5ff><b>[Q]</b></color> Talk", closestNpc.transform);
+                        LootUI.Instance.ShowRawPrompt($"<color=#00e5ff><b>[Q]</b></color> Talk", _closestNpc.transform);
                     }
                     else
                     {
-                        string action = closestNpc.NpcType == NPCType.Shop ? "Shop" : "Interact";
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> {action}", closestNpc.transform);
+                        string action = _closestNpc.NpcType == NPCType.Shop ? "Shop" : "Interact";
+                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> {action}", _closestNpc.transform);
                     }
-                }
-                else if (LootUI.Instance != null)
-                {
+                    break;
+
+                default:
                     LootUI.Instance.HidePrompt();
-                }
+                    break;
             }
         }
 

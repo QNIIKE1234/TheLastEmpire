@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -8,20 +7,53 @@ namespace TheLastEmpire
     /// คุณสมบัติ:
     /// - ผู้เล่นสามารถกด [E] เพื่อเปิดหน้าต่างสร้างไอเทม (Craft Menu)
     /// - มอบสถานะ "Near Workbench" ช่วยปลดล็อกสูตรคราฟต์ระดับสูงหรือเพิ่มความเร็ว
-    /// - มีช่องเก็บของ 26 ช่องสำหรับสำรองวัตถุดิบคราฟต์ (LootContainer)
+    /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class WorkbenchBuilding : MonoBehaviour
+    public class WorkbenchBuilding : MonoBehaviour, IBuildingInteractable
     {
         [Header("Workbench Settings")]
         [SerializeField] private float interactionDistance = 2.5f;
 
         private BuildingObject _buildingObject;
         private Transform _playerTransform;
-        private bool _isPlayerNearby = false;
 
         public static WorkbenchBuilding ClosestWorkbench { get; private set; }
         public static bool IsPlayerNearWorkbench => ClosestWorkbench != null;
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.5f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            return "<color=yellow><b>[E]</b></color> ใช้โต๊ะคราฟต์ (Crafting Table)";
+        }
+
+        public void OnInteract()
+        {
+            OpenCraftStation();
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+            if (ClosestWorkbench == this)
+            {
+                ClosestWorkbench = null;
+            }
+        }
 
         private void Awake()
         {
@@ -51,17 +83,11 @@ namespace TheLastEmpire
             }
 
             float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            _isPlayerNearby = dist <= interactionDistance;
+            bool isNearby = dist <= interactionDistance;
 
-            if (_isPlayerNearby)
+            if (isNearby)
             {
                 ClosestWorkbench = this;
-
-                // กด E เพื่อเปิดเมนูคราฟต์
-                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                {
-                    OpenCraftStation();
-                }
             }
             else if (ClosestWorkbench == this)
             {
@@ -71,40 +97,24 @@ namespace TheLastEmpire
 
         public void OpenCraftStation()
         {
+            // ตรวจสอบทั้ง Workbench_HUD ภายใต้ BuildingUI_Canvas และ CraftController
+            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
+            if (canvasGo != null)
+            {
+                Transform hud = canvasGo.transform.Find("Workbench_HUD");
+                if (hud != null && hud.childCount > 0)
+                {
+                    hud.gameObject.SetActive(true);
+                    Debug.Log("[WorkbenchBuilding] Opened Workbench_HUD.");
+                    return;
+                }
+            }
+
             if (CraftController.Instance != null)
             {
                 CraftController.Instance.OpenCraftMenu();
                 Debug.Log("[WorkbenchBuilding] Opened Craft Menu at Survivor Workbench.");
             }
         }
-
-        private void OnDestroy()
-        {
-            if (ClosestWorkbench == this)
-            {
-                ClosestWorkbench = null;
-            }
-        }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.5f);
-                if (screenPos.z > 0)
-                {
-                    float width = 230f;
-                    float height = 38f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    GUI.color = new Color(1f, 0.85f, 0.2f, 0.95f);
-                    GUI.Box(rect, "[E] ใช้โต๊ะคราฟต์ (Use Workbench)");
-                }
-            }
-        }
     }
 }
-

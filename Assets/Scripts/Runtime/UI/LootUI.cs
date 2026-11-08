@@ -47,6 +47,7 @@ namespace TheLastEmpire
         private GameObject _itemContainer;
 
         private Transform _promptTarget;
+        private Vector3 _promptWorldOffset = Vector3.up * 1.5f;
         private Vector2 _originalPromptAnchoredPos;
         private bool _hasOriginalPromptPos = false;
 
@@ -110,8 +111,8 @@ namespace TheLastEmpire
             {
                 if (Camera.main != null)
                 {
-                    // Project the target's 3D position to the screen (+2 meters offset upwards)
-                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_promptTarget.position + Vector3.up * 2.0f);
+                    // Project the target's 3D position to the screen (+ custom offset upwards)
+                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_promptTarget.position + _promptWorldOffset);
                     if (screenPos.z > 0)
                     {
                         promptPanel.transform.position = screenPos;
@@ -209,7 +210,7 @@ namespace TheLastEmpire
             }
         }
 
-        public void ShowPrompt(string actionText, Transform targetTransform = null)
+        public void ShowPrompt(string actionText, Transform targetTransform = null, Vector3? worldOffset = null)
         {
             if (promptPanel == null || promptText == null) return;
 
@@ -220,6 +221,7 @@ namespace TheLastEmpire
             }
 
             _promptTarget = targetTransform;
+            _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
 
             promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
 
@@ -232,7 +234,7 @@ namespace TheLastEmpire
             promptPanel.SetActive(true);
         }
 
-        public void ShowRawPrompt(string fullPromptText, Transform targetTransform = null)
+        public void ShowRawPrompt(string fullPromptText, Transform targetTransform = null, Vector3? worldOffset = null)
         {
             if (promptPanel == null || promptText == null) return;
 
@@ -243,6 +245,7 @@ namespace TheLastEmpire
             }
 
             _promptTarget = targetTransform;
+            _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
 
             promptText.text = fullPromptText;
 
@@ -250,7 +253,7 @@ namespace TheLastEmpire
             if (promptRect != null)
             {
                 bool isMultiLine = fullPromptText.Contains("\n");
-                promptRect.sizeDelta = isMultiLine ? new Vector2(240f, 75f) : new Vector2(260f, 50f);
+                promptRect.sizeDelta = isMultiLine ? new Vector2(320f, 75f) : new Vector2(300f, 50f);
             }
 
             promptPanel.SetActive(true);

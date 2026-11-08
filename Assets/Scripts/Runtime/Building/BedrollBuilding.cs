@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -7,10 +6,11 @@ namespace TheLastEmpire
     /// BedrollBuilding — ที่นอนถุงนอนผู้รอดชีวิต (BUILD0013_SurvivorSleepingBedroll)
     /// คุณสมบัติ:
     /// - กด [E] เพื่อบันทึกจุดเกิดใหม่ (Set Respawn Point)
-    /// - กด [Z] หรือนอนหลับตอนกลางคืน: ข้ามคืนไปยังรุ่งเช้า (Day), ฟื้นฟู +50 HP และ +50 Sanity
+    /// - กด [Z] เพื่อเข้านอนหลับพักผ่อนตอนกลางคืน: ข้ามคืนไปยังรุ่งเช้า (Day), ฟื้นฟู +50 HP และ +50 Sanity
+    /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class BedrollBuilding : MonoBehaviour
+    public class BedrollBuilding : MonoBehaviour, IBuildingInteractable
     {
         [Header("Bedroll Settings")]
         [SerializeField] private float hpRestoredOnSleep = 50f;
@@ -18,12 +18,48 @@ namespace TheLastEmpire
         [SerializeField] private float interactionDistance = 2.5f;
 
         private BuildingObject _buildingObject;
-        private Transform _playerTransform;
         private PlayerController _playerController;
-        private bool _isPlayerNearby = false;
 
         public static Vector3? CurrentRespawnPoint { get; private set; }
         public static BedrollBuilding ActiveBedroll { get; private set; }
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.0f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
+            return isNight
+                ? "<color=yellow><b>[E]</b></color> บันทึกจุดเกิด  |  <color=#00e5ff><b>[Z]</b></color> นอนข้ามคืน"
+                : "<color=yellow><b>[E]</b></color> บันทึกจุดเกิดใหม่ (Spawn Point)";
+        }
+
+        public void OnInteract()
+        {
+            SetRespawnPoint();
+        }
+
+        public void OnSecondaryInteract()
+        {
+            TrySleep();
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+            if (ActiveBedroll == this)
+            {
+                ActiveBedroll = null;
+            }
+        }
 
         private void Awake()
         {
@@ -41,34 +77,6 @@ namespace TheLastEmpire
             if (pc != null)
             {
                 _playerController = pc;
-                _playerTransform = pc.transform;
-            }
-        }
-
-        private void Update()
-        {
-            if (_playerTransform == null)
-            {
-                FindPlayer();
-                if (_playerTransform == null) return;
-            }
-
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            _isPlayerNearby = dist <= interactionDistance;
-
-            if (_isPlayerNearby && Keyboard.current != null)
-            {
-                // กด E: ตั้งจุดเกิดใหม่
-                if (Keyboard.current.eKey.wasPressedThisFrame)
-                {
-                    SetRespawnPoint();
-                }
-
-                // กด Z: นอนหลับพักผ่อน (เฉพาะตอนกลางคืน)
-                if (Keyboard.current.zKey.wasPressedThisFrame)
-                {
-                    TrySleep();
-                }
             }
         }
 
@@ -108,14 +116,17 @@ namespace TheLastEmpire
                 return;
             }
 
-            // ข้ามเวลาไปยังเช้าวันถัดไป
             if (DayNightManager.Instance != null)
             {
                 DayNightManager.Instance.AddDays(1);
                 DayNightManager.Instance.SetPhase(DayNightManager.TimePhase.Day, true);
             }
 
-            // ฟื้นฟูเลือดและสติ
+            if (_playerController == null)
+            {
+                FindPlayer();
+            }
+
             if (_playerController != null)
             {
                 if (_playerController.PlayerHealth != null)
@@ -137,39 +148,5 @@ namespace TheLastEmpire
 
             Debug.Log("[BedrollBuilding] Player slept through the night and woke up refreshed at dawn.");
         }
-
-        private void OnDestroy()
-        {
-            if (ActiveBedroll == this)
-            {
-                ActiveBedroll = null;
-            }
-        }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.2f);
-                if (screenPos.z > 0)
-                {
-                    float width = 270f;
-                    float height = 50f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
-                    GUI.color = new Color(0.95f, 0.85f, 0.5f, 0.95f);
-
-                    string prompt = isNight 
-                        ? "[E] จุดเกิดใหม่  |  [Z] เข้านอนข้ามคืน"
-                        : "[E] บันทึกจุดเกิดใหม่ (Spawn Point)";
-                    GUI.Box(rect, prompt);
-                }
-            }
-        }
     }
 }
-

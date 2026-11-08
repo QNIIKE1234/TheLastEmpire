@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -11,13 +10,13 @@ namespace TheLastEmpire
     /// - BUILD0008_MotorizedBlastDoor (ประตูบังเกอร์กลไกไฟฟ้า)
     /// 
     /// คุณสมบัติ:
-    /// - ผู้เล่นสามารถกด [E] เพื่อเปิดหรือปิดประตู
+    /// - ผู้เล่นสามารถกด [E] เพื่อเปิดหรือปิดประตู (ทำงานร่วมกับ Loot_HUD รวมศูนย์)
     /// - เมื่อประตูเปิด: ปิด NavMeshObstacle และ Collider ทางผ่านเพื่อให้ผู้เล่นเดินผ่านได้
     /// - เมื่อประตูปิด: เปิด NavMeshObstacle Carving เพื่อกั้นศัตรูไม่ให้บุกเข้ามา
     /// - ประตูมอเตอร์ (Motorized) รองรับการตั้งเวลาปิดอัตโนมัติ (Auto Close)
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class DoorBuilding : MonoBehaviour
+    public class DoorBuilding : MonoBehaviour, IBuildingInteractable
     {
         public enum DoorType
         {
@@ -45,8 +44,6 @@ namespace TheLastEmpire
 
         private BuildingObject _buildingObject;
         private NavMeshObstacle _navObstacle;
-        private Transform _playerTransform;
-        private bool _isPlayerNearby = false;
         private float _autoCloseTimer = 0f;
 
         private Quaternion _closedRotation;
@@ -55,6 +52,38 @@ namespace TheLastEmpire
         private Vector3 _openPosition;
 
         public bool IsOpen => isOpen;
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.6f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            return isOpen 
+                ? "<color=yellow><b>[E]</b></color> ปิดประตู (Close Door)" 
+                : "<color=yellow><b>[E]</b></color> เปิดประตู (Open Door)";
+        }
+
+        public void OnInteract()
+        {
+            ToggleDoor();
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+        }
 
         private void Awake()
         {
@@ -93,37 +122,8 @@ namespace TheLastEmpire
             UpdateDoorState(isOpen, true);
         }
 
-        private void Start()
-        {
-            FindPlayer();
-        }
-
-        private void FindPlayer()
-        {
-            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
-            if (pc != null)
-            {
-                _playerTransform = pc.transform;
-            }
-        }
-
         private void Update()
         {
-            if (_playerTransform == null)
-            {
-                FindPlayer();
-                if (_playerTransform == null) return;
-            }
-
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            _isPlayerNearby = dist <= interactionDistance;
-
-            // กด E เพื่อสลับสถานะเปิด/ปิด
-            if (_isPlayerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-            {
-                ToggleDoor();
-            }
-
             // จัดการระบบปิดอัตโนมัติ (สำหรับ Blast Door)
             if (isOpen && autoClose)
             {
@@ -203,27 +203,5 @@ namespace TheLastEmpire
                 doorLeaf.localPosition = Vector3.Lerp(doorLeaf.localPosition, targetPos, Time.deltaTime * animationSpeed);
             }
         }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.6f);
-                if (screenPos.z > 0)
-                {
-                    float width = 200f;
-                    float height = 38f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    GUI.color = isOpen ? new Color(1f, 0.6f, 0.4f, 0.95f) : new Color(0.4f, 1f, 0.4f, 0.95f);
-                    string prompt = isOpen ? "[E] ปิดประตู (Close Door)" : "[E] เปิดประตู (Open Door)";
-                    GUI.Box(rect, prompt);
-                }
-            }
-        }
     }
 }
-

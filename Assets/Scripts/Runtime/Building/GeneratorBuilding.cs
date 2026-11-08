@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -9,10 +8,10 @@ namespace TheLastEmpire
     /// คุณสมบัติ:
     /// - ผลิตและจ่ายพลังงานไฟฟ้าแก่ระบบป้องกันฐานในรัศมี 20 เมตร
     /// - ทำหน้าที่จ่ายไฟให้ Automated Sentry Turret และ Xenocrystal Shock Tower
-    /// - แสดงสถานะกำลังไฟฟ้าและรัศมีจ่ายไฟ
+    /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD หรือเปิด Generator_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class GeneratorBuilding : MonoBehaviour
+    public class GeneratorBuilding : MonoBehaviour, IBuildingInteractable
     {
         public static readonly List<GeneratorBuilding> ActiveGenerators = new List<GeneratorBuilding>();
 
@@ -28,15 +27,45 @@ namespace TheLastEmpire
         [SerializeField] private float interactionDistance = 2.5f;
 
         private BuildingObject _buildingObject;
-        private Transform _playerTransform;
-        private bool _isPlayerNearby = false;
 
         public float PowerRadius => powerRadius;
         public bool IsRunning => isRunning && (_buildingObject == null || !_buildingObject.IsDead);
 
-        /// <summary>
-        /// ตรวจสอบว่าพิกัดที่กำหนดอยู่ในรัศมีจ่ายไฟของ Generator ตัวใดตัวหนึ่งที่ทำงานอยู่หรือไม่
-        /// </summary>
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.8f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            return isRunning 
+                ? "<color=yellow><b>[E]</b></color> ปิดเครื่องกำเนิดไฟฟ้า (Power: ON)" 
+                : "<color=yellow><b>[E]</b></color> เปิดเครื่องกำเนิดไฟฟ้า (Power: OFF)";
+        }
+
+        public void OnInteract()
+        {
+            // ตรวจสอบว่ามี Generator_HUD ให้เปิดหรือไม่
+            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
+            if (canvasGo != null)
+            {
+                Transform hud = canvasGo.transform.Find("Generator_HUD");
+                if (hud != null && hud.childCount > 0)
+                {
+                    hud.gameObject.SetActive(true);
+                    Debug.Log("[GeneratorBuilding] Opened Generator_HUD.");
+                    return;
+                }
+            }
+
+            ToggleGenerator();
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
         public static bool IsPositionPowered(Vector3 position)
         {
             for (int i = 0; i < ActiveGenerators.Count; i++)
@@ -68,25 +97,13 @@ namespace TheLastEmpire
             {
                 ActiveGenerators.Add(this);
             }
+            BuildingInteractionRegistry.Register(this);
         }
 
         private void OnDisable()
         {
             ActiveGenerators.Remove(this);
-        }
-
-        private void Start()
-        {
-            FindPlayer();
-        }
-
-        private void FindPlayer()
-        {
-            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
-            if (pc != null)
-            {
-                _playerTransform = pc.transform;
-            }
+            BuildingInteractionRegistry.Unregister(this);
         }
 
         private void Update()
@@ -98,20 +115,6 @@ namespace TheLastEmpire
                 {
                     powerCoreLight.intensity = 2.0f + Mathf.PingPong(Time.time * 2f, 0.8f);
                 }
-            }
-
-            if (_playerTransform == null)
-            {
-                FindPlayer();
-                if (_playerTransform == null) return;
-            }
-
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            _isPlayerNearby = dist <= interactionDistance;
-
-            if (_isPlayerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-            {
-                ToggleGenerator();
             }
         }
 
@@ -131,32 +134,5 @@ namespace TheLastEmpire
 
             Debug.Log($"[GeneratorBuilding] Generator is now {(isRunning ? "ONLINE" : "OFFLINE")}.");
         }
-
-        private void OnDestroy()
-        {
-            ActiveGenerators.Remove(this);
-        }
-
-        private void OnGUI()
-        {
-            if (_isPlayerNearby)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.8f);
-                if (screenPos.z > 0)
-                {
-                    float width = 260f;
-                    float height = 40f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    GUI.color = isRunning ? new Color(0.2f, 1f, 0.4f, 0.95f) : new Color(1f, 0.3f, 0.3f, 0.95f);
-                    string status = isRunning ? "[E] ปิดเครื่อง (Power: ONLINE)" : "[E] เปิดเครื่อง (Power: OFFLINE)";
-                    GUI.Box(rect, status);
-                }
-            }
-        }
     }
 }
-

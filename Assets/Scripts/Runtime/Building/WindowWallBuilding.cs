@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
@@ -9,9 +8,10 @@ namespace TheLastEmpire
     /// - ป้องกันการบุกทะลวงของศัตรูประชิด (NavMesh Carving)
     /// - มีช่องหน้าต่างสำหรับเล็งและยิงปืนออกไปภายนอก
     /// - มอบบัฟ "Window Cover": ลดความเสียหายจากการถูกยิงระยะไกลลง 50% เมื่อผู้เล่นยืนหลบหลังกำแพงหน้าต่าง
+    /// - กด [E] เพื่อซ่อมแซมหน้าต่างเมื่อได้รับความเสียหาย ผ่านระบบ Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class WindowWallBuilding : MonoBehaviour
+    public class WindowWallBuilding : MonoBehaviour, IBuildingInteractable
     {
         [Header("Window Cover Settings")]
         [Tooltip("ระยะที่ผู้เล่นต้องอยู่ใกล้หน้าต่างเพื่อรับโบนัสกำบัง (เมตร)")]
@@ -27,6 +27,40 @@ namespace TheLastEmpire
 
         public bool IsPlayerTakingCover => _isPlayerTakingCover;
         public float RangedDamageReduction => rangedDamageReduction;
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.6f;
+        public float InteractionDistance => coverDistance;
+        public bool CanInteract => _buildingObject != null && !_buildingObject.IsDead && _buildingObject.CurrentHealth < _buildingObject.MaxHealth;
+
+        public string GetInteractionPrompt()
+        {
+            if (_buildingObject != null)
+            {
+                return $"<color=yellow><b>[E]</b></color> ซ่อมแซมหน้าต่าง ({_buildingObject.CurrentHealth:F0}/{_buildingObject.MaxHealth:F0})";
+            }
+            return "<color=yellow><b>[E]</b></color> ซ่อมแซมหน้าต่าง";
+        }
+
+        public void OnInteract()
+        {
+            RepairWindow();
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+        }
 
         private void Awake()
         {
@@ -57,15 +91,6 @@ namespace TheLastEmpire
 
             float dist = Vector3.Distance(transform.position, _playerTransform.position);
             _isPlayerTakingCover = dist <= coverDistance;
-
-            // ซ่อมแซมด้วยปุ่ม E เมื่อกำแพงหน้าต่างได้รับความเสียหาย
-            if (_isPlayerTakingCover && _buildingObject != null && _buildingObject.CurrentHealth < _buildingObject.MaxHealth)
-            {
-                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                {
-                    RepairWindow();
-                }
-            }
         }
 
         public void RepairWindow()
@@ -88,26 +113,5 @@ namespace TheLastEmpire
                 );
             }
         }
-
-        private void OnGUI()
-        {
-            if (_isPlayerTakingCover)
-            {
-                Camera cam = Camera.main;
-                if (cam == null) return;
-
-                Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 1.8f);
-                if (screenPos.z > 0)
-                {
-                    float width = 230f;
-                    float height = 36f;
-                    Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - height * 0.5f, width, height);
-
-                    GUI.color = new Color(0.4f, 0.85f, 1.0f, 0.95f);
-                    GUI.Box(rect, $"[Window Cover: -{(rangedDamageReduction * 100f):F0}% Ranged Dmg]");
-                }
-            }
-        }
     }
 }
-
