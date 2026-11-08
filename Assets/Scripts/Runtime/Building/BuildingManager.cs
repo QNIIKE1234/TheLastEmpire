@@ -14,7 +14,19 @@ namespace TheLastEmpire
     /// </summary>
     public class BuildingManager : MonoBehaviour
     {
-        public static BuildingManager Instance { get; private set; }
+        private static BuildingManager _instance;
+        public static BuildingManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = UnityEngine.Object.FindFirstObjectByType<BuildingManager>();
+                }
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         [Header("Building Database")]
         [Tooltip("รายการ BuildingData ทั้งหมดที่รองรับในเกม")]
@@ -26,41 +38,19 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
-                if (transform.parent == null)
-                {
-                    DontDestroyOnLoad(gameObject);
-                }
+                _instance = this;
             }
-            else if (Instance != this)
+            else if (_instance != this)
             {
-                Destroy(gameObject);
+                Debug.LogWarning($"[BuildingManager] Multiple BuildingManager instances detected. Keeping existing instance: {_instance.gameObject.name}");
+                Destroy(this);
                 return;
             }
 
             EnsureBuildingPlacerAttached();
             LoadDefaultBuildingDataIfEmpty();
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void AutoInitialize()
-        {
-            if (Instance == null)
-            {
-                BuildingManager existing = UnityEngine.Object.FindFirstObjectByType<BuildingManager>();
-                if (existing != null)
-                {
-                    Instance = existing;
-                    return;
-                }
-
-                GameObject obj = new GameObject("BuildingManager");
-                Instance = obj.AddComponent<BuildingManager>();
-                obj.AddComponent<BuildingPlacer>();
-                DontDestroyOnLoad(obj);
-            }
         }
 
         private void EnsureBuildingPlacerAttached()

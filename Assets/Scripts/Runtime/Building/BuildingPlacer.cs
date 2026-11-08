@@ -16,7 +16,19 @@ namespace TheLastEmpire
     /// </summary>
     public class BuildingPlacer : MonoBehaviour
     {
-        public static BuildingPlacer Instance { get; private set; }
+        private static BuildingPlacer _instance;
+        public static BuildingPlacer Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = UnityEngine.Object.FindFirstObjectByType<BuildingPlacer>();
+                }
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         [Header("Layer Masks")]
         [Tooltip("Layer ของพื้นผิวที่อนุญาตให้วางได้ เช่น Ground, Default, Terrain")]
@@ -72,24 +84,43 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
+                _instance = this;
             }
-            else if (Instance != this)
+            else if (_instance != this)
             {
+                Debug.LogWarning($"[BuildingPlacer] Multiple BuildingPlacer instances detected. Keeping existing instance: {_instance.gameObject.name}");
                 Destroy(this);
                 return;
             }
 
             if (buildPromptHUD == null)
             {
-                GameObject canvas = GameObject.Find("BuildingUI_Canvas");
-                if (canvas != null)
+                Transform childPanel = transform.Find("Panel");
+                if (childPanel != null)
                 {
-                    Transform t = canvas.transform.Find("Build_HUD");
-                    if (t != null) buildPromptHUD = t.gameObject;
+                    buildPromptHUD = childPanel.gameObject;
                 }
+                else
+                {
+                    GameObject canvas = GameObject.Find("BuildingUI_Canvas");
+                    if (canvas != null)
+                    {
+                        Transform t = canvas.transform.Find("Build_HUD");
+                        if (t != null)
+                        {
+                            Transform p = t.Find("Panel");
+                            buildPromptHUD = p != null ? p.gameObject : t.gameObject;
+                        }
+                    }
+                }
+            }
+
+            // ซ่อน buildPromptHUD ไว้ก่อนตอนเริ่มต้นหากไม่ได้อยู่ในโหมดสร้าง
+            if (buildPromptHUD != null && !IsInBuildMode)
+            {
+                buildPromptHUD.SetActive(false);
             }
 
             CreateGhostMaterial();
@@ -156,7 +187,11 @@ namespace TheLastEmpire
             {
                 foreach (var hud in hudsToCloseOnBuild)
                 {
-                    if (hud != null && hud.activeSelf)
+                    if (hud == null) continue;
+                    // ห้ามปิด GameObject ของ BuildingPlacer/BuildingManager เอง และห้ามปิด buildPromptHUD
+                    if (hud == gameObject || hud == buildPromptHUD) continue;
+
+                    if (hud.activeSelf)
                     {
                         _previouslyActiveHuds.Add(hud);
                         hud.SetActive(false);
@@ -628,11 +663,23 @@ namespace TheLastEmpire
         {
             if (buildPromptHUD == null)
             {
-                GameObject canvas = GameObject.Find("BuildingUI_Canvas");
-                if (canvas != null)
+                Transform childPanel = transform.Find("Panel");
+                if (childPanel != null)
                 {
-                    Transform t = canvas.transform.Find("Build_HUD");
-                    if (t != null) buildPromptHUD = t.gameObject;
+                    buildPromptHUD = childPanel.gameObject;
+                }
+                else
+                {
+                    GameObject canvas = GameObject.Find("BuildingUI_Canvas");
+                    if (canvas != null)
+                    {
+                        Transform t = canvas.transform.Find("Build_HUD");
+                        if (t != null)
+                        {
+                            Transform p = t.Find("Panel");
+                            buildPromptHUD = p != null ? p.gameObject : t.gameObject;
+                        }
+                    }
                 }
             }
 
@@ -659,9 +706,13 @@ namespace TheLastEmpire
             {
                 buildPromptHUD.SetActive(false);
 
-                // หาก buildPromptHUD เป็นลูกของ Build_HUD หรือ GameObject ชนิด HUD ให้ซ่อน parent HUD ด้วย
+                // หาก buildPromptHUD เป็นลูกของ GameObject ชนิด HUD ให้ซ่อน parent HUD ด้วย
+                // แต่ห้ามซ่อนเด็ดขาดถ้า parent มี BuildingPlacer หรือ BuildingManager (เช่น Build_HUD ที่ผู้ใช้เอา Manager ไปไว้)
                 Transform parent = buildPromptHUD.transform.parent;
-                if (parent != null && parent.name.EndsWith("_HUD", StringComparison.OrdinalIgnoreCase))
+                if (parent != null && 
+                    parent.name.EndsWith("_HUD", StringComparison.OrdinalIgnoreCase) &&
+                    parent.GetComponent<BuildingPlacer>() == null &&
+                    parent.GetComponent<BuildingManager>() == null)
                 {
                     parent.gameObject.SetActive(false);
                 }
