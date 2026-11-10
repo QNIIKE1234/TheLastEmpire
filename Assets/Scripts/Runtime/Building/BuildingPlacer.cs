@@ -614,6 +614,17 @@ namespace TheLastEmpire
             }
             buildingComp.Initialize(_activeData);
 
+            // บันทึกพิกัด Stage X, Y ที่วาง เพื่อไม่ให้สิ่งปลูกสร้างตามผู้เล่นไปเมื่อย้ายแมพ
+            int currentStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 0;
+            int currentStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 0;
+            buildingComp.SetStageCoordinates(currentStageX, currentStageY);
+
+            if (BuildingManager.Instance != null)
+            {
+                instance.transform.SetParent(BuildingManager.Instance.BuildingsContainer, true);
+                BuildingManager.Instance.TrackBuilding(buildingComp);
+            }
+
             // 2. เมื่อวางบนพื้นสำเร็จเรียบร้อยแล้ว จึงค่อยหักวัตถุดิบออกจากกระเป๋า (ถ้าไม่ใช่โหมด Free Craft)
             PlayerInventory inv = PlayerInventory.Instance;
             if (!CraftingDatabase.IsFreeCraft && inv != null)

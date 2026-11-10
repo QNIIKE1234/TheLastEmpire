@@ -33,8 +33,70 @@ namespace TheLastEmpire
         [SerializeField] private List<BuildingData> allBuildings = new List<BuildingData>();
 
         private readonly List<BuildingObject> _activeBuildings = new List<BuildingObject>();
+        private Transform _buildingsContainer;
 
         public IReadOnlyList<BuildingObject> ActiveBuildings => _activeBuildings;
+
+        public Transform BuildingsContainer
+        {
+            get
+            {
+                if (_buildingsContainer == null)
+                {
+                    GameObject go = new GameObject("[PlacedBuildings]");
+                    _buildingsContainer = go.transform;
+                }
+                return _buildingsContainer;
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged += HandleStageChanged;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged -= HandleStageChanged;
+            }
+        }
+
+        private void Start()
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                WorldMapManager.Instance.OnStageChanged -= HandleStageChanged;
+                WorldMapManager.Instance.OnStageChanged += HandleStageChanged;
+                HandleStageChanged(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+            }
+        }
+
+        /// <summary>
+        /// เมื่อผู้เล่นย้ายแมพ / สลับ Stage: กรองแสดงเฉพาะสิ่งปลูกสร้างของ Stage ปัจจุบัน และซ่อนสิ่งปลูกสร้างของ Stage อื่น
+        /// </summary>
+        public void HandleStageChanged(int stageX, int stageY)
+        {
+            for (int i = _activeBuildings.Count - 1; i >= 0; i--)
+            {
+                BuildingObject b = _activeBuildings[i];
+                if (b == null)
+                {
+                    _activeBuildings.RemoveAt(i);
+                    continue;
+                }
+
+                bool isCurrentStage = (b.StageX == stageX && b.StageY == stageY);
+                if (b.gameObject.activeSelf != isCurrentStage)
+                {
+                    b.gameObject.SetActive(isCurrentStage);
+                }
+            }
+        }
 
         private void Awake()
         {
@@ -161,6 +223,16 @@ namespace TheLastEmpire
             if (building != null && !_activeBuildings.Contains(building))
             {
                 _activeBuildings.Add(building);
+
+                if (WorldMapManager.Instance != null)
+                {
+                    bool isCurrentStage = (building.StageX == WorldMapManager.Instance.CurrentPlayerX && 
+                                           building.StageY == WorldMapManager.Instance.CurrentPlayerY);
+                    if (building.gameObject.activeSelf != isCurrentStage)
+                    {
+                        building.gameObject.SetActive(isCurrentStage);
+                    }
+                }
             }
         }
 

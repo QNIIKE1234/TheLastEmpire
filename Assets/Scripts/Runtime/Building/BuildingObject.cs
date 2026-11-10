@@ -16,7 +16,22 @@ namespace TheLastEmpire
     {
         [Header("Building Data")]
         [SerializeField] private BuildingData data;
-        [SerializeField] private float currentHealth = 250f;
+        [SerializeField] private float currentHealth = 1000f;
+
+        [Header("Stage Coordinates")]
+        [Tooltip("พิกัด Stage X ที่สิ่งปลูกสร้างนี้ถูกสร้างขึ้น")]
+        [SerializeField] private int stageX;
+        [Tooltip("พิกัด Stage Y ที่สิ่งปลูกสร้างนี้ถูกสร้างขึ้น")]
+        [SerializeField] private int stageY;
+
+        public int StageX => stageX;
+        public int StageY => stageY;
+
+        public void SetStageCoordinates(int x, int y)
+        {
+            stageX = x;
+            stageY = y;
+        }
 
         [Header("NavMesh Settings")]
         [Tooltip("เพิ่ม NavMeshObstacle อัตโนมัติหรือไม่ เพื่อให้มอนสเตอร์เดินอ้อมสิ่งปลูกสร้างนี้")]
@@ -52,7 +67,7 @@ namespace TheLastEmpire
 
         public BuildingData Data => data;
         public float CurrentHealth => currentHealth;
-        public float MaxHealth => data != null ? data.maxHealth : 250f;
+        public float MaxHealth => data != null ? data.maxHealth : 1000f;
         public bool IsDead => _isDestroyed || currentHealth <= 0f;
 
         public event Action<float, float> OnHealthChanged; // current, max
@@ -74,7 +89,22 @@ namespace TheLastEmpire
                 currentHealth = data.maxHealth;
             }
 
+            if (stageX == 0 && stageY == 0 && WorldMapManager.Instance != null)
+            {
+                stageX = WorldMapManager.Instance.CurrentPlayerX;
+                stageY = WorldMapManager.Instance.CurrentPlayerY;
+            }
+
             SetupNavMeshObstacle();
+            EnsureHealthDisplay();
+        }
+
+        private void EnsureHealthDisplay()
+        {
+            if (GetComponent<BuildingHealthDisplay>() == null)
+            {
+                gameObject.AddComponent<BuildingHealthDisplay>();
+            }
         }
 
         private void Start()

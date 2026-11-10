@@ -58,72 +58,72 @@ namespace TheLastEmpire.Editor
         {
             // --- หมวดที่ 1: สิ่งปลูกสร้างและโครงสร้าง (Building) ---
             new CraftBuildConfig("BUILD0001_WoodenFloorFoundation", "CRAFT0001", "Wooden Floor Foundation", "01_Wooden_Floor_Foundation.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 0.25f, 3.0f), 200f, 0f, 8.0f, 0, true, false, "Basic wooden floor foundation for building survivor shelters."),
+                CraftingCategory.Building, new Vector3(3.0f, 0.25f, 3.0f), 600f, 0f, 8.0f, 0, true, false, "Basic wooden floor foundation for building survivor shelters."),
             
             new CraftBuildConfig("BUILD0002_WoodenWallPanel", "CRAFT0002", "Wooden Wall Panel", "02_Wooden_Wall_Panel.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 300f, 0f, 7.0f, 0, false, false, "Sturdy timber wall panel reinforced with nails and plant fiber."),
+                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 1000f, 0f, 7.0f, 0, false, false, "Sturdy timber wall panel reinforced with nails and plant fiber."),
             
             new CraftBuildConfig("BUILD0003_WoodenWindowWall", "CRAFT0003", "Wooden Window Wall", "03_Wooden_Window_Wall.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 250f, 0f, 7.0f, 0, false, false, "Wooden wall section with a salvaged glass window slot for firing and visibility."),
+                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 850f, 0f, 7.0f, 0, false, false, "Wooden wall section with a salvaged glass window slot for firing and visibility."),
             
             new CraftBuildConfig("BUILD0004_ReinforcedWoodenDoor", "CRAFT0004", "Reinforced Wooden Door", "04_Reinforced_Wooden_Door.prefab",
-                CraftingCategory.Building, new Vector3(2.0f, 2.5f, 0.4f), 350f, 0f, 7.0f, 0, false, false, "Lockable survivor door with spring hinges and scrap metal plating."),
+                CraftingCategory.Building, new Vector3(2.0f, 2.5f, 0.4f), 1200f, 0f, 7.0f, 0, false, false, "Lockable survivor door with spring hinges and scrap metal plating."),
             
             new CraftBuildConfig("BUILD0005_StoneAndBrickWall", "CRAFT0005", "Stone & Brick Wall", "05_Stone_and_Brick_Wall.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.5f), 600f, 0.15f, 7.0f, 0, false, false, "Heavy masonry wall built from rough stone, ceramic shards, and resin mortar."),
+                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.5f), 2000f, 0.15f, 7.0f, 0, false, false, "Heavy masonry wall built from rough stone, ceramic shards, and resin mortar."),
             
             new CraftBuildConfig("BUILD0006_ScrapMetalWall", "CRAFT0006", "Scrap Metal Wall", "06_Scrap_Metal_Wall.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 500f, 0.10f, 7.0f, 0, false, false, "Corrugated scrap metal wall braced with steel pipes."),
+                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.4f), 1800f, 0.10f, 7.0f, 0, false, false, "Corrugated scrap metal wall braced with steel pipes."),
             
             new CraftBuildConfig("BUILD0007_ArmoredTitaniumWall", "CRAFT0007", "Armored Titanium Wall", "07_Armored_Titanium_Wall.prefab",
-                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.5f), 1200f, 0.40f, 7.0f, 0, false, false, "Military-grade titanium bunker wall capable of withstanding boss attacks."),
+                CraftingCategory.Building, new Vector3(3.0f, 2.5f, 0.5f), 4000f, 0.40f, 7.0f, 0, false, false, "Military-grade titanium bunker wall capable of withstanding boss attacks."),
             
             new CraftBuildConfig("BUILD0008_MotorizedBlastDoor", "CRAFT0008", "Motorized Blast Door", "08_Motorized_Blast_Door.prefab",
-                CraftingCategory.Building, new Vector3(2.5f, 2.5f, 0.5f), 1000f, 0.35f, 7.0f, 0, false, false, "Automated heavy bunker door powered by overdrive servos and logic chips."),
+                CraftingCategory.Building, new Vector3(2.5f, 2.5f, 0.5f), 3500f, 0.35f, 7.0f, 0, false, false, "Automated heavy bunker door powered by overdrive servos and logic chips."),
 
             // --- หมวดที่ 2: สาธารณูปโภคและแคมป์ (Utility) ---
             new CraftBuildConfig("BUILD0009_SurvivorCampfire", "CRAFT0009", "Survivor Campfire", "09_Survivor_Campfire.prefab",
-                CraftingCategory.Utility, new Vector3(1.5f, 1.2f, 1.5f), 150f, 0f, 6.5f, 0, false, false, "Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z)."),
+                CraftingCategory.Utility, new Vector3(1.5f, 1.2f, 1.5f), 500f, 0f, 6.5f, 0, false, false, "Placeable campfire with cooking pot. Restores Sanity when sitting nearby (Press Z)."),
             
             new CraftBuildConfig("BUILD0010_SurvivorWorkbench", "CRAFT0010", "Survivor Workbench", "10_Survivor_Workbench.prefab",
-                CraftingCategory.Utility, new Vector3(2.0f, 1.2f, 1.2f), 250f, 0f, 6.0f, 0, false, false, "Crafting station equipped with tools for assembling weapons and base structures."),
+                CraftingCategory.Utility, new Vector3(2.0f, 1.2f, 1.2f), 800f, 0f, 6.0f, 0, false, false, "Crafting station equipped with tools for assembling weapons and base structures."),
             
             new CraftBuildConfig("BUILD0011_WoodenStorageCrate", "CRAFT0011", "Wooden Storage Crate", "11_Wooden_Storage_Crate.prefab",
-                CraftingCategory.Utility, new Vector3(1.2f, 1.0f, 1.2f), 300f, 0f, 6.0f, 24, false, false, "Reinforced wooden chest for storing extra weapons, ammo, and crafting materials."),
+                CraftingCategory.Utility, new Vector3(1.2f, 1.0f, 1.2f), 1000f, 0f, 6.0f, 24, false, false, "Reinforced wooden chest for storing extra weapons, ammo, and crafting materials."),
             
             new CraftBuildConfig("BUILD0012_WaterPurifierStation", "CRAFT0012", "Water Purifier Station", "12_Water_Purifier_Station.prefab",
-                CraftingCategory.Utility, new Vector3(1.5f, 2.0f, 1.5f), 250f, 0f, 6.0f, 0, false, false, "Filtration rig that distills contaminated water into clean drinking water."),
+                CraftingCategory.Utility, new Vector3(1.5f, 2.0f, 1.5f), 800f, 0f, 6.0f, 0, false, false, "Filtration rig that distills contaminated water into clean drinking water."),
             
             new CraftBuildConfig("BUILD0013_SurvivorSleepingBedroll", "CRAFT0013", "Survivor Sleeping Bedroll", "13_Survivor_Sleeping_Bedroll.prefab",
-                CraftingCategory.Utility, new Vector3(1.2f, 0.4f, 2.2f), 150f, 0f, 6.0f, 0, false, false, "Insulated leather and cloth bedroll for resting and setting your respawn point."),
+                CraftingCategory.Utility, new Vector3(1.2f, 0.4f, 2.2f), 500f, 0f, 6.0f, 0, false, false, "Insulated leather and cloth bedroll for resting and setting your respawn point."),
             
             new CraftBuildConfig("BUILD0014_SanityBeaconLantern", "CRAFT0014", "Sanity Beacon Lantern", "14_Sanity_Beacon_Lantern.prefab",
-                CraftingCategory.Utility, new Vector3(1.0f, 2.2f, 1.0f), 200f, 0f, 6.5f, 0, false, false, "Warm high-power camp lamp that wards off darkness and restores Sanity in a wide zone."),
+                CraftingCategory.Utility, new Vector3(1.0f, 2.2f, 1.0f), 600f, 0f, 6.5f, 0, false, false, "Warm high-power camp lamp that wards off darkness and restores Sanity in a wide zone."),
             
             new CraftBuildConfig("BUILD0015_CompactFusionGenerator", "CRAFT0015", "Compact Fusion Generator", "15_Compact_Fusion_Generator.prefab",
-                CraftingCategory.Utility, new Vector3(2.0f, 2.2f, 2.0f), 500f, 0.20f, 6.0f, 0, false, false, "High-output reactor station that powers base defenses and advanced workbenches."),
+                CraftingCategory.Utility, new Vector3(2.0f, 2.2f, 2.0f), 1500f, 0.20f, 6.0f, 0, false, false, "High-output reactor station that powers base defenses and advanced workbenches."),
 
             // --- หมวดที่ 3: แนวป้องกันและกับดัก (Defense) ---
             new CraftBuildConfig("BUILD0016_WoodenSpikeBarricade", "CRAFT0016", "Wooden Spike Barricade", "16_Wooden_Spike_Barricade.prefab",
-                CraftingCategory.Defense, new Vector3(2.5f, 1.2f, 0.8f), 400f, 0f, 6.0f, 0, false, false, "Defensive timber barricade lined with sharpened bone claws to impale zombies."),
+                CraftingCategory.Defense, new Vector3(2.5f, 1.2f, 0.8f), 1200f, 0f, 6.0f, 0, false, false, "Defensive timber barricade lined with sharpened bone claws to impale zombies."),
             
             new CraftBuildConfig("BUILD0017_RazorWireBarricade", "CRAFT0017", "Razor Wire Barricade", "17_Razor_Wire_Barricade.prefab",
-                CraftingCategory.Defense, new Vector3(2.5f, 1.0f, 1.0f), 350f, 0f, 6.0f, 0, false, false, "Entangling copper and steel wire barrier studded with infected fangs."),
+                CraftingCategory.Defense, new Vector3(2.5f, 1.0f, 1.0f), 1000f, 0f, 6.0f, 0, false, false, "Entangling copper and steel wire barrier studded with infected fangs."),
             
             new CraftBuildConfig("BUILD0018_ChitinCarapaceWall", "CRAFT0018", "Chitin Carapace Wall", "18_Chitin_Carapace_Wall.prefab",
-                CraftingCategory.Defense, new Vector3(3.0f, 2.5f, 0.6f), 800f, 0.25f, 7.0f, 0, false, false, "Acid-resistant defensive wall plated with alien chitin and hardened spine segments."),
+                CraftingCategory.Defense, new Vector3(3.0f, 2.5f, 0.6f), 2500f, 0.25f, 7.0f, 0, false, false, "Acid-resistant defensive wall plated with alien chitin and hardened spine segments."),
             
             new CraftBuildConfig("BUILD0019_SnapJawBearTrap", "CRAFT0019", "Snap-Jaw Bear Trap", "19_Snap_Jaw_Bear_Trap.prefab",
-                CraftingCategory.Defense, new Vector3(1.2f, 0.3f, 1.2f), 150f, 0f, 6.0f, 0, false, true, "Heavy spring-loaded floor trap that immobilizes and bleeds approaching enemies."),
+                CraftingCategory.Defense, new Vector3(1.2f, 0.3f, 1.2f), 400f, 0f, 6.0f, 0, false, true, "Heavy spring-loaded floor trap that immobilizes and bleeds approaching enemies."),
             
             new CraftBuildConfig("BUILD0020_CorrosiveBileLandmine", "CRAFT0020", "Corrosive Bile Landmine", "20_Corrosive_Bile_Landmine.prefab",
-                CraftingCategory.Defense, new Vector3(1.0f, 0.3f, 1.0f), 100f, 0f, 6.0f, 0, false, true, "Proximity mine packed with toxic bile and alien acid blood."),
+                CraftingCategory.Defense, new Vector3(1.0f, 0.3f, 1.0f), 300f, 0f, 6.0f, 0, false, true, "Proximity mine packed with toxic bile and alien acid blood."),
             
             new CraftBuildConfig("BUILD0021_AutomatedSentryTurret", "CRAFT0021", "Automated Sentry Turret", "21_Automated_Sentry_Turret.prefab",
-                CraftingCategory.Defense, new Vector3(1.5f, 2.0f, 1.5f), 450f, 0.15f, 6.0f, 0, false, false, "AI-controlled perimeter turret that automatically targets hostile enemies."),
+                CraftingCategory.Defense, new Vector3(1.5f, 2.0f, 1.5f), 1500f, 0.15f, 6.0f, 0, false, false, "AI-controlled perimeter turret that automatically targets hostile enemies."),
             
             new CraftBuildConfig("BUILD0022_XenocrystalShockTower", "CRAFT0022", "Xenocrystal Shock Tower", "22_Xenocrystal_Shock_Tower.prefab",
-                CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 600f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes.")
+                CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 2000f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes.")
         };
 
         [MenuItem("Tools/The Last Empire/Setup All 22 Craft Buildings and Data", false, 110)]
