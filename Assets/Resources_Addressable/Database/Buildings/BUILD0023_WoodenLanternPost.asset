@@ -16,7 +16,8 @@ MonoBehaviour:
   buildingName: Wooden Lantern Post
   category: 0
   icon: {fileID: 0}
-  description: "Rustic wooden lamp post with a hanging oil lantern. Casts a warm glowing perimeter that illuminates the dark and restores Sanity."
+  description: Rustic wooden lamp post with a hanging lantern. Casts a warm glowing
+    perimeter that illuminates the dark and restores Sanity.
   prefab: {fileID: 2300000000000000001, guid: e1f2a3b4c5d60718293a4b5c6d7e0023, type: 3}
   ghostPrefab: {fileID: 0}
   rotationOffset: {x: 0, y: 0, z: 0}
@@ -29,15 +30,15 @@ MonoBehaviour:
   damageResistance: 0
   storageSlots: 0
   ingredients:
-  - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+  - item: {fileID: 0}
     itemName: Wood Log
     amount: 3
-  - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+  - item: {fileID: 0}
     itemName: Plant Fiber
     amount: 2
-  - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+  - item: {fileID: 0}
     itemName: Rough Stone
     amount: 1
-  - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+  - item: {fileID: 0}
     itemName: Charcoal Lump
     amount: 1
