@@ -406,15 +406,25 @@ namespace TheLastEmpire
             // 9. Spawn enemies for each matching configuration
             foreach (BiomeSpawnConfig currentConfig in configsToSpawn)
             {
-                // Day/Night Spawn Chance Check (Aliens: Night 80%, Day 20%)
-                AlienAI alienCheck = currentConfig.enemyPrefab.GetComponent<AlienAI>();
-                if (alienCheck != null)
+                if (currentConfig.enemyPrefab == null) continue;
+
+                // Day/Night Spawn Chance: กลางคืนซอมบี้เกิด 2 ใน 10 (20%), เอเลี่ยนเกิด 8 ใน 10 (80%)
+                bool isAlien = currentConfig.enemyPrefab.GetComponent<AlienAI>() != null || 
+                               currentConfig.enemyPrefab.name.IndexOf("Alien", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                if (isAlien)
                 {
-                    float spawnProbability = isNight ? 0.8f : 0.2f;
+                    float spawnProbability = isNight ? 0.80f : 0.20f;
                     if (Random.value > spawnProbability)
                     {
-                        Debug.Log($"[GameManager] Skipped spawning Aliens due to day/night probability (Is Night: {isNight})");
-                        continue; // Skip this particular enemy type, keep others!
+                        continue;
+                    }
+                }
+                else
+                {
+                    float spawnProbability = isNight ? 0.20f : 0.80f;
+                    if (Random.value > spawnProbability)
+                    {
+                        continue;
                     }
                 }
 
@@ -775,6 +785,7 @@ namespace TheLastEmpire
 
         private GameObject GetPrefabByName(string prefabName)
         {
+            if (string.IsNullOrEmpty(prefabName)) return null;
             if (defaultEnemyPrefab != null && defaultEnemyPrefab.name == prefabName)
             {
                 return defaultEnemyPrefab;
@@ -789,7 +800,7 @@ namespace TheLastEmpire
                     }
                 }
             }
-            return null;
+            return AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{prefabName}");
         }
 
         private string GetPoolKeyForPrefab(GameObject prefab)
@@ -809,7 +820,7 @@ namespace TheLastEmpire
                     }
                 }
             }
-            return null;
+            return prefab.name;
         }
 
         private void CheckStageClearedStatus()

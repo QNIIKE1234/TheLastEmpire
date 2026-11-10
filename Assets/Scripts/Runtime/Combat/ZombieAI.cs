@@ -535,20 +535,17 @@ namespace TheLastEmpire
                 {
                     speedMultiplier *= rageSpeedMultiplier;
                 }
+                // ตอนกลางคืนซอมบี้จะช้าลง 50% (50% slower at night)
+                if (isNight)
+                {
+                    speedMultiplier *= 0.5f;
+                }
                 ChasePlayer(speedMultiplier);
             }
             else
             {
-                if (isNight)
-                {
-                    // Zombie will not wander during the night (stands still / idle)
-                    currentState = AIState.Idle;
-                    rb.linearVelocity = Vector3.zero;
-                }
-                else
-                {
-                    WanderMovement();
-                }
+                // ซอมบี้เดินช้าลง 50% ตอนกลางคืน
+                WanderMovement(isNight ? 0.5f : 1.0f);
             }
         }
 

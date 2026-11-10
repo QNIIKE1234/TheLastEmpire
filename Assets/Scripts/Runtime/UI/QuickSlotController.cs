@@ -189,7 +189,9 @@ namespace TheLastEmpire
                            item.type == ItemType.MeleeWeapon ||
                            item.type == ItemType.ThrowingWeapon ||
                            item.type == ItemType.Potion ||
-                           item.type == ItemType.Bread;
+                           item.type == ItemType.Bread ||
+                           item.type == ItemType.Water ||
+                           item.waterRestorationValue > 0f;
                 }
             }
 
@@ -437,7 +439,7 @@ namespace TheLastEmpire
             bool isMelee = (itemType == ItemType.MeleeWeapon) ||
                            (_player.MeleeWeaponsList != null && _player.MeleeWeaponsList.Exists(m => m.weaponName.Equals(itemName, StringComparison.OrdinalIgnoreCase)));
 
-            bool isConsumable = (itemType == ItemType.Potion || itemType == ItemType.Bread);
+            bool isConsumable = (itemType == ItemType.Potion || itemType == ItemType.Bread || itemType == ItemType.Water || (itemData != null && itemData.waterRestorationValue > 0f));
 
             if (isRanged)
             {

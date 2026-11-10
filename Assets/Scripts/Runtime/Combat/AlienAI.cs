@@ -161,6 +161,9 @@ namespace TheLastEmpire
                     return;
                 }
 
+                // ความเร็วเอเลี่ยน: กลางคืนเดินปกติ (1.0f), กลางวันไม่ตายแต่ช้าลงเหลือ 20% (0.20f)
+                float speedMult = isNight ? 1.0f : 0.20f;
+
                 if (alienType == AlienType.Smart)
                 {
                     // Alien Smart: strafe / circle around player
@@ -173,7 +176,7 @@ namespace TheLastEmpire
                     
                     // Blend walking towards player and walking sideways
                     Vector3 finalDirection = (toPlayer * 0.4f + strafeDirection * 0.6f).normalized;
-                    rb.linearVelocity = new Vector3(finalDirection.x * moveSpeed, rb.linearVelocity.y, finalDirection.z * moveSpeed);
+                    rb.linearVelocity = new Vector3(finalDirection.x * moveSpeed * speedMult, rb.linearVelocity.y, finalDirection.z * moveSpeed * speedMult);
 
                     if (toPlayer.sqrMagnitude > 0.01f)
                     {
@@ -184,20 +187,21 @@ namespace TheLastEmpire
                 {
                     // Normal chasing
                     currentState = AIState.Chase;
-                    ChasePlayer(isNight ? 1.2f : 1f);
+                    ChasePlayer(speedMult);
                 }
             }
             else
             {
+                float speedMult = isNight ? 1.0f : 0.20f;
                 if (isNight)
                 {
                     // At night, keep pursuing player position
                     currentState = AIState.Chase;
-                    ChasePlayer(1.2f);
+                    ChasePlayer(speedMult);
                 }
                 else
                 {
-                    WanderMovement();
+                    WanderMovement(speedMult);
                 }
             }
         }

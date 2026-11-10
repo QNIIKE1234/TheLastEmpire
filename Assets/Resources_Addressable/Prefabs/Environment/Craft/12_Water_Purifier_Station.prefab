@@ -154,10 +154,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 536891f8afda4d128f28568efe2281fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire::WaterPurifierBuilding
-  purifyCycleDuration: 90
+  purifyCycleDuration: 60
   maxStoredWater: 5
-  currentStoredWater: 1
-  cleanWaterItemName: ITEM0075_CleanGlassBottle
+  currentStoredWater: 0
+  cleanWaterItemName: Water Bottle
+  autoDeliverToPlayer: 1
   interactionDistance: 2.5
 --- !u!208 &5578022167380671350
 NavMeshObstacle:

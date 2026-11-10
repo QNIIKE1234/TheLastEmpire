@@ -209,22 +209,34 @@ namespace TheLastEmpire
             // Visual Model Replacement
             if (data.customModelPrefab != null)
             {
-                Transform targetRoot = modelRoot;
-                if (targetRoot == null)
+                // Deactivate all old/baked-in models on the NPC prefab (e.g. MegaphoneGirl, Chibi_Base)
+                for (int i = 0; i < transform.childCount; i++)
                 {
-                    targetRoot = transform.Find("ModelRoot");
-                }
-                if (targetRoot == null)
-                {
-                    Transform existingModel = transform.Find("Chibi_Base_Rigged");
-                    if (existingModel != null)
+                    Transform child = transform.GetChild(i);
+                    if (child.GetComponent<Canvas>() != null || child.GetComponent<Collider>() != null) continue;
+                    if (child.name.Contains("Megaphone") || child.name.Contains("Chibi") || child.name.Contains("Rigged"))
                     {
-                        targetRoot = transform;
-                        Destroy(existingModel.gameObject);
+                        child.gameObject.SetActive(false);
                     }
-                    else
+                }
+
+                if (modelRoot != null && (modelRoot.name.Contains("Megaphone") || modelRoot.name.Contains("Rigged") || modelRoot.name.Contains("Chibi")))
+                {
+                    modelRoot.gameObject.SetActive(false);
+                }
+
+                Transform targetRoot = transform.Find("ModelRoot");
+                if (targetRoot == null)
+                {
+                    GameObject newRoot = new GameObject("ModelRoot");
+                    newRoot.transform.SetParent(transform, false);
+                    targetRoot = newRoot.transform;
+                }
+                else
+                {
+                    for (int i = targetRoot.childCount - 1; i >= 0; i--)
                     {
-                        targetRoot = transform;
+                        Destroy(targetRoot.GetChild(i).gameObject);
                     }
                 }
 
@@ -236,18 +248,26 @@ namespace TheLastEmpire
                     model.transform.localRotation = Quaternion.identity;
                     model.transform.localScale = Vector3.one;
 
-                    // Ensure Animator inherits the Chibi_Player_Controller
+                    // Ensure Animator inherits or loads the Controller so character does NOT stand in a T-pose
                     Animator anim = model.GetComponentInChildren<Animator>();
                     if (anim != null)
                     {
                         anim.applyRootMotion = false;
                         if (anim.runtimeAnimatorController == null)
                         {
-                            Animator existingAnim = GetComponentInChildren<Animator>();
-                            if (existingAnim != null && existingAnim != anim && existingAnim.runtimeAnimatorController != null)
+                            RuntimeAnimatorController ctrl = Resources.Load<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+                            if (ctrl == null) ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Animation/Chibi_Player_Controller");
+                            if (ctrl == null)
                             {
-                                anim.runtimeAnimatorController = existingAnim.runtimeAnimatorController;
+                                Animator existingAnim = GetComponentInChildren<Animator>();
+                                if (existingAnim != null && existingAnim != anim) ctrl = existingAnim.runtimeAnimatorController;
                             }
+                            if (ctrl != null) anim.runtimeAnimatorController = ctrl;
+                        }
+
+                        if (anim.runtimeAnimatorController != null)
+                        {
+                            anim.Play("Idle", 0, 0f);
                         }
                     }
                 }

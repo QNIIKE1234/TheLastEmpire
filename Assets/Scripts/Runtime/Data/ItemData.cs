@@ -12,7 +12,8 @@ namespace TheLastEmpire
         RangedWeapon,
         MeleeWeapon,
         ThrowingWeapon,
-        Material
+        Material,
+        Water
     }
 
     [System.Serializable]
@@ -57,6 +58,30 @@ namespace TheLastEmpire
         public float restorationValue; // HP healed or Hunger restored
         [Tooltip("Sanity restored when consumed (e.g. Coffee, Pills, Energy Bar)")]
         public float sanityRestorationValue = 0f; // Sanity restored
+        [Tooltip("Water / Hydration restored when consumed")]
+        public float waterRestorationValue = 0f; // Water restored
+        [Tooltip("Max stack size (0 = auto-determined: Ammo=9999, Weapons=1, Others=99)")]
+        public int maxStackSize = 0;
+
+        public int MaxStackSize
+        {
+            get
+            {
+                if (maxStackSize > 0) return maxStackSize;
+                switch (type)
+                {
+                    case ItemType.Ammo:
+                        return 9999;
+                    case ItemType.RangedWeapon:
+                    case ItemType.MeleeWeapon:
+                    case ItemType.ThrowingWeapon:
+                        return 1;
+                    default:
+                        return 99;
+                }
+            }
+        }
+
         public int defaultQuantity = 1;
         public Color themeColor = Color.white; // Theme color for drops/prompts
         public Material dropMaterial;
@@ -89,6 +114,8 @@ namespace TheLastEmpire
             SerializedProperty type = serializedObject.FindProperty("type");
             SerializedProperty restorationValue = serializedObject.FindProperty("restorationValue");
             SerializedProperty sanityRestorationValue = serializedObject.FindProperty("sanityRestorationValue");
+            SerializedProperty waterRestorationValue = serializedObject.FindProperty("waterRestorationValue");
+            SerializedProperty maxStackSize = serializedObject.FindProperty("maxStackSize");
             SerializedProperty defaultQuantity = serializedObject.FindProperty("defaultQuantity");
             SerializedProperty themeColor = serializedObject.FindProperty("themeColor");
             SerializedProperty dropMaterial = serializedObject.FindProperty("dropMaterial");
@@ -109,6 +136,8 @@ namespace TheLastEmpire
             EditorGUILayout.LabelField("Stats & Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(restorationValue);
             EditorGUILayout.PropertyField(sanityRestorationValue);
+            EditorGUILayout.PropertyField(waterRestorationValue);
+            EditorGUILayout.PropertyField(maxStackSize);
             EditorGUILayout.PropertyField(defaultQuantity);
             EditorGUILayout.PropertyField(themeColor);
             EditorGUILayout.PropertyField(dropMaterial);

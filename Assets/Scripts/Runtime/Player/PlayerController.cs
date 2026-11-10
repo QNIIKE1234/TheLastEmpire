@@ -261,6 +261,19 @@ namespace TheLastEmpire
         public float CurrentHunger => currentHunger;
         public event System.Action OnHungerChanged;
 
+        [Header("Water / Hydration System")]
+        [SerializeField] private float maxWater = 100f;
+        [SerializeField] private float currentWater = 100f;
+        [Tooltip("ตัวคูณอัตราการลดของค่าน้ำโดยรวม")]
+        [SerializeField] private float waterDepletionMultiplier = 1.0f;
+
+        private float _waterDamageTimer = 0f;
+
+        public float MaxWater => maxWater;
+        public float CurrentWater => currentWater;
+        public bool IsDehydrated => currentWater <= 0f;
+        public event System.Action OnWaterChanged;
+
         [Header("Sanity System (ค่าสติ - Brain / Eye Bar)")]
         [SerializeField] private float maxSanity = 100f;
         [SerializeField] private float currentSanity = 100f;
@@ -352,6 +365,10 @@ namespace TheLastEmpire
                 dashCooldown = activeCharacterData.dashCooldown;
                 maxHunger = activeCharacterData.maxHunger;
                 currentHunger = maxHunger;
+                if (activeCharacterData.maxWater > 0f) maxWater = activeCharacterData.maxWater;
+                currentWater = maxWater;
+                if (activeCharacterData.waterConsumptionMultiplier > 0f) waterDepletionMultiplier = activeCharacterData.waterConsumptionMultiplier;
+                OnWaterChanged?.Invoke();
                 if (activeCharacterData.maxSanity > 0f) maxSanity = activeCharacterData.maxSanity;
                 currentSanity = maxSanity;
                 if (activeCharacterData.sanityDepletionMultiplier > 0f) sanityDepletionMultiplier = activeCharacterData.sanityDepletionMultiplier;
@@ -688,18 +705,19 @@ namespace TheLastEmpire
             if (isShootingNow) _activeShiftAbility?.OnShiftReleased();
 
             bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
+            bool isDehydrated = currentWater <= 0f;
 
             if (Keyboard.current != null)
             {
-                if (!isShootingNow && !isShiftOnCooldown && Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (!isShootingNow && !isShiftOnCooldown && Keyboard.current.shiftKey.isPressed)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
-                if (Keyboard.current.shiftKey.wasReleasedThisFrame)
+                if (Keyboard.current.shiftKey.wasReleasedThisFrame || isDehydrated)
                 {
                     _activeShiftAbility?.OnShiftReleased();
                 }
@@ -707,9 +725,10 @@ namespace TheLastEmpire
             _activeShiftAbility?.UpdateAbility();
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
-            bool canSprint = !isShiftOnCooldown;
+            bool canSprint = !isShiftOnCooldown && !isDehydrated;
             _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
+            UpdateWater();
             UpdateSanity();
             // Allow opening/closing the inventory with I or Escape even when game timescale is paused
             if (Keyboard.current != null)
@@ -2242,7 +2261,8 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            float baseRate = activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f;
+            // อาหารลดช้าลงอีกเท่าตัว (2x slower)
+            float baseRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
             float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier;
@@ -2268,6 +2288,49 @@ namespace TheLastEmpire
             {
                 _hungerDamageTimer = 0f;
             }
+        }
+
+        private void UpdateWater()
+        {
+            if (_health != null && _health.IsDead) return;
+
+            // น้ำจะลดเร็วกว่าอาหาร 3 เท่า (โดยอิงจากอัตราอาหารใหม่ที่ลดช้าลงเท่าตัว)
+            float baseHungerRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
+            float baseWaterRate = baseHungerRate * 3.0f; // น้ำลดเร็วกว่าอาหาร 3 เท่า
+            float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
+            float charMult = activeCharacterData != null ? activeCharacterData.waterConsumptionMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseWaterRate * sprintMult) : baseWaterRate) * charMult * waterDepletionMultiplier;
+            currentWater = Mathf.Max(0f, currentWater - Time.deltaTime * depletionRate);
+            OnWaterChanged?.Invoke();
+
+            if (currentWater <= 0f)
+            {
+                _waterDamageTimer += Time.deltaTime;
+                float interval = activeCharacterData != null ? activeCharacterData.starvationInterval : 2.0f;
+                if (_waterDamageTimer >= interval)
+                {
+                    _waterDamageTimer = 0f;
+                    if (_health != null && !_health.IsDead)
+                    {
+                        // เลือดค่อยๆ ลดให้น้อยกว่าตอนหิวครึ่งหนึ่ง (Half of starvation damage)
+                        float baseStarveDmg = activeCharacterData != null ? activeCharacterData.starvationDamage : 5.0f;
+                        float dehydrationDmg = baseStarveDmg * 0.5f;
+                        _health.TakeDamage(dehydrationDmg);
+                        Debug.Log($"[PlayerController] Dehydrated! Took {dehydrationDmg} damage.");
+                    }
+                }
+            }
+            else
+            {
+                _waterDamageTimer = 0f;
+            }
+        }
+
+        public void DrinkWater(float amount)
+        {
+            currentWater = Mathf.Clamp(currentWater + amount, 0f, maxWater);
+            Debug.Log($"[PlayerController] Drank water! Restored {amount} water. Current water: {currentWater}/{maxWater}");
+            OnWaterChanged?.Invoke();
         }
 
         public void EatBread(float amount)

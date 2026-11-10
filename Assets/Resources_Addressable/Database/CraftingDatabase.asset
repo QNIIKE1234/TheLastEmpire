@@ -1662,3 +1662,25 @@ MonoBehaviour:
     - item: {fileID: 11400000, guid: ee790a4345c4543c95332f301f2618c6, type: 2}
       itemName: Copper Wire Spool
       amount: 2
+  - recipeId: CRAFT0076
+    recipeName: Wooden Lantern Post
+    category: 0
+    resultItem: {fileID: 0}
+    resultItemName: Wooden Lantern Post
+    resultAmount: 1
+    icon: {fileID: 0}
+    description: Rustic wooden lamp post with a hanging lantern. Casts a warm glowing
+      perimeter that illuminates the dark and restores Sanity.
+    ingredients:
+    - item: {fileID: 11400000, guid: aa42a20ac588549da8cb1c3254184959, type: 2}
+      itemName: Wood Log
+      amount: 3
+    - item: {fileID: 11400000, guid: 1e70517d8f1e5683902d9ed5eaff6329, type: 2}
+      itemName: Plant Fiber
+      amount: 2
+    - item: {fileID: 11400000, guid: f95e9d2fa432524b84a103481f40b3d9, type: 2}
+      itemName: Rough Stone
+      amount: 1
+    - item: {fileID: 11400000, guid: 550f1bdb10365b69924de10f3bf8a061, type: 2}
+      itemName: Charcoal Lump
+      amount: 1

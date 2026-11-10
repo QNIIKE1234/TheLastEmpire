@@ -4,6 +4,25 @@ using UnityEngine;
 
 namespace TheLastEmpire
 {
+    [System.Serializable]
+    public class InventorySlot
+    {
+        public string itemName;
+        public int quantity;
+
+        public InventorySlot()
+        {
+            this.itemName = string.Empty;
+            this.quantity = 0;
+        }
+
+        public InventorySlot(string itemName, int quantity)
+        {
+            this.itemName = itemName;
+            this.quantity = quantity;
+        }
+    }
+
     public class PlayerInventory : MonoBehaviour
     {
         public static PlayerInventory Instance { get; private set; }
@@ -11,6 +30,7 @@ namespace TheLastEmpire
         [Header("Inventory Status")]
         [SerializeField] private int money = 0;
         [SerializeField] private List<string> items = new List<string>();
+        [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
         [Header("Inventory Capacity")]
         [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
@@ -26,8 +46,9 @@ namespace TheLastEmpire
 
         public int Money => money;
         public List<string> Items => items;
+        public List<InventorySlot> Slots => slots;
         public int MaxSlots => maxSlots;
-        public int UsedSlots => GetItemQuantities().Count;
+        public int UsedSlots => slots.Count;
         public bool IsInventoryFull => UsedSlots >= maxSlots;
 
         public event System.Action<int> OnMoneyChanged;
@@ -50,43 +71,61 @@ namespace TheLastEmpire
             }
         }
 
+        public static int GetMaxStackSize(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName)) return 99;
+            ItemData data = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+            if (data != null) return data.MaxStackSize;
+            return 99;
+        }
+
         private void Start()
         {
-            if (items == null)
-            {
-                items = new List<string>();
-            }
-            
-            // ล้างค่า empty string ที่อาจเผลอกด + ค้างไว้ใน Inspector ออกก่อน
+            if (slots == null) slots = new List<InventorySlot>();
+            if (items == null) items = new List<string>();
             items.RemoveAll(string.IsNullOrWhiteSpace);
 
-            if (items.Count == 0)
+            if (slots.Count == 0)
             {
-                // ดึงจากค่า PlayerConfigSO ถ้ามีการเชื่อมไว้
-                List<string> startItems = playerConfig != null ? playerConfig.startingItems : defaultStartingItems;
-                int startAmmo = playerConfig != null ? playerConfig.startingPistolAmmo : defaultPistolAmmo;
-                
-                if (playerConfig != null)
+                if (items.Count > 0)
                 {
-                    money = playerConfig.startingMoney;
-                    if (playerConfig.maxInventorySlots >= 18)
+                    var initItems = new List<string>(items);
+                    items.Clear();
+                    foreach (var it in initItems)
                     {
-                        maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 30);
+                        AddItem(it, 1);
                     }
                 }
+                else
+                {
+                    List<string> startItems = playerConfig != null ? playerConfig.startingItems : defaultStartingItems;
+                    int startAmmo = playerConfig != null ? playerConfig.startingPistolAmmo : defaultPistolAmmo;
+                    
+                    if (playerConfig != null)
+                    {
+                        money = playerConfig.startingMoney;
+                        if (playerConfig.maxInventorySlots >= 18)
+                        {
+                            maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 30);
+                        }
+                    }
 
-                foreach (string item in startItems)
-                {
-                    if (!string.IsNullOrWhiteSpace(item))
-                        items.Add(item.Trim());
-                }
-                
-                // กระสุนปืนพกเริ่มต้น
-                for (int i = 0; i < startAmmo; i++)
-                {
-                    items.Add("Pistol Ammo");
+                    if (startItems != null)
+                    {
+                        foreach (string item in startItems)
+                        {
+                            if (!string.IsNullOrWhiteSpace(item))
+                                AddItem(item.Trim(), 1);
+                        }
+                    }
+
+                    if (startAmmo > 0)
+                    {
+                        AddItem("Pistol Ammo", startAmmo);
+                    }
                 }
             }
+            SyncItemsFlatList();
         }
 
         public void AddMoney(int amount)
@@ -128,9 +167,7 @@ namespace TheLastEmpire
         /// </summary>
         public bool HasItem(string itemName)
         {
-            if (string.IsNullOrEmpty(itemName) || items == null) return false;
-            string clean = itemName.Trim().ToLower();
-            return items.Exists(x => x != null && x.Trim().ToLower() == clean);
+            return GetItemCount(itemName) > 0;
         }
 
         /// <summary>
@@ -154,92 +191,167 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ตรวจสอบว่าสามารถเก็บไอเทมชนิดนี้ลงกระเป๋าได้หรือไม่ (ถ้ามีอยู่แล้วจะสแตกได้เสมอ ถ้าเป็นชิ้นใหม่ต้องมีช่องว่างเหลือ)
+        /// ตรวจสอบว่าสามารถเก็บไอเทมชนิดนี้ลงกระเป๋าได้หรือไม่ ตามกฎ Max Stack Size:
+        /// - กระสุน (Ammo): stack ได้สูงสุด 9999
+        /// - อาวุธ (Weapons): stack ได้ 1 ชิ้นต่อ 1 ช่อง
+        /// - ของอื่นๆ เช่น อาหาร, ยา, วัตถุดิบ: stack ได้ 99 ชิ้นต่อ 1 ช่อง
         /// </summary>
-        public bool CanAddItem(string itemName)
+        public bool CanAddItem(string itemName, int quantity = 1)
         {
-            if (string.IsNullOrEmpty(itemName)) return false;
+            if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
             string resolved = ResolveItemName(itemName);
+            int maxStack = GetMaxStackSize(resolved);
 
-            // ถ้ามีไอเทมชนิดนี้อยู่แล้วในกระเป๋า จะซ้อนทับลงช่องเดิมได้ทันที ไม่กิน Slot ใหม่
-            if (HasItem(resolved)) return true;
+            if (maxStack <= 1)
+            {
+                // อาวุธ stack ได้ 1 ชิ้นต่อ 1 ช่อง
+                return (slots.Count + quantity) <= maxSlots;
+            }
 
-            // ถ้าเป็นไอเทมชนิดใหม่ ตรวจสอบว่าจำนวนช่องที่ใช้ยังไม่เกินความจุสูงสุด
-            return UsedSlots < maxSlots;
+            // ไอเทมที่ stack ได้: ตรวจสอบที่ว่างในช่องเดิมที่มีอยู่
+            int remaining = quantity;
+            string clean = resolved.Trim().ToLowerInvariant();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i] != null && !string.IsNullOrEmpty(slots[i].itemName) && slots[i].itemName.Trim().ToLowerInvariant() == clean)
+                {
+                    int space = maxStack - slots[i].quantity;
+                    if (space > 0)
+                    {
+                        remaining -= space;
+                        if (remaining <= 0) return true; // พอดีในช่องเดิม ไม่กินช่องใหม่
+                    }
+                }
+            }
+
+            // จำนวนช่องใหม่ที่ต้องใช้
+            int newSlotsNeeded = Mathf.CeilToInt((float)remaining / maxStack);
+            return (slots.Count + newSlotsNeeded) <= maxSlots;
         }
+
+        public bool CanAddItem(string itemName) => CanAddItem(itemName, 1);
 
         public bool AddItem(string itemName, int quantity = 1)
         {
             if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
 
-            string finalName = ResolveItemName(itemName);
+            string resolved = ResolveItemName(itemName);
+            int maxStack = GetMaxStackSize(resolved);
 
-            // ตรวจสอบความจุช่องกระเป๋า: ถ้าเป็นไอเทมชนิดใหม่และช่องเต็มแล้ว ไม่อนุญาตให้เก็บ
-            if (!HasItem(finalName) && UsedSlots >= maxSlots)
+            if (!CanAddItem(resolved, quantity))
             {
-                Debug.LogWarning($"[PlayerInventory] Cannot collect '{finalName}': Inventory is full ({UsedSlots}/{maxSlots} slots used)!");
+                Debug.LogWarning($"[PlayerInventory] Cannot collect '{resolved}' x{quantity}: Inventory is full ({UsedSlots}/{maxSlots} slots used)!");
                 return false;
             }
 
-            for (int i = 0; i < quantity; i++)
+            int remaining = quantity;
+            string clean = resolved.Trim().ToLowerInvariant();
+
+            // 1. เติมลงในช่องเดิมที่มีอยู่ก่อน ถ้ายังไม่เต็ม MaxStack
+            if (maxStack > 1)
             {
-                items.Add(finalName);
+                for (int i = 0; i < slots.Count; i++)
+                {
+                    if (slots[i] != null && !string.IsNullOrEmpty(slots[i].itemName) && slots[i].itemName.Trim().ToLowerInvariant() == clean)
+                    {
+                        int space = maxStack - slots[i].quantity;
+                        if (space > 0)
+                        {
+                            int toAdd = Mathf.Min(space, remaining);
+                            slots[i].quantity += toAdd;
+                            remaining -= toAdd;
+                            if (remaining <= 0) break;
+                        }
+                    }
+                }
             }
-            Debug.Log($"[PlayerInventory] Picked up item: {finalName} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
-            OnItemCollected?.Invoke(finalName);
+
+            // 2. ถ้ายังมีเหลือ ให้เปิดช่องใหม่ทีละก้อนตาม MaxStack
+            while (remaining > 0)
+            {
+                int toAdd = Mathf.Min(remaining, maxStack);
+                slots.Add(new InventorySlot(resolved, toAdd));
+                remaining -= toAdd;
+            }
+
+            SyncItemsFlatList();
+            Debug.Log($"[PlayerInventory] Picked up item: {resolved} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
+            OnItemCollected?.Invoke(resolved);
             OnInventoryChanged?.Invoke();
             return true;
         }
 
         public bool RemoveItem(string itemName, int quantity = 1)
         {
-            if (string.IsNullOrEmpty(itemName) || items == null) return false;
+            if (string.IsNullOrEmpty(itemName) || quantity <= 0 || slots == null) return false;
+            if (GetItemCount(itemName) < quantity) return false;
 
-            int currentCount = GetItemCount(itemName);
-            if (currentCount < quantity) return false;
+            string clean = itemName.Trim().ToLowerInvariant();
+            int needed = quantity;
 
-            string cleanTarget = itemName.Trim().ToLower();
-            int removed = 0;
-
-            for (int i = items.Count - 1; i >= 0; i--)
+            // หักออกจากช่องท้ายสุดก่อน เพื่อให้ช่องที่มีอยู่เรียงตัวกระชับ
+            for (int i = slots.Count - 1; i >= 0 && needed > 0; i--)
             {
-                if (items[i] != null && items[i].Trim().ToLower() == cleanTarget)
+                if (slots[i] != null && !string.IsNullOrEmpty(slots[i].itemName) && slots[i].itemName.Trim().ToLowerInvariant() == clean)
                 {
-                    items.RemoveAt(i);
-                    removed++;
-                    if (removed >= quantity) break;
+                    int take = Mathf.Min(slots[i].quantity, needed);
+                    slots[i].quantity -= take;
+                    needed -= take;
+
+                    if (slots[i].quantity <= 0)
+                    {
+                        slots.RemoveAt(i);
+                    }
                 }
             }
 
-            Debug.Log($"[PlayerInventory] Removed item: {itemName} x{removed}! Inventory size: {items.Count}");
+            SyncItemsFlatList();
+            Debug.Log($"[PlayerInventory] Removed item: {itemName} x{quantity}! Slots remaining: {slots.Count}");
             OnInventoryChanged?.Invoke();
             return true;
         }
 
+        public bool RemoveItem(string itemName) => RemoveItem(itemName, 1);
+
         public int GetItemCount(string itemName)
         {
-            if (string.IsNullOrEmpty(itemName) || items == null) return 0;
-            string cleanTarget = itemName.Trim().ToLower();
-            int count = 0;
-            foreach (string item in items)
+            if (string.IsNullOrEmpty(itemName) || slots == null) return 0;
+            string clean = itemName.Trim().ToLowerInvariant();
+            int total = 0;
+            foreach (var slot in slots)
             {
-                if (item != null && item.Trim().ToLower() == cleanTarget)
+                if (slot != null && !string.IsNullOrEmpty(slot.itemName) && slot.itemName.Trim().ToLowerInvariant() == clean)
                 {
-                    count++;
+                    total += slot.quantity;
                 }
             }
-            return count;
+            return total;
         }
 
-        public bool RemoveItem(string itemName)
+        private void SyncItemsFlatList()
         {
-            if (items.Contains(itemName))
+            if (items == null) items = new List<string>();
+            items.Clear();
+            foreach (var s in slots)
             {
-                items.Remove(itemName);
-                OnInventoryChanged?.Invoke();
-                return true;
+                if (s != null && !string.IsNullOrEmpty(s.itemName))
+                {
+                    items.Add(s.itemName);
+                }
             }
-            return false;
+        }
+
+        public List<KeyValuePair<string, int>> GetSlotPairs()
+        {
+            List<KeyValuePair<string, int>> list = new List<KeyValuePair<string, int>>();
+            foreach (var s in slots)
+            {
+                if (s != null && !string.IsNullOrEmpty(s.itemName) && s.quantity > 0)
+                {
+                    list.Add(new KeyValuePair<string, int>(s.itemName, s.quantity));
+                }
+            }
+            return list;
         }
 
         public bool UseItem(string itemName)
@@ -378,6 +490,34 @@ namespace TheLastEmpire
                     Debug.Log("[PlayerInventory] Hunger and Sanity are already full or player is dead.");
                 }
             }
+            else if (itemData.type == ItemType.Water || itemData.waterRestorationValue > 0f)
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                bool canDrink = player != null && !player.PlayerHealth.IsDead && player.CurrentWater < player.MaxWater;
+                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
+
+                if (canDrink || canRestoreSanity)
+                {
+                    if (RemoveItem(itemName))
+                    {
+                        if (canDrink)
+                        {
+                            float restoreAmount = itemData.waterRestorationValue > 0 ? itemData.waterRestorationValue : 40f;
+                            player.DrinkWater(restoreAmount);
+                        }
+                        if (itemData.sanityRestorationValue > 0f)
+                        {
+                            player.RestoreSanity(itemData.sanityRestorationValue);
+                        }
+                        Debug.Log($"[PlayerInventory] Drank {itemName}! Water: {player.CurrentWater}, Sanity: {player.CurrentSanity}");
+                        return true;
+                    }
+                }
+                else
+                {
+                    Debug.Log("[PlayerInventory] Water and Sanity are already full or player is dead.");
+                }
+            }
             else if (itemData.sanityRestorationValue > 0f)
             {
                 PlayerController player = GetComponent<PlayerController>();
@@ -401,24 +541,24 @@ namespace TheLastEmpire
 
         public void ClearInventory()
         {
-            items.Clear();
+            if (slots != null) slots.Clear();
+            if (items != null) items.Clear();
             money = 0;
             OnInventoryChanged?.Invoke();
         }
 
         public Dictionary<string, int> GetItemQuantities()
         {
-            Dictionary<string, int> quantities = new Dictionary<string, int>();
-            foreach (string item in items)
+            Dictionary<string, int> quantities = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (slots != null)
             {
-                if (string.IsNullOrEmpty(item)) continue;
-                if (quantities.ContainsKey(item))
+                foreach (var slot in slots)
                 {
-                    quantities[item]++;
-                }
-                else
-                {
-                    quantities[item] = 1;
+                    if (slot == null || string.IsNullOrEmpty(slot.itemName) || slot.quantity <= 0) continue;
+                    if (quantities.ContainsKey(slot.itemName))
+                        quantities[slot.itemName] += slot.quantity;
+                    else
+                        quantities[slot.itemName] = slot.quantity;
                 }
             }
             return quantities;

@@ -12,6 +12,9 @@ namespace TheLastEmpire
         [SerializeField] private UnityEngine.UI.Slider sanitySliderHUD;
         [SerializeField] private UnityEngine.UI.Image sanityBarFillHUD;
         [SerializeField] private TMPro.TMP_Text sanityTextHUD;
+        [SerializeField] private UnityEngine.UI.Slider waterSliderHUD;
+        [SerializeField] private UnityEngine.UI.Image waterBarFillHUD;
+        [SerializeField] private TMPro.TMP_Text waterTextHUD;
         [SerializeField] private UnityEngine.UI.Image weaponImage;
         [SerializeField] private UnityEngine.UI.Image ammoImage;
         [SerializeField] private TMPro.TMP_Text ammoTextHUD;
@@ -50,13 +53,16 @@ namespace TheLastEmpire
         private UnityEngine.UI.Slider _hpBarSlider;
         private UnityEngine.UI.Slider _hungerSlider;
         private UnityEngine.UI.Slider _sanitySlider;
+        private UnityEngine.UI.Slider _waterSlider;
         private TMPro.TMP_Text _ammoText;
         private UnityEngine.UI.Image _hpBarFill;
         private UnityEngine.UI.Image _hungerBarFill;
         private UnityEngine.UI.Image _sanityBarFill;
+        private UnityEngine.UI.Image _waterBarFill;
         private TMPro.TMP_Text _hpText;
         private TMPro.TMP_Text _hungerTextText;
         private TMPro.TMP_Text _sanityText;
+        private TMPro.TMP_Text _waterText;
         private UnityEngine.UI.Image _weaponImage;
         private UnityEngine.UI.Image _ammoImage;
         private TMPro.TMP_Text _charBadgeText;
@@ -76,6 +82,7 @@ namespace TheLastEmpire
                 player.OnAmmoChanged += UpdateHUD;
                 player.OnHungerChanged += UpdateHUD;
                 player.OnSanityChanged += UpdateHUD;
+                player.OnWaterChanged += UpdateHUD;
 
                 PlayerInventory pInv = player.GetComponent<PlayerInventory>();
                 if (pInv != null)
@@ -146,6 +153,7 @@ namespace TheLastEmpire
                 player.OnAmmoChanged -= UpdateHUD;
                 player.OnHungerChanged -= UpdateHUD;
                 player.OnSanityChanged -= UpdateHUD;
+                player.OnWaterChanged -= UpdateHUD;
 
                 PlayerInventory pInv = player.GetComponent<PlayerInventory>();
                 if (pInv != null)
@@ -169,19 +177,37 @@ namespace TheLastEmpire
 
         private void SetupHUD()
         {
+            // Auto-discover water slider if unassigned
+            if (waterSliderHUD == null)
+            {
+                var sliders = Object.FindObjectsByType<UnityEngine.UI.Slider>(FindObjectsSortMode.None);
+                foreach (var s in sliders)
+                {
+                    if (s != null && s.gameObject.name.Equals("Water_slider", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        waterSliderHUD = s;
+                        break;
+                    }
+                }
+            }
+
             // 1. Check if user assigned their own UI references in Inspector
             if (hpBarSliderHUD != null || ammoTextHUD != null || hpBarFillHUD != null || hpTextHUD != null || 
-                hungerSliderHUD != null || hungerBarFillHUD != null || sanitySliderHUD != null || sanityBarFillHUD != null || weaponImage != null || ammoImage != null)
+                hungerSliderHUD != null || hungerBarFillHUD != null || sanitySliderHUD != null || sanityBarFillHUD != null || 
+                waterSliderHUD != null || waterBarFillHUD != null || weaponImage != null || ammoImage != null)
             {
                 _hpBarSlider = hpBarSliderHUD;
                 _hungerSlider = hungerSliderHUD;
                 _sanitySlider = sanitySliderHUD;
+                _waterSlider = waterSliderHUD;
                 _ammoText = ammoTextHUD;
                 _hpBarFill = hpBarFillHUD;
                 _hungerBarFill = hungerBarFillHUD;
                 _sanityBarFill = sanityBarFillHUD;
+                _waterBarFill = waterBarFillHUD;
                 _hpText = hpTextHUD;
                 _sanityText = sanityTextHUD;
+                _waterText = waterTextHUD;
 
                 ResolveWeaponAndAmmoImages();
                 return;
@@ -477,6 +503,30 @@ namespace TheLastEmpire
             if (_sanityText != null)
             {
                 _sanityText.text = $"SANITY: {Mathf.RoundToInt(player.CurrentSanity)} / {Mathf.RoundToInt(player.MaxSanity)}";
+            }
+
+            // 2.7 Update Water Bar (Thirst / Hydration)
+            float waterRatio = player.MaxWater > 0f ? Mathf.Clamp01(player.CurrentWater / player.MaxWater) : 0f;
+            if (_waterSlider != null)
+            {
+                _waterSlider.maxValue = player.MaxWater;
+                _waterSlider.value = player.CurrentWater;
+            }
+            else if (_waterBarFill != null)
+            {
+                if (_waterBarFill.type == UnityEngine.UI.Image.Type.Filled)
+                {
+                    _waterBarFill.fillAmount = waterRatio;
+                }
+                else
+                {
+                    _waterBarFill.rectTransform.localScale = new Vector3(waterRatio, 1f, 1f);
+                }
+            }
+
+            if (_waterText != null)
+            {
+                _waterText.text = $"WATER: {Mathf.RoundToInt(player.CurrentWater)} / {Mathf.RoundToInt(player.MaxWater)}";
             }
 
             // 3. Update Weapon & Ammo Visuals

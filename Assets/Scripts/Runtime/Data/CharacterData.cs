@@ -86,6 +86,9 @@ namespace TheLastEmpire
         public float maxHunger = 100f;
 
         [Range(10f, 300f)]
+        public float maxWater = 100f;
+
+        [Range(10f, 300f)]
         public float maxSanity = 100f;
 
         [Range(0.1f, 3.0f)]
@@ -159,6 +162,10 @@ namespace TheLastEmpire
         [Range(0.1f, 5f)]
         [Tooltip("Global hunger consumption multiplier for this character (1.0 = normal, 0.85 = slower, 1.2 = faster).")]
         public float hungerConsumptionMultiplier = 1.0f;
+
+        [Range(0.1f, 5f)]
+        [Tooltip("Global water consumption multiplier for this character (1.0 = normal, 0.85 = slower, 1.2 = faster).")]
+        public float waterConsumptionMultiplier = 1.0f;
 
         [Range(1f, 50f)]
         [Tooltip("Damage dealt per starvation tick when hunger reaches 0.")]
@@ -312,7 +319,7 @@ namespace TheLastEmpire
         /// </summary>
         public string GetFormattedAttributesString()
         {
-            return $"- Max HP: <b>{maxHealth}</b> | Hunger: <b>{maxHunger}</b> | Sanity: <b>{maxSanity}</b>\n- Backpack: <b>{maxInventorySlots} Slots</b> | Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
+            return $"- Max HP: <b>{maxHealth}</b> | Hunger: <b>{maxHunger}</b> | Water: <b>{maxWater}</b> | Sanity: <b>{maxSanity}</b>\n- Backpack: <b>{maxInventorySlots} Slots</b> | Move Speed: <b>{moveSpeed:F1} m/s</b> (Sprint: <b>{sprintSpeedMultiplier:F1}x</b>)\n- Dash Speed: <b>{dashSpeed:F0} m/s</b> ({dashCooldown:F1}s CD)";
         }
     }
 }

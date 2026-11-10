@@ -161,7 +161,7 @@ namespace TheLastEmpire
             return false;
         }
 
-        protected void WanderMovement()
+        protected void WanderMovement(float speedMultiplier = 1f)
         {
             stateTimer -= Time.fixedDeltaTime;
             if (stateTimer <= 0f)
@@ -171,7 +171,7 @@ namespace TheLastEmpire
 
             if (currentState == AIState.Wander)
             {
-                rb.linearVelocity = wanderDirection * (moveSpeed * 0.5f);
+                rb.linearVelocity = wanderDirection * (moveSpeed * speedMultiplier * 0.5f);
                 // Rotate visual to wander direction
                 if (wanderDirection.sqrMagnitude > 0.01f)
                 {

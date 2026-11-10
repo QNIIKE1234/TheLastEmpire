@@ -70,30 +70,50 @@ namespace TheLastEmpire
             _poolDictionary = new Dictionary<string, Queue<GameObject>>();
             _prefabDictionary = new Dictionary<string, GameObject>();
 
-            foreach (Pool pool in pools)
+            if (pools != null)
             {
-                if (pool.prefab == null || string.IsNullOrEmpty(pool.key)) continue;
-
-                string trimmedKey = pool.key.Trim();
-
-                if (!_prefabDictionary.ContainsKey(trimmedKey))
+                foreach (Pool pool in pools)
                 {
-                    _prefabDictionary.Add(trimmedKey, pool.prefab);
+                    if (pool.prefab == null || string.IsNullOrEmpty(pool.key)) continue;
+
+                    string trimmedKey = pool.key.Trim();
+
+                    if (!_prefabDictionary.ContainsKey(trimmedKey))
+                    {
+                        _prefabDictionary.Add(trimmedKey, pool.prefab);
+                    }
+
+                    Queue<GameObject> objectPool = new Queue<GameObject>();
+
+                    for (int i = 0; i < pool.size; i++)
+                    {
+                        GameObject obj = Instantiate(pool.prefab);
+                        obj.SetActive(false);
+                        obj.transform.SetParent(transform);
+                        objectPool.Enqueue(obj);
+                    }
+
+                    if (!_poolDictionary.ContainsKey(trimmedKey))
+                    {
+                        _poolDictionary.Add(trimmedKey, objectPool);
+                    }
                 }
+            }
 
-                Queue<GameObject> objectPool = new Queue<GameObject>();
-
-                for (int i = 0; i < pool.size; i++)
+            // Auto pre-populate EnemyAlien pools if not already registered
+            string[] defaultAlienKeys = new string[] {
+                "AlienNormal", "AlienCrawler", "AlienHook", "AlienInvisible", "AlienLeader", "AlienSmart", "AlienSpitter"
+            };
+            foreach (string alienKey in defaultAlienKeys)
+            {
+                if (!_poolDictionary.ContainsKey(alienKey))
                 {
-                    GameObject obj = Instantiate(pool.prefab);
-                    obj.SetActive(false);
-                    obj.transform.SetParent(transform);
-                    objectPool.Enqueue(obj);
-                }
-
-                if (!_poolDictionary.ContainsKey(trimmedKey))
-                {
-                    _poolDictionary.Add(trimmedKey, objectPool);
+                    GameObject alienPrefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{alienKey}");
+                    if (alienPrefab != null)
+                    {
+                        int poolSize = alienKey.Contains("Leader") ? 3 : 10;
+                        CreatePool(alienKey, alienPrefab, poolSize);
+                    }
                 }
             }
         }
@@ -141,10 +161,15 @@ namespace TheLastEmpire
                 {
                     loadedPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BoltPrefabs");
                 }
+                if (loadedPrefab == null)
+                {
+                    loadedPrefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{trimmedKey}");
+                }
 
                 if (loadedPrefab != null)
                 {
-                    CreatePool(trimmedKey, loadedPrefab, 20);
+                    int fallbackPoolSize = trimmedKey.Contains("Leader") ? 3 : 15;
+                    CreatePool(trimmedKey, loadedPrefab, fallbackPoolSize);
                 }
                 else
                 {

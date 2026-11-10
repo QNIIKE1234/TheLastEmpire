@@ -370,9 +370,8 @@ namespace TheLastEmpire
 
             if (itemSlots == null || itemSlots.Count == 0) return;
 
-            // รวบ item ทั้งหมดเป็น list เพื่อ slice ตาม page
-            Dictionary<string, int> quantities = _playerInventory.GetItemQuantities();
-            var itemList = new List<KeyValuePair<string, int>>(quantities);
+            // รวบ item แต่ละ slot (แยกตาม stack rules) เพื่อ slice ตาม page
+            var itemList = _playerInventory.GetSlotPairs();
 
             // คำนวณ totalPages
             int pageSize = itemSlots.Count > 0 ? itemSlots.Count : Mathf.Max(1, slotsPerPage);
@@ -440,7 +439,7 @@ namespace TheLastEmpire
                                    itemData.type == ItemType.MeleeWeapon || 
                                    itemData.type == ItemType.ThrowingWeapon;
                         
-                        isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread;
+                        isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread || itemData.type == ItemType.Water || itemData.waterRestorationValue > 0f;
                     }
 
                     bool isEquipped = false;

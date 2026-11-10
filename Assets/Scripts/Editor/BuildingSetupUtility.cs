@@ -123,7 +123,10 @@ namespace TheLastEmpire.Editor
                 CraftingCategory.Defense, new Vector3(1.5f, 2.0f, 1.5f), 450f, 0.15f, 6.0f, 0, false, false, "AI-controlled perimeter turret that automatically targets hostile enemies."),
             
             new CraftBuildConfig("BUILD0022_XenocrystalShockTower", "CRAFT0022", "Xenocrystal Shock Tower", "22_Xenocrystal_Shock_Tower.prefab",
-                CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 600f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes.")
+                CraftingCategory.Defense, new Vector3(1.5f, 3.0f, 1.5f), 600f, 0.20f, 6.0f, 0, false, false, "High-voltage alien defense pylon that chains bio-plasma lightning across hordes."),
+            
+            new CraftBuildConfig("BUILD0023_WoodenLanternPost", "CRAFT0076", "Wooden Lantern Post", "23_Wooden_Lantern_Post.prefab",
+                CraftingCategory.Building, new Vector3(1.0f, 3.1f, 1.2f), 150f, 0f, 6.5f, 0, false, false, "Rustic timber lamp post with a hanging oil lantern. Casts a warm glowing perimeter that illuminates the dark and restores Sanity.")
         };
 
         [MenuItem("Tools/The Last Empire/Setup All 22 Craft Buildings and Data", false, 110)]
@@ -301,6 +304,10 @@ namespace TheLastEmpire.Editor
 
                 case "BUILD0022_XenocrystalShockTower":
                     if (root.GetComponent<ShockTowerBuilding>() == null) root.AddComponent<ShockTowerBuilding>();
+                    break;
+
+                case "BUILD0023_WoodenLanternPost":
+                    if (root.GetComponent<WoodenLanternPostBuilding>() == null) root.AddComponent<WoodenLanternPostBuilding>();
                     break;
             }
 

@@ -56,7 +56,11 @@ namespace TheLastEmpire
             { "Heavy Ammo", "Fuel Ammo" },
             { "Fuel Ammo", "Heavy Ammo" },
             { "Crossbow Bolt", "Bolts" },
-            { "Bolt", "Bolts" }
+            { "Bolt", "Bolts" },
+            { "Water", "Water Bottle" },
+            { "Bottled Water", "Water Bottle" },
+            { "Clean Water", "Water Bottle" },
+            { "ITEM0091_WaterBottle", "Water Bottle" }
         };
 
         /// <summary>

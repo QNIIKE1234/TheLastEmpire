@@ -1,0 +1,37 @@
+﻿# Material Library for Wooden Lantern Post
+newmtl Mat_WoodPost
+Ka 0.28 0.18 0.10
+Kd 0.42 0.26 0.15
+Ks 0.08 0.08 0.08
+Ns 10
+illum 2
+
+newmtl Mat_WoodLight
+Ka 0.35 0.25 0.15
+Kd 0.58 0.40 0.24
+Ks 0.10 0.10 0.10
+Ns 12
+illum 2
+
+newmtl Mat_IronWrought
+Ka 0.12 0.12 0.13
+Kd 0.22 0.22 0.24
+Ks 0.45 0.45 0.45
+Ns 35
+illum 2
+
+newmtl Mat_LanternGlass
+Ka 0.80 0.55 0.15
+Kd 0.95 0.72 0.28
+Ks 0.90 0.90 0.90
+Ns 80
+d 0.75
+illum 2
+
+newmtl Mat_LanternFlameCore
+Ka 1.00 0.85 0.30
+Kd 1.00 0.75 0.20
+Ks 0.50 0.50 0.50
+Ke 1.00 0.65 0.15
+Ns 20
+illum 2
