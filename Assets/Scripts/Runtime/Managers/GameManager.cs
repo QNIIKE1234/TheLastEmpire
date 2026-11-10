@@ -531,7 +531,7 @@ namespace TheLastEmpire
             {
                 foreach (var npc in template.npcSpawns)
                 {
-                    SpawnNPCInstance(npc.npcType, npc.position);
+                    SpawnNPCInstance(npc.npcType, npc.position, npc.npcId);
                 }
             }
 
@@ -870,8 +870,31 @@ namespace TheLastEmpire
             }
         }
 
-        private void SpawnNPCInstance(NPCType type, Vector3 spawnPos)
+        public void SpawnNPCInstance(NPCType type, Vector3 spawnPos)
         {
+            SpawnNPCInstance(type, spawnPos, null);
+        }
+
+        public void SpawnNPCInstance(NPCType type, Vector3 spawnPos, string npcId)
+        {
+            NPCDataSO dataToUse = null;
+            if (!string.IsNullOrEmpty(npcId) && NPCDatabase.Instance != null)
+            {
+                dataToUse = NPCDatabase.Instance.GetNPCById(npcId);
+            }
+            if (dataToUse == null && NPCDatabase.Instance != null)
+            {
+                if (type == NPCType.Shop)
+                {
+                    dataToUse = NPCDatabase.Instance.GetDefaultMerchant();
+                }
+                else
+                {
+                    var list = NPCDatabase.Instance.GetNPCsByType(type);
+                    if (list.Count > 0) dataToUse = list[0];
+                }
+            }
+
             if (npcPrefab != null)
             {
                 _activeNPC = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
@@ -880,21 +903,29 @@ namespace TheLastEmpire
                 {
                     npc = _activeNPC.AddComponent<NPCController>();
                 }
-                npc.SetNPCType(type);
 
-                if (type == NPCType.Shop)
+                if (dataToUse != null)
                 {
-                    npc.SetDialogueId("Merchant_Intro");
-                    if (_currentStage != null)
+                    npc.ApplyData(dataToUse);
+                }
+                else
+                {
+                    npc.SetNPCType(type);
+                    if (type == NPCType.Shop)
                     {
-                        if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
-                        {
-                            npc.SetShopItems(_currentStage.savedShopItems);
-                        }
-                        else
-                        {
-                            _currentStage.savedShopItems = npc.ShopItems;
-                        }
+                        npc.SetDialogueId("Merchant_Intro");
+                    }
+                }
+
+                if (type == NPCType.Shop && _currentStage != null)
+                {
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    {
+                        npc.SetShopItems(_currentStage.savedShopItems);
+                    }
+                    else
+                    {
+                        _currentStage.savedShopItems = npc.ShopItems;
                     }
                 }
             }
@@ -906,32 +937,39 @@ namespace TheLastEmpire
                 _activeNPC.transform.position = spawnPos;
                 _activeNPC.transform.localScale = new Vector3(1f, 1f, 1f);
 
-                // Add NPCController component
                 NPCController npc = _activeNPC.AddComponent<NPCController>();
-                npc.SetNPCType(type);
-
-                if (type == NPCType.Shop)
+                if (dataToUse != null)
                 {
-                    npc.SetDialogueId("Merchant_Intro");
-                    if (_currentStage != null)
+                    npc.ApplyData(dataToUse);
+                }
+                else
+                {
+                    npc.SetNPCType(type);
+                    if (type == NPCType.Shop)
                     {
-                        if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
-                        {
-                            npc.SetShopItems(_currentStage.savedShopItems);
-                        }
-                        else
-                        {
-                            _currentStage.savedShopItems = npc.ShopItems;
-                        }
+                        npc.SetDialogueId("Merchant_Intro");
                     }
                 }
 
-                // Color it a nice cyan to distinguish it
+                if (type == NPCType.Shop && _currentStage != null)
+                {
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    {
+                        npc.SetShopItems(_currentStage.savedShopItems);
+                    }
+                    else
+                    {
+                        _currentStage.savedShopItems = npc.ShopItems;
+                    }
+                }
+
                 Renderer rend = _activeNPC.GetComponent<Renderer>();
                 if (rend != null)
                 {
                     rend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                    rend.material.color = new Color(0f, 0.9f, 1f); // Cool cyan
+                    rend.material.color = dataToUse != null && dataToUse.tintColor != Color.white 
+                        ? dataToUse.tintColor 
+                        : new Color(0f, 0.9f, 1f);
                 }
             }
         }

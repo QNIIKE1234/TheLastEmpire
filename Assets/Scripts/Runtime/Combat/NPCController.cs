@@ -18,6 +18,12 @@ namespace TheLastEmpire
 
     public class NPCController : MonoBehaviour
     {
+        [Header("Data-Driven NPC Definition")]
+        [Tooltip("Assign NPCDataSO to automatically populate all settings from data")]
+        [SerializeField] private NPCDataSO npcData;
+        [Tooltip("Optional transform slot for swapping 3D character models dynamically")]
+        [SerializeField] private Transform modelRoot;
+
         [Header("NPC Configuration")]
         [SerializeField] private string npcName = "Merchant";
         [SerializeField] private NPCType npcType = NPCType.Shop;
@@ -40,6 +46,15 @@ namespace TheLastEmpire
         public string NpcName => npcName;
         public string DialogueId => dialogueId;
         public Sprite NpcPortrait => npcPortrait;
+        public NPCDataSO NPCData => npcData;
+
+        private void Awake()
+        {
+            if (npcData != null)
+            {
+                ApplyData(npcData);
+            }
+        }
 
         public TheLastEmpire.Story.DialogueTreeSO GetEffectiveDialogueTree()
         {
@@ -166,6 +181,62 @@ namespace TheLastEmpire
         {
             return Vector3.Distance(transform.position, playerPos) <= interactRange;
         }
+
+        public void ApplyData(NPCDataSO data)
+        {
+            if (data == null) return;
+            npcData = data;
+            npcName = data.npcName;
+            npcType = data.npcType;
+            interactRange = data.interactRange;
+            dialogueId = data.dialogueId;
+            dialogueTree = data.dialogueTree;
+            npcPortrait = data.npcPortrait;
+            isFree = data.isFree;
+
+            if (data.shopItems != null)
+            {
+                shopItems = new System.Collections.Generic.List<ShopItemConfig>(data.shopItems);
+            }
+
+            // Update Name HUD
+            TMPro.TMP_Text textToUpdate = nameTextHUD != null ? nameTextHUD : GetComponentInChildren<TMPro.TMP_Text>();
+            if (textToUpdate != null)
+            {
+                textToUpdate.text = npcName;
+            }
+
+            // Visual Model Replacement
+            if (data.customModelPrefab != null && modelRoot != null)
+            {
+                foreach (Transform child in modelRoot)
+                {
+                    Destroy(child.gameObject);
+                }
+                GameObject model = Instantiate(data.customModelPrefab, modelRoot);
+                model.transform.localPosition = Vector3.zero;
+                model.transform.localRotation = Quaternion.identity;
+                model.transform.localScale = Vector3.one;
+            }
+
+            // Visual Tint
+            if (data.tintColor != Color.white)
+            {
+                Renderer[] renderers = GetComponentsInChildren<Renderer>();
+                foreach (var rend in renderers)
+                {
+                    if (rend is MeshRenderer || rend is SkinnedMeshRenderer)
+                    {
+                        if (rend.material != null)
+                        {
+                            rend.material.color = data.tintColor;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void SetData(NPCDataSO data) => ApplyData(data);
 
         public void SetNPCType(NPCType type)
         {

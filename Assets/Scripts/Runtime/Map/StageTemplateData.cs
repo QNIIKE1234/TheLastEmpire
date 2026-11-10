@@ -36,6 +36,7 @@ namespace TheLastEmpire
     public class StageNPCSpawnPoint
     {
         public NPCType npcType = NPCType.Shop;
+        public string npcId = "merchant_zack";
         public Vector3 position;
         public Vector3 rotation;
     }
