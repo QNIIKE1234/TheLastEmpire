@@ -134,6 +134,10 @@ namespace TheLastEmpire
         public BuildingData GetBuildingDataByName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
+            if (allBuildings == null || allBuildings.Count < 15)
+            {
+                LoadDefaultBuildingDataIfEmpty();
+            }
 
             foreach (var b in allBuildings)
             {
@@ -150,12 +154,25 @@ namespace TheLastEmpire
         public BuildingData GetBuildingDataForRecipe(CraftingRecipe recipe)
         {
             if (recipe == null) return null;
-            if (allBuildings == null || allBuildings.Count == 0)
+            if (allBuildings == null || allBuildings.Count < 15)
             {
                 LoadDefaultBuildingDataIfEmpty();
             }
 
             // 1. ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์
+            foreach (var b in allBuildings)
+            {
+                if (b == null) continue;
+                if (string.Equals(b.buildingName, recipe.recipeName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(b.buildingId, recipe.recipeId, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(b.buildingName, recipe.ResolvedResultName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return b;
+                }
+            }
+
+            // หากยังไม่เจอ ลองโหลด BuildingData ทั้งหมดซ้ำอีกครั้งเผื่อเพิ่งถูกเพิ่มเข้ามา
+            LoadDefaultBuildingDataIfEmpty();
             foreach (var b in allBuildings)
             {
                 if (b == null) continue;
@@ -250,35 +267,50 @@ namespace TheLastEmpire
 
         private void LoadDefaultBuildingDataIfEmpty()
         {
-            if (allBuildings == null || allBuildings.Count == 0)
+            if (allBuildings == null)
             {
-#if UNITY_EDITOR
-                string[] guids = UnityEditor.AssetDatabase.FindAssets("t:BuildingData");
-                foreach (string guid in guids)
-                {
-                    string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                    BuildingData bd = UnityEditor.AssetDatabase.LoadAssetAtPath<BuildingData>(path);
-                    if (bd != null && !allBuildings.Contains(bd))
-                    {
-                        allBuildings.Add(bd);
-                    }
-                }
-#endif
-                if (allBuildings.Count == 0)
-                {
-                    IList<BuildingData> addrList = AddressableManager.LoadAssetsByLabel<BuildingData>("BuildingData");
-                    if (addrList != null && addrList.Count > 0)
-                    {
-                        allBuildings.AddRange(addrList);
-                    }
-                }
+                allBuildings = new List<BuildingData>();
+            }
+            allBuildings.RemoveAll(b => b == null);
 
-                if (allBuildings.Count == 0)
+#if UNITY_EDITOR
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:BuildingData");
+            foreach (string guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                BuildingData bd = UnityEditor.AssetDatabase.LoadAssetAtPath<BuildingData>(path);
+                if (bd != null && !allBuildings.Contains(bd))
                 {
-                    BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
-                    if (loaded != null && loaded.Length > 0)
+                    allBuildings.Add(bd);
+                }
+            }
+#endif
+            if (allBuildings.Count < 15)
+            {
+                IList<BuildingData> addrList = AddressableManager.LoadAssetsByLabel<BuildingData>("BuildingData");
+                if (addrList != null && addrList.Count > 0)
+                {
+                    foreach (var bd in addrList)
                     {
-                        allBuildings.AddRange(loaded);
+                        if (bd != null && !allBuildings.Contains(bd))
+                        {
+                            allBuildings.Add(bd);
+                        }
+                    }
+                }
+            }
+
+            if (allBuildings.Count < 15)
+            {
+                BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
+                if (loaded != null && loaded.Length > 0)
+                {
+                    foreach (var bd in loaded)
+                    {
+                        if (bd != null && !allBuildings.Contains(bd))
+                        {
+                            allBuildings.Add(bd);
+                        }
                     }
                 }
             }

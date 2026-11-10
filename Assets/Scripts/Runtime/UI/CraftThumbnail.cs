@@ -438,25 +438,11 @@ namespace TheLastEmpire
                 canCraftAll = CraftingDatabase.Instance.CanCraft(_currentRecipe, playerInventory);
             }
 
-            // ตรวจสอบเงื่อนไขโต๊ะคราฟต์: เฉพาะหมวด Building และ Defense เท่านั้นที่ต้องใช้โต๊ะคราฟต์ (Utility คราฟต์ได้หมดไม่ต้องมีโต๊ะคราฟต์)
-            bool requiresWorkbench = CraftController.RequiresWorkbench(_currentRecipe);
-            bool isAtWorkbench = (CraftController.Instance != null && CraftController.Instance.IsAtWorkbench);
-
-            // กฎ: ถ้าสูตรนี้ต้องใช้โต๊ะคราฟต์ (Building หรือ Defense) แต่ผู้เล่นไม่ได้อยู่ที่โต๊ะคราฟต์ -> ซ่อนปุ่มคราฟต์ไปเลย
-            if (requiresWorkbench && !isAtWorkbench)
+            // อัปเดตสถานะปุ่มคราฟต์ (สีเหลืองเมื่อคราฟต์ได้ / สีดำเทาเมื่อคราฟต์ไม่ได้)
+            if (craftButton != null)
             {
-                if (craftButton != null)
-                {
-                    craftButton.gameObject.SetActive(false);
-                }
-            }
-            else
-            {
-                if (craftButton != null)
-                {
-                    craftButton.gameObject.SetActive(true);
-                    craftButton.interactable = canCraftAll;
-                }
+                craftButton.gameObject.SetActive(true);
+                craftButton.interactable = canCraftAll;
             }
 
             if (craftButtonBackground != null)

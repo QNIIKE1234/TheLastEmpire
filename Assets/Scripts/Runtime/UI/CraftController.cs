@@ -221,7 +221,10 @@ namespace TheLastEmpire
                 if (atBench != _lastAtWorkbench)
                 {
                     _lastAtWorkbench = atBench;
-                    RefreshActiveThumbnailsState();
+                    UpdateWorkbenchCategoryTabsVisibility();
+                    UpdateCategoryTabButtons();
+                    RebuildFilteredList();
+                    RefreshUI();
                 }
             }
 
@@ -478,6 +481,7 @@ namespace TheLastEmpire
         public void OpenCraftMenu(bool fromWorkbench = false)
         {
             _isOpenedFromWorkbench = fromWorkbench || WorkbenchBuilding.IsPlayerNearWorkbench;
+            _lastAtWorkbench = IsAtWorkbench;
             FindPlayerInventory();
             if (craftingDatabase == null)
             {
@@ -495,6 +499,7 @@ namespace TheLastEmpire
                 craftPanel.SetActive(true);
             }
 
+            UpdateWorkbenchCategoryTabsVisibility();
             EnsureFreeCraftButtonCreated();
             UpdateFreeCraftButtonVisuals();
 
@@ -503,6 +508,7 @@ namespace TheLastEmpire
                 PopUpManager.Instance.Push(this);
             }
 
+            _filteredRecipes.Clear();
             SelectCategory(_currentCategory);
         }
 
@@ -539,8 +545,15 @@ namespace TheLastEmpire
 
         public void SelectCategory(CraftingCategory category)
         {
+            if (!IsAtWorkbench && (category == CraftingCategory.Building || category == CraftingCategory.Defense))
+            {
+                category = CraftingCategory.Utility;
+            }
+
             if (_isOpen && _currentCategory == category && string.IsNullOrEmpty(_currentSearchQuery) && _filteredRecipes.Count > 0)
             {
+                UpdateWorkbenchCategoryTabsVisibility();
+                UpdateCategoryTabButtons();
                 return;
             }
 
@@ -548,6 +561,7 @@ namespace TheLastEmpire
             _currentPage = 0;
             _selectedRecipe = null;
             _selectedThumbnail = null;
+            UpdateWorkbenchCategoryTabsVisibility();
             UpdateCategoryTabButtons();
             RebuildFilteredList();
             RefreshUI();
@@ -634,8 +648,40 @@ namespace TheLastEmpire
         //  UI Refresh & Pagination
         // =====================================================
 
+        /// <summary>
+        /// ซ่อน/เปิดปุ่มหมวดหมู่เมนูฝั่งซ้าย (Building และ Defense) ตามสถานะว่าผู้เล่นอยู่ใกล้โต๊ะคราฟต์หรือไม่
+        /// </summary>
+        private void UpdateWorkbenchCategoryTabsVisibility()
+        {
+            bool atBench = IsAtWorkbench;
+
+            if (buildingTabButton != null)
+            {
+                buildingTabButton.gameObject.SetActive(atBench);
+            }
+            if (defenseTabButton != null)
+            {
+                defenseTabButton.gameObject.SetActive(atBench);
+            }
+
+            // หากไม่ได้อยู่ที่โต๊ะคราฟต์ แล้วหมวดปัจจุบันยังค้างอยู่ที่ Building หรือ Defense ให้สลับไป Utility อัตโนมัติ
+            if (!atBench && (_currentCategory == CraftingCategory.Building || _currentCategory == CraftingCategory.Defense))
+            {
+                _currentCategory = CraftingCategory.Utility;
+                _currentPage = 0;
+                _selectedRecipe = null;
+                _selectedThumbnail = null;
+            }
+
+            if (buildingTabButton != null && buildingTabButton.transform.parent is RectTransform parentRect)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+            }
+        }
+
         private void UpdateCategoryTabButtons()
         {
+            UpdateWorkbenchCategoryTabsVisibility();
             UpdateTabVisual(buildingTabButton, _currentCategory == CraftingCategory.Building);
             UpdateTabVisual(utilityTabButton, _currentCategory == CraftingCategory.Utility);
             UpdateTabVisual(defenseTabButton, _currentCategory == CraftingCategory.Defense);
