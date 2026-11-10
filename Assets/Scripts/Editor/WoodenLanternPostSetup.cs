@@ -116,11 +116,9 @@ namespace TheLastEmpire
             CraftingDatabase craftDb = AssetDatabase.LoadAssetAtPath<CraftingDatabase>(CraftingDbPath);
             if (craftDb != null)
             {
-                CraftingRecipe existingRecipe = craftDb.GetRecipeById("CRAFT0076");
-                if (existingRecipe == null)
-                {
-                    existingRecipe = craftDb.GetRecipeByName("Wooden Lantern Post");
-                }
+                CraftingRecipe existingRecipe = craftDb.recipes != null 
+                    ? craftDb.recipes.Find(r => r != null && (r.recipeId == "CRAFT0076" || r.recipeName == "Wooden Lantern Post"))
+                    : craftDb.GetRecipeById("CRAFT0076");
 
                 if (existingRecipe == null)
                 {

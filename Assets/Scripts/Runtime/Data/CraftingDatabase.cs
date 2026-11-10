@@ -241,6 +241,24 @@ namespace TheLastEmpire
         }
 
         /// <summary>
+        /// ดึงสูตรคราฟต์ตาม Recipe ID เช่น "CRAFT0001"
+        /// </summary>
+        public CraftingRecipe GetRecipeById(string id)
+        {
+            if (recipes == null || string.IsNullOrEmpty(id)) return null;
+            return recipes.Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// ดึงสูตรคราฟต์ตามชื่อ เช่น "Wooden Lantern Post"
+        /// </summary>
+        public CraftingRecipe GetRecipeByName(string name)
+        {
+            if (recipes == null || string.IsNullOrEmpty(name)) return null;
+            return recipes.Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        /// <summary>
         /// ดึงรายการสูตรคราฟต์ตามหมวดหมู่ (เช่น Building, Utility, Defense, Weapons, Consumables, Tools, Special)
         /// </summary>
         public List<CraftingRecipe> GetRecipesByCategory(CraftingCategory category)
