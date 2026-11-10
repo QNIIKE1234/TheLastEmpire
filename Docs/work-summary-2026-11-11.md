@@ -61,3 +61,4 @@
   * เพิ่มข้อมูล [BUILD0023_WoodenLanternPost.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Database/Buildings/BUILD0023_WoodenLanternPost.asset) และ Prefab [23_Wooden_Lantern_Post.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Environment/Craft/23_Wooden_Lantern_Post.prefab) พร้อมไฟ Point Light สีส้มอบอุ่นที่เปิดอัตโนมัติในเวลากลางคืน
 * **การแยกสิ่งปลูกสร้างตามพิกัดห้อง `(StageX, StageY)`:**
   * สิ่งปลูกสร้างทุกชิ้นผูกกับพิกัดห้อง `(StageX, StageY)` ใน [`BuildingManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingManager.cs) และ [`BuildingObject.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingObject.cs) ไม่ตามผู้เล่นไปแมพอื่น และแสดงผลกลับมาครบถ้วนเมื่อเดินกลับห้องเดิม
+

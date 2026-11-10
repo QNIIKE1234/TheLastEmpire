@@ -336,5 +336,18 @@ flowchart TD
 ```
 
 ---
+
+## 7. Latest Implemented Enhancements (11 Nov 2026)
+
+1. **`BUILD0023` — Wooden Lantern Post (`LanternBuilding.cs`)**:
+   * Tall wooden lantern post (`Utility` category) equipped with a warm orange Point Light that automatically turns on at night and off during the day via `DayNightManager`.
+2. **Stage Coordinate Isolation (`StageX, StageY`)**:
+   * Every placed `BuildingObject` records the room's `(StageX, StageY)` coordinates when placed.
+   * When transitioning between stages via portals, `BuildingManager` toggles building visibility so buildings remain strictly in the room where they were built and reappear intact when the player returns.
+3. **Workbench Category Tab Gating (`CraftController.cs` & `WorkbenchBuilding.cs`)**:
+   * All `Utility` buildings (Campfire, Workbench, Storage Crate, Water Purifier, Sleeping Bedroll, Sanity Beacon Lantern, Generator, Wooden Lantern Post) can be crafted anywhere without a workbench.
+   * `Building` and `Defense` categories require proximity to a `Survivor Workbench` (`[E] Crafting Table`), and their left-side category buttons are hidden (`SetActive(false)`) until the player interacts with a workbench.
+
+---
 *Created and maintained for The Last Empire development team.*
 

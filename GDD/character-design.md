@@ -2,8 +2,8 @@
 
 **ชื่อโปรเจกต์:** The Last Empire  
 **ประเภทเอกสาร:** Character Systems, Lore & Playable Roster Design  
-**วันที่จัดทำ / อัปเดตล่าสุด:** 10 พฤศจิกายน 2026  
-**สถานะ:** Official Release Version 2.0 (ครบทั้ง 7 Playable Operatives พร้อมเนื้อเรื่องและ Amnesia Lore)
+**วันที่จัดทำ / อัปเดตล่าสุด:** 11 พฤศจิกายน 2026  
+**สถานะ:** Official Release Version 2.1 (ครบทั้ง 7 Playable Operatives พร้อมโมเดล 3D Chibi Rigged ครบชุดและ Amnesia Lore)
 
 ---
 
@@ -290,3 +290,19 @@ graph TD
 3. **Character Asset Creator `CharacterAssetCreator.cs`** ภายใต้ `Assets/Scripts/Editor/` ทำหน้าที่การันตีความถูกต้องของสเตตัสและข้อความเนื้อเรื่องใน Inspector อัตโนมัติ
 4. **UI Menu `CharacterSelectUI.cs`** แสดงข้อความปูมหลัง Lore Synopsis, ข้อความฟื้นความทรงจำ Amnesia Waking Clue, สเตตัส และปุ่มเลือกตัวละคร
 5. **HUD In-Game `PlayerHUD.cs`** ทำหน้าที่ดึง `amnesiaWakingClue` ของตัวละครที่เลือก มาเปิดแสดงผลเป็นแบนเนอร์ความทรงจำลอยกลางฉากเป็นเวลา 6 วินาทีเมื่อเริ่มเกม
+
+---
+
+## 🎨 5. รายการโมเดล 3D ตัวละคร Rigged ทั้งหมด (3D Rigged Character Models & Prefabs)
+
+โมเดลตัวละคร 3D ทั้งหมดในโปรเจกต์ใช้โครงกระดูกมาตรฐาน 18 ชิ้น (`Chibi_Base_Rig`: `Root`, `Hips`, `Spine`, `Chest`, `Neck`, `Head`, `Shoulder_L/R`, `UpperArm_L/R`, `Forearm_L/R`, `Hand_L/R`, `Thigh_L/R`, `Shin_L/R`, `Foot_L/R`) จึงสามารถใช้ร่วมกับ `Chibi_Player_Controller.controller` และชุดแอนิเมชันทั้ง 11 ท่าได้อย่างสมบูรณ์:
+
+| ชื่อโมเดล (FBX / Prefab) | ลักษณะดีไซน์ | ตำแหน่งไฟล์ FBX | สคริปต์สร้างโมเดล (Blender Python) |
+|---|---|---|---|
+| **Chibi_CurlyGirl_Rigged** | สาวแว่นกลม ผมหยิกสีชมพูมัดหางม้า เสื้อแจ็คเก็ตสีฟ้าอมเขียว กางเกงคาร์โก้สีเหลือง | `Assets/GeneratedModels/Chibi_CurlyGirl_Rigged.fbx` | `Tools/Create_Curly_Glasses_Girl.py` |
+| **Chibi_BlueOperative_Rigged** | หนุ่มทรงผม Undercut สีน้ำเงินเข้ม แว่นกันแดดทรงกลมเลนส์ฟ้า หูฟังสื่อสาร เสื้อแจ็คเก็ตยุทธวิธีสีเขียวเข้มพร้อมวิทยุ | `Assets/GeneratedModels/Chibi_BlueOperative_Rigged.fbx` | `Tools/Create_Blue_Operative.py` |
+| **Chibi_HeavyStriker_Rigged** | นักรบเกราะหนักทรงผมตั้งสีคราม แผลเป็นคาดตาซ้าย ผ้าพันคอ เกราะยุทธวิธีพร้อมกระเป๋าแม็กกาซีนและเกราะไหล่ | `Assets/GeneratedModels/Chibi_HeavyStriker_Rigged.fbx` | `Tools/Create_Heavy_Striker.py` |
+| **Chibi_TacticalGirl_Rigged** | สาวนักรบยุทธวิธี (The Demolitionist) เสื้อเกราะสนามและกางเกงยุทธวิธี | `Assets/GeneratedModels/Chibi_TacticalGirl_Rigged.fbx` | `Tools/Create_Tactical_Girl.py` |
+| **Chibi_PunkBrawler_Rigged** | นักสู้พังก์หัวหนาม แจ็คเก็ตหนังปักหมุดเหล็ก (The Rebel) | `Assets/GeneratedModels/Chibi_PunkBrawler_Rigged.fbx` | `Tools/Create_Punk_Brawler.py` |
+| **Chibi_Base_Rigged** | โมเดลมาตรฐานผู้รอดชีวิต (Base Rigged Template) | `Assets/GeneratedModels/Chibi_Base_Rigged.fbx` | `Tools/Create_Chibi_Base_Rigged.py` |
+

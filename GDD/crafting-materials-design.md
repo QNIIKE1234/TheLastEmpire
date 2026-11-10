@@ -168,3 +168,17 @@ graph TD
    - ค้อนไฮดรอลิกยักษ์ (Titan Impact Sledge) จาก `Titan Skull Crest`
    - ปืนลำแสงอนุภาค (Fusion Beam Emitter) จาก `Miniature Fusion Reactor`
 
+---
+
+## ⚙️ 7. ระบบหน้าต่างคราฟต์ โต๊ะคราฟต์ และการแจ้งเตือน `Log_HUD` (Implemented Crafting & Notification Systems)
+
+1. **การแบ่งเงื่อนไขหมวดหมู่คราฟต์ (`CraftController.cs`):**
+   - **หมวดหมู่ที่คราฟต์ได้ทุกที่ (No Workbench Required):** `Utility`, `Weapons`, `Consumables`, `Tools`, และ `Special` ผู้เล่นสามารถกดเปิดหน้าต่างคราฟต์ (`C`) และสร้างได้ทันทีทุกที่
+   - **หมวดหมู่ที่ต้องใช้โต๊ะคราฟต์ (`Survivor Workbench` Required):** เฉพาะหมวด `Building` และ `Defense` เท่านั้น
+   - **การซ่อนแท็บหมวดหมู่ซ้ายมืออัตโนมัติ:** เมื่อไม่ได้อยู่ใกล้โต๊ะคราฟต์ ปุ่มแท็บ `Building` และ `Defense` ทางซ้ายมือจะถูกซ่อน (`SetActive(false)`) และจะเปิดแสดงผล (`SetActive(true)`) เฉพาะเมื่อเดินเข้าใกล้โต๊ะคราฟต์แล้วกดใช้งาน (`[E] Crafting Table`)
+2. **ระบบแจ้งเตือนไอเทมที่ได้รับและคราฟต์ (`ItemLogHUD.cs` & `LogThumbnail.cs`):**
+   - ใช้ระบบ **Object Pool ขนาด 10 ชิ้น (`poolSize = 10`)** จาก `Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab` ภายใต้ `Log_HUD` (`GridLayoutGroup`)
+   - เมื่อเก็บของหรือได้รับไอเทม แสดง `Got <ItemName> x<Amount>` และเมื่อคราฟต์ไอเทมหรือวางสิ่งปลูกสร้าง แสดง `Crafted <Name> x<Amount>`
+   - แจ้งเตือนแต่ละชิ้นแสดงผลนาน **2.0 วินาที** แล้วค่อยๆ จางหายกลับเข้า Pool โดยหากได้รับหลายชิ้นจะเรียงต่อกันลงมาอัตโนมัติ
+
+
