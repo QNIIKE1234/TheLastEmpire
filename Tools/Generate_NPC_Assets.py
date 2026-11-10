@@ -1,5 +1,5 @@
 import os
-import uuid
+import re
 
 BASE_DIR = r"d:\TLEGIT\TheLastEmpire"
 DB_DIR = os.path.join(BASE_DIR, "Assets", "Resources_Addressable", "Database")
@@ -9,6 +9,13 @@ os.makedirs(NPC_DATA_DIR, exist_ok=True)
 NPC_DATA_SO_GUID = "5d6f4e3c2b1a09874e3c2b1a09874e3c"
 NPC_DATABASE_GUID = "6e7f5a4b3c2d1e0f6e7f5a4b3c2d1e0f"
 PORTRAIT_PEPPER_GUID = "1a6b6eaa23bf9454f9e69c5d023efd0a"
+
+# 3D Model FBX GUIDs
+ZACK_FBX = "a1b2c3d4e5f60718293a4b5c6d7e0001"
+ELENA_FBX = "a1b2c3d4e5f60718293a4b5c6d7e0002"
+OTTO_FBX = "a1b2c3d4e5f60718293a4b5c6d7e0003"
+MAYA_FBX = "a1b2c3d4e5f60718293a4b5c6d7e0004"
+ROY_FBX = "a1b2c3d4e5f60718293a4b5c6d7e0005"
 
 def make_meta(asset_guid):
     return f"""fileFormatVersion: 2
@@ -26,15 +33,15 @@ prefab_path = os.path.join(BASE_DIR, "Assets", "Resources_Addressable", "Prefabs
 with open(prefab_path, "r", encoding="utf-8") as f:
     prefab_text = f.read()
 
-import re
 shop_items_match = re.search(r"  shopItems:\n(    - item:.*\n(?:      .*\n)*?|  - item:[\s\S]*?)(?=  isFree:)", prefab_text)
 zack_shop_items = shop_items_match.group(1) if shop_items_match else ""
 
-# Zack GUID
+# GUIDs for SO assets
 zack_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f0"
 elena_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f1"
 otto_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f2"
 maya_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f3"
+roy_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f5"
 npc_db_guid = "9a1b2c3d4e5f60718293a4b5c6d7e8f4"
 
 # 1. NPC_Merchant_Zack.asset
@@ -57,7 +64,7 @@ MonoBehaviour:
   npcTitle: Outpost Merchant
   npcType: 0
   interactRange: 2
-  customModelPrefab: {{fileID: 0}}
+  customModelPrefab: {{fileID: 100000, guid: {ZACK_FBX}, type: 3}}
   tintColor: {{r: 1, g: 1, b: 1, a: 1}}
   dialogueId: Merchant_Intro
   dialogueTree: {{fileID: 0}}
@@ -105,8 +112,8 @@ MonoBehaviour:
   npcTitle: Field Combat Medic
   npcType: 0
   interactRange: 2.2
-  customModelPrefab: {{fileID: 0}}
-  tintColor: {{r: 0.3, g: 0.85, b: 0.5, a: 1}}
+  customModelPrefab: {{fileID: 100000, guid: {ELENA_FBX}, type: 3}}
+  tintColor: {{r: 1, g: 1, b: 1, a: 1}}
   dialogueId: Merchant_Intro
   dialogueTree: {{fileID: 0}}
   npcPortrait: {{fileID: 21300000, guid: {PORTRAIT_PEPPER_GUID}, type: 3}}
@@ -157,8 +164,8 @@ MonoBehaviour:
   npcTitle: Imperial Gunsmith
   npcType: 0
   interactRange: 2.0
-  customModelPrefab: {{fileID: 0}}
-  tintColor: {{r: 1.0, g: 0.65, b: 0.2, a: 1}}
+  customModelPrefab: {{fileID: 100000, guid: {OTTO_FBX}, type: 3}}
+  tintColor: {{r: 1, g: 1, b: 1, a: 1}}
   dialogueId: Merchant_Intro
   dialogueTree: {{fileID: 0}}
   npcPortrait: {{fileID: 0}}
@@ -172,7 +179,7 @@ with open(otto_path, "w", encoding="utf-8") as f:
 with open(otto_path + ".meta", "w", encoding="utf-8") as f:
     f.write(make_meta(otto_guid))
 
-# 4. Maya (Story NPC)
+# 4. Maya (Story / Scout NPC)
 maya_asset = f"""%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
@@ -192,8 +199,8 @@ MonoBehaviour:
   npcTitle: Imperial Scout & Informant
   npcType: 2
   interactRange: 2.5
-  customModelPrefab: {{fileID: 0}}
-  tintColor: {{r: 0.7, g: 0.45, b: 1.0, a: 1}}
+  customModelPrefab: {{fileID: 100000, guid: {MAYA_FBX}, type: 3}}
+  tintColor: {{r: 1, g: 1, b: 1, a: 1}}
   dialogueId: Merchant_Rumor
   dialogueTree: {{fileID: 0}}
   npcPortrait: {{fileID: 0}}
@@ -206,7 +213,53 @@ with open(maya_path, "w", encoding="utf-8") as f:
 with open(maya_path + ".meta", "w", encoding="utf-8") as f:
     f.write(make_meta(maya_guid))
 
-# 5. NPCDatabase.asset
+# 5. Roy (Grizzled Veteran Scavenger)
+roy_items = """  - item: {fileID: 11400000, guid: 0156f235935a4cbe810c0209e37a4e75, type: 2}
+    price: 2200
+  - item: {fileID: 11400000, guid: 27aeb4710cfe4359ad2edcaeeaf74dab, type: 2}
+    price: 3200
+  - item: {fileID: 11400000, guid: 4392ef4321caffa4baeea2bb0ddb9dd0, type: 2}
+    price: 1000
+  - item: {fileID: 11400000, guid: 8cd6bf53ca51ce645bdb64adeac82f78, type: 2}
+    price: 500
+  - item: {fileID: 11400000, guid: d8bcac8c8b914302b655e905f951abbe, type: 2}
+    price: 25"""
+
+roy_asset = f"""%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {{fileID: 0}}
+  m_PrefabInstance: {{fileID: 0}}
+  m_PrefabAsset: {{fileID: 0}}
+  m_GameObject: {{fileID: 0}}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {{fileID: 11500000, guid: {NPC_DATA_SO_GUID}, type: 3}}
+  m_Name: NPC_Survivor_Roy
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.NPCDataSO
+  npcId: survivor_roy
+  npcName: Old Roy
+  npcTitle: Grizzled Wasteland Scavenger
+  npcType: 0
+  interactRange: 2.2
+  customModelPrefab: {{fileID: 100000, guid: {ROY_FBX}, type: 3}}
+  tintColor: {{r: 1, g: 1, b: 1, a: 1}}
+  dialogueId: Merchant_Rumor
+  dialogueTree: {{fileID: 0}}
+  npcPortrait: {{fileID: 0}}
+  shopItems:
+{roy_items}
+  isFree: 0
+"""
+roy_path = os.path.join(NPC_DATA_DIR, "NPC_Survivor_Roy.asset")
+with open(roy_path, "w", encoding="utf-8") as f:
+    f.write(roy_asset)
+with open(roy_path + ".meta", "w", encoding="utf-8") as f:
+    f.write(make_meta(roy_guid))
+
+# 6. NPCDatabase.asset (Register all 5 NPCs)
 db_asset = f"""%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
@@ -226,6 +279,7 @@ MonoBehaviour:
   - {{fileID: 11400000, guid: {elena_guid}, type: 2}}
   - {{fileID: 11400000, guid: {otto_guid}, type: 2}}
   - {{fileID: 11400000, guid: {maya_guid}, type: 2}}
+  - {{fileID: 11400000, guid: {roy_guid}, type: 2}}
 """
 db_path = os.path.join(DB_DIR, "NPCDatabase.asset")
 with open(db_path, "w", encoding="utf-8") as f:
@@ -233,18 +287,4 @@ with open(db_path, "w", encoding="utf-8") as f:
 with open(db_path + ".meta", "w", encoding="utf-8") as f:
     f.write(make_meta(npc_db_guid))
 
-# 6. NPCData folder meta
-npc_data_meta = """fileFormatVersion: 2
-guid: 8b2c3d4e5f60718293a4b5c6d7e8f001
-folderAsset: yes
-DefaultImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
-"""
-with open(os.path.join(DB_DIR, "NPCData.meta"), "w", encoding="utf-8") as f:
-    f.write(npc_data_meta)
-
-print("Successfully generated all NPC assets, ScriptableObjects, and NPCDatabase!")
-
+print("Successfully regenerated all 5 NPC assets and updated NPCDatabase!")

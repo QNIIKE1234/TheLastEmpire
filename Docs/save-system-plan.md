@@ -279,3 +279,4 @@ flowchart LR
 - **Phase 5: ทดสอบความทนทานและการกู้คืนไฟล์ (Verification & Safety Testing)**
   - ทดสอบจำลองกรณีไฟล์เซฟเสีย (Corrupt file simulation) เพื่อยืนยันว่าระบบ Rollback ไปใช้ไฟล์ `.bak` ได้อย่างราบรื่น
   - ตรวจสอบว่าไม่มี Garbage Collection Spikes ตอนเซฟขณะเล่น
+

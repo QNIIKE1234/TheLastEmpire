@@ -207,16 +207,50 @@ namespace TheLastEmpire
             }
 
             // Visual Model Replacement
-            if (data.customModelPrefab != null && modelRoot != null)
+            if (data.customModelPrefab != null)
             {
-                foreach (Transform child in modelRoot)
+                Transform targetRoot = modelRoot;
+                if (targetRoot == null)
                 {
-                    Destroy(child.gameObject);
+                    targetRoot = transform.Find("ModelRoot");
                 }
-                GameObject model = Instantiate(data.customModelPrefab, modelRoot);
-                model.transform.localPosition = Vector3.zero;
-                model.transform.localRotation = Quaternion.identity;
-                model.transform.localScale = Vector3.one;
+                if (targetRoot == null)
+                {
+                    Transform existingModel = transform.Find("Chibi_Base_Rigged");
+                    if (existingModel != null)
+                    {
+                        targetRoot = transform;
+                        Destroy(existingModel.gameObject);
+                    }
+                    else
+                    {
+                        targetRoot = transform;
+                    }
+                }
+
+                if (targetRoot != null)
+                {
+                    GameObject model = Instantiate(data.customModelPrefab, targetRoot);
+                    model.name = data.customModelPrefab.name;
+                    model.transform.localPosition = Vector3.zero;
+                    model.transform.localRotation = Quaternion.identity;
+                    model.transform.localScale = Vector3.one;
+
+                    // Ensure Animator inherits the Chibi_Player_Controller
+                    Animator anim = model.GetComponentInChildren<Animator>();
+                    if (anim != null)
+                    {
+                        anim.applyRootMotion = false;
+                        if (anim.runtimeAnimatorController == null)
+                        {
+                            Animator existingAnim = GetComponentInChildren<Animator>();
+                            if (existingAnim != null && existingAnim != anim && existingAnim.runtimeAnimatorController != null)
+                            {
+                                anim.runtimeAnimatorController = existingAnim.runtimeAnimatorController;
+                            }
+                        }
+                    }
+                }
             }
 
             // Visual Tint

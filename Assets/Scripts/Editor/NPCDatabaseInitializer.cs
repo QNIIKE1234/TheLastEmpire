@@ -34,23 +34,33 @@ namespace TheLastEmpire.Editor
 
             // 1. Create Zack (Default Merchant)
             NPCDataSO zack = EnsureNPCData($"{npcDataFolder}/NPC_Merchant_Zack.asset", "merchant_zack", "Zack", "Outpost Merchant", NPCType.Shop, "Merchant_Intro");
+            zack.customModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/NPCs/NPC_Zack_Merchant_Rigged.fbx");
             PopulateZackInventory(zack);
 
             // 2. Create Dr. Elena (Field Medic)
             NPCDataSO elena = EnsureNPCData($"{npcDataFolder}/NPC_Doctor_Elena.asset", "doctor_elena", "Dr. Elena", "Combat Medic", NPCType.Shop, "Merchant_Intro");
-            elena.tintColor = new Color(0.3f, 0.85f, 0.5f);
+            elena.customModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/NPCs/NPC_Elena_Medic_Rigged.fbx");
+            elena.tintColor = Color.white;
             PopulateMedicInventory(elena);
 
             // 3. Create Otto (Weaponsmith)
             NPCDataSO otto = EnsureNPCData($"{npcDataFolder}/NPC_Mechanic_Otto.asset", "mechanic_otto", "Otto", "Imperial Gunsmith", NPCType.Shop, "Merchant_Intro");
-            otto.tintColor = new Color(1.0f, 0.65f, 0.2f);
+            otto.customModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/NPCs/NPC_Otto_Gunsmith_Rigged.fbx");
+            otto.tintColor = Color.white;
             PopulateGunsmithInventory(otto);
 
             // 4. Create Maya (Scout / Story NPC)
             NPCDataSO maya = EnsureNPCData($"{npcDataFolder}/NPC_Watcher_Maya.asset", "watcher_maya", "Maya", "Imperial Informant", NPCType.StoryNPC, "Merchant_Rumor");
-            maya.tintColor = new Color(0.7f, 0.45f, 1.0f);
+            maya.customModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/NPCs/NPC_Maya_Scout_Rigged.fbx");
+            maya.tintColor = Color.white;
 
-            // 5. Ensure NPCDatabase asset exists and links all NPCs
+            // 5. Create Roy (Old Scavenger Veteran)
+            NPCDataSO roy = EnsureNPCData($"{npcDataFolder}/NPC_Survivor_Roy.asset", "survivor_roy", "Old Roy", "Grizzled Wasteland Scavenger", NPCType.Shop, "Merchant_Rumor");
+            roy.customModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/GeneratedModels/NPCs/NPC_Roy_Veteran_Rigged.fbx");
+            roy.tintColor = Color.white;
+            PopulateRoyInventory(roy);
+
+            // 6. Ensure NPCDatabase asset exists and links all NPCs
             string dbPath = $"{dbFolder}/NPCDatabase.asset";
             NPCDatabase db = AssetDatabase.LoadAssetAtPath<NPCDatabase>(dbPath);
             if (db == null)
@@ -59,7 +69,7 @@ namespace TheLastEmpire.Editor
                 AssetDatabase.CreateAsset(db, dbPath);
             }
 
-            db.npcs = new List<NPCDataSO> { zack, elena, otto, maya };
+            db.npcs = new List<NPCDataSO> { zack, elena, otto, maya, roy };
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -159,6 +169,28 @@ namespace TheLastEmpire.Editor
                 if (item != null)
                 {
                     int price = ShopDatabase.Instance != null ? ShopDatabase.Instance.GetDefaultPrice(itemName) : 200;
+                    npc.shopItems.Add(new ShopItemConfig { item = item, price = price });
+                }
+            }
+            EditorUtility.SetDirty(npc);
+        }
+
+        private static void PopulateRoyInventory(NPCDataSO npc)
+        {
+            if (ItemDatabase.Instance == null) return;
+            npc.shopItems.Clear();
+
+            string[] scavItems = new string[]
+            {
+                "Crossbow", "Survival Spear", "Knife", "Bandage", "Bread", "Bolts"
+            };
+
+            foreach (var itemName in scavItems)
+            {
+                ItemData item = ItemDatabase.Instance.GetItemByName(itemName);
+                if (item != null)
+                {
+                    int price = ShopDatabase.Instance != null ? ShopDatabase.Instance.GetDefaultPrice(itemName) : 80;
                     npc.shopItems.Add(new ShopItemConfig { item = item, price = price });
                 }
             }
