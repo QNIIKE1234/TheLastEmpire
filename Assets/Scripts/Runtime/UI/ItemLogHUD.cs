@@ -2,22 +2,30 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
 
 namespace TheLastEmpire
 {
     /// <summary>
     /// Controller for Log_HUD that displays item pickup and crafting notifications (LogThumbnail).
-    /// Each notification stays for ~2 seconds then fades out, and multiple notifications stack vertically.
+    /// Uses a pre-allocated Object Pool of 10 LogThumbnail items instantiated from Prefabs/UI/LogThumbnail.prefab.
+    /// Each notification stays for ~2 seconds then hides back into the pool, and multiple notifications stack vertically.
     /// </summary>
     public class ItemLogHUD : MonoBehaviour
     {
         public static ItemLogHUD Instance { get; private set; }
 
-        [Header("Template Reference")]
-        [Tooltip("Template LogThumbnail inside Log_HUD")]
+        [Header("Prefab & Pool Settings")]
+        [Tooltip("Prefab asset at Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab")]
+        [SerializeField] private GameObject logThumbnailPrefab;
+
+        [Tooltip("Optional scene template inside Log_HUD")]
         [SerializeField] private GameObject logThumbnailTemplate;
+
+        [Tooltip("Number of pre-allocated LogThumbnail objects in the pool")]
+        [SerializeField] private int poolSize = 10;
+
+        [Tooltip("Pre-allocated pool items under Log_HUD")]
+        [SerializeField] private List<LogThumbnail> pooledThumbnails = new List<LogThumbnail>(10);
 
         [Header("Display & Layout Settings")]
         [Tooltip("Duration (in seconds) each log entry stays on screen before disappearing")]
@@ -26,19 +34,23 @@ namespace TheLastEmpire
         [Tooltip("Fade-out duration at the end of displayDuration")]
         [SerializeField] private float fadeOutDuration = 0.35f;
 
+        [Tooltip("Top-right base anchored position for the first log entry")]
+        [SerializeField] private Vector2 baseAnchoredPosition = new Vector2(-160f, -60f);
+
+        [Tooltip("Size of each LogThumbnail RectTransform")]
+        [SerializeField] private Vector2 thumbnailSize = new Vector2(300f, 80f);
+
         [Tooltip("Vertical spacing in pixels between stacked log entries")]
         [SerializeField] private float verticalSpacing = 58f;
-
-        [Tooltip("Maximum number of simultaneous log entries visible on screen")]
-        [SerializeField] private int maxVisibleEntries = 8;
 
         [Tooltip("Speed at which stacked entries slide up when an entry above disappears")]
         [SerializeField] private float slideSpeed = 14f;
 
-        private readonly List<LogThumbnail> _activeEntries = new List<LogThumbnail>();
-        private Vector2 _baseAnchoredPos = new Vector2(-160f, -60f);
+        private readonly Queue<LogThumbnail> _inactivePool = new Queue<LogThumbnail>(10);
+        private readonly List<LogThumbnail> _activeEntries = new List<LogThumbnail>(10);
+
         private Sprite _fallbackIcon;
-        private bool _templateInitialized = false;
+        private bool _poolInitialized = false;
 
         private PlayerInventory _subscribedInventory;
         private CraftController _subscribedCraftController;
@@ -53,6 +65,8 @@ namespace TheLastEmpire
         }
 
 #if UNITY_EDITOR
+        private const string PrefabAssetPath = "Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab";
+
         [UnityEditor.InitializeOnLoadMethod]
         private static void EditorAutoAttachToScene()
         {
@@ -67,6 +81,13 @@ namespace TheLastEmpire
                 {
                     hud = logHudObj.AddComponent<ItemLogHUD>();
                     UnityEditor.EditorUtility.SetDirty(logHudObj);
+                }
+
+                GameObject prefabAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
+                if (prefabAsset != null && hud.logThumbnailPrefab != prefabAsset)
+                {
+                    hud.logThumbnailPrefab = prefabAsset;
+                    UnityEditor.EditorUtility.SetDirty(hud);
                 }
 
                 Transform thumbTrans = logHudObj.transform.Find("LogThumbnail");
@@ -103,11 +124,10 @@ namespace TheLastEmpire
             if (existing != null)
             {
                 Instance = existing;
-                existing.InitializeTemplate();
+                existing.InitializePool();
                 return;
             }
 
-            // Find Log_HUD in scene
             GameObject logHudObj = GameObject.Find("Log_HUD");
             if (logHudObj == null)
             {
@@ -134,7 +154,7 @@ namespace TheLastEmpire
                     hud = logHudObj.AddComponent<ItemLogHUD>();
                 }
                 Instance = hud;
-                hud.InitializeTemplate();
+                hud.InitializePool();
             }
         }
 
@@ -146,12 +166,12 @@ namespace TheLastEmpire
                 return;
             }
             Instance = this;
-            InitializeTemplate();
+            InitializePool();
         }
 
         private void OnEnable()
         {
-            InitializeTemplate();
+            InitializePool();
             EnsureSubscriptions();
         }
 
@@ -169,11 +189,18 @@ namespace TheLastEmpire
             }
         }
 
-        [ContextMenu("Auto Bind Template")]
-        public void InitializeTemplate()
+        private GameObject ResolveSpawnSource()
         {
-            if (_templateInitialized && logThumbnailTemplate != null) return;
-
+            if (logThumbnailPrefab == null)
+            {
+                logThumbnailPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/UI/LogThumbnail");
+            }
+#if UNITY_EDITOR
+            if (logThumbnailPrefab == null)
+            {
+                logThumbnailPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
+            }
+#endif
             if (logThumbnailTemplate == null)
             {
                 Transform child = transform.Find("LogThumbnail");
@@ -191,30 +218,165 @@ namespace TheLastEmpire
                 }
             }
 
+            return logThumbnailPrefab != null ? logThumbnailPrefab : logThumbnailTemplate;
+        }
+
+        private void ConfigureThumbnailRectTransform(RectTransform rt, int index)
+        {
+            if (rt == null) return;
+            rt.anchorMin = new Vector2(1f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            if (rt.sizeDelta.sqrMagnitude < 1f)
+            {
+                rt.sizeDelta = thumbnailSize;
+            }
+            rt.localScale = Vector3.one;
+            rt.localRotation = Quaternion.identity;
+            rt.anchoredPosition = GetSlotAnchoredPosition(index);
+        }
+
+        [ContextMenu("Initialize Pool (10 Items)")]
+        public void InitializePool()
+        {
+            int targetPoolSize = Mathf.Max(1, poolSize);
+            if (_poolInitialized && pooledThumbnails != null && pooledThumbnails.Count >= targetPoolSize)
+            {
+                return;
+            }
+
+            GameObject spawnSource = ResolveSpawnSource();
+            if (spawnSource == null) return;
+
             if (logThumbnailTemplate != null)
             {
-                RectTransform rt = logThumbnailTemplate.GetComponent<RectTransform>();
-                if (rt != null)
+                RectTransform templateRt = logThumbnailTemplate.GetComponent<RectTransform>();
+                if (templateRt != null)
                 {
-                    _baseAnchoredPos = rt.anchoredPosition;
+                    if (templateRt.anchoredPosition.sqrMagnitude > 1f)
+                    {
+                        baseAnchoredPosition = templateRt.anchoredPosition;
+                    }
+                    if (templateRt.sizeDelta.sqrMagnitude > 1f)
+                    {
+                        thumbnailSize = templateRt.sizeDelta;
+                    }
                 }
-
-                LogThumbnail thumbComp = logThumbnailTemplate.GetComponent<LogThumbnail>();
-                if (thumbComp == null)
-                {
-                    thumbComp = logThumbnailTemplate.AddComponent<LogThumbnail>();
-                }
-                thumbComp.AutoBindIfNeeded();
-
-                if (thumbComp.IconImage != null && thumbComp.IconImage.sprite != null)
-                {
-                    _fallbackIcon = thumbComp.IconImage.sprite;
-                }
-
-                // Hide the scene template so placeholder text ("Got apple ane pine 1 each") is not shown at start
-                logThumbnailTemplate.SetActive(false);
-                _templateInitialized = true;
             }
+
+            LogThumbnail sourceThumbComp = spawnSource.GetComponent<LogThumbnail>();
+            if (sourceThumbComp != null)
+            {
+                sourceThumbComp.AutoBindIfNeeded();
+                if (sourceThumbComp.IconImage != null && sourceThumbComp.IconImage.sprite != null)
+                {
+                    _fallbackIcon = sourceThumbComp.IconImage.sprite;
+                }
+            }
+
+            if (pooledThumbnails == null)
+            {
+                pooledThumbnails = new List<LogThumbnail>(targetPoolSize);
+            }
+            pooledThumbnails.RemoveAll(x => x == null);
+            _inactivePool.Clear();
+            _activeEntries.Clear();
+
+            // 1. Collect any existing children under Log_HUD into the pool first
+            for (int i = 0; i < transform.childCount && pooledThumbnails.Count < targetPoolSize; i++)
+            {
+                Transform child = transform.GetChild(i);
+                if (child == null) continue;
+
+                LogThumbnail item = child.GetComponent<LogThumbnail>();
+                if (item == null)
+                {
+                    item = child.gameObject.AddComponent<LogThumbnail>();
+                }
+                item.AutoBindIfNeeded();
+
+                if (_fallbackIcon == null && item.IconImage != null && item.IconImage.sprite != null)
+                {
+                    _fallbackIcon = item.IconImage.sprite;
+                }
+
+                ConfigureThumbnailRectTransform(item.RectTransform, pooledThumbnails.Count);
+                child.gameObject.name = $"LogThumbnail_Pool_{pooledThumbnails.Count + 1:00}";
+                child.gameObject.SetActive(false);
+
+                if (!pooledThumbnails.Contains(item))
+                {
+                    pooledThumbnails.Add(item);
+                }
+            }
+
+            // 2. Pre-instantiate remaining items from logThumbnailPrefab up to poolSize (10)
+            while (pooledThumbnails.Count < targetPoolSize)
+            {
+                int index = pooledThumbnails.Count;
+                GameObject cloneObj = Instantiate(spawnSource, transform, false);
+                cloneObj.name = $"LogThumbnail_Pool_{index + 1:00}";
+                cloneObj.SetActive(false);
+
+                LogThumbnail item = cloneObj.GetComponent<LogThumbnail>();
+                if (item == null)
+                {
+                    item = cloneObj.AddComponent<LogThumbnail>();
+                }
+                item.AutoBindIfNeeded();
+                ConfigureThumbnailRectTransform(item.RectTransform, index);
+
+                pooledThumbnails.Add(item);
+            }
+
+            // 3. Enqueue all 10 pooled items into the inactive queue
+            for (int i = 0; i < pooledThumbnails.Count; i++)
+            {
+                LogThumbnail item = pooledThumbnails[i];
+                if (item != null)
+                {
+                    item.gameObject.SetActive(false);
+                    _inactivePool.Enqueue(item);
+                }
+            }
+
+            _poolInitialized = true;
+        }
+
+        private LogThumbnail AcquireFromPool()
+        {
+            InitializePool();
+
+            while (_inactivePool.Count > 0)
+            {
+                LogThumbnail item = _inactivePool.Dequeue();
+                if (item != null)
+                {
+                    return item;
+                }
+            }
+
+            // If all 10 pooled items are currently active on screen, recycle the oldest active entry
+            if (_activeEntries.Count > 0)
+            {
+                LogThumbnail oldest = _activeEntries[0];
+                _activeEntries.RemoveAt(0);
+                if (oldest != null)
+                {
+                    oldest.gameObject.SetActive(false);
+                    return oldest;
+                }
+            }
+
+            return null;
+        }
+
+        private void ReleaseToPool(LogThumbnail entry)
+        {
+            if (entry == null) return;
+            entry.SetAlpha(0f);
+            entry.gameObject.SetActive(false);
+            _inactivePool.Enqueue(entry);
         }
 
         private void Update()
@@ -240,8 +402,8 @@ namespace TheLastEmpire
 
                 if (entry.ElapsedTime >= duration)
                 {
-                    Destroy(entry.gameObject);
                     _activeEntries.RemoveAt(i);
+                    ReleaseToPool(entry);
                     continue;
                 }
 
@@ -273,7 +435,7 @@ namespace TheLastEmpire
 
         private Vector2 GetSlotAnchoredPosition(int index)
         {
-            return _baseAnchoredPos + new Vector2(0f, -index * verticalSpacing);
+            return baseAnchoredPosition + new Vector2(0f, -index * verticalSpacing);
         }
 
         private void EnsureSubscriptions()
@@ -450,12 +612,11 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// Spawns a new LogThumbnail notification (or merges if the exact same item was added in the same frame).
+        /// Activates a pooled LogThumbnail notification (or merges if the exact same item was added in the same frame).
         /// </summary>
         public void ShowNotification(string itemKey, string prefix, string displayName, int quantity, Sprite icon)
         {
-            InitializeTemplate();
-            if (logThumbnailTemplate == null) return;
+            InitializePool();
 
             // If the exact same itemKey was added in the same frame (< 0.08s ago), merge quantity into that row
             for (int i = _activeEntries.Count - 1; i >= 0; i--)
@@ -470,34 +631,13 @@ namespace TheLastEmpire
                 }
             }
 
-            // Enforce max visible entries by removing the oldest one if needed
-            while (_activeEntries.Count >= Mathf.Max(1, maxVisibleEntries))
-            {
-                LogThumbnail oldest = _activeEntries[0];
-                _activeEntries.RemoveAt(0);
-                if (oldest != null)
-                {
-                    Destroy(oldest.gameObject);
-                }
-            }
-
-            GameObject cloneObj = Instantiate(logThumbnailTemplate, transform);
-            cloneObj.name = $"LogThumbnail_{displayName}_{_activeEntries.Count + 1}";
-            cloneObj.SetActive(true);
-
-            LogThumbnail entry = cloneObj.GetComponent<LogThumbnail>();
-            if (entry == null)
-            {
-                entry = cloneObj.AddComponent<LogThumbnail>();
-            }
+            LogThumbnail entry = AcquireFromPool();
+            if (entry == null) return;
 
             int slotIndex = _activeEntries.Count;
-            if (entry.RectTransform != null)
-            {
-                entry.RectTransform.anchoredPosition = GetSlotAnchoredPosition(slotIndex);
-                entry.RectTransform.localScale = Vector3.one;
-            }
+            ConfigureThumbnailRectTransform(entry.RectTransform, slotIndex);
 
+            entry.gameObject.SetActive(true);
             entry.Setup(itemKey, prefix, displayName, quantity, icon, _fallbackIcon);
             _activeEntries.Add(entry);
         }
