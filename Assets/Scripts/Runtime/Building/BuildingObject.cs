@@ -16,7 +16,7 @@ namespace TheLastEmpire
     {
         [Header("Building Data")]
         [SerializeField] private BuildingData data;
-        [SerializeField] private float currentHealth = 1000f;
+        [SerializeField] private float currentHealth = 250f;
 
         [Header("Stage Coordinates")]
         [Tooltip("พิกัด Stage X ที่สิ่งปลูกสร้างนี้ถูกสร้างขึ้น")]
@@ -31,6 +31,16 @@ namespace TheLastEmpire
         {
             stageX = x;
             stageY = y;
+        }
+
+        [Header("Health Bar Settings")]
+        [Tooltip("แสดงหลอดเลือดลอยเหนือสิ่งปลูกสร้างหรือไม่ (ค่าเริ่มต้น: false เพื่อคงรูปแบบเดิม)")]
+        [SerializeField] private bool showHealthBar = false;
+
+        public bool ShowHealthBar
+        {
+            get => showHealthBar;
+            set => showHealthBar = value;
         }
 
         [Header("NavMesh Settings")]
@@ -67,7 +77,7 @@ namespace TheLastEmpire
 
         public BuildingData Data => data;
         public float CurrentHealth => currentHealth;
-        public float MaxHealth => data != null ? data.maxHealth : 1000f;
+        public float MaxHealth => data != null ? data.maxHealth : 250f;
         public bool IsDead => _isDestroyed || currentHealth <= 0f;
 
         public event Action<float, float> OnHealthChanged; // current, max
@@ -101,7 +111,7 @@ namespace TheLastEmpire
 
         private void EnsureHealthDisplay()
         {
-            if (GetComponent<BuildingHealthDisplay>() == null)
+            if (showHealthBar && GetComponent<BuildingHealthDisplay>() == null)
             {
                 gameObject.AddComponent<BuildingHealthDisplay>();
             }
