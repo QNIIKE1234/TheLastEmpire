@@ -19,7 +19,27 @@ namespace TheLastEmpire
         private Transform _playerTransform;
 
         public static WorkbenchBuilding ClosestWorkbench { get; private set; }
-        public static bool IsPlayerNearWorkbench => ClosestWorkbench != null;
+        public static bool IsPlayerNearWorkbench => ClosestWorkbench != null || CheckPlayerNearAnyWorkbench();
+
+        public static bool CheckPlayerNearAnyWorkbench()
+        {
+            if (ClosestWorkbench != null) return true;
+            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
+            if (pc == null) return false;
+            WorkbenchBuilding[] allBenches = Object.FindObjectsByType<WorkbenchBuilding>(FindObjectsSortMode.None);
+            foreach (var bench in allBenches)
+            {
+                if (bench != null && bench.gameObject.activeInHierarchy)
+                {
+                    if (Vector3.Distance(bench.transform.position, pc.transform.position) <= bench.interactionDistance + 1.0f)
+                    {
+                        ClosestWorkbench = bench;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         // IBuildingInteractable implementation
         public Transform InteractionTransform => transform;
@@ -29,7 +49,7 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
-            return "<color=yellow><b>[E]</b></color> Crafting Table";
+            return "<color=yellow><b>[E]</b></color> Craft (โต๊ะคราฟต์)";
         }
 
         public void OnInteract()
@@ -112,7 +132,7 @@ namespace TheLastEmpire
 
             if (CraftController.Instance != null)
             {
-                CraftController.Instance.OpenCraftMenu();
+                CraftController.Instance.OpenCraftMenu(true);
                 Debug.Log("[WorkbenchBuilding] Opened Craft Menu at Survivor Workbench.");
             }
         }

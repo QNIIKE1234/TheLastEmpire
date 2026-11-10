@@ -150,6 +150,10 @@ namespace TheLastEmpire
         public BuildingData GetBuildingDataForRecipe(CraftingRecipe recipe)
         {
             if (recipe == null) return null;
+            if (allBuildings == null || allBuildings.Count == 0)
+            {
+                LoadDefaultBuildingDataIfEmpty();
+            }
 
             // 1. ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์
             foreach (var b in allBuildings)

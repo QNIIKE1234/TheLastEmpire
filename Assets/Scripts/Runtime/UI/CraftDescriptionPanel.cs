@@ -176,6 +176,11 @@ namespace TheLastEmpire
                 desc = defaultDescription;
             }
 
+            if (CraftController.RequiresWorkbench(recipe) && (CraftController.Instance == null || !CraftController.Instance.IsAtWorkbench))
+            {
+                desc += "\n\n<color=#FF6666>⚠ ต้องเข้าใกล้โต๊ะคราฟต์ (Survivor Workbench) เพื่อสร้าง</color>";
+            }
+
             if (itemDescriptionText != null)
             {
                 itemDescriptionText.text = desc;

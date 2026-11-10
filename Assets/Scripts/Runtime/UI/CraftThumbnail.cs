@@ -438,10 +438,25 @@ namespace TheLastEmpire
                 canCraftAll = CraftingDatabase.Instance.CanCraft(_currentRecipe, playerInventory);
             }
 
-            // อัปเดตสถานะปุ่มคราฟต์ (สีเหลืองเมื่อคราฟต์ได้ / สีดำเทาเมื่อคราฟต์ไม่ได้)
-            if (craftButton != null)
+            // ตรวจสอบเงื่อนไขโต๊ะคราฟต์: เฉพาะหมวด Building และ Defense เท่านั้นที่ต้องใช้โต๊ะคราฟต์ (Utility คราฟต์ได้หมดไม่ต้องมีโต๊ะคราฟต์)
+            bool requiresWorkbench = CraftController.RequiresWorkbench(_currentRecipe);
+            bool isAtWorkbench = (CraftController.Instance != null && CraftController.Instance.IsAtWorkbench);
+
+            // กฎ: ถ้าสูตรนี้ต้องใช้โต๊ะคราฟต์ (Building หรือ Defense) แต่ผู้เล่นไม่ได้อยู่ที่โต๊ะคราฟต์ -> ซ่อนปุ่มคราฟต์ไปเลย
+            if (requiresWorkbench && !isAtWorkbench)
             {
-                craftButton.interactable = canCraftAll;
+                if (craftButton != null)
+                {
+                    craftButton.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                if (craftButton != null)
+                {
+                    craftButton.gameObject.SetActive(true);
+                    craftButton.interactable = canCraftAll;
+                }
             }
 
             if (craftButtonBackground != null)
@@ -500,6 +515,7 @@ namespace TheLastEmpire
             {
                 craftButton.onClick.RemoveAllListeners();
                 craftButton.interactable = false;
+                craftButton.gameObject.SetActive(true);
             }
 
             if (rowSelectButton != null)
@@ -536,12 +552,6 @@ namespace TheLastEmpire
                 return;
             }
 
-            if (holdDuration <= 0f)
-            {
-                ExecuteCraft();
-                return;
-            }
-
             _isHolding = true;
             _hasCraftedThisHold = false;
             _holdTimer = 0f;
@@ -555,7 +565,6 @@ namespace TheLastEmpire
         private void OnCraftPointerUp()
         {
             _isHolding = false;
-            _hasCraftedThisHold = false;
             _holdTimer = 0f;
         }
 
@@ -579,14 +588,12 @@ namespace TheLastEmpire
 
         private void HandleCraftButtonClick()
         {
-            if (holdDuration <= 0f)
+            if (_hasCraftedThisHold)
             {
-                ExecuteCraft();
+                _hasCraftedThisHold = false;
+                return;
             }
-            else
-            {
-                HandleRowSelectedClicked();
-            }
+            ExecuteCraft();
         }
 
         private void ExecuteCraft()

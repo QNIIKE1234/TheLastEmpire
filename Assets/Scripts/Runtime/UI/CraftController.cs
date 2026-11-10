@@ -129,6 +129,24 @@ namespace TheLastEmpire
             }
         }
 
+        private bool _isOpenedFromWorkbench = false;
+        public bool IsOpenedFromWorkbench => _isOpenedFromWorkbench;
+
+        /// <summary>
+        /// ตรวจสอบว่าผู้เล่นอยู่ในสถานะใกล้โต๊ะคราฟต์หรือไม่ (เปิดผ่านโต๊ะคราฟต์ หรือยืนใกล้โต๊ะคราฟต์)
+        /// หมายเหตุ: ไม่ผูกกับ FreeCraftMode เพื่อให้ระบบซ่อนปุ่ม Building/Defense ทำงานถูกต้องเสมอ
+        /// </summary>
+        public bool IsAtWorkbench => _isOpenedFromWorkbench || WorkbenchBuilding.IsPlayerNearWorkbench;
+
+        /// <summary>
+        /// เงื่อนไขการใช้โต๊ะคราฟต์: Utility คราฟต์ได้หมดไม่ต้องมีโต๊ะคราฟต์ ที่ต้องใช้มีเฉพาะ Building และ Defense
+        /// </summary>
+        public static bool RequiresWorkbench(CraftingRecipe recipe)
+        {
+            if (recipe == null) return false;
+            return recipe.category == CraftingCategory.Building || recipe.category == CraftingCategory.Defense;
+        }
+
         public event Action<CraftingRecipe> OnRecipeCrafted;
 
         // =====================================================
@@ -187,8 +205,26 @@ namespace TheLastEmpire
             }
         }
 
+        private bool _lastAtWorkbench = false;
+
         private void Update()
         {
+            if (_isOpen)
+            {
+                // หากเปิดจากโต๊ะคราฟต์ แต่ผู้เล่นเดินห่างเกินระยะโต๊ะ ให้ยกเลิกสถานะ _isOpenedFromWorkbench ทันที
+                if (_isOpenedFromWorkbench && !WorkbenchBuilding.IsPlayerNearWorkbench)
+                {
+                    _isOpenedFromWorkbench = false;
+                }
+
+                bool atBench = IsAtWorkbench;
+                if (atBench != _lastAtWorkbench)
+                {
+                    _lastAtWorkbench = atBench;
+                    RefreshActiveThumbnailsState();
+                }
+            }
+
             if (Keyboard.current == null) return;
 
             // สลับโหมด Free Craft ด้วย F8, F1, หรือปุ่ม ~ (Backquote)
@@ -439,8 +475,9 @@ namespace TheLastEmpire
                 OpenCraftMenu();
         }
 
-        public void OpenCraftMenu()
+        public void OpenCraftMenu(bool fromWorkbench = false)
         {
+            _isOpenedFromWorkbench = fromWorkbench || WorkbenchBuilding.IsPlayerNearWorkbench;
             FindPlayerInventory();
             if (craftingDatabase == null)
             {
@@ -472,6 +509,7 @@ namespace TheLastEmpire
         public void CloseCraftMenu()
         {
             _isOpen = false;
+            _isOpenedFromWorkbench = false;
             if (craftPanel != null)
             {
                 craftPanel.SetActive(false);
@@ -769,6 +807,13 @@ namespace TheLastEmpire
         private void HandleThumbnailCraftClicked(CraftingRecipe recipe)
         {
             if (recipe == null) return;
+
+            // ตรวจสอบเงื่อนไขโต๊ะคราฟต์: เฉพาะหมวด Building และ Defense เท่านั้นที่ต้องใช้โต๊ะคราฟต์
+            if (RequiresWorkbench(recipe) && !IsAtWorkbench)
+            {
+                Debug.Log($"[CraftController] Cannot craft '{recipe.recipeName}': Requires Crafting Table (Workbench)!");
+                return;
+            }
 
             // ตรวจสอบว่าเป็นสิ่งปลูกสร้างหรือไม่ ถ้าใช่ ให้ปิดหน้าต่างคราฟต์แล้วเข้าสู่โหมดเล็งวาง (Build Mode) ทันที
             if (BuildingManager.Instance != null && BuildingPlacer.Instance != null)

@@ -21189,6 +21189,9 @@ MonoBehaviour:
   sanitySliderHUD: {fileID: 2039140679}
   sanityBarFillHUD: {fileID: 2122960013}
   sanityTextHUD: {fileID: 0}
+  waterSliderHUD: {fileID: 1861848412}
+  waterBarFillHUD: {fileID: 1477052514}
+  waterTextHUD: {fileID: 0}
   weaponImage: {fileID: 1509549020}
   ammoImage: {fileID: 297593180}
   ammoTextHUD: {fileID: 774198700}
@@ -48526,7 +48529,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d58a9a92a4661b34480c6fa923efecad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingManager
-  allBuildings: []
+  allBuildings:
+  - {fileID: 11400000, guid: f0a1b2c3d4e5f60718293a4b5c6d0023, type: 2}
 --- !u!4 &1715489561
 Transform:
   m_ObjectHideFlags: 0
