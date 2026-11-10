@@ -49,7 +49,7 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
-            return "<color=yellow><b>[E]</b></color> Craft (โต๊ะคราฟต์)";
+            return "<color=yellow><b>[E]</b></color> Crafting Table";
         }
 
         public void OnInteract()

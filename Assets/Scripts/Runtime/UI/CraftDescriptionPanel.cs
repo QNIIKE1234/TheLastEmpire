@@ -27,7 +27,7 @@ namespace TheLastEmpire
 
         [Header("Default / Fallback Settings")]
         [Tooltip("ข้อความคำอธิบายเริ่มต้นหากไอเทมไม่มีคำอธิบาย")]
-        [SerializeField] private string defaultDescription = "ไม่มีข้อมูลคำอธิบายสำหรับไอเทมนี้";
+        [SerializeField] private string defaultDescription = "No description available.";
 
         [Tooltip("เปิด/ปิด Image component อัตโนมัติเมื่อไม่มี Sprite")]
         [SerializeField] private bool hideIconIfEmpty = false;
@@ -178,7 +178,7 @@ namespace TheLastEmpire
 
             if (CraftController.RequiresWorkbench(recipe) && (CraftController.Instance == null || !CraftController.Instance.IsAtWorkbench))
             {
-                desc += "\n\n<color=#FF6666>⚠ ต้องเข้าใกล้โต๊ะคราฟต์ (Survivor Workbench) เพื่อสร้าง</color>";
+                desc += "\n\n<color=#FF6666>Requires Survivor Workbench to craft.</color>";
             }
 
             if (itemDescriptionText != null)
