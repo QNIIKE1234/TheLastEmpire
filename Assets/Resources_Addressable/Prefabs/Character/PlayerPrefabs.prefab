@@ -272,9 +272,10 @@ MonoBehaviour:
   xLimit: 8.5
   yLimit: 5
   entryOffset: 0.5
-  animator: {fileID: 6007336099215008093}
+  animator: {fileID: 8309890233084192350}
   meleeWeapon: {fileID: 5404516566552601030}
   rangeWeapon: {fileID: 2317655930535464496}
+  quickSlotController: {fileID: 0}
   muzzleFlashLight: {fileID: 0}
   muzzleLightColor: {r: 1, g: 0.72, b: 0.28, a: 1}
   muzzleLightIntensity: 10
@@ -284,6 +285,9 @@ MonoBehaviour:
   maxHunger: 100
   currentHunger: 100
   hungerDepletionMultiplier: 0.5
+  maxWater: 100
+  currentWater: 100
+  waterDepletionMultiplier: 1
   maxSanity: 100
   currentSanity: 100
   sanityDepletionMultiplier: 1
@@ -298,6 +302,8 @@ MonoBehaviour:
   aoeIndicatorColor: {r: 0.3735848, g: 0, b: 0, a: 0.7}
   throwRangeSprite: {fileID: 0}
   throwRangeColor: {r: 1, g: 1, b: 1, a: 0.35}
+  sanityOnKillNormal: 4
+  sanityOnKillElite: 20
 --- !u!1 &4234281916798538622
 GameObject:
   m_ObjectHideFlags: 0
@@ -465,6 +471,7 @@ RectTransform:
   m_Children:
   - {fileID: 5236896962879352122}
   - {fileID: 41886269290156225}
+  - {fileID: 2716380821899803684}
   - {fileID: 284874877747217389}
   m_Father: {fileID: 1499705149031448608}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -615,15 +622,47 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2681683883527982203, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3096787612908254786, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4275044083105650145, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4676400550798125346, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4938676847877080006, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
       propertyPath: m_Name
       value: Chibi_PunkGirl_Rigged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4938676847877080006, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5427368410015377271, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6140389342795998870, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
       propertyPath: m_SortingLayer
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6424020481263260482, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6773044051356537463, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8089597473833502353, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
       propertyPath: m_SortingLayer
       value: 0
       objectReference: {fileID: 0}
@@ -647,10 +686,80 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5249830563438428639, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
   m_PrefabInstance: {fileID: 277980986399547417}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &6007336099215008093 stripped
+--- !u!1001 &2755404141538463203
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5171934269529432191}
+    m_Modifications:
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 631766378235259773, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_Name
+      value: Chibi_CurlyGirl_Rigged
+      objectReference: {fileID: 0}
+    - target: {fileID: 944044263083862042, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5443068551561862201, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+--- !u!4 &2716380821899803684 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 256613373315068359, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+  m_PrefabInstance: {fileID: 2755404141538463203}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8309890233084192350 stripped
 Animator:
-  m_CorrespondingSourceObject: {fileID: 5802270612499923268, guid: 04ffd531ebffbfe4b966cc38e37f68dc, type: 3}
-  m_PrefabInstance: {fileID: 277980986399547417}
+  m_CorrespondingSourceObject: {fileID: 6156280315589618621, guid: 4674af3bf8737f84abd250e7265d4a98, type: 3}
+  m_PrefabInstance: {fileID: 2755404141538463203}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6144119033330072258
 PrefabInstance:
