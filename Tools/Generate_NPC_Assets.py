@@ -247,3 +247,4 @@ with open(os.path.join(DB_DIR, "NPCData.meta"), "w", encoding="utf-8") as f:
     f.write(npc_data_meta)
 
 print("Successfully generated all NPC assets, ScriptableObjects, and NPCDatabase!")
+
