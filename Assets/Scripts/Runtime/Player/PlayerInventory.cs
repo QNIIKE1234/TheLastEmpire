@@ -52,8 +52,13 @@ namespace TheLastEmpire
         public bool IsInventoryFull => UsedSlots >= maxSlots;
 
         public event System.Action<int> OnMoneyChanged;
+        public event System.Action<int> OnMoneyAdded;
         public event System.Action<string> OnItemCollected;
+        public event System.Action<string, int> OnItemAdded;
         public event System.Action OnInventoryChanged;
+
+        public bool SuppressNotificationEvents { get; set; } = false;
+        private bool _isInitializingStartingLoadout = false;
 
         private void Awake()
         {
@@ -81,6 +86,7 @@ namespace TheLastEmpire
 
         private void Start()
         {
+            _isInitializingStartingLoadout = true;
             if (slots == null) slots = new List<InventorySlot>();
             if (items == null) items = new List<string>();
             items.RemoveAll(string.IsNullOrWhiteSpace);
@@ -126,6 +132,7 @@ namespace TheLastEmpire
                 }
             }
             SyncItemsFlatList();
+            _isInitializingStartingLoadout = false;
         }
 
         public void AddMoney(int amount)
@@ -133,6 +140,10 @@ namespace TheLastEmpire
             money += amount;
             Debug.Log($"[PlayerInventory] Earned ${amount}! Total Wallet: ${money}");
             OnMoneyChanged?.Invoke(money);
+            if (amount > 0 && !_isInitializingStartingLoadout && !SuppressNotificationEvents)
+            {
+                OnMoneyAdded?.Invoke(amount);
+            }
             OnInventoryChanged?.Invoke();
         }
 
@@ -277,6 +288,10 @@ namespace TheLastEmpire
             SyncItemsFlatList();
             Debug.Log($"[PlayerInventory] Picked up item: {resolved} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
             OnItemCollected?.Invoke(resolved);
+            if (!_isInitializingStartingLoadout && !SuppressNotificationEvents)
+            {
+                OnItemAdded?.Invoke(resolved, quantity);
+            }
             OnInventoryChanged?.Invoke();
             return true;
         }

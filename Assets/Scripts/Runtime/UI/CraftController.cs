@@ -935,13 +935,22 @@ namespace TheLastEmpire
             string resultName = recipe.ResolvedResultName;
             int resultAmount = Mathf.Max(1, recipe.resultAmount);
 
-            if (recipe.resultItem != null && recipe.resultItem.type == ItemType.Money)
+            bool prevSuppress = _playerInventory.SuppressNotificationEvents;
+            _playerInventory.SuppressNotificationEvents = true;
+            try
             {
-                _playerInventory.AddMoney(resultAmount);
+                if (recipe.resultItem != null && recipe.resultItem.type == ItemType.Money)
+                {
+                    _playerInventory.AddMoney(resultAmount);
+                }
+                else
+                {
+                    _playerInventory.AddItem(resultName, resultAmount);
+                }
             }
-            else
+            finally
             {
-                _playerInventory.AddItem(resultName, resultAmount);
+                _playerInventory.SuppressNotificationEvents = prevSuppress;
             }
 
             if (isFree)

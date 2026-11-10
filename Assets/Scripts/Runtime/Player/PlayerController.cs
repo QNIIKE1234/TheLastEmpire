@@ -2529,79 +2529,79 @@ namespace TheLastEmpire
             // Grant starting inventory supplies
             if (_inventory != null)
             {
-                if (activeCharacterData.maxInventorySlots >= 18)
+                bool prevSuppress = _inventory.SuppressNotificationEvents;
+                _inventory.SuppressNotificationEvents = true;
+                try
                 {
-                    _inventory.SetMaxSlots(activeCharacterData.maxInventorySlots);
-                }
-
-                if (activeCharacterData.startingMoney > 0)
-                {
-                    _inventory.AddMoney(activeCharacterData.startingMoney);
-                }
-
-                // Add starting weapons into inventory list so player ownership is registered!
-                if (activeCharacterData.startingWeapons != null)
-                {
-                    foreach (var sw in activeCharacterData.startingWeapons)
+                    if (activeCharacterData.maxInventorySlots >= 18)
                     {
-                        if (!_inventory.Items.Exists(x => IsWeaponNameMatch(x, sw)))
+                        _inventory.SetMaxSlots(activeCharacterData.maxInventorySlots);
+                    }
+
+                    if (activeCharacterData.startingMoney > 0)
+                    {
+                        _inventory.AddMoney(activeCharacterData.startingMoney);
+                    }
+
+                    // Add starting weapons into inventory list so player ownership is registered!
+                    if (activeCharacterData.startingWeapons != null)
+                    {
+                        foreach (var sw in activeCharacterData.startingWeapons)
                         {
-                            _inventory.AddItem(sw);
+                            if (!_inventory.Items.Exists(x => IsWeaponNameMatch(x, sw)))
+                            {
+                                _inventory.AddItem(sw);
+                            }
                         }
                     }
-                }
 
-                // Grant starting ammo from CharacterData ScriptableObject
-                if (activeCharacterData.startingAmmo != null && activeCharacterData.startingAmmo.Count > 0)
-                {
-                    foreach (var ammoEntry in activeCharacterData.startingAmmo)
+                    // Grant starting ammo from CharacterData ScriptableObject
+                    if (activeCharacterData.startingAmmo != null && activeCharacterData.startingAmmo.Count > 0)
                     {
-                        if (!string.IsNullOrEmpty(ammoEntry.ammoType) && ammoEntry.count > 0)
+                        foreach (var ammoEntry in activeCharacterData.startingAmmo)
                         {
-                            for (int i = 0; i < ammoEntry.count; i++)
+                            if (!string.IsNullOrEmpty(ammoEntry.ammoType) && ammoEntry.count > 0)
                             {
-                                _inventory.AddItem(ammoEntry.ammoType);
+                                _inventory.AddItem(ammoEntry.ammoType, ammoEntry.count);
+                            }
+                        }
+                    }
+                    else if (activeCharacterData.startingPistolAmmo > 0)
+                    {
+                        // Fallback to role-tailored ammo if startingAmmo list is unassigned
+                        string fallbackAmmo = "Light Ammo";
+                        if (activeCharacterData.characterId == "VANGUARD" || activeCharacterData.characterId == "MARKSMAN")
+                            fallbackAmmo = "Medium Ammo";
+                        else if (activeCharacterData.characterId == "JUGGERNAUT")
+                            fallbackAmmo = "Shotgun Ammo";
+                        else if (activeCharacterData.characterId == "SCAVENGER")
+                            fallbackAmmo = "Bolts";
+
+                        _inventory.AddItem(fallbackAmmo, activeCharacterData.startingPistolAmmo);
+                    }
+
+                    // Grant starting survival rations (e.g. Bread)
+                    int rationCount = activeCharacterData.startingRations > 0 ? activeCharacterData.startingRations : 2;
+                    if (rationCount > 0)
+                    {
+                        _inventory.AddItem("Bread", rationCount);
+                    }
+
+                    // Grant starting extra items if configured
+                    if (activeCharacterData.startingExtraItems != null)
+                    {
+                        foreach (var extra in activeCharacterData.startingExtraItems)
+                        {
+                            if (!string.IsNullOrEmpty(extra.itemName) && extra.count > 0)
+                            {
+                                _inventory.AddItem(extra.itemName, extra.count);
                             }
                         }
                     }
                 }
-                else if (activeCharacterData.startingPistolAmmo > 0)
+                finally
                 {
-                    // Fallback to role-tailored ammo if startingAmmo list is unassigned
-                    string fallbackAmmo = "Light Ammo";
-                    if (activeCharacterData.characterId == "VANGUARD" || activeCharacterData.characterId == "MARKSMAN")
-                        fallbackAmmo = "Medium Ammo";
-                    else if (activeCharacterData.characterId == "JUGGERNAUT")
-                        fallbackAmmo = "Shotgun Ammo";
-                    else if (activeCharacterData.characterId == "SCAVENGER")
-                        fallbackAmmo = "Bolts";
-
-                    for (int i = 0; i < activeCharacterData.startingPistolAmmo; i++)
-                    {
-                        _inventory.AddItem(fallbackAmmo);
-                    }
-                }
-
-                // Grant starting survival rations (e.g. Bread)
-                int rationCount = activeCharacterData.startingRations > 0 ? activeCharacterData.startingRations : 2;
-                for (int i = 0; i < rationCount; i++)
-                {
-                    _inventory.AddItem("Bread");
-                }
-
-                // Grant starting extra items if configured
-                if (activeCharacterData.startingExtraItems != null)
-                {
-                    foreach (var extra in activeCharacterData.startingExtraItems)
-                    {
-                        if (!string.IsNullOrEmpty(extra.itemName) && extra.count > 0)
-                        {
-                            for (int i = 0; i < extra.count; i++)
-                            {
-                                _inventory.AddItem(extra.itemName);
-                            }
-                        }
-                    }
+                    _inventory.SuppressNotificationEvents = prevSuppress;
                 }
             }
         }
