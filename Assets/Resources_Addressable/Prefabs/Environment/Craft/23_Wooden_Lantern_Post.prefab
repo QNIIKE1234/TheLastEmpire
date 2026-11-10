@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2300000000000000002}
   - component: {fileID: 2300000000000000005}
+  - component: {fileID: 9205479562835310808}
   - component: {fileID: 2300000000000000006}
   - component: {fileID: 2300000000000000007}
   m_Layer: 0
@@ -50,14 +51,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
   data: {fileID: 0}
   currentHealth: 250
-  stageX: 0
-  stageY: 0
+  stageX: 18
+  stageY: 7
   showHealthBar: 0
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
   canBeDamagedByPlayer: 0
   hitVfxPrefab: {fileID: 0}
   destroyVfxPrefab: {fileID: 0}
+--- !u!208 &9205479562835310808
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300000000000000001}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!65 &2300000000000000006
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -93,7 +110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.WoodenLanternPostBuilding
   lightRadius: 12
   sanityRegenRate: 1
-  lanternLight: {fileID: 0}
+  lanternLight: {fileID: 2300000000000000013}
   minIntensity: 2.4
   maxIntensity: 3.2
   flickerSpeed: 5

@@ -2,23 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace TheLastEmpire
 {
     /// <summary>
     /// Controller for Log_HUD that displays item pickup and crafting notifications (LogThumbnail).
     /// Uses a pre-allocated Object Pool of 10 LogThumbnail items instantiated from Prefabs/UI/LogThumbnail.prefab.
-    /// Each notification stays for ~2 seconds then hides back into the pool, and multiple notifications stack vertically.
+    /// Works seamlessly with Log_HUD's GridLayoutGroup: active items are ordered top-to-bottom and deactivated back to pool after 2s.
     /// </summary>
     public class ItemLogHUD : MonoBehaviour
     {
         public static ItemLogHUD Instance { get; private set; }
 
-        [Header("Prefab & Pool Settings")]
-        [Tooltip("Prefab asset at Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab")]
-        [SerializeField] private GameObject logThumbnailPrefab;
-
-        [Tooltip("Optional scene template inside Log_HUD")]
+        [Header("Template & Pool Settings")]
+        [Tooltip("Prefab LogThumbnail (Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab)")]
         [SerializeField] private GameObject logThumbnailTemplate;
 
         [Tooltip("Number of pre-allocated LogThumbnail objects in the pool")]
@@ -27,28 +25,23 @@ namespace TheLastEmpire
         [Tooltip("Pre-allocated pool items under Log_HUD")]
         [SerializeField] private List<LogThumbnail> pooledThumbnails = new List<LogThumbnail>(10);
 
-        [Header("Display & Layout Settings")]
+        [Header("Display Settings")]
         [Tooltip("Duration (in seconds) each log entry stays on screen before disappearing")]
         [SerializeField] private float displayDuration = 2.0f;
 
         [Tooltip("Fade-out duration at the end of displayDuration")]
         [SerializeField] private float fadeOutDuration = 0.35f;
 
-        [Tooltip("Top-right base anchored position for the first log entry")]
+        [Header("Fallback Manual Layout (Used only if no LayoutGroup on Log_HUD)")]
         [SerializeField] private Vector2 baseAnchoredPosition = new Vector2(-160f, -60f);
-
-        [Tooltip("Size of each LogThumbnail RectTransform")]
-        [SerializeField] private Vector2 thumbnailSize = new Vector2(300f, 80f);
-
-        [Tooltip("Vertical spacing in pixels between stacked log entries")]
+        [SerializeField] private Vector2 thumbnailSize = new Vector2(250f, 50f);
         [SerializeField] private float verticalSpacing = 58f;
-
-        [Tooltip("Speed at which stacked entries slide up when an entry above disappears")]
         [SerializeField] private float slideSpeed = 14f;
 
         private readonly Queue<LogThumbnail> _inactivePool = new Queue<LogThumbnail>(10);
         private readonly List<LogThumbnail> _activeEntries = new List<LogThumbnail>(10);
 
+        private LayoutGroup _layoutGroup;
         private Sprite _fallbackIcon;
         private bool _poolInitialized = false;
 
@@ -83,29 +76,14 @@ namespace TheLastEmpire
                     UnityEditor.EditorUtility.SetDirty(logHudObj);
                 }
 
-                GameObject prefabAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
-                if (prefabAsset != null && hud.logThumbnailPrefab != prefabAsset)
+                if (hud.logThumbnailTemplate == null)
                 {
-                    hud.logThumbnailPrefab = prefabAsset;
-                    UnityEditor.EditorUtility.SetDirty(hud);
-                }
-
-                Transform thumbTrans = logHudObj.transform.Find("LogThumbnail");
-                if (thumbTrans != null)
-                {
-                    if (hud.logThumbnailTemplate != thumbTrans.gameObject)
+                    GameObject prefabAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
+                    if (prefabAsset != null)
                     {
-                        hud.logThumbnailTemplate = thumbTrans.gameObject;
+                        hud.logThumbnailTemplate = prefabAsset;
                         UnityEditor.EditorUtility.SetDirty(hud);
                     }
-
-                    LogThumbnail lt = thumbTrans.GetComponent<LogThumbnail>();
-                    if (lt == null)
-                    {
-                        lt = thumbTrans.gameObject.AddComponent<LogThumbnail>();
-                    }
-                    lt.AutoBindIfNeeded();
-                    UnityEditor.EditorUtility.SetDirty(lt);
                 }
             };
         }
@@ -166,11 +144,16 @@ namespace TheLastEmpire
                 return;
             }
             Instance = this;
+            _layoutGroup = GetComponent<LayoutGroup>();
             InitializePool();
         }
 
         private void OnEnable()
         {
+            if (_layoutGroup == null)
+            {
+                _layoutGroup = GetComponent<LayoutGroup>();
+            }
             InitializePool();
             EnsureSubscriptions();
         }
@@ -191,49 +174,22 @@ namespace TheLastEmpire
 
         private GameObject ResolveSpawnSource()
         {
-            if (logThumbnailPrefab == null)
-            {
-                logThumbnailPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/UI/LogThumbnail");
-            }
-#if UNITY_EDITOR
-            if (logThumbnailPrefab == null)
-            {
-                logThumbnailPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
-            }
-#endif
             if (logThumbnailTemplate == null)
             {
-                Transform child = transform.Find("LogThumbnail");
-                if (child == null)
-                {
-                    child = transform.Find("Log");
-                }
-                if (child == null && transform.childCount > 0)
-                {
-                    child = transform.GetChild(0);
-                }
-                if (child != null)
-                {
-                    logThumbnailTemplate = child.gameObject;
-                }
+                logThumbnailTemplate = AddressableManager.LoadAsset<GameObject>("Prefabs/UI/LogThumbnail");
             }
-
-            return logThumbnailPrefab != null ? logThumbnailPrefab : logThumbnailTemplate;
-        }
-
-        private void ConfigureThumbnailRectTransform(RectTransform rt, int index)
-        {
-            if (rt == null) return;
-            rt.anchorMin = new Vector2(1f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            if (rt.sizeDelta.sqrMagnitude < 1f)
+#if UNITY_EDITOR
+            if (logThumbnailTemplate == null)
             {
-                rt.sizeDelta = thumbnailSize;
+                logThumbnailTemplate = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PrefabAssetPath);
             }
-            rt.localScale = Vector3.one;
-            rt.localRotation = Quaternion.identity;
-            rt.anchoredPosition = GetSlotAnchoredPosition(index);
+#endif
+            if (logThumbnailTemplate == null && transform.childCount > 0)
+            {
+                logThumbnailTemplate = transform.GetChild(0).gameObject;
+            }
+
+            return logThumbnailTemplate;
         }
 
         [ContextMenu("Initialize Pool (10 Items)")]
@@ -245,24 +201,13 @@ namespace TheLastEmpire
                 return;
             }
 
+            if (_layoutGroup == null)
+            {
+                _layoutGroup = GetComponent<LayoutGroup>();
+            }
+
             GameObject spawnSource = ResolveSpawnSource();
             if (spawnSource == null) return;
-
-            if (logThumbnailTemplate != null)
-            {
-                RectTransform templateRt = logThumbnailTemplate.GetComponent<RectTransform>();
-                if (templateRt != null)
-                {
-                    if (templateRt.anchoredPosition.sqrMagnitude > 1f)
-                    {
-                        baseAnchoredPosition = templateRt.anchoredPosition;
-                    }
-                    if (templateRt.sizeDelta.sqrMagnitude > 1f)
-                    {
-                        thumbnailSize = templateRt.sizeDelta;
-                    }
-                }
-            }
 
             LogThumbnail sourceThumbComp = spawnSource.GetComponent<LogThumbnail>();
             if (sourceThumbComp != null)
@@ -300,7 +245,8 @@ namespace TheLastEmpire
                     _fallbackIcon = item.IconImage.sprite;
                 }
 
-                ConfigureThumbnailRectTransform(item.RectTransform, pooledThumbnails.Count);
+                child.localScale = Vector3.one;
+                child.localRotation = Quaternion.identity;
                 child.gameObject.name = $"LogThumbnail_Pool_{pooledThumbnails.Count + 1:00}";
                 child.gameObject.SetActive(false);
 
@@ -310,12 +256,14 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Pre-instantiate remaining items from logThumbnailPrefab up to poolSize (10)
+            // 2. Pre-instantiate remaining items from logThumbnailTemplate prefab up to poolSize (10)
             while (pooledThumbnails.Count < targetPoolSize)
             {
                 int index = pooledThumbnails.Count;
                 GameObject cloneObj = Instantiate(spawnSource, transform, false);
                 cloneObj.name = $"LogThumbnail_Pool_{index + 1:00}";
+                cloneObj.transform.localScale = Vector3.one;
+                cloneObj.transform.localRotation = Quaternion.identity;
                 cloneObj.SetActive(false);
 
                 LogThumbnail item = cloneObj.GetComponent<LogThumbnail>();
@@ -324,7 +272,15 @@ namespace TheLastEmpire
                     item = cloneObj.AddComponent<LogThumbnail>();
                 }
                 item.AutoBindIfNeeded();
-                ConfigureThumbnailRectTransform(item.RectTransform, index);
+
+                if (_layoutGroup == null && item.RectTransform != null)
+                {
+                    item.RectTransform.anchorMin = new Vector2(1f, 1f);
+                    item.RectTransform.anchorMax = new Vector2(1f, 1f);
+                    item.RectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    item.RectTransform.sizeDelta = thumbnailSize;
+                    item.RectTransform.anchoredPosition = GetSlotAnchoredPosition(index);
+                }
 
                 pooledThumbnails.Add(item);
             }
@@ -418,18 +374,21 @@ namespace TheLastEmpire
                 }
             }
 
-            // Update vertical stacked positions smoothly
-            for (int i = 0; i < _activeEntries.Count; i++)
+            // Only manually animate anchoredPosition if Log_HUD does not use a LayoutGroup (e.g. GridLayoutGroup)
+            if (_layoutGroup == null || !_layoutGroup.enabled)
             {
-                LogThumbnail entry = _activeEntries[i];
-                if (entry == null || entry.RectTransform == null) continue;
+                for (int i = 0; i < _activeEntries.Count; i++)
+                {
+                    LogThumbnail entry = _activeEntries[i];
+                    if (entry == null || entry.RectTransform == null) continue;
 
-                Vector2 targetPos = GetSlotAnchoredPosition(i);
-                entry.RectTransform.anchoredPosition = Vector2.Lerp(
-                    entry.RectTransform.anchoredPosition,
-                    targetPos,
-                    Mathf.Clamp01(dt * slideSpeed)
-                );
+                    Vector2 targetPos = GetSlotAnchoredPosition(i);
+                    entry.RectTransform.anchoredPosition = Vector2.Lerp(
+                        entry.RectTransform.anchoredPosition,
+                        targetPos,
+                        Mathf.Clamp01(dt * slideSpeed)
+                    );
+                }
             }
         }
 
@@ -635,7 +594,19 @@ namespace TheLastEmpire
             if (entry == null) return;
 
             int slotIndex = _activeEntries.Count;
-            ConfigureThumbnailRectTransform(entry.RectTransform, slotIndex);
+            if (_layoutGroup == null || !_layoutGroup.enabled)
+            {
+                if (entry.RectTransform != null)
+                {
+                    entry.RectTransform.anchoredPosition = GetSlotAnchoredPosition(slotIndex);
+                    entry.RectTransform.localScale = Vector3.one;
+                }
+            }
+            else
+            {
+                entry.transform.localScale = Vector3.one;
+                entry.transform.SetAsLastSibling();
+            }
 
             entry.gameObject.SetActive(true);
             entry.Setup(itemKey, prefix, displayName, quantity, icon, _fallbackIcon);
