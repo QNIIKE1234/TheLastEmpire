@@ -172,6 +172,23 @@ Scripts ทั้งหมดอยู่ภายใต้ `Assets/Scripts/Runt
 | [MinimapUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/MinimapUI.cs) | แสดง Mini-map มุมหน้าจอ |
 | [HealthVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/HealthVisualizer.cs) | แถบ HP ลอยเหนือหัวศัตรู |
 | [BillboardUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/BillboardUI.cs) | ทำให้ UI 3D หันหน้าเข้าหากล้องเสมอ |
+| [CraftController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftController.cs) | ระบบหน้าต่างคราฟต์ไอเทม แบ่งหมวดหมู่ ตรวจสอบเงื่อนไขโต๊ะคราฟต์ |
+| [CraftThumbnail.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftThumbnail.cs) | แถวรายการสูตรคราฟต์แต่ละชิ้นและปุ่มกดคราฟต์ |
+| [CraftDescriptionPanel.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftDescriptionPanel.cs) | พาเนลแสดงรายละเอียดของสูตรคราฟต์ที่เลือก |
+| [ItemLogHUD.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ItemLogHUD.cs) | ระบบแจ้งเตือนไอเทมที่เก็บได้และคราฟต์ได้ (`Log_HUD`) แบบ Object Pool 10 ชิ้น แสดงผล 2 วินาที |
+| [LogThumbnail.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LogThumbnail.cs) | คอมโพเนนต์แถวแจ้งเตือนแต่ละชิ้น (`Icon` + `Des` + `CanvasGroup`) |
+
+---
+
+### 🏠 `Building/` — ระบบก่อสร้างและฐานทัพ
+
+| Script | หน้าที่ |
+|---|---|
+| [BuildingManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingManager.cs) | จัดการฐานข้อมูลสิ่งปลูกสร้างทั้ง 23 ชนิด และแยกการแสดงผลตามพิกัดห้อง `(StageX, StageY)` |
+| [BuildingPlacer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingPlacer.cs) | ระบบเล็งวางสิ่งปลูกสร้าง (Ghost Preview, ตรวจสอบสิ่งกีดขวาง, หมุนและวาง) |
+| [BuildingObject.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingObject.cs) | คอมโพเนนต์หลักของสิ่งปลูกสร้าง (HP, การซ่อมแซม, การรื้อถอนคืนวัตถุดิบ) |
+| [WorkbenchBuilding.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/WorkbenchBuilding.cs) | โต๊ะคราฟต์ (`Survivor Workbench`) สำหรับปลดล็อกหมวด `Building` และ `Defense` |
+| [LanternBuilding.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/LanternBuilding.cs) | ตะเกียงและเสาไฟไม้ (`Wooden Lantern Post`) เปิดไฟอัตโนมัติในเวลากลางคืน |
 
 ---
 
