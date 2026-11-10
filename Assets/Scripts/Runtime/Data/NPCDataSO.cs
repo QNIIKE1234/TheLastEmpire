@@ -33,3 +33,4 @@ namespace TheLastEmpire
         public bool isFree = false;
     }
 }
+

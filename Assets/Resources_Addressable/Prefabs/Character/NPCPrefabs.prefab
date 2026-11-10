@@ -565,6 +565,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 686075439f1bad34e8020d6f0ce7a303, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.NPCController
+  npcData: {fileID: 11400000, guid: 9a1b2c3d4e5f60718293a4b5c6d7e8f0, type: 2}
+  modelRoot: {fileID: 0}
   npcName: Zack
   npcType: 0
   interactRange: 2

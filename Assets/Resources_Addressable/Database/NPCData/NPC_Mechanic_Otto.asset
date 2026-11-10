@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d6f4e3c2b1a09874e3c2b1a09874e3c, type: 3}
+  m_Name: NPC_Mechanic_Otto
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.NPCDataSO
+  npcId: mechanic_otto
+  npcName: Otto
+  npcTitle: Imperial Gunsmith
+  npcType: 0
+  interactRange: 2.0
+  customModelPrefab: {fileID: 0}
+  tintColor: {r: 1.0, g: 0.65, b: 0.2, a: 1}
+  dialogueId: Merchant_Intro
+  dialogueTree: {fileID: 0}
+  npcPortrait: {fileID: 0}
+  shopItems:
+  - item: {fileID: 11400000, guid: 994b8a468fb719744bf6cb1e0d620037, type: 2}
+    price: 2400
+  - item: {fileID: 11400000, guid: 29748bd8c38e2734e9a328da32e89353, type: 2}
+    price: 6700
+  - item: {fileID: 11400000, guid: 27aeb4710cfe4359ad2edcaeeaf74dab, type: 2}
+    price: 3200
+  - item: {fileID: 11400000, guid: 56b668d5a62c4cdf91e1f82e00e206f6, type: 2}
+    price: 5500
+  - item: {fileID: 11400000, guid: e448b9ce40024846b2fce004f8d6ab08, type: 2}
+    price: 4800
+  - item: {fileID: 11400000, guid: 932483d85c764320b9bded3bae727763, type: 2}
+    price: 7500
+  - item: {fileID: 11400000, guid: 2f5aa5e0ab314f89be7b2d4a7a672a82, type: 2}
+    price: 140
+  - item: {fileID: 11400000, guid: 6e078f72ffab7514bb76c21f650d3e3b, type: 2}
+    price: 100
+  isFree: 0
