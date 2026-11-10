@@ -263,7 +263,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2844138967877621046}
   m_Layer: 0
-  m_Name: Zombie_01_Worker_Dummy
+  m_Name: Alien_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -571,7 +571,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5890270837354936149}
-  m_Mesh: {fileID: -2432090755550338912, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
+  m_Mesh: {fileID: -2432090755550338912, guid: aa83263a17aa506a9b79b9f7ab6c15d9, type: 3}
 --- !u!23 &3961698851038771632
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -597,17 +597,10 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -1131234473653997816, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -6521795672192326098, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: 7047314781325675817, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: 9171952328373019990, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -8725624188449797229, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -3535325713736149448, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: 3759393524657527047, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -1070587001286095999, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -8896051167825165466, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: 6645885694005375520, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
-  - {fileID: -6496729394897012754, guid: 98347fc37b9c8b4438c4187724e3412e, type: 3}
+  - {fileID: 2100000, guid: b22b7da95fd65d768ad35b3915e757f2, type: 2}
+  - {fileID: 2100000, guid: e4bb0917f30652d6ab3d58e88f8b63d8, type: 2}
+  - {fileID: 2100000, guid: 9dc7daa82ad65e2d89c1b0aa746df312, type: 2}
+  - {fileID: 2100000, guid: dd38545e11115a22a51d15dc4fce23e9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

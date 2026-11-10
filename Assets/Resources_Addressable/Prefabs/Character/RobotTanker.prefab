@@ -147,7 +147,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3998046081901967642}
   m_Layer: 0
-  m_Name: Zombie_Fat_Dummy
+  m_Name: Robot_Tanker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -209,7 +209,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4737209522651372409}
-  m_Mesh: {fileID: -2432090755550338912, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  m_Mesh: {fileID: -2432090755550338912, guid: 91e710dc2775533cb4c870d9001503dc, type: 3}
 --- !u!23 &2808356061363606940
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -235,16 +235,11 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -6496729394897012754, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -6521795672192326098, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: 9171952328373019990, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: 6645885694005375520, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -8725624188449797229, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -3535325713736149448, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: 3759393524657527047, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -1070587001286095999, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -1131234473653997816, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
-  - {fileID: -8896051167825165466, guid: f6e7c993611b04b418a6daa82cf77b2a, type: 3}
+  - {fileID: 2100000, guid: 8ade8fedaafe5ef882f31fafe5195625, type: 2}
+  - {fileID: 2100000, guid: 997a6d13bd4556c8bfafe844eaa10bf4, type: 2}
+  - {fileID: 2100000, guid: 18560820bb0453d9862302d55d40a73c, type: 2}
+  - {fileID: 2100000, guid: c08f0019c65b56809bb6cba28e297423, type: 2}
+  - {fileID: 2100000, guid: 51a76dbd505c59f29de978842c7cdb58, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

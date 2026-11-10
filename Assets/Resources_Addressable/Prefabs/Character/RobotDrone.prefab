@@ -40,7 +40,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1642028149953081189}
-  m_Mesh: {fileID: -2432090755550338912, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
+  m_Mesh: {fileID: -2432090755550338912, guid: 1cefb74e066d586ab3f849e83e099591, type: 3}
 --- !u!23 &8182228963720569216
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -66,16 +66,10 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -4017788983828373335, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: 7952873960322566577, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: 9171952328373019990, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: -8725624188449797229, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: 3759393524657527047, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: -3535325713736149448, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: -6852785324155282647, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: -1070587001286095999, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: 6645885694005375520, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
-  - {fileID: -8896051167825165466, guid: f5914ffcf615efd49ba22b9d65d1d26d, type: 3}
+  - {fileID: 2100000, guid: 6769813bd42a5de997ca9685454ea8e2, type: 2}
+  - {fileID: 2100000, guid: 752c9efdabc35aa78da257cf8d0e32c3, type: 2}
+  - {fileID: 2100000, guid: 727dc4bab84056b2926689525ffcb08f, type: 2}
+  - {fileID: 2100000, guid: 7e058ddc420f59bab86718b146ca7f8f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -750,7 +744,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6921958598649449734}
   m_Layer: 0
-  m_Name: Zombie_Dog_Dummy
+  m_Name: Robot_Drone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

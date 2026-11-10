@@ -25,6 +25,7 @@
 
 # เอกสารและไฟล์ที่สร้างจาก IDE (เช่น VS Code, Visual Studio, Rider)
 .vs/
+.vsconfig
 .idea/
 .vscode/
 *.csproj
@@ -70,3 +71,10 @@ CrashReportAnalyticListener.cs
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Save game files
+savegame.json
+*.json.bak
+__pycache__/
+*.pyc
+

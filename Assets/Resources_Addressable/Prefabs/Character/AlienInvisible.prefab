@@ -40,7 +40,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1030366108235100258}
-  m_Mesh: {fileID: -2432090755550338912, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
+  m_Mesh: {fileID: -2432090755550338912, guid: 87272d1548bd5e628fe333f07a6b98e2, type: 3}
 --- !u!23 &7568337137107172999
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -66,16 +66,9 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -8273543972040497126, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: -6521795672192326098, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: 9171952328373019990, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: -8725624188449797229, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: -3535325713736149448, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: 3759393524657527047, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: -1070587001286095999, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: -8896051167825165466, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: 7047314781325675817, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
-  - {fileID: 6645885694005375520, guid: 8988c7d55ebcd094fb8ef720248a08f4, type: 3}
+  - {fileID: 2100000, guid: e952af91539255bf890252b8b4e336d6, type: 2}
+  - {fileID: 2100000, guid: 2c59eff1cd945972b69f05397fc48da7, type: 2}
+  - {fileID: 2100000, guid: 1726918284315954b744ded07129177f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -839,7 +832,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8685899730626499073}
   m_Layer: 0
-  m_Name: Zombie_03_Police_Dummy
+  m_Name: Alien_Invisible
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
