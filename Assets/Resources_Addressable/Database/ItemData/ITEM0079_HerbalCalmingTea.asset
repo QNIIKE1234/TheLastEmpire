@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: ITEM0079_HerbalCalmingTea
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Herbal Calming Tea
-  description: "ชาต้มจากสมุนไพรป่า ช่วยให้หัวใจเต้นสงบลง ฟื้นฟูสติ +25 และลดความหิว +15"
+  description: "Warm herbal tea brewed from wild leaves. Restores +35 Water, +25 Sanity, and +15 Hunger."
   icon: {fileID: 21300079, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}
-  type: 2
+  type: 9
   restorationValue: 15
   sanityRestorationValue: 25
+  waterRestorationValue: 35
+  maxStackSize: 99
   defaultQuantity: 1
   themeColor: {r: 0.45, g: 0.85, b: 0.55, a: 1}
   dropMaterial: {fileID: 2100000, guid: 20ba20516012b33707aa691d0ac26f98, type: 2}

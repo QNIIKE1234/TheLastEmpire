@@ -191,7 +191,9 @@ namespace TheLastEmpire
                            item.type == ItemType.Potion ||
                            item.type == ItemType.Bread ||
                            item.type == ItemType.Water ||
-                           item.waterRestorationValue > 0f;
+                           item.waterRestorationValue > 0f ||
+                           item.sanityRestorationValue > 0f ||
+                           item.restorationValue > 0f;
                 }
             }
 
@@ -200,7 +202,8 @@ namespace TheLastEmpire
                 return true;
             if (clean.Contains("pistol") || clean.Contains("rifle") || clean.Contains("shotgun") || clean.Contains("smg") || clean.Contains("revolver") || clean.Contains("crossbow"))
                 return true;
-            if (clean.Contains("bread") || clean.Contains("potion") || clean.Contains("medkit") || clean.Contains("food") || clean.Contains("apple"))
+            if (clean.Contains("bread") || clean.Contains("potion") || clean.Contains("medkit") || clean.Contains("food") || clean.Contains("apple") ||
+                clean.Contains("coffee") || clean.Contains("tea") || clean.Contains("water") || clean.Contains("drink") || clean.Contains("cigarette") || clean.Contains("sedative") || clean.Contains("cassette"))
                 return true;
 
             return false;
@@ -439,7 +442,9 @@ namespace TheLastEmpire
             bool isMelee = (itemType == ItemType.MeleeWeapon) ||
                            (_player.MeleeWeaponsList != null && _player.MeleeWeaponsList.Exists(m => m.weaponName.Equals(itemName, StringComparison.OrdinalIgnoreCase)));
 
-            bool isConsumable = (itemType == ItemType.Potion || itemType == ItemType.Bread || itemType == ItemType.Water || (itemData != null && itemData.waterRestorationValue > 0f));
+            bool isConsumable = (itemType == ItemType.Potion || itemType == ItemType.Bread || itemType == ItemType.Water ||
+                                 (itemData != null && (itemData.waterRestorationValue > 0f || itemData.sanityRestorationValue > 0f || itemData.restorationValue > 0f)) ||
+                                 cleanItem.Contains("coffee") || cleanItem.Contains("tea") || cleanItem.Contains("water") || cleanItem.Contains("drink"));
 
             if (isRanged)
             {

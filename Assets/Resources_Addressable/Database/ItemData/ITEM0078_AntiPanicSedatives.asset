@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: ITEM0078_AntiPanicSedatives
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Anti-Panic Sedatives
-  description: "ยาเม็ดระงับประสาทเกรดการแพทย์ ยับยั้งอาการตื่นตระหนกและประสาทหลอน ฟื้นฟูสติ +55"
+  description: "Medical-grade sedative pills that suppress panic attacks and hallucinations. Restores +55 Sanity."
   icon: {fileID: 21300078, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}
   type: 0
   restorationValue: 0
+  waterRestorationValue: 0
   sanityRestorationValue: 55
   defaultQuantity: 1
+  maxStackSize: 99
   themeColor: {r: 0.20, g: 0.75, b: 0.95, a: 1}
   dropMaterial: {fileID: 2100000, guid: 20ba20516012b33707aa691d0ac26f98, type: 2}
   damage: 0

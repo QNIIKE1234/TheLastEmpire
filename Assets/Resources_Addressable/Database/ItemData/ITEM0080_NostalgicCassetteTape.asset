@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: ITEM0080_NostalgicCassetteTape
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Nostalgic Cassette Tape
-  description: "ตลับเทปเพลงยุคเก่าก่อนวันโลกแตก เสียงดนตรีที่คุ้นเคยช่วยดึงจิตใจกลับมาสู่ความหวัง ฟื้นฟูสติ +60"
+  description: "Pre-apocalypse music cassette tape. Familiar melodies bring hope back to your mind. Restores +60 Sanity."
   icon: {fileID: 21300080, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}
-  type: 3
+  type: 0
   restorationValue: 0
+  waterRestorationValue: 0
   sanityRestorationValue: 60
   defaultQuantity: 1
+  maxStackSize: 99
   themeColor: {r: 0.95, g: 0.65, b: 0.15, a: 1}
   dropMaterial: {fileID: 2100000, guid: 20ba20516012b33707aa691d0ac26f98, type: 2}
   damage: 0

@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: ITEM0077_PackOfCigarettes
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Pack of Cigarettes
-  description: "ซองบุหรี่หายากในยุคสิ้นโลก ควันอุ่นๆ ช่วยคลายความเครียดสะสมได้ดีเยี่ยม ฟื้นฟูสติ +45"
+  description: "Rare pack of cigarettes in the apocalypse. Warm smoke calms nerves and relieves stress. Restores +45 Sanity."
   icon: {fileID: 21300077, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}
-  type: 3
+  type: 0
   restorationValue: 0
+  waterRestorationValue: 0
   sanityRestorationValue: 45
   defaultQuantity: 1
+  maxStackSize: 99
   themeColor: {r: 0.85, g: 0.30, b: 0.30, a: 1}
   dropMaterial: {fileID: 2100000, guid: 20ba20516012b33707aa691d0ac26f98, type: 2}
   damage: 0

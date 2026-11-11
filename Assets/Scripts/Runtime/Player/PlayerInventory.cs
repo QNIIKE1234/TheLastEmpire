@@ -448,106 +448,105 @@ namespace TheLastEmpire
                     return true;
                 }
             }
-            else if (itemData.type == ItemType.Potion)
+            else if (itemData.type == ItemType.Potion ||
+                     itemData.type == ItemType.Bread ||
+                     itemData.type == ItemType.Water ||
+                     itemData.restorationValue > 0f ||
+                     itemData.waterRestorationValue > 0f ||
+                     itemData.sanityRestorationValue > 0f)
             {
                 Health health = GetComponent<Health>();
                 PlayerController player = GetComponent<PlayerController>();
-                bool canHeal = health != null && !health.IsDead && health.CurrentHealth < health.MaxHealth;
-                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
+                if (health != null && health.IsDead) return false;
+                if (player != null && player.PlayerHealth != null && player.PlayerHealth.IsDead) return false;
 
-                if (canHeal || canRestoreSanity)
+                string lowerName = (!string.IsNullOrEmpty(itemData.itemName) ? itemData.itemName : itemName).ToLowerInvariant();
+                bool isCoffee = lowerName.Contains("coffee");
+                bool isTea = lowerName.Contains("tea");
+
+                float healAmount = 0f;
+                float hungerAmount = 0f;
+                float waterAmount = itemData.waterRestorationValue;
+                float sanityAmount = itemData.sanityRestorationValue;
+
+                if (itemData.type == ItemType.Potion && !isCoffee && !isTea)
+                {
+                    if (itemData.restorationValue > 0f)
+                    {
+                        healAmount = itemData.restorationValue;
+                    }
+                    else if (sanityAmount <= 0f && waterAmount <= 0f)
+                    {
+                        healAmount = 100f;
+                    }
+                }
+                else if (itemData.type == ItemType.Bread || isCoffee || isTea || (itemData.type == ItemType.Water && itemData.restorationValue > 0f))
+                {
+                    if (itemData.restorationValue > 0f)
+                    {
+                        hungerAmount = itemData.restorationValue;
+                    }
+                    else if (itemData.type == ItemType.Bread && !isCoffee && !isTea)
+                    {
+                        hungerAmount = 25f;
+                    }
+                }
+
+                if (itemData.type == ItemType.Water && waterAmount <= 0f)
+                {
+                    waterAmount = 40f;
+                }
+
+                // Ensure Coffee and Tea always restore Water, Hunger, and Sanity even if asset wasn't reloaded yet
+                if (isCoffee)
+                {
+                    if (waterAmount <= 0f) waterAmount = 30f;
+                    if (sanityAmount <= 0f) sanityAmount = 35f;
+                    if (hungerAmount <= 0f) hungerAmount = 10f;
+                }
+                else if (isTea)
+                {
+                    if (waterAmount <= 0f) waterAmount = 35f;
+                    if (sanityAmount <= 0f) sanityAmount = 25f;
+                    if (hungerAmount <= 0f) hungerAmount = 15f;
+                }
+
+                bool canHeal = healAmount > 0f && health != null && health.CurrentHealth < health.MaxHealth;
+                bool canEat = hungerAmount > 0f && player != null && player.CurrentHunger < player.MaxHunger;
+                bool canDrink = waterAmount > 0f && player != null && player.CurrentWater < player.MaxWater;
+                bool canRestoreSanity = sanityAmount > 0f && player != null && player.CurrentSanity < player.MaxSanity;
+
+                // Pure medkits require missing HP; food/drinks/sanity items can be consumed whenever any restored stat is below max (or always for Coffee/Tea/Drinks/Food)
+                bool isPureMedkit = healAmount > 0f && hungerAmount <= 0f && waterAmount <= 0f && sanityAmount <= 0f;
+                bool canConsume = isPureMedkit ? canHeal : (canHeal || canEat || canDrink || canRestoreSanity || isCoffee || isTea || waterAmount > 0f || hungerAmount > 0f);
+
+                if (canConsume)
                 {
                     if (RemoveItem(itemName))
                     {
-                        if (canHeal)
+                        if (healAmount > 0f && health != null)
                         {
-                            float healAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 100f;
                             health.Heal(healAmount);
                         }
-                        if (itemData.sanityRestorationValue > 0f && player != null)
+                        if (hungerAmount > 0f && player != null)
                         {
-                            player.RestoreSanity(itemData.sanityRestorationValue);
+                            player.EatBread(hungerAmount);
                         }
-                        Debug.Log($"[PlayerInventory] Used {itemName}! HP: {health?.CurrentHealth}, Sanity: {player?.CurrentSanity}");
+                        if (waterAmount > 0f && player != null)
+                        {
+                            player.DrinkWater(waterAmount);
+                        }
+                        if (sanityAmount > 0f && player != null)
+                        {
+                            player.RestoreSanity(sanityAmount);
+                        }
+                        Debug.Log($"[PlayerInventory] Consumed '{itemName}'! (+HP:{healAmount}, +Hunger:{hungerAmount}, +Water:{waterAmount}, +Sanity:{sanityAmount})");
                         return true;
                     }
                 }
                 else
                 {
-                    Debug.Log("[PlayerInventory] Health and Sanity are already full or player is dead.");
-                }
-            }
-            else if (itemData.type == ItemType.Bread)
-            {
-                PlayerController player = GetComponent<PlayerController>();
-                bool canEat = player != null && !player.PlayerHealth.IsDead && player.CurrentHunger < player.MaxHunger;
-                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
-
-                if (canEat || canRestoreSanity)
-                {
-                    if (RemoveItem(itemName))
-                    {
-                        if (canEat)
-                        {
-                            float restoreAmount = itemData.restorationValue > 0 ? itemData.restorationValue : 25f;
-                            player.EatBread(restoreAmount);
-                        }
-                        if (itemData.sanityRestorationValue > 0f)
-                        {
-                            player.RestoreSanity(itemData.sanityRestorationValue);
-                        }
-                        Debug.Log($"[PlayerInventory] Consumed {itemName}! Hunger: {player.CurrentHunger}, Sanity: {player.CurrentSanity}");
-                        return true;
-                    }
-                }
-                else
-                {
-                    Debug.Log("[PlayerInventory] Hunger and Sanity are already full or player is dead.");
-                }
-            }
-            else if (itemData.type == ItemType.Water || itemData.waterRestorationValue > 0f)
-            {
-                PlayerController player = GetComponent<PlayerController>();
-                bool canDrink = player != null && !player.PlayerHealth.IsDead && player.CurrentWater < player.MaxWater;
-                bool canRestoreSanity = player != null && itemData.sanityRestorationValue > 0f && player.CurrentSanity < player.MaxSanity;
-
-                if (canDrink || canRestoreSanity)
-                {
-                    if (RemoveItem(itemName))
-                    {
-                        if (canDrink)
-                        {
-                            float restoreAmount = itemData.waterRestorationValue > 0 ? itemData.waterRestorationValue : 40f;
-                            player.DrinkWater(restoreAmount);
-                        }
-                        if (itemData.sanityRestorationValue > 0f)
-                        {
-                            player.RestoreSanity(itemData.sanityRestorationValue);
-                        }
-                        Debug.Log($"[PlayerInventory] Drank {itemName}! Water: {player.CurrentWater}, Sanity: {player.CurrentSanity}");
-                        return true;
-                    }
-                }
-                else
-                {
-                    Debug.Log("[PlayerInventory] Water and Sanity are already full or player is dead.");
-                }
-            }
-            else if (itemData.sanityRestorationValue > 0f)
-            {
-                PlayerController player = GetComponent<PlayerController>();
-                if (player != null && !player.PlayerHealth.IsDead && player.CurrentSanity < player.MaxSanity)
-                {
-                    if (RemoveItem(itemName))
-                    {
-                        player.RestoreSanity(itemData.sanityRestorationValue);
-                        Debug.Log($"[PlayerInventory] Used {itemName}! Restored {itemData.sanityRestorationValue} Sanity. Current: {player.CurrentSanity}");
-                        return true;
-                    }
-                }
-                else
-                {
-                    Debug.Log("[PlayerInventory] Sanity is already full or player is dead.");
+                    Debug.Log($"[PlayerInventory] Cannot use '{itemName}': stats are already full.");
                 }
             }
 

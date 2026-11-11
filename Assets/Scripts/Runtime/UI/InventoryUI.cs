@@ -439,7 +439,15 @@ namespace TheLastEmpire
                                    itemData.type == ItemType.MeleeWeapon || 
                                    itemData.type == ItemType.ThrowingWeapon;
                         
-                        isUsable = isWeapon || itemData.type == ItemType.Potion || itemData.type == ItemType.Bread || itemData.type == ItemType.Water || itemData.waterRestorationValue > 0f;
+                        isUsable = isWeapon ||
+                                   itemData.type == ItemType.Potion ||
+                                   itemData.type == ItemType.Bread ||
+                                   itemData.type == ItemType.Water ||
+                                   itemData.restorationValue > 0f ||
+                                   itemData.waterRestorationValue > 0f ||
+                                   itemData.sanityRestorationValue > 0f ||
+                                   cleanKey.Contains("coffee") ||
+                                   cleanKey.Contains("tea");
                     }
 
                     bool isEquipped = false;

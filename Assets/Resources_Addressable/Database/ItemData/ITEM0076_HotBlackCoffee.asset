@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: ITEM0076_HotBlackCoffee
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Hot Black Coffee
-  description: "กาแฟดำคั่วเข้มร้อนๆ กลิ่นหอมกรุ่นช่วยปลุกประสาทให้ตื่นตัว ฟื้นฟูสติ +35 ทันที"
+  description: "Hot roasted black coffee. Restores +30 Water, +35 Sanity, and +10 Energy."
   icon: {fileID: 21300076, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}
-  type: 0
-  restorationValue: 0
+  type: 9
+  restorationValue: 10
   sanityRestorationValue: 35
+  waterRestorationValue: 30
+  maxStackSize: 99
   defaultQuantity: 1
   themeColor: {r: 0.42, g: 0.25, b: 0.12, a: 1}
   dropMaterial: {fileID: 2100000, guid: 20ba20516012b33707aa691d0ac26f98, type: 2}
