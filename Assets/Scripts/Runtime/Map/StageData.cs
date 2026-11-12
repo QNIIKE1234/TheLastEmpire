@@ -23,6 +23,8 @@ namespace TheLastEmpire
         public bool isCleared;
         public int stageSeed;
         public bool isShopStage;
+        public StageEventType randomEventType = StageEventType.None;
+        public bool hasEventTriggered = false;
         public string assignedTemplateId = null;
         public System.Collections.Generic.List<string> remainingEnemyPrefabNames;
         public System.Collections.Generic.List<ShopItemConfig> savedShopItems;

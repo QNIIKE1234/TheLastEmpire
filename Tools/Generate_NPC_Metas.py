@@ -130,3 +130,4 @@ for fname, guid in METAS.items():
     print(f"Created meta: {meta_path} (guid: {guid})")
 
 print("All NPC .meta files generated successfully!")
+

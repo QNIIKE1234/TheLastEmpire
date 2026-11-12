@@ -698,3 +698,4 @@ for npc_name, builder_func in NPC_LIST:
     print(f"--> Exported: {fbx_filepath}")
 
 print("\nALL 5 CHIBI NPCS SUCCESSFULLY BUILT AND EXPORTED TO FBX!")
+

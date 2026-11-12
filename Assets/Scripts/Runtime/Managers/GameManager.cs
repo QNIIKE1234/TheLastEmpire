@@ -45,6 +45,12 @@ namespace TheLastEmpire
         private readonly HashSet<int> _usedSectorIndices = new HashSet<int>();
         private StageData _currentStage;
 
+        public GameObject DefaultEnemyPrefab => defaultEnemyPrefab;
+        public string DefaultPoolKey => defaultPoolKey;
+        public CollectibleItem ItemDropPrefab => itemDropPrefab;
+        public CollectibleItem MoneyDropPrefab => moneyDropPrefab;
+        public List<GameObject> ActiveEnemies => _activeEnemies;
+
         [Header("NPC Spawning Settings")]
         [SerializeField] private GameObject npcPrefab;
         private GameObject _activeNPC;
@@ -61,6 +67,13 @@ namespace TheLastEmpire
                     GameObject stmObj = new GameObject("StageTemplateManager");
                     stmObj.AddComponent<StageTemplateManager>();
                     DontDestroyOnLoad(stmObj);
+                }
+
+                if (RandomStageEventManager.Instance == null)
+                {
+                    GameObject rsemObj = new GameObject("RandomStageEventManager");
+                    rsemObj.AddComponent<RandomStageEventManager>();
+                    DontDestroyOnLoad(rsemObj);
                 }
             }
             else
@@ -343,6 +356,7 @@ namespace TheLastEmpire
                         SpawnEnemyInstance(prefab, pKey);
                     }
                 }
+                RandomStageEventManager.Instance?.OnStageEntered(stage);
                 return; // Skip new random spawning since we restored previous state!
             }
 
@@ -350,6 +364,7 @@ namespace TheLastEmpire
             if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
             {
                 SpawnStageTemplateEnemiesAndLoot(template, stage);
+                RandomStageEventManager.Instance?.OnStageEntered(stage);
                 return;
             }
 
@@ -447,6 +462,12 @@ namespace TheLastEmpire
                     stage.remainingEnemyPrefabNames.Add(currentConfig.enemyPrefab.name);
                 }
             }
+
+            // 9. Evaluate & Trigger Dynamic Random Encounters / Events
+            if (RandomStageEventManager.Instance != null)
+            {
+                RandomStageEventManager.Instance.OnStageEntered(stage);
+            }
         }
 
         private struct SpawnSector
@@ -500,7 +521,7 @@ namespace TheLastEmpire
             SpawnEnemyInstanceAt(prefab, pKey, spawnPos, Quaternion.identity);
         }
 
-        private GameObject SpawnEnemyInstanceAt(GameObject prefab, string pKey, Vector3 spawnPos, Quaternion spawnRot)
+        public GameObject SpawnEnemyInstanceAt(GameObject prefab, string pKey, Vector3 spawnPos, Quaternion spawnRot)
         {
             if (prefab == null) return null;
 
@@ -783,7 +804,7 @@ namespace TheLastEmpire
             }
         }
 
-        private GameObject GetPrefabByName(string prefabName)
+        public GameObject GetPrefabByName(string prefabName)
         {
             if (string.IsNullOrEmpty(prefabName)) return null;
             if (defaultEnemyPrefab != null && defaultEnemyPrefab.name == prefabName)
@@ -803,7 +824,7 @@ namespace TheLastEmpire
             return AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{prefabName}");
         }
 
-        private string GetPoolKeyForPrefab(GameObject prefab)
+        public string GetPoolKeyForPrefab(GameObject prefab)
         {
             if (prefab == null) return null;
             if (defaultEnemyPrefab != null && defaultEnemyPrefab == prefab)
