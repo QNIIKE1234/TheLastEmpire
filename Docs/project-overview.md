@@ -62,12 +62,24 @@ graph TD
     *   **โหมดสว่างตรวจสอบฟรี (Is Free):** ตั้งค่าที่ NPC ตัวนั้นๆ ราคาสินค้าจะเป็น `$0` ทันทีเพื่อความสะดวกรวดเร็วในการเทสเกม
 
 ### **2.5 ระบบควบคุมไอเทมดรอป (Loot Table System)**
-*   **ไฟล์หลัก:** [LootDropper.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/LootDropper.cs)
+*   **ไฟล์หลัก:** [LootDropper.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Combat/LootDropper.cs)
 *   **การตั้งค่าอิสระ (Custom Loot Table):** สามารถกดแอดรายการดรอปใน Inspector ของซอมบี้แต่ละพรีแฟบได้อย่างอิสระ:
     *   ระบุชื่อไอเทมดรอป (เช่น Potion, Bread, Pistol Ammo, หรือคีย์เวิร์ดพิเศษ `"Money"` สำหรับสุ่มเงินสด)
     *   ระบุจำนวนต่ำสุด-สูงสุด
     *   ระบุเปอร์เซ็นต์โอกาสดรอป (`0.0` ถึง `1.0` หรือ 0%-100%)
 *   **กลไกการสุ่ม:** ใช้หลักการหมุนค่าความน่าจะเป็นอิสระทุกชิ้น ทำให้การตาย 1 ครั้งของซอมบี้สามารถมีไอเทมดรอปตกลงมามากกว่า 1 ชิ้นพร้อมกันได้
+
+### **2.6 ระบบสุ่มเหตุการณ์ฉุกเฉินประจำด่าน (Dynamic Random Stage Encounters)**
+*   **ไฟล์หลัก:** [RandomStageEventManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs), [StageEventType.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)
+*   **การทำงาน:** เมื่อผู้เล่นเดินทางผ่านประตู Transition Portal เข้าสู่ห้องปกติ จะมีโอกาส 25% (ตั้งค่าปรับได้) ในการเกิดเหตุการณ์ฉุกเฉินเฉพาะหน้า 6 รูปแบบ:
+    *   `SupplyAirdrop`: แอร์ดรอปเสบียงทหารกลางห้อง ตกอาวุธระดับสูงและกระสุน/เงินสด
+    *   `HostileAmbush`: ฝูงศัตรูสายชาร์จ 3-5 ตัวล้อมกรอบผู้เล่นทันทีหลังเข้าห้อง
+    *   `NomadTrader`: คาราวานพ่อค้าเร่พเนจรมาตั้งแคมป์ขายของชั่วคราว
+    *   `RadioactiveFallout`: หมอกกัมมันตรังสีสีเขียว ลดค่า Sanity ทันที 10 หน่วย
+    *   `BloodMoonSurge`: ท้องฟ้าสีเลือด บัฟศัตรูในห้องวิ่งเร็วขึ้น +30%
+    *   `ScavengerCache`: หีบและเศษเสบียงลับซ่อนตามมุมห้อง 4 จุด
+*   **Glassmorphism Alert Banner:** แสดงแบนเนอร์แจ้งเตือนแบบกระจกฝ้าด้านบนหน้าจอ ไม่รบกวนการเล็งยิงของผู้เล่น (`blocksRaycasts = false`)
+*   **ความคงตัวของด่าน (Deterministic Seed):** อิงค่าสุ่มจาก `stage.stageSeed + 4242` ทำให้การเดินกลับมาห้องเดิมไม่เกิดการสุ่มทับซ้อนหรือสลับประเภทเหตุการณ์
 
 ---
 
@@ -135,10 +147,11 @@ Scripts ทั้งหมดอยู่ภายใต้ `Assets/Scripts/Runt
 | [WorldMapGenerator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapGenerator.cs) | สุ่มสร้างข้อมูลห้อง/Biome บนกริดทั้งหมด |
 | [WorldMapVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapVisualizer.cs) | แสดงผลแผนที่ Mini-map บนหน้าจอ |
 | [TransitionPortal.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs) | ประตูวาร์ปสลับห้อง — Fade, เทเลพอร์ต, ซ่อนตัวถ้าไม่มีห้องข้างๆ |
-| [StageData.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) | โครงสร้างข้อมูลของแต่ละห้อง (Seed, Biome, พิกัด) |
-| [BiomeType.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/BiomeType.cs) | Enum ประเภทไบโอม เช่น Desert, Forest, City |
-| [LocalStageVisualizer.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/LocalStageVisualizer.cs) | แสดงข้อมูลด่านปัจจุบัน (ชื่อ Biome, พิกัด) บนหน้าจอ |
-| [GroundBiomeMaterialController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/GroundBiomeMaterialContro...) | สลับ Material พื้นดินตาม Biome ของห้องนั้น |
+| [StageData.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) | โครงสร้างข้อมูลของแต่ละห้อง (Seed, Biome, พิกัด, เหตุการณ์สุ่ม) |
+| [StageEventType.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs) | Enum ประเภทเหตุการณ์ฉุกเฉินที่สุ่มเจอในด่าน 6 รูปแบบ |
+| [BiomeType.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/BiomeType.cs) | Enum ประเภทไบโอม เช่น Desert, Forest, City |
+| [LocalStageVisualizer.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/LocalStageVisualizer.cs) | แสดงข้อมูลด่านปัจจุบัน (ชื่อ Biome, พิกัด) บนหน้าจอ |
+| [GroundBiomeMaterialController.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/GroundBiomeMaterialController.cs) | สลับ Material พื้นดินตาม Biome ของห้องนั้น |
 
 ---
 
@@ -146,8 +159,9 @@ Scripts ทั้งหมดอยู่ภายใต้ `Assets/Scripts/Runt
 
 | Script | หน้าที่ |
 |---|---|
-| [GameManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) | Spawn ศัตรู, ควบคุม Game State (Playing/Dead/Retry), ป้องกัน Spawn ทับกัน |
-| [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs) | สุ่มวาง Prop/อุปสรรคในห้อง ตาม Seed ป้องกัน Spawn ใกล้ประตู/ผู้เล่น |
+| [GameManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) | Spawn ศัตรู, ควบคุม Game State (Playing/Dead/Retry), ป้องกัน Spawn ทับกัน |
+| [RandomStageEventManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs) | จัดการสุ่มและกระตุ้น Dynamic Random Encounters ทั้ง 6 แบบ พร้อม HUD Alert Banner |
+| [EnvironmentManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs) | สุ่มวาง Prop/อุปสรรคในห้อง ตาม Seed ป้องกัน Spawn ใกล้ประตู/ผู้เล่น |
 | [DayNightManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs) | วงรอบกลางวัน/กลางคืน ปรับแสงไฟ |
 
 ---

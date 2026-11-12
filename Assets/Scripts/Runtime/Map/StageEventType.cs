@@ -11,3 +11,4 @@ namespace TheLastEmpire
         ScavengerCache = 6      // Hidden survivor cache containing multiple ammo & resource drops
     }
 }
+

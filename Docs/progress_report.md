@@ -1,46 +1,64 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึก**: 11 พฤศจิกายน 2026  
+**วันที่บันทึกล่าสุด**: 12 พฤศจิกายน 2026  
 **สถานะ Git**: `main` (Up to date with `origin/main`)  
 
 ---
 
-## 1. ระบบ Log แจ้งเตือนไอเทมที่ได้รับและคราฟต์ (`Log_HUD` & Object Pool 10 ชิ้น)
-- **สคริปต์ [`ItemLogHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ItemLogHUD.cs) และ [`LogThumbnail.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LogThumbnail.cs)**:
-  - เชื่อมกับ Prefab [LogThumbnail.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/UI/LogThumbnail.prefab) และทำงานร่วมกับ `GridLayoutGroup` บน `Log_HUD` ในฉาก [Gameplay_3D.unity](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scenes/Gameplay_3D.unity)
-  - **Pre-allocated Object Pool 10 ชิ้น (`poolSize = 10`)**: สร้าง `LogThumbnail_Pool_01` ถึง `LogThumbnail_Pool_10` เตรียมไว้ล่วงหน้าตั้งแต่เริ่มเกม ไม่มีการ `Instantiate` หรือ `Destroy` ระหว่างเล่นเพื่อลดขยะในหน่วยความจำ (Zero Runtime GC)
-  - **แจ้งเตือนเมื่อเก็บของ / ได้รับไอเทม (`PlayerInventory.OnItemAdded` / `OnMoneyAdded`)**: แสดงไอคอนและข้อความ `Got <ItemName> x<Amount>` (หรือ `Got Money $<Amount>`)
-  - **แจ้งเตือนเมื่อคราฟต์ไอเทมหรือวางสิ่งปลูกสร้าง (`CraftController.OnRecipeCrafted` / `BuildingPlacer.OnBuildingPlaced`)**: แสดงไอคอนและข้อความ `Crafted <Name> x<Amount>`
-  - **เวลาแสดงผลและการเรียงลำดับ**: แสดงผลนาน **2 วินาที** (`displayDuration = 2.0f`) พร้อมค่อยๆ จางหาย (`CanvasGroup`) แล้วส่งกลับเข้า Pool (`SetActive(false)`) หากได้รับหลายชิ้นจะเรียงต่อกันลงมาอัตโนมัติ
+## 5. ระบบสุ่มเหตุการณ์ฉุกเฉินประจำด่าน (Dynamic Random Stage Encounter System)
+- **สคริปต์ [`StageEventType.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs) และ [`RandomStageEventManager.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)**:
+  - รองรับ 6 รูปแบบเหตุการณ์ฉุกเฉินที่สุ่มเจอได้ในห้องธรรมดาทั่วไป (โอกาสตั้งต้น 25% ปรับได้ใน Inspector):
+    1. **`SupplyAirdrop`**: แอร์ดรอปเสบียงทหารทิ้งร่มลงมากลางห้อง ตกอาวุธระดับสูง (Sniper, Katana, RPG, Shotgun), กระสุน Rifle Ammo (30-60 นัด), เงินสด (250-600 Gold), และชุดปฐมพยาบาล
+    2. **`HostileAmbush`**: ฝูงศัตรูสายวิ่งเร็ว (ZombieRunner, RobotKamikaze, AlienCrawler, ZombieDog) 3-5 ตัว โผล่ล้อมกรอบผู้เล่นรอบทิศทางในระยะประชิดทันทีที่ก้าวผ่านประตู
+    3. **`NomadTrader`**: พ่อค้าเร่พเนจร (Elena, Otto, Maya หรือ Roy) มาตั้งแคมป์ชั่วคราวในห้องธรรมดา ให้ซื้อขายไอเทมฉุกเฉิน
+    4. **`RadioactiveFallout`**: หมอกกัมมันตรังสีสีเขียวปกคลุมห้อง ลดทัศนวิสัย และลด Sanity ของผู้เล่นทันที 10 หน่วย
+    5. **`BloodMoonSurge`**: แสงห้องเปลี่ยนเป็นสีแดงสด ศัตรูในห้องได้รับบัฟเคลื่อนที่ไวขึ้น +30% (`ai.moveSpeed *= 1.30f`)
+    6. **`ScavengerCache`**: เศษซากเสบียงลับ 4 จุดถูกซ่อนกระจายอยู่ตามมุมห้องให้เก็บฟรี
+  - **Deterministic Persistence**: สุ่มจาก `stage.stageSeed + 4242` ทำให้ผลลัพธ์ของห้องเดิมไม่เปลี่ยนเมื่อเดินย้อนกลับมา
+  - **Glassmorphism HUD Banner**: แสดงแบนเนอร์แจ้งเตือนสถานการณ์ด้านบนหน้าจอ สวยงาม ชัดเจน และไม่บล็อกการคลิกยิงของผู้เล่น (`blocksRaycasts = false`)
+  - **การผสานระบบ**: เชื่อมเข้ากับ [`StageData.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) และ [`GameManager.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) ใน `SpawnLocalStageContent()` ครอบคลุมทั้งห้องใหม่, ห้องเคลียร์แล้ว, และห้องที่มี Template
 
 ---
+
+## 6. สถาปัตยกรรม Single-Prefab สำหรับ NPC ด้วย Procedural SetData
+- ยกเลิกการ Duplicate Prefab แยกรายตัวละคร ให้เหลือเพียง Universal Prefab ชิ้นเดียว
+- ระบบกำหนดข้อมูล (SetData) จะส่งข้อมูลจาก ScriptableObject เพื่อโหลดโมเดล 3D Mesh, ข้อมูลร้านค้า, และบทสนทนาประจำตัวละครนั้นๆ ในจังหวะสปอว์น ช่วยลดการบำรุงรักษา Prefab ลงอย่างมหาศาล
+
+---
+
+## 7. โมเดลตัวละคร 3D Chibi NPC ชุดใหม่ 5 ตัวละคร (ใช้ Armature และ Rig เดียวกับตัวหลัก)
+- สร้างโมเดล 3D Chibi NPC 5 ตัวละครด้วยสคริปต์ [Create_NPC_Characters.py](file:///d:/TLEGIT/TheLastEmpire/Tools/Create_NPC_Characters.py) และ [Generate_NPC_Metas.py](file:///d:/TLEGIT/TheLastEmpire/Tools/Generate_NPC_Metas.py) พร้อม Rigging โครงกระดูก 18 ชิ้น (`Chibi_Base_Rig`) ที่แชร์แอนิเมชันร่วมกับตัวละครหลักได้ทันที:
+  1. **`Chibi_DoctorElena`**: แพทย์สนามหญิง เสื้อกาวน์สีขาว แว่นตากลม
+  2. **`Chibi_MechanicOtto`**: ช่างซ่อมบำรุงชุดเอี๊ยมสีส้ม แว่นเชื่อมเหล็ก
+  3. **`Chibi_WatcherMaya`**: พลสอดแนมหญิง ผ้าคลุมกันฝุ่นสีเขียว หมวกปีกกว้าง
+  4. **`Chibi_SurvivorRoy`**: ผู้รอดชีวิตพเนจร เสื้อแจ็คเก็ตหนังและผ้าพันคอ
+  5. **`Chibi_TraderViktor`**: พ่อค้าตลาดมืด หมวกเบเร่ต์สีดำ แว่นกันแดด และเสื้อโค้ตยาว
+
+---
+
+## 8. การปรับปรุงระบบเครื่องดื่มและการฟื้นฟูสถิติหลายค่า (Coffee & Tea Usability)
+- เพิ่มและแก้ไขฟังก์ชันการดื่มกาแฟ (Coffee) และชา (Tea) ให้สามารถใช้งานได้โดยตรงจากช่องเก็บของ
+- รองรับการฟื้นฟูสถิติพร้อมกัน 3 ค่า: ค่าน้ำ (Water), ความหิว (Hunger), และสติสัมปชัญญะ (Sanity)
+
+---
+
+## 9. การวางแผนสถาปัตยกรรมระบบเซฟ (8-Digit RoomCode & Persistence Architecture)
+- จัดทำเอกสารข้อกำหนดเชิงเทคนิค [Docs/save-system-plan.md](file:///d:/TLEGIT/TheLastEmpire/Docs/save-system-plan.md)
+- ออกแบบโครงสร้างรหัสห้อง 8 หลัก (8-Digit RoomCode) เพื่ออำนวยความสะดวกในการแชร์และโหลดพิกัดห้องพร้อมสถานะของโลก
+
+---
+
+*(ประวัติการพัฒนาก่อนหน้า: 11 พฤศจิกายน 2026)*
+
+## 1. ระบบ Log แจ้งเตือนไอเทมที่ได้รับและคราฟต์ (`Log_HUD` & Object Pool 10 ชิ้น)
+- **สคริปต์ [`ItemLogHUD.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/UI/ItemLogHUD.cs) และ [`LogThumbnail.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/UI/LogThumbnail.cs)**:
+  - Pre-allocated Object Pool 10 ชิ้น แสดงผล 2 วินาที แจ้งเตือนทั้งการเก็บไอเทมและการคราฟต์/สร้าง
 
 ## 2. ระบบคราฟต์ไอเทม โต๊ะคราฟต์ และการซ่อนหมวดหมู่ (`Crafting & Workbench`)
-- **แยกเงื่อนไขการใช้โต๊ะคราฟต์ ([`CraftController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftController.cs))**:
-  - หมวด **`Utility`**, **`Weapons`**, **`Consumables`**, **`Tools`**, **`Special`** สามารถคราฟต์ได้ทุกที่โดยไม่ต้องใช้โต๊ะคราฟต์
-  - หมวด **`Building`** และ **`Defense`** ต้องเข้าใกล้โต๊ะคราฟต์ (`Survivor Workbench`) และกดเปิดคราฟต์เท่านั้น
-  - ซ่อนปุ่มหมวดหมู่ซ้ายมือ (`buildingTabButton` และ `defenseTabButton`) ด้วย `SetActive(false)` เมื่อไม่ได้อยู่ใกล้โต๊ะคราฟต์ และเปิด `SetActive(true)` เฉพาะเมื่ออยู่ใกล้โต๊ะคราฟต์
-- **แก้ไขการโหลดฐานข้อมูลสิ่งปลูกสร้าง ([`BuildingManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/BuildingManager.cs))**:
-  - ปรับปรุง `LoadDefaultBuildingDataIfEmpty()` ให้โหลดและรวม `BuildingData` ทั้ง 23 ชิ้นเข้า `allBuildings` เสมอ ทำให้กดปุ่มคราฟต์สิ่งปลูกสร้างแล้วเข้าสู่โหมดเล็งวาง (`BuildingPlacer`) ได้ครบทุกชิ้น
-- **ปรับข้อความ UI ในเกมเป็นภาษาอังกฤษทั้งหมด ([`WorkbenchBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/WorkbenchBuilding.cs), [`CraftDescriptionPanel.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftDescriptionPanel.cs))**:
-  - เปลี่ยน Interaction Prompt ของโต๊ะคราฟต์เป็น `[E] Crafting Table` และคำอธิบายแจ้งเตือนเป็นภาษาอังกฤษทั้งหมด เพื่อให้รองรับกับฟอนต์ `Teko-VariableFont_wght SDF`
-
----
+- แยกเงื่อนไขโต๊ะคราฟต์ (`Survivor Workbench`) สำหรับหมวด `Building` และ `Defense` พร้อมซ่อนปุ่มหมวดหมู่เมื่อไม่ได้อยู่ใกล้โต๊ะคราฟต์
 
 ## 3. โมเดลตัวละคร 3D Rigged ใหม่ 3 ตัว (รองรับ `Chibi_Player_Controller`)
-สร้างโมเดล 3D พร้อมโครงกระดูก 18 ชิ้น (`Chibi_Base_Rig`) และ Weight Paint ที่ใช้ร่วมกับแอนิเมชันเดิมของ Player (`Chibi_Player_Controller.controller`) ได้ทันที:
-1. **`Chibi_CurlyGirl_Rigged`** ([Chibi_CurlyGirl_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_CurlyGirl_Rigged.fbx) | สคริปต์ [Create_Curly_Glasses_Girl.py](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Curly_Glasses_Girl.py))
-   - สาวแว่นผมหยิกสีชมพูมัดหางม้า เสื้อแจ็คเก็ตสีฟ้าอมเขียว กางเกงคาร์โก้สีเหลือง
-2. **`Chibi_BlueOperative_Rigged`** ([Chibi_BlueOperative_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_BlueOperative_Rigged.fbx) | Prefab [Chibi_BlueOperative_Rigged.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Character/Model/Chibi_BlueOperative_Rigged.prefab))
-   - หนุ่มทรงผม Undercut สีน้ำเงินเข้ม แว่นกันแดดทรงกลมเลนส์ฟ้า หูฟังสื่อสาร เสื้อแจ็คเก็ตยุทธวิธีสีเขียวเข้มพร้อมวิทยุสื่อสาร
-3. **`Chibi_HeavyStriker_Rigged`** ([Chibi_HeavyStriker_Rigged.fbx](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_HeavyStriker_Rigged.fbx) | Prefab [Chibi_HeavyStriker_Rigged.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Character/Model/Chibi_HeavyStriker_Rigged.prefab))
-   - นักรบเกราะหนักทรงผมตั้งสีคราม แผลเป็นคาดตาซ้าย ผ้าพันคอ เกราะยุทธวิธีพร้อมกระเป๋าแม็กกาซีนและเกราะไหล่
-
----
+- สร้างโมเดล `Chibi_CurlyGirl_Rigged`, `Chibi_BlueOperative_Rigged`, และ `Chibi_HeavyStriker_Rigged`
 
 ## 4. ระบบเสาไฟ `Wooden Lantern Post` (`BUILD0023`) และระบบแยกสิ่งปลูกสร้างตามแมพ
-- **เสาไฟไม้ (`BUILD0023_WoodenLanternPost`)**:
-  - เพิ่มข้อมูลสิ่งปลูกสร้าง [BUILD0023_WoodenLanternPost.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Database/Buildings/BUILD0023_WoodenLanternPost.asset) และ Prefab [23_Wooden_Lantern_Post.prefab](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Environment/Craft/23_Wooden_Lantern_Post.prefab) พร้อมไฟ Point Light สีส้มอบอุ่นที่เปิดอัตโนมัติในเวลากลางคืน
-- **ระบบแยกสิ่งปลูกสร้างตามพิกัดแมพ `(StageX, StageY)`**:
-  - สิ่งปลูกสร้างทุกชิ้นผูกกับพิกัดห้อง `(StageX, StageY)` ไม่ตามผู้เล่นไปแมพอื่น และแสดงผลกลับมาครบถ้วนเมื่อเดินกลับห้องเดิม
-
+- เสาไฟไม้เปิดไฟอัตโนมัติเวลากลางคืน และแยกระบบสิ่งปลูกสร้างตามพิกัดห้อง `(StageX, StageY)`

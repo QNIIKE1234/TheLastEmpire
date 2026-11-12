@@ -306,3 +306,26 @@ graph TD
 | **Chibi_PunkBrawler_Rigged** | นักสู้พังก์หัวหนาม แจ็คเก็ตหนังปักหมุดเหล็ก (The Rebel) | `Assets/GeneratedModels/Chibi_PunkBrawler_Rigged.fbx` | `Tools/Create_Punk_Brawler.py` |
 | **Chibi_Base_Rigged** | โมเดลมาตรฐานผู้รอดชีวิต (Base Rigged Template) | `Assets/GeneratedModels/Chibi_Base_Rigged.fbx` | `Tools/Create_Chibi_Base_Rigged.py` |
 
+---
+
+## 🤝 6. ตัวละครที่ไม่ใช่ผู้เล่น (Non-Playable Characters & Nomadic Merchants)
+
+### 🧩 สถาปัตยกรรม Single-Prefab สำหรับ NPC ด้วย Procedural SetData
+เพื่อลดภาระการ Duplicate และดูแล Prefab NPC จำนวนมากในอนาคต ตัวเกมเปลี่ยนมาใช้ **Single Universal NPC Prefab** ที่ทำงานร่วมกับ ScriptableObject / Data Dictionary:
+* **Procedural Setup:** เมื่อ NPC ถูกสปอว์นขึ้นมาในฉาก (ผ่านห้องร้านค้าปกติ หรือเหตุการณ์สุ่ม `NomadTrader`) ระบบจะเรียกเมธอด `SetData(npcData)` เพื่อ:
+  1. โหลดโมเดล 3D Mesh และ Material ของตัวละครนั้นๆ เข้าไปสวมที่ Bone Rig
+  2. กำหนดรายการสินค้าที่วางขายและอัตราแลกเปลี่ยน
+  3. ผูกชุดบทสนทนา (Dialogue Lines) และเงื่อนไขเควสต์
+
+### 👥 รายชื่อ 5 Chibi NPCs (แชร์ Armature & Animation เดียวกับตัวละครหลัก)
+สร้างขึ้นด้วย Blender Python Pipeline ใน [Create_NPC_Characters.py](file:///d:/TLEGIT/TheLastEmpire/Tools/Create_NPC_Characters.py) พร้อมโครงกระดูก `Chibi_Base_Rig` 18 ชิ้น ทำให้สามารถแชร์แอนิเมชัน Idle/Talk/Gesture ร่วมกับตัวละครหลักได้ทันที:
+
+| รหัส NPC | ชื่อตัวละคร | บทบาทหน้าที่ | รูปลักษณ์และดีไซน์ | ไฟล์โมเดล FBX |
+|---|---|---|---|---|
+| **NPC_01** | **Elena (Doctor Elena)** | แพทย์สนาม / จำหน่ายยาและโพชั่น | เสื้อกาวน์สีขาว, หมวกพยาบาลพร้อมกากบาทแดง, แว่นตากลม, ผมบ๊อบสั้นสีน้ำตาล | `Assets/GeneratedModels/Chibi_DoctorElena.fbx` |
+| **NPC_02** | **Otto (Mechanic Otto)** | ช่างซ่อมบำรุง / จำหน่ายอะไหล่และเครื่องมือ | ชุดเอี๊ยมช่างสีส้ม, แว่นตาเชื่อมโลหะ (Welding Goggles) คาดหน้าผาก, ถุงมือหนัง | `Assets/GeneratedModels/Chibi_MechanicOtto.fbx` |
+| **NPC_03** | **Maya (Watcher Maya)** | พลลาดตระเวน / จำหน่ายแผนที่และกระสุนสไนเปอร์ | เสื้อคลุมกันฝุ่นสีเขียวทึบ, ผ้าปิดจมูก, หมวกปีกกว้าง, กล้องส่องทางไกล | `Assets/GeneratedModels/Chibi_WatcherMaya.fbx` |
+| **NPC_04** | **Roy (Survivor Roy)** | ผู้รอดชีวิตพเนจร / แลกเปลี่ยนวัตถุดิบทั่วไป | แจ็คเก็ตหนังสีน้ำตาลเก่าๆ, ผ้าพันคอลายสก็อต, หมวกแก๊ปยุทธวิธี | `Assets/GeneratedModels/Chibi_SurvivorRoy.fbx` |
+| **NPC_05** | **Viktor (Trader Viktor)** | พ่อค้าตลาดมืด / จำหน่ายอาวุธเถื่อนและระเบิด | หมวกเบเร่ต์สีดำ, แว่นกันแดดดำ, เสื้อโค้ตยาวสีเทาพร้อมซับในซ่อนของเถื่อน | `Assets/GeneratedModels/Chibi_TraderViktor.fbx` |
+
+
