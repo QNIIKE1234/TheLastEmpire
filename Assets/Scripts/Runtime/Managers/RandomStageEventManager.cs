@@ -377,7 +377,7 @@ namespace TheLastEmpire
 
             // Spawn 3-5 rapid ambush rushers (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             int ambushCount = rng.Next(3, 6);
-            bool isNight = DayNightCycleManager.Instance != null && DayNightCycleManager.Instance.IsNight();
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             List<string> rusherList = new List<string> { "ZombieRunner", "RobotKamikaze", "ZombieDog" };
             if (isNight)
             {
@@ -645,6 +645,7 @@ namespace TheLastEmpire
                     {
                         ctrl.ApplyData(mayaData);
                     }
+                    ctrl.CanInteract = false;
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
@@ -664,7 +665,7 @@ namespace TheLastEmpire
 
             // สุ่มจำนวนศัตรู 4-5 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             int mobCount = rng.Next(4, 6);
-            bool isNight = DayNightCycleManager.Instance != null && DayNightCycleManager.Instance.IsNight();
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             List<string> rusherList = new List<string> { "ZombieRunner", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
             if (isNight)
             {

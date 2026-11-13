@@ -29,6 +29,7 @@ namespace TheLastEmpire
         [SerializeField] private string npcName = "Merchant";
         [SerializeField] private NPCType npcType = NPCType.Shop;
         [SerializeField] private float interactRange = 2.0f;
+        [SerializeField] private bool canInteract = true;
 
         [Header("Story Settings")]
         [Tooltip("Dialogue ID to fetch from DialogueDatabase (e.g. 'Merchant_Intro'). If assigned, fetches from database.")]
@@ -48,6 +49,7 @@ namespace TheLastEmpire
         public string DialogueId => dialogueId;
         public Sprite NpcPortrait => npcPortrait;
         public NPCDataSO NPCData => npcData;
+        public bool CanInteract { get => canInteract && isActiveAndEnabled; set => canInteract = value; }
 
         private void Awake()
         {
@@ -263,6 +265,7 @@ namespace TheLastEmpire
 
         public bool IsPlayerInRange(Vector3 playerPos)
         {
+            if (!isActiveAndEnabled || !canInteract) return false;
             return Vector3.Distance(transform.position, playerPos) <= interactRange;
         }
 

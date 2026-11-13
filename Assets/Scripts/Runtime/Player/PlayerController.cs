@@ -3388,7 +3388,7 @@ namespace TheLastEmpire
             float minNpcDist = float.MaxValue;
             foreach (NPCController npc in npcs)
             {
-                if (npc != null && npc.IsPlayerInRange(transform.position))
+                if (npc != null && npc.CanInteract && npc.IsPlayerInRange(transform.position))
                 {
                     float dist = Vector3.Distance(transform.position, npc.transform.position);
                     if (dist < minNpcDist)
@@ -3497,7 +3497,7 @@ namespace TheLastEmpire
             NPCController[] npcs = Object.FindObjectsByType<NPCController>(FindObjectsSortMode.None);
             foreach (NPCController npc in npcs)
             {
-                if (npc != null && npc.IsPlayerInRange(transform.position))
+                if (npc != null && npc.CanInteract && npc.IsPlayerInRange(transform.position))
                 {
                     if (npc.HasDialogue)
                     {

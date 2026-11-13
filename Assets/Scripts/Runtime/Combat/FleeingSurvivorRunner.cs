@@ -52,11 +52,13 @@ namespace TheLastEmpire
             axis.y = 0f;
             _runAxis = axis.sqrMagnitude > 0.001f ? axis.normalized : transform.forward;
 
-            // ปิด NPCController ปกติเพื่อไม่ให้ trigger การนั่งหรือเปิดหน้าต่างร้านค้า
+            // ปิดการ Interact 100% เพื่อไม่ให้มี UI Prompt หรือเปิดหน้าต่างคุย/ร้านค้าขณะวิ่งหนีตาย
             NPCController npcController = GetComponent<NPCController>();
             if (npcController != null)
             {
+                npcController.CanInteract = false;
                 npcController.enabled = false;
+                Destroy(npcController); // ทำลายทิ้งทันที หมดโอกาส Interact 100%
             }
 
             Rigidbody rb = GetComponent<Rigidbody>();
