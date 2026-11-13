@@ -304,7 +304,7 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            ai.moveSpeed *= 1.30f;
+                            ai.MoveSpeed *= 1.30f;
                         }
                     }
                 }

@@ -44,6 +44,10 @@ namespace TheLastEmpire
         private List<GameObject> _activeEnemies = new List<GameObject>();
         private readonly HashSet<int> _usedSectorIndices = new HashSet<int>();
         private StageData _currentStage;
+        private int _totalEnemiesDefeated = 0;
+
+        public int TotalEnemiesDefeated => _totalEnemiesDefeated;
+        public void RegisterEnemyKilled() => _totalEnemiesDefeated++;
 
         public GameObject DefaultEnemyPrefab => defaultEnemyPrefab;
         public string DefaultPoolKey => defaultPoolKey;
@@ -463,10 +467,60 @@ namespace TheLastEmpire
                 }
             }
 
-            // 9. Evaluate & Trigger Dynamic Random Encounters / Events
+            // 9.5 Robot Patrol Ambush (สุ่มเกิดหุ่นยนต์ตอนเปลี่ยนด่าน)
+            TrySpawnRobotPatrol(stage);
+
+            // 10. Evaluate & Trigger Dynamic Random Encounters / Events
             if (RandomStageEventManager.Instance != null)
             {
                 RandomStageEventManager.Instance.OnStageEntered(stage);
+            }
+        }
+
+        /// <summary>
+        /// สุ่มเกิดหุ่นยนต์ (Robot) ตอนเปลี่ยนด่าน:
+        /// - ก่อนฆ่ามอนครบ 50 ตัว: โอกาสเกิด 10% (กลางวันหรือกลางคืน) สุ่มเกิด 1 - 2 ตัว
+        /// - หลังฆ่ามอนครบ 50 ตัว: โอกาสเกิด 25% (กลางวัน 25%, กลางคืน 25%) สุ่มเกิด 2 - 4 ตัว
+        /// </summary>
+        private void TrySpawnRobotPatrol(StageData stage)
+        {
+            if (stage == null) return;
+
+            bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
+            bool reachedKillThreshold = _totalEnemiesDefeated >= 50;
+
+            float spawnProbability = reachedKillThreshold ? 0.25f : 0.10f;
+            if (Random.value > spawnProbability)
+            {
+                return;
+            }
+
+            int spawnCount = reachedKillThreshold ? Random.Range(2, 5) : Random.Range(1, 3); // 2-4 ตัว หรือ 1-2 ตัว
+
+            // รายชื่อ PoolKey ของหุ่นยนต์ลาดตระเวน (ไม่รวมบอส)
+            string[] robotPoolKeys = new string[]
+            {
+                "RobotNormal",
+                "RobotBlade",
+                "RobotDrone",
+                "RobotGunner",
+                "RobotKamikaze",
+                "RobotLaser",
+                "RobotTanker"
+            };
+
+            Debug.Log($"[GameManager] Robot Patrol Incursion! Spawning {spawnCount} robots (Total Kills: {_totalEnemiesDefeated}, Chance: {spawnProbability * 100}%, IsNight: {isNight})");
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                string chosenKey = robotPoolKeys[Random.Range(0, robotPoolKeys.Length)];
+                GameObject prefab = GetPrefabByName(chosenKey);
+
+                if (prefab != null)
+                {
+                    SpawnEnemyInstance(prefab, chosenKey);
+                    stage.remainingEnemyPrefabNames.Add(prefab.name);
+                }
             }
         }
 

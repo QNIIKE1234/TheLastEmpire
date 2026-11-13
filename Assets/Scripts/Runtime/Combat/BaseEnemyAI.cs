@@ -20,6 +20,8 @@ namespace TheLastEmpire
         [SerializeField] protected float detectionRange = 5f;
         [SerializeField] protected string poolKey = "";
 
+        public float MoveSpeed { get => moveSpeed; set => moveSpeed = value; }
+
         [Header("Wandering Settings")]
         [SerializeField] protected float wanderTime = 2f;
         [SerializeField] protected float idleTime = 1.5f;

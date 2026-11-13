@@ -2493,7 +2493,11 @@ namespace TheLastEmpire
             }
 
             RestoreSanity(gain);
-            Debug.Log($"[PlayerController] Defeated {eName}! Regained {gain:F1} Sanity. ({currentSanity:F1}/{maxSanity})");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterEnemyKilled();
+            }
+            Debug.Log($"[PlayerController] Defeated {eName}! Regained {gain:F1} Sanity. ({currentSanity:F1}/{maxSanity}) | Total Kills: {(GameManager.Instance != null ? GameManager.Instance.TotalEnemiesDefeated : 1)}");
         }
 
         private void ApplyStartingCharacterLoadout()

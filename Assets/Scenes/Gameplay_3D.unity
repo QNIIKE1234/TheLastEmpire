@@ -17253,6 +17253,27 @@ MonoBehaviour:
   - biomes: 64
     enemyPrefab: {fileID: 5020151313939889713, guid: 6d07d001757ed0f4f804509afba6dee6, type: 3}
     poolKey: ZombieLeader
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: dd9fd913f8ef39dc667a97817876f8b5, type: 3}
+    poolKey: AlienNormal
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: 5dc0f554246ce530c882a3e8ac314186, type: 3}
+    poolKey: AlienCrawler
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: 31b397e1d7a18ec9966a0977f448372f, type: 3}
+    poolKey: AlienHook
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: 2b78d2f4887e95e9632ceb38b7e2f9dc, type: 3}
+    poolKey: AlienInvisible
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: f8db8221617ddc386b96132c62c75c93, type: 3}
+    poolKey: AlienSmart
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: fc84366ea4bbe8d769a1bf95842de4f8, type: 3}
+    poolKey: AlienSpitter
+  - biomes: 64
+    enemyPrefab: {fileID: 5020151313939889713, guid: 96afe61a72528143a5a44db570246f35, type: 3}
+    poolKey: AlienLeader
   defaultEnemyPrefab: {fileID: 0}
   defaultPoolKey: 
   itemDropPrefab: {fileID: 8188880320396369179, guid: 57c93f12bcf32f341b9aed622a810e4a, type: 3}
@@ -59319,6 +59340,51 @@ MonoBehaviour:
   - key: Explosion
     prefab: {fileID: 7888301319306864682, guid: 1e860615f7e6018469d218070b23119e, type: 3}
     size: 2
+  - key: AlienNormal
+    prefab: {fileID: 5020151313939889713, guid: dd9fd913f8ef39dc667a97817876f8b5, type: 3}
+    size: 5
+  - key: AlienCrawler
+    prefab: {fileID: 5020151313939889713, guid: 5dc0f554246ce530c882a3e8ac314186, type: 3}
+    size: 5
+  - key: AlienHook
+    prefab: {fileID: 5020151313939889713, guid: 31b397e1d7a18ec9966a0977f448372f, type: 3}
+    size: 5
+  - key: AlienInvisible
+    prefab: {fileID: 5020151313939889713, guid: 2b78d2f4887e95e9632ceb38b7e2f9dc, type: 3}
+    size: 5
+  - key: AlienLeader
+    prefab: {fileID: 5020151313939889713, guid: 96afe61a72528143a5a44db570246f35, type: 3}
+    size: 5
+  - key: AlienSmart
+    prefab: {fileID: 5020151313939889713, guid: f8db8221617ddc386b96132c62c75c93, type: 3}
+    size: 5
+  - key: AlienSpitter
+    prefab: {fileID: 5020151313939889713, guid: fc84366ea4bbe8d769a1bf95842de4f8, type: 3}
+    size: 5
+  - key: RobotNormal
+    prefab: {fileID: 5020151313939889713, guid: 1703143e0cb2a957b7ed683bc5657a8d, type: 3}
+    size: 5
+  - key: RobotBlade
+    prefab: {fileID: 5020151313939889713, guid: f40f036bf66bfd472dc4f987d0f9e969, type: 3}
+    size: 5
+  - key: RobotDrone
+    prefab: {fileID: 5020151313939889713, guid: fe8b06865f31b813ecb67673298d91ba, type: 3}
+    size: 5
+  - key: RobotGunner
+    prefab: {fileID: 5020151313939889713, guid: 19d242d59e0ee1f42bd2a4126bab80a5, type: 3}
+    size: 5
+  - key: RobotKamikaze
+    prefab: {fileID: 5020151313939889713, guid: a5868527b1406bd7a54462ef73679cc1, type: 3}
+    size: 5
+  - key: RobotLaser
+    prefab: {fileID: 5020151313939889713, guid: 19ea2a18d1bfc1f79d85a00ad71b48ff, type: 3}
+    size: 5
+  - key: RobotLeader
+    prefab: {fileID: 5020151313939889713, guid: 44c1f1983f74cc62cae6ec5d4a7fe55d, type: 3}
+    size: 5
+  - key: RobotTanker
+    prefab: {fileID: 5020151313939889713, guid: 197e506e87172557fb03582cc761b653, type: 3}
+    size: 5
 --- !u!4 &2113889935
 Transform:
   m_ObjectHideFlags: 0
