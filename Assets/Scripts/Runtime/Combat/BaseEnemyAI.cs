@@ -142,7 +142,7 @@ namespace TheLastEmpire
 
         protected virtual void FindPlayer()
         {
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 playerTransform = player.transform;

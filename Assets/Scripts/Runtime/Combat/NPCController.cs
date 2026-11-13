@@ -100,7 +100,7 @@ namespace TheLastEmpire
                 textToUpdate.text = npcName;
             }
 
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 _playerTransform = player.transform;
@@ -127,7 +127,7 @@ namespace TheLastEmpire
 
             if (_playerTransform == null)
             {
-                PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+                PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                 if (player != null) _playerTransform = player.transform;
             }
 

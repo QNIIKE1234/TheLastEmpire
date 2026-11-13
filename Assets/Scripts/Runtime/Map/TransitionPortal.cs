@@ -248,7 +248,7 @@ namespace TheLastEmpire
             if (transitioned)
             {
                 // Try to find the target portal in the newly generated room to spawn directly at it
-                TransitionPortal[] targetPortals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+                TransitionPortal[] targetPortals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
                 TransitionPortal targetPortal = null;
                 foreach (var tp in targetPortals)
                 {
