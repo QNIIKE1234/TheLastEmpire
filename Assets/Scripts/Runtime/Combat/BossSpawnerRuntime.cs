@@ -432,7 +432,6 @@ namespace TheLastEmpire
             GUILayout.Label("• กดเสกทันที: Maya จะเกิดที่ประตูฝั่งตรงข้าม และวิ่งตรงตามแนวถนนข้ามห้องผ่านตัวเราออกไปทางประตูที่เราเข้ามา", EditorStylesMini());
             GUILayout.Label("• Collider ของ Maya ปรับเป็น Trigger ทั้งหมด วิ่งทะลุตึกและสิ่งกีดขวางได้ 100% ไม่ติดแน่นอน", EditorStylesMini());
         }
-        }
 
         private void DrawBossSpawnerTab()
         {
