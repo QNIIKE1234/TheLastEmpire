@@ -14,7 +14,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Default Local Group
   m_GUID: 4f1632ff5be677547bd55fd812558886
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 9a1b2c3d4e5f60718293a4b5c6d7e8f0
+    m_Address: Assets/Resources_Addressable/Database/NPCData/NPC_Merchant_Zack.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a1b2c3d4e5f60718293a4b5c6d7e8f1
+    m_Address: Assets/Resources_Addressable/Database/NPCData/NPC_Doctor_Elena.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a1b2c3d4e5f60718293a4b5c6d7e8f2
+    m_Address: Assets/Resources_Addressable/Database/NPCData/NPC_Mechanic_Otto.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a1b2c3d4e5f60718293a4b5c6d7e8f3
+    m_Address: Assets/Resources_Addressable/Database/NPCData/NPC_Watcher_Maya.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a1b2c3d4e5f60718293a4b5c6d7e8f5
+    m_Address: Assets/Resources_Addressable/Database/NPCData/NPC_Survivor_Roy.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 1679bd3e89310f84aa00a4da94206da9, type: 2}
   m_SchemaSet:

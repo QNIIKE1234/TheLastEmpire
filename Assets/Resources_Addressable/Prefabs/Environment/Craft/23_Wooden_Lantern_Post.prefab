@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2300000000000000002}
   - component: {fileID: 2300000000000000005}
-  - component: {fileID: 5268385733425040415}
+  - component: {fileID: 7572264743730262788}
   - component: {fileID: 2300000000000000006}
   - component: {fileID: 2300000000000000007}
   m_Layer: 0
@@ -51,15 +51,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
   data: {fileID: 0}
   currentHealth: 250
-  stageX: 53
-  stageY: 39
+  stageX: 75
+  stageY: 68
   showHealthBar: 0
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
   canBeDamagedByPlayer: 0
   hitVfxPrefab: {fileID: 0}
   destroyVfxPrefab: {fileID: 0}
---- !u!208 &5268385733425040415
+--- !u!208 &7572264743730262788
 NavMeshObstacle:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
