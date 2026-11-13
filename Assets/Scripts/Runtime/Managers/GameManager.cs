@@ -188,6 +188,10 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
+            // Stop any running stage event (Maya runner, chaser/ambush spawn coroutines) from the previous room
+            // BEFORE saving/clearing, so nothing leaks into the new room (including shop rooms).
+            RandomStageEventManager.Instance?.CleanupActiveEvent();
+
             // Clear active NPC if it exists
             if (_activeNPC != null)
             {
@@ -950,16 +954,8 @@ namespace TheLastEmpire
             StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(x, y);
             if (stage == null || stage.isCleared) return;
 
-            if (_activeEnemies.Count == 0)
-            {
-                // If room has no active enemies and remaining list was already emptied (e.g. all defeated or cleared event)
-                if (stage.remainingEnemyPrefabNames != null && stage.remainingEnemyPrefabNames.Count == 0 && stage.hasEventTriggered)
-                {
-                    stage.isCleared = true;
-                    Debug.Log($"[GameManager] Stage ({x}, {y}) has 0 remaining enemies and was marked CLEARED.");
-                }
-                return;
-            }
+            // ห้องว่างที่ยังไม่มีศัตรู (เช่น ช่วง 0.4 วิ ก่อนฝูงไล่ Maya เกิด) ต้องไม่ถูกนับว่าเคลียร์
+            if (_activeEnemies.Count == 0) return;
 
             // Check if all spawned enemies in the current room are defeated
             bool allEnemiesDead = true;

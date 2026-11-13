@@ -429,7 +429,7 @@ namespace TheLastEmpire
             GUILayout.Space(10);
             GUI.backgroundColor = Color.white;
             GUILayout.Label("คำอธิบาย:", EditorStylesBold());
-            GUILayout.Label("• กดเสกทันที: Maya จะเกิดที่ประตูฝั่งตรงข้าม และวิ่งตรงเข้าหาตัว Player ที่ความเร็ว 1.5 m/s ผ่านตัวเราออกไปทางประตูที่เราเข้ามา", EditorStylesMini());
+            GUILayout.Label("• กดเสกทันที: Maya จะเกิดที่ประตูฝั่งตรงข้าม และวิ่งตรงเข้าหาตัว Player ที่ความเร็ว 5.0 m/s ผ่านตัวเราออกไปทางประตูที่เราเข้ามา", EditorStylesMini());
             GUILayout.Label("• Collider ของ Maya ปรับเป็น Trigger ทั้งหมด วิ่งทะลุตึกและสิ่งกีดขวางได้ 100% ไม่ติดแน่นอน", EditorStylesMini());
             GUILayout.Label("• แก้ไขบัคการย้ายแมพไป-กลับ: เคลียร์ Coroutine และ Runner ข้ามห้องอัตโนมัติ ไม่ค้างหรือรวนแน่นอน", EditorStylesMini());
         }

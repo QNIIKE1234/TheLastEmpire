@@ -33,20 +33,26 @@ namespace TheLastEmpire
 
         private bool _playerInRange = false;
 
-        public bool IsPlayerInRange()
+        public bool IsPlayerInRange() => _playerInRange;
+
+        public static bool IsWorldPortal(TransitionPortal portal)
         {
-            if (!_playerInRange) return false;
-            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-            if (player == null || Vector3.Distance(transform.position, player.transform.position) > 3.5f)
-            {
-                _playerInRange = false;
-                return false;
-            }
+            if (portal == null) return false;
+            if (portal.GetComponent<RectTransform>() != null) return false;
+            if (portal.gameObject.layer == 5) return false;
             return true;
+        }
+
+        private void OnDisable()
+        {
+            // Portal hidden/disabled (no path in this stage) -> never keep a stale "in range" flag
+            _playerInRange = false;
         }
 
         private void OnTriggerEnter(Collider other)
         {
+            if (!IsWorldPortal(this)) return;
+
             if (other.CompareTag("Player"))
             {
                 _playerInRange = true;
@@ -56,6 +62,8 @@ namespace TheLastEmpire
 
         private void OnTriggerExit(Collider other)
         {
+            if (!IsWorldPortal(this)) return;
+
             if (other.CompareTag("Player"))
             {
                 _playerInRange = false;
@@ -65,6 +73,13 @@ namespace TheLastEmpire
 
         private void Start()
         {
+            if (!IsWorldPortal(this))
+            {
+                // UI / Canvas element with legacy TransitionPortal - disable component to prevent interference
+                enabled = false;
+                return;
+            }
+
             // 1. Ensure we have a collider trigger zone
             Collider col = GetComponent<Collider>();
             if (col == null)
@@ -91,6 +106,7 @@ namespace TheLastEmpire
 
         public void UpdatePortalVisibility(int x, int y)
         {
+            if (!IsWorldPortal(this)) return;
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
 
             bool pathExists = false;
@@ -121,6 +137,10 @@ namespace TheLastEmpire
             if (col != null)
             {
                 col.enabled = pathExists;
+            }
+            if (!pathExists)
+            {
+                _playerInRange = false; // disabling a collider does not fire OnTriggerExit
             }
 
             // 3. Randomize this portal's own position along the secondary axis based on current stage seed
@@ -262,12 +282,12 @@ namespace TheLastEmpire
 
             if (transitioned)
             {
-                // Try to find the target portal in the newly generated room to spawn directly at it
+                // Try to find the target 3D world portal in the newly generated room to spawn directly at it
                 TransitionPortal[] targetPortals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
                 TransitionPortal targetPortal = null;
                 foreach (var tp in targetPortals)
                 {
-                    if (tp != null && tp.direction == oppositeDir)
+                    if (IsWorldPortal(tp) && tp.direction == oppositeDir)
                     {
                         targetPortal = tp;
                         break;

@@ -345,8 +345,14 @@ namespace TheLastEmpire
                         anim.applyRootMotion = false;
                         if (anim.runtimeAnimatorController == null)
                         {
-                            RuntimeAnimatorController ctrl = Resources.Load<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+                            RuntimeAnimatorController ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
                             if (ctrl == null) ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Animation/Chibi_Player_Controller");
+                            if (ctrl == null) ctrl = Resources.Load<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+                            if (ctrl == null && PlayerController.Instance != null)
+                            {
+                                Animator pAnim = PlayerController.Instance.GetComponentInChildren<Animator>();
+                                if (pAnim != null) ctrl = pAnim.runtimeAnimatorController;
+                            }
                             if (ctrl == null)
                             {
                                 Animator existingAnim = GetComponentInChildren<Animator>();

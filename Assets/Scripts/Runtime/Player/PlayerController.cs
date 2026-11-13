@@ -1427,7 +1427,7 @@ namespace TheLastEmpire
                 TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
                 foreach (TransitionPortal portal in portals)
                 {
-                    if (portal != null && portal.IsPlayerInRange())
+                    if (TransitionPortal.IsWorldPortal(portal) && portal.IsPlayerInRange())
                     {
                         portal.TriggerTransition(this);
                         return; // successfully transitioned via portal, skip normal interactions!

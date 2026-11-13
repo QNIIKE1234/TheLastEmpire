@@ -64,6 +64,8 @@ namespace TheLastEmpire
 
         private StageEventType _queuedNextStageEvent = StageEventType.None;
         private Coroutine _activeChaserCoroutine;
+        private Coroutine _activeAmbushCoroutine;
+        private Coroutine _stageEnterCoroutine;
         private GameObject _activeRunnerInstance;
 
         private void Awake()
@@ -170,6 +172,18 @@ namespace TheLastEmpire
                 _activeChaserCoroutine = null;
             }
 
+            if (_activeAmbushCoroutine != null)
+            {
+                StopCoroutine(_activeAmbushCoroutine);
+                _activeAmbushCoroutine = null;
+            }
+
+            if (_stageEnterCoroutine != null)
+            {
+                StopCoroutine(_stageEnterCoroutine);
+                _stageEnterCoroutine = null;
+            }
+
             if (_activeRunnerInstance != null)
             {
                 Destroy(_activeRunnerInstance);
@@ -197,12 +211,13 @@ namespace TheLastEmpire
             CleanupActiveEvent();
 
             // 2. หน่วง 1 เฟรม เพื่อรอให้ TransitionPortal วาร์ป Player ไปยังตำแหน่งประตูของห้องใหม่เรียบร้อย 100%
-            StartCoroutine(OnStageEnteredRoutine(stage));
+            _stageEnterCoroutine = StartCoroutine(OnStageEnteredRoutine(stage));
         }
 
         private IEnumerator OnStageEnteredRoutine(StageData stage)
         {
             yield return null; // รอ 1 เฟรมให้ตำแหน่ง Player ซิงค์กับประตูใหม่สมบูรณ์
+            _stageEnterCoroutine = null;
             if (stage == null) yield break;
 
             // 0. Check if next stage event was queued via F9 hotkey
@@ -364,7 +379,7 @@ namespace TheLastEmpire
             int ambushCount = rng.Next(3, 6);
             string[] rushers = new string[] { "ZombieRunner", "RobotKamikaze", "AlienCrawler", "ZombieDog" };
 
-            StartCoroutine(SpawnAmbushWaveRoutine(rushers, ambushCount, rng));
+            _activeAmbushCoroutine = StartCoroutine(SpawnAmbushWaveRoutine(rushers, ambushCount, rng));
         }
 
         private IEnumerator SpawnAmbushWaveRoutine(string[] rushers, int count, System.Random rng)
@@ -473,7 +488,7 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            ai.MoveSpeed *= 1.30f;
+                            ai.ApplyTemporaryStats(speedMultiplier: 1.30f);
                         }
                     }
                 }
@@ -535,6 +550,8 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = existingEnemy.GetComponent<BaseEnemyAI>();
                         if (ai != null && !string.IsNullOrEmpty(ai.PoolKey) && ObjectPoolManager.Instance != null)
                         {
+                            Health h = existingEnemy.GetComponent<Health>();
+                            if (h != null) h.ResetHealth();
                             ObjectPoolManager.Instance.ReturnToPool(ai.PoolKey, existingEnemy);
                         }
                         else
@@ -625,7 +642,7 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 1.5f);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 5.0f);
             }
 
             // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
@@ -680,9 +697,10 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            // บัฟระยะมองเห็น และปรับความเร็ววิ่งกวดให้ไล่หลัง Maya แบบเกาะติด (1.35 m/s วิ่งตามหลัง Maya ที่ความเร็ว 1.5 m/s)
-                            ai.DetectionRange = 50f;
-                            ai.MoveSpeed = 1.35f;
+                            // ความเร็วไล่กวด 4.5 m/s (ช้ากว่า Maya 5 m/s เล็กน้อย ไม่แซง) + มองเห็นไกล 50m
+                            // ใช้ ApplyTemporaryStats เพื่อไม่ให้ค่าติดไปกับศัตรูใน Pool ที่ถูกนำไปใช้ซ้ำในห้องอื่น
+                            ai.ApplyTemporaryStats(speed: 4.5f, detection: 50f);
+                            ai.SkipTransitionDelay(); // วิ่งไล่ทันที ไม่ยืนนิ่ง 2 วินาทีตอนเกิด
                             enemyObj.transform.forward = runDir;
                         }
                     }

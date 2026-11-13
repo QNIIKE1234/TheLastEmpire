@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -11,12 +12,19 @@ namespace TheLastEmpire
     public class FleeingSurvivorRunner : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 1.5f;
+        [SerializeField] private float moveSpeed = 5.0f;
+
+        private static readonly int IsRunningHash = Animator.StringToHash("IsRunning");
+        private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int RunStateHash = Animator.StringToHash("Run");
 
         private Transform _playerTransform;
         private Vector3 _exitDestination;
+        private Vector3 _runAxis;
         private Action _onEscaped;
-        private Animator _animator;
+        private readonly List<Animator> _animators = new List<Animator>();
+        private int _animatorRefreshFrames = 0;
         private TMP_Text _speechText;
         private float _shoutTimer = 0f;
         private bool _isInitialized = false;
@@ -32,13 +40,17 @@ namespace TheLastEmpire
             "THERE ARE TOO MANY OF THEM!!"
         };
 
-        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 1.5f)
+        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 5.0f)
         {
             _playerTransform = playerTransform;
             _exitDestination = exitDestination;
             _onEscaped = onEscaped;
             moveSpeed = speed;
             _hasPassedPlayer = false;
+
+            Vector3 axis = exitDestination - transform.position;
+            axis.y = 0f;
+            _runAxis = axis.sqrMagnitude > 0.001f ? axis.normalized : transform.forward;
 
             // ปิด NPCController ปกติเพื่อไม่ให้ trigger การนั่งหรือเปิดหน้าต่างร้านค้า
             NPCController npcController = GetComponent<NPCController>();
@@ -68,16 +80,11 @@ namespace TheLastEmpire
                 modelRoot.localRotation = Quaternion.identity;
             }
 
-            // หา Animator และสั่งท่าวิ่งทันที
-            _animator = GetComponentInChildren<Animator>();
-            if (_animator != null)
-            {
-                _animator.applyRootMotion = false;
-                _animator.SetBool("IsSitting", false);
-                _animator.SetBool("IsRunning", true);
-                _animator.SetFloat("Speed", moveSpeed);
-                _animator.CrossFadeInFixedTime("Run", 0.1f, 0);
-            }
+            // ApplyData() เพิ่งเปลี่ยนโมเดลเป็น Maya และสั่ง Destroy โมเดลเก่า (Destroy จะเกิดตอนจบเฟรม)
+            // จึงต้องค้นหา Animator ใหม่อีกครั้งในเฟรมถัดๆ ไป เพื่อให้ได้ Animator ของโมเดล Maya ตัวจริง
+            _animatorRefreshFrames = 10;
+            RefreshAnimators();
+            DriveRunAnimation();
 
             // หา Floating Text เพื่อแสดงข้อความร้องขอความช่วยเหลือ
             _speechText = GetComponentInChildren<TMP_Text>();
@@ -91,38 +98,106 @@ namespace TheLastEmpire
             _isInitialized = true;
         }
 
+        private void RefreshAnimators()
+        {
+            _animators.Clear();
+
+            // ดึง Controller สำรองจาก Player ทันที เพื่อความเร็วและความแน่นอน 100%
+            RuntimeAnimatorController fallbackCtrl = null;
+            if (PlayerController.Instance != null)
+            {
+                Animator pAnim = PlayerController.Instance.GetComponentInChildren<Animator>();
+                if (pAnim != null) fallbackCtrl = pAnim.runtimeAnimatorController;
+            }
+            if (fallbackCtrl == null)
+            {
+                fallbackCtrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+            }
+            if (fallbackCtrl == null)
+            {
+                fallbackCtrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Animation/Chibi_Player_Controller");
+            }
+
+            Animator[] found = GetComponentsInChildren<Animator>(false);
+            foreach (var anim in found)
+            {
+                if (anim == null) continue;
+                anim.applyRootMotion = false;
+
+                if (anim.runtimeAnimatorController == null && fallbackCtrl != null)
+                {
+                    anim.runtimeAnimatorController = fallbackCtrl;
+                }
+
+                if (anim.runtimeAnimatorController != null)
+                {
+                    _animators.Add(anim);
+                }
+            }
+        }
+
+        /// <summary>
+        /// บังคับท่าวิ่งทุกเฟรม: ตั้งค่า Parameter และ CrossFade เข้า State "Run" ทันทีถ้ายังไม่ได้อยู่ในท่าวิ่ง
+        /// </summary>
+        private void DriveRunAnimation()
+        {
+            for (int i = _animators.Count - 1; i >= 0; i--)
+            {
+                Animator anim = _animators[i];
+                if (anim == null || !anim.isActiveAndEnabled)
+                {
+                    _animators.RemoveAt(i);
+                    continue;
+                }
+
+                anim.SetBool(IsSittingHash, false);
+                anim.SetBool(IsRunningHash, true);
+                anim.SetFloat(SpeedHash, moveSpeed);
+
+                AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
+                if (!state.IsName("Run") && !anim.IsInTransition(0))
+                {
+                    anim.CrossFadeInFixedTime("Run", 0.05f, 0);
+                }
+            }
+        }
+
         private void Update()
         {
             if (!_isInitialized) return;
 
             _lifetime += Time.deltaTime;
 
+            if (_animatorRefreshFrames > 0 || _animators.Count == 0)
+            {
+                if (_animatorRefreshFrames > 0) _animatorRefreshFrames--;
+                RefreshAnimators();
+            }
+            DriveRunAnimation();
+
             Vector3 currentPos = transform.position;
             currentPos.y = _exitDestination.y; // ล็อคระดับความสูงบนพื้น ไม่ให้จมดิน
 
-            // กำหนดเป้าหมายการวิ่ง:
             // ระยะแรก: วิ่งตรงเข้าหาตัว Player
-            // เมื่อวิ่งผ่านตัว Player แล้ว: วิ่งทะลุออกประตูหลัง Player (_exitDestination)
+            // เมื่อถึงตัว Player หรือวิ่งเลยตำแหน่ง Player ตามแนววิ่งแล้ว: วิ่งทะลุออกประตูหลัง Player (_exitDestination)
             Vector3 targetPos = _exitDestination;
             if (!_hasPassedPlayer && _playerTransform != null)
             {
                 Vector3 playerPos = _playerTransform.position;
                 playerPos.y = currentPos.y;
 
-                float distToPlayer = Vector3.Distance(currentPos, playerPos);
-                if (distToPlayer <= 1.2f)
+                Vector3 toPlayer = playerPos - currentPos;
+                bool reachedPlayer = toPlayer.magnitude <= 1.2f;
+                bool overtookPlayer = Vector3.Dot(toPlayer, _runAxis) <= 0f; // Player อยู่ข้างหลัง Maya แล้ว
+
+                if (reachedPlayer || overtookPlayer)
                 {
                     _hasPassedPlayer = true;
-                    targetPos = _exitDestination;
                 }
                 else
                 {
                     targetPos = playerPos;
                 }
-            }
-            else
-            {
-                targetPos = _exitDestination;
             }
 
             Vector3 diff = targetPos - currentPos;
@@ -132,12 +207,9 @@ namespace TheLastEmpire
             if (dist > 0.05f)
             {
                 Vector3 dir = diff / dist;
-                transform.position = currentPos + dir * (moveSpeed * Time.deltaTime);
-
-                if (dir.sqrMagnitude > 0.001f)
-                {
-                    transform.forward = Vector3.Slerp(transform.forward, dir, Time.deltaTime * 12f);
-                }
+                float step = Mathf.Min(moveSpeed * Time.deltaTime, dist);
+                transform.position = currentPos + dir * step;
+                transform.forward = Vector3.Slerp(transform.forward, dir, Time.deltaTime * 12f);
             }
 
             // อัปเดตข้อความตะโกนเป็นระยะ
@@ -148,8 +220,8 @@ namespace TheLastEmpire
                 ShoutRandom();
             }
 
-            // เมื่อวิ่งถึงจุดออก หรือวิ่งพ้นประตู หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
-            if ((_hasPassedPlayer && dist <= 1.2f) || _lifetime > 30f)
+            // เมื่อวิ่งถึงจุดออก หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
+            if ((_hasPassedPlayer && dist <= 1.2f) || _lifetime > 20f)
             {
                 EscapeAndDespawn();
             }

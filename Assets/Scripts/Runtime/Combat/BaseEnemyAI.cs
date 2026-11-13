@@ -66,8 +66,63 @@ namespace TheLastEmpire
         [SerializeField] protected TMP_Text healthText;
         [SerializeField] protected UnityEngine.UI.Slider healthSlider;
 
+        // ------------------------------------------------------------------
+        // Temporary stat overrides (used by stage events, e.g. Fleeing Survivor chasers / Blood Moon).
+        // Pooled enemies are reused across rooms, so event changes must NEVER permanently modify
+        // moveSpeed / detectionRange. Natural stats are cached and restored when the enemy is re-enabled.
+        // ------------------------------------------------------------------
+        private bool _hasNaturalStats = false;
+        private bool _hasTemporaryOverride = false;
+        private float _naturalMoveSpeed;
+        private float _naturalDetectionRange;
+        private Coroutine _overrideRoutine;
+
+        /// <summary>
+        /// Apply event-only stats. speed/detection &lt; 0 = keep natural value. speedMultiplier is applied on top.
+        /// Applied one frame later so subclass Start() stat setup cannot overwrite it.
+        /// </summary>
+        public void ApplyTemporaryStats(float speed = -1f, float detection = -1f, float speedMultiplier = 1f)
+        {
+            if (!isActiveAndEnabled) return;
+            if (_overrideRoutine != null) StopCoroutine(_overrideRoutine);
+            _overrideRoutine = StartCoroutine(ApplyTemporaryStatsRoutine(speed, detection, speedMultiplier));
+        }
+
+        private System.Collections.IEnumerator ApplyTemporaryStatsRoutine(float speed, float detection, float speedMultiplier)
+        {
+            yield return null; // wait until Start() (and subclass stat setup) has run
+
+            if (!_hasNaturalStats || !_hasTemporaryOverride)
+            {
+                _naturalMoveSpeed = moveSpeed;
+                _naturalDetectionRange = detectionRange;
+                _hasNaturalStats = true;
+            }
+
+            moveSpeed = (speed >= 0f ? speed : _naturalMoveSpeed) * speedMultiplier;
+            detectionRange = detection >= 0f ? detection : _naturalDetectionRange;
+            _hasTemporaryOverride = true;
+            _overrideRoutine = null;
+        }
+
+        private void RestoreNaturalStats()
+        {
+            if (_overrideRoutine != null)
+            {
+                StopCoroutine(_overrideRoutine);
+                _overrideRoutine = null;
+            }
+            if (_hasTemporaryOverride && _hasNaturalStats)
+            {
+                moveSpeed = _naturalMoveSpeed;
+                detectionRange = _naturalDetectionRange;
+            }
+            _hasTemporaryOverride = false;
+        }
+
         protected virtual void OnEnable()
         {
+            RestoreNaturalStats(); // pooled enemy reused -> drop any event stats from the previous room
             transitionDelayTimer = 2.0f; // Lock actions for 2s on spawn/activation
             hasBeenAttacked = false;
         }

@@ -128,7 +128,7 @@ namespace TheLastEmpire
             TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
             foreach (TransitionPortal portal in portals)
             {
-                if (portal != null)
+                if (TransitionPortal.IsWorldPortal(portal))
                 {
                     portal.UpdatePortalVisibility(stage.x, stage.y);
                 }
@@ -763,7 +763,7 @@ namespace TheLastEmpire
             TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
             foreach (TransitionPortal portal in portals)
             {
-                if (portal != null)
+                if (TransitionPortal.IsWorldPortal(portal))
                 {
                     // Check if the portal is enabled (only check col.enabled in play mode, assume active in editor preview)
                     Collider col = portal.GetComponent<Collider>();
@@ -1432,7 +1432,7 @@ namespace TheLastEmpire
 
             foreach (TransitionPortal portal in portals)
             {
-                if (portal != null)
+                if (TransitionPortal.IsWorldPortal(portal))
                 {
                     Collider col = portal.GetComponent<Collider>();
                     if (Application.isPlaying && col != null && !col.enabled)
