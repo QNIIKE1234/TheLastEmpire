@@ -363,7 +363,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Craft [F8]" };
+                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Craft [F8]", "Events [F9]" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -376,12 +376,62 @@ namespace TheLastEmpire
                 {
                     DrawTimeCheatTab();
                 }
-                else
+                else if (_selectedTab == 2)
                 {
                     DrawCraftCheatTab();
                 }
+                else
+                {
+                    DrawEventsCheatTab();
+                }
             }
             GUILayout.EndArea();
+        }
+
+        private void DrawEventsCheatTab()
+        {
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(1f, 0.65f, 0.15f);
+            GUILayout.Label("STAGE EVENT CHEATS", titleStyle);
+
+            bool isQueued = RandomStageEventManager.Instance != null && RandomStageEventManager.Instance.IsFleeingEventQueued;
+            GUILayout.Label($"สถานะคิวด่านถัดไป: {(isQueued ? "<color=#00FF66>คิว Maya แล้ว</color>" : "ไม่มีคิว")}", EditorStylesBold());
+
+            GUILayout.Space(8);
+
+            GUI.backgroundColor = new Color(1f, 0.45f, 0.1f);
+            if (GUILayout.Button("🏃 เสก Maya วิ่งหนีทันที [Shift+F9]", GUILayout.Height(38)))
+            {
+                if (RandomStageEventManager.Instance != null)
+                {
+                    RandomStageEventManager.Instance.ForceTriggerFleeingSurvivor();
+                    ShowToast("เสก Maya (Scout) วิ่งหนีตายตัดผ่านห้องทันที!");
+                }
+            }
+
+            GUILayout.Space(6);
+
+            GUI.backgroundColor = new Color(0.2f, 0.7f, 0.9f);
+            if (GUILayout.Button("⏩ คิวด่านถัดไป: Maya วิ่งหนี [F9]", GUILayout.Height(34)))
+            {
+                if (RandomStageEventManager.Instance != null)
+                {
+                    RandomStageEventManager.Instance.QueueNextStageFleeingSurvivor();
+                    ShowToast("คิวด่านถัดไป: Maya วิ่งหนีฝูงมอนสเตอร์!");
+                }
+            }
+
+            GUILayout.Space(10);
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label("คำอธิบาย:", EditorStylesBold());
+            GUILayout.Label("• กดเสกทันที: Maya จะเกิดที่ประตูฝั่งตรงข้าม และวิ่งตรงตามแนวถนนข้ามห้องผ่านตัวเราออกไปทางประตูที่เราเข้ามา", EditorStylesMini());
+            GUILayout.Label("• Collider ของ Maya ปรับเป็น Trigger ทั้งหมด วิ่งทะลุตึกและสิ่งกีดขวางได้ 100% ไม่ติดแน่นอน", EditorStylesMini());
+        }
         }
 
         private void DrawBossSpawnerTab()

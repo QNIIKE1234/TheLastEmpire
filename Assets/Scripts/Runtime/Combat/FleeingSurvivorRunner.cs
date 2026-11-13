@@ -46,12 +46,21 @@ namespace TheLastEmpire
             if (rb != null)
             {
                 rb.isKinematic = true;
+                rb.detectCollisions = false;
             }
 
-            Collider col = GetComponent<Collider>();
-            if (col != null)
+            // บังคับ Collider ทุกชิ้นในตัวและลูกๆ เป็น Trigger 100% เพื่อไม่ให้ชนติดตึก กำแพง หรือสิ่งกีดขวางใดๆ
+            Collider[] allCols = GetComponentsInChildren<Collider>();
+            foreach (var c in allCols)
             {
-                col.isTrigger = true;
+                if (c != null) c.isTrigger = true;
+            }
+
+            // จัดหน้าตา ModelRoot ให้หันหน้าตรงไปข้างหน้า (แก้ปัญหาโมเดล NPC เดิมกลับหลัง 180 องศา)
+            Transform modelRoot = transform.Find("ModelRoot");
+            if (modelRoot != null)
+            {
+                modelRoot.localRotation = Quaternion.identity;
             }
 
             // หา Animator และสั่งท่าวิ่งทันที
@@ -67,16 +76,26 @@ namespace TheLastEmpire
 
             // หา Floating Text เพื่อแสดงข้อความร้องขอความช่วยเหลือ
             _speechText = GetComponentInChildren<TMP_Text>();
+            if (_speechText != null)
+            {
+                _speechText.gameObject.SetActive(true);
+                _speechText.fontSize = 4.5f;
+            }
             ShoutRandom();
 
             _isInitialized = true;
         }
 
+        private float _lifetime = 0f;
+
         private void Update()
         {
             if (!_isInitialized) return;
 
+            _lifetime += Time.deltaTime;
+
             Vector3 currentPos = transform.position;
+            currentPos.y = _destination.y; // ล็อคระดับความสูงบนพื้น ไม่ให้จมดิน
             Vector3 diff = _destination - currentPos;
             diff.y = 0f;
             float dist = diff.magnitude;
@@ -84,7 +103,7 @@ namespace TheLastEmpire
             if (dist > 0.05f)
             {
                 Vector3 dir = diff / dist;
-                transform.position += dir * (moveSpeed * Time.deltaTime);
+                transform.position = currentPos + dir * (moveSpeed * Time.deltaTime);
 
                 if (dir.sqrMagnitude > 0.001f)
                 {
@@ -94,14 +113,14 @@ namespace TheLastEmpire
 
             // อัปเดตข้อความตะโกนเป็นระยะ
             _shoutTimer += Time.deltaTime;
-            if (_shoutTimer >= 1.4f)
+            if (_shoutTimer >= 1.2f)
             {
                 _shoutTimer = 0f;
                 ShoutRandom();
             }
 
-            // เมื่อวิ่งไปถึงจุดหมาย (หรือหลุดออกนอกขอบประตู) ให้ถือว่าหนีรอดและหายตัวไป
-            if (dist <= 1.2f)
+            // เมื่อวิ่งพ้นขอบประตูออกไปแล้ว หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
+            if (dist <= 1.2f || _lifetime > 25f)
             {
                 EscapeAndDespawn();
             }
@@ -112,7 +131,7 @@ namespace TheLastEmpire
             if (_speechText != null)
             {
                 string msg = PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
-                _speechText.text = $"<color=#FFAA00>Maya:</color> <color=#FF2222><b>{msg}</b></color>";
+                _speechText.text = $"<color=#FFCC00><b>MAYA (SCOUT):</b></color>\n<color=#FF2222><b>\"{msg}\"</b></color>";
             }
         }
 

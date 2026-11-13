@@ -128,15 +128,22 @@ namespace TheLastEmpire
             }
             else if (triggerF9)
             {
-                _queuedNextStageEvent = StageEventType.FleeingSurvivor;
-                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [F9] Pressed: Next stage queued to trigger Maya Fleeing Event!");
-                ShowEventBanner(
-                    "EVENT QUEUED: PANICKED SCOUT [F9]",
-                    "Walk through any portal to trigger Maya fleeing from a mob!",
-                    new Color(1.0f, 0.65f, 0.15f)
-                );
+                QueueNextStageFleeingSurvivor();
             }
         }
+
+        public void QueueNextStageFleeingSurvivor()
+        {
+            _queuedNextStageEvent = StageEventType.FleeingSurvivor;
+            Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [F9] Pressed: Next stage queued to trigger Maya Fleeing Event!");
+            ShowEventBanner(
+                "EVENT QUEUED: PANICKED SCOUT [F9]",
+                "Walk through any portal to trigger Maya fleeing from a mob!",
+                new Color(1.0f, 0.65f, 0.15f)
+            );
+        }
+
+        public bool IsFleeingEventQueued => _queuedNextStageEvent == StageEventType.FleeingSurvivor;
 
         [ContextMenu("Force Trigger Fleeing Survivor Event Now")]
         public void ForceTriggerFleeingSurvivor()
@@ -529,38 +536,75 @@ namespace TheLastEmpire
                 else if (playerPos.x > 3f) entryDir = TransitionPortal.TransitionDirection.East;
             }
 
-            switch (entryDir)
+            TransitionPortal.TransitionDirection oppositeDir = TransitionPortal.GetOppositeDirection(entryDir);
+
+            // ค้นหา TransitionPortal จริงที่อยู่ในฉากเพื่อหาตำแหน่งถนนที่เปิดโล่ง 100% ไม่มีตึกขวาง
+            TransitionPortal[] portals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            TransitionPortal oppositePortal = null;
+            TransitionPortal entryPortal = null;
+
+            foreach (var p in portals)
             {
-                case TransitionPortal.TransitionDirection.South:
-                    // Player เข้ามาจากทิศใต้ -> NPC เกิดทิศเหนือ วิ่งลงทิศใต้
-                    npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), 0.5f, 7.5f);
-                    escapeTargetPos = new Vector3(playerPos.x, 0.5f, -9.5f);
-                    break;
-
-                case TransitionPortal.TransitionDirection.North:
-                    // Player เข้ามาจากทิศเหนือ -> NPC เกิดทิศใต้ วิ่งขึ้นทิศเหนือ
-                    npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), 0.5f, -7.5f);
-                    escapeTargetPos = new Vector3(playerPos.x, 0.5f, 9.5f);
-                    break;
-
-                case TransitionPortal.TransitionDirection.West:
-                    // Player เข้ามาจากทิศตะวันตก -> NPC เกิดทิศตะวันออก วิ่งไปตะวันตก
-                    npcSpawnPos = new Vector3(14.5f, 0.5f, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
-                    escapeTargetPos = new Vector3(-16.5f, 0.5f, playerPos.z);
-                    break;
-
-                case TransitionPortal.TransitionDirection.East:
-                default:
-                    // Player เข้ามาจากทิศตะวันออก -> NPC เกิดทิศตะวันตก วิ่งไปตะวันออก
-                    npcSpawnPos = new Vector3(-14.5f, 0.5f, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
-                    escapeTargetPos = new Vector3(16.5f, 0.5f, playerPos.z);
-                    break;
+                if (p != null)
+                {
+                    if (p.Direction == oppositeDir) oppositePortal = p;
+                    if (p.Direction == entryDir) entryPortal = p;
+                }
             }
 
-            // สุ่มเบี่ยงพิกัดเกิดเล็กน้อยเพื่อให้ดูเป็นธรรมชาติ
-            Vector3 perpendicular = Vector3.Cross((escapeTargetPos - npcSpawnPos).normalized, Vector3.up);
-            float randomJitter = (float)(rng.NextDouble() * 1.6 - 0.8);
-            npcSpawnPos += perpendicular * randomJitter;
+            float floorY = (player != null && player.transform.position.y > 0.8f) ? player.transform.position.y : 2.0f;
+
+            if (oppositePortal != null)
+            {
+                npcSpawnPos = oppositePortal.transform.position;
+            }
+            else
+            {
+                switch (entryDir)
+                {
+                    case TransitionPortal.TransitionDirection.South:
+                        npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), floorY, 8.5f);
+                        break;
+                    case TransitionPortal.TransitionDirection.North:
+                        npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), floorY, -8.5f);
+                        break;
+                    case TransitionPortal.TransitionDirection.West:
+                        npcSpawnPos = new Vector3(15.5f, floorY, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
+                        break;
+                    case TransitionPortal.TransitionDirection.East:
+                    default:
+                        npcSpawnPos = new Vector3(-15.5f, floorY, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
+                        break;
+                }
+            }
+
+            if (entryPortal != null)
+            {
+                Vector3 toExit = (entryPortal.transform.position - npcSpawnPos).normalized;
+                escapeTargetPos = entryPortal.transform.position + toExit * 6.0f;
+            }
+            else
+            {
+                switch (entryDir)
+                {
+                    case TransitionPortal.TransitionDirection.South:
+                        escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
+                        break;
+                    case TransitionPortal.TransitionDirection.North:
+                        escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
+                        break;
+                    case TransitionPortal.TransitionDirection.West:
+                        escapeTargetPos = new Vector3(-26.0f, floorY, playerPos.z);
+                        break;
+                    case TransitionPortal.TransitionDirection.East:
+                    default:
+                        escapeTargetPos = new Vector3(26.0f, floorY, playerPos.z);
+                        break;
+                }
+            }
+
+            npcSpawnPos.y = floorY;
+            escapeTargetPos.y = floorY;
 
             // Spawn NPC Maya (Scout) วิ่งหนี
             GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
@@ -617,10 +661,11 @@ namespace TheLastEmpire
 
                 if (prefab != null)
                 {
-                    // กระจายตำแหน่งเกิดแถวหลัง Maya ในระยะกระจัด ±1.6 เมตร
-                    float sideOffset = (float)(rng.NextDouble() * 3.2 - 1.6);
-                    float rearOffset = -(float)(rng.NextDouble() * 1.5 + 0.8);
+                    // วิ่งเรียงแถวตามหลัง Maya บนถนนเส้นหลัก (กระจายข้างแคบๆ ±0.5m ไม่ให้หลุดเข้าไปในตึก)
+                    float sideOffset = (float)(rng.NextDouble() * 1.0 - 0.5);
+                    float rearOffset = -(float)(rng.NextDouble() * 1.2 + 0.8) - (i * 0.8f);
                     Vector3 enemySpawnPos = spawnCenter + (perpDir * sideOffset) + (runDir * rearOffset);
+                    enemySpawnPos.y = spawnCenter.y; // อยู่บนระดับพื้นห้องเสมอ ไม่จมดิน
 
                     // Clamp ให้อยู่ในฉาก
                     enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -14f, 14f);

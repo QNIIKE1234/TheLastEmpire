@@ -15,6 +15,7 @@ namespace TheLastEmpire
 
         [Header("Portal Settings")]
         [SerializeField] private TransitionDirection direction;
+        public TransitionDirection Direction => direction;
         
         [Tooltip("How far the player is spawned from the center on entry in the new stage.")]
         [SerializeField] private float entryOffset = 1.5f;
@@ -325,7 +326,7 @@ namespace TheLastEmpire
             }
         }
 
-        private TransitionDirection GetOppositeDirection(TransitionDirection dir)
+        public static TransitionDirection GetOppositeDirection(TransitionDirection dir)
         {
             switch (dir)
             {
