@@ -5,20 +5,23 @@ using TMPro;
 namespace TheLastEmpire
 {
     /// <summary>
-    /// FleeingSurvivorRunner — ควบคุม NPC ที่วิ่งหนีฝูงศัตรูข้ามฉาก
-    /// วิ่งจากทิศตรงข้าม ผ่านตัว Player ไปยังทิศที่ Player วาปเข้ามา พร้อมลากฝูงศัตรูตามหลังมา
+    /// FleeingSurvivorRunner — ควบคุม NPC (Maya) ที่วิ่งหนีฝูงศัตรูข้ามฉาก
+    /// เกิดที่ทิศตรงข้าม วิ่งตรงเข้าหาตัว Player ผ่านตัว Player และทะลุออกประตูที่ Player เพิ่งเข้ามา
     /// </summary>
     public class FleeingSurvivorRunner : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 5.2f;
+        [SerializeField] private float moveSpeed = 1.5f;
 
-        private Vector3 _destination;
+        private Transform _playerTransform;
+        private Vector3 _exitDestination;
         private Action _onEscaped;
         private Animator _animator;
         private TMP_Text _speechText;
         private float _shoutTimer = 0f;
         private bool _isInitialized = false;
+        private bool _hasPassedPlayer = false;
+        private float _lifetime = 0f;
 
         private static readonly string[] PanickedShouts = new string[]
         {
@@ -29,11 +32,13 @@ namespace TheLastEmpire
             "THERE ARE TOO MANY OF THEM!!"
         };
 
-        public void Initialize(Vector3 destination, Action onEscaped = null, float speed = 5.2f)
+        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 1.5f)
         {
-            _destination = destination;
+            _playerTransform = playerTransform;
+            _exitDestination = exitDestination;
             _onEscaped = onEscaped;
             moveSpeed = speed;
+            _hasPassedPlayer = false;
 
             // ปิด NPCController ปกติเพื่อไม่ให้ trigger การนั่งหรือเปิดหน้าต่างร้านค้า
             NPCController npcController = GetComponent<NPCController>();
@@ -86,8 +91,6 @@ namespace TheLastEmpire
             _isInitialized = true;
         }
 
-        private float _lifetime = 0f;
-
         private void Update()
         {
             if (!_isInitialized) return;
@@ -95,8 +98,34 @@ namespace TheLastEmpire
             _lifetime += Time.deltaTime;
 
             Vector3 currentPos = transform.position;
-            currentPos.y = _destination.y; // ล็อคระดับความสูงบนพื้น ไม่ให้จมดิน
-            Vector3 diff = _destination - currentPos;
+            currentPos.y = _exitDestination.y; // ล็อคระดับความสูงบนพื้น ไม่ให้จมดิน
+
+            // กำหนดเป้าหมายการวิ่ง:
+            // ระยะแรก: วิ่งตรงเข้าหาตัว Player
+            // เมื่อวิ่งผ่านตัว Player แล้ว: วิ่งทะลุออกประตูหลัง Player (_exitDestination)
+            Vector3 targetPos = _exitDestination;
+            if (!_hasPassedPlayer && _playerTransform != null)
+            {
+                Vector3 playerPos = _playerTransform.position;
+                playerPos.y = currentPos.y;
+
+                float distToPlayer = Vector3.Distance(currentPos, playerPos);
+                if (distToPlayer <= 1.2f)
+                {
+                    _hasPassedPlayer = true;
+                    targetPos = _exitDestination;
+                }
+                else
+                {
+                    targetPos = playerPos;
+                }
+            }
+            else
+            {
+                targetPos = _exitDestination;
+            }
+
+            Vector3 diff = targetPos - currentPos;
             diff.y = 0f;
             float dist = diff.magnitude;
 
@@ -119,8 +148,8 @@ namespace TheLastEmpire
                 ShoutRandom();
             }
 
-            // เมื่อวิ่งพ้นขอบประตูออกไปแล้ว หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
-            if (dist <= 1.2f || _lifetime > 25f)
+            // เมื่อวิ่งถึงจุดออก หรือวิ่งพ้นประตู หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
+            if ((_hasPassedPlayer && dist <= 1.2f) || _lifetime > 30f)
             {
                 EscapeAndDespawn();
             }
@@ -143,4 +172,3 @@ namespace TheLastEmpire
         }
     }
 }
-

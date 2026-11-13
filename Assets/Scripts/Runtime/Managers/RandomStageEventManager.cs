@@ -63,6 +63,8 @@ namespace TheLastEmpire
         private bool _isAtmosphereAltered = false;
 
         private StageEventType _queuedNextStageEvent = StageEventType.None;
+        private Coroutine _activeChaserCoroutine;
+        private GameObject _activeRunnerInstance;
 
         private void Awake()
         {
@@ -148,12 +150,39 @@ namespace TheLastEmpire
         [ContextMenu("Force Trigger Fleeing Survivor Event Now")]
         public void ForceTriggerFleeingSurvivor()
         {
+            CleanupActiveEvent();
             StageData currentStage = null;
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
                 currentStage = WorldMapManager.Instance.MapGenerator.GetStage(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
             }
             ExecuteFleeingSurvivor(currentStage, new System.Random());
+        }
+
+        /// <summary>
+        /// เคลียร์สถานะอีเวนต์ก่อนหน้าเมื่อเปลี่ยนห้อง (หยุด Coroutine สปอว์นมอน, ทำลาย NPC Maya ที่อาจค้างอยู่)
+        /// </summary>
+        public void CleanupActiveEvent()
+        {
+            if (_activeChaserCoroutine != null)
+            {
+                StopCoroutine(_activeChaserCoroutine);
+                _activeChaserCoroutine = null;
+            }
+
+            if (_activeRunnerInstance != null)
+            {
+                Destroy(_activeRunnerInstance);
+                _activeRunnerInstance = null;
+            }
+
+            FleeingSurvivorRunner[] activeRunners = UnityEngine.Object.FindObjectsByType<FleeingSurvivorRunner>(FindObjectsSortMode.None);
+            foreach (var r in activeRunners)
+            {
+                if (r != null) Destroy(r.gameObject);
+            }
+
+            ResetAtmosphere();
         }
 
         /// <summary>
@@ -164,8 +193,17 @@ namespace TheLastEmpire
         {
             if (!enableRandomEvents || stage == null) return;
 
-            // Reset any previous atmospheric overrides from past room
-            ResetAtmosphere();
+            // 1. เคลียร์อีเวนต์/Coroutine/NPC ของห้องเดิมทันที เพื่อไม่ให้รั่วข้ามห้อง
+            CleanupActiveEvent();
+
+            // 2. หน่วง 1 เฟรม เพื่อรอให้ TransitionPortal วาร์ป Player ไปยังตำแหน่งประตูของห้องใหม่เรียบร้อย 100%
+            StartCoroutine(OnStageEnteredRoutine(stage));
+        }
+
+        private IEnumerator OnStageEnteredRoutine(StageData stage)
+        {
+            yield return null; // รอ 1 เฟรมให้ตำแหน่ง Player ซิงค์กับประตูใหม่สมบูรณ์
+            if (stage == null) yield break;
 
             // 0. Check if next stage event was queued via F9 hotkey
             if (_queuedNextStageEvent != StageEventType.None)
@@ -178,7 +216,7 @@ namespace TheLastEmpire
                 stage.hasEventTriggered = true;
                 Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> TRIGGERING QUEUED EVENT: {queued} at Stage ({stage.x}, {stage.y})");
                 ExecuteEvent(queued, stage, testRng);
-                return;
+                yield break;
             }
 
             if (forceEventForTesting)
@@ -188,7 +226,7 @@ namespace TheLastEmpire
                 stage.hasEventTriggered = true;
                 Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> FORCED EVENT TRIGGERED: {forcedEventType}");
                 ExecuteEvent(forcedEventType, stage, testRng);
-                return;
+                yield break;
             }
 
             // 1. Skip start / spawn room
@@ -197,15 +235,15 @@ namespace TheLastEmpire
                 if (stage.x == WorldMapManager.Instance.MapGenerator.spawnX &&
                     stage.y == WorldMapManager.Instance.MapGenerator.spawnY)
                 {
-                    return;
+                    yield break;
                 }
             }
 
             // 2. Skip dedicated shop rooms
-            if (stage.isShopStage) return;
+            if (stage.isShopStage) yield break;
 
             // 3. Skip already cleared rooms unless explicitly allowed
-            if (stage.isCleared && !allowEventsInClearedRooms) return;
+            if (stage.isCleared && !allowEventsInClearedRooms) yield break;
 
             // 4. Deterministic roll based on stage seed + constant salt
             System.Random rng = new System.Random(stage.stageSeed + 4242);
@@ -218,7 +256,7 @@ namespace TheLastEmpire
                     // Re-apply visual atmosphere if revisiting an ongoing event
                     ApplyEventAtmosphere(stage.randomEventType);
                 }
-                return;
+                yield break;
             }
 
             double roll = rng.NextDouble();
@@ -226,7 +264,7 @@ namespace TheLastEmpire
             {
                 stage.randomEventType = StageEventType.None;
                 stage.hasEventTriggered = true;
-                return;
+                yield break;
             }
 
             // Pick an event from the pool
@@ -246,6 +284,8 @@ namespace TheLastEmpire
             stage.hasEventTriggered = true;
 
             Debug.Log($"<color=#FFD700>[RandomStageEventManager]</color> Triggered Dynamic Event: {chosenEvent} at Stage ({stage.x}, {stage.y})");
+            ExecuteEvent(chosenEvent, stage, rng);
+        }
 
             // Execute the event
             ExecuteEvent(chosenEvent, stage, rng);
@@ -508,82 +548,56 @@ namespace TheLastEmpire
                     }
                 }
                 GameManager.Instance.ActiveEnemies.Clear();
-                if (stage != null && stage.remainingEnemyPrefabNames != null)
-                {
-                    stage.remainingEnemyPrefabNames.Clear();
-                }
+            }
+
+            if (stage != null)
+            {
+                stage.remainingEnemyPrefabNames = new List<string>();
             }
 
             PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
-
-            // คำนวณทิศทาง: Player ยืนอยู่ที่ประตูทิศไหนของห้อง (ตำแหน่งจริงของ Player คือ Ground Truth)
-            // Maya ต้องเกิดที่ฝั่งตรงข้ามเสมอ แล้ววิ่งพุ่ง "เข้าหาตัวเรา" ตัดผ่านตัวเรา ทะลุออกประตูที่เราเพิ่งเข้ามา
-            Vector3 npcSpawnPos;
-            Vector3 escapeTargetPos;
             float floorY = (player != null && player.transform.position.y > 0.8f) ? player.transform.position.y : 2.0f;
 
-            // ตรวจสอบตำแหน่งที่ Player ยืนอยู่จริงในห้อง
-            if (playerPos.z < -1.5f)
+            // คำนวณตำแหน่งเกิดตรงกันข้ามกับ Player:
+            // Get ตำแหน่งจริงของ Player แล้วเสก Maya ที่ฝั่งตรงข้าม วิ่งตรงเข้าหา Player และทะลุออกประตูที่เราเข้ามา
+            Vector3 npcSpawnPos;
+            Vector3 escapeTargetPos;
+
+            if (Mathf.Abs(playerPos.z) >= Mathf.Abs(playerPos.x))
             {
-                // Player อยู่ที่ประตูล่าง (South) -> Maya เกิดบน (North: z=+9.5) วิ่งลงมาหาเรา แล้วทะลุออกประตูล่าง (z=-18)
-                npcSpawnPos = new Vector3(playerPos.x, floorY, 9.5f);
-                escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
-            }
-            else if (playerPos.z > 1.5f)
-            {
-                // Player อยู่ที่ประตูบน (North) -> Maya เกิดล่าง (South: z=-9.5) วิ่งขึ้นมาหาเรา แล้วทะลุออกประตูบน (z=+18)
-                npcSpawnPos = new Vector3(playerPos.x, floorY, -9.5f);
-                escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
-            }
-            else if (playerPos.x < -2.0f)
-            {
-                // Player อยู่ที่ประตูซ้าย (West) -> Maya เกิดขวา (East: x=+15.5) วิ่งไปทางซ้ายมาหาเรา แล้วทะลุออกประตูซ้าย (x=-25)
-                npcSpawnPos = new Vector3(15.5f, floorY, playerPos.z);
-                escapeTargetPos = new Vector3(-25.0f, floorY, playerPos.z);
-            }
-            else if (playerPos.x > 2.0f)
-            {
-                // Player อยู่ที่ประตูขวา (East) -> Maya เกิดซ้าย (West: x=-15.5) วิ่งไปทางขวามาหาเรา แล้วทะลุออกประตูขวา (x=+25)
-                npcSpawnPos = new Vector3(-15.5f, floorY, playerPos.z);
-                escapeTargetPos = new Vector3(25.0f, floorY, playerPos.z);
+                if (playerPos.z < 0)
+                {
+                    // Player อยู่ฝั่งล่าง (South) -> Maya เกิดฝั่งตรงข้ามบน (North: z=+9.5) วิ่งลงมาหาเรา แล้วทะลุออกประตูล่าง (z=-18)
+                    npcSpawnPos = new Vector3(playerPos.x, floorY, 9.5f);
+                    escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
+                }
+                else
+                {
+                    // Player อยู่ฝั่งบน (North) -> Maya เกิดฝั่งตรงข้ามล่าง (South: z=-9.5) วิ่งขึ้นมาหาเรา แล้วทะลุออกประตูบน (z=+18)
+                    npcSpawnPos = new Vector3(playerPos.x, floorY, -9.5f);
+                    escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
+                }
             }
             else
             {
-                // Fallback กรณีเสกเทสตอน Player ยืนอยู่กลางห้องพอดี: เช็คประวัติการวาป หรือค่าเริ่มต้นจากบนลงล่าง
-                TransitionPortal.TransitionDirection entryDir = TransitionPortal.HasValidWarpHistory 
-                    ? TransitionPortal.LastTransitionEntryDirection 
-                    : TransitionPortal.TransitionDirection.South;
-
-                switch (entryDir)
+                if (playerPos.x < 0)
                 {
-                    case TransitionPortal.TransitionDirection.North:
-                        // เข้าจาก North -> วิ่งจาก South (ล่าง) ขึ้นมาหาเราที่ North (บน)
-                        npcSpawnPos = new Vector3(playerPos.x, floorY, -9.5f);
-                        escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
-                        break;
-                    case TransitionPortal.TransitionDirection.West:
-                        // เข้าจาก West -> วิ่งจาก East (ขวา) มาหาเราที่ West (ซ้าย)
-                        npcSpawnPos = new Vector3(15.5f, floorY, playerPos.z);
-                        escapeTargetPos = new Vector3(-25.0f, floorY, playerPos.z);
-                        break;
-                    case TransitionPortal.TransitionDirection.East:
-                        // เข้าจาก East -> วิ่งจาก West (ซ้าย) มาหาเราที่ East (ขวา)
-                        npcSpawnPos = new Vector3(-15.5f, floorY, playerPos.z);
-                        escapeTargetPos = new Vector3(25.0f, floorY, playerPos.z);
-                        break;
-                    case TransitionPortal.TransitionDirection.South:
-                    default:
-                        // เข้าจาก South -> วิ่งจาก North (บน) ลงมาหาเราที่ South (ล่าง)
-                        npcSpawnPos = new Vector3(playerPos.x, floorY, 9.5f);
-                        escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
-                        break;
+                    // Player อยู่ฝั่งซ้าย (West) -> Maya เกิดฝั่งตรงข้ามขวา (East: x=+15.5) วิ่งมาหาเรา แล้วทะลุออกประตูซ้าย (x=-25)
+                    npcSpawnPos = new Vector3(15.5f, floorY, playerPos.z);
+                    escapeTargetPos = new Vector3(-25.0f, floorY, playerPos.z);
+                }
+                else
+                {
+                    // Player อยู่ฝั่งขวา (East) -> Maya เกิดฝั่งตรงข้ามซ้าย (West: x=-15.5) วิ่งมาหาเรา แล้วทะลุออกประตูขวา (x=+25)
+                    npcSpawnPos = new Vector3(-15.5f, floorY, playerPos.z);
+                    escapeTargetPos = new Vector3(25.0f, floorY, playerPos.z);
                 }
             }
 
             npcSpawnPos.y = floorY;
             escapeTargetPos.y = floorY;
-            Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> Fleeing Survivor Course: Spawn {npcSpawnPos} -> Run towards Player at {playerPos} -> Exit at {escapeTargetPos}");
+            Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> Fleeing Survivor Course: Spawn {npcSpawnPos} (Opposite of Player {playerPos}) -> Run towards Player -> Exit at {escapeTargetPos}");
 
             // Spawn NPC Maya (Scout) วิ่งหนี
             GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
@@ -593,8 +607,15 @@ namespace TheLastEmpire
             }
             if (npcPrefab != null)
             {
-                Vector3 runDirection = (escapeTargetPos - npcSpawnPos).normalized;
+                Vector3 runDirection = (playerPos - npcSpawnPos).normalized;
+                runDirection.y = 0f;
+                if (runDirection.sqrMagnitude < 0.001f)
+                {
+                    runDirection = (escapeTargetPos - npcSpawnPos).normalized;
+                }
+
                 GameObject npcObj = Instantiate(npcPrefab, npcSpawnPos, Quaternion.LookRotation(runDirection));
+                _activeRunnerInstance = npcObj;
 
                 // แปลงโมเดลและข้อมูลเป็น Maya (Scout) จาก NPCDatabase
                 NPCController ctrl = npcObj.GetComponent<NPCController>();
@@ -608,14 +629,14 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(escapeTargetPos, null, speed: 5.2f);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 1.5f);
             }
 
             // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
-            StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng));
+            _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng, stage));
         }
 
-        private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng)
+        private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng, StageData stage)
         {
             // หน่วงเวลาเล็กน้อย 0.4 วินาที เพื่อให้ Maya วิ่งนำหน้าออกไปก่อนในระยะกำลังสวย
             yield return new WaitForSeconds(0.40f);
@@ -655,12 +676,17 @@ namespace TheLastEmpire
 
                     if (enemyObj != null)
                     {
+                        if (stage != null && stage.remainingEnemyPrefabNames != null)
+                        {
+                            stage.remainingEnemyPrefabNames.Add(prefab.name);
+                        }
+
                         BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            // บัฟระยะมองเห็น และปรับความเร็ววิ่งกวดให้ไล่หลัง Maya แบบเกาะติด (4.8 m/s ช้ากว่า Maya เล็กน้อยเพื่อไม่ให้แซง)
+                            // บัฟระยะมองเห็น และปรับความเร็ววิ่งกวดให้ไล่หลัง Maya แบบเกาะติด (1.35 m/s วิ่งตามหลัง Maya ที่ความเร็ว 1.5 m/s)
                             ai.DetectionRange = 50f;
-                            ai.MoveSpeed = 4.8f;
+                            ai.MoveSpeed = 1.35f;
                             enemyObj.transform.forward = runDir;
                         }
                     }
@@ -669,6 +695,8 @@ namespace TheLastEmpire
                 // หน่วงระยะห่างระหว่างการกวดของแต่ละตัวเล็กน้อย
                 yield return new WaitForSeconds(0.22f);
             }
+
+            _activeChaserCoroutine = null;
         }
 
         // ==============================================================================

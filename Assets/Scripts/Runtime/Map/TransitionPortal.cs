@@ -33,7 +33,17 @@ namespace TheLastEmpire
 
         private bool _playerInRange = false;
 
-        public bool IsPlayerInRange() => _playerInRange;
+        public bool IsPlayerInRange()
+        {
+            if (!_playerInRange) return false;
+            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            if (player == null || Vector3.Distance(transform.position, player.transform.position) > 3.5f)
+            {
+                _playerInRange = false;
+                return false;
+            }
+            return true;
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -211,6 +221,10 @@ namespace TheLastEmpire
 
             TransitionDirection oppositeDir = GetOppositeDirection(direction);
 
+            // Record warp arrival direction immediately before triggering stage change
+            LastTransitionEntryDirection = oppositeDir;
+            HasValidWarpHistory = true;
+
             switch (direction)
             {
                 case TransitionDirection.North:
@@ -322,6 +336,14 @@ namespace TheLastEmpire
                 }
                 
                 Physics.SyncTransforms(); // Force immediate transform update to colliders
+
+                // Reset _playerInRange on all portals in scene to prevent phantom interactions
+                TransitionPortal[] allPortals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+                foreach (var p in allPortals)
+                {
+                    if (p != null) p._playerInRange = false;
+                }
+
                 Debug.Log($"[TransitionPortal] Transitioned stage {direction}. Teleported player to target portal: {pos}");
             }
         }

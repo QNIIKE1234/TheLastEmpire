@@ -945,7 +945,16 @@ namespace TheLastEmpire
         {
             // If we have active enemies spawned but no player coordinates, skip
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
-            if (_activeEnemies.Count == 0) return;
+            if (_activeEnemies.Count == 0)
+            {
+                // If room has no active enemies and remaining list was already emptied (e.g. all defeated or cleared event)
+                if (stage.remainingEnemyPrefabNames != null && stage.remainingEnemyPrefabNames.Count == 0 && stage.hasEventTriggered)
+                {
+                    stage.isCleared = true;
+                    Debug.Log($"[GameManager] Stage ({x}, {y}) has 0 remaining enemies and was marked CLEARED.");
+                }
+                return;
+            }
 
             // Check if current stage is already cleared to avoid redundant calls
             int x = WorldMapManager.Instance.CurrentPlayerX;
