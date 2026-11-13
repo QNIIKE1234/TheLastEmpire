@@ -1,22 +1,62 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 12 พฤศจิกายน 2026  
+**วันที่บันทึกล่าสุด**: 14 พฤศจิกายน 2026  
 **สถานะ Git**: `main` (Up to date with `origin/main`)  
 
 ---
 
+## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)
+  - [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)
+  - [`FleeingSurvivorRunner.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs)
+  - [`BossSpawnerRuntime.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BossSpawnerRuntime.cs)
+  - [`TransitionPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs)
+- **รายละเอียดการทำงานและฟังก์ชันหลัก**:
+  1. **รูปแบบเหตุการณ์ (`FleeingSurvivor`)**:
+     - เมื่อผู้เล่นก้าวเข้าสู่ห้อง Maya (Scout) จะปรากฏตัวขึ้นที่ประตูฝั่งตรงข้ามของห้อง และออกตัววิ่งหนีตายตัดผ่านห้องตรงดิ่งเข้าหาตัวผู้เล่น ผ่านหน้าผู้เล่น และวิ่งทะลุออกทางประตูที่ผู้เล่นเพิ่งก้าวเข้ามา
+     - ลากฝูงศัตรูสายวิ่งกวด (ZombieRunner, AlienCrawler, ZombieDog, RobotKamikaze, AlienSpitter, ZombieNormal) จำนวน 4-5 ตัว ไล่ตามหลังเป็นแนวเส้นตรงบนถนนเส้นหลักเข้ามาหาผู้เล่น
+  2. **สคริปต์ควบคุมการวิ่ง [`FleeingSurvivorRunner.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs)**:
+     - ดึงข้อมูลอัตลักษณ์ของ Maya (Scout) จาก `NPCDatabase` รหัส `watcher_maya` สวมทับบน Universal NPC Prefab ทันที
+     - ความเร็วในการวิ่งปรับสมดุลไว้ที่ **5.2 m/s** (ฝูงมอนสเตอร์กวดตามที่ 4.8 m/s ไม่แซงหน้า)
+     - มี Floating Speech Text แสดงเสียงตะโกนขอความช่วยเหลือแบบสุ่ม เช่น *"RUN FOR YOUR LIFE!!"*, *"THEY'RE RIGHT BEHIND ME!!"*, *"HELP! GET OUT OF THE WAY!!"*
+     - **ป้องกันการติดตึก/สิ่งกีดขวาง 100%**: ปรับ `rb.isKinematic = true`, `rb.detectCollisions = false` และสั่งให้ Collider ทุกชิ้นในตัวและลูกๆ เป็น `isTrigger = true` รวมถึงล็อคระดับความสูงแกน Y บนพื้นห้อง ป้องกันปัญหาจมดินหรือสะดุดตึก
+  3. **การคำนวณเวกเตอร์ทิศทางตามตำแหน่งจริงของผู้เล่น (Ground Truth Direction)**:
+     - ใช้พิกัดจริงที่ตัวผู้เล่นยืนอยู่หน้าประตูห้องเป็นหลัก:
+       - **ผู้เล่นอยู่ประตูล่าง (South):** Maya สปอว์นที่ประตูบน (North: `z = +9.5f`) และวิ่งลงใต้ (`z = -18.0f`) สวนเข้าหาผู้เล่น
+       - **ผู้เล่นอยู่ประตูบน (North):** Maya สปอว์นที่ประตูล่าง (South: `z = -9.5f`) และวิ่งขึ้นเหนือ (`z = +18.0f`) สวนเข้าหาผู้เล่น
+       - **ผู้เล่นอยู่ประตูซ้าย (West):** Maya สปอว์นที่ประตูขวา (East: `x = +15.5f`) และวิ่งไปทางซ้าย (`x = -25.0f`) สวนเข้าหาผู้เล่น
+       - **ผู้เล่นอยู่ประตูขวา (East):** Maya สปอว์นที่ประตูซ้าย (West: `x = -15.5f`) และวิ่งไปทางขวา (`x = +25.0f`) สวนเข้าหาผู้เล่น
+  4. **การเชื่อมต่อ UI แจ้งเตือนกับพาเนลเกม (`Notification_HUD`)**:
+     - ยกเลิกกล่อง Procedural ชั่วคราว และผสานเข้ากับพาเนล `Notification_HUD` ในฉากโดยตรง (`NamePanel/Name_text` และ `NotificationPanel/Notification_text`) พร้อมระบบ CanvasGroup Fade In/Out อย่างนุ่มนวล
+  5. **เครื่องมือทดสอบและคีย์ลัด (Hotkeys & Cheat Menu)**:
+     - เพิ่มแท็บ **"Events [F9]"** ใน `[+] Cheat Menu [F1]` บนหน้าจอ
+     - **`Shift + F9`**: เสก Maya วิ่งหนีตายตัดผ่านห้องเข้าหาผู้เล่นทันทีในห้องปัจจุบัน
+     - **`F9`**: จองคิวด่านถัดไป (Queue Event) เมื่อเดินข้ามประตูวาร์ป อีเวนต์จะทำงานแน่นอน 100%
+
+---
+
+## 11. การปรับสมดุลการเกิดของเอเลี่ยนช่วงกลางวันและกลางคืน (Day/Night Alien Spawn Rebalancing)
+- **สคริปต์ที่เกี่ยวข้อง**: [`GameManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs)
+- **รายละเอียดการปรับสมดุล**:
+  1. แยกหมวดหมู่ศัตรูใน `configsToSpawn` ออกจากซอมบี้มาตรฐานอย่างชัดเจน โดยตรวจสอบ `AlienAI` หรือคำว่า `"Alien"` ในชื่อ Prefab
+  2. **กลางคืน (Nighttime):** เอเลี่ยนยังคงเป็นภัยคุกคามหลัก โอกาสเกิด 80% ต่อชนิด สุ่มเกิด 0-3 ตัว
+  3. **กลางวัน (Daytime):** ปรับลดโอกาสการเกิดเอเลี่ยนลงเหลือเพียง **3% (`0.03f`)** ทั่วทั้งห้อง และหากสุ่มเกิดสำเร็จ จะจำกัดจำนวนไว้ที่ **1 - 2 ตัวเสมอ** ป้องกันไม่ให้เอเลี่ยน (เช่น Shadow Lurker หรือ Skittering Crawler) เกิดเกลื่อนในเวลากลางวัน
+
+---
+
 ## 5. ระบบสุ่มเหตุการณ์ฉุกเฉินประจำด่าน (Dynamic Random Stage Encounter System)
-- **สคริปต์ [`StageEventType.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs) และ [`RandomStageEventManager.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)**:
-  - รองรับ 6 รูปแบบเหตุการณ์ฉุกเฉินที่สุ่มเจอได้ในห้องธรรมดาทั่วไป (โอกาสตั้งต้น 25% ปรับได้ใน Inspector):
+- **สคริปต์ [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs) และ [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)**:
+  - รองรับรูปแบบเหตุการณ์ฉุกเฉินที่สุ่มเจอได้ในห้องธรรมดาทั่วไป:
     1. **`SupplyAirdrop`**: แอร์ดรอปเสบียงทหารทิ้งร่มลงมากลางห้อง ตกอาวุธระดับสูง (Sniper, Katana, RPG, Shotgun), กระสุน Rifle Ammo (30-60 นัด), เงินสด (250-600 Gold), และชุดปฐมพยาบาล
     2. **`HostileAmbush`**: ฝูงศัตรูสายวิ่งเร็ว (ZombieRunner, RobotKamikaze, AlienCrawler, ZombieDog) 3-5 ตัว โผล่ล้อมกรอบผู้เล่นรอบทิศทางในระยะประชิดทันทีที่ก้าวผ่านประตู
     3. **`NomadTrader`**: พ่อค้าเร่พเนจร (Elena, Otto, Maya หรือ Roy) มาตั้งแคมป์ชั่วคราวในห้องธรรมดา ให้ซื้อขายไอเทมฉุกเฉิน
     4. **`RadioactiveFallout`**: หมอกกัมมันตรังสีสีเขียวปกคลุมห้อง ลดทัศนวิสัย และลด Sanity ของผู้เล่นทันที 10 หน่วย
     5. **`BloodMoonSurge`**: แสงห้องเปลี่ยนเป็นสีแดงสด ศัตรูในห้องได้รับบัฟเคลื่อนที่ไวขึ้น +30% (`ai.moveSpeed *= 1.30f`)
     6. **`ScavengerCache`**: เศษซากเสบียงลับ 4 จุดถูกซ่อนกระจายอยู่ตามมุมห้องให้เก็บฟรี
+    7. **`FleeingSurvivor`**: ผู้รอดชีวิต (Maya) วิ่งหนีฝูงมอนสเตอร์ตัดผ่านห้องมาหาผู้เล่น
   - **Deterministic Persistence**: สุ่มจาก `stage.stageSeed + 4242` ทำให้ผลลัพธ์ของห้องเดิมไม่เปลี่ยนเมื่อเดินย้อนกลับมา
-  - **Glassmorphism HUD Banner**: แสดงแบนเนอร์แจ้งเตือนสถานการณ์ด้านบนหน้าจอ สวยงาม ชัดเจน และไม่บล็อกการคลิกยิงของผู้เล่น (`blocksRaycasts = false`)
-  - **การผสานระบบ**: เชื่อมเข้ากับ [`StageData.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) และ [`GameManager.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) ใน `SpawnLocalStageContent()` ครอบคลุมทั้งห้องใหม่, ห้องเคลียร์แล้ว, และห้องที่มี Template
+  - **การผสานระบบ**: เชื่อมเข้ากับ [`StageData.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageData.cs) และ [`GameManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs) ใน `SpawnLocalStageContent()` ครอบคลุมทั้งห้องใหม่, ห้องเคลียร์แล้ว, และห้องที่มี Template
 
 ---
 
@@ -27,7 +67,7 @@
 ---
 
 ## 7. โมเดลตัวละคร 3D Chibi NPC ชุดใหม่ 5 ตัวละคร (ใช้ Armature และ Rig เดียวกับตัวหลัก)
-- สร้างโมเดล 3D Chibi NPC 5 ตัวละครด้วยสคริปต์ [Create_NPC_Characters.py](file:///d:/TLEGIT/TheLastEmpire/Tools/Create_NPC_Characters.py) และ [Generate_NPC_Metas.py](file:///d:/TLEGIT/TheLastEmpire/Tools/Generate_NPC_Metas.py) พร้อม Rigging โครงกระดูก 18 ชิ้น (`Chibi_Base_Rig`) ที่แชร์แอนิเมชันร่วมกับตัวละครหลักได้ทันที:
+- สร้างโมเดล 3D Chibi NPC 5 ตัวละครด้วยสคริปต์ [Create_NPC_Characters.py](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_NPC_Characters.py) และ [Generate_NPC_Metas.py](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Generate_NPC_Metas.py) พร้อม Rigging โครงกระดูก 18 ชิ้น (`Chibi_Base_Rig`) ที่แชร์แอนิเมชันร่วมกับตัวละครหลักได้ทันที:
   1. **`Chibi_DoctorElena`**: แพทย์สนามหญิง เสื้อกาวน์สีขาว แว่นตากลม
   2. **`Chibi_MechanicOtto`**: ช่างซ่อมบำรุงชุดเอี๊ยมสีส้ม แว่นเชื่อมเหล็ก
   3. **`Chibi_WatcherMaya`**: พลสอดแนมหญิง ผ้าคลุมกันฝุ่นสีเขียว หมวกปีกกว้าง
@@ -43,7 +83,7 @@
 ---
 
 ## 9. การวางแผนสถาปัตยกรรมระบบเซฟ (8-Digit RoomCode & Persistence Architecture)
-- จัดทำเอกสารข้อกำหนดเชิงเทคนิค [Docs/save-system-plan.md](file:///d:/TLEGIT/TheLastEmpire/Docs/save-system-plan.md)
+- จัดทำเอกสารข้อกำหนดเชิงเทคนิค [Docs/save-system-plan.md](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/save-system-plan.md)
 - ออกแบบโครงสร้างรหัสห้อง 8 หลัก (8-Digit RoomCode) เพื่ออำนวยความสะดวกในการแชร์และโหลดพิกัดห้องพร้อมสถานะของโลก
 
 ---
@@ -51,7 +91,7 @@
 *(ประวัติการพัฒนาก่อนหน้า: 11 พฤศจิกายน 2026)*
 
 ## 1. ระบบ Log แจ้งเตือนไอเทมที่ได้รับและคราฟต์ (`Log_HUD` & Object Pool 10 ชิ้น)
-- **สคริปต์ [`ItemLogHUD.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/UI/ItemLogHUD.cs) และ [`LogThumbnail.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/UI/LogThumbnail.cs)**:
+- **สคริปต์ [`ItemLogHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ItemLogHUD.cs) และ [`LogThumbnail.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LogThumbnail.cs)**:
   - Pre-allocated Object Pool 10 ชิ้น แสดงผล 2 วินาที แจ้งเตือนทั้งการเก็บไอเทมและการคราฟต์/สร้าง
 
 ## 2. ระบบคราฟต์ไอเทม โต๊ะคราฟต์ และการซ่อนหมวดหมู่ (`Crafting & Workbench`)
