@@ -14,6 +14,12 @@ namespace TheLastEmpire
         [Header("Movement Settings")]
         [SerializeField] private float moveSpeed = 5.0f;
 
+        [Header("Dialog Bubble Reference")]
+        [Tooltip("กล่อง Panel บทพูดลอยเหนือหัว (ลาก DIalogPanel จากใต้ Canvas มาใส่)")]
+        [SerializeField] private GameObject dialogPanel;
+        [Tooltip("Text (TMP) สำหรับแสดงข้อความในกล่องบทพูดลอย (ลาก Text (TMP) มาใส่)")]
+        [SerializeField] private TMP_Text dialogText;
+
         private static readonly int IsRunningHash = Animator.StringToHash("IsRunning");
         private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
@@ -25,7 +31,6 @@ namespace TheLastEmpire
         private Action _onEscaped;
         private readonly List<Animator> _animators = new List<Animator>();
         private int _animatorRefreshFrames = 0;
-        private TMP_Text _speechText;
         private float _shoutTimer = 0f;
         private bool _isInitialized = false;
         private bool _hasPassedPlayer = false;
@@ -33,11 +38,11 @@ namespace TheLastEmpire
 
         private static readonly string[] PanickedShouts = new string[]
         {
-            "RUN FOR YOUR LIFE!!",
-            "THEY'RE RIGHT BEHIND ME!!",
-            "HELP! GET OUT OF THE WAY!!",
-            "DON'T JUST STAND THERE, RUN!!",
-            "THERE ARE TOO MANY OF THEM!!"
+            "Run and save your life!!",
+            "They're right behind me!!",
+            "Help! Get out of the way!!",
+            "Don't just stand there, run!!",
+            "There are too many of them!!"
         };
 
         public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 5.0f)
@@ -52,13 +57,45 @@ namespace TheLastEmpire
             axis.y = 0f;
             _runAxis = axis.sqrMagnitude > 0.001f ? axis.normalized : transform.forward;
 
-            // ปิดการ Interact 100% เพื่อไม่ให้มี UI Prompt หรือเปิดหน้าต่างคุย/ร้านค้าขณะวิ่งหนีตาย
+            // ดึง Ref Dialog จาก NPCController ก่อนที่จะทำลายคอมโพเนนต์
             NPCController npcController = GetComponent<NPCController>();
             if (npcController != null)
             {
+                if (dialogPanel == null && npcController.DialogPanel != null) dialogPanel = npcController.DialogPanel;
+                if (dialogText == null && npcController.DialogText != null) dialogText = npcController.DialogText;
+
                 npcController.CanInteract = false;
                 npcController.enabled = false;
                 Destroy(npcController); // ทำลายทิ้งทันที หมดโอกาส Interact 100%
+            }
+
+            // ค้นหา Dialog Panel & Text อัตโนมัติ หากยังไม่ได้ลากใส่ใน Inspector
+            if (dialogPanel == null)
+            {
+                Transform found = transform.Find("DIalogPanel") ?? 
+                                  transform.Find("DialogPanel") ?? 
+                                  transform.Find("Canvas/DIalogPanel") ?? 
+                                  transform.Find("Canvas/DialogPanel");
+                if (found != null) dialogPanel = found.gameObject;
+            }
+
+            if (dialogText == null && dialogPanel != null)
+            {
+                dialogText = dialogPanel.GetComponentInChildren<TMP_Text>();
+            }
+
+            if (dialogText == null)
+            {
+                dialogText = GetComponentInChildren<TMP_Text>();
+            }
+
+            if (dialogPanel != null)
+            {
+                dialogPanel.SetActive(true);
+            }
+            if (dialogText != null)
+            {
+                dialogText.gameObject.SetActive(true);
             }
 
             Rigidbody rb = GetComponent<Rigidbody>();
@@ -88,13 +125,6 @@ namespace TheLastEmpire
             RefreshAnimators();
             DriveRunAnimation();
 
-            // หา Floating Text เพื่อแสดงข้อความร้องขอความช่วยเหลือ
-            _speechText = GetComponentInChildren<TMP_Text>();
-            if (_speechText != null)
-            {
-                _speechText.gameObject.SetActive(true);
-                _speechText.fontSize = 4.5f;
-            }
             ShoutRandom();
 
             _isInitialized = true;
@@ -231,10 +261,14 @@ namespace TheLastEmpire
 
         private void ShoutRandom()
         {
-            if (_speechText != null)
+            if (dialogText != null)
             {
                 string msg = PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
-                _speechText.text = $"<color=#FFCC00><b>MAYA (SCOUT):</b></color>\n<color=#FF2222><b>\"{msg}\"</b></color>";
+                dialogText.text = msg;
+            }
+            if (dialogPanel != null)
+            {
+                dialogPanel.SetActive(true);
             }
         }
 

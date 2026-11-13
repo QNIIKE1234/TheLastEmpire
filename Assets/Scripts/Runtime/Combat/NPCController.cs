@@ -81,7 +81,17 @@ namespace TheLastEmpire
 
         private Transform _playerTransform;
 
+        [Header("UI Reference")]
         [SerializeField] private TMPro.TMP_Text nameTextHUD;
+
+        [Header("Floating Speech / Dialog Bubble")]
+        [Tooltip("กล่อง Panel บทพูดลอยเหนือหัว (ลาก DIalogPanel จากใต้ Canvas มาใส่)")]
+        [SerializeField] private GameObject dialogPanel;
+        [Tooltip("Text (TMP) สำหรับแสดงข้อความในกล่องบทพูดลอย (ลาก Text (TMP) มาใส่)")]
+        [SerializeField] private TMPro.TMP_Text dialogText;
+
+        public GameObject DialogPanel => dialogPanel;
+        public TMPro.TMP_Text DialogText => dialogText;
 
         [Header("Sitting Behavior")]
         [SerializeField] private bool canSit = true;
