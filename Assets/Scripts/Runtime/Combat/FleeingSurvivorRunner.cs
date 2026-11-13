@@ -11,7 +11,7 @@ namespace TheLastEmpire
     public class FleeingSurvivorRunner : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 8.5f;
+        [SerializeField] private float moveSpeed = 5.2f;
 
         private Vector3 _destination;
         private Action _onEscaped;
@@ -29,7 +29,7 @@ namespace TheLastEmpire
             "THERE ARE TOO MANY OF THEM!!"
         };
 
-        public void Initialize(Vector3 destination, Action onEscaped = null, float speed = 8.5f)
+        public void Initialize(Vector3 destination, Action onEscaped = null, float speed = 5.2f)
         {
             _destination = destination;
             _onEscaped = onEscaped;

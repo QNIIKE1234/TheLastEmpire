@@ -36,6 +36,8 @@ namespace TheLastEmpire
         private Color _originalAmbientColor;
         private bool _isAtmosphereAltered = false;
 
+        private StageEventType _queuedNextStageEvent = StageEventType.None;
+
         private void Awake()
         {
             if (Instance == null)
@@ -68,8 +70,13 @@ namespace TheLastEmpire
 #endif
             if (triggerHotkey)
             {
-                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> F9 pressed: Forcing Fleeing Survivor Event!");
-                ForceTriggerFleeingSurvivor();
+                _queuedNextStageEvent = StageEventType.FleeingSurvivor;
+                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [F9] Pressed: Next stage queued to trigger Maya Fleeing Event!");
+                ShowEventBanner(
+                    "EVENT QUEUED: PANICKED SCOUT",
+                    "Entering the next stage will trigger Maya fleeing from a hostile swarm!",
+                    new Color(1.0f, 0.65f, 0.15f)
+                );
             }
         }
 
@@ -89,6 +96,20 @@ namespace TheLastEmpire
 
             // Reset any previous atmospheric overrides from past room
             ResetAtmosphere();
+
+            // 0. Check if next stage event was queued via F9 hotkey
+            if (_queuedNextStageEvent != StageEventType.None)
+            {
+                StageEventType queued = _queuedNextStageEvent;
+                _queuedNextStageEvent = StageEventType.None; // Consume queue
+
+                System.Random testRng = new System.Random();
+                stage.randomEventType = queued;
+                stage.hasEventTriggered = true;
+                Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> TRIGGERING QUEUED EVENT: {queued} at Stage ({stage.x}, {stage.y})");
+                ExecuteEvent(queued, stage, testRng);
+                return;
+            }
 
             if (forceEventForTesting)
             {
@@ -396,6 +417,33 @@ namespace TheLastEmpire
                 new Color(1.0f, 0.45f, 0.15f) // High Alert Orange-Red
             );
 
+            // เคลียร์ศัตรูเดิมที่อาจสุ่มเกิดค้างอยู่ในห้อง เพื่อไม่ให้ศัตรูเกิดมั่วซั่วในฉาก
+            // ให้มีเฉพาะฝูงที่กำลังวิ่งไล่กวดตามหลัง Maya เท่านั้น
+            if (GameManager.Instance != null && GameManager.Instance.ActiveEnemies != null)
+            {
+                for (int i = GameManager.Instance.ActiveEnemies.Count - 1; i >= 0; i--)
+                {
+                    GameObject existingEnemy = GameManager.Instance.ActiveEnemies[i];
+                    if (existingEnemy != null)
+                    {
+                        BaseEnemyAI ai = existingEnemy.GetComponent<BaseEnemyAI>();
+                        if (ai != null && !string.IsNullOrEmpty(ai.PoolKey) && ObjectPoolManager.Instance != null)
+                        {
+                            ObjectPoolManager.Instance.ReturnToPool(ai.PoolKey, existingEnemy);
+                        }
+                        else
+                        {
+                            Destroy(existingEnemy);
+                        }
+                    }
+                }
+                GameManager.Instance.ActiveEnemies.Clear();
+                if (stage != null && stage.remainingEnemyPrefabNames != null)
+                {
+                    stage.remainingEnemyPrefabNames.Clear();
+                }
+            }
+
             PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
@@ -470,7 +518,7 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(escapeTargetPos, null, speed: 8.5f);
+                runner.Initialize(escapeTargetPos, null, speed: 5.2f);
             }
 
             // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
@@ -479,13 +527,13 @@ namespace TheLastEmpire
 
         private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng)
         {
-            // หน่วงเวลาเล็กน้อย 0.35 วินาที เพื่อให้ NPC วิ่งนำหน้าออกไปก่อน
-            yield return new WaitForSeconds(0.35f);
+            // หน่วงเวลาเล็กน้อย 0.4 วินาที เพื่อให้ Maya วิ่งนำหน้าออกไปก่อนในระยะกำลังสวย
+            yield return new WaitForSeconds(0.40f);
 
             if (GameManager.Instance == null) yield break;
 
-            // สุ่มจำนวนศัตรู 3-5 ตัว
-            int mobCount = rng.Next(3, 6);
+            // สุ่มจำนวนศัตรู 4-5 ตัว
+            int mobCount = rng.Next(4, 6);
             string[] rushers = new string[] { "ZombieRunner", "AlienCrawler", "ZombieDog", "RobotKamikaze", "AlienSpitter", "ZombieNormal" };
 
             Vector3 runDir = (targetDir - spawnCenter).normalized;
@@ -502,9 +550,9 @@ namespace TheLastEmpire
 
                 if (prefab != null)
                 {
-                    // กระจายตำแหน่งเกิดแถวหลัง NPC ในระยะกระจัด ±1.8 เมตร
-                    float sideOffset = (float)(rng.NextDouble() * 3.6 - 1.8);
-                    float rearOffset = -(float)(rng.NextDouble() * 1.5 + 0.5);
+                    // กระจายตำแหน่งเกิดแถวหลัง Maya ในระยะกระจัด ±1.6 เมตร
+                    float sideOffset = (float)(rng.NextDouble() * 3.2 - 1.6);
+                    float rearOffset = -(float)(rng.NextDouble() * 1.5 + 0.8);
                     Vector3 enemySpawnPos = spawnCenter + (perpDir * sideOffset) + (runDir * rearOffset);
 
                     // Clamp ให้อยู่ในฉาก
@@ -519,16 +567,16 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            // บัฟระยะมองเห็นและความเร็วในการวิ่งกวด เพื่อให้วิ่งกวดมาหาผู้เล่นทันที
+                            // บัฟระยะมองเห็น และปรับความเร็ววิ่งกวดให้ไล่หลัง Maya แบบเกาะติด (4.8 m/s ช้ากว่า Maya เล็กน้อยเพื่อไม่ให้แซง)
                             ai.DetectionRange = 50f;
-                            ai.MoveSpeed *= 1.25f;
+                            ai.MoveSpeed = 4.8f;
                             enemyObj.transform.forward = runDir;
                         }
                     }
                 }
 
                 // หน่วงระยะห่างระหว่างการกวดของแต่ละตัวเล็กน้อย
-                yield return new WaitForSeconds(0.18f);
+                yield return new WaitForSeconds(0.22f);
             }
         }
 
