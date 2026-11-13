@@ -744,7 +744,7 @@ namespace TheLastEmpire
         }
 
         // ==============================================================================
-        // SLEEK GLASSMORPHISM HUD EVENT BANNER
+        // HUD EVENT BANNER & NOTIFICATION INTEGRATION
         // ==============================================================================
         public void ShowEventBanner(string title, string subtitle, Color accentColor)
         {
@@ -757,122 +757,89 @@ namespace TheLastEmpire
 
         private IEnumerator ShowBannerRoutine(string title, string subtitle, Color accentColor)
         {
-            Canvas canvas = UnityEngine.Object.FindFirstObjectByType<Canvas>();
-            if (canvas == null) yield break;
-
-            if (_activeBannerObj == null)
+            // ทำลายแผง procedural ชั่วคราวเดิมทิ้งถ้ามีค้างอยู่
+            if (_activeBannerObj != null)
             {
-                _activeBannerObj = new GameObject("DynamicEventBanner_HUD");
-                _activeBannerObj.transform.SetParent(canvas.transform, false);
-
-                RectTransform rect = _activeBannerObj.AddComponent<RectTransform>();
-                rect.anchorMin = new Vector2(0.5f, 1f);
-                rect.anchorMax = new Vector2(0.5f, 1f);
-                rect.pivot = new Vector2(0.5f, 1f);
-                rect.anchoredPosition = new Vector2(0f, -25f);
-                rect.sizeDelta = new Vector2(680f, 95f);
-
-                _activeBannerGroup = _activeBannerObj.AddComponent<CanvasGroup>();
-                _activeBannerGroup.blocksRaycasts = false;
-
-                // Translucent slate background
-                UnityEngine.UI.Image bg = _activeBannerObj.AddComponent<UnityEngine.UI.Image>();
-                bg.color = new Color(0.04f, 0.06f, 0.10f, 0.92f);
-                bg.raycastTarget = false;
-
-                // Top Accent Stripe
-                GameObject stripe = new GameObject("AccentStripe");
-                stripe.transform.SetParent(_activeBannerObj.transform, false);
-                RectTransform sRect = stripe.AddComponent<RectTransform>();
-                sRect.anchorMin = new Vector2(0f, 1f);
-                sRect.anchorMax = new Vector2(1f, 1f);
-                sRect.pivot = new Vector2(0.5f, 1f);
-                sRect.anchoredPosition = Vector2.zero;
-                sRect.sizeDelta = new Vector2(0f, 4f);
-                UnityEngine.UI.Image sImg = stripe.AddComponent<UnityEngine.UI.Image>();
-                sImg.color = accentColor;
-                sImg.raycastTarget = false;
-
-                // Title Text
-                GameObject titleObj = new GameObject("TitleText");
-                titleObj.transform.SetParent(_activeBannerObj.transform, false);
-                RectTransform tRect = titleObj.AddComponent<RectTransform>();
-                tRect.anchorMin = new Vector2(0f, 0.5f);
-                tRect.anchorMax = new Vector2(1f, 1f);
-                tRect.anchoredPosition = new Vector2(25f, -12f);
-                tRect.sizeDelta = new Vector2(-50f, 32f);
-                TextMeshProUGUI tText = titleObj.AddComponent<TextMeshProUGUI>();
-                tText.text = title;
-                tText.fontSize = 17;
-                tText.fontStyle = FontStyles.Bold;
-                tText.color = accentColor;
-                tText.alignment = TextAlignmentOptions.MidlineLeft;
-
-                // Subtitle Text
-                GameObject subObj = new GameObject("SubtitleText");
-                subObj.transform.SetParent(_activeBannerObj.transform, false);
-                RectTransform sbRect = subObj.AddComponent<RectTransform>();
-                sbRect.anchorMin = new Vector2(0f, 0f);
-                sbRect.anchorMax = new Vector2(1f, 0.5f);
-                sbRect.anchoredPosition = new Vector2(25f, 6f);
-                sbRect.sizeDelta = new Vector2(-50f, 28f);
-                TextMeshProUGUI sbText = subObj.AddComponent<TextMeshProUGUI>();
-                sbText.text = subtitle;
-                sbText.fontSize = 12;
-                sbText.color = new Color(0.85f, 0.88f, 0.92f, 0.90f);
-                sbText.alignment = TextAlignmentOptions.MidlineLeft;
+                Destroy(_activeBannerObj);
+                _activeBannerObj = null;
             }
-            else
+
+            // ค้นหาแผง Notification_HUD ที่มีอยู่เดิมใน Scene
+            GameObject notiHud = GameObject.Find("Notification_HUD");
+            if (notiHud == null)
             {
-                // Update existing banner
-                _activeBannerObj.SetActive(true);
-                Transform stripe = _activeBannerObj.transform.Find("AccentStripe");
-                if (stripe != null)
+                Canvas[] canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+                foreach (var c in canvases)
                 {
-                    UnityEngine.UI.Image sImg = stripe.GetComponent<UnityEngine.UI.Image>();
-                    if (sImg != null) sImg.color = accentColor;
-                }
-                Transform tObj = _activeBannerObj.transform.Find("TitleText");
-                if (tObj != null)
-                {
-                    TextMeshProUGUI tText = tObj.GetComponent<TextMeshProUGUI>();
-                    if (tText != null)
+                    Transform t = c.transform.Find("Player_HUD/Notification_HUD") 
+                               ?? c.transform.Find("Notification_HUD");
+                    if (t != null)
                     {
-                        tText.text = title;
-                        tText.color = accentColor;
+                        notiHud = t.gameObject;
+                        break;
                     }
                 }
-                Transform sbObj = _activeBannerObj.transform.Find("SubtitleText");
-                if (sbObj != null)
+            }
+
+            if (notiHud != null)
+            {
+                notiHud.SetActive(true);
+
+                // ค้นหากล่องข้อความ Name_text (หัวข้อ) และ Notification_text (เนื้อหา)
+                TMP_Text titleText = notiHud.transform.Find("Panel/NamePanel/Name_text")?.GetComponent<TMP_Text>();
+                TMP_Text msgText = notiHud.transform.Find("Panel/NotificationPanel/Notification_text")?.GetComponent<TMP_Text>();
+
+                if (titleText == null || msgText == null)
                 {
-                    TextMeshProUGUI sbText = sbObj.GetComponent<TextMeshProUGUI>();
-                    if (sbText != null) sbText.text = subtitle;
+                    TMP_Text[] allTexts = notiHud.GetComponentsInChildren<TMP_Text>(true);
+                    foreach (var t in allTexts)
+                    {
+                        string lower = t.gameObject.name.ToLower();
+                        if (titleText == null && (lower.Contains("name") || lower.Contains("title"))) titleText = t;
+                        else if (msgText == null && (lower.Contains("noti") || lower.Contains("msg") || lower.Contains("text") || lower.Contains("desc"))) msgText = t;
+                    }
                 }
-            }
 
-            // Fade In
-            float elapsed = 0f;
-            while (elapsed < 0.35f)
-            {
-                elapsed += Time.deltaTime;
-                _activeBannerGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / 0.35f);
-                yield return null;
-            }
-            _activeBannerGroup.alpha = 1f;
+                if (titleText != null)
+                {
+                    titleText.text = title;
+                    titleText.color = accentColor;
+                }
+                if (msgText != null)
+                {
+                    msgText.text = subtitle;
+                }
 
-            // Display for 4.5 seconds
-            yield return new WaitForSeconds(4.5f);
+                CanvasGroup bannerGroup = notiHud.GetComponent<CanvasGroup>();
+                if (bannerGroup == null) bannerGroup = notiHud.AddComponent<CanvasGroup>();
+                bannerGroup.blocksRaycasts = false;
 
-            // Fade Out
-            elapsed = 0f;
-            while (elapsed < 0.5f)
-            {
-                elapsed += Time.deltaTime;
-                _activeBannerGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / 0.5f);
-                yield return null;
+                // Smooth Fade In
+                float elapsed = 0f;
+                float fadeIn = 0.35f;
+                while (elapsed < fadeIn)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    bannerGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeIn);
+                    yield return null;
+                }
+                bannerGroup.alpha = 1f;
+
+                // Display
+                yield return new WaitForSecondsRealtime(3.5f);
+
+                // Smooth Fade Out
+                elapsed = 0f;
+                float fadeOut = 0.5f;
+                while (elapsed < fadeOut)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    bannerGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeOut);
+                    yield return null;
+                }
+                bannerGroup.alpha = 0f;
+                notiHud.SetActive(false);
             }
-            _activeBannerGroup.alpha = 0f;
-            _activeBannerObj.SetActive(false);
         }
     }
 }
