@@ -232,10 +232,10 @@ namespace TheLastEmpire
 
                 // Food & Rations (4 Types) + Water
                 AddDefaultShopItem("Bread");
+                AddDefaultShopItem("Water Bottle", 20);
                 AddDefaultShopItem("Energy Bar");
                 AddDefaultShopItem("Canned Food");
                 AddDefaultShopItem("Cooked Meat");
-                AddDefaultShopItem("Water Bottle", 20);
 
                 // Ammunition
                 AddDefaultShopItem("Pistol Ammo");
@@ -280,6 +280,7 @@ namespace TheLastEmpire
             if (data.shopItems != null)
             {
                 shopItems = new System.Collections.Generic.List<ShopItemConfig>(data.shopItems);
+                EnsureWaterBottleInShop();
             }
 
             // Update Name HUD
@@ -403,11 +404,52 @@ namespace TheLastEmpire
             dialogueId = id;
         }
 
+        private void EnsureWaterBottleInShop()
+        {
+            if (shopItems == null)
+            {
+                shopItems = new System.Collections.Generic.List<ShopItemConfig>();
+            }
+
+            bool hasWater = false;
+            int breadIdx = -1;
+            for (int i = 0; i < shopItems.Count; i++)
+            {
+                if (shopItems[i] != null && shopItems[i].item != null)
+                {
+                    string n = shopItems[i].item.itemName;
+                    if (string.Equals(n, "Water Bottle", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(n, "Water", StringComparison.OrdinalIgnoreCase) ||
+                        shopItems[i].item.name.IndexOf("WaterBottle", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        hasWater = true;
+                        break;
+                    }
+                    if (string.Equals(n, "Bread", StringComparison.OrdinalIgnoreCase) ||
+                        shopItems[i].item.name.IndexOf("Bread", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        breadIdx = i;
+                    }
+                }
+            }
+
+            if (!hasWater && ItemDatabase.Instance != null)
+            {
+                ItemData waterData = ItemDatabase.Instance.GetItemByName("Water Bottle");
+                if (waterData != null)
+                {
+                    int insertIdx = (breadIdx >= 0) ? breadIdx + 1 : shopItems.Count;
+                    shopItems.Insert(insertIdx, new ShopItemConfig { item = waterData, price = 20 });
+                }
+            }
+        }
+
         public void Interact()
         {
             // If the NPC has a shop, open the shop menu with [E]
             if (HasShop)
             {
+                EnsureWaterBottleInShop();
                 if (ShopUI.Instance != null)
                 {
                     ShopUI.Instance.OpenShopMenu(shopItems, isFree);

@@ -619,6 +619,8 @@ MonoBehaviour:
     price: 260
   - item: {fileID: 11400000, guid: d0bcb8dc8d676ba428263cdcb07a2324, type: 2}
     price: 50
+  - item: {fileID: 11400000, guid: f0cf9c1a939c491994b4da74a48d50b3, type: 2}
+    price: 20
   - item: {fileID: 11400000, guid: cc190728f5674b67a51afeb3a29c53f7, type: 2}
     price: 65
   - item: {fileID: 11400000, guid: 222f30f19aa445ab99ba63e95e7764e0, type: 2}
@@ -637,6 +639,9 @@ MonoBehaviour:
     price: 25
   isFree: 1
   nameTextHUD: {fileID: 4850948539880918495}
+  canSit: 1
+  standDetectionRadius: 3.5
+  sitCooldownDuration: 5
 --- !u!1 &2636318185661858623
 GameObject:
   m_ObjectHideFlags: 0
