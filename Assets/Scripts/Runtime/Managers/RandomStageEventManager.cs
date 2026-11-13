@@ -287,10 +287,6 @@ namespace TheLastEmpire
             ExecuteEvent(chosenEvent, stage, rng);
         }
 
-            // Execute the event
-            ExecuteEvent(chosenEvent, stage, rng);
-        }
-
         private void ExecuteEvent(StageEventType eventType, StageData stage, System.Random rng)
         {
             switch (eventType)
