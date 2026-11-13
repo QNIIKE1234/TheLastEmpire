@@ -21,6 +21,11 @@ namespace TheLastEmpire
         [Tooltip("Allow events to trigger in rooms that have already been cleared")]
         [SerializeField] private bool allowEventsInClearedRooms = false;
 
+        [Header("Debug & Testing")]
+        [Tooltip("เปิดใช้งานเพื่อบังคับให้เกิด Event นี้ 100% ทุกครั้งที่ก้าวเปลี่ยนห้อง")]
+        [SerializeField] private bool forceEventForTesting = false;
+        [SerializeField] private StageEventType forcedEventType = StageEventType.FleeingSurvivor;
+
         [Header("Event Atmosphere & FX")]
         [SerializeField] private Color falloutFogColor = new Color(0.2f, 0.45f, 0.15f, 1f);
         [SerializeField] private Color bloodSurgeFogColor = new Color(0.55f, 0.05f, 0.08f, 1f);
@@ -52,6 +57,28 @@ namespace TheLastEmpire
             }
         }
 
+        private void Update()
+        {
+            bool triggerHotkey = false;
+#if ENABLE_INPUT_SYSTEM
+            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.f9Key.wasPressedThisFrame)
+            {
+                triggerHotkey = true;
+            }
+#endif
+            if (triggerHotkey)
+            {
+                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> F9 pressed: Forcing Fleeing Survivor Event!");
+                ForceTriggerFleeingSurvivor();
+            }
+        }
+
+        [ContextMenu("Force Trigger Fleeing Survivor Event Now")]
+        public void ForceTriggerFleeingSurvivor()
+        {
+            ExecuteFleeingSurvivor(null, new System.Random());
+        }
+
         /// <summary>
         /// Evaluates and triggers a random encounter event when the player enters a stage.
         /// Called from GameManager.SpawnLocalStageContent.
@@ -62,6 +89,16 @@ namespace TheLastEmpire
 
             // Reset any previous atmospheric overrides from past room
             ResetAtmosphere();
+
+            if (forceEventForTesting)
+            {
+                System.Random testRng = new System.Random();
+                stage.randomEventType = forcedEventType;
+                stage.hasEventTriggered = true;
+                Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> FORCED EVENT TRIGGERED: {forcedEventType}");
+                ExecuteEvent(forcedEventType, stage, testRng);
+                return;
+            }
 
             // 1. Skip start / spawn room
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
