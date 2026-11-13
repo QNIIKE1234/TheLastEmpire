@@ -718,6 +718,7 @@ namespace TheLastEmpire
                             ai.ApplyTemporaryStats(speed: 3.5f, detection: 50f);
                             ai.SkipTransitionDelay(); // วิ่งไล่ทันที ไม่ยืนนิ่ง 2 วินาทีตอนเกิด
                             // วิ่งทะลุสิ่งกีดขวาง/ตึก/กำแพง จนกว่าจะเข้าใกล้ผู้เล่นในระยะ 4.5m ค่อยเปิด Collider ป้องกันวิ่งติด
+                            PlayerController player = PlayerController.Instance != null ? PlayerController.Instance : UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                             ai.EnableChaserPhasing(player != null ? player.transform : null, restoreDistance: 4.5f);
                             enemyObj.transform.forward = runDir;
                         }
