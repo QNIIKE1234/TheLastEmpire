@@ -342,7 +342,8 @@ namespace TheLastEmpire
 
             if (stage.isCleared)
             {
-                Debug.Log($"[GameManager] Stage ({stage.x}, {stage.y}) is already cleared today. Skipping spawn.");
+                Debug.Log($"[GameManager] Stage ({stage.x}, {stage.y}) is already cleared today. Skipping standard spawn.");
+                RandomStageEventManager.Instance?.OnStageEntered(stage);
                 return;
             }
 

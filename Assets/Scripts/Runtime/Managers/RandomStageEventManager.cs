@@ -8,7 +8,33 @@ namespace TheLastEmpire
 {
     public class RandomStageEventManager : MonoBehaviour
     {
-        public static RandomStageEventManager Instance { get; private set; }
+        private static RandomStageEventManager _instance;
+        public static RandomStageEventManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = UnityEngine.Object.FindFirstObjectByType<RandomStageEventManager>();
+                    if (_instance == null)
+                    {
+                        GameObject go = new GameObject("RandomStageEventManager");
+                        _instance = go.AddComponent<RandomStageEventManager>();
+                    }
+                }
+                return _instance;
+            }
+            private set => _instance = value;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void AutoInitialize()
+        {
+            if (_instance == null)
+            {
+                var inst = Instance;
+            }
+        }
 
         [Header("Event Chance Settings")]
         [Tooltip("Chance (0.0 - 1.0) of encountering a random event when entering any normal room")]
@@ -40,12 +66,14 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            if (Instance == null)
+            if (_instance == null)
             {
-                Instance = this;
+                _instance = this;
+                transform.SetParent(null);
+                DontDestroyOnLoad(gameObject);
                 _originalAmbientColor = RenderSettings.ambientLight;
             }
-            else
+            else if (_instance != this)
             {
                 Destroy(gameObject);
             }
@@ -53,28 +81,58 @@ namespace TheLastEmpire
 
         private void OnDestroy()
         {
-            if (Instance == this)
+            if (_instance == this)
             {
-                Instance = null;
+                _instance = null;
             }
         }
 
         private void Update()
         {
-            bool triggerHotkey = false;
+            bool triggerF9 = false;
+            bool triggerShiftF9 = false;
+
 #if ENABLE_INPUT_SYSTEM
             if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.f9Key.wasPressedThisFrame)
             {
-                triggerHotkey = true;
+                if (UnityEngine.InputSystem.Keyboard.current.shiftKey.isPressed)
+                {
+                    triggerShiftF9 = true;
+                }
+                else
+                {
+                    triggerF9 = true;
+                }
             }
 #endif
-            if (triggerHotkey)
+            try
+            {
+                if (Input.GetKeyDown(KeyCode.F9))
+                {
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    {
+                        triggerShiftF9 = true;
+                    }
+                    else
+                    {
+                        triggerF9 = true;
+                    }
+                }
+            }
+            catch {}
+
+            if (triggerShiftF9)
+            {
+                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [Shift+F9] Pressed: Triggering Maya Fleeing Event IMMEDIATELY in current room!");
+                ForceTriggerFleeingSurvivor();
+            }
+            else if (triggerF9)
             {
                 _queuedNextStageEvent = StageEventType.FleeingSurvivor;
                 Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [F9] Pressed: Next stage queued to trigger Maya Fleeing Event!");
                 ShowEventBanner(
-                    "EVENT QUEUED: PANICKED SCOUT",
-                    "Entering the next stage will trigger Maya fleeing from a hostile swarm!",
+                    "EVENT QUEUED: PANICKED SCOUT [F9]",
+                    "Walk through any portal to trigger Maya fleeing from a mob!",
                     new Color(1.0f, 0.65f, 0.15f)
                 );
             }
@@ -83,7 +141,12 @@ namespace TheLastEmpire
         [ContextMenu("Force Trigger Fleeing Survivor Event Now")]
         public void ForceTriggerFleeingSurvivor()
         {
-            ExecuteFleeingSurvivor(null, new System.Random());
+            StageData currentStage = null;
+            if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+            {
+                currentStage = WorldMapManager.Instance.MapGenerator.GetStage(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
+            }
+            ExecuteFleeingSurvivor(currentStage, new System.Random());
         }
 
         /// <summary>
@@ -501,6 +564,10 @@ namespace TheLastEmpire
 
             // Spawn NPC Maya (Scout) วิ่งหนี
             GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
+            if (npcPrefab == null)
+            {
+                npcPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Character/NPCPrefabs");
+            }
             if (npcPrefab != null)
             {
                 Vector3 runDirection = (escapeTargetPos - npcSpawnPos).normalized;

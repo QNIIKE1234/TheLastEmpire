@@ -42,6 +42,18 @@ namespace TheLastEmpire
                 npcController.enabled = false;
             }
 
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+            }
+
+            Collider col = GetComponent<Collider>();
+            if (col != null)
+            {
+                col.isTrigger = true;
+            }
+
             // หา Animator และสั่งท่าวิ่งทันที
             _animator = GetComponentInChildren<Animator>();
             if (_animator != null)
