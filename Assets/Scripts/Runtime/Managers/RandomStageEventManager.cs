@@ -638,18 +638,20 @@ namespace TheLastEmpire
 
                 // แปลงโมเดลและข้อมูลเป็น Maya (Scout) จาก NPCDatabase
                 NPCController ctrl = npcObj.GetComponent<NPCController>();
+                Sprite mayaIcon = null;
                 if (ctrl != null && NPCDatabase.Instance != null)
                 {
                     NPCDataSO mayaData = NPCDatabase.Instance.GetNPCById("watcher_maya");
                     if (mayaData != null)
                     {
                         ctrl.ApplyData(mayaData);
+                        mayaIcon = mayaData.npcIcon != null ? mayaData.npcIcon : mayaData.npcPortrait;
                     }
                     ctrl.CanInteract = false;
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 5.0f);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 5.0f, icon: mayaIcon);
             }
 
             // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา

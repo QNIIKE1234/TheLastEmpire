@@ -19,6 +19,8 @@ namespace TheLastEmpire
         [SerializeField] private GameObject dialogPanel;
         [Tooltip("Text (TMP) สำหรับแสดงข้อความในกล่องบทพูดลอย (ลาก Text (TMP) มาใส่)")]
         [SerializeField] private TMP_Text dialogText;
+        [Tooltip("Image สำหรับแสดงไอคอนตัวละครในกล่องบทพูดลอย (ลาก Image ช่องกระเป๋า/ไอคอนมาใส่)")]
+        [SerializeField] private UnityEngine.UI.Image dialogIcon;
 
         private static readonly int IsRunningHash = Animator.StringToHash("IsRunning");
         private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
@@ -45,7 +47,7 @@ namespace TheLastEmpire
             "There are too many of them!!"
         };
 
-        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 5.0f)
+        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 5.0f, Sprite icon = null)
         {
             _playerTransform = playerTransform;
             _exitDestination = exitDestination;
@@ -63,13 +65,19 @@ namespace TheLastEmpire
             {
                 if (dialogPanel == null && npcController.DialogPanel != null) dialogPanel = npcController.DialogPanel;
                 if (dialogText == null && npcController.DialogText != null) dialogText = npcController.DialogText;
+                if (dialogIcon == null && npcController.DialogIcon != null) dialogIcon = npcController.DialogIcon;
+
+                if (icon == null && npcController.NPCData != null)
+                {
+                    icon = npcController.NPCData.npcIcon != null ? npcController.NPCData.npcIcon : npcController.NPCData.npcPortrait;
+                }
 
                 npcController.CanInteract = false;
                 npcController.enabled = false;
                 Destroy(npcController); // ทำลายทิ้งทันที หมดโอกาส Interact 100%
             }
 
-            // ค้นหา Dialog Panel & Text อัตโนมัติ หากยังไม่ได้ลากใส่ใน Inspector
+            // ค้นหา Dialog Panel & Text & Icon อัตโนมัติ หากยังไม่ได้ลากใส่ใน Inspector
             if (dialogPanel == null)
             {
                 Transform found = transform.Find("DIalogPanel") ?? 
@@ -89,6 +97,19 @@ namespace TheLastEmpire
                 dialogText = GetComponentInChildren<TMP_Text>();
             }
 
+            if (dialogIcon == null && dialogPanel != null)
+            {
+                UnityEngine.UI.Image[] images = dialogPanel.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+                foreach (var img in images)
+                {
+                    if (img.gameObject != dialogPanel && (img.gameObject.name.Contains("Icon") || img.gameObject.name.Contains("Image")))
+                    {
+                        dialogIcon = img;
+                        break;
+                    }
+                }
+            }
+
             if (dialogPanel != null)
             {
                 dialogPanel.SetActive(true);
@@ -96,6 +117,11 @@ namespace TheLastEmpire
             if (dialogText != null)
             {
                 dialogText.gameObject.SetActive(true);
+            }
+            if (dialogIcon != null && icon != null)
+            {
+                dialogIcon.sprite = icon;
+                dialogIcon.gameObject.SetActive(true);
             }
 
             Rigidbody rb = GetComponent<Rigidbody>();

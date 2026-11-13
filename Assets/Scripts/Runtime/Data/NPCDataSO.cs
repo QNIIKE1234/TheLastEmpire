@@ -20,13 +20,19 @@ namespace TheLastEmpire
         [Tooltip("Color tint for visuals or fallback capsule")]
         public Color tintColor = Color.white;
 
+        [Header("Portraits & Icons")]
+        [Tooltip("รูปตัวละครเต็มตัว / ภาพอาร์ตเวิร์กตัวละคร (Character Artwork / Illustration)")]
+        public Sprite characterImage;
+        [Tooltip("ไอคอนตัวละครขนาดเล็กสำหรับ HUD / กล่องบทพูดลอย (NPC Mini Icon) — ใช้แทนรูปกระเป๋า")]
+        public Sprite npcIcon;
+        [Tooltip("รูปพอร์ตเทรตหน้าตรงสำหรับหน้าต่างบทสนทนา (Portrait for Dialogue UI)")]
+        public Sprite npcPortrait;
+
         [Header("Dialogue & Story")]
         [Tooltip("Dialogue ID to fetch from DialogueDatabase (e.g. 'Merchant_Intro')")]
         public string dialogueId = "Merchant_Intro";
         [Tooltip("Direct reference to DialogueTreeSO (optional, overrides dialogueId)")]
         public TheLastEmpire.Story.DialogueTreeSO dialogueTree;
-        [Tooltip("Portrait sprite for Dialogue UI")]
-        public Sprite npcPortrait;
 
         [Header("Merchant / Shop Settings")]
         public List<ShopItemConfig> shopItems = new List<ShopItemConfig>();

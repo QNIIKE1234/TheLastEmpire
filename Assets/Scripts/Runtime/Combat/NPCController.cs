@@ -89,9 +89,14 @@ namespace TheLastEmpire
         [SerializeField] private GameObject dialogPanel;
         [Tooltip("Text (TMP) สำหรับแสดงข้อความในกล่องบทพูดลอย (ลาก Text (TMP) มาใส่)")]
         [SerializeField] private TMPro.TMP_Text dialogText;
+        [Tooltip("Image สำหรับแสดงไอคอนตัวละครในกล่องบทพูดลอย (ลาก Image ไอคอน/กระเป๋ามาใส่)")]
+        [SerializeField] private UnityEngine.UI.Image dialogIcon;
 
         public GameObject DialogPanel => dialogPanel;
         public TMPro.TMP_Text DialogText => dialogText;
+        public UnityEngine.UI.Image DialogIcon => dialogIcon;
+        public Sprite CharacterImage => npcData != null ? npcData.characterImage : null;
+        public Sprite NpcIcon => npcData != null ? npcData.npcIcon : null;
 
         [Header("Sitting Behavior")]
         [SerializeField] private bool canSit = true;
@@ -302,6 +307,17 @@ namespace TheLastEmpire
             if (textToUpdate != null)
             {
                 textToUpdate.text = npcName;
+            }
+
+            // Update Icon in Dialogue Bubble if assigned
+            if (dialogIcon != null)
+            {
+                Sprite iconToUse = data.npcIcon != null ? data.npcIcon : data.npcPortrait;
+                if (iconToUse != null)
+                {
+                    dialogIcon.sprite = iconToUse;
+                    dialogIcon.gameObject.SetActive(true);
+                }
             }
 
             // Visual Model Replacement
