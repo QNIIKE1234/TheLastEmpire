@@ -476,40 +476,22 @@ namespace TheLastEmpire
 
             // 9b. Spawn Alien enemies:
             // - กลางคืน: เอเลี่ยนเป็นศัตรูหลัก โอกาสเกิด 80% ต่อชนิด สุ่ม 0-3 ตัว
-            // - กลางวัน: โอกาสเกิดทั้งห้องเพียง 3% (0.03f) และหากเกิด ให้เกิดแค่ 1 - 2 ตัวเสมอ
-            if (alienConfigs.Count > 0)
+            // - กลางวัน: ปิดการเกิดทั้งหมด 100% ไม่ให้เกิดเด็ดขาด
+            if (alienConfigs.Count > 0 && isNight)
             {
-                if (isNight)
+                foreach (BiomeSpawnConfig alienCfg in alienConfigs)
                 {
-                    foreach (BiomeSpawnConfig alienCfg in alienConfigs)
-                    {
-                        if (Random.value > 0.80f) continue;
+                    if (Random.value > 0.80f) continue;
 
-                        int spawnCount = Random.Range(0, 4);
-                        LootDropper loot = alienCfg.enemyPrefab.GetComponent<LootDropper>();
-                        if (loot != null && loot.IsBoss) spawnCount = 1;
+                    int spawnCount = Random.Range(0, 4);
+                    LootDropper loot = alienCfg.enemyPrefab.GetComponent<LootDropper>();
+                    if (loot != null && loot.IsBoss) spawnCount = 1;
 
-                        Debug.Log($"[GameManager] Spawning {spawnCount} alien(s) '{alienCfg.enemyPrefab.name}' at Night.");
-                        for (int i = 0; i < spawnCount; i++)
-                        {
-                            SpawnEnemyInstance(alienCfg.enemyPrefab, alienCfg.poolKey);
-                            stage.remainingEnemyPrefabNames.Add(alienCfg.enemyPrefab.name);
-                        }
-                    }
-                }
-                else
-                {
-                    // กลางวัน: โอกาสเกิดเอเลี่ยนเพียง 3% (0.03f) และหากเกิด ให้เกิดแค่ 1 - 2 ตัวเสมอ
-                    if (Random.value <= 0.03f)
+                    Debug.Log($"[GameManager] Spawning {spawnCount} alien(s) '{alienCfg.enemyPrefab.name}' at Night.");
+                    for (int i = 0; i < spawnCount; i++)
                     {
-                        int alienCount = Random.Range(1, 3); // เกิด 1 หรือ 2 ตัวเสมอ
-                        for (int i = 0; i < alienCount; i++)
-                        {
-                            BiomeSpawnConfig chosenAlien = alienConfigs[Random.Range(0, alienConfigs.Count)];
-                            SpawnEnemyInstance(chosenAlien.enemyPrefab, chosenAlien.poolKey);
-                            stage.remainingEnemyPrefabNames.Add(chosenAlien.enemyPrefab.name);
-                        }
-                        Debug.Log($"[GameManager] Daytime Alien Incursion! Spawned {alienCount} alien(s) (3% chance).");
+                        SpawnEnemyInstance(alienCfg.enemyPrefab, alienCfg.poolKey);
+                        stage.remainingEnemyPrefabNames.Add(alienCfg.enemyPrefab.name);
                     }
                 }
             }

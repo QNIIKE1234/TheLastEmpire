@@ -375,9 +375,15 @@ namespace TheLastEmpire
                 new Color(1.0f, 0.20f, 0.25f) // Danger Crimson
             );
 
-            // Spawn 3-5 rapid ambush rushers
+            // Spawn 3-5 rapid ambush rushers (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             int ambushCount = rng.Next(3, 6);
-            string[] rushers = new string[] { "ZombieRunner", "RobotKamikaze", "AlienCrawler", "ZombieDog" };
+            bool isNight = DayNightCycleManager.Instance != null && DayNightCycleManager.Instance.IsNight();
+            List<string> rusherList = new List<string> { "ZombieRunner", "RobotKamikaze", "ZombieDog" };
+            if (isNight)
+            {
+                rusherList.Add("AlienCrawler");
+            }
+            string[] rushers = rusherList.ToArray();
 
             _activeAmbushCoroutine = StartCoroutine(SpawnAmbushWaveRoutine(rushers, ambushCount, rng));
         }
@@ -656,9 +662,16 @@ namespace TheLastEmpire
 
             if (GameManager.Instance == null) yield break;
 
-            // สุ่มจำนวนศัตรู 4-5 ตัว
+            // สุ่มจำนวนศัตรู 4-5 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             int mobCount = rng.Next(4, 6);
-            string[] rushers = new string[] { "ZombieRunner", "AlienCrawler", "ZombieDog", "RobotKamikaze", "AlienSpitter", "ZombieNormal" };
+            bool isNight = DayNightCycleManager.Instance != null && DayNightCycleManager.Instance.IsNight();
+            List<string> rusherList = new List<string> { "ZombieRunner", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
+            if (isNight)
+            {
+                rusherList.Add("AlienCrawler");
+                rusherList.Add("AlienSpitter");
+            }
+            string[] rushers = rusherList.ToArray();
 
             Vector3 runDir = (targetDir - spawnCenter).normalized;
             Vector3 perpDir = Vector3.Cross(runDir, Vector3.up);
