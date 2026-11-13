@@ -21,6 +21,7 @@ namespace TheLastEmpire
         [SerializeField] protected string poolKey = "";
 
         public float MoveSpeed { get => moveSpeed; set => moveSpeed = value; }
+        public float DetectionRange { get => detectionRange; set => detectionRange = value; }
 
         [Header("Wandering Settings")]
         [SerializeField] protected float wanderTime = 2f;

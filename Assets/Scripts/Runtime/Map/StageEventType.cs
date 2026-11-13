@@ -8,7 +8,8 @@ namespace TheLastEmpire
         NomadTrader = 3,        // Wandering nomadic merchant resting by a campfire
         RadioactiveFallout = 4, // Toxic radiation fog causing environmental hazards & mutated enemies
         BloodMoonSurge = 5,     // Blood eclipse frenzy buffing enemy speed/damage with double gold rewards
-        ScavengerCache = 6      // Hidden survivor cache containing multiple ammo & resource drops
+        ScavengerCache = 6,     // Hidden survivor cache containing multiple ammo & resource drops
+        FleeingSurvivor = 7     // Panicked survivor sprinting across room dragging hostile swarm behind them
     }
 }
 

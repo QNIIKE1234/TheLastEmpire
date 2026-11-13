@@ -109,7 +109,8 @@ namespace TheLastEmpire
                 StageEventType.NomadTrader,
                 StageEventType.RadioactiveFallout,
                 StageEventType.BloodMoonSurge,
-                StageEventType.ScavengerCache
+                StageEventType.ScavengerCache,
+                StageEventType.FleeingSurvivor
             };
 
             StageEventType chosenEvent = pool[rng.Next(0, pool.Length)];
@@ -148,6 +149,10 @@ namespace TheLastEmpire
 
                 case StageEventType.ScavengerCache:
                     ExecuteScavengerCache(stage, rng);
+                    break;
+
+                case StageEventType.FleeingSurvivor:
+                    ExecuteFleeingSurvivor(stage, rng);
                     break;
             }
         }
@@ -340,6 +345,141 @@ namespace TheLastEmpire
                     string[] items = new string[] { "Bread", "Bandage", "Pistol Ammo", "Shotgun Ammo", "Grenade" };
                     SpawnGroundItem(items[rng.Next(0, items.Length)], rng.Next(1, 3), pos);
                 }
+            }
+        }
+
+        // ==============================================================================
+        // 7. FLEEING SURVIVOR EVENT (NPC วิ่งลากฝูงศัตรูหนีตายผ่านตัวเรา)
+        // ==============================================================================
+        private void ExecuteFleeingSurvivor(StageData stage, System.Random rng)
+        {
+            ShowEventBanner(
+                "PANICKED SURVIVOR DETECTED!",
+                "A fleeing survivor is sprinting through, dragging a hostile swarm behind them!",
+                new Color(1.0f, 0.45f, 0.15f) // High Alert Orange-Red
+            );
+
+            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+
+            // คำนวณทิศทาง: Player วาปเข้ามาจากทิศไหน?
+            // NPC จะเกิดที่ทิศตรงข้าม แล้ววิ่งตัดผ่านห้องไปยังทิศที่ Player วาปเข้ามา
+            Vector3 npcSpawnPos;
+            Vector3 escapeTargetPos;
+
+            TransitionPortal.TransitionDirection entryDir = TransitionPortal.TransitionDirection.South;
+            if (TransitionPortal.HasValidWarpHistory)
+            {
+                entryDir = TransitionPortal.LastTransitionEntryDirection;
+            }
+            else
+            {
+                // Fallback ตามตำแหน่งตัว Player เทียบกับจุดศูนย์กลางห้อง
+                if (playerPos.z < -2f) entryDir = TransitionPortal.TransitionDirection.South;
+                else if (playerPos.z > 2f) entryDir = TransitionPortal.TransitionDirection.North;
+                else if (playerPos.x < -3f) entryDir = TransitionPortal.TransitionDirection.West;
+                else if (playerPos.x > 3f) entryDir = TransitionPortal.TransitionDirection.East;
+            }
+
+            switch (entryDir)
+            {
+                case TransitionPortal.TransitionDirection.South:
+                    // Player เข้ามาจากทิศใต้ -> NPC เกิดทิศเหนือ วิ่งลงทิศใต้
+                    npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), 0.5f, 7.5f);
+                    escapeTargetPos = new Vector3(playerPos.x, 0.5f, -9.5f);
+                    break;
+
+                case TransitionPortal.TransitionDirection.North:
+                    // Player เข้ามาจากทิศเหนือ -> NPC เกิดทิศใต้ วิ่งขึ้นทิศเหนือ
+                    npcSpawnPos = new Vector3(Mathf.Clamp(playerPos.x * 0.5f, -4f, 4f), 0.5f, -7.5f);
+                    escapeTargetPos = new Vector3(playerPos.x, 0.5f, 9.5f);
+                    break;
+
+                case TransitionPortal.TransitionDirection.West:
+                    // Player เข้ามาจากทิศตะวันตก -> NPC เกิดทิศตะวันออก วิ่งไปตะวันตก
+                    npcSpawnPos = new Vector3(14.5f, 0.5f, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
+                    escapeTargetPos = new Vector3(-16.5f, 0.5f, playerPos.z);
+                    break;
+
+                case TransitionPortal.TransitionDirection.East:
+                default:
+                    // Player เข้ามาจากทิศตะวันออก -> NPC เกิดทิศตะวันตก วิ่งไปตะวันออก
+                    npcSpawnPos = new Vector3(-14.5f, 0.5f, Mathf.Clamp(playerPos.z * 0.5f, -3f, 3f));
+                    escapeTargetPos = new Vector3(16.5f, 0.5f, playerPos.z);
+                    break;
+            }
+
+            // สุ่มเบี่ยงพิกัดเกิดเล็กน้อยเพื่อให้ดูเป็นธรรมชาติ
+            Vector3 perpendicular = Vector3.Cross((escapeTargetPos - npcSpawnPos).normalized, Vector3.up);
+            float randomJitter = (float)(rng.NextDouble() * 1.6 - 0.8);
+            npcSpawnPos += perpendicular * randomJitter;
+
+            // Spawn NPC วิ่งหนี
+            GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
+            if (npcPrefab != null)
+            {
+                Vector3 runDirection = (escapeTargetPos - npcSpawnPos).normalized;
+                GameObject npcObj = Instantiate(npcPrefab, npcSpawnPos, Quaternion.LookRotation(runDirection));
+                FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
+                runner.Initialize(escapeTargetPos, null, speed: 8.5f);
+            }
+
+            // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
+            StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng));
+        }
+
+        private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng)
+        {
+            // หน่วงเวลาเล็กน้อย 0.35 วินาที เพื่อให้ NPC วิ่งนำหน้าออกไปก่อน
+            yield return new WaitForSeconds(0.35f);
+
+            if (GameManager.Instance == null) yield break;
+
+            // สุ่มจำนวนศัตรู 3-5 ตัว
+            int mobCount = rng.Next(3, 6);
+            string[] rushers = new string[] { "ZombieRunner", "AlienCrawler", "ZombieDog", "RobotKamikaze", "AlienSpitter", "ZombieNormal" };
+
+            Vector3 runDir = (targetDir - spawnCenter).normalized;
+            Vector3 perpDir = Vector3.Cross(runDir, Vector3.up);
+
+            for (int i = 0; i < mobCount; i++)
+            {
+                string enemyName = rushers[rng.Next(0, rushers.Length)];
+                GameObject prefab = GameManager.Instance.GetPrefabByName(enemyName);
+                if (prefab == null && GameManager.Instance.DefaultEnemyPrefab != null)
+                {
+                    prefab = GameManager.Instance.DefaultEnemyPrefab;
+                }
+
+                if (prefab != null)
+                {
+                    // กระจายตำแหน่งเกิดแถวหลัง NPC ในระยะกระจัด ±1.8 เมตร
+                    float sideOffset = (float)(rng.NextDouble() * 3.6 - 1.8);
+                    float rearOffset = -(float)(rng.NextDouble() * 1.5 + 0.5);
+                    Vector3 enemySpawnPos = spawnCenter + (perpDir * sideOffset) + (runDir * rearOffset);
+
+                    // Clamp ให้อยู่ในฉาก
+                    enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -14f, 14f);
+                    enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -7f, 7f);
+
+                    string poolKey = GameManager.Instance.GetPoolKeyForPrefab(prefab);
+                    GameObject enemyObj = GameManager.Instance.SpawnEnemyInstanceAt(prefab, poolKey, enemySpawnPos, Quaternion.LookRotation(runDir));
+
+                    if (enemyObj != null)
+                    {
+                        BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
+                        if (ai != null)
+                        {
+                            // บัฟระยะมองเห็นและความเร็วในการวิ่งกวด เพื่อให้วิ่งกวดมาหาผู้เล่นทันที
+                            ai.DetectionRange = 50f;
+                            ai.MoveSpeed *= 1.25f;
+                            enemyObj.transform.forward = runDir;
+                        }
+                    }
+                }
+
+                // หน่วงระยะห่างระหว่างการกวดของแต่ละตัวเล็กน้อย
+                yield return new WaitForSeconds(0.18f);
             }
         }
 

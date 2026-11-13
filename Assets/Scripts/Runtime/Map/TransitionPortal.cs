@@ -26,6 +26,10 @@ namespace TheLastEmpire
         [Header("Transition UI (Optional)")]
         [SerializeField] private GameObject transitionScreen;
 
+        public static TransitionDirection LastTransitionEntryDirection { get; private set; } = TransitionDirection.South;
+        public static Vector3 LastPlayerWarpInPos { get; private set; } = new Vector3(0, 0.5f, -6f);
+        public static bool HasValidWarpHistory { get; private set; } = false;
+
         private bool _playerInRange = false;
 
         public bool IsPlayerInRange() => _playerInRange;
@@ -302,6 +306,11 @@ namespace TheLastEmpire
                 }
 
                 player.transform.position = pos;
+
+                // Record warp position and arrival direction for dynamic stage events
+                LastTransitionEntryDirection = oppositeDir;
+                LastPlayerWarpInPos = pos;
+                HasValidWarpHistory = true;
 
                 // Sync Rigidbody position explicitly to prevent Unity's physics engine from overriding the teleportation
                 Rigidbody playerRb = player.GetComponent<Rigidbody>();

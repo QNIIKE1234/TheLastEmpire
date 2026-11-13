@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace TheLastEmpire
@@ -415,7 +416,7 @@ namespace TheLastEmpire
             int breadIdx = -1;
             for (int i = 0; i < shopItems.Count; i++)
             {
-                if (shopItems[i] != null && shopItems[i].item != null)
+                if (shopItems[i].item != null)
                 {
                     string n = shopItems[i].item.itemName;
                     if (string.Equals(n, "Water Bottle", StringComparison.OrdinalIgnoreCase) ||

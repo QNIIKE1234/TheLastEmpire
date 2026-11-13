@@ -57,6 +57,7 @@ namespace TheLastEmpire
 
         [Header("NPC Spawning Settings")]
         [SerializeField] private GameObject npcPrefab;
+        public GameObject NPCPrefab => npcPrefab;
         private GameObject _activeNPC;
 
         private void Awake()
