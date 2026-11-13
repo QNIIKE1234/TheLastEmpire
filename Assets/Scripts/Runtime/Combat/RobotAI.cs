@@ -223,6 +223,9 @@ namespace TheLastEmpire
 
         private bool CheckRobotVision()
         {
+            // หุ่นยนต์จะไม่โจมตีผู้เล่นก่อน จนกว่าจะถูกผู้เล่นโจมตีก่อน (Neutral / Self-defense only)
+            if (!hasBeenAttacked) return false;
+
             if (playerTransform == null || IsTargetDead()) return false;
 
             float dist = Vector3.Distance(transform.position, playerTransform.position);

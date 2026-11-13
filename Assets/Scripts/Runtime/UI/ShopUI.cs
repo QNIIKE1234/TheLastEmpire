@@ -39,6 +39,7 @@ namespace TheLastEmpire
 
         [Header("UI References")]
         [SerializeField] private GameObject shopPanel;
+        [SerializeField] private Button closeButton;
         [SerializeField] private TMP_Text walletText;
         [SerializeField] private TMP_Text shopTitleText;
         [Tooltip("Content GO ที่มี InventoryItemSlot ลูก (Optional: หากไม่ลาก itemSlots ระบบจะดึงลูกจาก Container นี้ให้อัตโนมัติ)")]
@@ -97,6 +98,25 @@ namespace TheLastEmpire
                 
                 if (tabBuyButton != null) tabBuyButton.onClick.AddListener(() => SwitchTab(ShopMode.Buy));
                 if (tabSellButton != null) tabSellButton.onClick.AddListener(() => SwitchTab(ShopMode.Sell));
+
+                // Close button setup
+                if (closeButton == null && shopPanel != null)
+                {
+                    Button[] btns = shopPanel.GetComponentsInChildren<Button>(true);
+                    foreach (var b in btns)
+                    {
+                        if (b.name.IndexOf("close", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            b.name.IndexOf("exit", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            closeButton = b;
+                            break;
+                        }
+                    }
+                }
+                if (closeButton != null)
+                {
+                    closeButton.onClick.AddListener(CloseShop);
+                }
 
                 if (shopPanel != null)
                 {
