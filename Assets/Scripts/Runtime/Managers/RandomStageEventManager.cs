@@ -354,8 +354,8 @@ namespace TheLastEmpire
         private void ExecuteFleeingSurvivor(StageData stage, System.Random rng)
         {
             ShowEventBanner(
-                "PANICKED SURVIVOR DETECTED!",
-                "A fleeing survivor is sprinting through, dragging a hostile swarm behind them!",
+                "PANICKED SCOUT DETECTED!",
+                "Maya the Scout is sprinting for her life, dragging a hostile mob behind her!",
                 new Color(1.0f, 0.45f, 0.15f) // High Alert Orange-Red
             );
 
@@ -414,12 +414,24 @@ namespace TheLastEmpire
             float randomJitter = (float)(rng.NextDouble() * 1.6 - 0.8);
             npcSpawnPos += perpendicular * randomJitter;
 
-            // Spawn NPC วิ่งหนี
+            // Spawn NPC Maya (Scout) วิ่งหนี
             GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
             if (npcPrefab != null)
             {
                 Vector3 runDirection = (escapeTargetPos - npcSpawnPos).normalized;
                 GameObject npcObj = Instantiate(npcPrefab, npcSpawnPos, Quaternion.LookRotation(runDirection));
+
+                // แปลงโมเดลและข้อมูลเป็น Maya (Scout) จาก NPCDatabase
+                NPCController ctrl = npcObj.GetComponent<NPCController>();
+                if (ctrl != null && NPCDatabase.Instance != null)
+                {
+                    NPCDataSO mayaData = NPCDatabase.Instance.GetNPCById("watcher_maya");
+                    if (mayaData != null)
+                    {
+                        ctrl.ApplyData(mayaData);
+                    }
+                }
+
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
                 runner.Initialize(escapeTargetPos, null, speed: 8.5f);
             }

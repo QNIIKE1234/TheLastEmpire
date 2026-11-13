@@ -100,7 +100,7 @@ namespace TheLastEmpire
             if (_speechText != null)
             {
                 string msg = PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
-                _speechText.text = $"<color=#FF2222><b>{msg}</b></color>";
+                _speechText.text = $"<color=#FFAA00>Maya:</color> <color=#FF2222><b>{msg}</b></color>";
             }
         }
 
