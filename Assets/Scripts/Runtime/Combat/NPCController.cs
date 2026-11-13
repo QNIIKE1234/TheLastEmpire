@@ -80,6 +80,16 @@ namespace TheLastEmpire
 
         [SerializeField] private TMPro.TMP_Text nameTextHUD;
 
+        [Header("Sitting Behavior")]
+        [SerializeField] private bool canSit = true;
+        [SerializeField] private float standDetectionRadius = 3.5f;
+        [SerializeField] private float sitCooldownDuration = 5.0f; // ดีเลย์ 5 วินาทีก่อนกลับไปนั่ง
+
+        private Animator _animator;
+        private bool _isSitting = false;
+        private float _leaveTimer = 0f;
+        private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
+
         private void Start()
         {
             // Auto-update the 3D floating text above the NPC if it exists
@@ -95,16 +105,88 @@ namespace TheLastEmpire
                 _playerTransform = player.transform;
             }
 
-            Animator animator = GetComponentInChildren<Animator>();
-            if (animator != null)
+            CacheAnimator();
+
+            // เริ่มต้นให้นั่งถ้าเปิดใช้งาน canSit
+            if (canSit)
             {
-                animator.applyRootMotion = false;
+                SetSittingState(true);
             }
 
             // Populate default merchant items if none are set
             if (npcType == NPCType.Shop && (shopItems == null || shopItems.Count == 0))
             {
                 PopulateDefaultShopItems();
+            }
+        }
+
+        private void Update()
+        {
+            if (!canSit) return;
+
+            if (_playerTransform == null)
+            {
+                PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+                if (player != null) _playerTransform = player.transform;
+            }
+
+            if (_playerTransform == null) return;
+
+            float dist = Vector3.Distance(transform.position, _playerTransform.position);
+            bool playerNearby = dist <= standDetectionRadius;
+
+            if (playerNearby)
+            {
+                _leaveTimer = 0f; // รีเซ็ตตัวนับเวลาตราบใดที่ Player ยังอยู่ใกล้ๆ
+                // ผู้เล่นเข้าใกล้ -> ลุกขึ้นยืน
+                if (_isSitting)
+                {
+                    SetSittingState(false);
+                }
+            }
+            else
+            {
+                // ผู้เล่นเดินห่างออกไป -> เริ่มนับถอยหลังดีเลย์ 5 วิก่อนกลับไปนั่ง
+                if (!_isSitting)
+                {
+                    _leaveTimer += Time.deltaTime;
+                    if (_leaveTimer >= sitCooldownDuration)
+                    {
+                        SetSittingState(true);
+                        _leaveTimer = 0f;
+                    }
+                }
+            }
+        }
+
+        public void SetSittingState(bool sit, bool instant = false)
+        {
+            _isSitting = sit;
+            if (_animator == null) CacheAnimator();
+            if (_animator != null)
+            {
+                _animator.SetBool(IsSittingHash, sit);
+                _animator.SetFloat("Speed", 0f);
+                _animator.SetBool("IsRunning", false);
+
+                if (instant)
+                {
+                    _animator.Play(sit ? "Sit" : "Idle", 0, 0f);
+                }
+                else
+                {
+                    // เปลี่ยนท่าแบบนุ่มนวล (CrossFade 0.25 วินาที) เหมือนของ PlayerController
+                    _animator.CrossFadeInFixedTime(sit ? "Sit" : "Idle", 0.25f, 0);
+                }
+            }
+        }
+
+        private void CacheAnimator()
+        {
+            _animator = GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                _animator.applyRootMotion = false;
             }
         }
 
@@ -148,11 +230,12 @@ namespace TheLastEmpire
                 AddDefaultShopItem("Potion");
                 AddDefaultShopItem("Adrenaline Shot");
 
-                // Food & Rations (4 Types)
+                // Food & Rations (4 Types) + Water
                 AddDefaultShopItem("Bread");
                 AddDefaultShopItem("Energy Bar");
                 AddDefaultShopItem("Canned Food");
                 AddDefaultShopItem("Cooked Meat");
+                AddDefaultShopItem("Water Bottle", 20);
 
                 // Ammunition
                 AddDefaultShopItem("Pistol Ammo");
@@ -242,6 +325,11 @@ namespace TheLastEmpire
 
                 if (targetRoot != null)
                 {
+                    // ตั้งค่า Transform ของ ModelRoot ตามค่ามาตรฐาน: Pos (0, -0.9, 0), Rot (0, 180, 0), Scale (0.7, 0.7, 0.7)
+                    targetRoot.localPosition = new Vector3(0f, -0.9f, 0f);
+                    targetRoot.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                    targetRoot.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+
                     GameObject model = Instantiate(data.customModelPrefab, targetRoot);
                     model.name = data.customModelPrefab.name;
                     model.transform.localPosition = Vector3.zero;
@@ -267,7 +355,15 @@ namespace TheLastEmpire
 
                         if (anim.runtimeAnimatorController != null)
                         {
-                            anim.Play("Idle", 0, 0f);
+                            _animator = anim;
+                            if (canSit)
+                            {
+                                SetSittingState(true);
+                            }
+                            else
+                            {
+                                anim.Play("Idle", 0, 0f);
+                            }
                         }
                     }
                 }
