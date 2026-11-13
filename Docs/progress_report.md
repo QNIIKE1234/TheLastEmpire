@@ -5,6 +5,74 @@
 
 ---
 
+## 12. แก้ไขบัคห้องว่างเปล่าจากการเปลี่ยนด่าน (Stage Transition Empty Void Bug Fix)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`TransitionPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs)
+  - [`EnvironmentManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs)
+  - [`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+- **สาเหตุที่แท้จริง**:
+  - ในซีน `Gameplay_3D.unity` มี Canvas UI เก่าชื่อ `CanvasColider` (จากเวอร์ชัน 2D เดิม) ที่มีคอมโพเนนต์ `TransitionPortal` ติดอยู่บน RectTransform (Layer 5: UI)
+  - เมื่อคำสั่ง `FindObjectsByType<TransitionPortal>` ทำงานเพื่อค้นหาประตูทางเข้าของห้องใหม่ มันหยิบตัว Canvas UI Portal มาแทนที่จะเป็น 3D Portal จริงในฉาก ทำให้พิกัด Position ของตัวละครถูกวาร์ปไปที่ `(0.12, 0.50, 35.18)` ซึ่งอยู่ **นอกขอบเขตพื้นที่เล่นของห้อง (20 เมตรนอกแมพ)** ทำให้เห็นเป็นห้องว่างเปล่า ไม่มีสิ่งปลูกสร้างหรือศัตรู
+- **การแก้ไข**:
+  - เพิ่มฟังก์ชัน `IsWorldPortal(TransitionPortal portal)` ตรวจสอบและคัดกรอง RectTransform และ Layer 5 (UI) ออกทั้งหมด
+  - กรองให้เลือกเฉพาะ 3D World Portal แท้ในฉาก ทำให้ผู้เล่นสปอว์นที่ประตูห้องใหม่อย่างถูกต้อง 100% เสมอ
+
+---
+
+## 13. ปรับปรุงระบบอีเวนต์หนีตาย Maya (Fleeing Survivor) & Animation วิ่ง
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`FleeingSurvivorRunner.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs)
+  - [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)
+- **รายละเอียดการปรับปรุง**:
+  - **Animation วิ่ง (Run Animation)**: แก้ปัญหาตัวละครค้างท่า Idle โดยใช้ `CrossFadeInFixedTime("Run", 0.05f)` ข้ามเงื่อนไข `HasExitTime` ใน Animator Controller พร้อมระบบดึง Animator Controller สำรองจาก `PlayerController.Instance` โดยตรง
+  - **ปรับความเร็ว NPC**: ปรับลดความเร็วการวิ่งของ Maya ลง 1 m/s (จาก 5.0 m/s เหลือ **4.0 m/s**) ตามที่กำหนด
+  - **ปิดการ Interact 100%**: ปิด `CanInteract = false` และสั่งทำลาย `NPCController` ทิ้งเมื่อเริ่มวิ่งหนีตาย เพื่อไม่ให้ขึ้นปุ่มกดคุยขวางหน้าจอ
+
+---
+
+## 14. ปิดการเกิดของเอเลี่ยนในเวลากลางวัน 100% (Strict Nighttime Alien Spawning)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`GameManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/GameManager.cs)
+  - [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)
+- **รายละเอียด**:
+  - ยกเลิกโอกาสการสุ่มเกิด 3% ของเอเลี่ยนในเวลากลางวันออกทั้งหมดใน `GameManager.cs`
+  - กรอง `AlienCrawler` และ `AlienSpitter` ออกจากอีเวนต์สุ่มศัตรูช่วงกลางวัน (HostileAmbush และ FleeingSurvivor Chaser Pack) ทำให้เอเลี่ยนเกิดได้เฉพาะเวลากลางคืน (`DayNightManager.Instance.IsNight`) เท่านั้น
+
+---
+
+## 15. ป้องกัน Inspector คืนค่า Prefab เดิม (NPCDatabaseInitializer Overwrite Bug)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`NPCDatabaseInitializer.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/NPCDatabaseInitializer.cs)
+- **สาเหตุ & การแก้ไข**:
+  - เดิมมี `[InitializeOnLoad]` ที่รันทุกครั้งหลัง compile แล้วเขียนทับ `customModelPrefab` ใน `NPCDatabase` เป็น `.fbx` อัตโนมัติ
+  - แก้ไขให้ตรวจสอบหาก ScriptableObject มีข้อมูลอยู่แล้วจะไม่เขียนทับ และให้ความสำคัญกับ `.prefab` ก่อนไฟล์ `.fbx` เสมอ ทำให้ค่าที่ตั้งไว้ใน Inspector ไม่ถูกรีเซ็ตกลับ
+
+---
+
+## 16. เพิ่มช่อง Reference บทพูดลอย & ไอคอนตัวละคร (Floating Dialog & NPCDataSO)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`NPCDataSO.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/NPCDataSO.cs)
+  - [`NPCController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/NPCController.cs)
+  - [`FleeingSurvivorRunner.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs)
+- **รายละเอียด**:
+  - เปิดช่อง Serialized Reference สำหรับ `dialogPanel`, `dialogText`, และ `dialogIcon` ใน Inspector
+  - เพิ่มฟิลด์ `characterImage`, `npcIcon`, `npcPortrait` ใต้หมวดหมู่ `[Header("Portraits & Icons")]` ใน `NPCDataSO`
+  - นำ `npcIcon` ไปแสดงผลแทนรูปกระเป๋าในกล่องข้อความลอยเหนือหัว (`DIalogPanel`) ทันทีเมื่อเกิด
+
+---
+
+## 17. ระบบ Obstacle Phasing สำหรับศัตรูที่วิ่งไล่กวด (Chaser Enemies Obstacle Phasing)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`BaseEnemyAI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BaseEnemyAI.cs)
+  - [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs)
+- **รายละเอียด**:
+  - เพิ่มระบบ `EnableChaserPhasing(Transform targetPlayer, float restoreDistance = 4.5f)` และ `DisableChaserPhasing()`
+  - ขณะเริ่มวิ่งไล่กวดมาจากฝั่งตรงข้าม Collider ทุกชิ้นของมอนสเตอร์จะถูกปรับเป็น `Trigger` ชั่วคราว และปิดแรงโน้มถ่วง พร้อมล็อคระดับความสูงแกน Y บนพื้น ทำให้วิ่งทะลุสิ่งกีดขวาง/ตึก/กำแพง/กล่อง และไม่ติดกันเอง
+  - เมื่อเข้าใกล้ตัวผู้เล่นในระยะ `<= 4.5m` หรือเมื่อโดนโจมตี/ดาเมจ ระบบจะคืนค่า Collider กลับเป็น Solid Physical Collision และเปิด Gravity ปกติเพื่อเริ่มการต่อสู้ทันที
+  - ปรับความเร็วไล่กวดของฝูงมอนสเตอร์เป็น **3.5 m/s** (ช้ากว่า Maya เล็กน้อย เพื่อให้วิ่งไล่กวดตามหลังอย่างเป็นธรรมชาติ)
+
+---
+
 ## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
 - **สคริปต์ที่เกี่ยวข้อง**:
   - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)
