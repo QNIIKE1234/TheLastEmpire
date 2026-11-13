@@ -651,7 +651,7 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 5.0f, icon: mayaIcon);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 4.0f, icon: mayaIcon);
             }
 
             // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
@@ -713,10 +713,12 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            // ความเร็วไล่กวด 4.5 m/s (ช้ากว่า Maya 5 m/s เล็กน้อย ไม่แซง) + มองเห็นไกล 50m
+                            // ความเร็วไล่กวด 3.5 m/s (ช้ากว่า Maya 4.0 m/s เล็กน้อย ไม่แซง) + มองเห็นไกล 50m
                             // ใช้ ApplyTemporaryStats เพื่อไม่ให้ค่าติดไปกับศัตรูใน Pool ที่ถูกนำไปใช้ซ้ำในห้องอื่น
-                            ai.ApplyTemporaryStats(speed: 4.5f, detection: 50f);
+                            ai.ApplyTemporaryStats(speed: 3.5f, detection: 50f);
                             ai.SkipTransitionDelay(); // วิ่งไล่ทันที ไม่ยืนนิ่ง 2 วินาทีตอนเกิด
+                            // วิ่งทะลุสิ่งกีดขวาง/ตึก/กำแพง จนกว่าจะเข้าใกล้ผู้เล่นในระยะ 4.5m ค่อยเปิด Collider ป้องกันวิ่งติด
+                            ai.EnableChaserPhasing(player != null ? player.transform : null, restoreDistance: 4.5f);
                             enemyObj.transform.forward = runDir;
                         }
                     }

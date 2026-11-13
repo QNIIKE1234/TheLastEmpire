@@ -77,6 +77,141 @@ namespace TheLastEmpire
         private float _naturalDetectionRange;
         private Coroutine _overrideRoutine;
 
+        // ------------------------------------------------------------------
+        // Chaser Phasing (used by Fleeing Survivor event to glide through obstacles)
+        // ------------------------------------------------------------------
+        private readonly System.Collections.Generic.Dictionary<Collider, bool> _originalColliderTriggerStates = new System.Collections.Generic.Dictionary<Collider, bool>();
+        private bool _isChaserPhasing = false;
+        private float _phasingGroundY = 0f;
+        private Transform _phasingTargetPlayer = null;
+        private float _phasingRestoreDistance = 4.5f;
+        private Coroutine _phasingRoutine = null;
+
+        public bool IsChaserPhasing => _isChaserPhasing;
+
+        /// <summary>
+        /// เปิดโหมดวิ่งทะลุสิ่งกีดขวาง (Trigger Collider) จนกว่าจะเข้าใกล้ผู้เล่นในระยะ restoreDistance (เช่น 4.5m)
+        /// ป้องกันปัญหาศัตรูวิ่งติดตึก/กำแพง/กล่องในอีเวนต์วิ่งไล่ล่า
+        /// </summary>
+        public void EnableChaserPhasing(Transform targetPlayer, float restoreDistance = 4.5f)
+        {
+            if (!isActiveAndEnabled) return;
+
+            DisableChaserPhasing();
+
+            _phasingTargetPlayer = targetPlayer != null ? targetPlayer : playerTransform;
+            _phasingRestoreDistance = restoreDistance;
+            _phasingGroundY = transform.position.y;
+            _isChaserPhasing = true;
+
+            // บันทึกสถานะ Trigger เดิมของ Collider ทุกตัว แล้วเปลี่ยนเป็น Trigger เพื่อทะลุสิ่งกีดขวาง
+            Collider[] cols = GetComponentsInChildren<Collider>(true);
+            foreach (var c in cols)
+            {
+                if (c == null) continue;
+                if (!_originalColliderTriggerStates.ContainsKey(c))
+                {
+                    _originalColliderTriggerStates[c] = c.isTrigger;
+                }
+                c.isTrigger = true;
+            }
+
+            if (rb != null)
+            {
+                rb.useGravity = false;
+                Vector3 v = rb.linearVelocity;
+                rb.linearVelocity = new Vector3(v.x, 0f, v.z);
+            }
+
+            _phasingRoutine = StartCoroutine(ChaserPhasingMonitorRoutine());
+        }
+
+        public void DisableChaserPhasing()
+        {
+            if (!_isChaserPhasing && _originalColliderTriggerStates.Count == 0) return;
+            _isChaserPhasing = false;
+
+            if (_phasingRoutine != null)
+            {
+                StopCoroutine(_phasingRoutine);
+                _phasingRoutine = null;
+            }
+
+            // คืนค่า Trigger กลับสู่สภาพปกติของ Collider ทุกตัว
+            foreach (var kvp in _originalColliderTriggerStates)
+            {
+                if (kvp.Key != null)
+                {
+                    kvp.Key.isTrigger = kvp.Value;
+                }
+            }
+            _originalColliderTriggerStates.Clear();
+
+            if (rb != null)
+            {
+                rb.useGravity = true;
+            }
+        }
+
+        private System.Collections.IEnumerator ChaserPhasingMonitorRoutine()
+        {
+            float elapsed = 0f;
+            while (_isChaserPhasing)
+            {
+                elapsed += Time.deltaTime;
+
+                // ล็อคระดับความสูง Y ให้อยู่ระดับพื้นเดิม ไม่ให้ตกแมพ
+                Vector3 pos = transform.position;
+                if (Mathf.Abs(pos.y - _phasingGroundY) > 0.01f)
+                {
+                    pos.y = _phasingGroundY;
+                    transform.position = pos;
+                }
+
+                if (rb != null && rb.linearVelocity.y != 0f)
+                {
+                    Vector3 v = rb.linearVelocity;
+                    rb.linearVelocity = new Vector3(v.x, 0f, v.z);
+                }
+
+                if (_phasingTargetPlayer == null)
+                {
+                    if (playerTransform != null)
+                    {
+                        _phasingTargetPlayer = playerTransform;
+                    }
+                    else
+                    {
+                        PlayerController pc = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                        if (pc != null)
+                        {
+                            _phasingTargetPlayer = pc.transform;
+                            playerTransform = pc.transform;
+                        }
+                    }
+                }
+
+                if (_phasingTargetPlayer != null)
+                {
+                    float dist = Vector3.Distance(transform.position, _phasingTargetPlayer.position);
+                    if (dist <= _phasingRestoreDistance)
+                    {
+                        DisableChaserPhasing();
+                        yield break;
+                    }
+                }
+
+                // หมดเวลา Safe Timeout 20 วินาที คืนค่า Collision อัตโนมัติ
+                if (elapsed >= 20f)
+                {
+                    DisableChaserPhasing();
+                    yield break;
+                }
+
+                yield return null;
+            }
+        }
+
         /// <summary>
         /// Apply event-only stats. speed/detection &lt; 0 = keep natural value. speedMultiplier is applied on top.
         /// Applied one frame later so subclass Start() stat setup cannot overwrite it.
@@ -107,6 +242,7 @@ namespace TheLastEmpire
 
         private void RestoreNaturalStats()
         {
+            DisableChaserPhasing();
             if (_overrideRoutine != null)
             {
                 StopCoroutine(_overrideRoutine);
@@ -123,8 +259,14 @@ namespace TheLastEmpire
         protected virtual void OnEnable()
         {
             RestoreNaturalStats(); // pooled enemy reused -> drop any event stats from the previous room
+            DisableChaserPhasing();
             transitionDelayTimer = 2.0f; // Lock actions for 2s on spawn/activation
             hasBeenAttacked = false;
+        }
+
+        protected virtual void OnDisable()
+        {
+            DisableChaserPhasing();
         }
 
         protected virtual void Start()
@@ -156,6 +298,22 @@ namespace TheLastEmpire
         protected virtual void FixedUpdate()
         {
             if (health != null && health.IsDead) return;
+
+            // Chaser Phasing: ensure the enemy stays on ground level and does not drift vertically
+            if (_isChaserPhasing)
+            {
+                Vector3 cPos = transform.position;
+                if (Mathf.Abs(cPos.y - _phasingGroundY) > 0.01f)
+                {
+                    cPos.y = _phasingGroundY;
+                    transform.position = cPos;
+                }
+                if (rb != null && rb.linearVelocity.y != 0f)
+                {
+                    Vector3 v = rb.linearVelocity;
+                    rb.linearVelocity = new Vector3(v.x, 0f, v.z);
+                }
+            }
 
             // Fall-out-of-world safeguard: teleport back to center of stage if they fall too low
             if (transform.position.y < -5.0f)
@@ -296,6 +454,7 @@ namespace TheLastEmpire
 
         protected virtual void HandleDeath()
         {
+            DisableChaserPhasing();
             Debug.Log($"[BaseEnemyAI] Defeated {gameObject.name}");
 
             // Reward sanity to the player upon kill
@@ -332,6 +491,7 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
+            DisableChaserPhasing();
             hasBeenAttacked = true;
             isStaggered = true;
             staggerTimer = staggerDuration;

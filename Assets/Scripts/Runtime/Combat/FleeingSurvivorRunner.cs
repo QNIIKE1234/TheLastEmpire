@@ -12,7 +12,7 @@ namespace TheLastEmpire
     public class FleeingSurvivorRunner : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 5.0f;
+        [SerializeField] private float moveSpeed = 4.0f;
 
         [Header("Dialog Bubble Reference")]
         [Tooltip("กล่อง Panel บทพูดลอยเหนือหัว (ลาก DIalogPanel จากใต้ Canvas มาใส่)")]
@@ -47,7 +47,7 @@ namespace TheLastEmpire
             "There are too many of them!!"
         };
 
-        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 5.0f, Sprite icon = null)
+        public void Initialize(Transform playerTransform, Vector3 exitDestination, Action onEscaped = null, float speed = 4.0f, Sprite icon = null)
         {
             _playerTransform = playerTransform;
             _exitDestination = exitDestination;

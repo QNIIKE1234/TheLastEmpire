@@ -665,8 +665,9 @@ namespace TheLastEmpire
             base.OnDamageTaken(damageAmount);
         }
 
-        protected void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             HideBossTelegraphVisual();
             _isStompTelegraphing = false;
             _isCharging = false;
