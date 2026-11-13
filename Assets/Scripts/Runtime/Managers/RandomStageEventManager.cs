@@ -765,8 +765,10 @@ namespace TheLastEmpire
                 notiHud.SetActive(true);
 
                 // ค้นหากล่องข้อความ Name_text (หัวข้อ) และ Notification_text (เนื้อหา)
-                TMP_Text titleText = notiHud.transform.Find("Panel/NamePanel/Name_text")?.GetComponent<TMP_Text>();
-                TMP_Text msgText = notiHud.transform.Find("Panel/NotificationPanel/Notification_text")?.GetComponent<TMP_Text>();
+                TMP_Text titleText = notiHud.transform.Find("NamePanel/Name_text")?.GetComponent<TMP_Text>()
+                                  ?? notiHud.transform.Find("Panel/NamePanel/Name_text")?.GetComponent<TMP_Text>();
+                TMP_Text msgText = notiHud.transform.Find("NotificationPanel/Notification_text")?.GetComponent<TMP_Text>()
+                                ?? notiHud.transform.Find("Panel/NotificationPanel/Notification_text")?.GetComponent<TMP_Text>();
 
                 if (titleText == null || msgText == null)
                 {
