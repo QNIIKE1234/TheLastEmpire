@@ -472,7 +472,7 @@ namespace TheLastEmpire
 
             // 9b. Spawn Alien enemies:
             // - กลางคืน: เอเลี่ยนเป็นศัตรูหลัก โอกาสเกิด 80% ต่อชนิด สุ่ม 0-3 ตัว
-            // - กลางวัน: โอกาสเกิดทั้งห้องเพียง 10% และหากเกิด ให้เกิดแค่ 1 - 2 ตัวเสมอ
+            // - กลางวัน: โอกาสเกิดทั้งห้องเพียง 3% (0.03f) และหากเกิด ให้เกิดแค่ 1 - 2 ตัวเสมอ
             if (alienConfigs.Count > 0)
             {
                 if (isNight)
@@ -495,8 +495,8 @@ namespace TheLastEmpire
                 }
                 else
                 {
-                    // กลางวัน: โอกาสเกิดเอเลี่ยนเพียง 10% และเกิดแค่ 1 - 2 ตัวเสมอ
-                    if (Random.value <= 0.10f)
+                    // กลางวัน: โอกาสเกิดเอเลี่ยนเพียง 3% (0.03f) และหากเกิด ให้เกิดแค่ 1 - 2 ตัวเสมอ
+                    if (Random.value <= 0.03f)
                     {
                         int alienCount = Random.Range(1, 3); // เกิด 1 หรือ 2 ตัวเสมอ
                         for (int i = 0; i < alienCount; i++)
@@ -505,7 +505,7 @@ namespace TheLastEmpire
                             SpawnEnemyInstance(chosenAlien.enemyPrefab, chosenAlien.poolKey);
                             stage.remainingEnemyPrefabNames.Add(chosenAlien.enemyPrefab.name);
                         }
-                        Debug.Log($"[GameManager] Daytime Alien Incursion! Spawned {alienCount} alien(s) (10% chance).");
+                        Debug.Log($"[GameManager] Daytime Alien Incursion! Spawned {alienCount} alien(s) (3% chance).");
                     }
                 }
             }
