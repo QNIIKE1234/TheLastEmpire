@@ -85,6 +85,25 @@
 
 ---
 
+## 19. ระบบ HUD เครื่องผลิตน้ำสะอาด (Water Purifier HUD & Capacity 3 Bottles)
+- **สคริปต์ & พรีแฟบที่เกี่ยวข้อง**:
+  - [`Assets/Scripts/Runtime/UI/WaterPurifierHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/WaterPurifierHUD.cs)
+  - [`Assets/Scripts/Runtime/Building/WaterPurifierBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/WaterPurifierBuilding.cs)
+  - [`Assets/Resources_Addressable/Prefabs/Environment/Craft/12_Water_Purifier_Station.prefab`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Environment/Craft/12_Water_Purifier_Station.prefab)
+  - [`Assets/Scenes/Gameplay_3D.unity`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scenes/Gameplay_3D.unity)
+- **รายละเอียด**:
+  - กำหนดความจุสูงสุดของเครื่องกลั่นน้ำเป็น **3 ขวดต่อเครื่อง** (`maxStoredWater = 3`) และเก็บสำรองในเครื่องเพื่อรอผู้เล่นมากดเก็บ
+  - สร้างระบบหน้าต่าง `WaterPurifierHUD` ที่จะเปิดขึ้นมาเฉพาะเมื่อผู้เล่นเดินเข้าไปกด [E] Interact กับเครื่องผลิตน้ำ
+  - ภายในหน้าต่างแบ่งแถวแสดงผล 3 ช่องตามสถานะจริง:
+    - **เสร็จแล้ว (Produced)**: แสดงไอคอนขวดน้ำ, ชื่อ "Water Bottle" x1, และปุ่ม `[COLLECT]` ให้กดเก็บทีละขวดได้
+    - **กำลังกลั่น (In Production)**: แสดงเปอร์เซ็นต์ % ความคืบหน้า และเวลานับถอยหลัง (เช่น `Purifying... (45%)` `33s`) พร้อมปุ่มสถานะ `[PURIFYING]` (ไม่สามารถกดได้)
+    - **รอคิว (Waiting Queue)**: แสดงสถานะรอคิวผลิตขวดถัดไป
+  - **ปุ่ม [Take all]**: รวบรวมน้ำสะอาดทั้งหมดที่ผลิตเสร็จแล้วในเครื่องเข้ากระเป๋าผู้เล่นทันทีในคลิกเดียว
+  - **กล่อง Description Text**: แสดงรายละเอียดเครื่องจักร, ความจุถัง, อัตราการกลั่น, และสถานะพลังงานไฟฟ้า (40 ⚡)
+  - รองรับการปิดหน้าต่างด้วยปุ่มสีแดง, กด [ESC], หรือเดินห่างออกจากตัวเครื่องเกินระยะตรวจจับ
+
+---
+
 ## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
 - **สคริปต์ที่เกี่ยวข้อง**:
   - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)

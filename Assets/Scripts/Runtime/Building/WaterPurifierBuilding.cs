@@ -18,8 +18,8 @@ namespace TheLastEmpire
         [Tooltip("ระยะเวลาการกลั่นน้ำสะอาด 1 ขวด (วินาที)")]
         [SerializeField] private float purifyCycleDuration = 60.0f;
 
-        [Tooltip("จำนวนน้ำดื่มสะอาดสูงสุดที่สถานีนี้กักเก็บสำรองได้ (กรณีช่องกระเป๋าผู้เล่นเต็ม)")]
-        [SerializeField] private int maxStoredWater = 5;
+        [Tooltip("จำนวนน้ำดื่มสะอาดสูงสุดที่สถานีนี้กักเก็บสำรองได้ (สูงสุด 3 ขวด)")]
+        [SerializeField] private int maxStoredWater = 3;
 
         [Tooltip("จำนวนน้ำดื่มสะอาดที่สำรองพร้อมเก็บในเครื่องปัจจุบัน")]
         [SerializeField] private int currentStoredWater = 0;
@@ -27,8 +27,8 @@ namespace TheLastEmpire
         [Tooltip("ชื่อไอเทมน้ำสะอาดที่จะมอบให้ผู้เล่น")]
         [SerializeField] private string cleanWaterItemName = "Water Bottle";
 
-        [Tooltip("ส่งน้ำเข้ากระเป๋าผู้เล่นอัตโนมัติทันทีที่ผลิตเสร็จ")]
-        [SerializeField] private bool autoDeliverToPlayer = true;
+        [Tooltip("ส่งน้ำเข้ากระเป๋าผู้เล่นอัตโนมัติทันทีที่ผลิตเสร็จ (false = กักเก็บในเครื่องให้เปิด HUD เก็บ)")]
+        [SerializeField] private bool autoDeliverToPlayer = false;
 
         [SerializeField] private float interactionDistance = 2.5f;
 
@@ -38,6 +38,7 @@ namespace TheLastEmpire
 
         public int CurrentStoredWater => currentStoredWater;
         public int MaxStoredWater => maxStoredWater;
+        public float CycleDuration => purifyCycleDuration;
         public float ProductionProgress => Mathf.Clamp01(_cycleTimer / purifyCycleDuration);
 
         // IBuildingInteractable implementation
@@ -48,35 +49,42 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
+            if (currentStoredWater >= maxStoredWater)
+            {
+                return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#00ff88>(FULL {currentStoredWater}/{maxStoredWater})</color>";
+            }
             if (currentStoredWater > 0)
             {
-                return $"<color=yellow><b>[E]</b></color> Collect Water ({currentStoredWater}/{maxStoredWater})";
+                return $"<color=yellow><b>[E]</b></color> Water Purifier ({currentStoredWater}/{maxStoredWater})";
             }
-            return $"Purifying Water... <color=#00e5ff>{(ProductionProgress * 100f):F0}%</color>";
+            return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#00e5ff>({(ProductionProgress * 100f):F0}%)</color>";
         }
 
         public void OnInteract()
         {
-            // ตรวจสอบว่ามี WaterPurifier_HUD ให้เปิดหรือไม่
-            GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
-            if (canvasGo != null)
+            // 1. เปิดผ่าน WaterPurifierHUD ทันที
+            if (WaterPurifierHUD.Instance != null)
             {
-                Transform hud = canvasGo.transform.Find("WaterPurifier_HUD");
-                if (hud != null && hud.childCount > 0)
-                {
-                    hud.gameObject.SetActive(true);
-                    Debug.Log("[WaterPurifier] Opened WaterPurifier_HUD.");
-                    return;
-                }
+                WaterPurifierHUD.Instance.OpenHUD(this);
+                return;
             }
 
+            // 2. กรณีไม่มี Singleton ให้ลองค้นหา GameObject WaterPurifier_HUD ในฉาก
+            GameObject hudGo = GameObject.Find("WaterPurifier_HUD");
+            if (hudGo != null)
+            {
+                WaterPurifierHUD hud = hudGo.GetComponent<WaterPurifierHUD>() ?? hudGo.AddComponent<WaterPurifierHUD>();
+                hud.OpenHUD(this);
+                return;
+            }
+
+            // 3. Fallback: หากหา HUD ไม่เจอ ให้เก็บน้ำโดยตรง
             if (currentStoredWater > 0)
             {
                 CollectWater();
             }
             else
             {
-                // หากไม่มีน้ำสำรองในเครื่อง ให้แสดงสถานะการผลิต
                 if (DamageNumberManager.Instance != null)
                 {
                     DamageNumberManager.Instance.SpawnDamageNumber(
@@ -210,6 +218,51 @@ namespace TheLastEmpire
             }
 
             return added;
+        }
+
+        public void CollectAllWater()
+        {
+            CollectWater();
+        }
+
+        public void CollectSingleWater()
+        {
+            if (currentStoredWater <= 0) return;
+
+            if (_playerInventory == null)
+            {
+                FindPlayer();
+                if (_playerInventory == null) return;
+            }
+
+            bool added = TryAddWaterToInventory(_playerInventory, 1);
+            if (added)
+            {
+                currentStoredWater--;
+                if (DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        transform.position + Vector3.up * 1.8f,
+                        0f,
+                        false,
+                        "+น้ำสะอาด (Water Bottle) x1"
+                    );
+                }
+                Debug.Log($"[WaterPurifier] Collected 1 bottle. Remaining: {currentStoredWater}/{maxStoredWater}");
+            }
+            else
+            {
+                if (DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        transform.position + Vector3.up * 1.8f,
+                        0f,
+                        false,
+                        "กระเป๋าเต็ม! เคลียร์ช่องก่อนเก็บน้ำ"
+                    );
+                }
+                Debug.LogWarning("[WaterPurifier] Inventory full! Cannot collect water.");
+            }
         }
 
         public void CollectWater()

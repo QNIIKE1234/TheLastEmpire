@@ -155,10 +155,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire::WaterPurifierBuilding
   purifyCycleDuration: 60
-  maxStoredWater: 5
+  maxStoredWater: 3
   currentStoredWater: 0
   cleanWaterItemName: Water Bottle
-  autoDeliverToPlayer: 1
+  autoDeliverToPlayer: 0
   interactionDistance: 2.5
 --- !u!208 &5578022167380671350
 NavMeshObstacle:
