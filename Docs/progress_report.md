@@ -73,6 +73,18 @@
 
 ---
 
+## 18. สร้างโมเดล 3D ตัวละครใหม่ `Chibi_BlondeBrawler_Rigged` (รองรับ `Chibi_Player_Controller`)
+- **ไฟล์ที่เกี่ยวข้อง**:
+  - [`Tools/Create_Blonde_Brawler.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Blonde_Brawler.py)
+  - [`Assets/GeneratedModels/Chibi_BlondeBrawler_Rigged.fbx`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_BlondeBrawler_Rigged.fbx)
+  - [`Assets/GeneratedModels/Chibi_BlondeBrawler_Source.blend`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_BlondeBrawler_Source.blend)
+  - [`Assets/GeneratedModels/Chibi_BlondeBrawler_Preview.png`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/GeneratedModels/Chibi_BlondeBrawler_Preview.png)
+- **รายละเอียด**:
+  - สร้างโมเดล 3D Toy-Chibi ชายผมทองทรงตั้งแหลม คาดผ้าคาดหัวสีกรมท่า สวมแว่นกันแดดทรงเหลี่ยมสีดำพร้อมแถบแสงสะท้อน แปะพลาสเตอร์ยาที่แก้มขวา ยิ้มกว้างเห็นฟันขาว สวมเสื้อแจ็คเก็ตสีส้มคอตั้งขอบขาวทับเสื้อคอเต่าสีกรมท่า พร้อมสายรัดอกยุทธวิธี หัวเข็มขัดเงิน กระเป๋าอกคู่ ถุงมือชกเปิดนิ้วเสริมเกราะสนับมือสีส้ม กางเกงคาร์โก้สีกรมท่าสนับเข่า และรองเท้าบูท
+  - ใช้โครงกระดูก `Chibi_Base_Rig` (18 Bones) และชุด Animation ครบทั้ง 11 ท่า (`Idle`, `Walk`, `Run`, `DashRoll`, `Slash1`, `Slash2`, `Slash3`, `GunHold`, `Shoot`, `Death`, `Sit`) ที่เข้ากันได้ 100% กับ `Chibi_Player_Controller` เหมือนโมเดล Chibi ชุดก่อนหน้า
+
+---
+
 ## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
 - **สคริปต์ที่เกี่ยวข้อง**:
   - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)
