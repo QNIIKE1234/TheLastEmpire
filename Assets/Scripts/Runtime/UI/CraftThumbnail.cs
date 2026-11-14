@@ -552,12 +552,14 @@ namespace TheLastEmpire
         {
             _isHolding = false;
             _holdTimer = 0f;
+            _hasCraftedThisHold = false;
         }
 
         private void OnCraftPointerExit()
         {
             _isHolding = false;
             _holdTimer = 0f;
+            _hasCraftedThisHold = false;
         }
 
         public void CancelHold()
@@ -574,12 +576,9 @@ namespace TheLastEmpire
 
         private void HandleCraftButtonClick()
         {
-            if (_hasCraftedThisHold)
-            {
-                _hasCraftedThisHold = false;
-                return;
-            }
-            ExecuteCraft();
+            // การคลิกปุ่มเพียงครั้งเดียว จะทำหน้าที่เลือกแถวสูตรคราฟต์เพื่อดูรายละเอียดเท่านั้น
+            // การคราฟต์ไอเทมจริง ผู้เล่นจะต้องกดปุ่มค้าง (Hold to Craft) จนกว่าหลอดความคืบหน้าจะเต็ม 100%
+            HandleRowSelectedClicked();
         }
 
         private void ExecuteCraft()

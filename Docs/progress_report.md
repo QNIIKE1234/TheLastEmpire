@@ -104,6 +104,16 @@
 
 ---
 
+## 20. แก้ไขระบบคราฟต์ไอเทม: บังคับกดค้างเท่านั้น (Strict Hold to Craft Fix)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`Assets/Scripts/Runtime/UI/CraftThumbnail.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftThumbnail.cs)
+- **สาเหตุ & การแก้ไข**:
+  - เดิมใน `HandleCraftButtonClick()` มีการเรียก `ExecuteCraft()` โดยตรงเมื่อ Event `Button.onClick` ทำงาน ส่งผลให้การคลิกเพียงครั้งเดียว (Single Click) ลัดขั้นตอนและสั่งคราฟต์ไอเทมทันทีโดยไม่ต้องกดค้าง
+  - แก้ไขให้การคลิกธรรมดาทำหน้าที่เพียงเลือกดูรายละเอียดแถวนั้น (`HandleRowSelectedClicked()`)
+  - บังคับให้การคราฟต์จะเกิดขึ้นก็ต่อเมื่อผู้เล่น **กดคลิกค้าง (Hold)** บนปุ่มประแจจนหลอดกลม Radial Fill หมุนเต็ม 100% (ครบระยะเวลา `holdDuration = 1.0s`) เท่านั้น หากปล่อยมือก่อนหลอดจะค่อยๆ ลดกลับเป็น 0 และไม่เกิดการคราฟต์
+
+---
+
 ## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
 - **สคริปต์ที่เกี่ยวข้อง**:
   - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)

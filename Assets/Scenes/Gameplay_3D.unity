@@ -281,9 +281,9 @@ MonoBehaviour:
   m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -14070,7 +14070,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &403140160
 RectTransform:
   m_ObjectHideFlags: 0
@@ -46015,7 +46015,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1500000013
 RectTransform:
   m_ObjectHideFlags: 0
@@ -46056,7 +46056,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e5f29d10e82c744f84931a942eb77e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.WaterPurifierHUD
-  hudRoot: {fileID: 403140159}
+  hudRoot: {fileID: 1500000012}
   panelObject: {fileID: 403140159}
   closeButton: {fileID: 1302049427}
   slotsContainer: {fileID: 607598135}
