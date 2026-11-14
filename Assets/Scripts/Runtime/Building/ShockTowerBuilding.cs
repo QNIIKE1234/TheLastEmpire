@@ -14,11 +14,14 @@ namespace TheLastEmpire
     /// - วาดเส้นสายฟ้าชีวภาพ (LineRenderer) พุ่งจากยอดผลึกสู่เป้าหมาย
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class ShockTowerBuilding : MonoBehaviour
+    public class ShockTowerBuilding : MonoBehaviour, IPowerConsumer
     {
         [Header("Shock Combat Settings")]
         [Tooltip("ความเสียหายไฟฟ้าต่อเป้าหมาย")]
         [SerializeField] private float shockDamage = 80.0f;
+
+        [Tooltip("ปริมาณการใช้พลังงานไฟฟ้า (วัตต์)")]
+        [SerializeField] private float powerDemand = 45.0f;
 
         [Tooltip("ระยะการปล่อยสายฟ้า (เมตร)")]
         [SerializeField] private float dischargeRange = 11.0f;
@@ -41,6 +44,21 @@ namespace TheLastEmpire
         private BuildingObject _buildingObject;
         private float _dischargeTimer = 0f;
         private List<LineRenderer> _beamRenderers = new List<LineRenderer>();
+
+        // IPowerConsumer implementation
+        public Vector3 Position => transform.position;
+        public float PowerDemand => powerDemand;
+        public bool IsConsumerActive => _buildingObject == null || !_buildingObject.IsDead;
+
+        private void OnEnable()
+        {
+            PowerGridManager.RegisterConsumer(this);
+        }
+
+        private void OnDisable()
+        {
+            PowerGridManager.UnregisterConsumer(this);
+        }
 
         private void Awake()
         {
@@ -93,7 +111,14 @@ namespace TheLastEmpire
         {
             if (_buildingObject != null && _buildingObject.IsDead) return;
 
-            _dischargeTimer += Time.deltaTime;
+            float powerEff = PowerGridManager.GetPowerEfficiency(transform.position, powerDemand);
+            if (powerEff <= 0f)
+            {
+                // ไม่มีไฟฟ้าจ่ายถึง หอคอยหยุดทำงาน
+                return;
+            }
+
+            _dischargeTimer += Time.deltaTime * powerEff;
             if (_dischargeTimer >= dischargeInterval)
             {
                 _dischargeTimer = 0f;

@@ -44,13 +44,20 @@ namespace TheLastEmpire
         public string GetInteractionPrompt()
         {
             return isRunning 
-                ? "<color=yellow><b>[E]</b></color> Generator (ON)" 
-                : "<color=yellow><b>[E]</b></color> Generator (OFF)";
+                ? "<color=yellow><b>[E]</b></color> Power Grid (ON)" 
+                : "<color=yellow><b>[E]</b></color> Power Grid (OFF)";
         }
 
         public void OnInteract()
         {
-            // ตรวจสอบว่ามี Generator_HUD ให้เปิดหรือไม่
+            // 1. เปิด PowerGridHUD ประจำฐาน
+            if (PowerGridHUD.Instance != null)
+            {
+                PowerGridHUD.Instance.OpenHUD();
+                return;
+            }
+
+            // 2. ตรวจสอบว่ามี Generator_HUD ให้เปิดหรือไม่
             GameObject canvasGo = GameObject.Find("BuildingUI_Canvas");
             if (canvasGo != null)
             {

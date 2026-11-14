@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,11 +29,87 @@ namespace TheLastEmpire
         private static readonly List<GeneratorBuilding> _generators = new List<GeneratorBuilding>();
         private static readonly List<IPowerConsumer> _consumers = new List<IPowerConsumer>();
 
+        public static event Action OnGridChanged;
+
+        public static IReadOnlyList<GeneratorBuilding> Generators => _generators;
+        public static IReadOnlyList<IPowerConsumer> Consumers => _consumers;
+
+        public static float TotalSupply
+        {
+            get
+            {
+                float total = 0f;
+                for (int i = 0; i < _generators.Count; i++)
+                {
+                    if (_generators[i] != null && _generators[i].IsRunning)
+                    {
+                        total += _generators[i].PowerOutput;
+                    }
+                }
+                return total;
+            }
+        }
+
+        public static float TotalDemand
+        {
+            get
+            {
+                float total = 0f;
+                for (int i = 0; i < _consumers.Count; i++)
+                {
+                    if (_consumers[i] != null && _consumers[i].IsConsumerActive)
+                    {
+                        total += _consumers[i].PowerDemand;
+                    }
+                }
+                return total;
+            }
+        }
+
+        public static float GlobalEfficiency
+        {
+            get
+            {
+                float supply = TotalSupply;
+                if (supply <= 0f) return 0f;
+                float demand = TotalDemand;
+                if (demand <= 0f) return 1f;
+                return Mathf.Clamp01(supply / demand);
+            }
+        }
+
+        public static int ActiveGeneratorsCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _generators.Count; i++)
+                {
+                    if (_generators[i] != null && _generators[i].IsRunning) count++;
+                }
+                return count;
+            }
+        }
+
+        public static int ActiveConsumersCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _consumers.Count; i++)
+                {
+                    if (_consumers[i] != null && _consumers[i].IsConsumerActive) count++;
+                }
+                return count;
+            }
+        }
+
         public static void RegisterGenerator(GeneratorBuilding gen)
         {
             if (gen != null && !_generators.Contains(gen))
             {
                 _generators.Add(gen);
+                OnGridChanged?.Invoke();
             }
         }
 
@@ -41,6 +118,7 @@ namespace TheLastEmpire
             if (gen != null)
             {
                 _generators.Remove(gen);
+                OnGridChanged?.Invoke();
             }
         }
 
@@ -49,6 +127,7 @@ namespace TheLastEmpire
             if (consumer != null && !_consumers.Contains(consumer))
             {
                 _consumers.Add(consumer);
+                OnGridChanged?.Invoke();
             }
         }
 
@@ -57,6 +136,7 @@ namespace TheLastEmpire
             if (consumer != null)
             {
                 _consumers.Remove(consumer);
+                OnGridChanged?.Invoke();
             }
         }
 

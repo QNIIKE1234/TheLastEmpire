@@ -13,7 +13,7 @@ namespace TheLastEmpire
     /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class SentryTurretBuilding : MonoBehaviour, IBuildingInteractable
+    public class SentryTurretBuilding : MonoBehaviour, IBuildingInteractable, IPowerConsumer
     {
         [Header("Targeting & Range")]
         [Tooltip("ระยะการตรวจจับและยิงของป้อมปืน (เมตร)")]
@@ -21,6 +21,10 @@ namespace TheLastEmpire
 
         [Tooltip("ความเร็วในการหมุนกระบอกปืนหันหาเป้าหมาย (องศา/วินาที)")]
         [SerializeField] private float rotationSpeed = 180.0f;
+
+        [Header("Power Settings")]
+        [Tooltip("ปริมาณการใช้พลังงานไฟฟ้า (วัตต์)")]
+        [SerializeField] private float powerDemand = 30.0f;
 
         [Header("Combat & Fire Rate")]
         [Tooltip("อัตราการยิงพื้นฐาน (นัดต่อวินาที)")]
@@ -56,6 +60,11 @@ namespace TheLastEmpire
         public int MaxAmmo => maxAmmo;
         public bool HasTarget => _currentTarget != null;
 
+        // IPowerConsumer implementation
+        public Vector3 Position => transform.position;
+        public float PowerDemand => powerDemand;
+        public bool IsConsumerActive => _buildingObject == null || !_buildingObject.IsDead;
+
         // IBuildingInteractable implementation
         public Transform InteractionTransform => transform;
         public Vector3 PromptWorldOffset => Vector3.up * 1.8f;
@@ -64,8 +73,20 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
-            bool isPowered = GeneratorBuilding.IsPositionPowered(transform.position);
-            string powerTag = isPowered ? " [⚡POWERED]" : "";
+            float powerEff = PowerGridManager.GetPowerEfficiency(transform.position, powerDemand);
+            string powerTag;
+            if (powerEff <= 0f)
+            {
+                powerTag = " <color=red>[OFFLINE - NO POWER ⚡]</color>";
+            }
+            else if (powerEff < 1f)
+            {
+                powerTag = $" <color=orange>[BROWNOUT {powerEff * 100f:F0}% ⚡]</color>";
+            }
+            else
+            {
+                powerTag = " <color=green>[⚡POWERED]</color>";
+            }
 
             if (!infiniteAmmo && currentAmmo < maxAmmo)
             {
@@ -102,11 +123,13 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             BuildingInteractionRegistry.Register(this);
+            PowerGridManager.RegisterConsumer(this);
         }
 
         private void OnDisable()
         {
             BuildingInteractionRegistry.Unregister(this);
+            PowerGridManager.UnregisterConsumer(this);
         }
 
         private void Awake()
@@ -132,8 +155,14 @@ namespace TheLastEmpire
         {
             if (_buildingObject != null && _buildingObject.IsDead) return;
 
-            bool isPowered = GeneratorBuilding.IsPositionPowered(transform.position);
-            float effectiveFireRate = isPowered ? fireRate * 1.25f : fireRate;
+            float powerEff = PowerGridManager.GetPowerEfficiency(transform.position, powerDemand);
+            if (powerEff <= 0f)
+            {
+                // ไฟฟ้าดับ ป้อมปืนหยุดทำงาน
+                return;
+            }
+
+            float effectiveFireRate = fireRate * powerEff * (powerEff >= 1.0f ? 1.25f : 1.0f);
 
             _scanTimer += Time.deltaTime;
             if (_scanTimer >= 0.2f)
