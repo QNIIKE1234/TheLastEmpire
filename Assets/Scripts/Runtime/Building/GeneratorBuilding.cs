@@ -16,6 +16,9 @@ namespace TheLastEmpire
         public static readonly List<GeneratorBuilding> ActiveGenerators = new List<GeneratorBuilding>();
 
         [Header("Power Grid Settings")]
+        [Tooltip("กำลังการผลิตไฟฟ้าต่อเครื่อง (วัตต์/หน่วย)")]
+        [SerializeField] private float powerOutput = 60.0f;
+
         [Tooltip("รัศมีสายส่งพลังงานไฟฟ้า (เมตร)")]
         [SerializeField] private float powerRadius = 20.0f;
 
@@ -28,6 +31,7 @@ namespace TheLastEmpire
 
         private BuildingObject _buildingObject;
 
+        public float PowerOutput => IsRunning ? powerOutput : 0f;
         public float PowerRadius => powerRadius;
         public bool IsRunning => isRunning && (_buildingObject == null || !_buildingObject.IsDead);
 
@@ -97,12 +101,14 @@ namespace TheLastEmpire
             {
                 ActiveGenerators.Add(this);
             }
+            PowerGridManager.RegisterGenerator(this);
             BuildingInteractionRegistry.Register(this);
         }
 
         private void OnDisable()
         {
             ActiveGenerators.Remove(this);
+            PowerGridManager.UnregisterGenerator(this);
             BuildingInteractionRegistry.Unregister(this);
         }
 

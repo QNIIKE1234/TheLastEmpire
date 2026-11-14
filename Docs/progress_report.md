@@ -114,6 +114,22 @@
 
 ---
 
+## 21. ระบบโครงข่ายไฟฟ้าฐานและเชื่อมต่อเครื่องกรองน้ำ (Base Power Grid System & Water Purifier)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`Assets/Scripts/Runtime/Building/PowerGridManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/PowerGridManager.cs)
+  - [`Assets/Scripts/Runtime/Building/GeneratorBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/GeneratorBuilding.cs)
+  - [`Assets/Scripts/Runtime/Building/WaterPurifierBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/WaterPurifierBuilding.cs)
+  - [`Assets/Scripts/Runtime/UI/WaterPurifierHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/WaterPurifierHUD.cs)
+- **รายละเอียด**:
+  - สร้าง `PowerGridManager` จัดการระบบไฟฟ้าในฐาน คำนวณความต้องการไฟ (Demand) เทียบกับกำลังการผลิต (Supply)
+  - เครื่องปั่นไฟ `GeneratorBuilding` จ่ายไฟ 60W ต่อเครื่อง ในรัศมี 20 เมตร
+  - เครื่องกลั่นน้ำ `WaterPurifierBuilding` ใช้ไฟ 40W (`powerDemand = 40.0f`):
+    - **กรณีไม่มีเครื่องปั่นไฟในรัศมี**: ประสิทธิภาพพลังงาน = 0.0 (`PowerEfficiency = 0`) เครื่องจะหยุดนิ่งสนิท 0% ไม่เดินรอบการกลั่น และขึ้นสถานะ `[OFFLINE - NO POWER ⚡]`
+    - **กรณีพลังงานไม่พอ (Brownout)**: ความเร็วในการกลั่นน้ำจะช้าลงตามอัตราส่วนไฟฟ้าจริง (Supply / Demand)
+    - **กรณีพลังงานเพียงพอ**: เครื่องทำงานเต็มประสิทธิภาพ 100% ตามความเร็วรอบปกติ
+
+---
+
 ## 10. ระบบเหตุการณ์ไดนามิก: Maya (Scout) วิ่งหนีตายข้ามฉากพร้อมฝูงมอนสเตอร์กวดตามหลัง (`FleeingSurvivor`)
 - **สคริปต์ที่เกี่ยวข้อง**:
   - [`StageEventType.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)

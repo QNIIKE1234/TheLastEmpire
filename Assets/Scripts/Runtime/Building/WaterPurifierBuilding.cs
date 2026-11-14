@@ -12,7 +12,7 @@ namespace TheLastEmpire
     /// - รวมศูนย์ Interaction Prompt ผ่าน Loot_HUD
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
-    public class WaterPurifierBuilding : MonoBehaviour, IBuildingInteractable
+    public class WaterPurifierBuilding : MonoBehaviour, IBuildingInteractable, IPowerConsumer
     {
         [Header("Purifier Production Settings")]
         [Tooltip("ระยะเวลาการกลั่นน้ำสะอาด 1 ขวด (วินาที)")]
@@ -30,6 +30,13 @@ namespace TheLastEmpire
         [Tooltip("ส่งน้ำเข้ากระเป๋าผู้เล่นอัตโนมัติทันทีที่ผลิตเสร็จ (false = กักเก็บในเครื่องให้เปิด HUD เก็บ)")]
         [SerializeField] private bool autoDeliverToPlayer = false;
 
+        [Header("Power Settings")]
+        [Tooltip("จำเป็นต้องมีไฟฟ้าจากเครื่องปั่นไฟ (Fusion Generator) ในการทำงานหรือไม่")]
+        [SerializeField] private bool requiresPower = true;
+
+        [Tooltip("ปริมาณไฟฟ้าที่ต้องการใช้ในการทำงาน (วัตต์/หน่วย)")]
+        [SerializeField] private float powerDemand = 40.0f;
+
         [SerializeField] private float interactionDistance = 2.5f;
 
         private BuildingObject _buildingObject;
@@ -41,6 +48,20 @@ namespace TheLastEmpire
         public float CycleDuration => purifyCycleDuration;
         public float ProductionProgress => Mathf.Clamp01(_cycleTimer / purifyCycleDuration);
 
+        // IPowerConsumer implementation
+        public Vector3 Position => transform.position;
+        public float PowerDemand => requiresPower ? powerDemand : 0f;
+        public bool IsConsumerActive => CanInteract && (currentStoredWater < maxStoredWater);
+
+        public float PowerEfficiency
+        {
+            get
+            {
+                if (!requiresPower) return 1.0f;
+                return PowerGridManager.GetPowerEfficiency(transform.position, powerDemand);
+            }
+        }
+
         // IBuildingInteractable implementation
         public Transform InteractionTransform => transform;
         public Vector3 PromptWorldOffset => Vector3.up * 1.6f;
@@ -49,14 +70,27 @@ namespace TheLastEmpire
 
         public string GetInteractionPrompt()
         {
+            float efficiency = PowerEfficiency;
+            if (efficiency <= 0f)
+            {
+                return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#ff3333>(OFFLINE - NO POWER ⚡)</color>";
+            }
+
             if (currentStoredWater >= maxStoredWater)
             {
                 return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#00ff88>(FULL {currentStoredWater}/{maxStoredWater})</color>";
             }
+
+            if (efficiency < 1.0f)
+            {
+                return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#ffb700>(LOW POWER {(efficiency * 100f):F0}%)</color> [{(ProductionProgress * 100f):F0}%]";
+            }
+
             if (currentStoredWater > 0)
             {
-                return $"<color=yellow><b>[E]</b></color> Water Purifier ({currentStoredWater}/{maxStoredWater})";
+                return $"<color=yellow><b>[E]</b></color> Water Purifier ({currentStoredWater}/{maxStoredWater}) [{(ProductionProgress * 100f):F0}%]";
             }
+
             return $"<color=yellow><b>[E]</b></color> Water Purifier <color=#00e5ff>({(ProductionProgress * 100f):F0}%)</color>";
         }
 
@@ -104,11 +138,13 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             BuildingInteractionRegistry.Register(this);
+            PowerGridManager.RegisterConsumer(this);
         }
 
         private void OnDisable()
         {
             BuildingInteractionRegistry.Unregister(this);
+            PowerGridManager.UnregisterConsumer(this);
         }
 
         private void Awake()
@@ -137,7 +173,15 @@ namespace TheLastEmpire
             // หากคลังสำรองยังไม่เต็ม สามารถเดินรอบผลิตได้ต่อเนื่อง
             if (currentStoredWater < maxStoredWater)
             {
-                _cycleTimer += Time.deltaTime;
+                float efficiency = PowerEfficiency;
+                if (efficiency <= 0f)
+                {
+                    // ไม่มีไฟฟ้าเลย! เครื่องหยุดนิ่งสนิท 0% ไม่มีการเดินรอบผลิต!
+                    return;
+                }
+
+                // เดินรอบผลิตตามอัตราส่วนไฟฟ้าจริง (ไฟน้อยเดินช้า ไฟเต็มเดินความเร็วปกติ)
+                _cycleTimer += Time.deltaTime * efficiency;
                 if (_cycleTimer >= purifyCycleDuration)
                 {
                     _cycleTimer = 0f;

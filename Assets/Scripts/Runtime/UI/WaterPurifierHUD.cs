@@ -333,10 +333,23 @@ namespace TheLastEmpire
             float remainingSeconds = Mathf.Max(0f, _currentBuilding.CycleDuration * (1f - progress));
 
             // ตรวจสอบพลังงานไฟฟ้าในพื้นที่
-            bool isPowered = GeneratorBuilding.IsPositionPowered(_currentBuilding.transform.position);
-            string powerStatus = isPowered 
-                ? "<color=#00e5ff><b>⚡ GRID POWERED (40W) — 100% Speed</b></color>"
-                : "<color=#ffb700><b>⚠️ BACKUP BATTERY — Working Normal</b></color>";
+            float efficiency = _currentBuilding.PowerEfficiency;
+            float availableSupply = PowerGridManager.GetAvailableSupply(_currentBuilding.transform.position);
+            float totalDemand = PowerGridManager.GetConnectedDemand(_currentBuilding.transform.position);
+
+            string powerStatus;
+            if (efficiency <= 0f)
+            {
+                powerStatus = "<color=#ff3333><b>❌ NO POWER (0/40W) — Machine Offline! Build or turn on Fusion Generator</b></color>";
+            }
+            else if (efficiency < 1.0f)
+            {
+                powerStatus = $"<color=#ffb700><b>⚠️ LOW POWER ({availableSupply:F0}/{totalDemand:F0}W, {(efficiency * 100f):F0}% Speed) — Purifying Slower</b></color>";
+            }
+            else
+            {
+                powerStatus = $"<color=#00e5ff><b>⚡ GRID POWERED ({availableSupply:F0}/{totalDemand:F0}W) — 100% Full Speed</b></color>";
+            }
 
             // 1. อัปเดตกล่องข้อความ Description
             if (descriptionText != null)
@@ -345,6 +358,10 @@ namespace TheLastEmpire
                 if (storedCount >= maxSlots)
                 {
                     statusLine = "<color=#00ff88><b>STORAGE FULL (3/3) — Collect water to resume</b></color>";
+                }
+                else if (efficiency <= 0f)
+                {
+                    statusLine = "<color=#ff3333><b>OFFLINE — No Electricity! Purifying Stalled (0%)</b></color>";
                 }
                 else
                 {
@@ -383,27 +400,43 @@ namespace TheLastEmpire
                 }
                 else if (slotIndex == storedCount && storedCount < maxSlots)
                 {
-                    // === ช่องที่กำลังกลั่นอยู่ (IN PRODUCTION) ===
+                    // === ช่องที่กำลังกลั่นอยู่ (IN PRODUCTION / OFFLINE) ===
                     slot.gameObject.SetActive(true);
-                    string progText = $"{(progress * 100f):F0}%";
-                    string timeText = $"{remainingSeconds:F0}s";
 
-                    slot.SetData(
-                        itemName: $"Purifying... ({progText})",
-                        quantity: 1,
-                        icon: _waterIcon,
-                        isEquipped: false,
-                        onClickUse: null, // ปิดปุ่มกด
-                        customButtonText: "PURIFYING",
-                        customQuantityText: timeText
-                    );
+                    if (efficiency <= 0f)
+                    {
+                        slot.SetData(
+                            itemName: "Offline (No Power ⚡)",
+                            quantity: 1,
+                            icon: _waterIcon,
+                            isEquipped: false,
+                            onClickUse: null,
+                            customButtonText: "OFFLINE",
+                            customQuantityText: "PAUSED"
+                        );
+                    }
+                    else
+                    {
+                        string progText = $"{(progress * 100f):F0}%";
+                        string timeText = $"{remainingSeconds:F0}s";
+
+                        slot.SetData(
+                            itemName: $"Purifying... ({progText})",
+                            quantity: 1,
+                            icon: _waterIcon,
+                            isEquipped: false,
+                            onClickUse: null,
+                            customButtonText: "PURIFYING",
+                            customQuantityText: timeText
+                        );
+                    }
                 }
                 else
                 {
                     // === ช่องที่ว่าง / รอคิว (QUEUED / EMPTY) ===
                     slot.gameObject.SetActive(true);
                     slot.SetData(
-                        itemName: $"Water Slot #{slotIndex + 1} (Waiting)",
+                        itemName: $"Slot #{slotIndex + 1} (Waiting Queue)",
                         quantity: 0,
                         icon: _waterIcon,
                         isEquipped: false,
