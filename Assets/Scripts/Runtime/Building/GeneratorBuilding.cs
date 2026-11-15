@@ -79,18 +79,7 @@ namespace TheLastEmpire
 
         public static bool IsPositionPowered(Vector3 position)
         {
-            for (int i = 0; i < ActiveGenerators.Count; i++)
-            {
-                GeneratorBuilding gen = ActiveGenerators[i];
-                if (gen != null && gen.IsRunning)
-                {
-                    if (Vector3.Distance(position, gen.transform.position) <= gen.powerRadius)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return PowerGridManager.IsPositionPowered(position);
         }
 
         private void Awake()

@@ -141,100 +141,38 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ตรวจสอบว่ามีเครื่องผลิตไฟฟ้าที่กำลังทำงานครอบคลุมตำแหน่งนี้หรือไม่
+        /// ตรวจสอบว่ามีเครื่องผลิตไฟฟ้าที่กำลังทำงานในแมพหรือไม่ (ระบบไฟฟ้าครอบคลุมทั่วทั้งฐาน/ทั้งแมพ)
         /// </summary>
         public static bool IsPositionPowered(Vector3 position)
         {
-            for (int i = 0; i < _generators.Count; i++)
-            {
-                GeneratorBuilding gen = _generators[i];
-                if (gen != null && gen.IsRunning)
-                {
-                    if (Vector3.Distance(position, gen.transform.position) <= gen.PowerRadius)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return TotalSupply > 0f;
         }
 
         /// <summary>
-        /// คำนวณกำลังผลิตไฟฟ้ารวม (Supply) ที่จ่ายถึงตำแหน่งนี้ (วัตต์)
+        /// กำลังผลิตไฟฟ้ารวม (Supply) ทั้งหมดในแมพ (วัตต์)
         /// </summary>
         public static float GetAvailableSupply(Vector3 position)
         {
-            float total = 0f;
-            for (int i = 0; i < _generators.Count; i++)
-            {
-                GeneratorBuilding gen = _generators[i];
-                if (gen != null && gen.IsRunning)
-                {
-                    if (Vector3.Distance(position, gen.transform.position) <= gen.PowerRadius)
-                    {
-                        total += gen.PowerOutput;
-                    }
-                }
-            }
-            return total;
+            return TotalSupply;
         }
 
         /// <summary>
-        /// คำนวณความต้องการไฟฟ้ารวม (Demand) ของเครื่องจักรทั้งหมดในรัศมีเครื่องปั่นไฟที่ตำแหน่งนี้เชื่อมต่อ
+        /// ความต้องการไฟฟ้ารวม (Demand) ของเครื่องจักรทั้งหมดในแมพ (วัตต์)
         /// </summary>
         public static float GetConnectedDemand(Vector3 position)
         {
-            List<GeneratorBuilding> coveringGens = new List<GeneratorBuilding>();
-            for (int i = 0; i < _generators.Count; i++)
-            {
-                GeneratorBuilding gen = _generators[i];
-                if (gen != null && gen.IsRunning && Vector3.Distance(position, gen.transform.position) <= gen.PowerRadius)
-                {
-                    coveringGens.Add(gen);
-                }
-            }
-
-            if (coveringGens.Count == 0) return 0f;
-
-            float totalDemand = 0f;
-            HashSet<IPowerConsumer> counted = new HashSet<IPowerConsumer>();
-
-            for (int i = 0; i < _consumers.Count; i++)
-            {
-                IPowerConsumer c = _consumers[i];
-                if (c == null || !c.IsConsumerActive || counted.Contains(c)) continue;
-
-                for (int g = 0; g < coveringGens.Count; g++)
-                {
-                    if (Vector3.Distance(c.Position, coveringGens[g].transform.position) <= coveringGens[g].PowerRadius)
-                    {
-                        counted.Add(c);
-                        totalDemand += c.PowerDemand;
-                        break;
-                    }
-                }
-            }
-
-            return totalDemand;
+            return TotalDemand;
         }
 
         /// <summary>
-        /// คำนวณอัตราส่วนประสิทธิภาพไฟฟ้า (0.0 ถึง 1.0)
-        /// ถ้าไม่มีเครื่องปั่นไฟ หรือไม่มีไฟฟ้าจ่ายถึง -> คืนค่า 0.0
+        /// คำนวณอัตราส่วนประสิทธิภาพไฟฟ้าทั่วทั้งแมพ (0.0 ถึง 1.0)
+        /// ถ้าไม่มีเครื่องปั่นไฟ หรือไม่มีไฟฟ้าจ่าย -> คืนค่า 0.0 (เครื่องหยุดทำงาน)
+        /// ถ้าจ่ายไฟพอ -> คืนค่า 1.0 (100%)
+        /// ถ้าไฟไม่พอ -> คืนค่าตามสัดส่วน Supply / Demand (Brownout)
         /// </summary>
         public static float GetPowerEfficiency(Vector3 position, float myDemand = 0f)
         {
-            float supply = GetAvailableSupply(position);
-            if (supply <= 0f)
-            {
-                return 0f; // ไม่มีเครื่องปั่นไฟเลย -> ประสิทธิภาพเป็น 0 เครื่องหยุดทำงาน
-            }
-
-            float demand = GetConnectedDemand(position);
-            if (demand <= 0f) demand = myDemand;
-            if (demand <= 0f) return 1f;
-
-            return Mathf.Clamp01(supply / demand);
+            return GlobalEfficiency;
         }
     }
 }
