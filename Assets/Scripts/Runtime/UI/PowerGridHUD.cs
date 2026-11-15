@@ -119,6 +119,9 @@ namespace TheLastEmpire
                 _instance = this;
             }
 
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
             SetupDefaultGridEntries();
             AutoBindReferences();
         }
@@ -393,8 +396,9 @@ namespace TheLastEmpire
                 PopUpManager.Instance.Remove(this);
             }
 
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            // ในเกมมุมมอง Top-down เมาส์ต้องเปิดแสดงและไม่ล็อกเสมอ
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
 
             Debug.Log("[PowerGridHUD] Closed Power Grid UI.");
         }
