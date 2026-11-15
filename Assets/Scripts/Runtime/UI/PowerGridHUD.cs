@@ -570,13 +570,14 @@ namespace TheLastEmpire
                 else
                 {
                     float loadPercent = (demand / supply) * 100f;
+                    float effPercent = eff * 100f;
                     if (demand <= supply)
                     {
                         amountText.text = $"{demand:F0} / {supply:F0} W  ({loadPercent:F0}% LOAD)";
                     }
                     else
                     {
-                        amountText.text = $"{demand:F0} / {supply:F0} W  <color=#FF5555>({loadPercent:F0}% OVERLOAD)</color>";
+                        amountText.text = $"{demand:F0} / {supply:F0} W  <color=#FF5555>[OVERLOAD — SPEED {effPercent:F0}%]</color>";
                     }
                 }
             }

@@ -17,6 +17,8 @@ namespace TheLastEmpire
         [Header("Timing Settings (Day-Night Cycle)")]
         [Tooltip("ความยาว 1 วันเต็มในเกม (วินาทีจริง) = 360 วินาที (6 นาที)")]
         [SerializeField] private float fullDayDuration = 360f;
+
+        public float FullDayDuration => fullDayDuration;
         [Tooltip("ช่วงกลางวัน 06:00 - 18:00 (12 ชม. ในเกม) = 180 วินาที")]
         [SerializeField] private float dayDuration = 180f;
         [Tooltip("ช่วงพลบค่ำ 18:00 - 21:00 (3 ชม. ในเกม) = 45 วินาที")]

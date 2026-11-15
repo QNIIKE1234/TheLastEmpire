@@ -15,8 +15,8 @@ namespace TheLastEmpire
     public class WaterPurifierBuilding : MonoBehaviour, IBuildingInteractable, IPowerConsumer
     {
         [Header("Purifier Production Settings")]
-        [Tooltip("ระยะเวลาการกลั่นน้ำสะอาด 1 ขวด (วินาที)")]
-        [SerializeField] private float purifyCycleDuration = 60.0f;
+        [Tooltip("ระยะเวลาการกลั่นน้ำสะอาด 1 ขวด (วินาที) — 1 วันในเกม (360s) ได้ 2 ขวด = 180s ต่อขวด")]
+        [SerializeField] private float purifyCycleDuration = 180.0f;
 
         [Tooltip("จำนวนน้ำดื่มสะอาดสูงสุดที่สถานีนี้กักเก็บสำรองได้ (สูงสุด 3 ขวด)")]
         [SerializeField] private int maxStoredWater = 3;
@@ -45,8 +45,18 @@ namespace TheLastEmpire
 
         public int CurrentStoredWater => currentStoredWater;
         public int MaxStoredWater => maxStoredWater;
-        public float CycleDuration => purifyCycleDuration;
-        public float ProductionProgress => Mathf.Clamp01(_cycleTimer / purifyCycleDuration);
+        public float CycleDuration
+        {
+            get
+            {
+                if (DayNightManager.Instance != null && DayNightManager.Instance.FullDayDuration > 0f)
+                {
+                    return DayNightManager.Instance.FullDayDuration / 2.0f; // 1 วันในเกม กรองได้ 2 ขวด
+                }
+                return purifyCycleDuration;
+            }
+        }
+        public float ProductionProgress => Mathf.Clamp01(_cycleTimer / CycleDuration);
 
         // IPowerConsumer implementation
         public Vector3 Position => transform.position;
@@ -182,7 +192,7 @@ namespace TheLastEmpire
 
                 // เดินรอบผลิตตามอัตราส่วนไฟฟ้าจริง (ไฟน้อยเดินช้า ไฟเต็มเดินความเร็วปกติ)
                 _cycleTimer += Time.deltaTime * efficiency;
-                if (_cycleTimer >= purifyCycleDuration)
+                if (_cycleTimer >= CycleDuration)
                 {
                     _cycleTimer = 0f;
                     OnPurifyCycleComplete();
