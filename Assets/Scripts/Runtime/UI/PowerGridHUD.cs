@@ -217,19 +217,19 @@ namespace TheLastEmpire
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0012",
-                    buildingName = "Water Purifier",
-                    powerWatt = 40f,
+                    buildingId = "BUILD0008",
+                    buildingName = "Motorized Blast Door",
+                    powerWatt = 10f,
                     isProducer = false,
-                    description = "Purifies contaminated fluids into bottled clean water (Max 3 bottles). Requires 40W."
+                    description = "Heavy reinforced motorized security door. Powered locking and hydraulic servos consume 10W."
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0008",
-                    buildingName = "Blast Door",
-                    powerWatt = 10f,
+                    buildingId = "BUILD0007",
+                    buildingName = "Armored Wall Panel",
+                    powerWatt = 0f,
                     isProducer = false,
-                    description = "Heavy reinforced security blast door. Electrified barrier requires 10W power."
+                    description = "Heavy titanium-reinforced wall barricade protecting base perimeter. Passive armor structure (0W)."
                 },
                 new GridItemEntry
                 {
@@ -241,11 +241,11 @@ namespace TheLastEmpire
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0011",
-                    buildingName = "Storage / Aux Light",
-                    powerWatt = 5f,
+                    buildingId = "BUILD0017",
+                    buildingName = "Razor Wire Barricade",
+                    powerWatt = 0f,
                     isProducer = false,
-                    description = "Auxiliary base infrastructure, perimeter lantern posts, and climate-controlled storage."
+                    description = "Barricade with circular serrated blades and barbed wire shredding advancing enemies. Physical trap (0W)."
                 }
             };
         }
@@ -648,6 +648,23 @@ namespace TheLastEmpire
             {
                 BuildingObject b = all[i];
                 if (b == null || b.IsDead) continue;
+
+                if (b.Data != null)
+                {
+                    if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(b.Data.buildingId) &&
+                        b.Data.buildingId.IndexOf(id, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(b.Data.buildingName) &&
+                        b.Data.buildingName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        continue;
+                    }
+                }
 
                 string objName = b.gameObject.name;
                 if (!string.IsNullOrEmpty(id) && objName.IndexOf(id, StringComparison.OrdinalIgnoreCase) >= 0)
