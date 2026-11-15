@@ -91,16 +91,56 @@ namespace TheLastEmpire
         [System.Serializable]
         public class GridItemEntry
         {
+            [Tooltip("ลาก Prefab ของสิ่งปลูกสร้างชิ้นนี้มาใส่ (ระบบจะจับคู่เช็คในฉากและอัปเดตไอคอนให้อัตโนมัติ)")]
+            public GameObject buildingPrefab;
+
+            [Tooltip("หรือลาก BuildingData ScriptableObject มาใส่ (ระบบจะดึงชื่อ ไอคอน Prefab และคำอธิบายให้อัตโนมัติ)")]
+            public BuildingData buildingData;
+
+            [Header("Overrides & Custom Settings (เว้นว่างได้ ระบบจะดึงจาก Prefab / Data ให้)")]
             public string buildingId;
             public string buildingName;
+            public Sprite customIcon;
             public float powerWatt;
             public bool isProducer;
+            [TextArea(2, 3)]
             public string description;
 
             [HideInInspector] public GameObject rootObject;
             [HideInInspector] public Image iconImage;
             [HideInInspector] public TMP_Text percentText;
             [HideInInspector] public Button button;
+
+            public string DisplayName
+            {
+                get
+                {
+                    if (!string.IsNullOrEmpty(buildingName)) return buildingName;
+                    if (buildingData != null && !string.IsNullOrEmpty(buildingData.buildingName)) return buildingData.buildingName;
+                    if (buildingPrefab != null) return CleanName(buildingPrefab.name);
+                    return "Building";
+                }
+            }
+
+            public Sprite DisplayIcon
+            {
+                get
+                {
+                    if (customIcon != null) return customIcon;
+                    if (buildingData != null && buildingData.icon != null) return buildingData.icon;
+                    return null;
+                }
+            }
+
+            public string DisplayDescription
+            {
+                get
+                {
+                    if (!string.IsNullOrEmpty(description)) return description;
+                    if (buildingData != null && !string.IsNullOrEmpty(buildingData.description)) return buildingData.description;
+                    return "Base infrastructure equipment.";
+                }
+            }
         }
 
         [Header("Building Grid Configurations")]
@@ -150,6 +190,9 @@ namespace TheLastEmpire
             {
                 SetupDefaultGridEntries();
             }
+
+            // ซิงค์รูปไอคอนและชื่อทันทีเมื่อผู้ใช้ลาก Prefab หรือ BuildingData มาใส่ใน Inspector
+            AutoBindReferences();
         }
 #endif
 
@@ -335,7 +378,44 @@ namespace TheLastEmpire
                         entry.rootObject = itemT.gameObject;
 
                         Transform iconT = itemT.Find("Icon");
-                        if (iconT != null) entry.iconImage = iconT.GetComponent<Image>();
+                        if (iconT != null)
+                        {
+                            entry.iconImage = iconT.GetComponent<Image>();
+                            // อัปเดตรูปไอคอนให้ตรงกับ Prefab หรือ BuildingData โดยอัตโนมัติ
+                            Sprite spr = entry.DisplayIcon;
+                            if (spr != null && entry.iconImage != null)
+                            {
+                                entry.iconImage.sprite = spr;
+                            }
+                        }
+
+                        // ถ้าระบุ buildingPrefab ไว้ และยังไม่ได้กำหนดค่าวัตต์/ประเภทผลิตไฟ ให้ดึงจาก Component อัตโนมัติ
+                        if (entry.buildingPrefab != null)
+                        {
+                            if (entry.buildingData == null)
+                            {
+                                BuildingObject bo = entry.buildingPrefab.GetComponent<BuildingObject>();
+                                if (bo != null && bo.Data != null) entry.buildingData = bo.Data;
+                            }
+
+                            if (entry.powerWatt == 0f && !entry.isProducer)
+                            {
+                                GeneratorBuilding gen = entry.buildingPrefab.GetComponent<GeneratorBuilding>();
+                                if (gen != null)
+                                {
+                                    entry.isProducer = true;
+                                    entry.powerWatt = gen.PowerOutput > 0 ? gen.PowerOutput : 60f;
+                                }
+                                else
+                                {
+                                    IPowerConsumer consumer = entry.buildingPrefab.GetComponent<IPowerConsumer>();
+                                    if (consumer != null)
+                                    {
+                                        entry.powerWatt = consumer.PowerDemand;
+                                    }
+                                }
+                            }
+                        }
 
                         Transform txtT = itemT.Find("TextPercant");
                         if (txtT != null) entry.percentText = txtT.GetComponent<TMP_Text>();
@@ -536,7 +616,7 @@ namespace TheLastEmpire
                 GridItemEntry entry = gridEntries[i];
                 if (entry.percentText == null) continue;
 
-                int placedCount = CountPlacedBuildings(entry.buildingId, entry.buildingName);
+                int placedCount = CountPlacedBuildings(entry);
 
                 if (placedCount <= 0)
                 {
@@ -576,7 +656,7 @@ namespace TheLastEmpire
                 if (_selectedItemIndex >= 0 && _selectedItemIndex < gridEntries.Count)
                 {
                     GridItemEntry sel = gridEntries[_selectedItemIndex];
-                    int count = CountPlacedBuildings(sel.buildingId, sel.buildingName);
+                    int count = CountPlacedBuildings(sel);
                     string statusStr;
 
                     if (count <= 0)
@@ -612,7 +692,7 @@ namespace TheLastEmpire
                         spec = $"Demand: <color=#FFB800>-{sel.powerWatt:F0}W</color> per unit (Total: -{count * sel.powerWatt:F0}W)";
                     }
 
-                    descriptionText.text = $"<b>[{sel.buildingName}]</b>  —  Active: {count} unit(s)  |  Status: {statusStr}\n{spec}\n{sel.description}";
+                    descriptionText.text = $"<b>[{sel.DisplayName}]</b>  —  Active: {count} unit(s)  |  Status: {statusStr}\n{spec}\n{sel.DisplayDescription}";
                 }
                 else
                 {
@@ -644,8 +724,9 @@ namespace TheLastEmpire
             }
         }
 
-        private int CountPlacedBuildings(string id, string name)
+        private int CountPlacedBuildings(GridItemEntry entry)
         {
+            if (entry == null) return 0;
             int count = 0;
             BuildingObject[] all = UnityEngine.Object.FindObjectsByType<BuildingObject>(FindObjectsSortMode.None);
             for (int i = 0; i < all.Length; i++)
@@ -653,34 +734,73 @@ namespace TheLastEmpire
                 BuildingObject b = all[i];
                 if (b == null || b.IsDead) continue;
 
-                if (b.Data != null)
+                // 1. เทียบตรงกับ BuildingData (แม่นยำที่สุด)
+                if (entry.buildingData != null && b.Data == entry.buildingData)
                 {
-                    if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(b.Data.buildingId) &&
-                        b.Data.buildingId.IndexOf(id, StringComparison.OrdinalIgnoreCase) >= 0)
+                    count++;
+                    continue;
+                }
+
+                // 2. เทียบตรงกับ buildingPrefab (ถ้าผู้ใช้ลาก Prefab มาใส่)
+                if (entry.buildingPrefab != null)
+                {
+                    if (b.Data != null && b.Data.prefab == entry.buildingPrefab)
                     {
                         count++;
                         continue;
                     }
 
-                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(b.Data.buildingName) &&
-                        b.Data.buildingName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    string targetPName = CleanName(entry.buildingPrefab.name);
+                    if (b.gameObject.name.IndexOf(targetPName, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         count++;
                         continue;
                     }
                 }
 
-                string objName = b.gameObject.name;
-                if (!string.IsNullOrEmpty(id) && objName.IndexOf(id, StringComparison.OrdinalIgnoreCase) >= 0)
+                // 3. เทียบจาก ID
+                if (!string.IsNullOrEmpty(entry.buildingId))
                 {
-                    count++;
+                    if (b.Data != null && !string.IsNullOrEmpty(b.Data.buildingId) &&
+                        b.Data.buildingId.IndexOf(entry.buildingId, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        continue;
+                    }
+
+                    if (b.gameObject.name.IndexOf(entry.buildingId, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        continue;
+                    }
                 }
-                else if (!string.IsNullOrEmpty(name) && objName.IndexOf(name.Replace(" ", ""), StringComparison.OrdinalIgnoreCase) >= 0)
+
+                // 4. เทียบจากชื่อ DisplayName
+                string dName = entry.DisplayName;
+                if (!string.IsNullOrEmpty(dName))
                 {
-                    count++;
+                    if (b.Data != null && !string.IsNullOrEmpty(b.Data.buildingName) &&
+                        b.Data.buildingName.IndexOf(dName, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                        continue;
+                    }
+
+                    string cleanDName = CleanName(dName).Replace(" ", "");
+                    if (b.gameObject.name.IndexOf(cleanDName, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        count++;
+                    }
                 }
             }
             return count;
+        }
+
+        private static string CleanName(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return "";
+            string s = raw.Replace("(Clone)", "").Trim();
+            return s;
         }
     }
 }
