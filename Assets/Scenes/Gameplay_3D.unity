@@ -11856,6 +11856,7 @@ GameObject:
   m_Component:
   - component: {fileID: 350643288}
   - component: {fileID: 350643289}
+  - component: {fileID: 350643290}
   m_Layer: 5
   m_Name: PowerGrid_HUD
   m_TagString: Untagged
@@ -11891,6 +11892,104 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 350643287}
   m_CullTransparentMesh: 1
+--- !u!114 &350643290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350643287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f3c1b824e81a744b84931a942eb77e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.PowerGridHUD
+  hudRoot: {fileID: 350643287}
+  panelObject: {fileID: 1683433835}
+  closeButton: {fileID: 1105402662}
+  powerSlider: {fileID: 745732716}
+  amountText: {fileID: 965777743}
+  sliderFillImage: {fileID: 441756461}
+  descriptionText: {fileID: 1764958101}
+  titleText: {fileID: 272886009}
+  contentContainer: {fileID: 1328548715}
+  gridEntries:
+  - buildingId: BUILD0014
+    buildingName: Sanity Beacon
+    powerWatt: 15
+    isProducer: 0
+    description: Lantern beacon restoring survivor Sanity (+2.5/s). Requires 15W
+      continuous power.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0021
+    buildingName: Sentry Turret
+    powerWatt: 30
+    isProducer: 0
+    description: Automated 360-degree defense cannon. Consumes 30W. Receives +25%
+      fire rate when fully powered.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0022
+    buildingName: Shock Tower
+    powerWatt: 45
+    isProducer: 0
+    description: High-voltage Xenocrystal chain lightning tower hitting up to 4 targets.
+      Requires 45W.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0015
+    buildingName: Fusion Generator
+    powerWatt: 60
+    isProducer: 1
+    description: Compact fusion reactor supplying +60W clean electrical power across
+      a 20-meter radius.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0008
+    buildingName: Motorized Blast Door
+    powerWatt: 0
+    isProducer: 0
+    description: Heavy reinforced security blast door.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0007
+    buildingName: Armored Wall Panel
+    powerWatt: 0
+    isProducer: 0
+    description: Heavy titanium-reinforced wall barricade protecting base perimeter.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0010
+    buildingName: Survivor Workbench
+    powerWatt: 0
+    isProducer: 0
+    description: Survivor crafting workbench for tools and survival equipment. Operates manually without electricity (0W).
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
+  - buildingId: BUILD0017
+    buildingName: Razor Wire Barricade
+    powerWatt: 0
+    isProducer: 0
+    description: Barricade with circular serrated blades and barbed wire shredding advancing enemies.
+    rootObject: {fileID: 0}
+    iconImage: {fileID: 0}
+    percentText: {fileID: 0}
+    button: {fileID: 0}
 --- !u!1 &355561943
 GameObject:
   m_ObjectHideFlags: 0
@@ -55193,9 +55292,9 @@ MonoBehaviour:
   m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
