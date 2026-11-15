@@ -143,6 +143,9 @@ namespace TheLastEmpire
         public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
         public bool IsRageMode => IsBossUnit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
 
+        // ซอมบี้เปิดใช้งานระบบเดินอ้อมสิ่งกีดขวางอัจฉริยะเฉพาะระดับบอส (IsBossUnit) เท่านั้น
+        public override bool UseSmartObstacleAvoidance => useSmartObstacleAvoidance || IsBossUnit;
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -185,11 +188,6 @@ namespace TheLastEmpire
                 }
             }
 
-            if (IsBossUnit)
-            {
-                InitBossIndicators();
-            }
-
             // Auto-correct ZombieType based on prefab/GameObject name if left as default/Normal
             if (zombieType == ZombieType.Normal)
             {
@@ -199,7 +197,7 @@ namespace TheLastEmpire
                     zombieType = ZombieType.Boomer;
                     Debug.Log($"[ZombieAI] Auto-detected type as Boomer from GameObject name: {gameObject.name}");
                 }
-                else if (lowerName.Contains("leader"))
+                else if (lowerName.Contains("leader") || lowerName.Contains("boss"))
                 {
                     zombieType = ZombieType.Leader;
                     Debug.Log($"[ZombieAI] Auto-detected type as Leader from GameObject name: {gameObject.name}");
@@ -224,6 +222,12 @@ namespace TheLastEmpire
                     zombieType = ZombieType.Tank;
                     Debug.Log($"[ZombieAI] Auto-detected type as Tank from GameObject name: {gameObject.name}");
                 }
+            }
+
+            if (IsBossUnit)
+            {
+                useSmartObstacleAvoidance = true;
+                InitBossIndicators();
             }
 
             // Define stats depending on ZombieType
@@ -404,6 +408,18 @@ namespace TheLastEmpire
             if (_isCharging)
             {
                 _chargeActiveTimer -= Time.fixedDeltaTime;
+
+                // หากพุ่งชนกำแพงหรือสิ่งกีดขวางตรงหน้า ให้หยุดพุ่งทันทีเพื่อไม่ให้ติดค้างกับกำแพง
+                if (IsObstacleDirectlyAhead(_chargeDirection, GetAgentRadius() + 0.35f))
+                {
+                    _isCharging = false;
+                    _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
+                    rb.linearVelocity = Vector3.zero;
+                    if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    currentState = AIState.Chase;
+                    return;
+                }
+
                 float currentChargeSpeed = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f);
                 rb.linearVelocity = _chargeDirection * currentChargeSpeed;
 
@@ -514,15 +530,17 @@ namespace TheLastEmpire
                 // Boss / Leader Special Attacks
                 if (IsBossUnit)
                 {
-                    // 1. Ground Stomp AOE: If player is in attack range (<= 3.2m) and cooldown is ready
-                    if (_stompCooldownTimer <= 0f && distanceToPlayer <= stompAttackRange && !_isStompTelegraphing && !_isCharging && !_isChargeWindingUp)
+                    bool hasLineOfSight = HasLineOfSightToPlayer();
+
+                    // 1. Ground Stomp AOE: If player is in attack range (<= 4.8m), visible, and cooldown is ready
+                    if (_stompCooldownTimer <= 0f && distanceToPlayer <= stompAttackRange && hasLineOfSight && !_isStompTelegraphing && !_isCharging && !_isChargeWindingUp)
                     {
                         StartStompTelegraph();
                         return;
                     }
 
-                    // 2. Boss Charge: If player is at medium-long distance (3.5m - 10m) and cooldown is ready
-                    if (_chargeCooldownTimer <= 0f && distanceToPlayer >= minChargeDistance && distanceToPlayer <= maxChargeDistance && !_isCharging && !_isChargeWindingUp && !_isStompTelegraphing)
+                    // 2. Boss Charge: If player is at medium-long distance, has clear line of sight (no obstacle in between), and cooldown is ready
+                    if (_chargeCooldownTimer <= 0f && distanceToPlayer >= minChargeDistance && distanceToPlayer <= maxChargeDistance && hasLineOfSight && !_isCharging && !_isChargeWindingUp && !_isStompTelegraphing)
                     {
                         StartBossCharge();
                         return;

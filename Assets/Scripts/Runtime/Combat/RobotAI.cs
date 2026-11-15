@@ -52,8 +52,11 @@ namespace TheLastEmpire
 
         public bool IsDead => health != null && health.IsDead;
 
+        public override bool UseSmartObstacleAvoidance => true;
+
         protected override void Start()
         {
+            useSmartObstacleAvoidance = true;
             base.Start();
             _spriteRenderer = GetComponent<SpriteRenderer>();
             if (robotType == RobotType.Normal)
@@ -186,36 +189,37 @@ namespace TheLastEmpire
                     }
 
                     float dist = Vector3.Distance(transform.position, playerTransform.position);
+                    bool hasLineOfSight = HasLineOfSightToPlayer();
 
-                    // Kamikaze Suicide Explosion
-                    if (robotType == RobotType.Kamikaze && dist <= 2.2f && _actionCooldownTimer <= 0f)
+                    // Kamikaze Suicide Explosion (ต้องเห็นตัวผู้เล่นโดยไม่มีกำแพงกั้น หรือประชิดตัวมาก)
+                    if (robotType == RobotType.Kamikaze && dist <= 2.2f && _actionCooldownTimer <= 0f && (hasLineOfSight || dist <= 1.4f))
                     {
                         StartCoroutine(ExecuteKamikazeExplode());
                         return;
                     }
 
-                    // Gunner Robot Shooting Action
-                    if (robotType == RobotType.Gunner && dist <= shootingDistance && _actionCooldownTimer <= 0f)
+                    // Gunner Robot Shooting Action (ยิงเฉพาะเมื่อไม่มีกำแพงหรือสิ่งกีดขวางบัง ถ้ามีให้เดินอ้อมก่อน)
+                    if (robotType == RobotType.Gunner && dist <= shootingDistance && _actionCooldownTimer <= 0f && hasLineOfSight)
                     {
                         StartCoroutine(ExecuteGunnerShot());
                         return;
                     }
 
-                    // Blade Robot Dash Slash Action
-                    if (robotType == RobotType.Blade && dist <= 3f && _actionCooldownTimer <= 0f)
+                    // Blade Robot Dash Slash Action (พุ่งฟันเฉพาะเมื่อไม่มีสิ่งกีดขวางกั้นกลาง)
+                    if (robotType == RobotType.Blade && dist <= 3f && _actionCooldownTimer <= 0f && hasLineOfSight)
                     {
                         StartCoroutine(ExecuteBladeDash());
                         return;
                     }
 
-                    // Laser Robot Laser Firing Action
-                    if (robotType == RobotType.Laser && dist <= laserRange && _actionCooldownTimer <= 0f)
+                    // Laser Robot Laser Firing Action (ยิงเลเซอร์เฉพาะเมื่อมองเห็นผู้เล่นโดยไม่มีตึก/กำแพงบัง)
+                    if (robotType == RobotType.Laser && dist <= laserRange && _actionCooldownTimer <= 0f && hasLineOfSight)
                     {
                         StartCoroutine(ExecuteLaserFire());
                         return;
                     }
 
-                    // Normal pursuit movement
+                    // Normal pursuit movement (uses Smart Obstacle Avoidance & A* Pathfinding)
                     ChasePlayer();
                     break;
             }
@@ -228,35 +232,8 @@ namespace TheLastEmpire
 
             if (playerTransform == null || IsTargetDead()) return false;
 
-            float dist = Vector3.Distance(transform.position, playerTransform.position);
-            if (dist > detectionRange) return false;
-
-            // Detects player ONLY when player is currently moving
-            Rigidbody playerRb = playerTransform.GetComponent<Rigidbody>();
-            if (playerRb == null || playerRb.linearVelocity.sqrMagnitude < 0.05f)
-            {
-                return false;
-            }
-
-            // Raycast line of sight check
-            Vector3 facingDir = transform.forward;
-            Vector3 toPlayer = (playerTransform.position - transform.position);
-            toPlayer.y = 0f;
-            toPlayer.Normalize();
-
-            float dot = Vector3.Dot(facingDir, toPlayer);
-            if (dot < 0.5f) return false; // FOV limit
-
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, toPlayer, out hit, detectionRange, ~obstacleLayer))
-            {
-                if (hit.collider != null && hit.collider.CompareTag("Player"))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            // เมื่อถูกโจมตีแล้ว หุ่นยนต์จะล็อกเป้าหมายไล่ล่าผู้เล่นทันที (แม้ผู้เล่นจะหลบหลังกำแพง)
+            return true;
         }
 
         // --- ROBOT ACTIONS ---
@@ -337,6 +314,10 @@ namespace TheLastEmpire
 
                 while (dashTimer > 0f && playerTransform != null)
                 {
+                    if (IsObstacleDirectlyAhead(dashDir, GetAgentRadius() + 0.35f))
+                    {
+                        break;
+                    }
                     dashTimer -= Time.deltaTime;
                     rb.linearVelocity = dashDir * bladeDashSpeed;
                     yield return null;
@@ -411,7 +392,7 @@ namespace TheLastEmpire
                 RaycastHit hit;
                 if (Physics.Raycast(transform.position, dir, out hit, laserRange, ~obstacleLayer))
                 {
-                    if (hit.collider != null && hit.collider.CompareTag("Player"))
+                    if (hit.collider != null && hit.collider.CompareTag("Player") && HasLineOfSightToPlayer(laserRange))
                     {
                         IDamageable damageable = hit.collider.GetComponent<IDamageable>();
                         if (damageable != null)
@@ -523,5 +504,5 @@ namespace TheLastEmpire
                 Destroy(gameObject);
             }
         }
-}
+    }
 }

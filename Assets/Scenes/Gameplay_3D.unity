@@ -5825,7 +5825,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 100, y: 0}
+  m_AnchoredPosition: {x: 200, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &156612389
@@ -10333,7 +10333,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -100, y: 0}
+  m_AnchoredPosition: {x: -200, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &308034699
@@ -11913,7 +11913,8 @@ MonoBehaviour:
     customIcon: {fileID: 0}
     powerWatt: 40
     isProducer: 0
-    description: Purifies contaminated fluids into bottled clean water (Max 3 bottles). Requires 40W.
+    description: Purifies contaminated fluids into bottled clean water (Max 3 bottles).
+      Requires 40W.
     rootObject: {fileID: 1503487586}
     iconImage: {fileID: 1798916483}
     percentText: {fileID: 1518600816}
@@ -11949,7 +11950,8 @@ MonoBehaviour:
     customIcon: {fileID: 0}
     powerWatt: 0
     isProducer: 0
-    description: Barricade with circular serrated blades and barbed wire shredding advancing enemies.
+    description: Barricade with circular serrated blades and barbed wire shredding
+      advancing enemies.
     rootObject: {fileID: 891965083}
     iconImage: {fileID: 743626100}
     percentText: {fileID: 331354430}
@@ -59115,7 +59117,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 60}
+  m_SizeDelta: {x: 300, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1907206479
 MonoBehaviour:
@@ -59164,11 +59166,11 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
+  m_fontSize: 41.85
   m_fontSizeBase: 72
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 32
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 2

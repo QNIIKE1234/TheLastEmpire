@@ -159,10 +159,19 @@ namespace TheLastEmpire
             _currentEnvContainer = new GameObject("GeneratedEnvironment");
             _currentEnvContainer.transform.position = Vector3.zero;
 
+            // Fetch player position early to avoid spawning obstacles directly on top of them or their warp-in point
+            Vector3 playerPos = TransitionPortal.HasValidWarpHistory ? TransitionPortal.LastPlayerWarpInPos : Vector3.zero;
+            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            if (player != null)
+            {
+                playerPos = player.transform.position;
+            }
+
             // 3a. Handcrafted JSON Stage Template Override
             if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
             {
                 GenerateEnvironmentFromTemplate(template, stage);
+                EnsurePortalsClear(playerPos);
                 return;
             }
 
@@ -266,6 +275,7 @@ namespace TheLastEmpire
                             Quaternion rotation = randomYaw * prefab.transform.rotation;
 
                             // Calculate actual footprint based on rotated model bounds vs cell size
+                            Vector2 worldSize = GetPrefabWorldSize(prefab, rotation);
                             Vector2Int footprint = GetPrefabCellFootprint(prefab, rotation, cellWidth, cellHeight);
 
                             // Check if the multi-cell space is available
@@ -300,6 +310,15 @@ namespace TheLastEmpire
                             int spanCols = canSpan ? footprint.x : 1;
                             int spanRows = canSpan ? footprint.y : 1;
 
+                            // Place model at the center of its multi-cell footprint
+                            float centerX = startX + (c + spanCols * 0.5f) * cellWidth;
+                            float centerZ = startY + (r + spanRows * 0.5f) * cellHeight;
+
+                            if (DoesFootprintOverlapPortalOrPlayer(new Vector2(centerX, centerZ), worldSize, playerPos))
+                            {
+                                continue;
+                            }
+
                             // Mark all cells covered by this object as occupied
                             for (int dr = 0; dr < spanRows; dr++)
                             {
@@ -311,10 +330,6 @@ namespace TheLastEmpire
                                     }
                                 }
                             }
-
-                            // Place model at the center of its multi-cell footprint
-                            float centerX = startX + (c + spanCols * 0.5f) * cellWidth;
-                            float centerZ = startY + (r + spanRows * 0.5f) * cellHeight;
 
                             float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                             Vector3 worldPos = new Vector3(centerX, spawnY, centerZ);
@@ -329,19 +344,12 @@ namespace TheLastEmpire
                     }
                 }
 
+                EnsurePortalsClear(playerPos);
                 return; // Skip normal random spawning!
             }
 
             // 4. Init deterministic state using stage seed (offset slightly to not clash with enemy spawns)
             Random.InitState(stage.stageSeed + 12345);
-
-            // Fetch player position to avoid spawning obstacles directly on top of them
-            Vector3 playerPos = Vector3.zero;
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
-            if (player != null)
-            {
-                playerPos = player.transform.position;
-            }
 
             List<GridCell> allCells = new List<GridCell>();
             for (int r = 0; r < rows; r++)
@@ -404,7 +412,7 @@ namespace TheLastEmpire
             // Initialize 2D Occupancy Grid and Path Grid
             bool[,] occupiedGrid = new bool[rows, cols];
             bool[,] isPathGrid = new bool[rows, cols];
-            float safeRadius = 1.8f;
+            float safeRadius = Mathf.Max(2.8f, Mathf.Max(cellWidth, cellHeight) * 0.85f);
 
             List<GridCell> decorationSafeCells = new List<GridCell>();
 
@@ -462,7 +470,8 @@ namespace TheLastEmpire
                 Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
                 Quaternion rotation = randomYaw * prefab.transform.rotation;
 
-                // Calculate footprint in cells (X cols x Z rows)
+                // Calculate footprint in cells (X cols x Z rows) and world size
+                Vector2 worldSize = GetPrefabWorldSize(prefab, rotation);
                 Vector2Int footprint = GetPrefabCellFootprint(prefab, rotation, cellWidth, cellHeight);
 
                 // Find all valid (row, col) anchor positions where this multi-cell footprint fits completely
@@ -487,7 +496,12 @@ namespace TheLastEmpire
 
                         if (canPlace)
                         {
-                            validPositions.Add(new Vector2Int(c, r));
+                            float candidateX = startX + (c + footprint.x * 0.5f) * cellWidth;
+                            float candidateZ = startY + (r + footprint.y * 0.5f) * cellHeight;
+                            if (!DoesFootprintOverlapPortalOrPlayer(new Vector2(candidateX, candidateZ), worldSize, playerPos))
+                            {
+                                validPositions.Add(new Vector2Int(c, r));
+                            }
                         }
                     }
                 }
@@ -525,6 +539,7 @@ namespace TheLastEmpire
                 {
                     // Multi-cell footprint couldn't fit; fallback to a 1x1 smaller prefab
                     GameObject smallerPrefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                    Vector2 smallerSize = smallerPrefab != null ? GetPrefabWorldSize(smallerPrefab, rotation) : new Vector2(1.5f, 1.5f);
                     List<Vector2Int> singleCells = new List<Vector2Int>();
                     for (int r = 0; r < rows; r++)
                     {
@@ -532,7 +547,12 @@ namespace TheLastEmpire
                         {
                             if (!occupiedGrid[r, c] && !isPathGrid[r, c])
                             {
-                                singleCells.Add(new Vector2Int(c, r));
+                                float chkX = startX + (c + 0.5f) * cellWidth;
+                                float chkZ = startY + (r + 0.5f) * cellHeight;
+                                if (!DoesFootprintOverlapPortalOrPlayer(new Vector2(chkX, chkZ), smallerSize, playerPos))
+                                {
+                                    singleCells.Add(new Vector2Int(c, r));
+                                }
                             }
                         }
                     }
@@ -563,6 +583,11 @@ namespace TheLastEmpire
             // 5b. Generate on-path small obstacles
             for (int i = 0; i < pathSpawnCount; i++)
             {
+                GameObject prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
+                Quaternion rotation = prefab != null ? randomYaw * prefab.transform.rotation : randomYaw;
+                Vector2 smallSize = prefab != null ? GetPrefabWorldSize(prefab, rotation) : new Vector2(1.2f, 1.2f);
+
                 List<Vector2Int> pathCandidates = new List<Vector2Int>();
                 for (int r = 0; r < rows; r++)
                 {
@@ -570,7 +595,12 @@ namespace TheLastEmpire
                     {
                         if (isPathGrid[r, c] && !occupiedGrid[r, c])
                         {
-                            pathCandidates.Add(new Vector2Int(c, r));
+                            float chkX = startX + (c + 0.5f) * cellWidth;
+                            float chkZ = startY + (r + 0.5f) * cellHeight;
+                            if (!DoesFootprintOverlapPortalOrPlayer(new Vector2(chkX, chkZ), smallSize, playerPos))
+                            {
+                                pathCandidates.Add(new Vector2Int(c, r));
+                            }
                         }
                     }
                 }
@@ -587,13 +617,10 @@ namespace TheLastEmpire
                 float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
                 Vector3 spawnPos = new Vector3(x + jitterX, y + jitterY, 0f);
 
-                GameObject prefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
                 if (prefab != null)
                 {
                     float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                     Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
-                    Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
-                    Quaternion rotation = randomYaw * prefab.transform.rotation;
                     GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     obj.name = prefab.name;
                 }
@@ -603,46 +630,111 @@ namespace TheLastEmpire
                 }
             }
 
-            // 6. Generate Decorations (visuals only)
+            // 6. Generate Decorations (supports both small props and large buildings if assigned in decorationPrefabs)
             int spawnedDecorCount = 0;
             for (int i = 0; i < decorationSafeCells.Count && spawnedDecorCount < spawnDecorations; i++)
             {
                 GridCell cell = decorationSafeCells[i];
 
                 // Do not spawn decorations on cells that are already occupied by buildings, vehicles, or obstacles!
-                if (occupiedGrid[cell.row, cell.col])
+                if (occupiedGrid[cell.row, cell.col] || isPathGrid[cell.row, cell.col])
                 {
                     continue;
                 }
 
-                // Add organic jitter within cell boundaries (only if not snapped to grid)
-                float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
-                float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
-                Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
-
                 GameObject prefab = GetRandomPrefab(config.decorationPrefabs);
+                if (prefab != null && prefab.name.Equals("Street", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // Street tiles belong on walkable road segments (Step 4b), not random decoration cells
+                    continue;
+                }
+
                 if (prefab != null)
                 {
-                    // Map 2D grid coordinates to 3D world space (X/Z plane), inheriting prefab's original Y height plus offset
-                    float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
-                    Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
                     Quaternion randomYaw = snapToGrid ? Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) : Quaternion.identity;
                     Quaternion rotation = randomYaw * prefab.transform.rotation;
-                    GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                    obj.name = prefab.name;
+                    Vector2 worldSize = GetPrefabWorldSize(prefab, rotation);
+                    Vector2Int footprint = GetPrefabCellFootprint(prefab, rotation, cellWidth, cellHeight);
 
-                    occupiedGrid[cell.row, cell.col] = true;
-                    spawnedDecorCount++;
+                    // If a large multi-cell building is placed inside decorationPrefabs, validate its full multi-cell span
+                    if (footprint.x > 1 || footprint.y > 1 || IsLargeBuilding(prefab))
+                    {
+                        if (cell.row + footprint.y > rows || cell.col + footprint.x > cols)
+                        {
+                            continue;
+                        }
+
+                        bool canPlaceSpan = true;
+                        for (int dr = 0; dr < footprint.y; dr++)
+                        {
+                            for (int dc = 0; dc < footprint.x; dc++)
+                            {
+                                if (occupiedGrid[cell.row + dr, cell.col + dc] || isPathGrid[cell.row + dr, cell.col + dc])
+                                {
+                                    canPlaceSpan = false;
+                                    break;
+                                }
+                            }
+                            if (!canPlaceSpan) break;
+                        }
+
+                        if (!canPlaceSpan) continue;
+
+                        float centerX = startX + (cell.col + footprint.x * 0.5f) * cellWidth;
+                        float centerZ = startY + (cell.row + footprint.y * 0.5f) * cellHeight;
+
+                        if (DoesFootprintOverlapPortalOrPlayer(new Vector2(centerX, centerZ), worldSize, playerPos))
+                        {
+                            continue;
+                        }
+
+                        for (int dr = 0; dr < footprint.y; dr++)
+                        {
+                            for (int dc = 0; dc < footprint.x; dc++)
+                            {
+                                occupiedGrid[cell.row + dr, cell.col + dc] = true;
+                            }
+                        }
+
+                        float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
+                        Vector3 worldPos = new Vector3(centerX, spawnY, centerZ);
+                        GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
+                        obj.name = prefab.name;
+                        spawnedDecorCount++;
+                    }
+                    else
+                    {
+                        float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
+                        float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
+                        Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
+
+                        if (DoesFootprintOverlapPortalOrPlayer(new Vector2(spawnPos.x, spawnPos.y), worldSize, playerPos))
+                        {
+                            continue;
+                        }
+
+                        float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
+                        Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.y);
+                        GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
+                        obj.name = prefab.name;
+
+                        occupiedGrid[cell.row, cell.col] = true;
+                        spawnedDecorCount++;
+                    }
                 }
                 else if (useProceduralFallbacks)
                 {
+                    float jitterX = snapToGrid ? 0f : Random.Range(-cellWidth * 0.2f, cellWidth * 0.2f);
+                    float jitterY = snapToGrid ? 0f : Random.Range(-cellHeight * 0.2f, cellHeight * 0.2f);
+                    Vector3 spawnPos = cell.center + new Vector3(jitterX, jitterY, 0f);
                     CreateProceduralDecoration(spawnPos, stage.biome);
                     occupiedGrid[cell.row, cell.col] = true;
                     spawnedDecorCount++;
                 }
             }
 
-            // Skip global texture application to preserve user prefab materials
+            // Final safety pass: ensure no spawned building/obstacle physically overlaps any active portal or the player
+            EnsurePortalsClear(playerPos);
 
             Debug.Log($"[EnvironmentManager] Grid generated {buildingSpawnCount + pathSpawnCount} obstacles and {spawnDecorations} decorations (out of safe cells: {decorationSafeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
         }
@@ -752,6 +844,13 @@ namespace TheLastEmpire
             return spawnPos;
         }
 
+        private float GetPortalSafeRadius()
+        {
+            float cellW = gridWidth / Mathf.Max(1, gridCols);
+            float cellH = gridHeight / Mathf.Max(1, gridRows);
+            return Mathf.Max(3.6f, Mathf.Max(cellW, cellH) * 0.9f);
+        }
+
         private bool IsNearTransitionGates(Vector3 pos)
         {
             return IsNearTransitionGates(new Vector2(pos.x, pos.y));
@@ -759,6 +858,8 @@ namespace TheLastEmpire
 
         private bool IsNearTransitionGates(Vector2 pos)
         {
+            float portalSafeRadius = GetPortalSafeRadius();
+
             // Find all transition portals in the scene dynamically
             TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
             foreach (TransitionPortal portal in portals)
@@ -772,9 +873,12 @@ namespace TheLastEmpire
                         continue; // Path is walled off, safe to spawn obstacles here
                     }
 
-                    // Check distance on the X/Z plane (portal's 3D transform Z coordinate corresponds to pos.y in 2D)
+                    // Protect both the portal ring position AND its inward player spawn position (entryOffset)
                     Vector2 portalPos = new Vector2(portal.transform.position.x, portal.transform.position.z);
-                    if (Vector2.Distance(pos, portalPos) < 2.0f) // Maintain a safe 2.0-meter clear zone around active portals
+                    Vector3 inward3D = portal.GetInwardEntryPosition();
+                    Vector2 entryPos = new Vector2(inward3D.x, inward3D.z);
+
+                    if (DistanceToSegment(pos, portalPos, entryPos) < portalSafeRadius)
                     {
                         return true;
                     }
@@ -784,10 +888,60 @@ namespace TheLastEmpire
             // Fallback to static boundary checks if no portals are present in the scene
             if (portals.Length == 0)
             {
-                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y > (gridHeight * 0.5f + gridCenterOffset.y - 1.2f)) return true;
-                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 1.8f && pos.y < (-gridHeight * 0.5f + gridCenterOffset.y + 1.2f)) return true;
-                if (pos.x < (-gridWidth * 0.5f + gridCenterOffset.x + 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
-                if (pos.x > (gridWidth * 0.5f + gridCenterOffset.x - 1.2f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 1.5f) return true;
+                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 2.5f && pos.y > (gridHeight * 0.5f + gridCenterOffset.y - 2.0f)) return true;
+                if (Mathf.Abs(pos.x - gridCenterOffset.x) < 2.5f && pos.y < (-gridHeight * 0.5f + gridCenterOffset.y + 2.0f)) return true;
+                if (pos.x < (-gridWidth * 0.5f + gridCenterOffset.x + 2.0f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 2.5f) return true;
+                if (pos.x > (gridWidth * 0.5f + gridCenterOffset.x - 2.0f) && Mathf.Abs(pos.y - gridCenterOffset.y) < 2.5f) return true;
+            }
+
+            return false;
+        }
+
+        private static float DistancePointToRect(Vector2 pt, float minX, float maxX, float minZ, float maxZ)
+        {
+            float dx = Mathf.Max(minX - pt.x, 0f, pt.x - maxX);
+            float dz = Mathf.Max(minZ - pt.y, 0f, pt.y - maxZ);
+            return Mathf.Sqrt(dx * dx + dz * dz);
+        }
+
+        /// <summary>
+        /// Checks whether an object's 2D world footprint (centered at centerXZ with size sizeXZ)
+        /// overlaps or comes too close to any active TransitionPortal's doorway/entry zone or the player.
+        /// </summary>
+        private bool DoesFootprintOverlapPortalOrPlayer(Vector2 centerXZ, Vector2 sizeXZ, Vector3 playerPos, float portalPadding = 2.6f, float playerPadding = 2.0f)
+        {
+            float minX = centerXZ.x - sizeXZ.x * 0.5f;
+            float maxX = centerXZ.x + sizeXZ.x * 0.5f;
+            float minZ = centerXZ.y - sizeXZ.y * 0.5f;
+            float maxZ = centerXZ.y + sizeXZ.y * 0.5f;
+
+            Vector2 playerXZ = new Vector2(playerPos.x, playerPos.z);
+            if (DistancePointToRect(playerXZ, minX, maxX, minZ, maxZ) < playerPadding)
+            {
+                return true;
+            }
+
+            TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            foreach (TransitionPortal portal in portals)
+            {
+                if (!TransitionPortal.IsWorldPortal(portal)) continue;
+
+                Collider col = portal.GetComponent<Collider>();
+                if (Application.isPlaying && col != null && !col.enabled) continue;
+
+                Vector2 portalPos = new Vector2(portal.transform.position.x, portal.transform.position.z);
+                Vector3 inward3D = portal.GetInwardEntryPosition();
+                Vector2 entryPos = new Vector2(inward3D.x, inward3D.z);
+                Vector2 midPos = (portalPos + entryPos) * 0.5f;
+                Vector2 inwardCorridorPos = entryPos + (entryPos - portalPos);
+
+                if (DistancePointToRect(portalPos, minX, maxX, minZ, maxZ) < portalPadding ||
+                    DistancePointToRect(midPos, minX, maxX, minZ, maxZ) < portalPadding ||
+                    DistancePointToRect(entryPos, minX, maxX, minZ, maxZ) < portalPadding ||
+                    DistancePointToRect(inwardCorridorPos, minX, maxX, minZ, maxZ) < portalPadding * 0.85f)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -1450,7 +1604,13 @@ namespace TheLastEmpire
             foreach (TransitionPortal portal in activePortals)
             {
                 Vector2 portalPos = new Vector2(portal.transform.position.x, portal.transform.position.z);
-                segments.Add(new KeyValuePair<Vector2, Vector2>(portalPos, junctionPoint));
+                Vector3 inward3D = portal.GetInwardEntryPosition();
+                Vector2 entryPos = new Vector2(inward3D.x, inward3D.z);
+                Vector2 inwardCorridorPos = entryPos + (entryPos - portalPos);
+
+                // Ensure a straight entry corridor inward from each portal before bending toward the central junction
+                segments.Add(new KeyValuePair<Vector2, Vector2>(portalPos, inwardCorridorPos));
+                segments.Add(new KeyValuePair<Vector2, Vector2>(inwardCorridorPos, junctionPoint));
 
                 if (Mathf.Abs(portal.transform.position.x) > gridWidth * 0.4f)
                 {
@@ -1514,8 +1674,35 @@ namespace TheLastEmpire
             return Vector2.Distance(t, projectionPoint);
         }
 
+        private static void EncapsulateLocalBoxInRootSpace(Transform root, Transform child, Vector3 localCenter, Vector3 localSize, ref Bounds rootBounds, ref bool hasBounds)
+        {
+            Vector3 half = localSize * 0.5f;
+            for (int ix = -1; ix <= 1; ix += 2)
+            {
+                for (int iy = -1; iy <= 1; iy += 2)
+                {
+                    for (int iz = -1; iz <= 1; iz += 2)
+                    {
+                        Vector3 cornerLocal = localCenter + new Vector3(half.x * ix, half.y * iy, half.z * iz);
+                        Vector3 worldPt = child.TransformPoint(cornerLocal);
+                        Vector3 rootLocalPt = Vector3.Scale(root.InverseTransformPoint(worldPt), root.localScale);
+                        if (!hasBounds)
+                        {
+                            rootBounds = new Bounds(rootLocalPt, Vector3.zero);
+                            hasBounds = true;
+                        }
+                        else
+                        {
+                            rootBounds.Encapsulate(rootLocalPt);
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Calculates the world-space bounding size (X and Z) of a prefab after applying rotation.
+        /// Works reliably on uninstantiated prefab assets by reading BoxCollider and MeshFilter.sharedMesh bounds.
         /// </summary>
         public Vector2 GetPrefabWorldSize(GameObject prefab, Quaternion rotation)
         {
@@ -1524,56 +1711,39 @@ namespace TheLastEmpire
             Bounds bounds = new Bounds();
             bool hasBounds = false;
 
-            // 1. Check BoxColliders first (accurate for props & structures)
+            // 1. Check BoxColliders in prefab root space
             BoxCollider[] boxColliders = prefab.GetComponentsInChildren<BoxCollider>();
             if (boxColliders != null && boxColliders.Length > 0)
             {
                 foreach (var box in boxColliders)
                 {
-                    if (box.isTrigger) continue;
-                    Vector3 size = Vector3.Scale(box.size, box.transform.lossyScale);
-                    Vector3 center = box.center;
-                    Bounds b = new Bounds(center, size);
-                    if (!hasBounds)
-                    {
-                        bounds = b;
-                        hasBounds = true;
-                    }
-                    else
-                    {
-                        bounds.Encapsulate(b);
-                    }
+                    if (box == null || box.isTrigger || !box.enabled) continue;
+                    EncapsulateLocalBoxInRootSpace(prefab.transform, box.transform, box.center, box.size, ref bounds, ref hasBounds);
                 }
             }
 
-            // 2. Check general Colliders
-            if (!hasBounds)
+            // 2. Also encapsulate MeshFilter.sharedMesh.bounds (critical for prefabs without BoxColliders or with overhangs)
+            MeshFilter[] meshFilters = prefab.GetComponentsInChildren<MeshFilter>();
+            if (meshFilters != null && meshFilters.Length > 0)
+            {
+                foreach (var mf in meshFilters)
+                {
+                    if (mf == null || mf.sharedMesh == null) continue;
+                    Bounds mb = mf.sharedMesh.bounds;
+                    if (mb.size.sqrMagnitude < 0.0001f) continue;
+                    EncapsulateLocalBoxInRootSpace(prefab.transform, mf.transform, mb.center, mb.size, ref bounds, ref hasBounds);
+                }
+            }
+
+            // 3. Fallback to active scene Colliders / Renderers (only valid if already instantiated in a scene)
+            if (!hasBounds || bounds.size.sqrMagnitude < 0.001f)
             {
                 Collider[] colliders = prefab.GetComponentsInChildren<Collider>();
                 foreach (var col in colliders)
                 {
-                    if (col.isTrigger) continue;
+                    if (col == null || col.isTrigger) continue;
                     Bounds b = col.bounds;
-                    if (!hasBounds)
-                    {
-                        bounds = b;
-                        hasBounds = true;
-                    }
-                    else
-                    {
-                        bounds.Encapsulate(b);
-                    }
-                }
-            }
-
-            // 3. Fallback to Renderers if no Colliders found
-            if (!hasBounds)
-            {
-                Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>();
-                foreach (var rend in renderers)
-                {
-                    if (rend is ParticleSystemRenderer) continue;
-                    Bounds b = rend.bounds;
+                    if (b.size.sqrMagnitude < 0.001f) continue;
                     if (!hasBounds)
                     {
                         bounds = b;
@@ -1625,17 +1795,12 @@ namespace TheLastEmpire
         /// <summary>
         /// Compares the prefab's rotated physical dimensions with grid cell dimensions to determine how many cells it occupies.
         /// </summary>
-        /// <param name="prefab">Target prefab</param>
-        /// <param name="rotation">Spawn rotation</param>
-        /// <param name="cellWidth">Width of one grid cell (X axis)</param>
-        /// <param name="cellHeight">Height of one grid cell (Z axis)</param>
-        /// <returns>Vector2Int where x = columns spanned, y = rows spanned</returns>
         public Vector2Int GetPrefabCellFootprint(GameObject prefab, Quaternion rotation, float cellWidth, float cellHeight)
         {
             Vector2 size = GetPrefabWorldSize(prefab, rotation);
-            // 0.82f margin prevents small model overshoots from unnecessarily snapping to extra cells
-            int spanCols = Mathf.Max(1, Mathf.CeilToInt((size.x * 0.82f) / cellWidth));
-            int spanRows = Mathf.Max(1, Mathf.CeilToInt((size.y * 0.82f) / cellHeight));
+            // Use 0.92f factor so large buildings reserve the cells their physical mesh overhangs into
+            int spanCols = Mathf.Max(1, Mathf.CeilToInt((size.x * 0.92f) / cellWidth));
+            int spanRows = Mathf.Max(1, Mathf.CeilToInt((size.y * 0.92f) / cellHeight));
             return new Vector2Int(spanCols, spanRows);
         }
 
@@ -1681,6 +1846,10 @@ namespace TheLastEmpire
 
             Debug.Log($"[EnvironmentManager] Building handcrafted environment from template '{template.templateName}' (ID: {template.templateId}) for Stage ({stage.x}, {stage.y})");
 
+            Vector3 playerPos = TransitionPortal.HasValidWarpHistory ? TransitionPortal.LastPlayerWarpInPos : Vector3.zero;
+            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            if (player != null) playerPos = player.transform.position;
+
             // 1. Spawn Obstacles
             if (template.obstacles != null)
             {
@@ -1689,7 +1858,14 @@ namespace TheLastEmpire
                     GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
                     if (prefab != null)
                     {
-                        GameObject spawned = Instantiate(prefab, obj.position, Quaternion.Euler(obj.rotation), _currentEnvContainer.transform);
+                        Quaternion rot = Quaternion.Euler(obj.rotation);
+                        Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
+                        worldSize = new Vector2(worldSize.x * Mathf.Abs(obj.scale.x), worldSize.y * Mathf.Abs(obj.scale.z));
+                        if (DoesFootprintOverlapPortalOrPlayer(new Vector2(obj.position.x, obj.position.z), worldSize, playerPos))
+                        {
+                            continue;
+                        }
+                        GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
                         spawned.transform.localScale = obj.scale;
                     }
                     else
@@ -1707,10 +1883,104 @@ namespace TheLastEmpire
                     GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
                     if (prefab != null)
                     {
-                        GameObject spawned = Instantiate(prefab, obj.position, Quaternion.Euler(obj.rotation), _currentEnvContainer.transform);
+                        Quaternion rot = Quaternion.Euler(obj.rotation);
+                        Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
+                        worldSize = new Vector2(worldSize.x * Mathf.Abs(obj.scale.x), worldSize.y * Mathf.Abs(obj.scale.z));
+                        if (DoesFootprintOverlapPortalOrPlayer(new Vector2(obj.position.x, obj.position.z), worldSize, playerPos))
+                        {
+                            continue;
+                        }
+                        GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
                         spawned.transform.localScale = obj.scale;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Post-generation safety verification: inspects all instantiated obstacles/buildings in _currentEnvContainer
+        /// and removes any non-street object whose actual world collider/renderer bounds overlap an active TransitionPortal or the player.
+        /// </summary>
+        private void EnsurePortalsClear(Vector3 playerPos)
+        {
+            if (_currentEnvContainer == null) return;
+
+            Physics.SyncTransforms();
+
+            List<GameObject> toRemove = new List<GameObject>();
+            int childCount = _currentEnvContainer.transform.childCount;
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = _currentEnvContainer.transform.GetChild(i);
+                if (child == null) continue;
+
+                string childName = child.name;
+                if (childName.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    childName.IndexOf("RoadTile", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    continue;
+                }
+
+                Bounds worldBounds = new Bounds();
+                bool hasWorldBounds = false;
+
+                Collider[] cols = child.GetComponentsInChildren<Collider>();
+                if (cols != null)
+                {
+                    foreach (var c in cols)
+                    {
+                        if (c == null || c.isTrigger || !c.enabled) continue;
+                        if (c.bounds.size.sqrMagnitude < 0.0001f) continue;
+                        if (!hasWorldBounds)
+                        {
+                            worldBounds = c.bounds;
+                            hasWorldBounds = true;
+                        }
+                        else
+                        {
+                            worldBounds.Encapsulate(c.bounds);
+                        }
+                    }
+                }
+
+                if (!hasWorldBounds)
+                {
+                    Renderer[] rends = child.GetComponentsInChildren<Renderer>();
+                    if (rends != null)
+                    {
+                        foreach (var r in rends)
+                        {
+                            if (r == null || r is ParticleSystemRenderer || !r.enabled) continue;
+                            if (r.bounds.size.sqrMagnitude < 0.0001f) continue;
+                            if (!hasWorldBounds)
+                            {
+                                worldBounds = r.bounds;
+                                hasWorldBounds = true;
+                            }
+                            else
+                            {
+                                worldBounds.Encapsulate(r.bounds);
+                            }
+                        }
+                    }
+                }
+
+                if (!hasWorldBounds) continue;
+
+                Vector2 centerXZ = new Vector2(worldBounds.center.x, worldBounds.center.z);
+                Vector2 sizeXZ = new Vector2(worldBounds.size.x, worldBounds.size.z);
+
+                if (DoesFootprintOverlapPortalOrPlayer(centerXZ, sizeXZ, playerPos, 2.2f, 1.5f))
+                {
+                    toRemove.Add(child.gameObject);
+                }
+            }
+
+            foreach (GameObject go in toRemove)
+            {
+                if (go == null) continue;
+                if (Application.isPlaying) Destroy(go);
+                else DestroyImmediate(go);
             }
         }
 

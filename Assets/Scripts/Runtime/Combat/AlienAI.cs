@@ -48,9 +48,13 @@ namespace TheLastEmpire
         private SpriteRenderer _spriteRenderer;
         private Color _originalColor;
         private bool _isPullingPlayer = false;
+        private float _smartStrafeSign = 1f;
+
+        public override bool UseSmartObstacleAvoidance => true;
 
         protected override void Start()
         {
+            useSmartObstacleAvoidance = true;
             base.Start();
             _spriteRenderer = GetComponent<SpriteRenderer>();
             if (alienType == AlienType.Normal)
@@ -146,16 +150,17 @@ namespace TheLastEmpire
             if (detected && playerTransform != null)
             {
                 float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+                bool hasLineOfSight = HasLineOfSightToPlayer();
 
-                // Alien Hook: periodic grapple pull
-                // Alien Spitter bio-plasma projectile
-                if (alienType == AlienType.Spitter && _spitCooldownTimer <= 0f && distanceToPlayer >= 2.5f && distanceToPlayer <= spitRange)
+                // Alien Spitter bio-plasma projectile (ยิงเฉพาะเมื่อไม่มีกำแพงหรือสิ่งกีดขวางกั้น)
+                if (alienType == AlienType.Spitter && _spitCooldownTimer <= 0f && distanceToPlayer >= 2.5f && distanceToPlayer <= spitRange && hasLineOfSight)
                 {
                     StartCoroutine(ExecuteAlienSpit());
                     return;
                 }
 
-                if (alienType == AlienType.Hook && _hookCooldownTimer <= 0f && distanceToPlayer <= hookRange && !_isPullingPlayer)
+                // Alien Hook: periodic grapple pull (ดึงเฉพาะเมื่อมีแนวสายตาโล่ง ไม่ติดกำแพง)
+                if (alienType == AlienType.Hook && _hookCooldownTimer <= 0f && distanceToPlayer <= hookRange && !_isPullingPlayer && hasLineOfSight)
                 {
                     StartCoroutine(ExecuteHookPull());
                     return;
@@ -166,26 +171,37 @@ namespace TheLastEmpire
 
                 if (alienType == AlienType.Smart)
                 {
-                    // Alien Smart: strafe / circle around player
                     currentState = AIState.Chase;
-                    Vector3 toPlayer = (playerTransform.position - transform.position);
-                    toPlayer.y = 0f;
-                    toPlayer.Normalize();
-                    // Circle vector (perpendicular to player direction on X/Z plane)
-                    Vector3 strafeDirection = new Vector3(-toPlayer.z, 0f, toPlayer.x);
-                    
-                    // Blend walking towards player and walking sideways
-                    Vector3 finalDirection = (toPlayer * 0.4f + strafeDirection * 0.6f).normalized;
-                    rb.linearVelocity = new Vector3(finalDirection.x * moveSpeed * speedMult, rb.linearVelocity.y, finalDirection.z * moveSpeed * speedMult);
 
-                    if (toPlayer.sqrMagnitude > 0.01f)
+                    // หากมีตึกหรือสิ่งกีดขวางบัง หรือยังอยู่ไกลเกินระยะเดินวน ให้ใช้ระบบหาเส้นทาง A* เดินอ้อมสิ่งกีดขวางเข้าหาผู้เล่นก่อน
+                    if (!hasLineOfSight || distanceToPlayer > 5.5f)
                     {
-                        transform.forward = toPlayer;
+                        ChasePlayer(speedMult);
+                    }
+                    else
+                    {
+                        // Alien Smart: strafe / circle around player with obstacle avoidance
+                        Vector3 toPlayer = (playerTransform.position - transform.position);
+                        toPlayer.y = 0f;
+                        toPlayer.Normalize();
+
+                        Vector3 strafeDirection = new Vector3(-toPlayer.z, 0f, toPlayer.x) * _smartStrafeSign;
+                        Vector3 finalDirection = (toPlayer * 0.45f + strafeDirection * 0.55f).normalized;
+
+                        // หากฝั่งที่กำลังเดินวนมีกำแพงขวาง ให้สลับฝั่งเดินวนทันทีเพื่อไม่ให้เดินชนกำแพง
+                        if (IsObstacleDirectlyAhead(finalDirection, GetAgentRadius() + 0.85f))
+                        {
+                            _smartStrafeSign = -_smartStrafeSign;
+                            strafeDirection = -strafeDirection;
+                            finalDirection = (toPlayer * 0.45f + strafeDirection * 0.55f).normalized;
+                        }
+
+                        MoveInSmartDirection(finalDirection, speedMult, toPlayer);
                     }
                 }
                 else
                 {
-                    // Normal chasing
+                    // Normal chasing (uses Smart Obstacle Avoidance & A* Pathfinding)
                     currentState = AIState.Chase;
                     ChasePlayer(speedMult);
                 }

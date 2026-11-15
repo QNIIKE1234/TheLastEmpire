@@ -19,6 +19,30 @@ namespace TheLastEmpire
         
         [Tooltip("How far the player is spawned from the center on entry in the new stage.")]
         [SerializeField] private float entryOffset = 1.5f;
+        public float EntryOffset => entryOffset;
+
+        public Vector3 GetInwardEntryPosition()
+        {
+            Vector3 portalPos = transform.position;
+            Vector3 entryPos = portalPos;
+            entryPos.y = Mathf.Max(portalPos.y, 0.5f);
+            switch (direction)
+            {
+                case TransitionDirection.North:
+                    entryPos.z -= entryOffset;
+                    break;
+                case TransitionDirection.South:
+                    entryPos.z += entryOffset;
+                    break;
+                case TransitionDirection.East:
+                    entryPos.x -= entryOffset;
+                    break;
+                case TransitionDirection.West:
+                    entryPos.x += entryOffset;
+                    break;
+            }
+            return entryPos;
+        }
 
         [Header("Random Portal Layout Settings")]
         [SerializeField] private float minSpawnOffset = -5.0f;
@@ -245,12 +269,15 @@ namespace TheLastEmpire
             LastTransitionEntryDirection = oppositeDir;
             HasValidWarpHistory = true;
 
+            int targetX = playerX;
+            int targetY = playerY;
+
             switch (direction)
             {
                 case TransitionDirection.North:
                     if (playerY < WorldMapGenerator.GridSize - 1)
                     {
-                        WorldMapManager.Instance.MovePlayer(playerX, playerY + 1);
+                        targetY = playerY + 1;
                         transitioned = true;
                     }
                     break;
@@ -258,7 +285,7 @@ namespace TheLastEmpire
                 case TransitionDirection.South:
                     if (playerY > 0)
                     {
-                        WorldMapManager.Instance.MovePlayer(playerX, playerY - 1);
+                        targetY = playerY - 1;
                         transitioned = true;
                     }
                     break;
@@ -266,7 +293,7 @@ namespace TheLastEmpire
                 case TransitionDirection.East:
                     if (playerX < WorldMapGenerator.GridSize - 1)
                     {
-                        WorldMapManager.Instance.MovePlayer(playerX + 1, playerY);
+                        targetX = playerX + 1;
                         transitioned = true;
                     }
                     break;
@@ -274,7 +301,7 @@ namespace TheLastEmpire
                 case TransitionDirection.West:
                     if (playerX > 0)
                     {
-                        WorldMapManager.Instance.MovePlayer(playerX - 1, playerY);
+                        targetX = playerX - 1;
                         transitioned = true;
                     }
                     break;
@@ -282,43 +309,25 @@ namespace TheLastEmpire
 
             if (transitioned)
             {
-                // Try to find the target 3D world portal in the newly generated room to spawn directly at it
+                // Pre-update world portals for the target stage BEFORE MovePlayer so that targetPortal's
+                // randomized position and player's new spawn position are ready when GenerateStageEnvironment runs.
                 TransitionPortal[] targetPortals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
                 TransitionPortal targetPortal = null;
                 foreach (var tp in targetPortals)
                 {
-                    if (IsWorldPortal(tp) && tp.direction == oppositeDir)
+                    if (IsWorldPortal(tp))
                     {
-                        targetPortal = tp;
-                        break;
+                        tp.UpdatePortalVisibility(targetX, targetY);
+                        if (tp.direction == oppositeDir)
+                        {
+                            targetPortal = tp;
+                        }
                     }
                 }
 
                 if (targetPortal != null)
                 {
-                    // Spawn player relative to the target portal's actual position
-                    Vector3 portalPos = targetPortal.transform.position;
-                    pos.y = Mathf.Max(portalPos.y, 0.5f);
-
-                    switch (oppositeDir)
-                    {
-                        case TransitionDirection.North: // Player entered from North, spawn slightly south of North portal
-                            pos.x = portalPos.x;
-                            pos.z = portalPos.z - entryOffset;
-                            break;
-                        case TransitionDirection.South: // Player entered from South, spawn slightly north of South portal
-                            pos.x = portalPos.x;
-                            pos.z = portalPos.z + entryOffset;
-                            break;
-                        case TransitionDirection.East:  // Player entered from East, spawn slightly west of East portal
-                            pos.x = portalPos.x - entryOffset;
-                            pos.z = portalPos.z;
-                            break;
-                        case TransitionDirection.West:  // Player entered from West, spawn slightly east of West portal
-                            pos.x = portalPos.x + entryOffset;
-                            pos.z = portalPos.z;
-                            break;
-                    }
+                    pos = targetPortal.GetInwardEntryPosition();
                 }
                 else
                 {
@@ -340,12 +349,17 @@ namespace TheLastEmpire
                     }
                 }
 
+                // Set player arrival position BEFORE MovePlayer so EnvironmentManager & GameManager
+                // protect the new arrival portal position rather than the old exit portal position.
                 player.transform.position = pos;
-
-                // Record warp position and arrival direction for dynamic stage events
                 LastTransitionEntryDirection = oppositeDir;
                 LastPlayerWarpInPos = pos;
                 HasValidWarpHistory = true;
+
+                WorldMapManager.Instance.MovePlayer(targetX, targetY);
+
+                // Re-apply position and sync Rigidbody after stage transition callbacks complete
+                player.transform.position = pos;
 
                 // Sync Rigidbody position explicitly to prevent Unity's physics engine from overriding the teleportation
                 Rigidbody playerRb = player.GetComponent<Rigidbody>();
