@@ -263,19 +263,19 @@ namespace TheLastEmpire
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0008",
-                    buildingName = "Motorized Blast Door",
-                    powerWatt = 10f,
+                    buildingId = "BUILD0012",
+                    buildingName = "Water Purifier",
+                    powerWatt = 40f,
                     isProducer = false,
-                    description = "Heavy reinforced motorized security door. Powered locking and hydraulic servos consume 10W."
+                    description = "Purifies contaminated fluids into bottled clean water (Max 3 bottles). Requires 40W."
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0007",
-                    buildingName = "Armored Wall Panel",
+                    buildingId = "BUILD0008",
+                    buildingName = "Motorized Blast Door",
                     powerWatt = 0f,
                     isProducer = false,
-                    description = "Heavy titanium-reinforced wall barricade protecting base perimeter. Passive armor structure (0W)."
+                    description = "Heavy reinforced motorized security door. Manual/powered security entrance (0W)."
                 },
                 new GridItemEntry
                 {
