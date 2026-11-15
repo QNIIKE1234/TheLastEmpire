@@ -688,8 +688,43 @@ namespace TheLastEmpire
             if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
         }
 
+        public bool IsControlLocked { get; private set; } = false;
+
+        public void SetControlLocked(bool locked)
+        {
+            IsControlLocked = locked;
+            _moveInput = Vector2.zero;
+            if (_rb != null)
+            {
+                _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
+            }
+            if (_animator != null)
+            {
+                _animator.SetFloat("Speed", 0f);
+                _animator.SetBool("IsRunning", false);
+            }
+            _activeShiftAbility?.OnShiftReleased();
+            _isSprinting = false;
+            _fireBufferTimer = 0f;
+        }
+
         private void Update()
         {
+            if (IsControlLocked)
+            {
+                _moveInput = Vector2.zero;
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
+                }
+                if (_animator != null)
+                {
+                    _animator.SetFloat("Speed", 0f);
+                    _animator.SetBool("IsRunning", false);
+                }
+                return;
+            }
+
             if (_health != null && _health.IsDead)
             {
                 if (_rb != null)
@@ -1365,6 +1400,11 @@ namespace TheLastEmpire
         // Called by PlayerInput component via SendMessages
         private void OnMove(InputValue value)
         {
+            if (IsControlLocked)
+            {
+                _moveInput = Vector2.zero;
+                return;
+            }
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps)
             {
                 _moveInput = Vector2.zero;
@@ -1375,6 +1415,7 @@ namespace TheLastEmpire
 
         private void OnAttack(InputValue value)
         {
+            if (IsControlLocked) return;
             if (UnityEngine.EventSystems.EventSystem.current != null && 
                 UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
             {
@@ -1398,6 +1439,7 @@ namespace TheLastEmpire
 
         private void OnInteract(InputValue value)
         {
+            if (IsControlLocked) return;
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) return;
             if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.ShouldBlockCombat)
             {

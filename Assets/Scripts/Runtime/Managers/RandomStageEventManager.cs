@@ -66,7 +66,10 @@ namespace TheLastEmpire
         private Coroutine _activeChaserCoroutine;
         private Coroutine _activeAmbushCoroutine;
         private Coroutine _stageEnterCoroutine;
+        private Coroutine _activeCutsceneCoroutine;
         private GameObject _activeRunnerInstance;
+        private readonly List<BaseEnemyAI> _activeChasersList = new List<BaseEnemyAI>();
+        private bool _isCutsceneActive = false;
 
         private void Awake()
         {
@@ -166,6 +169,9 @@ namespace TheLastEmpire
         /// </summary>
         public void CleanupActiveEvent()
         {
+            _isCutsceneActive = false;
+            _activeChasersList.Clear();
+
             if (_activeChaserCoroutine != null)
             {
                 StopCoroutine(_activeChaserCoroutine);
@@ -182,6 +188,22 @@ namespace TheLastEmpire
             {
                 StopCoroutine(_stageEnterCoroutine);
                 _stageEnterCoroutine = null;
+            }
+
+            if (_activeCutsceneCoroutine != null)
+            {
+                StopCoroutine(_activeCutsceneCoroutine);
+                _activeCutsceneCoroutine = null;
+            }
+
+            if (CameraFollow.Instance != null)
+            {
+                CameraFollow.Instance.ResetTarget();
+            }
+
+            if (PlayerController.Instance != null)
+            {
+                PlayerController.Instance.SetControlLocked(false);
             }
 
             if (_activeRunnerInstance != null)
@@ -576,7 +598,9 @@ namespace TheLastEmpire
 
             PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
-            float floorY = (player != null && player.transform.position.y > 0.8f) ? player.transform.position.y : 2.0f;
+
+            // ระดับความสูงมาตรฐานของโมเดลตัวละคร Humanoid (Y = 1.0f เพื่อให้เท้าที่ offset -1.0 สัมผัสพื้น Y=0 พอดี ไม่จมและไม่ลอย)
+            float floorY = 1.0f;
 
             // คำนวณตำแหน่งเกิดตรงกันข้ามกับ Player:
             // Get ตำแหน่งจริงของ Player แล้วเสก Maya ที่ฝั่งตรงข้าม วิ่งตรงเข้าหา Player และทะลุออกประตูที่เราเข้ามา
@@ -651,18 +675,106 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 4.0f, icon: mayaIcon);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 4.2f, icon: mayaIcon);
+
+                // Start Cinematic Cutscene sequence!
+                _activeCutsceneCoroutine = StartCoroutine(FleeingSurvivorCutsceneRoutine(npcObj, runner, player, npcSpawnPos, escapeTargetPos, rng, stage));
+            }
+            else
+            {
+                // Fallback: spawn chasers directly if NPC prefab is missing
+                _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng, stage));
+            }
+        }
+
+        private IEnumerator FleeingSurvivorCutsceneRoutine(
+            GameObject npcObj, 
+            FleeingSurvivorRunner runner, 
+            PlayerController player, 
+            Vector3 npcSpawnPos, 
+            Vector3 escapeTargetPos, 
+            System.Random rng, 
+            StageData stage)
+        {
+            _isCutsceneActive = true;
+            _activeChasersList.Clear();
+
+            // 1. Lock player controls immediately upon warping into room
+            if (player != null)
+            {
+                player.SetControlLocked(true);
             }
 
-            // ปล่อยฝูงศัตรูที่วิ่งไล่กวดตามหลัง NPC มา
+            // 2. Put NPC in cutscene waiting mode (stands alert, faces player, does not sprint yet)
+            if (runner != null)
+            {
+                runner.SetCutsceneWaiting(true);
+            }
+
+            // 3. จับภาพ/โฟกัสที่ตัวเรา (Player) ก่อน 1.0 วินาที
+            yield return new WaitForSeconds(1.0f);
+
+            // 4. เลื่อนกล้องอย่างไวมาก (Whip-pan) ข้ามห้องไปหา NPC Maya (customSmoothTime: 0.12f)
+            if (CameraFollow.Instance != null && npcObj != null)
+            {
+                CameraFollow.Instance.SetTemporaryTarget(npcObj.transform, customSmoothTime: 0.12f);
+            }
+
+            // รอให้กล้องพุ่งอย่างรวดเร็วข้ามห้องไปถึงตัว NPC (0.35 วินาที)
+            yield return new WaitForSeconds(0.35f);
+
+            // 5. เล่นบทพูดตะโกนเตือน
+            if (runner != null)
+            {
+                runner.ShowShout("Help me!! They're right behind me!!");
+            }
+            yield return new WaitForSeconds(1.1f);
+
+            // 6. NPC เริ่มค่อยๆ วิ่งหนีมาทางผู้เล่น
+            if (runner != null)
+            {
+                runner.SetCutsceneWaiting(false);
+            }
+
+            // หน่วงเวลา 0.25 วินาทีหลังจาก NPC เริ่มวิ่ง ก่อนที่ฝูงศัตรูตัวแรกจะเริ่ม spawn ไล่กวดตามหลังมา
+            yield return new WaitForSeconds(0.25f);
+
+            // 7. Spawn the pack of chasing enemies right behind NPC (ตอนคัตซีนทุกตัวจะวิ่งสปีด 1.0f)
             _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng, stage));
+
+            // ให้กล้องจับภาพและวิ่งตาม NPC 2 วินาที เพื่อให้เห็นจังหวะที่ NPC วิ่งหนีและฝูงศัตรูค่อยๆ กวดตามหลังมา
+            yield return new WaitForSeconds(2.0f);
+
+            // คัตซีน 2 วิเสร็จแล้ว คืนสปีดเต็มกำลังให้ศัตรูทุกตัว (3.5 m/s) เพื่อพุ่งไล่ล่าทันที!
+            _isCutsceneActive = false;
+            for (int i = 0; i < _activeChasersList.Count; i++)
+            {
+                var chaser = _activeChasersList[i];
+                if (chaser != null && chaser.isActiveAndEnabled)
+                {
+                    chaser.ApplyTemporaryStats(speed: 3.5f, detection: 50f);
+                }
+            }
+
+            // 8. เลื่อนกล้องกลับมาที่ตัว Player อย่างไว
+            if (CameraFollow.Instance != null)
+            {
+                CameraFollow.Instance.ResetTarget(restoreSmoothTime: 0.2f);
+            }
+
+            yield return new WaitForSeconds(0.35f);
+
+            // 9. ปลดล็อคการควบคุมให้ผู้เล่นสามารถบังคับและต่อสู้ได้ทันที!
+            if (player != null)
+            {
+                player.SetControlLocked(false);
+            }
+
+            _activeCutsceneCoroutine = null;
         }
 
         private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng, StageData stage)
         {
-            // หน่วงเวลาเล็กน้อย 0.4 วินาที เพื่อให้ Maya วิ่งนำหน้าออกไปก่อนในระยะกำลังสวย
-            yield return new WaitForSeconds(0.40f);
-
             if (GameManager.Instance == null) yield break;
 
             // สุ่มจำนวนศัตรู 4-5 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
@@ -694,7 +806,7 @@ namespace TheLastEmpire
                     float sideOffset = (float)(rng.NextDouble() * 1.0 - 0.5);
                     float rearOffset = -(float)(rng.NextDouble() * 1.2 + 0.8) - (i * 0.8f);
                     Vector3 enemySpawnPos = spawnCenter + (perpDir * sideOffset) + (runDir * rearOffset);
-                    enemySpawnPos.y = spawnCenter.y; // อยู่บนระดับพื้นห้องเสมอ ไม่จมดิน
+                    enemySpawnPos.y = 1.0f; // ระดับความสูงมาตรฐาน (BaseEnemyAI.EnableChaserPhasing จะปรับให้แนบพื้นตาม Collider จริงอีกขั้น)
 
                     // Clamp ให้อยู่ในฉาก
                     enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -14f, 14f);
@@ -713,14 +825,15 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = enemyObj.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            // ความเร็วไล่กวด 3.5 m/s (ช้ากว่า Maya 4.0 m/s เล็กน้อย ไม่แซง) + มองเห็นไกล 50m
-                            // ใช้ ApplyTemporaryStats เพื่อไม่ให้ค่าติดไปกับศัตรูใน Pool ที่ถูกนำไปใช้ซ้ำในห้องอื่น
-                            ai.ApplyTemporaryStats(speed: 3.5f, detection: 50f);
+                            // ตอนคัตซีนให้วิ่งสปีด 1.0f (หรือ 3.5f ถ้าคัตซีนจบแล้ว)
+                            float speed = _isCutsceneActive ? 1.0f : 3.5f;
+                            ai.ApplyTemporaryStats(speed: speed, detection: 50f);
                             ai.SkipTransitionDelay(); // วิ่งไล่ทันที ไม่ยืนนิ่ง 2 วินาทีตอนเกิด
                             // วิ่งทะลุสิ่งกีดขวาง/ตึก/กำแพง จนกว่าจะเข้าใกล้ผู้เล่นในระยะ 4.5m ค่อยเปิด Collider ป้องกันวิ่งติด
                             PlayerController player = PlayerController.Instance != null ? PlayerController.Instance : UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                             ai.EnableChaserPhasing(player != null ? player.transform : null, restoreDistance: 4.5f);
                             enemyObj.transform.forward = runDir;
+                            _activeChasersList.Add(ai);
                         }
                     }
                 }

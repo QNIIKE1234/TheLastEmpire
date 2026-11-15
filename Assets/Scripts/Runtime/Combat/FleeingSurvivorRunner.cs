@@ -37,6 +37,8 @@ namespace TheLastEmpire
         private bool _isInitialized = false;
         private bool _hasPassedPlayer = false;
         private float _lifetime = 0f;
+        private bool _isCutsceneWaiting = false;
+        private float _currentSpeed = 0f;
 
         private static readonly string[] PanickedShouts = new string[]
         {
@@ -54,6 +56,19 @@ namespace TheLastEmpire
             _onEscaped = onEscaped;
             moveSpeed = speed;
             _hasPassedPlayer = false;
+
+            // คำนวณความสูงพื้นดินที่ถูกต้องตาม Collider ของตัวละคร (โดยปกติคือ 1.0f สำหรับ Humanoid เพื่อให้เท้าแตะพื้นพอดี ไม่จมและไม่ลอย)
+            float naturalGroundY = 1.0f;
+            CapsuleCollider cap = GetComponent<CapsuleCollider>();
+            if (cap != null)
+            {
+                naturalGroundY = Mathf.Max(0.4f, -(cap.center.y - (cap.height * 0.5f) * transform.localScale.y));
+            }
+            _exitDestination.y = naturalGroundY;
+
+            Vector3 startPos = transform.position;
+            startPos.y = naturalGroundY;
+            transform.position = startPos;
 
             Vector3 axis = exitDestination - transform.position;
             axis.y = 0f;
@@ -220,11 +235,74 @@ namespace TheLastEmpire
             }
         }
 
+        /// <summary>
+        /// Pauses or resumes running during a cutscene.
+        /// </summary>
+        public void SetCutsceneWaiting(bool waiting)
+        {
+            _isCutsceneWaiting = waiting;
+            if (waiting)
+            {
+                _currentSpeed = 0f;
+                for (int i = _animators.Count - 1; i >= 0; i--)
+                {
+                    Animator anim = _animators[i];
+                    if (anim != null && anim.isActiveAndEnabled)
+                    {
+                        anim.SetBool(IsRunningHash, false);
+                        anim.SetFloat(SpeedHash, 0f);
+                    }
+                }
+            }
+            else
+            {
+                _currentSpeed = 1.5f; // Start running gradually
+                DriveRunAnimation();
+            }
+        }
+
+        /// <summary>
+        /// Displays a specific or randomized panicked shout in the overhead bubble.
+        /// </summary>
+        public void ShowShout(string specificMessage = null)
+        {
+            if (dialogText != null)
+            {
+                string msg = !string.IsNullOrEmpty(specificMessage)
+                    ? specificMessage
+                    : PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
+                dialogText.text = msg;
+            }
+            if (dialogPanel != null)
+            {
+                dialogPanel.SetActive(true);
+            }
+        }
+
         private void Update()
         {
             if (!_isInitialized) return;
 
+            if (_isCutsceneWaiting)
+            {
+                // During cutscene stand ground and face towards the player/escape direction
+                Vector3 lookTarget = _playerTransform != null ? _playerTransform.position : _exitDestination;
+                Vector3 toTarget = lookTarget - transform.position;
+                toTarget.y = 0f;
+                if (toTarget.sqrMagnitude > 0.01f)
+                {
+                    transform.forward = Vector3.Slerp(transform.forward, toTarget.normalized, Time.deltaTime * 10f);
+                }
+                return;
+            }
+
             _lifetime += Time.deltaTime;
+
+            // Gradually accelerate to target moveSpeed
+            if (_currentSpeed < moveSpeed)
+            {
+                _currentSpeed = Mathf.MoveTowards(_currentSpeed, moveSpeed, Time.deltaTime * 3.5f);
+            }
 
             if (_animatorRefreshFrames > 0 || _animators.Count == 0)
             {
@@ -265,7 +343,7 @@ namespace TheLastEmpire
             if (dist > 0.05f)
             {
                 Vector3 dir = diff / dist;
-                float step = Mathf.Min(moveSpeed * Time.deltaTime, dist);
+                float step = Mathf.Min(_currentSpeed * Time.deltaTime, dist);
                 transform.position = currentPos + dir * step;
                 transform.forward = Vector3.Slerp(transform.forward, dir, Time.deltaTime * 12f);
             }
@@ -287,15 +365,7 @@ namespace TheLastEmpire
 
         private void ShoutRandom()
         {
-            if (dialogText != null)
-            {
-                string msg = PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
-                dialogText.text = msg;
-            }
-            if (dialogPanel != null)
-            {
-                dialogPanel.SetActive(true);
-            }
+            ShowShout(null);
         }
 
         private void EscapeAndDespawn()

@@ -33,9 +33,48 @@ namespace TheLastEmpire
         private float _shakeTimer = 0f;
         private float _shakeMagnitude = 0f;
 
+        private Transform _originalTarget;
+        private bool _isTargetOverridden = false;
+        private float _originalSmoothTime = 0.15f;
+
         private void Awake()
         {
             _instance = this;
+        }
+
+        /// <summary>
+        /// Temporarily switches camera focus to a cutscene or event target (e.g. NPC or boss).
+        /// </summary>
+        public void SetTemporaryTarget(Transform tempTarget, float customSmoothTime = 0.35f)
+        {
+            if (!_isTargetOverridden)
+            {
+                _originalTarget = target;
+                _originalSmoothTime = smoothTime;
+                _isTargetOverridden = true;
+            }
+            target = tempTarget;
+            smoothTime = customSmoothTime;
+        }
+
+        /// <summary>
+        /// Restores camera focus back to the original player target.
+        /// </summary>
+        public void ResetTarget(float restoreSmoothTime = 0.25f)
+        {
+            if (_isTargetOverridden)
+            {
+                if (_originalTarget != null)
+                {
+                    target = _originalTarget;
+                }
+                else
+                {
+                    FindPlayerTarget();
+                }
+                _isTargetOverridden = false;
+                smoothTime = restoreSmoothTime;
+            }
         }
 
         public void Shake(float duration = 0.25f, float magnitude = 0.35f)

@@ -111,8 +111,35 @@ namespace TheLastEmpire
 
             _phasingTargetPlayer = targetPlayer != null ? targetPlayer : playerTransform;
             _phasingRestoreDistance = restoreDistance;
-            _phasingGroundY = transform.position.y;
+
+            // คำนวณความสูงพื้นดินที่เหมาะสมจาก Collider ของศัตรูแต่ละชนิดโดยอัตโนมัติ (เช่น Humanoid = 1.0f, หมา = 0.5f)
+            // เพื่อให้เท้าแตะพื้นระนาบ Y=0 พอดี ไม่จมดินและไม่ลอย
+            float naturalGroundY = 1.0f;
+            CapsuleCollider cap = GetComponent<CapsuleCollider>();
+            if (cap != null)
+            {
+                naturalGroundY = Mathf.Max(0.4f, -(cap.center.y - (cap.height * 0.5f) * transform.localScale.y));
+            }
+            else
+            {
+                Collider col = GetComponent<Collider>();
+                if (col is BoxCollider box)
+                {
+                    naturalGroundY = Mathf.Max(0.4f, -(box.center.y - (box.size.y * 0.5f) * transform.localScale.y));
+                }
+                else if (col is SphereCollider sph)
+                {
+                    naturalGroundY = Mathf.Max(0.4f, -(sph.center.y - (sph.radius * transform.localScale.y)));
+                }
+            }
+
+            _phasingGroundY = naturalGroundY;
             _isChaserPhasing = true;
+
+            // ปรับตำแหน่ง Y ของศัตรูให้แนบพอดีกับพื้นทันที ไม่ลอยและไม่จมดิน
+            Vector3 groundPos = transform.position;
+            groundPos.y = _phasingGroundY;
+            transform.position = groundPos;
 
             // บันทึกสถานะ Trigger เดิมของ Collider ทุกตัว แล้วเปลี่ยนเป็น Trigger เพื่อทะลุสิ่งกีดขวาง
             Collider[] cols = GetComponentsInChildren<Collider>(true);
