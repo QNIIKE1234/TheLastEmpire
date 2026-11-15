@@ -4,6 +4,8 @@ namespace TheLastEmpire
 {
     public class GroundBiomeMaterialController : MonoBehaviour
     {
+        public static GroundBiomeMaterialController Instance { get; private set; }
+
         [Header("Biome Materials")]
         [SerializeField] private Material urbanRuinsMaterial;
         [SerializeField] private Material highwaysMaterial;
@@ -14,26 +16,35 @@ namespace TheLastEmpire
         [SerializeField] private Material specialEventMaterial;
         [SerializeField] private Material defaultMaterial;
 
-        [Header("Floor Mesh Renderers (Optional)")]
+        [Header("Floor Mesh Renderers")]
         [SerializeField] private MeshRenderer centerMeshRenderer;
         [SerializeField] private MeshRenderer northMeshRenderer;
         [SerializeField] private MeshRenderer southMeshRenderer;
         [SerializeField] private MeshRenderer eastMeshRenderer;
         [SerializeField] private MeshRenderer westMeshRenderer;
 
+        [Header("Corner Floor Mesh Renderers")]
+        [SerializeField] private MeshRenderer northEastMeshRenderer;
+        [SerializeField] private MeshRenderer northWestMeshRenderer;
+        [SerializeField] private MeshRenderer southEastMeshRenderer;
+        [SerializeField] private MeshRenderer southWestMeshRenderer;
+
+        [Header("Display Settings")]
+        [Tooltip("If true, disables neighbor floor meshes when outside the map bounds. If false, blends them with the current room's biome to prevent a black void.")]
+        [SerializeField] private bool hideMissingNeighbors = false;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            AutoDetectAllRenderers();
+        }
+
         private void Start()
         {
-            // Auto-detect Center renderer if not manually assigned (default to the current GameObject's MeshRenderer)
-            if (centerMeshRenderer == null)
-            {
-                centerMeshRenderer = GetComponent<MeshRenderer>() ?? FindMeshRendererByName("Center");
-            }
-
-            // Auto-detect neighbors if they are not manually assigned in Inspector
-            if (northMeshRenderer == null) northMeshRenderer = FindMeshRendererByName("North");
-            if (southMeshRenderer == null) southMeshRenderer = FindMeshRendererByName("South");
-            if (eastMeshRenderer == null) eastMeshRenderer = FindMeshRendererByName("East");
-            if (westMeshRenderer == null) westMeshRenderer = FindMeshRendererByName("West");
+            AutoDetectAllRenderers();
 
             if (WorldMapManager.Instance != null)
             {
@@ -55,73 +66,134 @@ namespace TheLastEmpire
             if (suburbanVillagesMaterial == null) suburbanVillagesMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>($"{materialsPath}/SuburbanVillages.mat");
             if (specialEventMaterial == null) specialEventMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>($"{materialsPath}/SpecialEvent.mat");
             if (defaultMaterial == null) defaultMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>($"{materialsPath}/Default.mat");
+
+            AutoDetectAllRenderers();
         }
 #endif
 
         private void OnDestroy()
         {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
             if (WorldMapManager.Instance != null)
             {
                 WorldMapManager.Instance.OnStageChanged -= HandleStageChanged;
             }
         }
 
-        private MeshRenderer FindMeshRendererByName(string nameKeyword)
+        public void AutoDetectAllRenderers()
         {
-            // Look for siblings first
+            if (centerMeshRenderer == null) centerMeshRenderer = GetComponent<MeshRenderer>() ?? FindMeshRendererByKeywords("CGround", "Center", "CenterGround");
+            if (northMeshRenderer == null) northMeshRenderer = FindMeshRendererByKeywords("TGround", "North", "Top");
+            if (southMeshRenderer == null) southMeshRenderer = FindMeshRendererByKeywords("BGround", "South", "Bottom");
+            if (eastMeshRenderer == null) eastMeshRenderer = FindMeshRendererByKeywords("RGround", "East", "Right");
+            if (westMeshRenderer == null) westMeshRenderer = FindMeshRendererByKeywords("LGround", "West", "Left");
+
+            if (northEastMeshRenderer == null) northEastMeshRenderer = FindMeshRendererByKeywords("TRGround", "TR", "NorthEast", "TopRight");
+            if (northWestMeshRenderer == null) northWestMeshRenderer = FindMeshRendererByKeywords("TLGround", "TL", "NorthWest", "TopLeft");
+            if (southEastMeshRenderer == null) southEastMeshRenderer = FindMeshRendererByKeywords("BRGround", "BR", "SouthEast", "BottomRight");
+            if (southWestMeshRenderer == null) southWestMeshRenderer = FindMeshRendererByKeywords("BLGround", "BL", "SouthWest", "BottomLeft");
+        }
+
+        private MeshRenderer FindMeshRendererByKeywords(params string[] keywords)
+        {
+            // 1. Look under transform.parent if available (e.g. MapData/Grouind)
             if (transform.parent != null)
             {
-                foreach (Transform child in transform.parent)
-                {
-                    if (child.name.ToLower().Contains(nameKeyword.ToLower()) && child.GetComponent<MeshRenderer>() != null)
-                    {
-                        return child.GetComponent<MeshRenderer>();
-                    }
-                }
+                MeshRenderer found = SearchInTransform(transform.parent, keywords);
+                if (found != null) return found;
             }
 
-            // Look in the active scene root as fallback
-            GameObject obj = GameObject.Find("Ground_" + nameKeyword) ?? 
-                             GameObject.Find("Floor_" + nameKeyword) ??
-                             GameObject.Find(nameKeyword);
-            if (obj != null)
+            // 2. Look under "Grouind" or "Ground" root object in active scene
+            GameObject groundGroup = GameObject.Find("Grouind") ?? GameObject.Find("Ground");
+            if (groundGroup != null)
             {
-                return obj.GetComponent<MeshRenderer>();
+                MeshRenderer found = SearchInTransform(groundGroup.transform, keywords);
+                if (found != null) return found;
+            }
+
+            // 3. Fallback search by GameObject name
+            foreach (string kw in keywords)
+            {
+                GameObject obj = GameObject.Find(kw) ?? 
+                                 GameObject.Find("Ground_" + kw) ?? 
+                                 GameObject.Find("Floor_" + kw);
+                if (obj != null && obj.GetComponent<MeshRenderer>() != null)
+                {
+                    return obj.GetComponent<MeshRenderer>();
+                }
             }
 
             return null;
         }
 
-        private void HandleStageChanged(int gridX, int gridY)
+        private MeshRenderer SearchInTransform(Transform parent, string[] keywords)
+        {
+            // First pass: exact name match
+            foreach (Transform child in parent)
+            {
+                string childName = child.name;
+                foreach (string kw in keywords)
+                {
+                    if (childName.Equals(kw, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        MeshRenderer rend = child.GetComponent<MeshRenderer>();
+                        if (rend != null) return rend;
+                    }
+                }
+            }
+
+            // Second pass: contains keyword
+            foreach (Transform child in parent)
+            {
+                string childNameUpper = child.name.ToUpper();
+                foreach (string kw in keywords)
+                {
+                    string kwUpper = kw.ToUpper();
+                    if (childNameUpper.Contains(kwUpper))
+                    {
+                        MeshRenderer rend = child.GetComponent<MeshRenderer>();
+                        if (rend != null) return rend;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void HandleStageChanged(int gridX, int gridY)
         {
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
 
+            AutoDetectAllRenderers();
+
             // Update main floor (Center)
             StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(gridX, gridY);
-            if (stage != null)
+            BiomeType currentBiome = stage != null ? stage.biome : BiomeType.UrbanRuins;
+
+            if (centerMeshRenderer != null)
             {
-                if (centerMeshRenderer != null)
-                {
-                    centerMeshRenderer.gameObject.SetActive(true);
-                    ApplyBiomeMaterial(stage.biome, centerMeshRenderer);
-                }
-            }
-            else
-            {
-                if (centerMeshRenderer != null)
-                {
-                    centerMeshRenderer.gameObject.SetActive(false);
-                }
+                centerMeshRenderer.gameObject.SetActive(true);
+                ApplyBiomeMaterial(currentBiome, centerMeshRenderer);
             }
 
-            // Update neighboring floors (North: gridY + 1, South: gridY - 1, East: gridX + 1, West: gridX - 1)
-            UpdateNeighborFloor(gridX, gridY + 1, northMeshRenderer);
-            UpdateNeighborFloor(gridX, gridY - 1, southMeshRenderer);
-            UpdateNeighborFloor(gridX + 1, gridY, eastMeshRenderer);
-            UpdateNeighborFloor(gridX - 1, gridY, westMeshRenderer);
+            // Update 4 cardinal neighbors (North: Y+1, South: Y-1, East: X+1, West: X-1)
+            UpdateNeighborFloor(gridX, gridY + 1, northMeshRenderer, currentBiome);
+            UpdateNeighborFloor(gridX, gridY - 1, southMeshRenderer, currentBiome);
+            UpdateNeighborFloor(gridX + 1, gridY, eastMeshRenderer, currentBiome);
+            UpdateNeighborFloor(gridX - 1, gridY, westMeshRenderer, currentBiome);
+
+            // Update 4 diagonal corner neighbors
+            UpdateNeighborFloor(gridX + 1, gridY + 1, northEastMeshRenderer, currentBiome); // TR
+            UpdateNeighborFloor(gridX - 1, gridY + 1, northWestMeshRenderer, currentBiome); // TL
+            UpdateNeighborFloor(gridX + 1, gridY - 1, southEastMeshRenderer, currentBiome); // BR
+            UpdateNeighborFloor(gridX - 1, gridY - 1, southWestMeshRenderer, currentBiome); // BL
         }
 
-        private void UpdateNeighborFloor(int x, int y, MeshRenderer neighborRenderer)
+        private void UpdateNeighborFloor(int x, int y, MeshRenderer neighborRenderer, BiomeType fallbackBiome)
         {
             if (neighborRenderer == null) return;
 
@@ -136,8 +208,17 @@ namespace TheLastEmpire
             }
             else
             {
-                // Disable neighbor floor mesh if there is no room in that direction
-                neighborRenderer.gameObject.SetActive(false);
+                if (hideMissingNeighbors)
+                {
+                    // Disable neighbor floor mesh if outside map bounds
+                    neighborRenderer.gameObject.SetActive(false);
+                }
+                else
+                {
+                    // Keep visible with current room biome fallback to prevent an empty void
+                    neighborRenderer.gameObject.SetActive(true);
+                    ApplyBiomeMaterial(fallbackBiome, neighborRenderer);
+                }
             }
         }
 

@@ -47,6 +47,12 @@ namespace TheLastEmpire
         [SerializeField] private float prefabSpawnOffsetHeight = 0.0f; // Customize spawning Y height for user prefabs (use 1.0f for a Center-pivoted 2.0-tall Cube)
         [SerializeField] private bool clearMiddleStreet = true; // If true, solid obstacles (buildings/props) will only spawn on the top/bottom sidewalk rows, leaving the center street clear
 
+        [Header("Background Scenery Settings")]
+        [Tooltip("If true, generates decorative buildings, skyline, and trees on the surrounding corner and edge grounds.")]
+        [SerializeField] private bool generateBackgroundScenery = true;
+        [SerializeField, Range(1, 10)] private int buildingsPerCorner = 5;
+        [SerializeField, Range(0, 12)] private int propsPerCorner = 5;
+
         [System.Serializable]
         public struct GridRow
         {
@@ -172,6 +178,10 @@ namespace TheLastEmpire
             {
                 GenerateEnvironmentFromTemplate(template, stage);
                 EnsurePortalsClear(playerPos);
+                if (generateBackgroundScenery)
+                {
+                    GenerateSurroundingBackgroundScenery(stage, config);
+                }
                 return;
             }
 
@@ -345,6 +355,10 @@ namespace TheLastEmpire
                 }
 
                 EnsurePortalsClear(playerPos);
+                if (generateBackgroundScenery)
+                {
+                    GenerateSurroundingBackgroundScenery(stage, config);
+                }
                 return; // Skip normal random spawning!
             }
 
@@ -735,6 +749,11 @@ namespace TheLastEmpire
 
             // Final safety pass: ensure no spawned building/obstacle physically overlaps any active portal or the player
             EnsurePortalsClear(playerPos);
+
+            if (generateBackgroundScenery)
+            {
+                GenerateSurroundingBackgroundScenery(stage, config);
+            }
 
             Debug.Log($"[EnvironmentManager] Grid generated {buildingSpawnCount + pathSpawnCount} obstacles and {spawnDecorations} decorations (out of safe cells: {decorationSafeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
         }
@@ -1981,6 +2000,231 @@ namespace TheLastEmpire
                 if (go == null) continue;
                 if (Application.isPlaying) Destroy(go);
                 else DestroyImmediate(go);
+            }
+        }
+
+        /// <summary>
+        /// Generates decorative buildings, trees, and skyline props on the surrounding corner and edge grounds
+        /// (TLGround, TRGround, BLGround, BRGround, TGround, BGround, LGround, RGround) to provide an immersive
+        /// background view so the player never sees an empty void or bare green planes at the borders.
+        /// </summary>
+        private struct SurroundingGroundZone
+        {
+            public Transform transform;
+            public Vector3 center;
+            public bool isCorner;
+            public int dx;
+            public int dy;
+            public string name;
+        }
+
+        /// <summary>
+        /// Generates decorative buildings, trees, and skyline props on the surrounding corner and edge grounds
+        /// (TLGround, TRGround, BLGround, BRGround, TGround, BGround, LGround, RGround) to provide an immersive
+        /// background view matching the actual biomes of the neighboring stages on the World Map.
+        /// </summary>
+        private void GenerateSurroundingBackgroundScenery(StageData stage, BiomeEnvConfig config)
+        {
+            if (_currentEnvContainer == null) return;
+
+            GameObject bgContainer = new GameObject("BackgroundScenery");
+            bgContainer.transform.parent = _currentEnvContainer.transform;
+            bgContainer.transform.position = Vector3.zero;
+
+            Random.State oldState = Random.state;
+            Random.InitState(stage.stageSeed + 88888);
+
+            // 1. Discover surrounding ground areas dynamically from the scene hierarchy
+            Transform groundParent = GameObject.Find("Grouind")?.transform ?? GameObject.Find("Ground")?.transform;
+
+            List<SurroundingGroundZone> zones = new List<SurroundingGroundZone>();
+
+            if (groundParent != null)
+            {
+                for (int i = 0; i < groundParent.childCount; i++)
+                {
+                    Transform child = groundParent.GetChild(i);
+                    string nameUpper = child.name.ToUpper();
+                    if (nameUpper.Contains("CGROUND") || nameUpper == "CENTER" || nameUpper == "CENTERGROUND") continue;
+
+                    Vector3 pos = child.position;
+                    int dx = 0;
+                    int dy = 0;
+                    bool isCorner = false;
+
+                    if (nameUpper.Contains("TL")) { dx = -1; dy = 1; isCorner = true; }
+                    else if (nameUpper.Contains("TR")) { dx = 1; dy = 1; isCorner = true; }
+                    else if (nameUpper.Contains("BL")) { dx = -1; dy = -1; isCorner = true; }
+                    else if (nameUpper.Contains("BR")) { dx = 1; dy = -1; isCorner = true; }
+                    else if (nameUpper.Contains("T") || nameUpper.Contains("NORTH")) { dx = 0; dy = 1; isCorner = false; }
+                    else if (nameUpper.Contains("B") || nameUpper.Contains("SOUTH")) { dx = 0; dy = -1; isCorner = false; }
+                    else if (nameUpper.Contains("R") || nameUpper.Contains("EAST")) { dx = 1; dy = 0; isCorner = false; }
+                    else if (nameUpper.Contains("L") || nameUpper.Contains("WEST")) { dx = -1; dy = 0; isCorner = false; }
+
+                    zones.Add(new SurroundingGroundZone
+                    {
+                        transform = child,
+                        center = pos,
+                        isCorner = isCorner,
+                        dx = dx,
+                        dy = dy,
+                        name = child.name
+                    });
+                }
+            }
+
+            // Fallback default zones if Grouind hierarchy is not found in the active scene
+            if (zones.Count == 0)
+            {
+                zones.Add(new SurroundingGroundZone { center = new Vector3(-gridWidth, 0f, gridHeight * 0.85f), isCorner = true, dx = -1, dy = 1, name = "TLGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(gridWidth, 0f, gridHeight * 0.85f), isCorner = true, dx = 1, dy = 1, name = "TRGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(-gridWidth, 0f, -gridHeight * 0.85f), isCorner = true, dx = -1, dy = -1, name = "BLGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(gridWidth, 0f, -gridHeight * 0.85f), isCorner = true, dx = 1, dy = -1, name = "BRGround" });
+
+                zones.Add(new SurroundingGroundZone { center = new Vector3(0f, 0f, gridHeight * 0.85f), isCorner = false, dx = 0, dy = 1, name = "TGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(0f, 0f, -gridHeight * 0.85f), isCorner = false, dx = 0, dy = -1, name = "BGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(-gridWidth, 0f, 0f), isCorner = false, dx = -1, dy = 0, name = "LGround" });
+                zones.Add(new SurroundingGroundZone { center = new Vector3(gridWidth, 0f, 0f), isCorner = false, dx = 1, dy = 0, name = "RGround" });
+            }
+
+            // 2. Populate each surrounding zone according to its specific neighboring stage biome
+            foreach (var zone in zones)
+            {
+                int neighborX = stage.x + zone.dx;
+                int neighborY = stage.y + zone.dy;
+                StageData neighborStage = WorldMapManager.Instance?.MapGenerator?.GetStage(neighborX, neighborY);
+                BiomeType zoneBiome = (neighborStage != null) ? neighborStage.biome : stage.biome;
+                BiomeEnvConfig zoneConfig = GetConfigForBiome(zoneBiome);
+
+                // Sync ground mesh renderer material to the zone's specific biome
+                if (zone.transform != null)
+                {
+                    MeshRenderer mr = zone.transform.GetComponent<MeshRenderer>();
+                    if (mr != null && GroundBiomeMaterialController.Instance != null)
+                    {
+                        GroundBiomeMaterialController.Instance.ApplyBiomeMaterial(zoneBiome, mr);
+                    }
+                }
+
+                // Categorize large buildings vs props for this zone's biome
+                List<GameObject> largeBuildings = new List<GameObject>();
+                List<GameObject> allDecorations = new List<GameObject>();
+
+                if (zoneConfig.obstaclePrefabs != null)
+                {
+                    foreach (var p in zoneConfig.obstaclePrefabs)
+                    {
+                        if (p == null) continue;
+                        if (IsLargeBuilding(p)) largeBuildings.Add(p);
+                        else allDecorations.Add(p);
+                    }
+                }
+                if (zoneConfig.decorationPrefabs != null)
+                {
+                    foreach (var p in zoneConfig.decorationPrefabs)
+                    {
+                        if (p == null || p.name.Equals("Street", System.StringComparison.OrdinalIgnoreCase)) continue;
+                        if (IsLargeBuilding(p)) largeBuildings.Add(p);
+                        else allDecorations.Add(p);
+                    }
+                }
+
+                if (zone.isCorner)
+                {
+                    // Skyline / Backdrop in corners
+                    int bCount = Random.Range(buildingsPerCorner - 1, buildingsPerCorner + 2);
+                    for (int b = 0; b < bCount; b++)
+                    {
+                        GameObject bPrefab = GetRandomPrefab(largeBuildings.Count > 0 ? largeBuildings : zoneConfig.obstaclePrefabs);
+                        float offsetX = Random.Range(-18f, 18f);
+                        float offsetZ = Random.Range(-8f, 8f);
+                        Vector3 spawnPos = zone.center + new Vector3(offsetX, 0f, offsetZ);
+
+                        if (bPrefab != null)
+                        {
+                            Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) * bPrefab.transform.rotation;
+                            float spawnY = bPrefab.transform.position.y + prefabSpawnOffsetHeight;
+                            Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
+                            GameObject obj = Instantiate(bPrefab, worldPos, rot, bgContainer.transform);
+                            obj.name = $"BG_{bPrefab.name}";
+                            DisableCollidersOnBackgroundObject(obj);
+                        }
+                        else if (useProceduralFallbacks)
+                        {
+                            CreateProceduralObstacle(new Vector3(spawnPos.x, spawnPos.z, 0f), zoneBiome, true);
+                        }
+                    }
+
+                    int pCount = Random.Range(propsPerCorner - 1, propsPerCorner + 2);
+                    for (int p = 0; p < pCount; p++)
+                    {
+                        GameObject pPrefab = GetRandomPrefab(allDecorations.Count > 0 ? allDecorations : zoneConfig.decorationPrefabs);
+                        float offsetX = Random.Range(-20f, 20f);
+                        float offsetZ = Random.Range(-10f, 10f);
+                        Vector3 spawnPos = zone.center + new Vector3(offsetX, 0f, offsetZ);
+
+                        if (pPrefab != null)
+                        {
+                            Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 360f), 0f) * pPrefab.transform.rotation;
+                            float spawnY = pPrefab.transform.position.y + prefabSpawnOffsetHeight;
+                            Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
+                            GameObject obj = Instantiate(pPrefab, worldPos, rot, bgContainer.transform);
+                            obj.name = $"BG_{pPrefab.name}";
+                            DisableCollidersOnBackgroundObject(obj);
+                        }
+                        else if (useProceduralFallbacks)
+                        {
+                            CreateProceduralDecoration(new Vector3(spawnPos.x, spawnPos.z, 0f), zoneBiome);
+                        }
+                    }
+                }
+                else
+                {
+                    // Edge flanking view (leave central portal line of sight clear)
+                    bool isHorizontalEdge = Mathf.Abs(zone.center.z) > Mathf.Abs(zone.center.x); // Top or Bottom
+
+                    int edgeBuildingCount = Random.Range(2, 4);
+                    for (int b = 0; b < edgeBuildingCount; b++)
+                    {
+                        GameObject bPrefab = GetRandomPrefab(largeBuildings.Count > 0 ? largeBuildings : zoneConfig.obstaclePrefabs);
+                        float offsetX = 0f;
+                        float offsetZ = 0f;
+
+                        if (isHorizontalEdge)
+                        {
+                            offsetX = Random.value < 0.5f ? Random.Range(-20f, -8f) : Random.Range(8f, 20f);
+                            offsetZ = Random.Range(-8f, 8f);
+                        }
+                        else
+                        {
+                            offsetX = Random.Range(-8f, 8f);
+                            offsetZ = Random.value < 0.5f ? Random.Range(-10f, -6f) : Random.Range(6f, 10f);
+                        }
+
+                        Vector3 spawnPos = zone.center + new Vector3(offsetX, 0f, offsetZ);
+                        if (bPrefab != null)
+                        {
+                            Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) * bPrefab.transform.rotation;
+                            float spawnY = bPrefab.transform.position.y + prefabSpawnOffsetHeight;
+                            Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
+                            GameObject obj = Instantiate(bPrefab, worldPos, rot, bgContainer.transform);
+                            obj.name = $"BG_{bPrefab.name}";
+                            DisableCollidersOnBackgroundObject(obj);
+                        }
+                    }
+                }
+            }
+
+            Random.state = oldState;
+        }
+
+        private static void DisableCollidersOnBackgroundObject(GameObject obj)
+        {
+            if (obj == null) return;
+            Collider[] colliders = obj.GetComponentsInChildren<Collider>(true);
+            foreach (var col in colliders)
+            {
+                if (col != null) col.enabled = false;
             }
         }
 
