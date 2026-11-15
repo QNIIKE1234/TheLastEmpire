@@ -129,6 +129,11 @@ namespace TheLastEmpire
                     {
                         AddItem("Pistol Ammo", startAmmo);
                     }
+
+                    if (!HasItem("Water Bottle"))
+                    {
+                        AddItem("Water Bottle", 3);
+                    }
                 }
             }
             SyncItemsFlatList();

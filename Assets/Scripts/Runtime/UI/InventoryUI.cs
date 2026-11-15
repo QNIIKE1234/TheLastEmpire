@@ -90,9 +90,20 @@ namespace TheLastEmpire
                     if (_itemContainer != null)
                         ScanExistingSlots();
 
-                    // Hook pagination buttons
-                    if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
-                    if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
+                    // Hook pagination buttons & ensure pageIndicatorText never blocks raycasts on Pre_Button
+                    if (pageIndicatorText != null) pageIndicatorText.raycastTarget = false;
+                    if (prevPageButton != null)
+                    {
+                        prevPageButton.onClick.RemoveListener(PrevPage);
+                        prevPageButton.onClick.AddListener(PrevPage);
+                        prevPageButton.transform.SetAsLastSibling();
+                    }
+                    if (nextPageButton != null)
+                    {
+                        nextPageButton.onClick.RemoveListener(NextPage);
+                        nextPageButton.onClick.AddListener(NextPage);
+                        nextPageButton.transform.SetAsLastSibling();
+                    }
 
                     // Hook close / back buttons
                     HookCloseButtons();
@@ -382,6 +393,7 @@ namespace TheLastEmpire
             bool multiPage = _totalPages > 1;
             if (pageIndicatorText != null)
             {
+                pageIndicatorText.raycastTarget = false;
                 pageIndicatorText.gameObject.SetActive(multiPage);
                 if (multiPage) pageIndicatorText.text = $"{_currentPage + 1} / {_totalPages}";
             }

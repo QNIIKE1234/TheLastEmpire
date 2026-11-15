@@ -2591,6 +2591,13 @@ namespace TheLastEmpire
                         _inventory.AddItem("Bread", rationCount);
                     }
 
+                    // Grant starting water bottles (3x Water Bottle)
+                    int waterCount = activeCharacterData.startingWater > 0 ? activeCharacterData.startingWater : 3;
+                    if (waterCount > 0)
+                    {
+                        _inventory.AddItem("Water Bottle", waterCount);
+                    }
+
                     // Grant starting extra items if configured
                     if (activeCharacterData.startingExtraItems != null)
                     {

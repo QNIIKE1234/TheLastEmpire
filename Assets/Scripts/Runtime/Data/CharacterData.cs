@@ -191,6 +191,9 @@ namespace TheLastEmpire
         [Tooltip("Starting ration bread count given upon spawn.")]
         public int startingRations = 2;
 
+        [Tooltip("Starting water bottle count given upon spawn.")]
+        public int startingWater = 3;
+
         [Tooltip("List of weapon names added to inventory & arsenal on start (e.g. Rifle, Knife).")]
         public List<string> startingWeapons = new List<string> { "Rifle", "Knife" };
 
@@ -311,7 +314,9 @@ namespace TheLastEmpire
             }
 
             string rationStr = startingRations > 0 ? $"{startingRations}x Bread" : "None";
-            return $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ammoDesc}</b> | Ration: <b>{rationStr}</b> | Credits: <b>{startingMoney} Gold</b>";
+            int wCount = startingWater > 0 ? startingWater : 3;
+            string waterStr = wCount > 0 ? $", {wCount}x Water Bottle" : "";
+            return $"- Primary Weapon: <b>{wpns}</b>\n- Starting Ammo: <b>{ammoDesc}</b> | Ration: <b>{rationStr}{waterStr}</b> | Credits: <b>{startingMoney} Gold</b>";
         }
 
         /// <summary>

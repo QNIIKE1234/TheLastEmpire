@@ -93,8 +93,9 @@ namespace TheLastEmpire
 
                 ScanExistingSlots();
 
-                if (prevPageButton != null) prevPageButton.onClick.AddListener(PrevPage);
-                if (nextPageButton != null) nextPageButton.onClick.AddListener(NextPage);
+                if (pageIndicatorText != null) pageIndicatorText.raycastTarget = false;
+                if (prevPageButton != null) { prevPageButton.onClick.AddListener(PrevPage); prevPageButton.transform.SetAsLastSibling(); }
+                if (nextPageButton != null) { nextPageButton.onClick.AddListener(NextPage); nextPageButton.transform.SetAsLastSibling(); }
                 
                 if (tabBuyButton != null) tabBuyButton.onClick.AddListener(() => SwitchTab(ShopMode.Buy));
                 if (tabSellButton != null) tabSellButton.onClick.AddListener(() => SwitchTab(ShopMode.Sell));
