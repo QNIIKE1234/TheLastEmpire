@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 
 namespace TheLastEmpire
@@ -121,6 +122,33 @@ namespace TheLastEmpire
             SetupDefaultGridEntries();
             AutoBindReferences();
         }
+
+        private void Reset()
+        {
+            gridEntries = null;
+            SetupDefaultGridEntries();
+            AutoBindReferences();
+        }
+
+        [ContextMenu("Populate Default Grid Entries")]
+        public void PopulateDefaults()
+        {
+            gridEntries = null;
+            SetupDefaultGridEntries();
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (gridEntries == null || gridEntries.Count == 0)
+            {
+                SetupDefaultGridEntries();
+            }
+        }
+#endif
 
         private void Start()
         {
@@ -379,27 +407,27 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (Keyboard.current != null)
             {
-                if (_isOpen)
+                if (Keyboard.current.escapeKey.wasPressedThisFrame && _isOpen)
                 {
                     CloseHUD();
                     return;
                 }
-            }
 
-            // ปุ่มลัด [P] (Power) สำหรับเปิด/ปิดหน้าต่างโครงข่ายไฟฟ้าได้สะดวก
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                if (_isOpen)
+                // ปุ่มลัด [P] (Power) สำหรับเปิด/ปิดหน้าต่างโครงข่ายไฟฟ้าได้สะดวก
+                if (Keyboard.current.pKey.wasPressedThisFrame)
                 {
-                    CloseHUD();
-                    return;
-                }
-                else
-                {
-                    OpenHUD();
-                    return;
+                    if (_isOpen)
+                    {
+                        CloseHUD();
+                        return;
+                    }
+                    else
+                    {
+                        OpenHUD();
+                        return;
+                    }
                 }
             }
 
