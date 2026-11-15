@@ -283,13 +283,7 @@ namespace TheLastEmpire
             IDamageable dam = _currentTarget.GetComponent<IDamageable>() ?? _currentTarget.GetComponentInParent<IDamageable>();
             if (dam != null && !dam.IsDead)
             {
-                dam.TakeDamage(damagePerShot);
-
-                if (DamageNumberManager.Instance != null)
-                {
-                    Vector3 hitPos = _currentTarget.position + Vector3.up * 1.0f;
-                    DamageNumberManager.Instance.SpawnDamageNumber(hitPos, damagePerShot, false);
-                }
+                dam.TakeDamage(damagePerShot, _currentTarget.position + Vector3.up * 1.0f, false);
             }
         }
 
