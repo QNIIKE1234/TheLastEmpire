@@ -235,9 +235,9 @@ namespace TheLastEmpire
                 {
                     buildingId = "BUILD0010",
                     buildingName = "Survivor Workbench",
-                    powerWatt = 10f,
+                    powerWatt = 0f,
                     isProducer = false,
-                    description = "Precision crafting workbench. Powered tools and lighting consume 10W."
+                    description = "Survivor crafting workbench for tools and survival equipment. Operates manually without electricity (0W)."
                 },
                 new GridItemEntry
                 {
@@ -544,6 +544,11 @@ namespace TheLastEmpire
                         ? $"<color=#00FF66>100%</color>" 
                         : $"<color=#FF4444>OFF</color>";
                 }
+                else if (entry.powerWatt <= 0f)
+                {
+                    // สิ่งปลูกสร้างที่ไม่ต้องใช้ไฟฟ้า (เช่น โต๊ะคราฟต์) จะทำงาน 100% เสมอเมื่อสร้างแล้ว
+                    entry.percentText.text = "<color=#00FF66>100%</color>";
+                }
                 else
                 {
                     if (eff <= 0f)
@@ -578,6 +583,10 @@ namespace TheLastEmpire
                     {
                         statusStr = activeGens > 0 ? "<color=#00FF66>OPERATIONAL</color>" : "<color=#FF4444>OFFLINE</color>";
                     }
+                    else if (sel.powerWatt <= 0f)
+                    {
+                        statusStr = "<color=#00FF66>OPERATIONAL (No Power Required)</color>";
+                    }
                     else
                     {
                         statusStr = eff <= 0f ? "<color=#FF3333>OFFLINE (NO POWER)</color>" 
@@ -585,9 +594,19 @@ namespace TheLastEmpire
                                   : "<color=#00FF66>NORMAL (100%)</color>";
                     }
 
-                    string spec = sel.isProducer 
-                        ? $"Output: <color=#00FF66>+{sel.powerWatt:F0}W</color> per unit (Total: +{count * sel.powerWatt:F0}W)"
-                        : $"Demand: <color=#FFB800>-{sel.powerWatt:F0}W</color> per unit (Total: -{count * sel.powerWatt:F0}W)";
+                    string spec;
+                    if (sel.isProducer)
+                    {
+                        spec = $"Output: <color=#00FF66>+{sel.powerWatt:F0}W</color> per unit (Total: +{count * sel.powerWatt:F0}W)";
+                    }
+                    else if (sel.powerWatt <= 0f)
+                    {
+                        spec = "Power Demand: <color=#00FF66>None (0W - Manual Operation)</color>";
+                    }
+                    else
+                    {
+                        spec = $"Demand: <color=#FFB800>-{sel.powerWatt:F0}W</color> per unit (Total: -{count * sel.powerWatt:F0}W)";
+                    }
 
                     descriptionText.text = $"<b>[{sel.buildingName}]</b>  —  Active: {count} unit(s)  |  Status: {statusStr}\n{spec}\n{sel.description}";
                 }
