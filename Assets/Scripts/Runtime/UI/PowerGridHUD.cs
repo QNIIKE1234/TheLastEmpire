@@ -255,14 +255,6 @@ namespace TheLastEmpire
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0015",
-                    buildingName = "Fusion Generator",
-                    powerWatt = 60f,
-                    isProducer = true,
-                    description = "Compact fusion reactor supplying +60W clean electrical power across a 20-meter radius."
-                },
-                new GridItemEntry
-                {
                     buildingId = "BUILD0012",
                     buildingName = "Water Purifier",
                     powerWatt = 40f,
@@ -279,11 +271,11 @@ namespace TheLastEmpire
                 },
                 new GridItemEntry
                 {
-                    buildingId = "BUILD0010",
-                    buildingName = "Survivor Workbench",
+                    buildingId = "BUILD0007",
+                    buildingName = "Armored Wall Panel",
                     powerWatt = 0f,
                     isProducer = false,
-                    description = "Survivor crafting workbench for tools and survival equipment. Operates manually without electricity (0W)."
+                    description = "Heavy titanium-reinforced wall barricade protecting base perimeter. Passive armor structure (0W)."
                 },
                 new GridItemEntry
                 {
