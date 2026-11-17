@@ -265,6 +265,13 @@ namespace TheLastEmpire
                 stampedCount++;
             }
 
+            // 1c. Place 1 flagship Europe 3x3 City District (London/Paris/etc.) 10..22 tiles from spawn
+            string flagshipEU = cityDistrictKeys.Find(k => k.StartsWith("District_EU_", StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(flagshipEU) && TryPlaceDistrictInRing(flagshipEU, 10, 22))
+            {
+                stampedCount++;
+            }
+
             // 2. Stamp 3x3 City & Event Camp Districts across 16x16 macro-sectors over the entire 128x128 World Map
             const int sectorSize = 16;
             int sectorCount = WorldMapGenerator.GridSize / sectorSize;
@@ -275,7 +282,7 @@ namespace TheLastEmpire
             {
                 for (int sx = 0; sx < sectorCount; sx++)
                 {
-                    if (rand.NextDouble() > 0.65) continue;
+                    if (rand.NextDouble() > 0.82) continue;
 
                     // ~25% of stamped districts are Event 3x3 Camp Districts, ~75% are City 3x3 Districts
                     string chosenKey;
