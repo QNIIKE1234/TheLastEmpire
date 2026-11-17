@@ -1,4 +1,34 @@
 {
+    "biome":  1,
+    "lootSpawns":  [
+                       {
+                           "itemName":  "Money",
+                           "quantity":  1,
+                           "moneyAmount":  85,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  5.8,
+                                            "x":  7.3
+                                        },
+                           "isMoney":  true
+                       },
+                       {
+                           "itemName":  "Ammo",
+                           "quantity":  2,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  0.6,
+                                            "x":  7.7
+                                        },
+                           "isMoney":  false
+                       }
+                   ],
+    "templateId":  "US_HWY_Chicago_Skyway",
+    "districtOffsetY":  0,
+    "npcSpawns":  [
+
+                  ],
     "decorations":  [
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Street",
@@ -267,6 +297,25 @@
                                          }
                         },
                         {
+                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Tree_Pine",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -6.8,
+                                             "x":  -3.5
+                                         }
+                        },
+                        {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
                             "rotation":  {
                                              "y":  180,
@@ -286,13 +335,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Tree_02_Scorched_Dead_Tree",
+                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
                             "rotation":  {
                                              "y":  0,
                                              "z":  0,
-                                             "x":  90
+                                             "x":  0
                                          },
-                            "prefabName":  "Apoc_Tree_02_Scorched_Dead_Tree",
+                            "prefabName":  "Tree_Pine",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -324,6 +373,44 @@
                                          }
                         },
                         {
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  270
+                                         },
+                            "prefabName":  "Apoc_Prop_Rubble_Pile",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -5.3,
+                                             "x":  16.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  7.5,
+                                             "x":  3.7
+                                         }
+                        },
+                        {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
                                              "y":  180,
@@ -338,14 +425,14 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -7.7,
-                                             "x":  -2.4
+                                             "z":  6.7,
+                                             "x":  -15
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -357,18 +444,18 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  5.3,
-                                             "x":  -18.3
+                                             "z":  6.1,
+                                             "x":  -0.1
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  270,
+                                             "y":  90,
                                              "z":  0,
-                                             "x":  270
+                                             "x":  0
                                          },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
+                            "prefabName":  "Prop_GrassTuft",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -376,18 +463,18 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -5.8,
-                                             "x":  -3.2
+                                             "z":  -5,
+                                             "x":  3.5
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  270,
+                                             "y":  180,
                                              "z":  0,
-                                             "x":  270
+                                             "x":  0
                                          },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
+                            "prefabName":  "Prop_GrassTuft",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -395,72 +482,19 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  6.6,
-                                             "x":  -5.6
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  8.1,
-                                             "x":  -7.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  7.4,
-                                             "x":  5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.1,
-                                             "x":  19
+                                             "z":  8,
+                                             "x":  -16.7
                                          }
                         }
                     ],
-    "npcSpawns":  [
+    "roomSize":  {
+                     "y":  25,
+                     "x":  50
+                 },
+    "enemySpawns":  [
 
-                  ],
-    "templateName":  "Chicago Skyway Toll Plaza (Illinois)",
+                    ],
+    "selectionWeight":  1.6,
     "obstacles":  [
                       {
                           "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
@@ -478,7 +512,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  7.6,
-                                           "x":  -11.5
+                                           "x":  -10.5
                                        }
                       },
                       {
@@ -520,13 +554,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_DinerRetro",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_DinerRetro",
+                          "prefabName":  "Apoc_Building_07_Collapsed_Depot_Midrise",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -556,59 +590,9 @@
                                            "z":  -7.6,
                                            "x":  -14
                                        }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Vehicle_Sedan",
-                          "rotation":  {
-                                           "y":  90,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Vehicle_Sedan",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  2,
-                                           "x":  -11.5
-                                       }
                       }
                   ],
-    "enemySpawns":  [
-
-                    ],
-    "roomSize":  {
-                     "y":  25,
-                     "x":  50
-                 },
-    "lootSpawns":  [
-                       {
-                           "itemName":  "Money",
-                           "quantity":  1,
-                           "moneyAmount":  110,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  1,
-                                            "x":  5.6
-                                        },
-                           "isMoney":  true
-                       },
-                       {
-                           "itemName":  "Medkit",
-                           "quantity":  1,
-                           "moneyAmount":  0,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  3.5,
-                                            "x":  6.6
-                                        },
-                           "isMoney":  false
-                       }
-                   ],
-    "biome":  1,
-    "templateId":  "US_HWY_Chicago_Skyway",
-    "selectionWeight":  1.6
+    "districtOffsetX":  0,
+    "districtId":  "",
+    "templateName":  "Chicago Skyway Approach (IL)"
 }

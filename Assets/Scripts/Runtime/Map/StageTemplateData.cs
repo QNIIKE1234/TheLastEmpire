@@ -50,6 +50,11 @@ namespace TheLastEmpire
         public float selectionWeight = 1.0f; // Weight for random selection pool
         public Vector2 roomSize = new Vector2(32f, 18f);
 
+        // Optional 3x3 multi-stage city district linkage (offsetX/Y in [-1, 0, +1])
+        public string districtId = "";
+        public int districtOffsetX = 0;
+        public int districtOffsetY = 0;
+
         public List<StagePlacedObject> obstacles = new List<StagePlacedObject>();
         public List<StagePlacedObject> decorations = new List<StagePlacedObject>();
         public List<StageEnemySpawnPoint> enemySpawns = new List<StageEnemySpawnPoint>();

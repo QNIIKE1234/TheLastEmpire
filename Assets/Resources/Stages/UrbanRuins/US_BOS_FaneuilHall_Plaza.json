@@ -1,4 +1,34 @@
 {
+    "biome":  0,
+    "lootSpawns":  [
+                       {
+                           "itemName":  "Money",
+                           "quantity":  1,
+                           "moneyAmount":  135,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  -0.5,
+                                            "x":  -15.4
+                                        },
+                           "isMoney":  true
+                       },
+                       {
+                           "itemName":  "Ammo",
+                           "quantity":  2,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  1,
+                                            "x":  -9.8
+                                        },
+                           "isMoney":  false
+                       }
+                   ],
+    "templateId":  "US_BOS_FaneuilHall_Plaza",
+    "districtOffsetY":  0,
+    "npcSpawns":  [
+
+                  ],
     "decorations":  [
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Street",
@@ -400,6 +430,25 @@
                                          }
                         },
                         {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  5.28,
+                                             "x":  -4.55
+                                         }
+                        },
+                        {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
                             "rotation":  {
                                              "y":  180,
@@ -415,6 +464,44 @@
                             "position":  {
                                              "y":  0,
                                              "z":  4.8,
+                                             "x":  6.5
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  5.28,
+                                             "x":  4.55
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Bench",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -4.8,
                                              "x":  -6.5
                                          }
                         },
@@ -433,7 +520,7 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  4.8,
+                                             "z":  -4.8,
                                              "x":  -8.78
                                          }
                         },
@@ -452,18 +539,75 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  5.28,
+                                             "z":  -5.28,
                                              "x":  -4.55
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Bench",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -4.8,
+                                             "x":  6.5
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -5.28,
+                                             "x":  4.55
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -7.6,
+                                             "x":  5.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
                             "rotation":  {
                                              "y":  180,
                                              "z":  0,
-                                             "x":  0
+                                             "x":  270
                                          },
-                            "prefabName":  "Prop_Bench",
+                            "prefabName":  "Apoc_Prop_Rubble_Pile",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -471,122 +615,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  4.8,
-                                             "x":  6.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  4.8,
-                                             "x":  8.78
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.28,
-                                             "x":  4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Bench",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.8,
-                                             "x":  -6.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -5.28,
-                                             "x":  -4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Bench",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.8,
-                                             "x":  6.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -5.28,
-                                             "x":  4.55
+                                             "z":  -4.1,
+                                             "x":  17.2
                                          }
                         },
                         {
@@ -604,14 +634,14 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  6.5,
-                                             "x":  4.8
+                                             "z":  5.4,
+                                             "x":  8.9
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  180,
+                                             "y":  270,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -623,24 +653,66 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  5.1,
-                                             "x":  -10.9
+                                             "z":  8.3,
+                                             "x":  5.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  270
+                                         },
+                            "prefabName":  "Apoc_Prop_Rubble_Pile",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -7.1,
+                                             "x":  -4.7
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  6,
+                                             "x":  11.7
                                          }
                         }
                     ],
-    "npcSpawns":  [
+    "roomSize":  {
+                     "y":  25,
+                     "x":  50
+                 },
+    "enemySpawns":  [
 
-                  ],
-    "templateName":  "Faneuil Hall Marketplace (Boston)",
+                    ],
+    "selectionWeight":  1.6,
     "obstacles":  [
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_03_Narrow_Signal_Tower",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ClockTower",
                           "rotation":  {
-                                           "y":  90,
+                                           "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Building_03_Narrow_Signal_Tower",
+                          "prefabName":  "Landmark_ClockTower",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -653,13 +725,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "prefabName":  "Apoc_Building_02_Office_Glass_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -672,13 +744,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_CornerShop",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Building_CornerShop",
+                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -691,13 +763,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Red",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Blue",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_MarketStall_Red",
+                          "prefabName":  "Landmark_MarketStall_Blue",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -710,13 +782,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "prefabName":  "Landmark_BrownstoneRow",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -786,13 +858,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_06_Ruined_Clinic_Lowrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Building_06_Ruined_Clinic_Lowrise",
+                          "prefabName":  "Landmark_BrownstoneRow",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -805,38 +877,7 @@
                                        }
                       }
                   ],
-    "enemySpawns":  [
-
-                    ],
-    "roomSize":  {
-                     "y":  25,
-                     "x":  50
-                 },
-    "lootSpawns":  [
-                       {
-                           "itemName":  "Money",
-                           "quantity":  1,
-                           "moneyAmount":  185,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  -0.4,
-                                            "x":  -6.6
-                                        },
-                           "isMoney":  true
-                       },
-                       {
-                           "itemName":  "Bandage",
-                           "quantity":  2,
-                           "moneyAmount":  0,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  -2.7,
-                                            "x":  13.6
-                                        },
-                           "isMoney":  false
-                       }
-                   ],
-    "biome":  0,
-    "templateId":  "US_BOS_FaneuilHall_Plaza",
-    "selectionWeight":  1.6
+    "districtOffsetX":  0,
+    "districtId":  "",
+    "templateName":  "Faneuil Hall Marketplace (Boston)"
 }

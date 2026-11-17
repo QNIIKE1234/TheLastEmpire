@@ -65,6 +65,10 @@ namespace TheLastEmpire
 
             mapGenerator.seed = seed;
             mapGenerator.GenerateMap();
+            if (StageTemplateManager.Instance != null)
+            {
+                StageTemplateManager.Instance.StampDistrictsOntoWorldMap(mapGenerator, force: true);
+            }
 
             InitializePlayerCoordinates();
         }
@@ -138,6 +142,10 @@ namespace TheLastEmpire
 
             mapGenerator.seed = data.worldSeed;
             mapGenerator.GenerateMap();
+            if (StageTemplateManager.Instance != null)
+            {
+                StageTemplateManager.Instance.StampDistrictsOntoWorldMap(mapGenerator, force: true);
+            }
 
             CurrentPlayerX = data.playerCoordX;
             CurrentPlayerY = data.playerCoordY;
