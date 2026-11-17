@@ -4,33 +4,33 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  110,
+                           "moneyAmount":  185,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  2.6,
-                                            "x":  -14.6
+                                            "z":  4.3,
+                                            "x":  14
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Medkit",
-                           "quantity":  2,
+                           "itemName":  "Water",
+                           "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  1.8,
-                                            "x":  -11.6
+                                            "z":  6.3,
+                                            "x":  1.7
                                         },
                            "isMoney":  false
                        },
                        {
                            "itemName":  "Bread",
-                           "quantity":  2,
+                           "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -0.2,
-                                            "x":  15.8
+                                            "z":  -2.7,
+                                            "x":  0
                                         },
                            "isMoney":  false
                        }
@@ -308,6 +308,44 @@
                                          }
                         },
                         {
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Tree_02_Scorched_Dead_Tree",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  90
+                                         },
+                            "prefabName":  "Apoc_Tree_02_Scorched_Dead_Tree",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -5,
+                                             "x":  -8.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Tree_Pine",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  6.7,
+                                             "x":  9.3
+                                         }
+                        },
+                        {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_WoodenFence",
                             "rotation":  {
                                              "y":  180,
@@ -323,102 +361,7 @@
                             "position":  {
                                              "y":  0,
                                              "z":  4.2,
-                                             "x":  -7.7
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_WoodenFence",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_WoodenFence",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  4.2,
-                                             "x":  -12.8
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BoulderCluster",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BoulderCluster",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.2,
-                                             "x":  -5.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8.1,
-                                             "x":  3.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.8,
-                                             "x":  18.7
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.5,
-                                             "x":  5
+                                             "x":  -6.5
                                          }
                         },
                         {
@@ -436,14 +379,14 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  4.2,
-                                             "x":  -17.7
+                                             "z":  -3.6,
+                                             "x":  12.6
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -455,14 +398,14 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -6.3,
-                                             "x":  -7.8
+                                             "z":  -8.4,
+                                             "x":  18.4
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -474,14 +417,52 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -8,
-                                             "x":  -9.4
+                                             "z":  5.8,
+                                             "x":  3.6
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.5,
+                                             "x":  -9.7
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  4.7,
+                                             "x":  18
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  270
                                          },
@@ -493,8 +474,27 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  7.1,
-                                             "x":  10.7
+                                             "z":  4.9,
+                                             "x":  5.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -4.6,
+                                             "x":  3.7
                                          }
                         }
                     ],
@@ -527,13 +527,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_02_Concrete_Duplex",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Building_CottageHouse",
+                          "prefabName":  "Apoc_House_02_Concrete_Duplex",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -584,13 +584,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_02_Concrete_Duplex",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_AlpineChalet",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_House_02_Concrete_Duplex",
+                          "prefabName":  "Building_AlpineChalet",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,

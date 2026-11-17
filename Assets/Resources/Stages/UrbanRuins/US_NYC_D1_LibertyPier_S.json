@@ -4,33 +4,33 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  185,
+                           "moneyAmount":  85,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  1,
-                                            "x":  -16
+                                            "z":  -2.7,
+                                            "x":  -2.7
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Medkit",
+                           "itemName":  "Water",
                            "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -5.6,
-                                            "x":  1
+                                            "z":  -3.4,
+                                            "x":  -11.4
                                         },
                            "isMoney":  false
                        },
                        {
-                           "itemName":  "Bandage",
+                           "itemName":  "Water",
                            "quantity":  2,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -6.2,
-                                            "x":  0.4
+                                            "z":  0.7,
+                                            "x":  -13.3
                                         },
                            "isMoney":  false
                        }
@@ -323,6 +323,25 @@
                             "position":  {
                                              "y":  0,
                                              "z":  2.8,
+                                             "x":  -14
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  2.8,
                                              "x":  -7
                                          }
                         },
@@ -365,13 +384,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
                             "rotation":  {
                                              "y":  180,
                                              "z":  0,
-                                             "x":  0
+                                             "x":  270
                                          },
-                            "prefabName":  "Prop_GrassTuft",
+                            "prefabName":  "Apoc_Prop_Rubble_Pile",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -379,8 +398,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -7.9,
-                                             "x":  -14.7
+                                             "z":  2.8,
+                                             "x":  9.2
                                          }
                         },
                         {
@@ -398,8 +417,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -8.3,
-                                             "x":  13.9
+                                             "z":  -7.2,
+                                             "x":  -18.7
                                          }
                         },
                         {
@@ -417,14 +436,14 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  4.2,
+                                             "z":  4.7,
                                              "x":  2.9
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  270,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -436,8 +455,27 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -7.2,
-                                             "x":  17.9
+                                             "z":  4.4,
+                                             "x":  0.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  2.9,
+                                             "x":  -5
                                          }
                         }
                     ],
@@ -451,13 +489,13 @@
     "selectionWeight":  1.6,
     "obstacles":  [
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "prefabName":  "Apoc_Building_01_Residential_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -470,13 +508,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
                           "rotation":  {
-                                           "y":  270,
+                                           "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_WarehouseHangar",
+                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -489,13 +527,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Building_Townhouse",
+                          "prefabName":  "Landmark_CafePatio",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -504,7 +542,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  -4
+                                           "x":  -3.2
                                        }
                       },
                       {
@@ -527,13 +565,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_BrownstoneRow",
+                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -546,13 +584,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
                           "rotation":  {
                                            "y":  270,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_WarehouseHangar",
+                          "prefabName":  "Apoc_Building_02_Office_Glass_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -561,7 +599,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  16.5
+                                           "x":  17.3
                                        }
                       }
                   ],

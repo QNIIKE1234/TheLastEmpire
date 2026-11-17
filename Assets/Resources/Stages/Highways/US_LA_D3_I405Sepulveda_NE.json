@@ -4,22 +4,22 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  135,
+                           "moneyAmount":  160,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -3.3,
-                                            "x":  -4.1
+                                            "z":  -3.8,
+                                            "x":  8.4
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Water",
+                           "itemName":  "Bread",
                            "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -1.2,
-                                            "x":  15.5
+                                            "z":  -5.1,
+                                            "x":  2
                                         },
                            "isMoney":  false
                        }
@@ -316,13 +316,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Tree_02_Scorched_Dead_Tree",
                             "rotation":  {
                                              "y":  0,
                                              "z":  0,
-                                             "x":  0
+                                             "x":  90
                                          },
-                            "prefabName":  "Tree_Pine",
+                            "prefabName":  "Apoc_Tree_02_Scorched_Dead_Tree",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -354,9 +354,104 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  6,
+                                             "x":  -3.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  7.2,
+                                             "x":  16.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
                                              "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  6.3,
+                                             "x":  -0.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -5.6,
+                                             "x":  17.5
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  7.1,
+                                             "x":  -17.3
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+                            "rotation":  {
+                                             "y":  180,
                                              "z":  0,
                                              "x":  270
                                          },
@@ -368,18 +463,18 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  5.5,
-                                             "x":  -3.3
+                                             "z":  5,
+                                             "x":  7.5
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
                             "rotation":  {
-                                             "y":  180,
+                                             "y":  90,
                                              "z":  0,
-                                             "x":  0
+                                             "x":  270
                                          },
-                            "prefabName":  "Prop_GrassTuft",
+                            "prefabName":  "Apoc_Prop_Rubble_Pile",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -388,102 +483,7 @@
                             "position":  {
                                              "y":  0,
                                              "z":  7.8,
-                                             "x":  -14.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8,
-                                             "x":  -3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8,
-                                             "x":  -5.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.6,
-                                             "x":  -18.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.4,
-                                             "x":  -0.8
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -7.7,
-                                             "x":  3.4
+                                             "x":  4.5
                                          }
                         }
                     ],
@@ -516,13 +516,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_03_Salvaged_Tin_Shack",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
+                          "prefabName":  "Apoc_House_03_Salvaged_Tin_Shack",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -554,13 +554,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "prefabName":  "Landmark_WarehouseHangar",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -592,13 +592,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Vehicle_Sedan",
+                          "resourcePath":  "Prefabs/Environment/Apoc_Vehicle_02_Ruined_Truck",
                           "rotation":  {
                                            "y":  90,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Vehicle_Sedan",
+                          "prefabName":  "Apoc_Vehicle_02_Ruined_Truck",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -608,25 +608,6 @@
                                            "y":  0,
                                            "z":  2,
                                            "x":  -11.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Vehicle_Police_Sedan",
-                          "rotation":  {
-                                           "y":  270,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Vehicle_Police_Sedan",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -2,
-                                           "x":  9.5
                                        }
                       }
                   ],

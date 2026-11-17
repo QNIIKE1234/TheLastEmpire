@@ -141,9 +141,18 @@ namespace TheLastEmpire
             System.Random rand = new System.Random(mapGen.seed + 31337);
             HashSet<long> reservedCoords = new HashSet<long>();
 
-            // Sort district IDs so America districts come first, starting with NYC Liberty if available
-            List<string> districtKeys = new List<string>(_districts.Keys);
-            districtKeys.Sort((a, b) =>
+            // Separate City 3x3 Districts from Event-only 3x3 Camp Districts
+            List<string> cityDistrictKeys = new List<string>();
+            List<string> eventDistrictKeys = new List<string>();
+            foreach (string key in _districts.Keys)
+            {
+                if (key.StartsWith("District_EVT", StringComparison.OrdinalIgnoreCase))
+                    eventDistrictKeys.Add(key);
+                else
+                    cityDistrictKeys.Add(key);
+            }
+
+            cityDistrictKeys.Sort((a, b) =>
             {
                 bool aLiberty = a.Contains("Liberty") || a.Contains("NYC");
                 bool bLiberty = b.Contains("Liberty") || b.Contains("NYC");
@@ -151,6 +160,14 @@ namespace TheLastEmpire
                 bool aUS = a.StartsWith("District_US", StringComparison.OrdinalIgnoreCase);
                 bool bUS = b.StartsWith("District_US", StringComparison.OrdinalIgnoreCase);
                 if (aUS != bUS) return aUS ? -1 : 1;
+                return string.Compare(a, b, StringComparison.Ordinal);
+            });
+
+            eventDistrictKeys.Sort((a, b) =>
+            {
+                bool aSurv = a.Contains("SurvivorCamp");
+                bool bSurv = b.Contains("SurvivorCamp");
+                if (aSurv != bSurv) return aSurv ? -1 : 1;
                 return string.Compare(a, b, StringComparison.Ordinal);
             });
 
@@ -199,14 +216,9 @@ namespace TheLastEmpire
                 }
             }
 
-            int stampedCount = 0;
-
-            // 1. Place the flagship American 3x3 Landmark District (Statue of Liberty / NYC) 3..8 tiles from spawn so players can explore right into it!
-            if (districtKeys.Count > 0)
+            bool TryPlaceDistrictInRing(string districtKey, int minDist, int maxDist)
             {
-                string flagshipKey = districtKeys[0];
-                bool placedNearSpawn = false;
-                for (int dist = 3; dist <= 12 && !placedNearSpawn; dist++)
+                for (int dist = minDist; dist <= maxDist; dist++)
                 {
                     List<Vector2Int> candidates = new List<Vector2Int>();
                     for (int dy = -dist; dy <= dist; dy++)
@@ -218,7 +230,6 @@ namespace TheLastEmpire
                         }
                     }
 
-                    // Deterministic shuffle
                     for (int i = candidates.Count - 1; i > 0; i--)
                     {
                         int j = rand.Next(0, i + 1);
@@ -231,30 +242,53 @@ namespace TheLastEmpire
                     {
                         if (IsFootprintValid(c.x, c.y))
                         {
-                            ApplyDistrictStamp(c.x, c.y, _districts[flagshipKey]);
-                            stampedCount++;
-                            placedNearSpawn = true;
-                            Debug.Log($"[StageTemplateManager] Placed flagship 3x3 district '{flagshipKey}' at ({c.x}, {c.y}) near spawn ({mapGen.spawnX}, {mapGen.spawnY}).");
-                            break;
+                            ApplyDistrictStamp(c.x, c.y, _districts[districtKey]);
+                            Debug.Log($"[StageTemplateManager] Placed 3x3 district '{districtKey}' at ({c.x}, {c.y}) near spawn ({mapGen.spawnX}, {mapGen.spawnY}).");
+                            return true;
                         }
                     }
                 }
+                return false;
             }
 
-            // 2. Stamp 3x3 City Districts across 16x16 macro-sectors over the entire 128x128 World Map
+            int stampedCount = 0;
+
+            // 1a. Place flagship US 3x3 City District (Statue of Liberty / NYC) 3..12 tiles from spawn
+            if (cityDistrictKeys.Count > 0 && TryPlaceDistrictInRing(cityDistrictKeys[0], 3, 12))
+            {
+                stampedCount++;
+            }
+
+            // 1b. Place 1 Event-only 3x3 Survivor Camp District 6..18 tiles from spawn
+            if (eventDistrictKeys.Count > 0 && TryPlaceDistrictInRing(eventDistrictKeys[0], 6, 18))
+            {
+                stampedCount++;
+            }
+
+            // 2. Stamp 3x3 City & Event Camp Districts across 16x16 macro-sectors over the entire 128x128 World Map
             const int sectorSize = 16;
             int sectorCount = WorldMapGenerator.GridSize / sectorSize;
-            int roundRobin = 1;
+            int cityRoundRobin = 1;
+            int eventRoundRobin = 0;
 
             for (int sy = 0; sy < sectorCount; sy++)
             {
                 for (int sx = 0; sx < sectorCount; sx++)
                 {
-                    // Place 3x3 districts in ~55% of walkable sectors, keeping open wilderness/procedural areas mixed in
-                    if (rand.NextDouble() > 0.55) continue;
+                    if (rand.NextDouble() > 0.65) continue;
 
-                    string chosenKey = districtKeys[roundRobin % districtKeys.Count];
-                    roundRobin++;
+                    // ~25% of stamped districts are Event 3x3 Camp Districts, ~75% are City 3x3 Districts
+                    string chosenKey;
+                    if (eventDistrictKeys.Count > 0 && (cityDistrictKeys.Count == 0 || rand.NextDouble() < 0.28))
+                    {
+                        chosenKey = eventDistrictKeys[eventRoundRobin % eventDistrictKeys.Count];
+                        eventRoundRobin++;
+                    }
+                    else
+                    {
+                        chosenKey = cityDistrictKeys[cityRoundRobin % cityDistrictKeys.Count];
+                        cityRoundRobin++;
+                    }
 
                     for (int attempt = 0; attempt < 8; attempt++)
                     {
@@ -270,7 +304,7 @@ namespace TheLastEmpire
                 }
             }
 
-            Debug.Log($"[StageTemplateManager] Stamped {stampedCount} connected 3x3 landmark city districts across the 128x128 world map.");
+            Debug.Log($"[StageTemplateManager] Stamped {stampedCount} connected 3x3 city & event camp districts across the 128x128 world map.");
         }
 
         /// <summary>
@@ -302,6 +336,11 @@ namespace TheLastEmpire
                 }
                 if (_templatesById.TryGetValue(stage.assignedTemplateId, out template))
                 {
+                    // Safety rule: Survivor Camps with NPCs are strictly restricted to SpecialEvent stages
+                    if (template.npcSpawns != null && template.npcSpawns.Count > 0 && stage.biome != BiomeType.SpecialEvent)
+                    {
+                        return false;
+                    }
                     return true;
                 }
                 return false;

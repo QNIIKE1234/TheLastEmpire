@@ -7,19 +7,19 @@
                            "moneyAmount":  110,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -1.3,
-                                            "x":  -7.4
+                                            "z":  -1.8,
+                                            "x":  -13.5
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Ammo",
+                           "itemName":  "Bandage",
                            "quantity":  2,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -5.9,
-                                            "x":  -4.8
+                                            "z":  2.4,
+                                            "x":  10.5
                                         },
                            "isMoney":  false
                        }
@@ -297,13 +297,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Broadleaf",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  180,
                                              "z":  0,
                                              "x":  0
                                          },
-                            "prefabName":  "Tree_Broadleaf",
+                            "prefabName":  "Prop_Streetlight",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -311,18 +311,75 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  3.2,
-                                             "x":  -16.2
+                                             "z":  2.8,
+                                             "x":  -7
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  2.8,
+                                             "x":  7
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
                                              "y":  0,
                                              "z":  0,
                                              "x":  0
                                          },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3,
+                                             "x":  -3
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
                             "prefabName":  "Prop_BushFlowering_New",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -8,
+                                             "x":  -16.3
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -331,13 +388,13 @@
                             "position":  {
                                              "y":  0,
                                              "z":  4,
-                                             "x":  6.1
+                                             "x":  9.8
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -349,46 +406,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  3.4,
-                                             "x":  -4.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -7.2,
-                                             "x":  -13.4
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushFlowering_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -7.4,
-                                             "x":  -19
+                                             "z":  -6.7,
+                                             "x":  15.8
                                          }
                         }
                     ],
@@ -401,82 +420,6 @@
                     ],
     "selectionWeight":  1.6,
     "obstacles":  [
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Building_Townhouse",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  -16.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_C",
-                          "rotation":  {
-                                           "y":  270,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "House_Suburban_C",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  -10.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
-                          "rotation":  {
-                                           "y":  270,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_CafePatio",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  -4
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_CafePatio",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  3.8
-                                       }
-                      },
                       {
                           "resourcePath":  "Prefabs/Environment/Building/House_Suburban_B",
                           "rotation":  {
@@ -493,7 +436,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  11
+                                           "x":  -16.5
                                        }
                       },
                       {
@@ -512,7 +455,83 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  17.3
+                                           "x":  -10.2
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  270
+                                       },
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  7.3,
+                                           "x":  -4
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  270
+                                       },
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  7.3,
+                                           "x":  3.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_Townhouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  10.2
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "House_Suburban_A",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  16.5
                                        }
                       }
                   ],

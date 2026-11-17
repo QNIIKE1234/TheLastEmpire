@@ -766,8 +766,12 @@ namespace TheLastEmpire
             obj.name = placed.prefabName;
             obj.transform.SetParent(parent, false);
             obj.transform.position = placed.position;
-            obj.transform.eulerAngles = placed.rotation;
-            obj.transform.localScale = placed.scale;
+            if (prefab != null && Mathf.Abs(placed.rotation.x) < 0.01f && Mathf.Abs(placed.rotation.z) < 0.01f)
+                obj.transform.rotation = Quaternion.Euler(0f, placed.rotation.y, 0f) * prefab.transform.rotation;
+            else
+                obj.transform.eulerAngles = placed.rotation;
+            if (placed.scale != Vector3.one || prefab == null || prefab.transform.localScale == Vector3.one)
+                obj.transform.localScale = placed.scale;
             return obj;
         }
 

@@ -4,22 +4,22 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  185,
+                           "moneyAmount":  60,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  0.8,
-                                            "x":  0.9
+                                            "z":  -3.1,
+                                            "x":  -6
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Ammo",
-                           "quantity":  2,
+                           "itemName":  "Bread",
+                           "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  2.4,
-                                            "x":  7.1
+                                            "z":  -2.9,
+                                            "x":  -7.2
                                         },
                            "isMoney":  false
                        }
@@ -411,13 +411,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Vehicle_Sedan",
+                            "resourcePath":  "Prefabs/Environment/Vehicle_Motorcycle",
                             "rotation":  {
                                              "y":  270,
                                              "z":  0,
                                              "x":  0
                                          },
-                            "prefabName":  "Vehicle_Sedan",
+                            "prefabName":  "Vehicle_Motorcycle",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -489,7 +489,7 @@
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  0,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -501,8 +501,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  2.5,
-                                             "x":  4.4
+                                             "z":  4,
+                                             "x":  3.2
                                          }
                         }
                     ],
@@ -535,13 +535,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
+                          "prefabName":  "Landmark_WarehouseHangar",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -554,13 +554,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Red",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Building_Townhouse",
+                          "prefabName":  "Landmark_MarketStall_Red",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -573,13 +573,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Building_Townhouse",
+                          "prefabName":  "Landmark_CafePatio",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -592,13 +592,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "prefabName":  "Apoc_Building_01_Residential_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -611,13 +611,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "prefabName":  "Apoc_Building_02_Office_Glass_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -649,13 +649,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_BrownstoneRow",
+                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -663,7 +663,7 @@
                                     },
                           "position":  {
                                            "y":  0,
-                                           "z":  -7.2,
+                                           "z":  -7.7,
                                            "x":  15.5
                                        }
                       }

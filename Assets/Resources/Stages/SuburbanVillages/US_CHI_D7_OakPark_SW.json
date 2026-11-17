@@ -1,0 +1,750 @@
+{
+    "biome":  5,
+    "lootSpawns":  [
+                       {
+                           "itemName":  "Money",
+                           "quantity":  1,
+                           "moneyAmount":  110,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  2.2,
+                                            "x":  2.1
+                                        },
+                           "isMoney":  true
+                       },
+                       {
+                           "itemName":  "Ammo",
+                           "quantity":  1,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "y":  0.25,
+                                            "z":  -0.6,
+                                            "x":  2.7
+                                        },
+                           "isMoney":  false
+                       }
+                   ],
+    "templateId":  "US_CHI_D7_OakPark_SW",
+    "districtOffsetY":  -1,
+    "npcSpawns":  [
+
+                  ],
+    "decorations":  [
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  -21
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  -16.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  -11.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  -6.3
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  -1.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  3.5
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  8.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  13.3
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  5,
+                                          "x":  5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  0,
+                                             "x":  18.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  4.5,
+                                          "x":  4.5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  -9,
+                                             "x":  0
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  4.5,
+                                          "x":  4.5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  -4.6,
+                                             "x":  0
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  4.5,
+                                          "x":  4.5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  -0.2,
+                                             "x":  0
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  4.5,
+                                          "x":  4.5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  4.2,
+                                             "x":  0
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Street",
+                            "scale":  {
+                                          "y":  0.05,
+                                          "z":  4.5,
+                                          "x":  4.5
+                                      },
+                            "position":  {
+                                             "y":  0.01,
+                                             "z":  8.6,
+                                             "x":  0
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.4,
+                                             "x":  -12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.4,
+                                             "x":  9.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  180,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.4,
+                                             "x":  16.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_PlanterBox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_PlanterBox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.4,
+                                             "x":  12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  -12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushHedge_New",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_BushHedge_New",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  -16.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  9.2
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  16.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushHedge_New",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_BushHedge_New",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_WoodenFence",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_WoodenFence",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.6,
+                                             "x":  -18.5
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  5.5,
+                                             "x":  17.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_BushFlowering_New",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  8.4,
+                                             "x":  10.8
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  7.5,
+                                             "x":  17.5
+                                         }
+                        }
+                    ],
+    "roomSize":  {
+                     "y":  25,
+                     "x":  50
+                 },
+    "enemySpawns":  [
+
+                    ],
+    "selectionWeight":  1.6,
+    "obstacles":  [
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
+                          "rotation":  {
+                                           "y":  270,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "House_Suburban_A",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  7.3,
+                                           "x":  -6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_Townhouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  -14.5
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_Townhouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CornerShop",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_CornerShop",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  14.5
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_Townhouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -6.8,
+                                           "x":  -14.5
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_B",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "House_Suburban_B",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -7.3,
+                                           "x":  -6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_Townhouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -6.8,
+                                           "x":  6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_CottageHouse",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -6.8,
+                                           "x":  14.5
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Vehicle_Motorcycle",
+                          "rotation":  {
+                                           "y":  90,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Vehicle_Motorcycle",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  1.3,
+                                           "x":  -11
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Vehicle_Motorcycle",
+                          "rotation":  {
+                                           "y":  270,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Vehicle_Motorcycle",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -1.3,
+                                           "x":  11
+                                       }
+                      }
+                  ],
+    "districtOffsetX":  -1,
+    "districtId":  "District_US_CHI_LoopLakefront",
+    "templateName":  "Oak Park Historic Cottages (IL)"
+}

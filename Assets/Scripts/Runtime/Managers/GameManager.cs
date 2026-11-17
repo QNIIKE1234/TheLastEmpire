@@ -59,6 +59,7 @@ namespace TheLastEmpire
         [SerializeField] private GameObject npcPrefab;
         public GameObject NPCPrefab => npcPrefab;
         private GameObject _activeNPC;
+        private readonly List<GameObject> _activeNPCs = new List<GameObject>();
 
         private void Awake()
         {
@@ -104,6 +105,7 @@ namespace TheLastEmpire
             _activeEnemies.Clear();
             _usedSectorIndices.Clear();
             _activeNPC = null;
+            _activeNPCs.Clear();
 
             // Trigger local stage content setup for the current stage coordinates
             if (WorldMapManager.Instance != null)
@@ -192,7 +194,12 @@ namespace TheLastEmpire
             // BEFORE saving/clearing, so nothing leaks into the new room (including shop rooms).
             RandomStageEventManager.Instance?.CleanupActiveEvent();
 
-            // Clear active NPC if it exists
+            // Clear all active NPCs from the previous stage
+            for (int i = 0; i < _activeNPCs.Count; i++)
+            {
+                if (_activeNPCs[i] != null) Destroy(_activeNPCs[i]);
+            }
+            _activeNPCs.Clear();
             if (_activeNPC != null)
             {
                 Destroy(_activeNPC);
@@ -326,11 +333,32 @@ namespace TheLastEmpire
                 stage.droppedItems.Clear();
             }
 
-            // 3. GDD: If this biome/stage has already been cleared today, DO NOT spawn enemies!
-            if (stage.biome == BiomeType.SpecialEvent && stage.isShopStage)
+            // 3. SpecialEvent handling: Survivor Camp Event templates spawn curated NPCs & loot safely;
+            // generic isShopStage events fallback to default merchant if no EmptyCamp/NPC template overrides them.
+            StageTemplateData preResolvedTemplate = null;
+            bool hasPreResolvedTemplate = StageTemplateManager.Instance != null &&
+                                          StageTemplateManager.Instance.TryGetTemplateForStage(stage, out preResolvedTemplate);
+
+            if (stage.biome == BiomeType.SpecialEvent)
             {
-                SpawnNPCInstance(NPCType.Shop, new Vector3(0f, 2.0f, 0f));
-                return; // Skip spawning enemies entirely!
+                if (hasPreResolvedTemplate && preResolvedTemplate.npcSpawns != null && preResolvedTemplate.npcSpawns.Count > 0)
+                {
+                    SpawnStageTemplateEnemiesAndLoot(preResolvedTemplate, stage);
+                    stage.isCleared = true; // Inhabited Survivor Camps are safe havens
+                    return;
+                }
+
+                bool isEmptyCamp = hasPreResolvedTemplate &&
+                                   preResolvedTemplate.templateId.IndexOf("EmptyCamp", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                if (stage.isShopStage && !isEmptyCamp)
+                {
+                    if (hasPreResolvedTemplate)
+                    {
+                        SpawnStageTemplateEnemiesAndLoot(preResolvedTemplate, stage);
+                    }
+                    SpawnNPCInstance(NPCType.Shop, new Vector3(0f, 2.0f, 0f));
+                    return;
+                }
             }
 
             // For instant testing/debugging: Spawn the Shop NPC in the starting room
@@ -1017,6 +1045,7 @@ namespace TheLastEmpire
             if (npcPrefab != null)
             {
                 _activeNPC = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
+                _activeNPCs.Add(_activeNPC);
                 NPCController npc = _activeNPC.GetComponent<NPCController>();
                 if (npc == null)
                 {
@@ -1052,6 +1081,7 @@ namespace TheLastEmpire
             {
                 // Fallback: Create a clean programmatic capsule for NPC
                 _activeNPC = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                _activeNPCs.Add(_activeNPC);
                 _activeNPC.name = $"{type}NPC_Fallback";
                 _activeNPC.transform.position = spawnPos;
                 _activeNPC.transform.localScale = new Vector3(1f, 1f, 1f);

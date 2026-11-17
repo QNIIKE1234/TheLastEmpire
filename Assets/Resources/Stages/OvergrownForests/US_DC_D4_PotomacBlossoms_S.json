@@ -4,11 +4,11 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  85,
+                           "moneyAmount":  185,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -3.4,
-                                            "x":  -4.6
+                                            "z":  1.4,
+                                            "x":  -5.3
                                         },
                            "isMoney":  true
                        },
@@ -18,8 +18,8 @@
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  0.5,
-                                            "x":  5.5
+                                            "z":  -0.8,
+                                            "x":  -9.1
                                         },
                            "isMoney":  false
                        }
@@ -603,7 +603,7 @@
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
-                                             "y":  180,
+                                             "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
@@ -615,7 +615,45 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -5.3,
+                                             "z":  7.6,
+                                             "x":  5.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_BushRound_New",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  3.9,
+                                             "x":  -15.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  90,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -5.5,
                                              "x":  -13.4
                                          }
                         },
@@ -634,84 +672,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  5.2,
-                                             "x":  14.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.8,
-                                             "x":  -13.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  8,
-                                             "x":  12.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.4,
-                                             "x":  17.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  7.2,
-                                             "x":  5.7
+                                             "z":  -4.8,
+                                             "x":  -17.2
                                          }
                         }
                     ],
@@ -744,13 +706,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
+                          "prefabName":  "Building_CottageHouse",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -779,25 +741,6 @@
                                            "y":  0,
                                            "z":  8.2,
                                            "x":  -9.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_03_Salvaged_Tin_Shack",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_House_03_Salvaged_Tin_Shack",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  8.2,
-                                           "x":  9.2
                                        }
                       },
                       {
@@ -815,18 +758,37 @@
                                     },
                           "position":  {
                                            "y":  0,
+                                           "z":  8.2,
+                                           "x":  9.2
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  270
+                                       },
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
                                            "z":  8,
                                            "x":  16.5
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_AlpineChalet",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Building_AlpineChalet",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -839,13 +801,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Building_CottageHouse",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -858,13 +820,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_03_Salvaged_Tin_Shack",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Apoc_House_03_Salvaged_Tin_Shack",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -877,13 +839,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_AlpineChalet",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Building_AlpineChalet",
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,

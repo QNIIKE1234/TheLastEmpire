@@ -4,22 +4,22 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  85,
+                           "moneyAmount":  60,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  6,
-                                            "x":  0.6
+                                            "z":  2.9,
+                                            "x":  -6.3
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Ammo",
+                           "itemName":  "Bread",
                            "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -2.7,
-                                            "x":  -13.9
+                                            "z":  -3.3,
+                                            "x":  -9
                                         },
                            "isMoney":  false
                        }
@@ -299,6 +299,25 @@
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
                             "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Streetlight",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  -11
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
+                            "rotation":  {
                                              "y":  180,
                                              "z":  0,
                                              "x":  0
@@ -332,44 +351,6 @@
                                              "y":  0,
                                              "z":  -3.4,
                                              "x":  -4.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  3.4,
-                                             "x":  4.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.4,
-                                             "x":  4.5
                                          }
                         },
                         {
@@ -392,85 +373,9 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Dumpster",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Dumpster",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  7,
-                                             "x":  18.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -7.6,
-                                             "x":  10.4
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  7.5,
-                                             "x":  -18.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.4,
-                                             "x":  10.4
-                                         }
-                        },
-                        {
                             "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
                             "rotation":  {
-                                             "y":  180,
+                                             "y":  0,
                                              "z":  0,
                                              "x":  270
                                          },
@@ -482,8 +387,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -5.5,
-                                             "x":  -19
+                                             "z":  -5,
+                                             "x":  18.3
                                          }
                         },
                         {
@@ -501,8 +406,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  8.3,
-                                             "x":  -10
+                                             "z":  -5.1,
+                                             "x":  11.9
                                          }
                         }
                     ],
@@ -535,13 +440,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_07_Collapsed_Depot_Midrise",
+                          "prefabName":  "Apoc_Building_01_Residential_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -554,13 +459,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_BrownstoneRow",
+                          "prefabName":  "Apoc_Building_02_Office_Glass_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -573,13 +478,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_06_Ruined_Clinic_Lowrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_04_Industrial_Hospital_Ruin",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Building_06_Ruined_Clinic_Lowrise",
+                          "prefabName":  "Apoc_Building_04_Industrial_Hospital_Ruin",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -588,17 +493,17 @@
                           "position":  {
                                            "y":  0,
                                            "z":  7,
-                                           "x":  14.5
+                                           "x":  15.3
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_01_Brick_Rowhouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_House_01_Brick_Rowhouse",
+                          "prefabName":  "Landmark_BrownstoneRow",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -611,13 +516,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_SubwayEntrance",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_BrownstoneRow",
+                          "prefabName":  "Landmark_SubwayEntrance",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -630,13 +535,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_CafePatio",
+                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -649,13 +554,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_SubwayEntrance",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Building_05_Shattered_Hotel_Midrise",
+                          "prefabName":  "Landmark_SubwayEntrance",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -668,13 +573,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Apoc_Motorcycle_02_Smashed_Scooter",
+                          "resourcePath":  "Prefabs/Environment/Vehicle_Sedan",
                           "rotation":  {
                                            "y":  90,
                                            "z":  0,
-                                           "x":  270
+                                           "x":  0
                                        },
-                          "prefabName":  "Apoc_Motorcycle_02_Smashed_Scooter",
+                          "prefabName":  "Vehicle_Sedan",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,

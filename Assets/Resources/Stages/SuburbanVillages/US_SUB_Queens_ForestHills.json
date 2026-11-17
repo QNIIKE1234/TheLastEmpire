@@ -4,33 +4,33 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  185,
+                           "moneyAmount":  85,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -2.9,
-                                            "x":  -7.2
+                                            "z":  -3.8,
+                                            "x":  -3
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Ammo",
-                           "quantity":  1,
+                           "itemName":  "Medkit",
+                           "quantity":  2,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  0.6,
-                                            "x":  -6.1
+                                            "z":  -0.5,
+                                            "x":  3.5
                                         },
                            "isMoney":  false
                        },
                        {
-                           "itemName":  "Water",
-                           "quantity":  1,
+                           "itemName":  "Bandage",
+                           "quantity":  2,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  -0.2,
-                                            "x":  5.6
+                                            "z":  0.1,
+                                            "x":  -6.4
                                         },
                            "isMoney":  false
                        }
@@ -323,50 +323,69 @@
                             "position":  {
                                              "y":  0,
                                              "z":  3.4,
+                                             "x":  -12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  -12.1
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_PlanterBox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_PlanterBox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
+                                             "x":  -16.9
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "rotation":  {
+                                             "y":  0,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_Mailbox",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  -3.4,
                                              "x":  -4.4
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
                             "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Mailbox",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  3.4,
-                                             "x":  9.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Mailbox",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.4,
-                                             "x":  -4.4
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
-                            "rotation":  {
                                              "y":  0,
                                              "z":  0,
                                              "x":  0
@@ -384,13 +403,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Mailbox",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_WoodenFence",
                             "rotation":  {
                                              "y":  0,
                                              "z":  0,
                                              "x":  0
                                          },
-                            "prefabName":  "Prop_Mailbox",
+                            "prefabName":  "Prop_WoodenFence",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -398,27 +417,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -3.4,
-                                             "x":  16.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushHedge_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushHedge_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -3.4,
-                                             "x":  12.1
+                                             "z":  3.6,
+                                             "x":  -18.5
                                          }
                         }
                     ],
@@ -431,44 +431,6 @@
                     ],
     "selectionWeight":  1.6,
     "obstacles":  [
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "House_Suburban_A",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  -14.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_CanalHouse",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Building_CanalHouse",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  6.8,
-                                           "x":  -6.8
-                                       }
-                      },
                       {
                           "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
                           "rotation":  {
@@ -485,7 +447,45 @@
                           "position":  {
                                            "y":  0,
                                            "z":  7.3,
-                                           "x":  6.8
+                                           "x":  -6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Landmark_CafePatio",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  -14.5
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_B",
+                          "rotation":  {
+                                           "y":  180,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "House_Suburban_B",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  6.8,
+                                           "x":  7.6
                                        }
                       },
                       {
@@ -504,26 +504,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  14.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "House_Suburban_A",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -6.8,
-                                           "x":  -14.5
+                                           "x":  15.3
                                        }
                       },
                       {
@@ -542,26 +523,7 @@
                           "position":  {
                                            "y":  0,
                                            "z":  -6.8,
-                                           "x":  -6.8
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -7.3,
-                                           "x":  6.8
+                                           "x":  -14.5
                                        }
                       },
                       {
@@ -580,17 +542,55 @@
                           "position":  {
                                            "y":  0,
                                            "z":  -6.8,
+                                           "x":  -6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CornerShop",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "Building_CornerShop",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -6.8,
+                                           "x":  6.8
+                                       }
+                      },
+                      {
+                          "resourcePath":  "Prefabs/Environment/Building/House_Suburban_A",
+                          "rotation":  {
+                                           "y":  0,
+                                           "z":  0,
+                                           "x":  0
+                                       },
+                          "prefabName":  "House_Suburban_A",
+                          "scale":  {
+                                        "y":  1,
+                                        "z":  1,
+                                        "x":  1
+                                    },
+                          "position":  {
+                                           "y":  0,
+                                           "z":  -6.8,
                                            "x":  14.5
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Vehicle_Police_Sedan",
+                          "resourcePath":  "Prefabs/Environment/Apoc_Motorcycle_02_Smashed_Scooter",
                           "rotation":  {
                                            "y":  90,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Vehicle_Police_Sedan",
+                          "prefabName":  "Apoc_Motorcycle_02_Smashed_Scooter",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,

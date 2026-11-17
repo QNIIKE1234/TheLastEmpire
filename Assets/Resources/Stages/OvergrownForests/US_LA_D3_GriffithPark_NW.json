@@ -4,22 +4,22 @@
                        {
                            "itemName":  "Money",
                            "quantity":  1,
-                           "moneyAmount":  85,
+                           "moneyAmount":  185,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  4.7,
-                                            "x":  1.1
+                                            "z":  2,
+                                            "x":  -12.4
                                         },
                            "isMoney":  true
                        },
                        {
-                           "itemName":  "Water",
-                           "quantity":  2,
+                           "itemName":  "Medkit",
+                           "quantity":  1,
                            "moneyAmount":  0,
                            "position":  {
                                             "y":  0.25,
-                                            "z":  1.9,
-                                            "x":  -6.4
+                                            "z":  1.2,
+                                            "x":  0.5
                                         },
                            "isMoney":  false
                        }
@@ -297,13 +297,13 @@
                                          }
                         },
                         {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Tree_03_Mutated_Overgrown_Pine",
+                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Tree_01_Withered_Street_Oak",
                             "rotation":  {
-                                             "y":  270,
+                                             "y":  180,
                                              "z":  0,
                                              "x":  90
                                          },
-                            "prefabName":  "Apoc_Tree_03_Mutated_Overgrown_Pine",
+                            "prefabName":  "Apoc_Tree_01_Withered_Street_Oak",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -311,56 +311,18 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  4.7,
-                                             "x":  7.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Broadleaf",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Broadleaf",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -5.7,
-                                             "x":  -6.1
+                                             "z":  7.1,
+                                             "x":  8.8
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -6.9,
-                                             "x":  -11
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
                             "rotation":  {
                                              "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
-                            "prefabName":  "Prop_GrassTuft",
+                            "prefabName":  "Prop_BushRound_New",
                             "scale":  {
                                           "y":  1,
                                           "z":  1,
@@ -368,8 +330,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -5,
-                                             "x":  -18.1
+                                             "z":  -4.2,
+                                             "x":  -6.2
                                          }
                         },
                         {
@@ -387,36 +349,36 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  -5.1,
-                                             "x":  -3.5
+                                             "z":  4.8,
+                                             "x":  5.2
                                          }
                         },
                         {
                             "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
+                            "rotation":  {
+                                             "y":  270,
+                                             "z":  0,
+                                             "x":  0
+                                         },
+                            "prefabName":  "Prop_GrassTuft",
+                            "scale":  {
+                                          "y":  1,
+                                          "z":  1,
+                                          "x":  1
+                                      },
+                            "position":  {
+                                             "y":  0,
+                                             "z":  7.3,
+                                             "x":  3.4
+                                         }
+                        },
+                        {
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
                             "rotation":  {
                                              "y":  90,
                                              "z":  0,
                                              "x":  0
                                          },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  3.9,
-                                             "x":  15.7
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
                             "prefabName":  "Prop_BushRound_New",
                             "scale":  {
                                           "y":  1,
@@ -425,27 +387,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  8.4,
-                                             "x":  3.7
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  6.6,
-                                             "x":  4.2
+                                             "z":  4.8,
+                                             "x":  -5
                                          }
                         },
                         {
@@ -463,8 +406,8 @@
                                       },
                             "position":  {
                                              "y":  0,
-                                             "z":  7.9,
-                                             "x":  -18.8
+                                             "z":  -6.2,
+                                             "x":  -18.9
                                          }
                         }
                     ],
@@ -497,13 +440,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -512,17 +455,17 @@
                           "position":  {
                                            "y":  0,
                                            "z":  6.8,
-                                           "x":  -14.5
+                                           "x":  -15.3
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
                           "rotation":  {
                                            "y":  180,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Building_CottageHouse",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -535,13 +478,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_AlpineChalet",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
                                            "x":  0
                                        },
-                          "prefabName":  "Landmark_ParkGazebo",
+                          "prefabName":  "Building_AlpineChalet",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -554,13 +497,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_05_Collapsed_Suburban_Home",
                           "rotation":  {
                                            "y":  0,
                                            "z":  0,
-                                           "x":  0
+                                           "x":  270
                                        },
-                          "prefabName":  "Building_CottageHouse",
+                          "prefabName":  "Apoc_House_05_Collapsed_Suburban_Home",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
@@ -592,13 +535,13 @@
                                        }
                       },
                       {
-                          "resourcePath":  "Prefabs/Environment/Apoc_Motorcycle_03_Abandoned_Dirt_Bike",
+                          "resourcePath":  "Prefabs/Environment/Apoc_Vehicle_01_Damaged_Van",
                           "rotation":  {
                                            "y":  90,
                                            "z":  0,
                                            "x":  270
                                        },
-                          "prefabName":  "Apoc_Motorcycle_03_Abandoned_Dirt_Bike",
+                          "prefabName":  "Apoc_Vehicle_01_Damaged_Van",
                           "scale":  {
                                         "y":  1,
                                         "z":  1,
