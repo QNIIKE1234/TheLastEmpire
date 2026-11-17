@@ -74,3 +74,4 @@ flowchart TD
 
 * สร้าง UI แบบ Glassmorphism (`CanvasGroup` ที่ตั้งค่า `blocksRaycasts = false` และ `raycastTarget = false` ทุกชิ้น เพื่อไม่ให้ขวางการคลิกยิงของผู้เล่น)
 * แสดงแถบสีเน้นด้านบน (Accent Stripe), หัวข้อเหตุการณ์ (`TitleText`), และคำอธิบายสั้น (`SubText`) ก่อนค่อยๆ จางหายอัตโนมัติหลังแสดงผลครบเวลา
+
