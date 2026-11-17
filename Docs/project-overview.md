@@ -69,15 +69,16 @@ graph TD
     *   ระบุเปอร์เซ็นต์โอกาสดรอป (`0.0` ถึง `1.0` หรือ 0%-100%)
 *   **กลไกการสุ่ม:** ใช้หลักการหมุนค่าความน่าจะเป็นอิสระทุกชิ้น ทำให้การตาย 1 ครั้งของซอมบี้สามารถมีไอเทมดรอปตกลงมามากกว่า 1 ชิ้นพร้อมกันได้
 
-### **2.6 ระบบสุ่มเหตุการณ์ฉุกเฉินประจำด่าน (Dynamic Random Stage Encounters)**
-*   **ไฟล์หลัก:** [RandomStageEventManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs), [StageEventType.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs)
-*   **การทำงาน:** เมื่อผู้เล่นเดินทางผ่านประตู Transition Portal เข้าสู่ห้องปกติ จะมีโอกาส 25% (ตั้งค่าปรับได้) ในการเกิดเหตุการณ์ฉุกเฉินเฉพาะหน้า 6 รูปแบบ:
+### **2.6 ระบบสุ่มเหตุการณ์ฉุกเฉินประจำด่านและคัตซีน (Dynamic Random Stage Encounters & Cutscenes)**
+*   **ไฟล์หลัก:** [RandomStageEventManager.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs), [StageEventType.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Map/StageEventType.cs), [FleeingSurvivorRunner.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs) (อ่านเอกสารออกแบบฉบับเต็มได้ที่ [GDD/event-cutscene-design.md](file:///d:/TLEGIT/TheLastEmpire/GDD/event-cutscene-design.md))
+*   **การทำงาน:** เมื่อผู้เล่นเดินทางผ่านประตู Transition Portal เข้าสู่ห้องปกติ จะมีโอกาส 25% (ตั้งค่าปรับได้) ในการเกิดเหตุการณ์ฉุกเฉินเฉพาะหน้า **7 รูปแบบ**:
     *   `SupplyAirdrop`: แอร์ดรอปเสบียงทหารกลางห้อง ตกอาวุธระดับสูงและกระสุน/เงินสด
     *   `HostileAmbush`: ฝูงศัตรูสายชาร์จ 3-5 ตัวล้อมกรอบผู้เล่นทันทีหลังเข้าห้อง
     *   `NomadTrader`: คาราวานพ่อค้าเร่พเนจรมาตั้งแคมป์ขายของชั่วคราว
     *   `RadioactiveFallout`: หมอกกัมมันตรังสีสีเขียว ลดค่า Sanity ทันที 10 หน่วย
     *   `BloodMoonSurge`: ท้องฟ้าสีเลือด บัฟศัตรูในห้องวิ่งเร็วขึ้น +30%
     *   `ScavengerCache`: หีบและเศษเสบียงลับซ่อนตามมุมห้อง 4 จุด
+    *   `FleeingSurvivor` *(Cinematic Cutscene)*: ล็อกการควบคุมผู้เล่น + **Camera Whip-Pan** ไปหา Maya (`watcher_maya`) ที่กำลังตะโกนเตือนและวิ่งหนีตายข้ามห้องเข้าหาผู้เล่น พร้อมฝูงศัตรูไล่กวด 4-5 ตัว (ใช้ `Obstacle Phasing` ทะลุสิ่งกีดขวางจนเข้าระยะประชิด `4.5m`)
 *   **Glassmorphism Alert Banner:** แสดงแบนเนอร์แจ้งเตือนแบบกระจกฝ้าด้านบนหน้าจอ ไม่รบกวนการเล็งยิงของผู้เล่น (`blocksRaycasts = false`)
 *   **ความคงตัวของด่าน (Deterministic Seed):** อิงค่าสุ่มจาก `stage.stageSeed + 4242` ทำให้การเดินกลับมาห้องเดิมไม่เกิดการสุ่มทับซ้อนหรือสลับประเภทเหตุการณ์
 
@@ -135,6 +136,7 @@ Scripts ทั้งหมดอยู่ภายใต้ `Assets/Scripts/Runt
 | [LootDropper.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/LootDropper.cs) | ดรอปไอเทมเมื่อศัตรูตาย ตาม Custom Loot Table |
 | [CollectibleItem.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/CollectibleItem.cs) | พฤติกรรมของไอเทมที่ตกพื้น — รอเก็บ, แสงกระพริบ |
 | [NPCController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/NPCController.cs) | NPC พ่อค้า — เปิด ShopUI, รองรับ `Is Free` Test Mode |
+| [FleeingSurvivorRunner.cs](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs) | ควบคุม NPC Maya ใน Cutscene `FleeingSurvivor` (วิ่งหนีข้ามห้อง + Bubble ตะโกนเตือน) |
 | [EnemyHealthText.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/EnemyHealthText.cs) | ตัวเลข Pop-up บอก HP ที่หายเหนือหัวศัตรู |
 
 ---

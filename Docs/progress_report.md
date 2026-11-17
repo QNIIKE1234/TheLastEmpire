@@ -1,7 +1,19 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 14 พฤศจิกายน 2026  
+**วันที่บันทึกล่าสุด**: 17 พฤศจิกายน 2026  
 **สถานะ Git**: `main` (Up to date with `origin/main`)  
+
+---
+
+## 22. ระบบ Cinematic Cutscene สำหรับอีเวนต์ `FleeingSurvivor` & Camera Whip-Pan
+- **สคริปต์ & เอกสารที่เกี่ยวข้อง**:
+  - [`RandomStageEventManager.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs) (`FleeingSurvivorCutsceneRoutine`)
+  - [`FleeingSurvivorRunner.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs)
+  - [`CameraFollow.cs`](file:///d:/TLEGIT/TheLastEmpire/Assets/Scripts/Runtime/Player/CameraFollow.cs) (`SetTemporaryTarget`, `ResetTarget`)
+  - [`GDD/event-cutscene-design.md`](file:///d:/TLEGIT/TheLastEmpire/GDD/event-cutscene-design.md)
+- **รายละเอียด**:
+  - **ลำดับ Cutscene เปิดตัวเหตุการณ์:** ล็อกอินพุตผู้เล่นชั่วคราว โฟกัสกล้อง 1.0 วินาที -> ทำ **Camera Whip-Pan** (`smoothTime: 0.12f`) ข้ามห้องไปจับภาพ Maya ที่ฝั่งตรงข้าม -> แสดงกล่องบทพูดตะโกนเตือน (`"Help me!! They're right behind me!!"`) -> Maya เริ่มวิ่งหนีเข้าหาผู้เล่นและฝูงศัตรู 4–5 ตัวสปอว์นไล่หลังด้วยสปีดคัตซีน `1.0 m/s` -> ครบ 2.0 วินาทีเร่งสปีดศัตรูเป็น `3.5 m/s`, คืนกล้องกลับหาผู้เล่น, และปลดล็อกให้ต่อสู้ทันที
+  - **แก้ไขระดับพื้นดิน (NPC & Enemy Grounding):** ปรับ `floorY` และ `naturalGroundY` จาก `CapsuleCollider` ให้เท้าของ NPC และศัตรูที่ไล่กวดสัมผัสพื้น `Y = 0` พอดี ไม่จมหรือลอย
 
 ---
 
