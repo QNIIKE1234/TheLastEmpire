@@ -777,8 +777,8 @@ namespace TheLastEmpire
         {
             if (GameManager.Instance == null) yield break;
 
-            // สุ่มจำนวนศัตรู 5-8 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
-            int mobCount = rng.Next(5, 9);
+            // กำหนดจำนวนศัตรูแบบ Fix 10 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
+            const int mobCount = 10;
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             List<string> rusherList = new List<string> { "ZombieRunner", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
             if (isNight)
@@ -789,7 +789,6 @@ namespace TheLastEmpire
             string[] rushers = rusherList.ToArray();
 
             Vector3 runDir = (targetDir - spawnCenter).normalized;
-            Vector3 perpDir = Vector3.Cross(runDir, Vector3.up);
 
             for (int i = 0; i < mobCount; i++)
             {
@@ -802,18 +801,25 @@ namespace TheLastEmpire
 
                 if (prefab != null)
                 {
-                    // วิ่งเรียงแถวตามหลัง Maya บนถนนเส้นหลัก (กระจายข้างแคบๆ ±0.5m ไม่ให้หลุดเข้าไปในตึก)
-                    float sideOffset = (float)(rng.NextDouble() * 1.0 - 0.5);
-                    float rearOffset = -(float)(rng.NextDouble() * 1.2 + 0.8) - (i * 0.8f);
-                    Vector3 enemySpawnPos = spawnCenter + (perpDir * sideOffset) + (runDir * rearOffset);
+                    // กระจายแบบทรงกรวย 90 องศา (-45° ถึง +45°) ด้านหลังทิศทางการวิ่ง แล้วพุ่งเข้าหาผู้เล่น
+                    float normalizedPos = mobCount > 1 ? (i / (float)(mobCount - 1)) : 0.5f;
+                    float coneAngle = Mathf.Lerp(-45f, 45f, normalizedPos) + (float)(rng.NextDouble() * 8.0 - 4.0);
+                    float coneRadius = 1.5f + (i % 3) * 1.6f + (float)(rng.NextDouble() * 0.8);
+                    Vector3 coneDir = Quaternion.Euler(0f, coneAngle, 0f) * (-runDir);
+                    Vector3 enemySpawnPos = spawnCenter + coneDir * coneRadius;
                     enemySpawnPos.y = 1.0f; // ระดับความสูงมาตรฐาน (BaseEnemyAI.EnableChaserPhasing จะปรับให้แนบพื้นตาม Collider จริงอีกขั้น)
 
-                    // Clamp ให้อยู่ในฉาก
-                    enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -14f, 14f);
-                    enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -7f, 7f);
+                    // Clamp ให้อยู่ในขอบเขตฉากโดยไม่บีบให้ล้ำหน้า NPC
+                    enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -16f, 16f);
+                    enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -10f, 10f);
+
+                    PlayerController player = PlayerController.Instance != null ? PlayerController.Instance : UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                    Vector3 chaseDir = player != null ? (player.transform.position - enemySpawnPos) : runDir;
+                    chaseDir.y = 0f;
+                    chaseDir = chaseDir.sqrMagnitude > 0.001f ? chaseDir.normalized : runDir;
 
                     string poolKey = GameManager.Instance.GetPoolKeyForPrefab(prefab);
-                    GameObject enemyObj = GameManager.Instance.SpawnEnemyInstanceAt(prefab, poolKey, enemySpawnPos, Quaternion.LookRotation(runDir));
+                    GameObject enemyObj = GameManager.Instance.SpawnEnemyInstanceAt(prefab, poolKey, enemySpawnPos, Quaternion.LookRotation(chaseDir));
 
                     if (enemyObj != null)
                     {
@@ -830,16 +836,15 @@ namespace TheLastEmpire
                             ai.ApplyTemporaryStats(speed: speed, detection: 50f);
                             ai.SkipTransitionDelay(); // วิ่งไล่ทันที ไม่ยืนนิ่ง 2 วินาทีตอนเกิด
                             // วิ่งทะลุสิ่งกีดขวาง/ตึก/กำแพง จนกว่าจะเข้าใกล้ผู้เล่นในระยะ 4.5m ค่อยเปิด Collider ป้องกันวิ่งติด
-                            PlayerController player = PlayerController.Instance != null ? PlayerController.Instance : UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                             ai.EnableChaserPhasing(player != null ? player.transform : null, restoreDistance: 4.5f);
-                            enemyObj.transform.forward = runDir;
+                            enemyObj.transform.forward = chaseDir;
                             _activeChasersList.Add(ai);
                         }
                     }
                 }
 
-                // หน่วงระยะห่างระหว่างการกวดของแต่ละตัวเล็กน้อย
-                yield return new WaitForSeconds(0.22f);
+                // หน่วงระยะห่างระหว่างการเกิดเล็กน้อยเพื่อให้ครบทั้ง 10 ตัวก่อนคัตซีนจบ
+                yield return new WaitForSeconds(0.12f);
             }
 
             _activeChaserCoroutine = null;
