@@ -95,7 +95,7 @@ namespace TheLastEmpire
                 "OvergrownForests" => new Color(0.88f, 0.90f, 0.80f, 1f),
                 "Highlands" => new Color(0.84f, 0.82f, 0.76f, 1f),
                 "Waterways" => new Color(0.85f, 0.90f, 0.92f, 1f),
-                "SuburbanVillages" => new Color(0.84f, 0.81f, 0.75f, 1f),
+                "SuburbanVillages" => new Color(0.58f, 0.55f, 0.49f, 1f),
                 "SpecialEvent" => new Color(0.85f, 0.85f, 0.80f, 1f),
                 "Default" => new Color(0.28f, 0.28f, 0.28f, 1f),
                 _ => Color.white

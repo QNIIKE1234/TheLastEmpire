@@ -777,8 +777,8 @@ namespace TheLastEmpire
         {
             if (GameManager.Instance == null) yield break;
 
-            // สุ่มจำนวนศัตรู 4-5 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
-            int mobCount = rng.Next(4, 6);
+            // สุ่มจำนวนศัตรู 5-8 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
+            int mobCount = rng.Next(5, 9);
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             List<string> rusherList = new List<string> { "ZombieRunner", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
             if (isNight)
