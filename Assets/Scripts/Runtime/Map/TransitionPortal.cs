@@ -285,16 +285,14 @@ namespace TheLastEmpire
             Vector3 pos = player.transform.position;
             // Ensure player spawn Y height is safe above the ground (minimum 0.5) to avoid clipping under the floor
             pos.y = Mathf.Max(pos.y, 0.5f);
-            bool transitioned = false;
-
-            TransitionDirection oppositeDir = GetOppositeDirection(direction);
-
-            // Record warp arrival direction immediately before triggering stage change
-            LastTransitionEntryDirection = oppositeDir;
-            HasValidWarpHistory = true;
 
             GetTargetCoordinates(playerX, playerY, out int targetX, out int targetY);
             bool transitioned = IsWalkableDestinationStage(targetX, targetY);
+            if (!transitioned) return;
+
+            TransitionDirection oppositeDir = GetOppositeDirection(direction);
+            LastTransitionEntryDirection = oppositeDir;
+            HasValidWarpHistory = true;
 
             if (transitioned)
             {
