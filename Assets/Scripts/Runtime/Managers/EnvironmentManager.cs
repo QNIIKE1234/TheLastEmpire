@@ -35,6 +35,9 @@ namespace TheLastEmpire
 
         [Header("Default Fallback Settings (if no prefabs assigned)")]
         [SerializeField] private bool useProceduralFallbacks = true;
+        [SerializeField] private bool includeProceduralFoliageAndDebris = true;
+        [SerializeField, Range(0f, 1f)] private float proceduralDecorMixChance = 0.7f;
+        [SerializeField, Range(0.5f, 3.0f)] private float mapDensityMultiplier = 1.5f;
         [SerializeField] private Material propBaseMaterial;
         [SerializeField] private bool snapToGrid = true; // Snaps positions to cell centers and rotations to cardinal 90-degree angles
 
@@ -380,16 +383,17 @@ namespace TheLastEmpire
                 decorationSafeCells[randomIndex] = temp;
             }
 
-            int obstacleCount = Random.Range(config.minObstacles, config.maxObstacles + 1);
-            int decorationCount = Random.Range(config.minDecorations, config.maxDecorations + 1);
+            int obstacleCount = Mathf.RoundToInt(Random.Range(config.minObstacles, config.maxObstacles + 1) * mapDensityMultiplier);
+            int decorationCount = Mathf.RoundToInt(Random.Range(config.minDecorations, config.maxDecorations + 1) * mapDensityMultiplier);
 
-            int buildingSpawnCount = Mathf.RoundToInt(obstacleCount * 0.7f);
-            int pathSpawnCount = obstacleCount - buildingSpawnCount;
+            int buildingSpawnCount = Mathf.Max(8, Mathf.RoundToInt(obstacleCount * 0.85f));
+            int pathSpawnCount = Mathf.Max(2, obstacleCount - Mathf.RoundToInt(obstacleCount * 0.7f));
             int spawnDecorations = Mathf.Min(decorationCount, decorationSafeCells.Count);
 
             // Track exact world-space XZ bounding boxes of every spawned object to guarantee zero physical overlap
             List<Rect> placedWorldRects = new List<Rect>();
-            Rect stageBoundsRect = new Rect(startX - 0.5f, startY - 0.5f, gridWidth + 1.0f, gridHeight + 1.0f);
+            // Allow 2.5m outer margin so multi-cell buildings along outer sidewalk rows are not rejected at the map edge
+            Rect stageBoundsRect = new Rect(startX - 2.5f, startY - 2.5f, gridWidth + 5.0f, gridHeight + 5.0f);
 
             // Prepare shuffled off-path and on-path candidate cell lists deterministically
             List<Vector2Int> offPathCells = new List<Vector2Int>();
@@ -406,16 +410,16 @@ namespace TheLastEmpire
             ShuffleCellList(offPathCells);
             ShuffleCellList(onPathCells);
 
-            // 5a. Generate off-path buildings (check all 4 rotations at each candidate position, then move position)
+            // 5a. Generate off-path buildings (prioritize actual building prefabs; check all 4 rotations at each candidate position, then move position)
             for (int i = 0; i < buildingSpawnCount; i++)
             {
-                GameObject prefab = GetRandomPrefab(config.obstaclePrefabs);
+                GameObject prefab = GetRandomBuildingPrefab(config.obstaclePrefabs, config.decorationPrefabs) ?? GetRandomPrefab(config.obstaclePrefabs);
                 if (prefab == null) continue;
 
                 if (TryFindNonOverlappingPlacement(
                     prefab, offPathCells, occupiedGrid, isPathGrid, placedWorldRects,
                     rows, cols, startX, startY, cellWidth, cellHeight, stageBoundsRect, playerPos,
-                    requireOffPath: true, requireOnPath: false, padding: 0.25f,
+                    requireOffPath: true, requireOnPath: false, padding: 0.10f,
                     out Vector3 worldPos, out Quaternion rotation, out Vector2Int footprint, out Vector2Int anchor, out Rect placedRect))
                 {
                     ReserveGridFootprint(occupiedGrid, anchor.x, anchor.y, footprint.x, footprint.y, rows, cols);
@@ -426,14 +430,40 @@ namespace TheLastEmpire
                 }
                 else
                 {
-                    // Multi-cell footprint couldn't fit in any rotation/position; fallback to a smaller prefab
-                    GameObject smallerPrefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
-                    if (smallerPrefab != null)
+                    // Multi-cell prefab couldn't fit or wasn't available; place a compact 1x1 procedural house/building first
+                    bool placedCompactBuilding = false;
+                    for (int ci = 0; ci < offPathCells.Count; ci++)
                     {
-                        if (TryFindNonOverlappingPlacement(
+                        Vector2Int cell = offPathCells[ci];
+                        if (occupiedGrid[cell.y, cell.x] || isPathGrid[cell.y, cell.x]) continue;
+
+                        float cx = startX + (cell.x + 0.5f) * cellWidth;
+                        float cz = startY + (cell.y + 0.5f) * cellHeight;
+                        Rect bRect = new Rect(cx - 1.35f, cz - 1.35f, 2.7f, 2.7f);
+
+                        if (bRect.xMin < stageBoundsRect.xMin || bRect.xMax > stageBoundsRect.xMax ||
+                            bRect.yMin < stageBoundsRect.yMin || bRect.yMax > stageBoundsRect.yMax)
+                        {
+                            continue;
+                        }
+
+                        if (!OverlapsPlacedRects(bRect, placedWorldRects) && !DoesRectOverlapPortalOrPlayer(bRect, playerPos))
+                        {
+                            occupiedGrid[cell.y, cell.x] = true;
+                            placedWorldRects.Add(bRect);
+                            ProceduralPropBuilder.SpawnBuilding(_currentEnvContainer.transform, new Vector3(cx, cz, 0f), snapToGrid, out _);
+                            placedCompactBuilding = true;
+                            break;
+                        }
+                    }
+
+                    if (!placedCompactBuilding)
+                    {
+                        GameObject smallerPrefab = GetRandomSmallerPrefab(config.obstaclePrefabs);
+                        if (smallerPrefab != null && TryFindNonOverlappingPlacement(
                             smallerPrefab, offPathCells, occupiedGrid, isPathGrid, placedWorldRects,
                             rows, cols, startX, startY, cellWidth, cellHeight, stageBoundsRect, playerPos,
-                            requireOffPath: true, requireOnPath: false, padding: 0.25f,
+                            requireOffPath: true, requireOnPath: false, padding: 0.20f,
                             out Vector3 sPos, out Quaternion sRot, out Vector2Int sFoot, out Vector2Int sAnchor, out Rect sRect))
                         {
                             ReserveGridFootprint(occupiedGrid, sAnchor.x, sAnchor.y, sFoot.x, sFoot.y, rows, cols);
@@ -441,24 +471,6 @@ namespace TheLastEmpire
 
                             GameObject obj = Instantiate(smallerPrefab, sPos, sRot, _currentEnvContainer.transform);
                             obj.name = smallerPrefab.name;
-                        }
-                    }
-                    else if (useProceduralFallbacks)
-                    {
-                        for (int ci = 0; ci < offPathCells.Count; ci++)
-                        {
-                            Vector2Int cell = offPathCells[ci];
-                            if (occupiedGrid[cell.y, cell.x] || isPathGrid[cell.y, cell.x]) continue;
-                            float cx = startX + (cell.x + 0.5f) * cellWidth;
-                            float cz = startY + (cell.y + 0.5f) * cellHeight;
-                            Rect rRect = new Rect(cx - 0.75f, cz - 0.75f, 1.5f, 1.5f);
-                            if (!OverlapsPlacedRects(rRect, placedWorldRects) && !DoesRectOverlapPortalOrPlayer(rRect, playerPos))
-                            {
-                                occupiedGrid[cell.y, cell.x] = true;
-                                placedWorldRects.Add(rRect);
-                                CreateProceduralObstacle(new Vector3(cx, cz, 0f), stage.biome, true);
-                                break;
-                            }
                         }
                     }
                 }
@@ -513,10 +525,11 @@ namespace TheLastEmpire
 
             for (int i = 0; i < decorationSafeCells.Count && spawnedDecorCount < spawnDecorations; i++)
             {
-                GameObject prefab = GetRandomPrefab(config.decorationPrefabs);
+                bool useProceduralProp = includeProceduralFoliageAndDebris && (config.decorationPrefabs == null || config.decorationPrefabs.Count == 0 || Random.value < proceduralDecorMixChance);
+                GameObject prefab = useProceduralProp ? null : GetRandomPrefab(config.decorationPrefabs);
                 if (prefab != null && prefab.name.Equals("Street", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    continue;
+                    prefab = null;
                 }
 
                 if (prefab != null)
@@ -535,19 +548,45 @@ namespace TheLastEmpire
                         spawnedDecorCount++;
                     }
                 }
-                else if (useProceduralFallbacks)
+                else if (useProceduralFallbacks || includeProceduralFoliageAndDebris)
                 {
-                    GridCell cell = decorationSafeCells[i];
-                    if (occupiedGrid[cell.row, cell.col] || isPathGrid[cell.row, cell.col]) continue;
-                    Rect rRect = new Rect(cell.center.x - 0.55f, cell.center.y - 0.55f, 1.1f, 1.1f);
-                    if (!OverlapsPlacedRects(rRect, placedWorldRects) && !DoesRectOverlapPortalOrPlayer(rRect, playerPos))
+                    // Pass 6a focuses on urban debris/trash props; trees/bushes/grass are spawned in separate Pass 6b
+                    ProceduralPropBuilder.PropCategory category = ProceduralPropBuilder.PropCategory.Debris;
+                    float footprintSize = ProceduralPropBuilder.GetFootprintSize(category);
+                    float half = footprintSize * 0.5f;
+
+                    for (int ci = 0; ci < decorCandidateCoords.Count; ci++)
                     {
-                        CreateProceduralDecoration(cell.center, stage.biome);
-                        occupiedGrid[cell.row, cell.col] = true;
-                        placedWorldRects.Add(rRect);
-                        spawnedDecorCount++;
+                        Vector2Int coord = decorCandidateCoords[(i + ci) % decorCandidateCoords.Count];
+                        if (occupiedGrid[coord.y, coord.x] || isPathGrid[coord.y, coord.x]) continue;
+
+                        float cx = startX + (coord.x + 0.5f) * cellWidth;
+                        float cz = startY + (coord.y + 0.5f) * cellHeight;
+                        Rect rRect = new Rect(cx - half, cz - half, footprintSize, footprintSize);
+
+                        if (rRect.xMin < stageBoundsRect.xMin || rRect.xMax > stageBoundsRect.xMax ||
+                            rRect.yMin < stageBoundsRect.yMin || rRect.yMax > stageBoundsRect.yMax)
+                        {
+                            continue;
+                        }
+
+                        if (!OverlapsPlacedRects(rRect, placedWorldRects) && !DoesRectOverlapPortalOrPlayer(rRect, playerPos))
+                        {
+                            ProceduralPropBuilder.SpawnProp(category, _currentEnvContainer.transform, new Vector3(cx, cz, 0f), propBaseMaterial, snapToGrid);
+                            occupiedGrid[coord.y, coord.x] = true;
+                            placedWorldRects.Add(rRect);
+                            spawnedDecorCount++;
+                            break;
+                        }
                     }
                 }
+            }
+
+            // 6b. Separate Foliage / Tree / Bush / Grass Pass:
+            // Independent of building cell occupancy — fills open yards/edges around houses without overlapping buildings, cars, or portals
+            if (includeProceduralFoliageAndDebris)
+            {
+                SpawnSeparateFoliagePass(stage.biome, isPathGrid, placedWorldRects, rows, cols, startX, startY, cellWidth, cellHeight, stageBoundsRect, playerPos);
             }
 
             // Final safety pass: ensure no spawned building/obstacle physically overlaps any active portal or the player
@@ -815,6 +854,84 @@ namespace TheLastEmpire
             }
         }
 
+        private void SpawnSeparateFoliagePass(
+            BiomeType biome,
+            bool[,] isPathGrid,
+            List<Rect> placedWorldRects,
+            int rows,
+            int cols,
+            float startX,
+            float startY,
+            float cellWidth,
+            float cellHeight,
+            Rect stageBoundsRect,
+            Vector3 playerPos)
+        {
+            List<Vector2Int> foliageCells = new List<Vector2Int>();
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (!isPathGrid[r, c])
+                    {
+                        foliageCells.Add(new Vector2Int(c, r));
+                    }
+                }
+            }
+            ShuffleCellList(foliageCells);
+
+            int targetFoliage = Mathf.RoundToInt(18 * mapDensityMultiplier);
+            int spawned = 0;
+            int attempts = 0;
+            int maxAttempts = Mathf.Max(40, foliageCells.Count * 3);
+
+            while (spawned < targetFoliage && attempts < maxAttempts && foliageCells.Count > 0)
+            {
+                Vector2Int cell = foliageCells[attempts % foliageCells.Count];
+                attempts++;
+
+                float roll = Random.value;
+                ProceduralPropBuilder.PropCategory category;
+                if (biome == BiomeType.OvergrownForests)
+                {
+                    category = roll < 0.35f ? ProceduralPropBuilder.PropCategory.Tree :
+                               roll < 0.65f ? ProceduralPropBuilder.PropCategory.Bush :
+                               ProceduralPropBuilder.PropCategory.Grass;
+                }
+                else
+                {
+                    category = roll < 0.25f ? ProceduralPropBuilder.PropCategory.Tree :
+                               roll < 0.55f ? ProceduralPropBuilder.PropCategory.Bush :
+                               ProceduralPropBuilder.PropCategory.Grass;
+                }
+
+                float footprintSize = ProceduralPropBuilder.GetFootprintSize(category);
+                float half = footprintSize * 0.5f;
+
+                float jitterX = Random.Range(-cellWidth * 0.32f, cellWidth * 0.32f);
+                float jitterZ = Random.Range(-cellHeight * 0.32f, cellHeight * 0.32f);
+                float cx = startX + (cell.x + 0.5f) * cellWidth + jitterX;
+                float cz = startY + (cell.y + 0.5f) * cellHeight + jitterZ;
+
+                Rect fRect = new Rect(cx - half, cz - half, footprintSize, footprintSize);
+                if (fRect.xMin < stageBoundsRect.xMin || fRect.xMax > stageBoundsRect.xMax ||
+                    fRect.yMin < stageBoundsRect.yMin || fRect.yMax > stageBoundsRect.yMax)
+                {
+                    continue;
+                }
+
+                // Ensure foliage does not overlap buildings, houses, cars, debris, portals, or player
+                if (OverlapsPlacedRects(fRect, placedWorldRects) || DoesRectOverlapPortalOrPlayer(fRect, playerPos))
+                {
+                    continue;
+                }
+
+                ProceduralPropBuilder.SpawnProp(category, _currentEnvContainer.transform, new Vector3(cx, cz, 0f), propBaseMaterial, snapToGrid);
+                placedWorldRects.Add(fRect);
+                spawned++;
+            }
+        }
+
         /// <summary>
         /// Searches candidate positions and tries all 4 cardinal rotations at each position first.
         /// If all rotations overlap existing objects, portals, player, or grid/stage constraints,
@@ -1065,49 +1182,8 @@ namespace TheLastEmpire
 
         private void CreateProceduralDecoration(Vector3 pos, BiomeType biome)
         {
-            GameObject decor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            decor.transform.parent = _currentEnvContainer.transform;
-            
-            float size = Random.Range(0.2f, 0.5f);
-            decor.transform.localScale = new Vector3(size, 0.02f, size);
-            decor.transform.position = new Vector3(pos.x, 0.01f, pos.y);
-
-            Collider col = decor.GetComponent<Collider>();
-            if (col != null)
-            {
-                Destroy(col);
-            }
-
-            decor.transform.rotation = Quaternion.Euler(0f, snapToGrid ? Random.Range(0, 4) * 90f : Random.Range(0f, 360f), 0f);
-
-            Renderer rend = decor.GetComponent<Renderer>();
-            Color themeColor = Color.gray;
-
-            switch (biome)
-            {
-                case BiomeType.UrbanRuins:
-                    themeColor = new Color(0.2f, 0.2f, 0.2f, 0.6f); // Dust/debris ash pile
-                    decor.name = "AshDebris";
-                    break;
-                case BiomeType.OvergrownForests:
-                    themeColor = new Color(0.4f, 0.8f, 0.2f, 0.7f); // Bright wild leaf prop
-                    decor.name = "WildGrass";
-                    break;
-                case BiomeType.Waterways:
-                    themeColor = new Color(0.1f, 0.6f, 0.8f, 0.4f); // Water puddle
-                    decor.name = "Puddle";
-                    break;
-                default:
-                    themeColor = new Color(0.45f, 0.4f, 0.35f, 0.7f); // Pebble / Sand patch
-                    decor.name = "Pebble";
-                    break;
-            }
-
-            if (rend != null)
-            {
-                rend.material.color = themeColor;
-                ApplyCardboardTextureToChildren(decor);
-            }
+            ProceduralPropBuilder.PropCategory category = ProceduralPropBuilder.PickCategoryForBiome(biome, out _);
+            ProceduralPropBuilder.SpawnProp(category, _currentEnvContainer.transform, pos, propBaseMaterial, snapToGrid);
         }
 
         private void CreateProceduralTukTuk(Vector3 pos)
@@ -1972,16 +2048,53 @@ namespace TheLastEmpire
         {
             if (prefab == null) return false;
             string name = prefab.name.ToLower();
-            if (name.Contains("house") || name.Contains("shophouse") || name.Contains("building") || name.Contains("tower") || name.Contains("home") || name.Contains("structure"))
+            if (name.Contains("vehicle") || name.Contains("motorcycle") || name.Contains("scooter") ||
+                name.Contains("sedan") || name.Contains("truck") || name.Contains("van") || name.Contains("bus") ||
+                name.Contains("tree") || name.Contains("bush") || name.Contains("prop_") || name == "street")
+            {
+                return false;
+            }
+            if (name.Contains("house") || name.Contains("shophouse") || name.Contains("building") ||
+                name.Contains("tower") || name.Contains("home") || name.Contains("structure") ||
+                name.Contains("cottage") || name.Contains("townhouse") || name.Contains("chalet") ||
+                name.Contains("canal") || name.Contains("diner") || name.Contains("brownstone") ||
+                name.Contains("warehouse") || name.Contains("hangar") || name.Contains("gasstation") ||
+                name.Contains("fountain") || name.Contains("gazebo") || name.Contains("subway") ||
+                name.Contains("cornershop"))
             {
                 return true;
             }
-            Vector2 size = GetPrefabWorldSize(prefab, Quaternion.identity);
-            if (size.x > 1.8f || size.y > 1.8f)
+            Vector2 size = GetPrefabWorldSize(prefab, prefab.transform.rotation);
+            if (size.x > 3.8f || size.y > 3.8f)
             {
                 return true;
             }
             return false;
+        }
+
+        private GameObject GetRandomBuildingPrefab(List<GameObject> primaryPrefabs, List<GameObject> secondaryPrefabs = null)
+        {
+            List<GameObject> buildings = new List<GameObject>();
+            if (primaryPrefabs != null)
+            {
+                foreach (var p in primaryPrefabs)
+                {
+                    if (p != null && IsLargeBuilding(p)) buildings.Add(p);
+                }
+            }
+            if (secondaryPrefabs != null)
+            {
+                foreach (var p in secondaryPrefabs)
+                {
+                    if (p != null && IsLargeBuilding(p)) buildings.Add(p);
+                }
+            }
+
+            if (buildings.Count > 0)
+            {
+                return buildings[Random.Range(0, buildings.Count)];
+            }
+            return null;
         }
 
         private GameObject GetRandomSmallerPrefab(List<GameObject> prefabs)
@@ -2004,6 +2117,15 @@ namespace TheLastEmpire
             return null; // Return null if all are large
         }
 
+        private static Quaternion ResolveTemplateRotation(GameObject prefab, Vector3 eulerRotation)
+        {
+            if (prefab != null && Mathf.Abs(eulerRotation.x) < 0.01f && Mathf.Abs(eulerRotation.z) < 0.01f)
+            {
+                return Quaternion.Euler(0f, eulerRotation.y, 0f) * prefab.transform.rotation;
+            }
+            return Quaternion.Euler(eulerRotation);
+        }
+
         private void GenerateEnvironmentFromTemplate(StageTemplateData template, StageData stage)
         {
             if (template == null || _currentEnvContainer == null) return;
@@ -2022,7 +2144,7 @@ namespace TheLastEmpire
                     GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
                     if (prefab != null)
                     {
-                        Quaternion rot = Quaternion.Euler(obj.rotation);
+                        Quaternion rot = ResolveTemplateRotation(prefab, obj.rotation);
                         Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
                         worldSize = new Vector2(worldSize.x * Mathf.Abs(obj.scale.x), worldSize.y * Mathf.Abs(obj.scale.z));
                         if (DoesFootprintOverlapPortalOrPlayer(new Vector2(obj.position.x, obj.position.z), worldSize, playerPos))
@@ -2030,7 +2152,11 @@ namespace TheLastEmpire
                             continue;
                         }
                         GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
-                        spawned.transform.localScale = obj.scale;
+                        spawned.name = prefab.name;
+                        if (obj.scale != Vector3.one || prefab.transform.localScale == Vector3.one)
+                        {
+                            spawned.transform.localScale = obj.scale;
+                        }
                     }
                     else
                     {
@@ -2047,14 +2173,19 @@ namespace TheLastEmpire
                     GameObject prefab = ResolveTemplatePrefab(obj.prefabName, obj.resourcePath);
                     if (prefab != null)
                     {
-                        Quaternion rot = Quaternion.Euler(obj.rotation);
-                        Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
-                        worldSize = new Vector2(worldSize.x * Mathf.Abs(obj.scale.x), worldSize.y * Mathf.Abs(obj.scale.z));
-                        if (DoesFootprintOverlapPortalOrPlayer(new Vector2(obj.position.x, obj.position.z), worldSize, playerPos))
+                        Quaternion rot = ResolveTemplateRotation(prefab, obj.rotation);
+                        bool isStreetTile = prefab.name.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (!isStreetTile)
                         {
-                            continue;
+                            Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
+                            worldSize = new Vector2(worldSize.x * Mathf.Abs(obj.scale.x), worldSize.y * Mathf.Abs(obj.scale.z));
+                            if (DoesFootprintOverlapPortalOrPlayer(new Vector2(obj.position.x, obj.position.z), worldSize, playerPos))
+                            {
+                                continue;
+                            }
                         }
                         GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
+                        spawned.name = prefab.name;
                         spawned.transform.localScale = obj.scale;
                     }
                 }

@@ -370,12 +370,16 @@ namespace TheLastEmpire
                 return; // Skip new random spawning since we restored previous state!
             }
 
-            // 4b. Handcrafted JSON Stage Template Enemies & Loot Override
+            // 4b. Handcrafted JSON Stage Template Enemies, NPCs & Loot Override
             if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
             {
                 SpawnStageTemplateEnemiesAndLoot(template, stage);
-                RandomStageEventManager.Instance?.OnStageEntered(stage);
-                return;
+                // If this template specifies fixed enemies, use them directly; otherwise keep dynamic Day/Night enemy spawning!
+                if (template.enemySpawns != null && template.enemySpawns.Count > 0)
+                {
+                    RandomStageEventManager.Instance?.OnStageEntered(stage);
+                    return;
+                }
             }
 
             // 5. Reset Unity's random state using the deterministic stageSeed

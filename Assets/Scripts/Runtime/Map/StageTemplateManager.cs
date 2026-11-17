@@ -18,8 +18,8 @@ namespace TheLastEmpire
         [SerializeField] private bool enableTemplates = true;
 
         [Range(0f, 1f)]
-        [Tooltip("Probability (0.0 to 1.0) of selecting an authored template when available for the current Biome. (e.g., 0.5 = 50% template, 50% procedural).")]
-        [SerializeField] private float templateSelectionChance = 0.50f;
+        [Tooltip("Probability (0.0 to 1.0) of selecting an authored template when available for the current Biome. (e.g., 0.65 = 65% template, 35% procedural).")]
+        [SerializeField] private float templateSelectionChance = 0.65f;
 
         private readonly Dictionary<BiomeType, List<StageTemplateData>> _templatesByBiome = new Dictionary<BiomeType, List<StageTemplateData>>();
         private readonly Dictionary<string, StageTemplateData> _templatesById = new Dictionary<string, StageTemplateData>(StringComparer.OrdinalIgnoreCase);
@@ -53,13 +53,31 @@ namespace TheLastEmpire
             _templatesByBiome.Clear();
             _templatesById.Clear();
 
-            IList<TextAsset> templateAssets = AddressableManager.LoadAssetsByLabel<TextAsset>("Stage");
-            if (templateAssets == null || templateAssets.Count == 0)
+            List<TextAsset> combinedAssets = new List<TextAsset>();
+
+            IList<TextAsset> addressableAssets = AddressableManager.LoadAssetsByLabel<TextAsset>("Stage");
+            if (addressableAssets != null)
             {
-                templateAssets = Resources.LoadAll<TextAsset>("Stages");
+                for (int i = 0; i < addressableAssets.Count; i++)
+                {
+                    if (addressableAssets[i] != null) combinedAssets.Add(addressableAssets[i]);
+                }
             }
 
-            if (templateAssets == null || templateAssets.Count == 0)
+            // Always also load JSONs from Assets/Resources/Stages/ (used by StageTemplateDesignerWindow and runtime)
+            TextAsset[] resourceAssets = Resources.LoadAll<TextAsset>("Stages");
+            if (resourceAssets != null)
+            {
+                for (int i = 0; i < resourceAssets.Length; i++)
+                {
+                    if (resourceAssets[i] != null && !combinedAssets.Contains(resourceAssets[i]))
+                    {
+                        combinedAssets.Add(resourceAssets[i]);
+                    }
+                }
+            }
+
+            if (combinedAssets.Count == 0)
             {
                 Debug.Log("[StageTemplateManager] No JSON templates found under Addressables (label 'Stage') or Resources/Stages/.");
                 _isInitialized = true;
@@ -67,13 +85,18 @@ namespace TheLastEmpire
             }
 
             int count = 0;
-            foreach (TextAsset asset in templateAssets)
+            foreach (TextAsset asset in combinedAssets)
             {
                 if (asset == null || string.IsNullOrWhiteSpace(asset.text)) continue;
 
                 StageTemplateData data = StageTemplateData.FromJson(asset.text);
                 if (data != null && !string.IsNullOrEmpty(data.templateId))
                 {
+                    if (_templatesById.ContainsKey(data.templateId))
+                    {
+                        continue; // Avoid duplicates if loaded from both Addressables and Resources
+                    }
+
                     _templatesById[data.templateId] = data;
 
                     if (!_templatesByBiome.ContainsKey(data.biome))

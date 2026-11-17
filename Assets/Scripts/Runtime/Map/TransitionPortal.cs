@@ -128,27 +128,44 @@ namespace TheLastEmpire
             }
         }
 
+        private void GetTargetCoordinates(int originX, int originY, out int targetX, out int targetY)
+        {
+            targetX = originX;
+            targetY = originY;
+            switch (direction)
+            {
+                case TransitionDirection.North: targetY = originY + 1; break;
+                case TransitionDirection.South: targetY = originY - 1; break;
+                case TransitionDirection.East: targetX = originX + 1; break;
+                case TransitionDirection.West: targetX = originX - 1; break;
+            }
+        }
+
+        private static bool IsWalkableDestinationStage(int targetX, int targetY)
+        {
+            if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return false;
+            if (targetX < 0 || targetX >= WorldMapGenerator.GridSize ||
+                targetY < 0 || targetY >= WorldMapGenerator.GridSize)
+            {
+                return false;
+            }
+
+            StageData targetStage = WorldMapManager.Instance.MapGenerator.GetStage(targetX, targetY);
+            if (targetStage == null) return false;
+
+            // Waterways biome is currently closed — block portals leading to water zones
+            if (targetStage.biome == BiomeType.Waterways) return false;
+
+            return true;
+        }
+
         public void UpdatePortalVisibility(int x, int y)
         {
             if (!IsWorldPortal(this)) return;
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
 
-            bool pathExists = false;
-            switch (direction)
-            {
-                case TransitionDirection.North:
-                    pathExists = y < WorldMapGenerator.GridSize - 1 && WorldMapManager.Instance.MapGenerator.GetStage(x, y + 1) != null;
-                    break;
-                case TransitionDirection.South:
-                    pathExists = y > 0 && WorldMapManager.Instance.MapGenerator.GetStage(x, y - 1) != null;
-                    break;
-                case TransitionDirection.East:
-                    pathExists = x < WorldMapGenerator.GridSize - 1 && WorldMapManager.Instance.MapGenerator.GetStage(x + 1, y) != null;
-                    break;
-                case TransitionDirection.West:
-                    pathExists = x > 0 && WorldMapManager.Instance.MapGenerator.GetStage(x - 1, y) != null;
-                    break;
-            }
+            GetTargetCoordinates(x, y, out int targetX, out int targetY);
+            bool pathExists = IsWalkableDestinationStage(targetX, targetY);
 
             // Clean up: Disable visual renderers (supporting both 3D MeshRenderers, SpriteRenderers, etc. in children)
             Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
@@ -199,6 +216,13 @@ namespace TheLastEmpire
         public void TriggerTransition(PlayerController player)
         {
             if (WorldMapManager.Instance == null) return;
+
+            GetTargetCoordinates(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY, out int checkX, out int checkY);
+            if (!IsWalkableDestinationStage(checkX, checkY))
+            {
+                _playerInRange = false;
+                return;
+            }
 
             if (transitionScreen != null)
             {
@@ -269,43 +293,8 @@ namespace TheLastEmpire
             LastTransitionEntryDirection = oppositeDir;
             HasValidWarpHistory = true;
 
-            int targetX = playerX;
-            int targetY = playerY;
-
-            switch (direction)
-            {
-                case TransitionDirection.North:
-                    if (playerY < WorldMapGenerator.GridSize - 1)
-                    {
-                        targetY = playerY + 1;
-                        transitioned = true;
-                    }
-                    break;
-
-                case TransitionDirection.South:
-                    if (playerY > 0)
-                    {
-                        targetY = playerY - 1;
-                        transitioned = true;
-                    }
-                    break;
-
-                case TransitionDirection.East:
-                    if (playerX < WorldMapGenerator.GridSize - 1)
-                    {
-                        targetX = playerX + 1;
-                        transitioned = true;
-                    }
-                    break;
-
-                case TransitionDirection.West:
-                    if (playerX > 0)
-                    {
-                        targetX = playerX - 1;
-                        transitioned = true;
-                    }
-                    break;
-            }
+            GetTargetCoordinates(playerX, playerY, out int targetX, out int targetY);
+            bool transitioned = IsWalkableDestinationStage(targetX, targetY);
 
             if (transitioned)
             {
