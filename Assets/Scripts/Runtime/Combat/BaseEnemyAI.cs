@@ -49,7 +49,13 @@ namespace TheLastEmpire
         protected Transform playerTransform;
         protected Health playerHealth;
         protected Health health;
+        protected Animator enemyAnimator;
         protected AIState currentState = AIState.Idle;
+
+        private float _attackAnimCooldown = 0f;
+        private static readonly int AnimSpeedHash = Animator.StringToHash("Speed");
+        private static readonly int AnimIsRunningHash = Animator.StringToHash("IsRunning");
+        private static readonly int AnimIsSittingHash = Animator.StringToHash("IsSitting");
 
         protected float stateTimer = 0f;
         protected Vector3 wanderDirection;
@@ -331,6 +337,11 @@ namespace TheLastEmpire
             UpdateHealthUI();
 
             FindPlayer();
+            enemyAnimator = GetComponentInChildren<Animator>();
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.applyRootMotion = false;
+            }
             ChooseNextWanderState();
         }
 
@@ -384,10 +395,64 @@ namespace TheLastEmpire
                 transitionDelayTimer -= Time.fixedDeltaTime;
                 rb.linearVelocity = Vector3.zero;
                 currentState = AIState.Idle;
+                UpdateEnemyAnimator();
                 return;
             }
 
             UpdateAIBehavior();
+            UpdateEnemyAnimator();
+        }
+
+        public void TriggerAttackAnimation()
+        {
+            if (enemyAnimator == null) enemyAnimator = GetComponentInChildren<Animator>();
+            if (enemyAnimator == null || !enemyAnimator.isActiveAndEnabled || enemyAnimator.runtimeAnimatorController == null) return;
+
+            _attackAnimCooldown = 0.65f;
+            enemyAnimator.CrossFadeInFixedTime("Slash1", 0.06f, 0);
+        }
+
+        protected virtual void UpdateEnemyAnimator()
+        {
+            if (enemyAnimator == null)
+            {
+                enemyAnimator = GetComponentInChildren<Animator>();
+                if (enemyAnimator != null) enemyAnimator.applyRootMotion = false;
+            }
+            if (enemyAnimator == null || !enemyAnimator.isActiveAndEnabled || enemyAnimator.runtimeAnimatorController == null) return;
+
+            if (_attackAnimCooldown > 0f)
+            {
+                _attackAnimCooldown -= Time.fixedDeltaTime;
+            }
+
+            Vector3 vel = rb != null ? rb.linearVelocity : Vector3.zero;
+            float horizSpeed = new Vector2(vel.x, vel.z).magnitude;
+            bool isMoving = horizSpeed > 0.12f;
+            bool isRunning = isMoving && (currentState == AIState.Chase || currentState == AIState.Telegraph || horizSpeed > moveSpeed * 0.65f);
+
+            // Auto-trigger melee attack swing when in close contact range with the player
+            if (_attackAnimCooldown <= 0f && playerTransform != null && !IsTargetDead())
+            {
+                float distToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+                if (distToPlayer <= 1.45f)
+                {
+                    TriggerAttackAnimation();
+                    return;
+                }
+            }
+
+            if (_attackAnimCooldown > 0.15f)
+            {
+                return;
+            }
+
+            AnimatorStateInfo stateInfo = enemyAnimator.GetCurrentAnimatorStateInfo(0);
+            string desiredState = !isMoving ? "Idle" : (isRunning ? "Run" : "Walk");
+            if (!stateInfo.IsName(desiredState) && !enemyAnimator.IsInTransition(0))
+            {
+                enemyAnimator.CrossFadeInFixedTime(desiredState, 0.10f, 0);
+            }
         }
 
         protected abstract void UpdateAIBehavior();

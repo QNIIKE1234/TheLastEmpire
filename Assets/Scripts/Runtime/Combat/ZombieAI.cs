@@ -573,6 +573,7 @@ namespace TheLastEmpire
             _leapCooldownTimer = leapCooldown;
             _leapActiveTimer = leapDuration;
             currentState = AIState.Telegraph;
+            TriggerAttackAnimation();
             
             if (playerTransform != null)
             {

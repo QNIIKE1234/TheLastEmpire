@@ -26,8 +26,10 @@ namespace TheLastEmpire
                 if (mat != null)
                 {
                     mat.shader = customShader;
-                    // Set default tiling value for crisp world space mapping
-                    mat.SetFloat("_Tiling", 0.1f);
+                    mat.SetFloat("_Tiling", GetGroundTiling(name));
+                    mat.SetFloat("_Saturation", GetGroundSaturation(name));
+                    mat.SetColor("_BaseColor", GetGroundTint(name));
+                    mat.SetFloat("_BiomeFadeWidth", 3.0f);
                     
                     // Day/Night and Flashlight defaults
                     mat.SetColor("_DayColor", new Color(1.0f, 0.98f, 0.92f, 1f));
@@ -73,6 +75,31 @@ namespace TheLastEmpire
 
             AssetDatabase.SaveAssets();
             Debug.Log("AssignGroundShader: Successfully updated all ground and prop materials!");
+        }
+
+        private static float GetGroundTiling(string name)
+        {
+            return name == "UrbanRuins" || name == "Highways" || name == "Default" ? 0.1f : 0.15f;
+        }
+
+        private static float GetGroundSaturation(string name)
+        {
+            return name == "OvergrownForests" || name == "Highlands" || name == "Waterways" ||
+                   name == "SuburbanVillages" || name == "SpecialEvent" ? 0.5f : 1f;
+        }
+
+        private static Color GetGroundTint(string name)
+        {
+            return name switch
+            {
+                "OvergrownForests" => new Color(0.88f, 0.90f, 0.80f, 1f),
+                "Highlands" => new Color(0.84f, 0.82f, 0.76f, 1f),
+                "Waterways" => new Color(0.85f, 0.90f, 0.92f, 1f),
+                "SuburbanVillages" => new Color(0.84f, 0.81f, 0.75f, 1f),
+                "SpecialEvent" => new Color(0.85f, 0.85f, 0.80f, 1f),
+                "Default" => new Color(0.28f, 0.28f, 0.28f, 1f),
+                _ => Color.white
+            };
         }
     }
 }

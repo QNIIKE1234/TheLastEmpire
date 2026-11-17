@@ -32,6 +32,38 @@ namespace TheLastEmpire
         [Header("Display Settings")]
         [Tooltip("If true, disables neighbor floor meshes when outside the map bounds. If false, blends them with the current room's biome to prevent a black void.")]
         [SerializeField] private bool hideMissingNeighbors = false;
+        [Tooltip("World-space width of the soft ground transition where neighboring biomes differ.")]
+        [SerializeField, Min(0f)] private float biomeTransitionWidth = 3f;
+
+        private static readonly int BiomeEdgeBlendId = Shader.PropertyToID("_BiomeEdgeBlend");
+        private static readonly int GroundBoundsId = Shader.PropertyToID("_GroundBounds");
+        private static readonly int BiomeFadeWidthId = Shader.PropertyToID("_BiomeFadeWidth");
+        private static readonly int BiomeNeighborTilingId = Shader.PropertyToID("_BiomeNeighborTiling");
+        private static readonly int BiomeNeighborSaturationId = Shader.PropertyToID("_BiomeNeighborSaturation");
+        private static readonly int[] NeighborBiomeMapIds =
+        {
+            Shader.PropertyToID("_NorthBiomeMap"),
+            Shader.PropertyToID("_EastBiomeMap"),
+            Shader.PropertyToID("_SouthBiomeMap"),
+            Shader.PropertyToID("_WestBiomeMap")
+        };
+        private static readonly int[] NeighborBiomeColorIds =
+        {
+            Shader.PropertyToID("_NorthBiomeColor"),
+            Shader.PropertyToID("_EastBiomeColor"),
+            Shader.PropertyToID("_SouthBiomeColor"),
+            Shader.PropertyToID("_WestBiomeColor")
+        };
+        private MaterialPropertyBlock groundPropertyBlock;
+
+        private MaterialPropertyBlock GetGroundPropertyBlock()
+        {
+            if (groundPropertyBlock == null)
+            {
+                groundPropertyBlock = new MaterialPropertyBlock();
+            }
+            return groundPropertyBlock;
+        }
 
         private void Awake()
         {
@@ -39,6 +71,7 @@ namespace TheLastEmpire
             {
                 Instance = this;
             }
+            GetGroundPropertyBlock();
             AutoDetectAllRenderers();
         }
 
@@ -177,7 +210,7 @@ namespace TheLastEmpire
             if (centerMeshRenderer != null)
             {
                 centerMeshRenderer.gameObject.SetActive(true);
-                ApplyBiomeMaterial(currentBiome, centerMeshRenderer);
+                ApplyStageMaterial(gridX, gridY, centerMeshRenderer, currentBiome);
             }
 
             // Update 4 cardinal neighbors (North: Y+1, South: Y-1, East: X+1, West: X-1)
@@ -204,7 +237,7 @@ namespace TheLastEmpire
             {
                 // Enable neighbor floor mesh and apply its correct biome material
                 neighborRenderer.gameObject.SetActive(true);
-                ApplyBiomeMaterial(neighborStage.biome, neighborRenderer);
+                ApplyStageMaterial(x, y, neighborRenderer, fallbackBiome);
             }
             else
             {
@@ -218,8 +251,121 @@ namespace TheLastEmpire
                     // Keep visible with current room biome fallback to prevent an empty void
                     neighborRenderer.gameObject.SetActive(true);
                     ApplyBiomeMaterial(fallbackBiome, neighborRenderer);
+                    ClearBiomeBlendProperties(neighborRenderer);
                 }
             }
+        }
+
+        private void ApplyStageMaterial(int x, int y, MeshRenderer renderer, BiomeType fallbackBiome)
+        {
+            if (renderer == null) return;
+
+            StageData stage = WorldMapManager.Instance?.MapGenerator?.GetStage(x, y);
+            if (stage == null)
+            {
+                ApplyBiomeMaterial(fallbackBiome, renderer);
+                ClearBiomeBlendProperties(renderer);
+                return;
+            }
+
+            ApplyBiomeMaterial(stage.biome, renderer);
+            SetBiomeBlendProperties(renderer, x, y, stage.biome);
+        }
+
+        private void SetBiomeBlendProperties(MeshRenderer renderer, int x, int y, BiomeType biome)
+        {
+            WorldMapGenerator generator = WorldMapManager.Instance?.MapGenerator;
+            if (renderer == null || generator == null)
+            {
+                ClearBiomeBlendProperties(renderer);
+                return;
+            }
+
+            MaterialPropertyBlock propBlock = GetGroundPropertyBlock();
+            renderer.GetPropertyBlock(propBlock);
+            Bounds bounds = renderer.bounds;
+            propBlock.SetVector(GroundBoundsId, new Vector4(bounds.min.x, bounds.max.x, bounds.min.z, bounds.max.z));
+            propBlock.SetFloat(BiomeFadeWidthId, biomeTransitionWidth);
+
+            // These four values keep the renderer's local texture mix symmetric across
+            // the exact same world-space edge on both neighboring floor meshes.
+            StageData[] neighbors =
+            {
+                generator.GetStage(x, y + 1),
+                generator.GetStage(x + 1, y),
+                generator.GetStage(x, y - 1),
+                generator.GetStage(x - 1, y)
+            };
+            Vector4 edgeBlend = Vector4.zero;
+            Vector4 neighborTiling = new Vector4(0.1f, 0.1f, 0.1f, 0.1f);
+            Vector4 neighborSaturation = Vector4.one;
+
+            for (int i = 0; i < neighbors.Length; i++)
+            {
+                float tiling;
+                float saturation;
+                edgeBlend[i] = SetNeighborBiomeProperties(
+                    groundPropertyBlock,
+                    neighbors[i],
+                    biome,
+                    NeighborBiomeMapIds[i],
+                    NeighborBiomeColorIds[i],
+                    out tiling,
+                    out saturation);
+                neighborTiling[i] = tiling;
+                neighborSaturation[i] = saturation;
+            }
+
+            groundPropertyBlock.SetVector(BiomeEdgeBlendId, edgeBlend);
+            groundPropertyBlock.SetVector(BiomeNeighborTilingId, neighborTiling);
+            groundPropertyBlock.SetVector(BiomeNeighborSaturationId, neighborSaturation);
+
+            renderer.SetPropertyBlock(groundPropertyBlock);
+        }
+
+        private float SetNeighborBiomeProperties(
+            MaterialPropertyBlock propertyBlock,
+            StageData neighborStage,
+            BiomeType currentBiome,
+            int mapPropertyId,
+            int colorPropertyId,
+            out float tiling,
+            out float saturation)
+        {
+            tiling = 0.1f;
+            saturation = 1f;
+            if (neighborStage == null || neighborStage.biome == currentBiome)
+            {
+                return 0f;
+            }
+
+            Material neighborMaterial = GetBiomeMaterial(neighborStage.biome);
+            if (neighborMaterial == null)
+            {
+                return 0f;
+            }
+
+            Texture neighborMap = neighborMaterial.GetTexture("_BaseMap");
+            if (neighborMap == null)
+            {
+                return 0f;
+            }
+
+            propertyBlock.SetTexture(mapPropertyId, neighborMap);
+            propertyBlock.SetColor(colorPropertyId, neighborMaterial.GetColor("_BaseColor"));
+            tiling = neighborMaterial.GetFloat("_Tiling");
+            saturation = neighborMaterial.GetFloat("_Saturation");
+            return 1f;
+        }
+
+        private void ClearBiomeBlendProperties(MeshRenderer renderer)
+        {
+            if (renderer == null) return;
+
+            MaterialPropertyBlock propBlock = GetGroundPropertyBlock();
+            renderer.GetPropertyBlock(propBlock);
+            propBlock.SetVector(BiomeEdgeBlendId, Vector4.zero);
+            renderer.SetPropertyBlock(propBlock);
         }
 
         public Material GetBiomeMaterial(BiomeType biome)
