@@ -114,18 +114,18 @@ classDiagram
      public static PlayerController GetClosestAlivePlayer(Vector3 fromPosition, float maxRange = float.MaxValue)
      ```
 2. **การปรับจุดเชื่อมต่อใน [PlayerController.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs):**
-   * ให้ `PlayerController.Instance` ชี้ไปที่ `PlayerRegistry.LocalPlayer` เสมอ เพื่อให้สคริปต์ UI ทั้งหมด ([PlayerHUD.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerHUD.cs), [InventoryUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryUI.cs), [CameraFollow.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/CameraFollow.cs)) ทำงานกับตัวละครของเครื่องตัวเองได้ทันทีโดยไม่ต้องแก้โค้ด UI แม้แต่บรรทัดเดียว!
-   * เพิ่มแฟล็ก `public bool IsRemotePlayer { get; set; } = false;`
+   * ในระบบปัจจุบัน `Awake()` ตั้ง `Instance = this` ทันที และ `Start()` สร้าง/เปิด `PlayerInput` ให้อัตโนมัติทุกตัว — ต้องเปลี่ยนให้ตั้ง `Instance = this` เฉพาะตัวละครฝั่ง Local (`IsLocalPlayer == true`) ผ่าน `PlayerRegistry.LocalPlayer` เพื่อไม่ให้ UI ([PlayerHUD.cs](file:///d:/Unity%20Game%20Project/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerHUD.cs), [InventoryUI.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryUI.cs), [CameraFollow.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/CameraFollow.cs)) โดนตัวละครของเพื่อนแย่ง Reference
+   * เพิ่มแฟล็ก `public bool IsRemotePlayer { get; set; } = false;` และปิดการทำงานของ `PlayerInput` (`playerInput.enabled = false`) บนตัวละคร Remote เพื่อไม่ให้ปุ่ม WASD/คลิกของเครื่องเราไปบังคับตัวเพื่อน
    * ใน `Update()`, `OnMove()`, `OnAttack()`: ถ้า `IsRemotePlayer == true` ให้ข้ามการอ่าน Input จากคีย์บอร์ด/เมาส์ของเครื่องเรา แล้วรับค่าความเร็ว/ทิศทางหันหน้ามาจาก `NetworkPlayerBridge` แทน
 
 ---
 
-### 4.2 ระบบแผนที่โลกและการเสกฉากไร้ Diff ([WorldMapGenerator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapGenerator.cs) & [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs))
+### 4.2 ระบบแผนที่โลกและการเสกฉากไร้ Diff ([WorldMapGenerator.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapGenerator.cs), [WorldMapManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapManager.cs) & [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs))
 
 #### กลไก Deterministic Generation (ไม่ต้องส่งข้อมูลตึกผ่านเน็ต):
 1. เมื่อเริ่มเกม Host จะสุ่ม `worldSeed` (เช่น `8492014`) แล้วบันทึกลง `NetworkVariable<int> NetWorldSeed`
-2. เมื่อ Client เชื่อมต่อเข้ามา จะอ่าน `NetWorldSeed` แล้วสั่ง `WorldMapGenerator.GenerateMap(NetWorldSeed.Value)` ทันที ทำให้ตารางแผนที่ 64x64 ห้อง (Biome, พิกัดบอส, พิกัดร้านค้า) บนเครื่องทุกคนเหมือนกัน 100%
-3. เมื่อเข้าสู่ห้อง `(stageX, stageY)` ทุกเครื่องจะคำนวณ Seed ประจำห้องด้วยสูตรตายตัว:
+2. **จุดสำคัญใน [WorldMapManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/WorldMapManager.cs):** ปัจจุบัน `Start()` จะเรียก `StartNewGame(Random.Range(1000, 99999))` ทันที — ในโหมด Co-op ต้องดักให้เครื่อง **Client ข้ามการสุ่ม Seed เอง** แล้วรอรับ `NetWorldSeed` จาก Host ก่อนจึงเรียก `mapGenerator.GenerateMap()` ทำให้ตารางแผนที่ **`128x128` ห้อง (`GridSize = 128`)** บนเครื่องทุกคนเหมือนกัน 100% (Biome, พิกัดบอส, พิกัดร้านค้า)
+3. เมื่อเข้าสู่ห้อง `(stageX, stageY)` ทุกเครื่องจะคำนวณ Seed ประจำห้องด้วยสูตรตายตัว (หรือใช้ `stage.stageSeed` ที่ถูกสร้างจาก `System.Random(worldSeed)` ตั้งแต่ `GenerateMap()`):
    ```csharp
    public static int GetDeterministicStageSeed(int worldSeed, int stageX, int stageY)
    {
@@ -139,7 +139,7 @@ classDiagram
        }
    }
    ```
-4. ใน [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs) ตอนสร้างตึก ต้นไม้ และฉากหลังรอบห้อง (`GenerateSurroundingBackgroundScenery`) จะล็อก `Random.InitState(stageSeed)` ก่อนเสก และคืนค่า `Random.state` ทันทีที่เสกเสร็จในเฟรมเดียวกัน (ซึ่งโค้ดปัจจุบันทำโครงสร้างนี้ไว้รองรับแล้ว)
+4. ใน [EnvironmentManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs) ตอนสร้างตึก ต้นไม้ และฉากหลังรอบห้อง (`GenerateStageEnvironment` & `GenerateSurroundingBackgroundScenery`) จะล็อก `Random.InitState(stageSeed)` ก่อนเสก และควรบันทึก/คืนค่า `Random.state` ให้ครบทุกเมธอดเพื่อไม่ให้ไปกวนค่าสุ่มของระบบอื่นในเฟรมเดียวกัน
 
 ---
 
@@ -178,6 +178,9 @@ sequenceDiagram
    * ใช้ `NetworkEnemyBridge` ซิงค์เฉพาะพิกัด `(X, Z)` และมุมหมุน `Y` (Half-float precision) พร้อมใช้การคำนวณความสูงพื้น `naturalGroundY` บนเครื่องตัวเอง ทำให้ประหยัดแบนด์วิดท์ลงถึง 50% รองรับซอมบี้ 30–50 ตัวพร้อมกันได้สบาย
 3. **การซิงค์อีเวนต์ `FleeingSurvivor`:**
    * ในช่วงคัตซีนที่ศัตรูวิ่งด้วยสปีด `1.0 m/s` และเปิด `EnableChaserPhasing` เครื่อง Host จะส่ง `ClientRpc` สั่งเปิดโหมดทะลุสิ่งกีดขวางบนเครื่อง Client ด้วย เพื่อให้คัตซีนลื่นไหลและเมื่อครบ 2 วินาทีก็จะเร่งสปีดเป็น `3.5 m/s` พร้อมกันทุกเครื่อง
+4. **การผูก Pool กับ Unity NGO (`INetworkPrefabInstanceHandler`):**
+   * ปัจจุบัน [ObjectPoolManager.cs](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/ObjectPoolManager.cs) ดึง/ทำลาย Pool ภายในเครื่องเอง (`CleanAndRebuildPools()` ใน `OnSceneLoaded`)
+   * ในโหมด Multiplayer ห้าม Client เปิด/ปิด Pool ศัตรูเองโดยตรง แต่ต้องลงทะเบียน `NetworkPoolHandler : INetworkPrefabInstanceHandler` เข้ากับ `NetworkManager.Singleton.PrefabHandler` เพื่อให้ตอน Host เรียก `NetworkObject.Spawn()` / `Despawn()` ตัว Pool ของทั้ง Host และ Client จะดึง/คืนออบเจกต์ตรงกันอัตโนมัติ (ส่วนเอฟเฟกต์เลือด/กระสุน Visual สามารถใช้ Pool ท้องถิ่นตามเดิมได้)
 
 ---
 
@@ -380,4 +383,33 @@ flowchart LR
 * **Steam Network (Valve SDR - Steam Datagram Relay):**
   * สามารถสลับ `NetworkTransport` ของ Unity NGO ไปเกาะกับท่อของ **Steamworks (`Facepunch.Steamworks`)** ได้ตลอดเวลาโดยไม่ต้องแก้โค้ดเกมเพลย์
   * วิ่งผ่านโหนดเซิร์ฟเวอร์ของ Valve โซนไทย/สิงคโปร์โดยตรง (ค่า Ping เฉลี่ย **10–25 ms**) และ **ใช้งานได้ฟรีแบบไม่จำกัดจำนวนคนออนไลน์ (Unlimited CCU)** พร้อมรองรับการกด Invite เพื่อนผ่านหน้าต่าง Steam Overlay (`Shift + Tab`) ได้ทันที
+
+---
+
+## 9. สิ่งที่ต้องลงและตั้งค่าใน Unity Editor ก่อนเริ่มทำ (Developer Prerequisites Checklist)
+
+เนื่องจากโปรเจกต์ปัจจุบันใช้ **Unity `6000.3.0f1`** และใน [manifest.json](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Packages/manifest.json) ปัจจุบันติดตั้งไว้เพียง `com.unity.multiplayer.center` (`1.0.1`) งานส่วนที่ต้องลงแพ็กเกจ, ผูกบัญชี Cloud, และปรับ UI/Prefab ควรทำผ่าน **Unity Editor** โดยตรงดังนี้:
+
+### 9.1 การลง Package ผ่าน Unity Editor (ทำก่อน Phase 1)
+เปิด Unity Editor แล้วเข้าเมนู **`Window > Multiplayer > Multiplayer Center`** (หรือ **`Window > Package Manager`**) เพื่อติดตั้ง:
+1. **`Netcode for GameObjects`** (`com.unity.netcode.gameobjects`) + **`Unity Transport`** (`com.unity.transport`) — *จำเป็นหลัก*
+2. **ระบบเชื่อมต่อออนไลน์ (เลือกตามเป้าหมาย):**
+   * *เล่นผ่านรหัสห้อง 6 หลัก (ไม่ต้องใช้ Steam):* ลง **`Multiplayer Services`** (`com.unity.services.multiplayer` — รวม Auth, Relay และ Lobby สำหรับ Unity 6)
+   * *เล่น/ชวนเพื่อนผ่าน Steam:* ลง **`Facepunch.Steamworks`** + Steam Transport สำหรับ NGO (เพิ่มไฟล์ `steam_appid.txt` เลข `480` ช่วงพัฒนา)
+3. **เครื่องมือเทสหลายจอในเครื่องเดียว:** ลง **`Multiplayer Play Mode`** (`com.unity.multiplayer.playmode`) เพื่อกด Play แล้วเปิดทดสอบ 2–4 หน้าต่างพร้อมกันได้ทันที
+4. **อัปเดต Assembly Definition:** เพิ่ม Reference `Unity.Netcode.Runtime` (และ `Unity.Collections`, `Unity.Services.Multiplayer` ถ้าใช้) ลงใน [TheLastEmpire.Runtime.asmdef](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/TheLastEmpire.Runtime.asmdef)
+
+### 9.2 การผูกบัญชี Unity Cloud (เฉพาะกรณีใช้ Unity Relay / Lobby)
+1. ใน Unity Editor ไปที่ **`Edit > Project Settings > Services`**
+2. ลงชื่อเข้าใช้ (Sign in) ด้วย Unity Account แล้วกด **Link / Create Project ID**
+3. เปิดหน้า [Unity Cloud Dashboard](https://cloud.unity.com) แล้วกดเปิดใช้งาน (**Activate**) บริการ **Relay** และ **Lobby** ในโปรเจกต์นั้น
+
+### 9.3 การเตรียม Git Branch, Prefab และ Scene (ทำร่วมกับทีม)
+1. **เคลียร์ Git ก่อนแตก Branch:** ตรวจสอบไฟล์ค้างบน `main` (เช่น [Teko-VariableFont_wght SDF.asset](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Font/Teko-VariableFont_wght%20SDF.asset)) แล้วแตก Branch ใหม่ชื่อ `feat/multiplayer-netcode` จาก `main`
+2. **จัดการ Prefab และ Scene ผ่าน Inspector:**
+   * ติดตั้ง `NetworkObject` และ `NetworkPlayerBridge` ลงบน `PlayerPrefabs.prefab` รวมถึงลงทะเบียน Prefab ศัตรู/โปรเจกต์ไทล์ลงใน `NetworkPrefabsList`
+   * จัดหน้าตา UI ปุ่ม Create Room / Join Code ใน [MainMenu.unity](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scenes/MainMenu.unity) หรือ [Lobby.unity](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scenes/Lobby.unity)
+3. **การทดสอบหลายจอ (Multi-Client Verification):**
+   * เปิดทดสอบ 2–4 จอผ่าน **Multiplayer Play Mode** เพื่อตรวจสอบการเดิน, การยิง, การข้ามประตูพร้อมกัน, คัตซีน `FleeingSurvivor`, การเก็บของไม่ซ้ำ และระบบไฟ `PowerGrid` ให้ตรงกันทุกหน้าจอ
+
 
