@@ -118,6 +118,7 @@ namespace TheLastEmpire
         private float _leaderBuffCheckTimer = 0f;
         private bool _hasLeaderBuff = false;
         private bool _hasTriggeredRageMode = false;
+        private float _rageRoarTimer = 0f;
 
         // Boss Charge State
         private float _chargeCooldownTimer = 0f;
@@ -156,6 +157,7 @@ namespace TheLastEmpire
             _isCharging = false;
             _isChargeWindingUp = false;
             _hasTriggeredRageMode = false;
+            _rageRoarTimer = 0f;
             ResetRageVisuals();
             _chargeCooldownTimer = 2.0f;
             _stompCooldownTimer = 2.0f;
@@ -268,6 +270,12 @@ namespace TheLastEmpire
             if (IsBossUnit)
             {
                 CheckRageModeState();
+                if (_rageRoarTimer > 0f)
+                {
+                    _rageRoarTimer -= Time.fixedDeltaTime;
+                    if (rb != null) rb.linearVelocity = Vector3.zero;
+                    return;
+                }
             }
 
             // Handle dog leap countdown timers
@@ -416,6 +424,7 @@ namespace TheLastEmpire
                     _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    ClearActionAnimationLock();
                     currentState = AIState.Chase;
                     return;
                 }
@@ -448,6 +457,7 @@ namespace TheLastEmpire
                     _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    ClearActionAnimationLock();
                     currentState = AIState.Chase;
                     return;
                 }
@@ -458,6 +468,7 @@ namespace TheLastEmpire
                     _chargeCooldownTimer = IsRageMode ? (chargeCooldown * rageSkillCooldownMultiplier) : chargeCooldown;
                     rb.linearVelocity = Vector3.zero;
                     if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+                    ClearActionAnimationLock();
                     currentState = AIState.Chase;
                 }
                 return;
@@ -692,6 +703,7 @@ namespace TheLastEmpire
             _isCharging = false;
             _isChargeWindingUp = false;
             _hasTriggeredRageMode = false;
+            _rageRoarTimer = 0f;
             ResetRageVisuals();
             if (_spriteRenderer != null && _originalColor != default)
             {
@@ -707,6 +719,7 @@ namespace TheLastEmpire
             _isCharging = false;
             _isChargeWindingUp = false;
             _hasTriggeredRageMode = false;
+            _rageRoarTimer = 0f;
             ResetRageVisuals();
             if (_spriteRenderer != null && _originalColor != default)
             {
@@ -739,6 +752,7 @@ namespace TheLastEmpire
             currentState = AIState.Telegraph;
             rb.linearVelocity = Vector3.zero;
 
+            PlayActionAnimation("GroundSlam", _stompTelegraphTimer + 0.35f, 0.06f);
             UpdateBossTelegraphVisual(stompRadius);
         }
 
@@ -826,6 +840,7 @@ namespace TheLastEmpire
                 transform.forward = _chargeDirection;
             }
 
+            PlayActionAnimation("Charge", _chargeWindupTimer + chargeDuration + 0.20f, 0.06f);
             float currentChargeDist = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f) * chargeDuration;
             UpdateBossChargeTelegraphVisual(_chargeDirection, currentChargeDist, chargePathWidth);
         }
@@ -859,6 +874,14 @@ namespace TheLastEmpire
             _stompCooldownTimer = 0f;
             _chargeCooldownTimer = 0f;
             _spawnCooldownTimer = 0f;
+
+            // Play double-bicep flex power roar animation (ท่าคำรามเบ่งพลัง)
+            if (!_isStompTelegraphing && !_isCharging && !_isChargeWindingUp)
+            {
+                _rageRoarTimer = 0.85f;
+                if (rb != null) rb.linearVelocity = Vector3.zero;
+            }
+            PlayActionAnimation("RageRoar", 1.10f, 0.05f);
 
             // Dramatic screen shake
             CameraFollow.TriggerShake(0.45f, 0.55f);
@@ -1456,6 +1479,14 @@ namespace TheLastEmpire
                 // Throw mechanic
                 if (throwMinionAtPlayer && playerTransform != null)
                 {
+                    Vector3 toPlayer = playerTransform.position - transform.position;
+                    toPlayer.y = 0f;
+                    if (toPlayer.sqrMagnitude > 0.01f)
+                    {
+                        transform.forward = toPlayer.normalized;
+                    }
+                    PlayActionAnimation("Throw", 0.85f, 0.06f);
+
                     if (babyAI != null) babyAI.enabled = false;
                     Collider col = babyZombie.GetComponent<Collider>();
                     if (col != null) col.enabled = false;

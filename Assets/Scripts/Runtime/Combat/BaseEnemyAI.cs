@@ -403,13 +403,40 @@ namespace TheLastEmpire
             UpdateEnemyAnimator();
         }
 
+        private bool _useSecondSlashAttack = false;
+        private static readonly int Slash2StateHash = Animator.StringToHash("Slash2");
+
+        public void PlayActionAnimation(string stateName, float lockDuration = 0.75f, float crossFade = 0.06f)
+        {
+            if (enemyAnimator == null) enemyAnimator = GetComponentInChildren<Animator>();
+            if (enemyAnimator == null || !enemyAnimator.isActiveAndEnabled || enemyAnimator.runtimeAnimatorController == null) return;
+
+            int stateHash = Animator.StringToHash(stateName);
+            if (!enemyAnimator.HasState(0, stateHash)) return;
+
+            _attackAnimCooldown = Mathf.Max(_attackAnimCooldown, lockDuration);
+            enemyAnimator.CrossFadeInFixedTime(stateName, crossFade, 0);
+        }
+
+        public void ClearActionAnimationLock()
+        {
+            _attackAnimCooldown = 0f;
+        }
+
         public void TriggerAttackAnimation()
         {
             if (enemyAnimator == null) enemyAnimator = GetComponentInChildren<Animator>();
             if (enemyAnimator == null || !enemyAnimator.isActiveAndEnabled || enemyAnimator.runtimeAnimatorController == null) return;
 
-            _attackAnimCooldown = 0.65f;
-            enemyAnimator.CrossFadeInFixedTime("Slash1", 0.06f, 0);
+            string attackState = "Slash1";
+            if (enemyAnimator.HasState(0, Slash2StateHash))
+            {
+                attackState = _useSecondSlashAttack ? "Slash2" : "Slash1";
+                _useSecondSlashAttack = !_useSecondSlashAttack;
+            }
+
+            _attackAnimCooldown = 0.72f;
+            enemyAnimator.CrossFadeInFixedTime(attackState, 0.06f, 0);
         }
 
         protected virtual void UpdateEnemyAnimator()

@@ -21,7 +21,8 @@ namespace TheLastEmpire.Editor
             if (string.IsNullOrEmpty(assetPath)) return false;
             return assetPath.Contains("Chibi_ZombieNormal_Rigged") ||
                    assetPath.Contains("Chibi_ZombieRunner_Rigged") ||
-                   assetPath.Contains("Chibi_ZombieDog_Rigged");
+                   assetPath.Contains("Chibi_ZombieDog_Rigged") ||
+                   assetPath.Contains("Chibi_ZombieBoss_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -55,7 +56,7 @@ namespace TheLastEmpire.Editor
             for (int i = 0; i < clips.Length; i++)
             {
                 string cName = clips[i].name;
-                bool shouldLoop = cName.EndsWith("Idle") || cName.EndsWith("Walk") || cName.EndsWith("Run");
+                bool shouldLoop = cName.EndsWith("Idle") || cName.EndsWith("Walk") || cName.EndsWith("Run") || cName.EndsWith("Charge");
                 if (clips[i].loopTime != shouldLoop)
                 {
                     clips[i].loopTime = shouldLoop;
@@ -127,6 +128,16 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Zombie_Dog_Dummy", "Capsule" },
                 localPosition = new Vector3(0f, -0.45f, 0f),
                 localScale = Vector3.one
+            },
+            new ZombieSetupSpec
+            {
+                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieBoss_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieBoss_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/ZombieLeader.prefab",
+                childRootName = "Chibi_ZombieBoss_Model",
+                legacyChildNamesToRemove = new[] { "Boss_Zombie_Leader", "Boss_Zombie_Tank", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.25f, 1.25f, 1.25f)
             }
         };
 
@@ -211,10 +222,11 @@ namespace TheLastEmpire.Editor
             if (mat == null) return;
             string n = mat.name;
             bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack");
-            bool isMetal = n.Contains("Gold") || n.Contains("Silver") || n.Contains("Baton_Silver") || n.Contains("Buckle");
+            bool isMetal = n.Contains("Gold") || n.Contains("Silver") || n.Contains("Baton_Silver") || n.Contains("Buckle") ||
+                           n.Contains("Steel") || n.Contains("Rebar") || n.Contains("Iron");
 
-            float smoothness = isGlossy ? 0.88f : (isMetal ? 0.55f : 0.08f);
-            float metallic = isMetal ? 0.65f : 0.0f;
+            float smoothness = isGlossy ? 0.88f : (isMetal ? 0.58f : 0.08f);
+            float metallic = isMetal ? 0.68f : 0.0f;
 
             if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", smoothness);
             if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", smoothness);
@@ -245,7 +257,7 @@ namespace TheLastEmpire.Editor
                     for (int i = 0; i < clips.Length; i++)
                     {
                         string cName = clips[i].name;
-                        bool shouldLoop = cName.EndsWith("Idle") || cName.EndsWith("Walk") || cName.EndsWith("Run");
+                        bool shouldLoop = cName.EndsWith("Idle") || cName.EndsWith("Walk") || cName.EndsWith("Run") || cName.EndsWith("Charge");
                         if (clips[i].loopTime != shouldLoop)
                         {
                             clips[i].loopTime = shouldLoop;
@@ -346,16 +358,47 @@ namespace TheLastEmpire.Editor
             sm.defaultState = idleState;
 
             // Ensure Slash1 automatically returns to Idle/Run on completion
-            if (slashState != null && idleState != null && slashState.transitions.Length == 0)
+            EnsureExitToIdleTransition(slashState, idleState);
+
+            // Boss Zombie additional combat & skill states
+            if (clipsByShortName.ContainsKey("Slash2"))
             {
-                AnimatorStateTransition exitTrans = slashState.AddTransition(idleState);
-                exitTrans.hasExitTime = true;
-                exitTrans.exitTime = 0.90f;
-                exitTrans.duration = 0.10f;
+                AnimatorState slash2State = EnsureStateWithMotion(sm, "Slash2", FindClip(clipsByShortName, "Slash2", "Slash1"));
+                EnsureExitToIdleTransition(slash2State, idleState);
+            }
+            if (clipsByShortName.ContainsKey("GroundSlam"))
+            {
+                AnimatorState slamState = EnsureStateWithMotion(sm, "GroundSlam", FindClip(clipsByShortName, "GroundSlam", "Slash1"));
+                EnsureExitToIdleTransition(slamState, idleState);
+            }
+            if (clipsByShortName.ContainsKey("Charge"))
+            {
+                EnsureStateWithMotion(sm, "Charge", FindClip(clipsByShortName, "Charge", "Run"));
+            }
+            if (clipsByShortName.ContainsKey("Throw"))
+            {
+                AnimatorState throwState = EnsureStateWithMotion(sm, "Throw", FindClip(clipsByShortName, "Throw", "Slash2", "Slash1"));
+                EnsureExitToIdleTransition(throwState, idleState);
+            }
+            if (clipsByShortName.ContainsKey("RageRoar"))
+            {
+                AnimatorState roarState = EnsureStateWithMotion(sm, "RageRoar", FindClip(clipsByShortName, "RageRoar", "Idle"));
+                EnsureExitToIdleTransition(roarState, idleState);
             }
 
             EditorUtility.SetDirty(controller);
             return controller;
+        }
+
+        private static void EnsureExitToIdleTransition(AnimatorState actionState, AnimatorState idleState)
+        {
+            if (actionState != null && idleState != null && actionState.transitions.Length == 0)
+            {
+                AnimatorStateTransition exitTrans = actionState.AddTransition(idleState);
+                exitTrans.hasExitTime = true;
+                exitTrans.exitTime = 0.90f;
+                exitTrans.duration = 0.10f;
+            }
         }
 
         private static void EnsureParameter(AnimatorController controller, string paramName, AnimatorControllerParameterType type)
