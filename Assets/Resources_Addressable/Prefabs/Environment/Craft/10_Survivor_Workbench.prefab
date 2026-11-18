@@ -32,8 +32,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -71,6 +71,8 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 8431337906315347019, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
+  - {fileID: 405695604403225985, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
+  - {fileID: -1839816330221225562, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
   - {fileID: 8310209739754355863, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
   - {fileID: 7954999086020926922, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
   - {fileID: 1957219476845421901, guid: cefd3150ccfd464995cbd2905e2d5f9b, type: 3}
@@ -115,6 +117,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingObject
   data: {fileID: 11400000, guid: e017291815416ea4b9e72146e673941d, type: 2}
   currentHealth: 250
+  stageX: 0
+  stageY: 0
+  showHealthBar: 0
   autoAddNavMeshObstacle: 1
   dismantleRefundRatio: 0.5
   canBeDamagedByPlayer: 0
