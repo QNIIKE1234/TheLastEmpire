@@ -562,6 +562,8 @@ namespace TheLastEmpire.Editor
                 BuildingData legacyBarr = AssetDatabase.LoadAssetAtPath<BuildingData>($"{DatabaseFolder}/BUILD0002_WoodenSpikeBarricade.asset");
                 if (legacyBarr != null)
                 {
+                    legacyBarr.buildingName = barricade.buildingName;
+                    legacyBarr.description = barricade.description;
                     legacyBarr.prefab = barricade.prefab;
                     legacyBarr.icon = barricade.icon;
                     EditorUtility.SetDirty(legacyBarr);

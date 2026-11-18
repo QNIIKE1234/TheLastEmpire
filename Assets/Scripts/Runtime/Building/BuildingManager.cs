@@ -131,6 +131,13 @@ namespace TheLastEmpire
             }
         }
 
+        private static bool IsLegacyAliasBuildingId(string buildingId)
+        {
+            return string.Equals(buildingId, "BUILD0001_Campfire", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(buildingId, "BUILD0002_WoodenSpikeBarricade", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(buildingId, "BUILD0003_WoodenStorageCrate", StringComparison.OrdinalIgnoreCase);
+        }
+
         public BuildingData GetBuildingDataByName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
@@ -139,16 +146,21 @@ namespace TheLastEmpire
                 LoadDefaultBuildingDataIfEmpty();
             }
 
+            BuildingData legacyMatch = null;
             foreach (var b in allBuildings)
             {
                 if (b == null) continue;
                 if (string.Equals(b.buildingName, name, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(b.buildingId, name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return b;
+                    if (!IsLegacyAliasBuildingId(b.buildingId) || string.Equals(b.buildingId, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return b;
+                    }
+                    if (legacyMatch == null) legacyMatch = b;
                 }
             }
-            return null;
+            return legacyMatch;
         }
 
         public BuildingData GetBuildingDataForRecipe(CraftingRecipe recipe)
@@ -159,7 +171,8 @@ namespace TheLastEmpire
                 LoadDefaultBuildingDataIfEmpty();
             }
 
-            // 1. ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์
+            // 1. ค้นหาตามชื่อตรงกัน หรือรหัสสูตรคราฟต์ (ให้สิทธิ์ไฟล์หลัก BUILD0001..BUILD0023 ก่อนไฟล์ Legacy Alias)
+            BuildingData legacyMatch = null;
             foreach (var b in allBuildings)
             {
                 if (b == null) continue;
@@ -167,9 +180,14 @@ namespace TheLastEmpire
                     string.Equals(b.buildingId, recipe.recipeId, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(b.buildingName, recipe.ResolvedResultName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return b;
+                    if (!IsLegacyAliasBuildingId(b.buildingId))
+                    {
+                        return b;
+                    }
+                    if (legacyMatch == null) legacyMatch = b;
                 }
             }
+            if (legacyMatch != null) return legacyMatch;
 
             // หากยังไม่เจอ ลองโหลด BuildingData ทั้งหมดซ้ำอีกครั้งเผื่อเพิ่งถูกเพิ่มเข้ามา
             LoadDefaultBuildingDataIfEmpty();
@@ -180,9 +198,14 @@ namespace TheLastEmpire
                     string.Equals(b.buildingId, recipe.recipeId, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(b.buildingName, recipe.ResolvedResultName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return b;
+                    if (!IsLegacyAliasBuildingId(b.buildingId))
+                    {
+                        return b;
+                    }
+                    if (legacyMatch == null) legacyMatch = b;
                 }
             }
+            if (legacyMatch != null) return legacyMatch;
 
             // 2. ถ้าเป็นหมวดหมู่ Building หรือ Defense แต่ยังไม่มี BuildingData ให้สร้าง Fallback BuildingData อัตโนมัติทันที
             if (recipe.category == CraftingCategory.Building || recipe.category == CraftingCategory.Defense)
