@@ -596,6 +596,7 @@ MonoBehaviour:
   idleTime: 1.5
   staggerDuration: 0
   knockbackForce: 6
+  useSmartObstacleAvoidance: 0
   enemyName: ZombieLeader
   nameText: {fileID: 5451175841367554804}
   healthText: {fileID: 1874855719540293927}
@@ -811,7 +812,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c8a44f12e9734b859d3a1f78c6209e41, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: -1.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c8a44f12e9734b859d3a1f78c6209e41, type: 3}
       propertyPath: m_LocalPosition.z

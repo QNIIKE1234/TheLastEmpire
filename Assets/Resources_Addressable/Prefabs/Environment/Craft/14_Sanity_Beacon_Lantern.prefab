@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &540521851067841333
 GameObject:
@@ -30,14 +30,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 540521851067841333}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8316655332849159376}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4858940372305576525
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -71,14 +71,10 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1957219476845421901, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
-  - {fileID: 6623978844445042594, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
-  - {fileID: 7507402042184923473, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
-  - {fileID: 7487158002706050869, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
   - {fileID: 405695604403225985, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
-  - {fileID: 4735867354007733578, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
-  - {fileID: -2186898949452057549, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
+  - {fileID: 1957219476845421901, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
   - {fileID: -482887956499609092, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
+  - {fileID: -2186898949452057549, guid: 6597f1fdb39e4f469c72170522858d8d, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -140,8 +136,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 2.2}
-  m_Center: {x: 0, y: 0, z: 1.1}
+  m_Size: {x: 1, y: 2.2, z: 1}
+  m_Center: {x: 0, y: 1.1, z: 0}
 --- !u!114 &16842131988676769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,11 +166,11 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.5000001, y: 0.5000002, z: 1.1000003}
+  m_Extents: {x: 0.5, y: 1.1, z: 0.5}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 0
-  m_Center: {x: 0, y: -0.00000011920929, z: 1.1000001}
+  m_Center: {x: 0, y: 1.1, z: 0}
   m_TimeToStationary: 0.5
 --- !u!1 &7511034541370869337
 GameObject:
@@ -202,7 +198,7 @@ Transform:
   m_GameObject: {fileID: 7511034541370869337}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.5}
+  m_LocalPosition: {x: 0, y: 1.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

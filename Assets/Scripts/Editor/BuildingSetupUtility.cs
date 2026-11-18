@@ -218,13 +218,23 @@ namespace TheLastEmpire.Editor
             bo.CanBeDamagedByPlayer = false;
 
             // 2. BoxCollider
-            // Root has localRotation X = -90 (Blender FBX axis convention)
-            // Local X = World X (width), Local Y = World -Z (depth), Local Z = World UP (height)
             BoxCollider box = root.GetComponent<BoxCollider>();
             if (box == null) box = root.AddComponent<BoxCollider>();
 
-            box.size = new Vector3(cfg.footprint.x, cfg.footprint.z, cfg.footprint.y);
-            box.center = new Vector3(0f, 0f, cfg.footprint.y * 0.5f);
+            bool isUprightRoot = Mathf.Abs(root.transform.localRotation.w) > 0.95f &&
+                                 Mathf.Abs(root.transform.localRotation.x) < 0.1f &&
+                                 Mathf.Abs(root.transform.localRotation.z) < 0.1f;
+            if (isUprightRoot)
+            {
+                box.size = new Vector3(cfg.footprint.x, cfg.footprint.y, cfg.footprint.z);
+                box.center = new Vector3(0f, cfg.footprint.y * 0.5f, 0f);
+            }
+            else
+            {
+                // Legacy root with localRotation X = -90 (ID 13 & ID 17)
+                box.size = new Vector3(cfg.footprint.x, cfg.footprint.z, cfg.footprint.y);
+                box.center = new Vector3(0f, 0f, cfg.footprint.y * 0.5f);
+            }
             box.isTrigger = cfg.isTrapTrigger;
 
             // 3. Special components
@@ -429,7 +439,8 @@ namespace TheLastEmpire.Editor
                 lightObj = lightTr.gameObject;
             }
 
-            lightObj.transform.localPosition = new Vector3(0f, 0f, 1.5f);
+            bool isUprightBeacon = Mathf.Abs(root.transform.localRotation.w) > 0.95f;
+            lightObj.transform.localPosition = isUprightBeacon ? new Vector3(0f, 1.05f, 0f) : new Vector3(0f, 0f, 1.5f);
             Light lanternLight = lightObj.GetComponent<Light>();
             if (lanternLight == null) lanternLight = lightObj.AddComponent<Light>();
             lanternLight.type = LightType.Point;

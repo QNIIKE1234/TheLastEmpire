@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &2588784614452041733
 GameObject:
@@ -31,13 +31,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2588784614452041733}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2364544979258380302
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -72,12 +72,11 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 8431337906315347019, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
-  - {fileID: 8310209739754355863, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
   - {fileID: 3326320646306402449, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
+  - {fileID: 8310209739754355863, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
+  - {fileID: -7736619948960863613, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
   - {fileID: 405695604403225985, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
   - {fileID: 1957219476845421901, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
-  - {fileID: -2989397751443692843, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
-  - {fileID: -2469832957612292858, guid: c10d48f3b00f4f88bf63e21e9b8f36a7, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -139,8 +138,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.2, y: 1.2, z: 1}
-  m_Center: {x: 0, y: 0, z: 0.5}
+  m_Size: {x: 1.2, y: 1, z: 1.2}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &5208063594617314108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -189,9 +188,9 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 0.60000014, y: 0.60000014, z: 0.5000001}
+  m_Extents: {x: 0.6, y: 0.5, z: 0.6}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 0
-  m_Center: {x: 0, y: -0.000000059604645, z: 0.50000006}
+  m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5

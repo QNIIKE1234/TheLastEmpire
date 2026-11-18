@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &8192714313909757580
 GameObject:
@@ -30,13 +30,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8192714313909757580}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2435582699353674300
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -70,10 +70,13 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
+  - {fileID: 8310209739754355863, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
+  - {fileID: -7736619948960863613, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
+  - {fileID: 1957219476845421901, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
   - {fileID: 405695604403225985, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
   - {fileID: 3205885576641329788, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
   - {fileID: -1839816330221225562, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
-  - {fileID: 1957219476845421901, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
+  - {fileID: 3326320646306402449, guid: 7a702d75ad534113824005ca98a7f432, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -135,8 +138,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3, y: 0.4, z: 2.5}
-  m_Center: {x: 0, y: 0, z: 1.25}
+  m_Size: {x: 3, y: 2.5, z: 0.4}
+  m_Center: {x: 0, y: 1.25, z: 0}
 --- !u!114 &33855166349514478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,9 +165,9 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 1.5000004, y: 0.20000018, z: 1.2500001}
+  m_Extents: {x: 1.5, y: 1.25, z: 0.2}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 0
-  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_Center: {x: 0, y: 1.25, z: 0}
   m_TimeToStationary: 0.5

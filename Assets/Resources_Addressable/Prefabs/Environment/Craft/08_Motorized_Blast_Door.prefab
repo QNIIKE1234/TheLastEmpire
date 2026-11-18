@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &2852490359783157972
 GameObject:
@@ -30,13 +30,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2852490359783157972}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4106745862746726145
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -70,15 +70,14 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 405695604403225985, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
   - {fileID: 7507402042184923473, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: -8589822895404907163, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: 1957219476845421901, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: -7181685566173657166, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
   - {fileID: -482887956499609092, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: -1839816330221225562, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: 6623978844445042594, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: 3205885576641329788, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
-  - {fileID: 2063695588891646619, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: -8589822895404907163, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: 405695604403225985, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: -5260649039624814096, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: -2186898949452057549, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
+  - {fileID: 1957219476845421901, guid: 0cf3acc2bb694f058cc95ac22bbef39e, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -140,8 +139,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.5, y: 0.5, z: 2.5}
-  m_Center: {x: 0, y: 0, z: 1.25}
+  m_Size: {x: 2.5, y: 2.5, z: 0.5}
+  m_Center: {x: 0, y: 1.25, z: 0}
 --- !u!114 &28817802492427315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172,9 +171,9 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 1.2500002, y: 0.25000018, z: 1.2500002}
+  m_Extents: {x: 1.25, y: 1.25, z: 0.25}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 0
-  m_Center: {x: 0, y: -0.00000011920929, z: 1.2500001}
+  m_Center: {x: 0, y: 1.25, z: 0}
   m_TimeToStationary: 0.5
