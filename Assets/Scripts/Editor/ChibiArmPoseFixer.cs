@@ -135,10 +135,12 @@ namespace TheLastEmpire
 
             string matName = material.name;
             bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma") || matName.Contains("Ember");
+            bool isSilver = matName.Contains("bright bevel") || matName.Contains("scraped edges");
+            bool isArmor = matName.Contains("graphite armor") || matName.Contains("dark forged steel");
 
-            // Pure stylized Chibi matte finish matching player character (zero clay/plastic specular shine)
-            float smoothness = isGlassOrWater ? 0.25f : 0.04f;
-            float metallic = 0.0f;
+            // Exact same shader parameters as ApplyTacticalGirlMaterialSettings on Chibi_TacticalGirl_Rigged.fbx
+            float smoothness = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
+            float metallic = isSilver ? 0.70f : (isArmor ? 0.08f : 0.0f);
 
             if (material.HasProperty("_Smoothness"))
                 material.SetFloat("_Smoothness", smoothness);
@@ -146,22 +148,12 @@ namespace TheLastEmpire
                 material.SetFloat("_Glossiness", smoothness);
             if (material.HasProperty("_Metallic"))
                 material.SetFloat("_Metallic", metallic);
-            if (material.HasProperty("_SpecColor"))
-                material.SetColor("_SpecColor", new Color(0.02f, 0.02f, 0.02f, 1f));
-            if (material.HasProperty("_SpecularHighlights") && !isGlassOrWater)
-                material.SetFloat("_SpecularHighlights", 0f);
-            if (material.HasProperty("_EnvironmentReflections") && !isGlassOrWater)
-                material.SetFloat("_EnvironmentReflections", 0f);
-
-            if (!isGlassOrWater)
-            {
-                Texture2D detailTex = GetOrCreateWeatheredDetailTexture();
-                if (detailTex != null)
-                {
-                    if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", detailTex);
-                    if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", detailTex);
-                }
-            }
+            if (material.HasProperty("_SpecColor") && !isGlassOrWater && !isSilver)
+                material.SetColor("_SpecColor", new Color(0.05f, 0.05f, 0.05f, 1f));
+            if (material.HasProperty("_BaseMap"))
+                material.SetTexture("_BaseMap", null);
+            if (material.HasProperty("_MainTex"))
+                material.SetTexture("_MainTex", null);
         }
 
         [InitializeOnLoadMethod]
@@ -214,10 +206,12 @@ namespace TheLastEmpire
                             if (obj is Material mat)
                             {
                                 bool isGlassOrWater = mat.name.Contains("Glass") || mat.name.Contains("Water") || mat.name.Contains("Plasma") || mat.name.Contains("Ember");
-                                float targetSmooth = isGlassOrWater ? 0.25f : 0.04f;
+                                bool isSilver = mat.name.Contains("bright bevel") || mat.name.Contains("scraped edges");
+                                bool isArmor = mat.name.Contains("graphite armor") || mat.name.Contains("dark forged steel");
+                                float targetSmooth = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
                                 bool needsSmooth = mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f;
-                                bool needsTex = !isGlassOrWater && mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") == null;
-                                if (needsSmooth || needsTex)
+                                bool hasTex = mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") != null;
+                                if (needsSmooth || hasTex)
                                 {
                                     ApplyCraftBuildingMatteSettings(mat);
                                     EditorUtility.SetDirty(mat);

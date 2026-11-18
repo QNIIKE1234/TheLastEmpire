@@ -147,14 +147,12 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ปรับค่า Smoothness, Specular และลายพื้นผิว (Weathered Noise Detail) ของวัสดุสิ่งปลูกสร้างให้ตรงกับภาพเรนเดอร์และตัวละครผู้เล่น
+        /// ปรับค่า Smoothness, Metallic และ Specular ของวัสดุสิ่งปลูกสร้างให้ตรงกับโมเดลตัวละคร Chibi_TacticalGirl_Rigged 100%
         /// </summary>
         private void ApplyMatteMaterialFinish()
         {
             Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
             if (renderers == null) return;
-
-            Texture2D detailTex = GetRuntimeWeatheredDetailTex();
 
             for (int r = 0; r < renderers.Length; r++)
             {
@@ -171,22 +169,17 @@ namespace TheLastEmpire
 
                     string matName = mat.name;
                     bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma") || matName.Contains("Ember");
+                    bool isSilver = matName.Contains("bright bevel") || matName.Contains("scraped edges");
+                    bool isArmor = matName.Contains("graphite armor") || matName.Contains("dark forged steel");
 
-                    float smoothness = isGlassOrWater ? 0.25f : 0.04f;
-                    float metallic = 0.0f;
+                    float smoothness = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
+                    float metallic = isSilver ? 0.70f : (isArmor ? 0.08f : 0.0f);
 
                     if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", smoothness);
                     if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", smoothness);
                     if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", metallic);
-                    if (mat.HasProperty("_SpecColor")) mat.SetColor("_SpecColor", new Color(0.02f, 0.02f, 0.02f, 1f));
-                    if (mat.HasProperty("_SpecularHighlights") && !isGlassOrWater) mat.SetFloat("_SpecularHighlights", 0f);
-                    if (mat.HasProperty("_EnvironmentReflections") && !isGlassOrWater) mat.SetFloat("_EnvironmentReflections", 0f);
-
-                    if (!isGlassOrWater && detailTex != null)
-                    {
-                        if (mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") == null) mat.SetTexture("_BaseMap", detailTex);
-                        if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") == null) mat.SetTexture("_MainTex", detailTex);
-                    }
+                    if (mat.HasProperty("_SpecColor") && !isGlassOrWater && !isSilver)
+                        mat.SetColor("_SpecColor", new Color(0.05f, 0.05f, 0.05f, 1f));
                 }
             }
         }
