@@ -65,12 +65,76 @@ namespace TheLastEmpire
                 material.SetColor("_SpecColor", new Color(0.05f, 0.05f, 0.05f, 1f));
         }
 
+        private const string WeatheredAlbedoTexPath = "Assets/GeneratedBaseItems/Craft_Weathered_Detail_Albedo.png";
+        private static Texture2D _cachedDetailTex;
+
+        private static Texture2D GetOrCreateWeatheredDetailTexture()
+        {
+            if (_cachedDetailTex != null) return _cachedDetailTex;
+
+            if (File.Exists(WeatheredAlbedoTexPath))
+            {
+                _cachedDetailTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WeatheredAlbedoTexPath);
+                if (_cachedDetailTex != null) return _cachedDetailTex;
+            }
+
+            const int size = 128;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, true);
+            Color32[] pixels = new Color32[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    // Seamless tileable multi-octave noise matching Blender's ShaderNodeTexNoise + ColorRamp (0.80..1.00)
+                    float u = (float)x / size;
+                    float v = (float)y / size;
+                    float n1 = TileableNoise(u, v, 6f);
+                    float n2 = TileableNoise(u + 0.37f, v + 0.61f, 14f);
+                    float n3 = TileableNoise(u + 0.73f, v + 0.19f, 28f);
+                    float n = n1 * 0.50f + n2 * 0.32f + n3 * 0.18f;
+                    float t = Mathf.Clamp01((n - 0.25f) / 0.53f);
+                    float shade = Mathf.Lerp(0.80f, 1.0f, t);
+                    byte b = (byte)Mathf.Clamp(Mathf.RoundToInt(shade * 255f), 0, 255);
+                    pixels[y * size + x] = new Color32(b, b, b, 255);
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply();
+
+            if (Directory.Exists("Assets/GeneratedBaseItems"))
+            {
+                File.WriteAllBytes(WeatheredAlbedoTexPath, tex.EncodeToPNG());
+                Object.DestroyImmediate(tex);
+                AssetDatabase.ImportAsset(WeatheredAlbedoTexPath, ImportAssetOptions.ForceSynchronousImport);
+                _cachedDetailTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WeatheredAlbedoTexPath);
+                return _cachedDetailTex;
+            }
+
+            _cachedDetailTex = tex;
+            return _cachedDetailTex;
+        }
+
+        private static float TileableNoise(float u, float v, float period)
+        {
+            float x = u * period;
+            float y = v * period;
+            float p = period;
+            return (
+                Mathf.PerlinNoise(x, y) * (p - (x % p)) * (p - (y % p)) +
+                Mathf.PerlinNoise((x % p) - p, y) * (x % p) * (p - (y % p)) +
+                Mathf.PerlinNoise((x % p) - p, (y % p) - p) * (x % p) * (y % p) +
+                Mathf.PerlinNoise(x, (y % p) - p) * (p - (x % p)) * (y % p)
+            ) / (p * p);
+        }
+
         public static void ApplyCraftBuildingMatteSettings(Material material)
         {
             if (material == null) return;
 
             string matName = material.name;
-            bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma");
+            bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma") || matName.Contains("Ember");
 
             // Pure stylized Chibi matte finish matching player character (zero clay/plastic specular shine)
             float smoothness = isGlassOrWater ? 0.25f : 0.04f;
@@ -88,6 +152,16 @@ namespace TheLastEmpire
                 material.SetFloat("_SpecularHighlights", 0f);
             if (material.HasProperty("_EnvironmentReflections") && !isGlassOrWater)
                 material.SetFloat("_EnvironmentReflections", 0f);
+
+            if (!isGlassOrWater)
+            {
+                Texture2D detailTex = GetOrCreateWeatheredDetailTexture();
+                if (detailTex != null)
+                {
+                    if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", detailTex);
+                    if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", detailTex);
+                }
+            }
         }
 
         [InitializeOnLoadMethod]
@@ -139,9 +213,11 @@ namespace TheLastEmpire
                         {
                             if (obj is Material mat)
                             {
-                                bool isGlassOrWater = mat.name.Contains("Glass") || mat.name.Contains("Water") || mat.name.Contains("Plasma");
+                                bool isGlassOrWater = mat.name.Contains("Glass") || mat.name.Contains("Water") || mat.name.Contains("Plasma") || mat.name.Contains("Ember");
                                 float targetSmooth = isGlassOrWater ? 0.25f : 0.04f;
-                                if (mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f)
+                                bool needsSmooth = mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f;
+                                bool needsTex = !isGlassOrWater && mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") == null;
+                                if (needsSmooth || needsTex)
                                 {
                                     ApplyCraftBuildingMatteSettings(mat);
                                     EditorUtility.SetDirty(mat);

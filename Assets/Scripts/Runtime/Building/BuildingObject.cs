@@ -110,13 +110,51 @@ namespace TheLastEmpire
             ApplyMatteMaterialFinish();
         }
 
+        private static Texture2D _runtimeWeatheredDetailTex;
+
+        private static Texture2D GetRuntimeWeatheredDetailTex()
+        {
+            if (_runtimeWeatheredDetailTex != null) return _runtimeWeatheredDetailTex;
+
+            const int size = 128;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, true);
+            tex.name = "Craft_Runtime_Weathered_Detail";
+            tex.wrapMode = TextureWrapMode.Repeat;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] pixels = new Color32[size * size];
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float u = (float)x / size;
+                    float v = (float)y / size;
+                    float n1 = Mathf.PerlinNoise(u * 6f, v * 6f);
+                    float n2 = Mathf.PerlinNoise(u * 14f + 3.7f, v * 14f + 6.1f);
+                    float n3 = Mathf.PerlinNoise(u * 28f + 7.3f, v * 28f + 1.9f);
+                    float n = n1 * 0.50f + n2 * 0.32f + n3 * 0.18f;
+                    float t = Mathf.Clamp01((n - 0.25f) / 0.53f);
+                    float shade = Mathf.Lerp(0.80f, 1.0f, t);
+                    byte b = (byte)Mathf.Clamp(Mathf.RoundToInt(shade * 255f), 0, 255);
+                    pixels[y * size + x] = new Color32(b, b, b, 255);
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply();
+            _runtimeWeatheredDetailTex = tex;
+            return _runtimeWeatheredDetailTex;
+        }
+
         /// <summary>
-        /// ปรับค่า Smoothness และ Specular ของวัสดุสิ่งปลูกสร้างให้ด้านสะอาดแบบเดียวกับโมเดลตัวละครผู้เล่น (ไม่มันเงาเหมือนดินน้ำมัน)
+        /// ปรับค่า Smoothness, Specular และลายพื้นผิว (Weathered Noise Detail) ของวัสดุสิ่งปลูกสร้างให้ตรงกับภาพเรนเดอร์และตัวละครผู้เล่น
         /// </summary>
         private void ApplyMatteMaterialFinish()
         {
             Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
             if (renderers == null) return;
+
+            Texture2D detailTex = GetRuntimeWeatheredDetailTex();
 
             for (int r = 0; r < renderers.Length; r++)
             {
@@ -132,7 +170,7 @@ namespace TheLastEmpire
                     if (mat == null) continue;
 
                     string matName = mat.name;
-                    bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma");
+                    bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma") || matName.Contains("Ember");
 
                     float smoothness = isGlassOrWater ? 0.25f : 0.04f;
                     float metallic = 0.0f;
@@ -143,6 +181,12 @@ namespace TheLastEmpire
                     if (mat.HasProperty("_SpecColor")) mat.SetColor("_SpecColor", new Color(0.02f, 0.02f, 0.02f, 1f));
                     if (mat.HasProperty("_SpecularHighlights") && !isGlassOrWater) mat.SetFloat("_SpecularHighlights", 0f);
                     if (mat.HasProperty("_EnvironmentReflections") && !isGlassOrWater) mat.SetFloat("_EnvironmentReflections", 0f);
+
+                    if (!isGlassOrWater && detailTex != null)
+                    {
+                        if (mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") == null) mat.SetTexture("_BaseMap", detailTex);
+                        if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") == null) mat.SetTexture("_MainTex", detailTex);
+                    }
                 }
             }
         }
