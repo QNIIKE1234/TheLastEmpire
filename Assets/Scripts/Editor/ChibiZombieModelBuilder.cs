@@ -83,6 +83,7 @@ namespace TheLastEmpire.Editor
         private const string ZombieFbxDir = "Assets/GeneratedModels/Zombies";
         private const string AnimCtrlDir = "Assets/Resources_Addressable/Image/Animation";
         private const string CharacterPrefabDir = "Assets/Resources_Addressable/Prefabs/Character";
+        private const string RunnerDeformedRunClipPath = AnimCtrlDir + "/Chibi_ZombieRunner_DeformedRun.anim";
 
         private struct ZombieSetupSpec
         {
@@ -321,7 +322,24 @@ namespace TheLastEmpire.Editor
 
             AnimatorState idleState = EnsureStateWithMotion(sm, "Idle", FindClip(clipsByShortName, "Idle"));
             EnsureStateWithMotion(sm, "Walk", FindClip(clipsByShortName, "Walk", "Run", "Idle"));
-            EnsureStateWithMotion(sm, "Run", FindClip(clipsByShortName, "Run", "Walk", "Idle"));
+
+            Motion runMotion = FindClip(clipsByShortName, "Run", "Walk", "Idle");
+            float runSpeed = 1.0f;
+            if (controllerPath.Contains("ZombieRunner"))
+            {
+                AnimationClip deformedRun = AssetDatabase.LoadAssetAtPath<AnimationClip>(RunnerDeformedRunClipPath);
+                if (deformedRun != null)
+                {
+                    runMotion = deformedRun;
+                    runSpeed = 1.25f;
+                }
+            }
+            AnimatorState runState = EnsureStateWithMotion(sm, "Run", runMotion);
+            if (runState != null)
+            {
+                runState.speed = runSpeed;
+            }
+
             AnimatorState slashState = EnsureStateWithMotion(sm, "Slash1", FindClip(clipsByShortName, "Slash1", "Run", "Idle"));
             EnsureStateWithMotion(sm, "Death", FindClip(clipsByShortName, "Death", "Idle"));
 
