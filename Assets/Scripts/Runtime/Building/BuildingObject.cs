@@ -107,6 +107,44 @@ namespace TheLastEmpire
 
             SetupNavMeshObstacle();
             EnsureHealthDisplay();
+            ApplyMatteMaterialFinish();
+        }
+
+        /// <summary>
+        /// ปรับค่า Smoothness และ Specular ของวัสดุสิ่งปลูกสร้างให้ด้านสะอาดแบบเดียวกับโมเดลตัวละครผู้เล่น (ไม่มันเงาเหมือนดินน้ำมัน)
+        /// </summary>
+        private void ApplyMatteMaterialFinish()
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            if (renderers == null) return;
+
+            for (int r = 0; r < renderers.Length; r++)
+            {
+                Renderer rend = renderers[r];
+                if (rend == null || rend is LineRenderer || rend is ParticleSystemRenderer) continue;
+
+                Material[] mats = rend.sharedMaterials;
+                if (mats == null) continue;
+
+                for (int m = 0; m < mats.Length; m++)
+                {
+                    Material mat = mats[m];
+                    if (mat == null) continue;
+
+                    string matName = mat.name;
+                    bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma");
+
+                    float smoothness = isGlassOrWater ? 0.25f : 0.04f;
+                    float metallic = 0.0f;
+
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", smoothness);
+                    if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", smoothness);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", metallic);
+                    if (mat.HasProperty("_SpecColor")) mat.SetColor("_SpecColor", new Color(0.02f, 0.02f, 0.02f, 1f));
+                    if (mat.HasProperty("_SpecularHighlights") && !isGlassOrWater) mat.SetFloat("_SpecularHighlights", 0f);
+                    if (mat.HasProperty("_EnvironmentReflections") && !isGlassOrWater) mat.SetFloat("_EnvironmentReflections", 0f);
+                }
+            }
         }
 
         private void EnsureHealthDisplay()

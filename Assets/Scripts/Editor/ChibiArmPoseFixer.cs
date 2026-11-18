@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,19 +10,33 @@ namespace TheLastEmpire
     }
 
     /// <summary>
-    /// Ensures Chibi_TacticalGirl_Rigged.fbx materials use a clean matte finish
-    /// (like ChibiGhostOperator) while keeping glossy highlights only on the eyes.
+    /// Ensures Chibi_TacticalGirl_Rigged.fbx, Chibi_PunkGirl_Rigged.fbx, and all Craft Building FBX models
+    /// in Assets/GeneratedBaseItems/ use a clean matte finish (like the player character) instead of a shiny clay sheen.
     /// </summary>
     public class ChibiTacticalGirlMaterialPostprocessor : AssetPostprocessor
     {
+        private static bool IsCraftBuildingFbx(string path)
+        {
+            return !string.IsNullOrEmpty(path) &&
+                   path.Replace('\\', '/').Contains("Assets/GeneratedBaseItems/") &&
+                   path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         private void OnPostprocessMaterial(Material material)
         {
-            if (string.IsNullOrEmpty(assetPath) || (!assetPath.Contains("Chibi_TacticalGirl_Rigged") && !assetPath.Contains("Chibi_PunkGirl_Rigged")))
+            if (string.IsNullOrEmpty(assetPath) || material == null)
             {
                 return;
             }
 
-            ApplyTacticalGirlMaterialSettings(material);
+            if (assetPath.Contains("Chibi_TacticalGirl_Rigged") || assetPath.Contains("Chibi_PunkGirl_Rigged"))
+            {
+                ApplyTacticalGirlMaterialSettings(material);
+            }
+            else if (IsCraftBuildingFbx(assetPath))
+            {
+                ApplyCraftBuildingMatteSettings(material);
+            }
         }
 
         public static void ApplyTacticalGirlMaterialSettings(Material material)
@@ -48,6 +63,31 @@ namespace TheLastEmpire
                 material.SetFloat("_Metallic", metallic);
             if (material.HasProperty("_SpecColor") && !isEye && !isSilver)
                 material.SetColor("_SpecColor", new Color(0.05f, 0.05f, 0.05f, 1f));
+        }
+
+        public static void ApplyCraftBuildingMatteSettings(Material material)
+        {
+            if (material == null) return;
+
+            string matName = material.name;
+            bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma");
+
+            // Pure stylized Chibi matte finish matching player character (zero clay/plastic specular shine)
+            float smoothness = isGlassOrWater ? 0.25f : 0.04f;
+            float metallic = 0.0f;
+
+            if (material.HasProperty("_Smoothness"))
+                material.SetFloat("_Smoothness", smoothness);
+            if (material.HasProperty("_Glossiness"))
+                material.SetFloat("_Glossiness", smoothness);
+            if (material.HasProperty("_Metallic"))
+                material.SetFloat("_Metallic", metallic);
+            if (material.HasProperty("_SpecColor"))
+                material.SetColor("_SpecColor", new Color(0.02f, 0.02f, 0.02f, 1f));
+            if (material.HasProperty("_SpecularHighlights") && !isGlassOrWater)
+                material.SetFloat("_SpecularHighlights", 0f);
+            if (material.HasProperty("_EnvironmentReflections") && !isGlassOrWater)
+                material.SetFloat("_EnvironmentReflections", 0f);
         }
 
         [InitializeOnLoadMethod]
@@ -81,6 +121,32 @@ namespace TheLastEmpire
                                 ApplyTacticalGirlMaterialSettings(mat);
                                 EditorUtility.SetDirty(mat);
                                 changed = true;
+                            }
+                        }
+                    }
+                }
+
+                if (Directory.Exists("Assets/GeneratedBaseItems"))
+                {
+                    string[] craftFbxFiles = Directory.GetFiles("Assets/GeneratedBaseItems", "*.fbx");
+                    foreach (string rawPath in craftFbxFiles)
+                    {
+                        string path = rawPath.Replace('\\', '/');
+                        Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                        if (subAssets == null || subAssets.Length == 0) continue;
+
+                        foreach (Object obj in subAssets)
+                        {
+                            if (obj is Material mat)
+                            {
+                                bool isGlassOrWater = mat.name.Contains("Glass") || mat.name.Contains("Water") || mat.name.Contains("Plasma");
+                                float targetSmooth = isGlassOrWater ? 0.25f : 0.04f;
+                                if (mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f)
+                                {
+                                    ApplyCraftBuildingMatteSettings(mat);
+                                    EditorUtility.SetDirty(mat);
+                                    changed = true;
+                                }
                             }
                         }
                     }
