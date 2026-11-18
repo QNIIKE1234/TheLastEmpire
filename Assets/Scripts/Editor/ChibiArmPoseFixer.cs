@@ -15,11 +15,16 @@ namespace TheLastEmpire
     /// </summary>
     public class ChibiTacticalGirlMaterialPostprocessor : AssetPostprocessor
     {
-        private static bool IsCraftBuildingFbx(string path)
+        private static bool IsMatteBuildingFbx(string path)
         {
-            return !string.IsNullOrEmpty(path) &&
-                   path.Replace('\\', '/').Contains("Assets/GeneratedBaseItems/") &&
-                   path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            string normalized = path.Replace('\\', '/');
+            return normalized.Contains("Assets/GeneratedBaseItems/") ||
+                   normalized.Contains("Assets/GeneratedEnvironment/");
         }
 
         private void OnPostprocessMaterial(Material material)
@@ -33,7 +38,7 @@ namespace TheLastEmpire
             {
                 ApplyTacticalGirlMaterialSettings(material);
             }
-            else if (IsCraftBuildingFbx(assetPath))
+            else if (IsMatteBuildingFbx(assetPath))
             {
                 ApplyCraftBuildingMatteSettings(material);
             }
@@ -129,26 +134,34 @@ namespace TheLastEmpire
             ) / (p * p);
         }
 
+        private static void ResolveBuildingMaterialFinish(string matName, out float smoothness, out float metallic, out bool isMatte)
+        {
+            bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") ||
+                                  matName.Contains("Plasma") || matName.Contains("Ember") ||
+                                  matName.Contains("Signal") || matName.Contains("Fungus");
+            bool isSilver = matName.Contains("bright bevel") || matName.Contains("scraped edges");
+            bool isArmor = matName.Contains("graphite armor") || matName.Contains("dark forged steel") ||
+                           matName.Contains("Metal | oxidized");
+
+            smoothness = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
+            metallic = isSilver ? 0.70f : (isArmor ? 0.08f : 0.0f);
+            isMatte = !isGlassOrWater && !isSilver;
+        }
+
         public static void ApplyCraftBuildingMatteSettings(Material material)
         {
             if (material == null) return;
 
-            string matName = material.name;
-            bool isGlassOrWater = matName.Contains("Glass") || matName.Contains("Water") || matName.Contains("Plasma") || matName.Contains("Ember");
-            bool isSilver = matName.Contains("bright bevel") || matName.Contains("scraped edges");
-            bool isArmor = matName.Contains("graphite armor") || matName.Contains("dark forged steel");
+            ResolveBuildingMaterialFinish(material.name, out float smoothness, out float metallic, out bool isMatte);
 
             // Exact same shader parameters as ApplyTacticalGirlMaterialSettings on Chibi_TacticalGirl_Rigged.fbx
-            float smoothness = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
-            float metallic = isSilver ? 0.70f : (isArmor ? 0.08f : 0.0f);
-
             if (material.HasProperty("_Smoothness"))
                 material.SetFloat("_Smoothness", smoothness);
             if (material.HasProperty("_Glossiness"))
                 material.SetFloat("_Glossiness", smoothness);
             if (material.HasProperty("_Metallic"))
                 material.SetFloat("_Metallic", metallic);
-            if (material.HasProperty("_SpecColor") && !isGlassOrWater && !isSilver)
+            if (material.HasProperty("_SpecColor") && isMatte)
                 material.SetColor("_SpecColor", new Color(0.05f, 0.05f, 0.05f, 1f));
             if (material.HasProperty("_BaseMap"))
                 material.SetTexture("_BaseMap", null);
@@ -192,10 +205,16 @@ namespace TheLastEmpire
                     }
                 }
 
-                if (Directory.Exists("Assets/GeneratedBaseItems"))
+                string[] fbxFolders = new string[] {
+                    "Assets/GeneratedBaseItems",
+                    "Assets/GeneratedEnvironment"
+                };
+                foreach (string folder in fbxFolders)
                 {
-                    string[] craftFbxFiles = Directory.GetFiles("Assets/GeneratedBaseItems", "*.fbx");
-                    foreach (string rawPath in craftFbxFiles)
+                    if (!Directory.Exists(folder)) continue;
+
+                    string[] fbxFiles = Directory.GetFiles(folder, "*.fbx");
+                    foreach (string rawPath in fbxFiles)
                     {
                         string path = rawPath.Replace('\\', '/');
                         Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
@@ -205,10 +224,7 @@ namespace TheLastEmpire
                         {
                             if (obj is Material mat)
                             {
-                                bool isGlassOrWater = mat.name.Contains("Glass") || mat.name.Contains("Water") || mat.name.Contains("Plasma") || mat.name.Contains("Ember");
-                                bool isSilver = mat.name.Contains("bright bevel") || mat.name.Contains("scraped edges");
-                                bool isArmor = mat.name.Contains("graphite armor") || mat.name.Contains("dark forged steel");
-                                float targetSmooth = isGlassOrWater ? 0.45f : (isSilver ? 0.48f : (isArmor ? 0.18f : 0.08f));
+                                ResolveBuildingMaterialFinish(mat.name, out float targetSmooth, out _, out _);
                                 bool needsSmooth = mat.HasProperty("_Smoothness") && Mathf.Abs(mat.GetFloat("_Smoothness") - targetSmooth) > 0.02f;
                                 bool hasTex = mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") != null;
                                 if (needsSmooth || hasTex)

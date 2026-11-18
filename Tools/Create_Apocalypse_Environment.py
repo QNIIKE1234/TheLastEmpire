@@ -22,7 +22,7 @@ for datablocks in (bpy.data.meshes, bpy.data.curves, bpy.data.materials, bpy.dat
             datablocks.remove(datablock)
 
 
-def make_material(name, color, roughness=0.82, metallic=0.0):
+def make_material(name, color, roughness=0.88, metallic=0.0, specular=0.02):
     material = bpy.data.materials.new(name)
     material.diffuse_color = (*color, 1.0)
     material.use_nodes = True
@@ -30,28 +30,30 @@ def make_material(name, color, roughness=0.82, metallic=0.0):
     shader.inputs["Base Color"].default_value = (*color, 1.0)
     shader.inputs["Roughness"].default_value = roughness
     shader.inputs["Metallic"].default_value = metallic
+    if "Specular IOR Level" in shader.inputs:
+        shader.inputs["Specular IOR Level"].default_value = specular
     return material
 
 
 MATS = [
-    make_material("Concrete | ash gray", (0.34, 0.35, 0.34)),
-    make_material("Concrete | broken pale edge", (0.52, 0.50, 0.44)),
-    make_material("Concrete | deep shadow", (0.13, 0.15, 0.16)),
-    make_material("Glass | dead blue", (0.055, 0.10, 0.13), 0.28, 0.18),
-    make_material("Glass | cracked haze", (0.20, 0.28, 0.30), 0.38, 0.08),
-    make_material("Metal | oxidized", (0.20, 0.22, 0.21), 0.6, 0.55),
-    make_material("Rust | burnt umber", (0.34, 0.14, 0.075)),
-    make_material("Rust | faded red", (0.47, 0.19, 0.11)),
-    make_material("Paint | old mustard", (0.57, 0.43, 0.16)),
-    make_material("Paint | faded blue", (0.14, 0.25, 0.31)),
-    make_material("Rubber | charcoal", (0.055, 0.06, 0.06), 0.95),
-    make_material("Light | dirty ivory", (0.55, 0.52, 0.42)),
-    make_material("Stripe | faded warning", (0.64, 0.32, 0.13)),
-    make_material("Signal | dead red", (0.42, 0.08, 0.055), 0.52),
-    make_material("Signal | dead amber", (0.52, 0.31, 0.08), 0.5),
-    make_material("Signal | dead green", (0.08, 0.29, 0.17), 0.5),
-    make_material("Brick | soot stained", (0.34, 0.16, 0.11)),
-    make_material("Paint | flaked teal", (0.12, 0.29, 0.27)),
+    make_material("Concrete | ash gray", (0.2400, 0.2500, 0.2800), 0.92, 0.0),
+    make_material("Concrete | broken pale edge", (0.3400, 0.3500, 0.3800), 0.90, 0.0),
+    make_material("Concrete | deep shadow", (0.0900, 0.1000, 0.1300), 0.90, 0.0),
+    make_material("Glass | dead blue", (0.0500, 0.1100, 0.1700), 0.45, 0.0, 0.25),
+    make_material("Glass | cracked haze", (0.1400, 0.2200, 0.2800), 0.45, 0.0, 0.25),
+    make_material("Metal | oxidized", (0.0550, 0.0637, 0.0890), 0.78, 0.08, 0.04),
+    make_material("Rust | burnt umber", (0.1600, 0.0600, 0.0250), 0.90, 0.0),
+    make_material("Rust | faded red", (0.3200, 0.1200, 0.0400), 0.88, 0.0),
+    make_material("Paint | old mustard", (0.7484, 0.3931, 0.0272), 0.90, 0.0),
+    make_material("Paint | faded blue", (0.0331, 0.0946, 0.3000), 0.88, 0.0),
+    make_material("Rubber | charcoal", (0.0220, 0.0245, 0.0331), 0.94, 0.0),
+    make_material("Light | dirty ivory", (0.4500, 0.4550, 0.4700), 0.88, 0.0),
+    make_material("Stripe | faded warning", (0.7484, 0.3931, 0.0272), 0.90, 0.0),
+    make_material("Signal | dead red", (0.3600, 0.0650, 0.0450), 0.45, 0.0, 0.20),
+    make_material("Signal | dead amber", (0.6200, 0.3100, 0.0250), 0.45, 0.0, 0.20),
+    make_material("Signal | dead green", (0.0550, 0.2400, 0.1300), 0.45, 0.0, 0.20),
+    make_material("Brick | soot stained", (0.3800, 0.1400, 0.0700), 0.88, 0.0),
+    make_material("Paint | flaked teal", (0.0550, 0.2000, 0.1950), 0.88, 0.0),
 ]
 CONCRETE, BROKEN, SHADOW, GLASS, GLASS_HAZE, METAL, RUST, RED_RUST, MUSTARD, BLUE, RUBBER, IVORY, WARNING, SIGNAL_RED, SIGNAL_AMBER, SIGNAL_GREEN, BRICK, TEAL = range(len(MATS))
 

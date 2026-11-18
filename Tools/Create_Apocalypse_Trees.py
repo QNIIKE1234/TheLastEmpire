@@ -22,7 +22,7 @@ for datablocks in (bpy.data.meshes, bpy.data.curves, bpy.data.materials, bpy.dat
             datablocks.remove(datablock)
 
 
-def make_material(name, color, roughness=0.85, metallic=0.0, emission=None, emission_strength=0.0):
+def make_material(name, color, roughness=0.90, metallic=0.0, emission=None, emission_strength=0.0, specular=0.02):
     material = bpy.data.materials.new(name)
     material.diffuse_color = (*color, 1.0)
     material.use_nodes = True
@@ -30,6 +30,8 @@ def make_material(name, color, roughness=0.85, metallic=0.0, emission=None, emis
     shader.inputs["Base Color"].default_value = (*color, 1.0)
     shader.inputs["Roughness"].default_value = roughness
     shader.inputs["Metallic"].default_value = metallic
+    if "Specular IOR Level" in shader.inputs:
+        shader.inputs["Specular IOR Level"].default_value = specular
     if emission is not None and emission_strength > 0.0:
         if "Emission Color" in shader.inputs:
             shader.inputs["Emission Color"].default_value = (*emission, 1.0)
@@ -41,20 +43,20 @@ def make_material(name, color, roughness=0.85, metallic=0.0, emission=None, emis
 
 
 MATS = [
-    make_material("Bark | weathered oak", (0.26, 0.18, 0.115), 0.90, 0.0),
-    make_material("Bark | charred deadwood", (0.15, 0.12, 0.10), 0.94, 0.0),
-    make_material("Bark | pine reddish", (0.29, 0.16, 0.095), 0.88, 0.0),
-    make_material("Wood | heartwood split", (0.58, 0.41, 0.22), 0.80, 0.0),
-    make_material("Foliage | faded olive", (0.26, 0.35, 0.17), 0.84, 0.0),
-    make_material("Foliage | autumn amber", (0.55, 0.36, 0.13), 0.82, 0.0),
-    make_material("Foliage | dry rust leaf", (0.46, 0.23, 0.105), 0.85, 0.0),
-    make_material("Foliage | dark pine", (0.13, 0.25, 0.16), 0.86, 0.0),
-    make_material("Foliage | teal pine", (0.17, 0.32, 0.23), 0.84, 0.0),
-    make_material("Concrete | cracked curb", (0.41, 0.42, 0.40), 0.88, 0.0),
-    make_material("Stone | wasteland rock", (0.30, 0.31, 0.30), 0.90, 0.0),
-    make_material("Soil | dry earth", (0.19, 0.15, 0.11), 0.95, 0.0),
-    make_material("Metal | rusted sign", (0.39, 0.18, 0.095), 0.72, 0.45),
-    make_material("Fungus | bioluminescent spore", (0.20, 0.80, 0.62), 0.35, 0.0, (0.18, 0.82, 0.64), 1.25),
+    make_material("Bark | weathered oak", (0.2600, 0.1600, 0.0800), 0.90, 0.0),
+    make_material("Bark | charred deadwood", (0.1200, 0.0700, 0.0350), 0.94, 0.0),
+    make_material("Bark | pine reddish", (0.3600, 0.2300, 0.1200), 0.88, 0.0),
+    make_material("Wood | heartwood split", (0.4500, 0.3000, 0.1600), 0.86, 0.0),
+    make_material("Foliage | faded olive", (0.1150, 0.2600, 0.0950), 0.90, 0.0),
+    make_material("Foliage | autumn amber", (0.7484, 0.3931, 0.0272), 0.90, 0.0),
+    make_material("Foliage | dry rust leaf", (0.3200, 0.1200, 0.0400), 0.90, 0.0),
+    make_material("Foliage | dark pine", (0.0480, 0.1350, 0.0780), 0.90, 0.0),
+    make_material("Foliage | teal pine", (0.0650, 0.1750, 0.0750), 0.90, 0.0),
+    make_material("Concrete | cracked curb", (0.2400, 0.2500, 0.2800), 0.92, 0.0),
+    make_material("Stone | wasteland rock", (0.0900, 0.1000, 0.1300), 0.92, 0.0),
+    make_material("Soil | dry earth", (0.1600, 0.0600, 0.0250), 0.95, 0.0),
+    make_material("Metal | rusted sign", (0.3200, 0.1200, 0.0400), 0.88, 0.0),
+    make_material("Fungus | bioluminescent spore", (0.0750, 0.3800, 0.4800), 0.45, 0.0, (0.04, 0.32, 0.44), 1.1, 0.20),
 ]
 
 (
