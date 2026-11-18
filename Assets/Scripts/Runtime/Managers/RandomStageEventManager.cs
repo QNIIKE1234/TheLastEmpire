@@ -56,6 +56,10 @@ namespace TheLastEmpire
         [SerializeField] private Color falloutFogColor = new Color(0.2f, 0.45f, 0.15f, 1f);
         [SerializeField] private Color bloodSurgeFogColor = new Color(0.55f, 0.05f, 0.08f, 1f);
 
+        [Header("Fleeing Survivor Cutscene Settings")]
+        [Tooltip("Extra seconds to keep camera locked onto the fleeing NPC while running along the road (on top of base 2s).")]
+        [SerializeField] private float extraNpcCameraFollowDuration = 2.0f;
+
         private CanvasGroup _activeBannerGroup;
         private GameObject _activeBannerObj;
         private Coroutine _bannerCoroutine;
@@ -602,45 +606,87 @@ namespace TheLastEmpire
             // ระดับความสูงมาตรฐานของโมเดลตัวละคร Humanoid (Y = 1.0f เพื่อให้เท้าที่ offset -1.0 สัมผัสพื้น Y=0 พอดี ไม่จมและไม่ลอย)
             float floorY = 1.0f;
 
-            // คำนวณตำแหน่งเกิดตรงกันข้ามกับ Player:
-            // Get ตำแหน่งจริงของ Player แล้วเสก Maya ที่ฝั่งตรงข้าม วิ่งตรงเข้าหา Player และทะลุออกประตูที่เราเข้ามา
+            // คำนวณเส้นทางถนนที่เชื่อมกันยาวที่สุด -> จากปลายถนนฝั่งไกลที่สุดมาหาปลายถนนที่ใกล้ Player ที่สุด -> เข้าจุดวาปที่ใกล้ที่สุด
             Vector3 npcSpawnPos;
             Vector3 escapeTargetPos;
+            Vector3 initialForwardTarget;
+            List<Vector3> roadWaypoints = null;
 
-            if (Mathf.Abs(playerPos.z) >= Mathf.Abs(playerPos.x))
+            bool hasRoadPath = EnvironmentManager.Instance != null &&
+                               EnvironmentManager.Instance.TryGetLongestConnectedRoadPath(playerPos, out roadWaypoints) &&
+                               roadWaypoints != null && roadWaypoints.Count >= 2;
+
+            if (hasRoadPath)
             {
-                if (playerPos.z < 0)
+                Vector3 farEnd = roadWaypoints[0];
+                Vector3 nextNode = roadWaypoints[1];
+                Vector3 nearEnd = roadWaypoints[roadWaypoints.Count - 1];
+
+                // Pull spawn slightly inward along the road if at the extreme border so chasers fit behind Maya on the road
+                Vector3 segVec = nextNode - farEnd;
+                segVec.y = 0f;
+                float segLen = segVec.magnitude;
+                if (segLen > 5.0f && (Mathf.Abs(farEnd.x) > 18.0f || Mathf.Abs(farEnd.z) > 8.5f))
                 {
-                    // Player อยู่ฝั่งล่าง (South) -> Maya เกิดฝั่งตรงข้ามบน (North: z=+9.5) วิ่งลงมาหาเรา แล้วทะลุออกประตูล่าง (z=-18)
-                    npcSpawnPos = new Vector3(playerPos.x, floorY, 9.5f);
-                    escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
+                    farEnd += (segVec / segLen) * 2.5f;
+                    roadWaypoints[0] = farEnd;
+                }
+
+                npcSpawnPos = farEnd;
+                initialForwardTarget = nextNode;
+
+                if (TryFindNearestOpenPortalPosition(nearEnd, out Vector3 portalPos))
+                {
+                    escapeTargetPos = portalPos;
                 }
                 else
                 {
-                    // Player อยู่ฝั่งบน (North) -> Maya เกิดฝั่งตรงข้ามล่าง (South: z=-9.5) วิ่งขึ้นมาหาเรา แล้วทะลุออกประตูบน (z=+18)
-                    npcSpawnPos = new Vector3(playerPos.x, floorY, -9.5f);
-                    escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
+                    Vector3 tailDir = (nearEnd - roadWaypoints[roadWaypoints.Count - 2]);
+                    tailDir.y = 0f;
+                    tailDir = tailDir.sqrMagnitude > 0.001f ? tailDir.normalized : Vector3.forward;
+                    escapeTargetPos = nearEnd + tailDir * 3.0f;
                 }
             }
             else
             {
-                if (playerPos.x < 0)
+                if (Mathf.Abs(playerPos.z) >= Mathf.Abs(playerPos.x))
                 {
-                    // Player อยู่ฝั่งซ้าย (West) -> Maya เกิดฝั่งตรงข้ามขวา (East: x=+15.5) วิ่งมาหาเรา แล้วทะลุออกประตูซ้าย (x=-25)
-                    npcSpawnPos = new Vector3(15.5f, floorY, playerPos.z);
-                    escapeTargetPos = new Vector3(-25.0f, floorY, playerPos.z);
+                    if (playerPos.z < 0)
+                    {
+                        npcSpawnPos = new Vector3(playerPos.x, floorY, 9.5f);
+                        escapeTargetPos = new Vector3(playerPos.x, floorY, -18.0f);
+                    }
+                    else
+                    {
+                        npcSpawnPos = new Vector3(playerPos.x, floorY, -9.5f);
+                        escapeTargetPos = new Vector3(playerPos.x, floorY, 18.0f);
+                    }
                 }
                 else
                 {
-                    // Player อยู่ฝั่งขวา (East) -> Maya เกิดฝั่งตรงข้ามซ้าย (West: x=-15.5) วิ่งมาหาเรา แล้วทะลุออกประตูขวา (x=+25)
-                    npcSpawnPos = new Vector3(-15.5f, floorY, playerPos.z);
-                    escapeTargetPos = new Vector3(25.0f, floorY, playerPos.z);
+                    if (playerPos.x < 0)
+                    {
+                        npcSpawnPos = new Vector3(15.5f, floorY, playerPos.z);
+                        escapeTargetPos = new Vector3(-25.0f, floorY, playerPos.z);
+                    }
+                    else
+                    {
+                        npcSpawnPos = new Vector3(-15.5f, floorY, playerPos.z);
+                        escapeTargetPos = new Vector3(25.0f, floorY, playerPos.z);
+                    }
                 }
+
+                if (TryFindNearestOpenPortalPosition(playerPos, out Vector3 fallbackPortalPos))
+                {
+                    escapeTargetPos = fallbackPortalPos;
+                }
+                initialForwardTarget = player != null ? playerPos : escapeTargetPos;
             }
 
             npcSpawnPos.y = floorY;
             escapeTargetPos.y = floorY;
-            Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> Fleeing Survivor Course: Spawn {npcSpawnPos} (Opposite of Player {playerPos}) -> Run towards Player -> Exit at {escapeTargetPos}");
+            initialForwardTarget.y = floorY;
+            Debug.Log($"<color=#FF5500>[RandomStageEventManager]</color> Fleeing Survivor Course ({(hasRoadPath ? "Longest Road" : "Direct Fallback")}): Spawn {npcSpawnPos} -> Portal {escapeTargetPos} (Waypoints: {(roadWaypoints != null ? roadWaypoints.Count : 0)})");
 
             // Spawn NPC Maya (Scout) วิ่งหนี
             GameObject npcPrefab = GameManager.Instance != null ? GameManager.Instance.NPCPrefab : null;
@@ -650,12 +696,11 @@ namespace TheLastEmpire
             }
             if (npcPrefab != null)
             {
-                Vector3 runDirection = (playerPos - npcSpawnPos).normalized;
+                Vector3 runDirection = (initialForwardTarget - npcSpawnPos);
                 runDirection.y = 0f;
-                if (runDirection.sqrMagnitude < 0.001f)
-                {
-                    runDirection = (escapeTargetPos - npcSpawnPos).normalized;
-                }
+                runDirection = runDirection.sqrMagnitude > 0.001f ? runDirection.normalized : (escapeTargetPos - npcSpawnPos).normalized;
+                runDirection.y = 0f;
+                if (runDirection.sqrMagnitude < 0.001f) runDirection = Vector3.forward;
 
                 GameObject npcObj = Instantiate(npcPrefab, npcSpawnPos, Quaternion.LookRotation(runDirection));
                 _activeRunnerInstance = npcObj;
@@ -675,16 +720,56 @@ namespace TheLastEmpire
                 }
 
                 FleeingSurvivorRunner runner = npcObj.AddComponent<FleeingSurvivorRunner>();
-                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 4.2f, icon: mayaIcon);
+                runner.Initialize(player != null ? player.transform : null, escapeTargetPos, null, speed: 4.5f, icon: mayaIcon);
+                if (hasRoadPath)
+                {
+                    runner.SetRoadWaypoints(roadWaypoints, escapeTargetPos);
+                }
 
                 // Start Cinematic Cutscene sequence!
-                _activeCutsceneCoroutine = StartCoroutine(FleeingSurvivorCutsceneRoutine(npcObj, runner, player, npcSpawnPos, escapeTargetPos, rng, stage));
+                _activeCutsceneCoroutine = StartCoroutine(FleeingSurvivorCutsceneRoutine(npcObj, runner, player, npcSpawnPos, initialForwardTarget, rng, stage));
             }
             else
             {
                 // Fallback: spawn chasers directly if NPC prefab is missing
-                _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng, stage));
+                _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, initialForwardTarget, rng, stage));
             }
+        }
+
+        private static bool TryFindNearestOpenPortalPosition(Vector3 referencePos, out Vector3 portalPos)
+        {
+            portalPos = referencePos;
+            TransitionPortal[] portals = UnityEngine.Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+            float bestDistSq = float.MaxValue;
+            bool found = false;
+
+            foreach (TransitionPortal portal in portals)
+            {
+                if (!TransitionPortal.IsWorldPortal(portal) || !portal.gameObject.activeInHierarchy) continue;
+                Collider col = portal.GetComponent<Collider>();
+                if (col != null && !col.enabled) continue;
+
+                Renderer[] rends = portal.GetComponentsInChildren<Renderer>(true);
+                bool anyRendererVisible = rends == null || rends.Length == 0;
+                if (rends != null)
+                {
+                    foreach (Renderer r in rends)
+                    {
+                        if (r != null && r.enabled) { anyRendererVisible = true; break; }
+                    }
+                }
+                if (!anyRendererVisible && col == null) continue;
+
+                Vector3 pPos = portal.transform.position;
+                float dSq = new Vector2(pPos.x - referencePos.x, pPos.z - referencePos.z).sqrMagnitude;
+                if (dSq < bestDistSq)
+                {
+                    bestDistSq = dSq;
+                    portalPos = pPos;
+                    found = true;
+                }
+            }
+            return found;
         }
 
         private IEnumerator FleeingSurvivorCutsceneRoutine(
@@ -692,7 +777,7 @@ namespace TheLastEmpire
             FleeingSurvivorRunner runner, 
             PlayerController player, 
             Vector3 npcSpawnPos, 
-            Vector3 escapeTargetPos, 
+            Vector3 roadForwardTarget, 
             System.Random rng, 
             StageData stage)
         {
@@ -705,7 +790,7 @@ namespace TheLastEmpire
                 player.SetControlLocked(true);
             }
 
-            // 2. Put NPC in cutscene waiting mode (stands alert, faces player, does not sprint yet)
+            // 2. Put NPC in cutscene waiting mode (stands alert, faces down the road, does not sprint yet)
             if (runner != null)
             {
                 runner.SetCutsceneWaiting(true);
@@ -730,7 +815,7 @@ namespace TheLastEmpire
             }
             yield return new WaitForSeconds(1.1f);
 
-            // 6. NPC เริ่มค่อยๆ วิ่งหนีมาทางผู้เล่น
+            // 6. NPC เริ่มวิ่งตามถนนมาทางผู้เล่น
             if (runner != null)
             {
                 runner.SetCutsceneWaiting(false);
@@ -740,12 +825,18 @@ namespace TheLastEmpire
             yield return new WaitForSeconds(0.25f);
 
             // 7. Spawn the pack of chasing enemies right behind NPC (ตอนคัตซีนทุกตัวจะวิ่งสปีด 1.0f)
-            _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, escapeTargetPos, rng, stage));
+            _activeChaserCoroutine = StartCoroutine(SpawnChasingEnemyPackRoutine(npcSpawnPos, roadForwardTarget, rng, stage));
 
-            // ให้กล้องจับภาพและวิ่งตาม NPC 2 วินาที เพื่อให้เห็นจังหวะที่ NPC วิ่งหนีและฝูงศัตรูค่อยๆ กวดตามหลังมา
-            yield return new WaitForSeconds(2.0f);
+            // จับภาพตาม NPC ต่ออีก +2 วินาที (รวมเป็น 4 วินาที) เพื่อให้เห็นจังหวะวิ่งตามถนนพร้อมฝูงศัตรูไล่กวดอย่างชัดเจน
+            float followDuration = 2.0f + Mathf.Max(0f, extraNpcCameraFollowDuration);
+            float followElapsed = 0f;
+            while (followElapsed < followDuration && npcObj != null)
+            {
+                followElapsed += Time.deltaTime;
+                yield return null;
+            }
 
-            // คัตซีน 2 วิเสร็จแล้ว คืนสปีดเต็มกำลังให้ศัตรูทุกตัว (3.5 m/s) เพื่อพุ่งไล่ล่าทันที!
+            // คัตซีนเสร็จแล้ว คืนสปีดเต็มกำลังให้ศัตรูทุกตัว (3.5 m/s) เพื่อพุ่งไล่ล่าทันที!
             _isCutsceneActive = false;
             for (int i = 0; i < _activeChasersList.Count; i++)
             {
@@ -788,7 +879,9 @@ namespace TheLastEmpire
             }
             string[] rushers = rusherList.ToArray();
 
-            Vector3 runDir = (targetDir - spawnCenter).normalized;
+            Vector3 runDir = (targetDir - spawnCenter);
+            runDir.y = 0f;
+            runDir = runDir.sqrMagnitude > 0.001f ? runDir.normalized : Vector3.forward;
 
             for (int i = 0; i < mobCount; i++)
             {
@@ -801,17 +894,23 @@ namespace TheLastEmpire
 
                 if (prefab != null)
                 {
-                    // กระจายแบบทรงกรวย 90 องศา (-45° ถึง +45°) ด้านหลังทิศทางการวิ่ง แล้วพุ่งเข้าหาผู้เล่น
+                    // กระจายแบบทรงกรวยด้านหลังทิศทางการวิ่งตามถนน (-30° ถึง +30°) เพื่อให้อยู่ด้านหลัง NPC ตลอด
                     float normalizedPos = mobCount > 1 ? (i / (float)(mobCount - 1)) : 0.5f;
-                    float coneAngle = Mathf.Lerp(-45f, 45f, normalizedPos) + (float)(rng.NextDouble() * 8.0 - 4.0);
-                    float coneRadius = 1.5f + (i % 3) * 1.6f + (float)(rng.NextDouble() * 0.8);
+                    float coneAngle = Mathf.Lerp(-30f, 30f, normalizedPos) + (float)(rng.NextDouble() * 6.0 - 3.0);
+                    float coneRadius = 1.4f + (i % 3) * 1.2f + (float)(rng.NextDouble() * 0.6);
                     Vector3 coneDir = Quaternion.Euler(0f, coneAngle, 0f) * (-runDir);
                     Vector3 enemySpawnPos = spawnCenter + coneDir * coneRadius;
-                    enemySpawnPos.y = 1.0f; // ระดับความสูงมาตรฐาน (BaseEnemyAI.EnableChaserPhasing จะปรับให้แนบพื้นตาม Collider จริงอีกขั้น)
+                    enemySpawnPos.y = 1.0f;
 
-                    // Clamp ให้อยู่ในขอบเขตฉากโดยไม่บีบให้ล้ำหน้า NPC
-                    enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -16f, 16f);
-                    enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -10f, 10f);
+                    // Clamp ให้อยู่ในพื้นที่สนาม 50x25 โดยไม่ผลักไปอยู่ข้างหน้า NPC
+                    enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -22.5f, 22.5f);
+                    enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -11.0f, 11.0f);
+                    if (Vector3.Dot(enemySpawnPos - spawnCenter, runDir) > -0.5f)
+                    {
+                        enemySpawnPos = spawnCenter - runDir * 1.5f;
+                        enemySpawnPos.x = Mathf.Clamp(enemySpawnPos.x, -22.5f, 22.5f);
+                        enemySpawnPos.z = Mathf.Clamp(enemySpawnPos.z, -11.0f, 11.0f);
+                    }
 
                     PlayerController player = PlayerController.Instance != null ? PlayerController.Instance : UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                     Vector3 chaseDir = player != null ? (player.transform.position - enemySpawnPos) : runDir;

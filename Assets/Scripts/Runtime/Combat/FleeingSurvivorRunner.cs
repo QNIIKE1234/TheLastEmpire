@@ -32,6 +32,8 @@ namespace TheLastEmpire
         private Vector3 _runAxis;
         private Action _onEscaped;
         private readonly List<Animator> _animators = new List<Animator>();
+        private readonly List<Vector3> _waypoints = new List<Vector3>();
+        private int _waypointIndex = 0;
         private int _animatorRefreshFrames = 0;
         private float _shoutTimer = 0f;
         private bool _isInitialized = false;
@@ -262,6 +264,54 @@ namespace TheLastEmpire
         }
 
         /// <summary>
+        /// Assigns an ordered connected road path from far road end to near-player road end, followed by warp portal entry.
+        /// </summary>
+        public void SetRoadWaypoints(List<Vector3> roadWaypoints, Vector3? finalPortalPos = null)
+        {
+            _waypoints.Clear();
+            _waypointIndex = 0;
+
+            float groundY = _exitDestination.y;
+            if (roadWaypoints != null)
+            {
+                foreach (Vector3 pt in roadWaypoints)
+                {
+                    Vector3 flat = new Vector3(pt.x, groundY, pt.z);
+                    if (_waypoints.Count == 0 || Vector3.Distance(_waypoints[_waypoints.Count - 1], flat) > 0.6f)
+                    {
+                        _waypoints.Add(flat);
+                    }
+                }
+            }
+
+            if (finalPortalPos.HasValue)
+            {
+                Vector3 portalFlat = new Vector3(finalPortalPos.Value.x, groundY, finalPortalPos.Value.z);
+                if (_waypoints.Count == 0 || Vector3.Distance(_waypoints[_waypoints.Count - 1], portalFlat) > 0.5f)
+                {
+                    _waypoints.Add(portalFlat);
+                }
+            }
+
+            if (_waypoints.Count > 0)
+            {
+                Vector3 curXZ = new Vector3(transform.position.x, groundY, transform.position.z);
+                if (_waypoints.Count > 1 && Vector3.Distance(curXZ, _waypoints[0]) <= 1.2f)
+                {
+                    _waypointIndex = 1;
+                }
+                _exitDestination = _waypoints[_waypoints.Count - 1];
+                Vector3 firstTarget = _waypoints[_waypointIndex];
+                Vector3 axis = firstTarget - curXZ;
+                axis.y = 0f;
+                if (axis.sqrMagnitude > 0.001f)
+                {
+                    _runAxis = axis.normalized;
+                }
+            }
+        }
+
+        /// <summary>
         /// Displays a specific or randomized panicked shout in the overhead bubble.
         /// </summary>
         public void ShowShout(string specificMessage = null)
@@ -285,8 +335,10 @@ namespace TheLastEmpire
 
             if (_isCutsceneWaiting)
             {
-                // During cutscene stand ground and face towards the player/escape direction
-                Vector3 lookTarget = _playerTransform != null ? _playerTransform.position : _exitDestination;
+                // During cutscene stand ground and face along the road / towards the player
+                Vector3 lookTarget = (_waypoints.Count > 0 && _waypointIndex < _waypoints.Count)
+                    ? _waypoints[_waypointIndex]
+                    : (_playerTransform != null ? _playerTransform.position : _exitDestination);
                 Vector3 toTarget = lookTarget - transform.position;
                 toTarget.y = 0f;
                 if (toTarget.sqrMagnitude > 0.01f)
@@ -314,10 +366,27 @@ namespace TheLastEmpire
             Vector3 currentPos = transform.position;
             currentPos.y = _exitDestination.y; // ล็อคระดับความสูงบนพื้น ไม่ให้จมดิน
 
-            // ระยะแรก: วิ่งตรงเข้าหาตัว Player
-            // เมื่อถึงตัว Player หรือวิ่งเลยตำแหน่ง Player ตามแนววิ่งแล้ว: วิ่งทะลุออกประตูหลัง Player (_exitDestination)
+            bool reachedFinal = false;
             Vector3 targetPos = _exitDestination;
-            if (!_hasPassedPlayer && _playerTransform != null)
+
+            if (_waypoints.Count > 0)
+            {
+                while (_waypointIndex < _waypoints.Count - 1)
+                {
+                    Vector3 wpDiff = _waypoints[_waypointIndex] - currentPos;
+                    wpDiff.y = 0f;
+                    if (wpDiff.magnitude <= 0.7f)
+                    {
+                        _waypointIndex++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                targetPos = _waypoints[Mathf.Min(_waypointIndex, _waypoints.Count - 1)];
+            }
+            else if (!_hasPassedPlayer && _playerTransform != null)
             {
                 Vector3 playerPos = _playerTransform.position;
                 playerPos.y = currentPos.y;
@@ -356,8 +425,17 @@ namespace TheLastEmpire
                 ShoutRandom();
             }
 
-            // เมื่อวิ่งถึงจุดออก หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
-            if ((_hasPassedPlayer && dist <= 1.2f) || _lifetime > 20f)
+            if (_waypoints.Count > 0)
+            {
+                reachedFinal = _waypointIndex >= _waypoints.Count - 1 && dist <= 0.9f;
+            }
+            else
+            {
+                reachedFinal = _hasPassedPlayer && dist <= 1.2f;
+            }
+
+            // เมื่อวิ่งตามถนนเข้าจุดวาป หรือหมดเวลา ให้ถือว่าหนีรอดและหายตัวไป
+            if (reachedFinal || _lifetime > 35f)
             {
                 EscapeAndDespawn();
             }

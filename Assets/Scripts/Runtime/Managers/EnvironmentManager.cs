@@ -1862,6 +1862,369 @@ namespace TheLastEmpire
             return segments;
         }
 
+        private struct RoadTileNode
+        {
+            public Vector2 centerXZ;
+            public Vector2 halfExtentsXZ;
+        }
+
+        /// <summary>
+        /// Finds the longest connected road path across street tiles in the current stage,
+        /// ordered from the far end of that connected road network to the road endpoint closest to the player.
+        /// </summary>
+        public bool TryGetLongestConnectedRoadPath(Vector3 playerPos, out List<Vector3> waypoints)
+        {
+            waypoints = null;
+            List<RoadTileNode> nodes = CollectRoadNodes();
+            if (nodes.Count < 2)
+            {
+                return false;
+            }
+
+            List<List<KeyValuePair<int, float>>> adj = BuildRoadAdjacency(nodes);
+            List<List<int>> components = FindConnectedRoadComponents(nodes.Count, adj);
+            if (components.Count == 0)
+            {
+                return false;
+            }
+
+            Vector2 playerXZ = new Vector2(playerPos.x, playerPos.z);
+
+            // Pick the connected road component with the longest continuous road span (diameter).
+            List<int> bestComp = null;
+            float bestSpan = -1f;
+            float bestPlayerDist = float.MaxValue;
+
+            foreach (List<int> comp in components)
+            {
+                if (comp.Count < 2) continue;
+                float compSpan = MeasureComponentRoadSpan(comp, adj);
+                float minDistToPlayer = float.MaxValue;
+                foreach (int idx in comp)
+                {
+                    float d = Vector2.Distance(nodes[idx].centerXZ, playerXZ);
+                    if (d < minDistToPlayer) minDistToPlayer = d;
+                }
+
+                bool betterSpan = compSpan > bestSpan + 1.0f;
+                bool tiedCloser = Mathf.Abs(compSpan - bestSpan) <= 1.0f && minDistToPlayer < bestPlayerDist;
+                if (betterSpan || tiedCloser)
+                {
+                    bestSpan = compSpan;
+                    bestPlayerDist = minDistToPlayer;
+                    bestComp = comp;
+                }
+            }
+
+            if (bestComp == null || bestComp.Count < 2)
+            {
+                return false;
+            }
+
+            List<int> endpoints = FindRoadEndpointIndices(bestComp, nodes, adj);
+            if (endpoints.Count < 2)
+            {
+                endpoints = bestComp;
+            }
+
+            // Road end closest to the player
+            int endIdx = endpoints[0];
+            float closestEndDist = float.MaxValue;
+            foreach (int ep in endpoints)
+            {
+                float d = Vector2.Distance(nodes[ep].centerXZ, playerXZ);
+                if (d < closestEndDist)
+                {
+                    closestEndDist = d;
+                    endIdx = ep;
+                }
+            }
+
+            // Find the connected road endpoint farthest along the road leading to endIdx
+            RunRoadDijkstra(endIdx, nodes.Count, adj, out float[] distFromEnd, out int[] parentFromEnd);
+
+            int startIdx = -1;
+            float maxRoadDist = -1f;
+            float maxDirectDist = -1f;
+            foreach (int cand in endpoints)
+            {
+                if (cand == endIdx) continue;
+                float rDist = distFromEnd[cand];
+                if (float.IsInfinity(rDist)) continue;
+                float dDist = Vector2.Distance(nodes[cand].centerXZ, playerXZ);
+                if (rDist > maxRoadDist + 0.5f || (Mathf.Abs(rDist - maxRoadDist) <= 0.5f && dDist > maxDirectDist))
+                {
+                    maxRoadDist = rDist;
+                    maxDirectDist = dDist;
+                    startIdx = cand;
+                }
+            }
+
+            if (startIdx < 0)
+            {
+                return false;
+            }
+
+            // Reconstruct path from startIdx -> endIdx (parentFromEnd points toward endIdx)
+            List<Vector3> rawPoints = new List<Vector3>();
+            int cur = startIdx;
+            int safety = 0;
+            while (cur >= 0 && safety++ <= nodes.Count)
+            {
+                Vector2 c = nodes[cur].centerXZ;
+                rawPoints.Add(new Vector3(c.x, 1.0f, c.y));
+                if (cur == endIdx) break;
+                cur = parentFromEnd[cur];
+            }
+
+            if (rawPoints.Count < 2)
+            {
+                return false;
+            }
+
+            waypoints = SimplifyCollinearRoadWaypoints(rawPoints);
+            return waypoints.Count >= 2;
+        }
+
+        private List<RoadTileNode> CollectRoadNodes()
+        {
+            List<RoadTileNode> nodes = new List<RoadTileNode>();
+            if (_currentEnvContainer == null) return nodes;
+
+            Transform container = _currentEnvContainer.transform;
+            for (int i = 0; i < container.childCount; i++)
+            {
+                Transform child = container.GetChild(i);
+                if (child == null || !child.gameObject.activeInHierarchy) continue;
+
+                string childName = child.name;
+                bool isRoad = childName.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              childName.IndexOf("RoadTile", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!isRoad) continue;
+
+                Vector3 pos = child.position;
+                if (Mathf.Abs(pos.x) > 26f || Mathf.Abs(pos.z) > 14f) continue;
+
+                Vector2 center = new Vector2(pos.x, pos.z);
+                Vector2 half = new Vector2(2.5f, 2.5f);
+
+                Renderer[] rends = child.GetComponentsInChildren<Renderer>(false);
+                if (rends != null && rends.Length > 0)
+                {
+                    Bounds b = new Bounds();
+                    bool hasB = false;
+                    foreach (Renderer r in rends)
+                    {
+                        if (r == null || !r.enabled) continue;
+                        if (!hasB) { b = r.bounds; hasB = true; }
+                        else { b.Encapsulate(r.bounds); }
+                    }
+                    if (hasB && b.size.x > 0.2f && b.size.z > 0.2f)
+                    {
+                        center = new Vector2(b.center.x, b.center.z);
+                        half = new Vector2(b.extents.x, b.extents.z);
+                    }
+                }
+                else
+                {
+                    half = new Vector2(
+                        Mathf.Max(2.0f, Mathf.Abs(child.localScale.x) * 0.5f),
+                        Mathf.Max(2.0f, Mathf.Abs(child.localScale.z) * 0.5f));
+                }
+
+                // Merge overlapping identical tiles to prevent duplicate nodes
+                bool merged = false;
+                for (int n = 0; n < nodes.Count; n++)
+                {
+                    if (Vector2.Distance(nodes[n].centerXZ, center) <= 0.9f)
+                    {
+                        RoadTileNode existing = nodes[n];
+                        existing.halfExtentsXZ = Vector2.Max(existing.halfExtentsXZ, half);
+                        nodes[n] = existing;
+                        merged = true;
+                        break;
+                    }
+                }
+                if (!merged)
+                {
+                    nodes.Add(new RoadTileNode { centerXZ = center, halfExtentsXZ = half });
+                }
+            }
+
+            return nodes;
+        }
+
+        private static List<List<KeyValuePair<int, float>>> BuildRoadAdjacency(List<RoadTileNode> nodes)
+        {
+            int count = nodes.Count;
+            List<List<KeyValuePair<int, float>>> adj = new List<List<KeyValuePair<int, float>>>(count);
+            for (int i = 0; i < count; i++) adj.Add(new List<KeyValuePair<int, float>>());
+
+            const float touchTolerance = 0.85f;
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    float dx = Mathf.Abs(nodes[i].centerXZ.x - nodes[j].centerXZ.x);
+                    float dz = Mathf.Abs(nodes[i].centerXZ.y - nodes[j].centerXZ.y);
+                    float maxSepX = nodes[i].halfExtentsXZ.x + nodes[j].halfExtentsXZ.x + touchTolerance;
+                    float maxSepZ = nodes[i].halfExtentsXZ.y + nodes[j].halfExtentsXZ.y + touchTolerance;
+                    float centerDist = Vector2.Distance(nodes[i].centerXZ, nodes[j].centerXZ);
+
+                    bool sameRowBand = dz <= Mathf.Min(nodes[i].halfExtentsXZ.y, nodes[j].halfExtentsXZ.y) + 0.65f && dx <= maxSepX;
+                    bool sameColBand = dx <= Mathf.Min(nodes[i].halfExtentsXZ.x, nodes[j].halfExtentsXZ.x) + 0.65f && dz <= maxSepZ;
+                    if (sameRowBand || sameColBand)
+                    {
+                        adj[i].Add(new KeyValuePair<int, float>(j, centerDist));
+                        adj[j].Add(new KeyValuePair<int, float>(i, centerDist));
+                    }
+                }
+            }
+            return adj;
+        }
+
+        private static List<List<int>> FindConnectedRoadComponents(int nodeCount, List<List<KeyValuePair<int, float>>> adj)
+        {
+            bool[] visited = new bool[nodeCount];
+            List<List<int>> comps = new List<List<int>>();
+            Queue<int> queue = new Queue<int>();
+
+            for (int i = 0; i < nodeCount; i++)
+            {
+                if (visited[i]) continue;
+                List<int> comp = new List<int>();
+                visited[i] = true;
+                queue.Enqueue(i);
+                while (queue.Count > 0)
+                {
+                    int cur = queue.Dequeue();
+                    comp.Add(cur);
+                    foreach (var edge in adj[cur])
+                    {
+                        if (!visited[edge.Key])
+                        {
+                            visited[edge.Key] = true;
+                            queue.Enqueue(edge.Key);
+                        }
+                    }
+                }
+                comps.Add(comp);
+            }
+            return comps;
+        }
+
+        private static float MeasureComponentRoadSpan(List<int> comp, List<List<KeyValuePair<int, float>>> adj)
+        {
+            int nodeCount = adj.Count;
+            float maxSpan = 0f;
+            foreach (int src in comp)
+            {
+                RunRoadDijkstra(src, nodeCount, adj, out float[] dist, out _);
+                foreach (int dst in comp)
+                {
+                    if (!float.IsInfinity(dist[dst]) && dist[dst] > maxSpan)
+                    {
+                        maxSpan = dist[dst];
+                    }
+                }
+            }
+            return maxSpan;
+        }
+
+        private static List<int> FindRoadEndpointIndices(List<int> comp, List<RoadTileNode> nodes, List<List<KeyValuePair<int, float>>> adj)
+        {
+            List<int> leaves = new List<int>();
+            foreach (int idx in comp)
+            {
+                if (adj[idx].Count <= 1)
+                {
+                    leaves.Add(idx);
+                }
+            }
+            if (leaves.Count >= 2)
+            {
+                return leaves;
+            }
+
+            // Closed loop or wide multi-lane strip: pick outer perimeter extremes of the component
+            float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
+            foreach (int idx in comp)
+            {
+                Vector2 c = nodes[idx].centerXZ;
+                if (c.x < minX) minX = c.x;
+                if (c.x > maxX) maxX = c.x;
+                if (c.y < minZ) minZ = c.y;
+                if (c.y > maxZ) maxZ = c.y;
+            }
+
+            List<int> perimeter = new List<int>();
+            foreach (int idx in comp)
+            {
+                Vector2 c = nodes[idx].centerXZ;
+                if (c.x <= minX + 1.5f || c.x >= maxX - 1.5f || c.y <= minZ + 1.5f || c.y >= maxZ - 1.5f)
+                {
+                    perimeter.Add(idx);
+                }
+            }
+            return perimeter.Count >= 2 ? perimeter : new List<int>(comp);
+        }
+
+        private static void RunRoadDijkstra(int startIdx, int nodeCount, List<List<KeyValuePair<int, float>>> adj, out float[] dist, out int[] parent)
+        {
+            dist = new float[nodeCount];
+            parent = new int[nodeCount];
+            bool[] used = new bool[nodeCount];
+            for (int i = 0; i < nodeCount; i++)
+            {
+                dist[i] = float.PositiveInfinity;
+                parent[i] = -1;
+            }
+            dist[startIdx] = 0f;
+
+            for (int step = 0; step < nodeCount; step++)
+            {
+                int best = -1;
+                float bestD = float.PositiveInfinity;
+                for (int i = 0; i < nodeCount; i++)
+                {
+                    if (!used[i] && dist[i] < bestD)
+                    {
+                        bestD = dist[i];
+                        best = i;
+                    }
+                }
+                if (best < 0 || float.IsInfinity(bestD)) break;
+                used[best] = true;
+
+                foreach (var edge in adj[best])
+                {
+                    float nd = bestD + edge.Value;
+                    if (nd < dist[edge.Key])
+                    {
+                        dist[edge.Key] = nd;
+                        parent[edge.Key] = best;
+                    }
+                }
+            }
+        }
+
+        private static List<Vector3> SimplifyCollinearRoadWaypoints(List<Vector3> points)
+        {
+            if (points.Count <= 2) return points;
+            List<Vector3> simplified = new List<Vector3> { points[0] };
+            for (int i = 1; i < points.Count - 1; i++)
+            {
+                Vector2 d1 = new Vector2(points[i].x - simplified[simplified.Count - 1].x, points[i].z - simplified[simplified.Count - 1].z).normalized;
+                Vector2 d2 = new Vector2(points[i + 1].x - points[i].x, points[i + 1].z - points[i].z).normalized;
+                if (Vector2.Dot(d1, d2) < 0.985f)
+                {
+                    simplified.Add(points[i]);
+                }
+            }
+            simplified.Add(points[points.Count - 1]);
+            return simplified;
+        }
+
         private bool IsPointOnWalkablePath(Vector2 pt, List<KeyValuePair<Vector2, Vector2>> segments, float pathWidth = 2.0f)
         {
             if (segments.Count == 0) return false;
