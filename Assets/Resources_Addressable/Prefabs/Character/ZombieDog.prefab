@@ -426,7 +426,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 377718009837782265}
-  - {fileID: 4557621940791633550}
+  - {fileID: 4131987417875467621}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -667,7 +667,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!1001 &4086265143490773349
+--- !u!1001 &4529915164394564238
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -675,18 +675,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2278688315463160727}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.85
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.85
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.85
-      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -727,10 +715,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
       propertyPath: m_Name
       value: Chibi_ZombieDog_Model
@@ -748,8 +732,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
---- !u!4 &4557621940791633550 stripped
+--- !u!4 &4131987417875467621 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 23eec33e7aecb494f862f1c8365c7d43, type: 3}
-  m_PrefabInstance: {fileID: 4086265143490773349}
+  m_PrefabInstance: {fileID: 4529915164394564238}
   m_PrefabAsset: {fileID: 0}

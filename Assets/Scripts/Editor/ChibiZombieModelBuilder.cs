@@ -22,7 +22,8 @@ namespace TheLastEmpire.Editor
             return assetPath.Contains("Chibi_ZombieNormal_Rigged") ||
                    assetPath.Contains("Chibi_ZombieRunner_Rigged") ||
                    assetPath.Contains("Chibi_ZombieDog_Rigged") ||
-                   assetPath.Contains("Chibi_ZombieBoss_Rigged");
+                   assetPath.Contains("Chibi_ZombieBoss_Rigged") ||
+                   assetPath.Contains("Chibi_ZombieBoomer_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -138,6 +139,16 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Boss_Zombie_Leader", "Boss_Zombie_Tank", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
                 localScale = new Vector3(1.25f, 1.25f, 1.25f)
+            },
+            new ZombieSetupSpec
+            {
+                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieBoomer_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieBoomer_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/ZombieBoomer.prefab",
+                childRootName = "Chibi_ZombieBoomer_Model",
+                legacyChildNamesToRemove = new[] { "Zombie_Fat_Dummy", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.12f, 1.12f, 1.12f)
             }
         };
 
@@ -221,12 +232,43 @@ namespace TheLastEmpire.Editor
         {
             if (mat == null) return;
             string n = mat.name;
-            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack");
+            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack") || n.Contains("Boil_Glow");
             bool isMetal = n.Contains("Gold") || n.Contains("Silver") || n.Contains("Baton_Silver") || n.Contains("Buckle") ||
                            n.Contains("Steel") || n.Contains("Rebar") || n.Contains("Iron");
 
-            float smoothness = isGlossy ? 0.88f : (isMetal ? 0.58f : 0.08f);
+            float smoothness = isGlossy ? 0.85f : (isMetal ? 0.58f : 0.08f);
             float metallic = isMetal ? 0.68f : 0.0f;
+
+            if (n.Contains("Boomer_Face_Texture"))
+            {
+                Texture2D faceTex = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Face.png");
+                if (faceTex != null)
+                {
+                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", faceTex);
+                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", faceTex);
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
+                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", Color.white);
+                }
+            }
+            else if (n.Contains("Boomer_Hair"))
+            {
+                Texture2D hairTex = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Hair.png");
+                if (hairTex != null)
+                {
+                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", hairTex);
+                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", hairTex);
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
+                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", Color.white);
+                }
+            }
+            else if (n.Contains("Boil_Glow"))
+            {
+                mat.EnableKeyword("_EMISSION");
+                if (mat.HasProperty("_EmissionColor"))
+                {
+                    mat.SetColor("_EmissionColor", new Color(1.0f, 0.72f, 0.08f, 1.0f) * 2.2f);
+                }
+            }
 
             if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", smoothness);
             if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", smoothness);
@@ -272,8 +314,57 @@ namespace TheLastEmpire.Editor
                     }
                 }
 
+                if (fbxPath.Contains("Chibi_ZombieBoomer_Rigged"))
+                {
+                    var extMap = importer.GetExternalObjectMap();
+                    string matDir = $"{ZombieFbxDir}/Materials";
+                    if (!Directory.Exists(matDir)) Directory.CreateDirectory(matDir);
+
+                    var remaps = new (string matName, string texPath)[]
+                    {
+                        ("Mat_Boomer_Face_Texture", $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Face.png"),
+                        ("Mat_Boomer_Hair", $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Hair.png"),
+                    };
+
+                    foreach (var rm in remaps)
+                    {
+                        if (!File.Exists(rm.texPath)) continue;
+                        Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(rm.texPath);
+                        if (tex == null)
+                        {
+                            AssetDatabase.ImportAsset(rm.texPath, ImportAssetOptions.ForceSynchronousImport);
+                            tex = AssetDatabase.LoadAssetAtPath<Texture2D>(rm.texPath);
+                        }
+                        if (tex == null) continue;
+
+                        string matPath = $"{matDir}/{rm.matName}.mat";
+                        Material extMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                        if (extMat == null)
+                        {
+                            Shader urpLit = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                            extMat = new Material(urpLit);
+                            AssetDatabase.CreateAsset(extMat, matPath);
+                        }
+                        if (extMat.HasProperty("_BaseMap")) extMat.SetTexture("_BaseMap", tex);
+                        if (extMat.HasProperty("_MainTex")) extMat.SetTexture("_MainTex", tex);
+                        if (extMat.HasProperty("_BaseColor")) extMat.SetColor("_BaseColor", Color.white);
+                        if (extMat.HasProperty("_Color")) extMat.SetColor("_Color", Color.white);
+                        if (extMat.HasProperty("_Smoothness")) extMat.SetFloat("_Smoothness", 0.08f);
+                        if (extMat.HasProperty("_Metallic")) extMat.SetFloat("_Metallic", 0f);
+                        EditorUtility.SetDirty(extMat);
+
+                        var id = new AssetImporter.SourceAssetIdentifier(typeof(Material), rm.matName);
+                        if (!extMap.TryGetValue(id, out Object cur) || cur != extMat)
+                        {
+                            importer.AddRemap(id, extMat);
+                            reimportNeeded = true;
+                        }
+                    }
+                }
+
                 if (reimportNeeded)
                 {
+                    AssetDatabase.SaveAssets();
                     importer.SaveAndReimport();
                 }
             }
@@ -384,6 +475,10 @@ namespace TheLastEmpire.Editor
             {
                 AnimatorState roarState = EnsureStateWithMotion(sm, "RageRoar", FindClip(clipsByShortName, "RageRoar", "Idle"));
                 EnsureExitToIdleTransition(roarState, idleState);
+            }
+            if (clipsByShortName.ContainsKey("Explode"))
+            {
+                EnsureStateWithMotion(sm, "Explode", FindClip(clipsByShortName, "Explode", "Slash1"));
             }
 
             EditorUtility.SetDirty(controller);

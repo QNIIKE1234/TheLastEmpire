@@ -3,7 +3,17 @@ guid: 9a4e7c82b31d45f08e12a9c46d83f521
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Face_Texture
+    second: {fileID: 2100000, guid: 22269ac2cad8d15499e46150c1e35bdc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Hair_Purple
+    second: {fileID: 2100000, guid: 2f4bee3e0dfd5b441a84d956a3eb85a7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -427,4 +437,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-

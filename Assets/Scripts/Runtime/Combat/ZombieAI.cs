@@ -603,6 +603,7 @@ namespace TheLastEmpire
             _isExploding = true;
             _fuseTimer = Mathf.Max(1.0f, fuseDuration);
             currentState = AIState.Telegraph;
+            PlayActionAnimation("Explode", _fuseTimer + 0.35f, 0.05f);
             UpdateBoomerTelegraphVisual(explosionRadius);
         }
 

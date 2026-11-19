@@ -2,25 +2,340 @@ import bpy
 import bmesh
 import math
 import os
+import numpy as np
 from mathutils import Vector, Matrix, Quaternion, Euler
 
 # ==============================================================================
-# 1. SCENE RESET & CALIBRATED URP-READY MATERIALS
+# 1. SCENE RESET & PATHS
 # ==============================================================================
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 scene.render.fps = 24
 
+OUT_DIR = r"d:\Unity Game Project\Eruption\TheLastEmpire\TheLastEmpire\Assets\GeneratedModels"
+TEX_DIR = os.path.join(OUT_DIR, "Textures")
+os.makedirs(TEX_DIR, exist_ok=True)
+
+FACE_TEX_PATH = os.path.join(TEX_DIR, "Chibi_TacticalGirl_Face.png")
+HAIR_TEX_PATH = os.path.join(TEX_DIR, "Chibi_TacticalGirl_Hair.png")
+
+
 def srgb_to_lin(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
-def make_mat(name, rgba, roughness=0.90, metallic=0.0, specular=0.04):
+
+# ==============================================================================
+# 2. PROCEDURAL HIGH-RES ANIME TEXTURE GENERATORS (1024x1024 FACE + 512x512 HAIR)
+# ==============================================================================
+def save_rgba_array_to_png(arr_srgb, filepath, img_name):
+    """Saves an (H, W, 4) float32 sRGB array (row 0 = bottom, matching Blender UV) to PNG and returns Blender Image."""
+    H, W, _ = arr_srgb.shape
+    img = bpy.data.images.new(name=img_name, width=W, height=H, alpha=True, float_buffer=False)
+    img.colorspace_settings.name = 'sRGB'
+    flat = np.clip(arr_srgb, 0.0, 1.0).astype(np.float32).ravel()
+    img.pixels.foreach_set(flat)
+    img.filepath_raw = filepath
+    img.file_format = 'PNG'
+    img.save()
+    img.reload()
+    try:
+        img.pack()
+    except Exception:
+        pass
+    return img
+
+
+def smoothstep(edge0, edge1, x):
+    t = np.clip((x - edge0) / max(1e-7, (edge1 - edge0)), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def alpha_blend(canvas, mask, rgb):
+    m = np.clip(mask, 0.0, 1.0)[..., None]
+    col = np.array(rgb, dtype=np.float32)[None, None, :]
+    canvas[..., :3] = canvas[..., :3] * (1.0 - m) + col * m
+
+
+def polyline_sdf(u, v, pts, widths):
+    """Exact distance-to-tapered-polyline field for crisp anti-aliased anime eyeliner, brows & mouth."""
+    min_d = np.full_like(u, 1e6, dtype=np.float32)
+    for i in range(len(pts) - 1):
+        x0, y0 = pts[i]
+        x1, y1 = pts[i + 1]
+        w0 = widths[i]
+        w1 = widths[i + 1]
+        dx = x1 - x0
+        dy = y1 - y0
+        l2 = max(1e-9, dx * dx + dy * dy)
+        t = np.clip(((u - x0) * dx + (v - y0) * dy) / l2, 0.0, 1.0)
+        px = x0 + dx * t
+        py = y0 + dy * t
+        dist = np.hypot(u - px, v - py)
+        rad = w0 + (w1 - w0) * t
+        min_d = np.minimum(min_d, dist - rad)
+    return min_d
+
+
+def generate_tactical_girl_face_texture():
+    """
+    Generates a crisp 1024x1024 Avatar-Star / Anime Chibi face texture matching the
+    Tactical Girl 2D reference artwork (fierce amber cat-eyes, dark purple brows,
+    soft peach-ivory skin with subtle blush & cool neutral expression).
+    UV convention:
+      u = 0.5 is nose centerline (u < 0.5 viewer-left / char-right, u > 0.5 viewer-right / char-left)
+      v = 0.5 is head center HZ (v = 0 bottom chin, v = 1 top forehead)
+    """
+    W, H = 1024, 1024
+    aa = 0.0020  # Crisp anti-aliasing edge width in UV space
+
+    us = np.linspace(0.0, 1.0, W, dtype=np.float32)
+    vs = np.linspace(0.0, 1.0, H, dtype=np.float32)
+    U, V = np.meshgrid(us, vs)  # row 0 = bottom (v=0), row H-1 = top (v=1)
+
+    canvas = np.ones((H, W, 4), dtype=np.float32)
+    # Fair warm ivory-peach skin (matches 2D portrait closely!)
+    SKIN_BASE   = (0.985, 0.875, 0.815)
+    SKIN_WARM   = (0.960, 0.810, 0.740)
+    SKIN_SHADOW = (0.875, 0.705, 0.640)
+    BLUSH_COL   = (0.975, 0.690, 0.645)
+
+    canvas[..., 0] = SKIN_BASE[0]
+    canvas[..., 1] = SKIN_BASE[1]
+    canvas[..., 2] = SKIN_BASE[2]
+
+    # Subtle warm cel-shading around forehead hairline & lower jaw (gives Avatar Star hand-painted depth!)
+    forehead_ao = smoothstep(0.62, 0.84, V) * 0.24
+    alpha_blend(canvas, forehead_ao, SKIN_SHADOW)
+
+    jaw_ao = smoothstep(0.28, 0.10, V) * 0.18
+    alpha_blend(canvas, jaw_ao, SKIN_WARM)
+
+    # Soft rosy anime cheek blush under the outer eyes
+    for side in (-1.0, 1.0):
+        bx = 0.5 + side * 0.165
+        by = 0.382
+        d_blush = np.hypot((U - bx) / 0.072, (V - by) / 0.032)
+        blush_mask = (1.0 - smoothstep(0.15, 1.0, d_blush)) * 0.28
+        alpha_blend(canvas, blush_mask, BLUSH_COL)
+
+    # Tiny delicate anime nose shadow (warm cel-shaded triangle slightly left of center, no ugly dark dot!)
+    nose_x = U - 0.496
+    nose_y = V - 0.378
+    d_nose = np.hypot(nose_x / 0.011, nose_y / 0.0085)
+    alpha_blend(canvas, (1.0 - smoothstep(0.3, 1.0, d_nose)) * 0.42, (0.82, 0.60, 0.52))
+    # Tiny bright nose bridge highlight
+    d_nhi = np.hypot((U - 0.501) / 0.006, (V - 0.392) / 0.014)
+    alpha_blend(canvas, (1.0 - smoothstep(0.2, 1.0, d_nhi)) * 0.25, (1.0, 0.96, 0.93))
+
+    # Fierce sharp anime cat-eyes (symmetric for left/right!)
+    for side in (-1.0, 1.0):
+        # Local eye coordinates: ex > 0 points OUTWARD toward ear, ex < 0 points INWARD toward nose
+        cx = 0.5 + side * 0.140
+        cy = 0.468
+        ex = (U - cx) * side
+        ey = V - cy
+
+        # Upper & lower eyelid boundary curves in local eye coords (sharp expressive anime cat-eye!)
+        # Spans ex in [-0.082, +0.092]
+        t_x = np.clip((ex + 0.082) / 0.174, 0.0, 1.0)
+        # Upper lid rises sharply from inner corner, arches high & clean over iris, sweeps to outer wing
+        y_top = (
+            -0.022
+            + 0.088 * np.sin(np.pi * np.power(t_x, 0.76))
+            + 0.028 * t_x
+        )
+        # Lower lid sweeps smoothly downward and rises cleanly toward outer wing
+        y_bot = (
+            -0.032
+            - 0.028 * np.sin(np.pi * np.power(t_x, 0.88))
+            + 0.026 * t_x
+        )
+
+        # Smooth eye aperture mask (strictly inside ex range and between y_bot and y_top)
+        in_x = smoothstep(-0.084, -0.076, ex) * (1.0 - smoothstep(0.086, 0.094, ex))
+        above_bot = smoothstep(-aa * 1.1, aa * 1.1, ey - y_bot)
+        below_top = smoothstep(-aa * 1.1, aa * 1.1, y_top - ey)
+        eye_mask = in_x * above_bot * below_top
+
+        # Crisp white sclera
+        alpha_blend(canvas, eye_mask, (0.998, 0.998, 1.000))
+
+        # Subtle cool blue-grey upper-eyelid shadow across very top of sclera
+        lid_shadow = eye_mask * smoothstep(0.018, 0.000, y_top - ey) * 0.22
+        alpha_blend(canvas, lid_shadow, (0.68, 0.70, 0.82))
+
+        # Large luminous vertical-oval Fiery Golden-Amber Iris (pops brightly like 2D portrait!)
+        ix_c = -0.003
+        iy_c = 0.004
+        rx_i = 0.056
+        ry_i = 0.064
+        r_iris = np.hypot((ex - ix_c) / rx_i, (ey - iy_c) / ry_i)
+        iris_mask = eye_mask * (1.0 - smoothstep(1.0 - aa / rx_i, 1.0 + aa / rx_i, r_iris))
+
+        # Vivid vertical gradient inside iris: fiery copper-orange top -> bright amber -> glowing gold bottom!
+        v_grad = np.clip((ey - (iy_c - ry_i)) / (2.0 * ry_i), 0.0, 1.0)
+        iris_r = np.clip(1.00 - 0.24 * np.power(v_grad, 1.5), 0.0, 1.0)
+        iris_g = np.clip(0.90 - 0.56 * np.power(v_grad, 1.1), 0.0, 1.0)
+        iris_b = np.clip(0.28 - 0.26 * np.power(v_grad, 0.75), 0.0, 1.0)
+
+        # Apply iris gradient
+        m_i = iris_mask[..., None]
+        canvas[..., 0:1] = canvas[..., 0:1] * (1.0 - m_i) + iris_r[..., None] * m_i
+        canvas[..., 1:2] = canvas[..., 1:2] * (1.0 - m_i) + iris_g[..., None] * m_i
+        canvas[..., 2:3] = canvas[..., 2:3] * (1.0 - m_i) + iris_b[..., None] * m_i
+
+        # Luminous lower-iris golden crescent highlight
+        r_glow = np.hypot((ex - ix_c) / (rx_i * 0.76), (ey - (iy_c - 0.025)) / (ry_i * 0.38))
+        glow_mask = iris_mask * (1.0 - smoothstep(0.28, 1.0, r_glow)) * 0.88
+        alpha_blend(canvas, glow_mask, (1.00, 0.94, 0.34))
+
+        # Crisp dark outer iris limbal ring (thin & clean so golden amber stays super bright!)
+        limbal = iris_mask * smoothstep(0.84, 0.97, r_iris) * 0.85
+        alpha_blend(canvas, limbal, (0.16, 0.05, 0.02))
+
+        # Sleek dark anime pupil (proportionate so lots of bright orange-gold iris shows around it!)
+        r_pupil = np.hypot((ex - ix_c) / 0.021, (ey - (iy_c + 0.004)) / 0.026)
+        pupil_mask = iris_mask * (1.0 - smoothstep(0.86, 1.04, r_pupil))
+        alpha_blend(canvas, pupil_mask, (0.08, 0.03, 0.04))
+
+        # Crisp shallow upper iris shadow right under top eyelash
+        upper_iris_sh = iris_mask * smoothstep(0.018, 0.002, y_top - ey) * 0.50
+        alpha_blend(canvas, upper_iris_sh, (0.28, 0.08, 0.02))
+
+        # Crisp anime catchlights (large upper-outer oval + tiny lower-inner spark!)
+        r_hi1 = np.hypot((ex - (ix_c + 0.024)) / 0.016, (ey - (iy_c + 0.024)) / 0.014)
+        alpha_blend(canvas, eye_mask * (1.0 - smoothstep(0.76, 1.02, r_hi1)), (1.0, 1.0, 1.0))
+
+        r_hi2 = np.hypot((ex - (ix_c - 0.022)) / 0.008, (ey - (iy_c - 0.022)) / 0.008)
+        alpha_blend(canvas, eye_mask * (1.0 - smoothstep(0.72, 1.04, r_hi2)), (1.0, 0.99, 0.94))
+
+        # Thick sharp winged jet-black upper eyeliner (drawn in UV space directly!)
+        u_lash_pts = [
+            (cx + side * (-0.084), cy - 0.022),
+            (cx + side * (-0.048), cy + 0.028),
+            (cx + side * ( 0.002), cy + 0.068),
+            (cx + side * ( 0.054), cy + 0.072),
+            (cx + side * ( 0.090), cy + 0.060),
+            (cx + side * ( 0.114), cy + 0.078),
+        ]
+        u_lash_w = [0.0045, 0.0100, 0.0135, 0.0140, 0.0115, 0.0025]
+        d_ulash = polyline_sdf(U, V, u_lash_pts, u_lash_w)
+        alpha_blend(canvas, 1.0 - smoothstep(-aa, aa, d_ulash), (0.04, 0.03, 0.05))
+
+        # Crisp thin lower outer lash line
+        l_lash_pts = [
+            (cx + side * (-0.068), cy - 0.034),
+            (cx + side * (-0.008), cy - 0.052),
+            (cx + side * ( 0.052), cy - 0.036),
+            (cx + side * ( 0.092), cy + 0.006),
+        ]
+        l_lash_w = [0.0020, 0.0030, 0.0040, 0.0034]
+        d_llash = polyline_sdf(U, V, l_lash_pts, l_lash_w)
+        alpha_blend(canvas, (1.0 - smoothstep(-aa, aa, d_llash)) * 0.90, (0.06, 0.04, 0.06))
+
+        # Subtle double-eyelid crease line above the eye
+        crease_pts = [
+            (cx + side * (-0.040), cy + 0.062),
+            (cx + side * ( 0.014), cy + 0.088),
+            (cx + side * ( 0.070), cy + 0.090),
+        ]
+        crease_w = [0.0014, 0.0020, 0.0012]
+        d_crease = polyline_sdf(U, V, crease_pts, crease_w)
+        alpha_blend(canvas, (1.0 - smoothstep(-aa, aa, d_crease)) * 0.50, (0.56, 0.36, 0.34))
+
+        # Sharp determined dark-purple anime eyebrow
+        brow_pts = [
+            (cx + side * (-0.080), cy + 0.082),
+            (cx + side * (-0.020), cy + 0.106),
+            (cx + side * ( 0.045), cy + 0.124),
+            (cx + side * ( 0.096), cy + 0.122),
+        ]
+        brow_w = [0.0045, 0.0076, 0.0070, 0.0025]
+        d_brow = polyline_sdf(U, V, brow_pts, brow_w)
+        alpha_blend(canvas, 1.0 - smoothstep(-aa, aa, d_brow), (0.20, 0.07, 0.34))
+
+    # Cool confident mouth (small clean anime line matching portrait!)
+    mouth_pts = [
+        (0.464, 0.290),
+        (0.494, 0.296),
+        (0.528, 0.292),
+    ]
+    mouth_w = [0.0026, 0.0038, 0.0026]
+    d_mouth = polyline_sdf(U, V, mouth_pts, mouth_w)
+    alpha_blend(canvas, 1.0 - smoothstep(-aa, aa, d_mouth), (0.14, 0.06, 0.08))
+
+    # Tiny soft lower-lip shadow under the mouth
+    d_lip = np.hypot((U - 0.496) / 0.020, (V - 0.275) / 0.006)
+    alpha_blend(canvas, (1.0 - smoothstep(0.2, 1.0, d_lip)) * 0.26, (0.82, 0.60, 0.54))
+
+    return save_rgba_array_to_png(canvas, FACE_TEX_PATH, "Chibi_TacticalGirl_Face.png")
+
+
+def generate_tactical_girl_hair_texture():
+    """
+    Generates a 512x512 stylized Avatar-Star hand-painted violet-purple hair gradient texture.
+    v = 0 is hair root (deep indigo-plum), v = 1 is hair tip (vibrant violet-magenta),
+    with a crisp stylized anime sheen band around v = 0.56 and subtle longitudinal strand shading!
+    """
+    W, H = 512, 512
+    us = np.linspace(0.0, 1.0, W, dtype=np.float32)
+    vs = np.linspace(0.0, 1.0, H, dtype=np.float32)
+    U, V = np.meshgrid(us, vs)
+
+    # Vertical root-to-tip rich purple ramp (matches 2D portrait vivid violet!)
+    root_col = np.array([0.24, 0.07, 0.44], dtype=np.float32)
+    mid_col  = np.array([0.52, 0.16, 0.86], dtype=np.float32)
+    tip_col  = np.array([0.66, 0.26, 0.96], dtype=np.float32)
+    hi_col   = np.array([0.84, 0.54, 1.00], dtype=np.float32)
+
+    t1 = smoothstep(0.0, 0.45, V)[..., None]
+    t2 = smoothstep(0.45, 1.0, V)[..., None]
+    col = root_col * (1.0 - t1) + mid_col * t1
+    col = col * (1.0 - t2) + tip_col * t2
+
+    # Fine hand-painted longitudinal strand variation along U
+    strand_wave = (
+        0.50 * np.sin(U * 2.0 * np.pi * 6.0)
+        + 0.30 * np.sin(U * 2.0 * np.pi * 14.0 + 1.2)
+        + 0.20 * np.sin(U * 2.0 * np.pi * 27.0 + 0.5)
+    )
+    col = col * (1.0 + 0.08 * strand_wave[..., None])
+
+    # Anime cel-shaded highlight sheen band across mid-crown (broken gently by strands!)
+    band_center = 0.54 + 0.03 * np.sin(U * 2.0 * np.pi * 5.0)
+    band = np.exp(-np.power((V - band_center) / 0.075, 2.0)) * (0.55 + 0.45 * np.clip(strand_wave + 0.3, 0.0, 1.0))
+    col = col * (1.0 - 0.38 * band[..., None]) + hi_col * (0.38 * band[..., None])
+
+    # Slightly darker edges on u = 0 and u = 1 so every ribbon strand has crisp self-shadowing!
+    edge_shade = 1.0 - 0.16 * np.power(np.abs(U - 0.5) * 2.0, 2.2)
+    col = col * edge_shade[..., None]
+
+    canvas = np.ones((H, W, 4), dtype=np.float32)
+    canvas[..., :3] = np.clip(col, 0.0, 1.0)
+    return save_rgba_array_to_png(canvas, HAIR_TEX_PATH, "Chibi_TacticalGirl_Hair.png")
+
+
+IMG_FACE = generate_tactical_girl_face_texture()
+IMG_HAIR = generate_tactical_girl_hair_texture()
+
+
+# ==============================================================================
+# 3. CALIBRATED URP-READY MATERIALS (MATTE AVATAR-STAR PALETTE)
+# ==============================================================================
+def make_mat(name, rgba, roughness=0.90, metallic=0.0, specular=0.04, image=None):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes.get("Principled BSDF")
     lin_rgba = (srgb_to_lin(rgba[0]), srgb_to_lin(rgba[1]), srgb_to_lin(rgba[2]), rgba[3])
-    bsdf = mat.node_tree.nodes.get("Principled BSDF")
     if bsdf:
-        bsdf.inputs["Base Color"].default_value = lin_rgba
+        if image is not None:
+            tex = nt.nodes.new("ShaderNodeTexImage")
+            tex.image = image
+            tex.extension = 'EXTEND'
+            nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        else:
+            bsdf.inputs["Base Color"].default_value = lin_rgba
         bsdf.inputs["Roughness"].default_value = roughness
         if "Metallic" in bsdf.inputs:
             bsdf.inputs["Metallic"].default_value = metallic
@@ -32,32 +347,41 @@ def make_mat(name, rgba, roughness=0.90, metallic=0.0, specular=0.04):
     mat.specular_intensity = specular
     return mat
 
-MAT_SKIN         = make_mat("Mat_Skin",         (0.96, 0.80, 0.70, 1.0), roughness=0.90, specular=0.04)
-MAT_HAIR_PURPLE  = make_mat("Mat_Hair_Purple",  (0.44, 0.18, 0.68, 1.0), roughness=0.88, specular=0.05)
-MAT_HAIR_DARK    = make_mat("Mat_Hair_Dark",    (0.24, 0.08, 0.40, 1.0), roughness=0.90, specular=0.04)
-MAT_CAP_BLACK    = make_mat("Mat_Cap_Black",    (0.16, 0.17, 0.20, 1.0), roughness=0.92, specular=0.03)
-MAT_DARK_STRAP   = make_mat("Mat_Dark_Strap",   (0.10, 0.11, 0.13, 1.0), roughness=0.90, specular=0.04)
-MAT_GLOSSY_BLACK = make_mat("Mat_Glossy_Black", (0.04, 0.04, 0.05, 1.0), roughness=0.06, specular=0.85)
-MAT_JACKET_GOLD  = make_mat("Mat_Jacket_Gold",  (0.88, 0.66, 0.18, 1.0), roughness=0.90, specular=0.04)
-MAT_ARMOR_GREY   = make_mat("Mat_Armor_Grey",   (0.26, 0.28, 0.33, 1.0), roughness=0.78, metallic=0.08, specular=0.08)
-MAT_METAL_SILVER = make_mat("Mat_Metal_Silver", (0.72, 0.76, 0.82, 1.0), roughness=0.45, metallic=0.55, specular=0.25)
-MAT_GLOVE_BLUE   = make_mat("Mat_Glove_Blue",   (0.18, 0.34, 0.62, 1.0), roughness=0.88, specular=0.05)
-MAT_BELT_PURPLE  = make_mat("Mat_Belt_Purple",  (0.45, 0.20, 0.65, 1.0), roughness=0.90, specular=0.04)
-MAT_PANTS_NAVY   = make_mat("Mat_Pants_Navy",   (0.20, 0.28, 0.42, 1.0), roughness=0.92, specular=0.03)
-MAT_EYE_WHITE    = make_mat("Mat_Eye_White",    (0.99, 0.99, 1.00, 1.0), roughness=0.12, specular=0.55)
-MAT_EYE_AMBER    = make_mat("Mat_Eye_Amber",    (0.95, 0.46, 0.06, 1.0), roughness=0.10, specular=0.65)
-MAT_EYE_GOLD_HI  = make_mat("Mat_Eye_Gold_Hi",  (1.00, 0.76, 0.18, 1.0), roughness=0.08, specular=0.70)
+
+MAT_FACE_TEX     = make_mat("Mat_Face_Texture", (1.00, 1.00, 1.00, 1.0), roughness=0.90, specular=0.03, image=IMG_FACE)
+MAT_SKIN         = make_mat("Mat_Skin",         (0.985, 0.875, 0.815, 1.0), roughness=0.90, specular=0.03)
+MAT_HAIR_PURPLE  = make_mat("Mat_Hair_Purple",  (1.00, 1.00, 1.00, 1.0), roughness=0.84, specular=0.06, image=IMG_HAIR)
+MAT_HAIR_DARK    = make_mat("Mat_Hair_Dark",    (0.24, 0.08, 0.44, 1.0), roughness=0.90, specular=0.04)
+MAT_CAP_BLACK    = make_mat("Mat_Cap_Black",    (0.14, 0.15, 0.18, 1.0), roughness=0.92, specular=0.03)
+MAT_DARK_STRAP   = make_mat("Mat_Dark_Strap",   (0.10, 0.11, 0.14, 1.0), roughness=0.90, specular=0.04)
+MAT_JACKET_GOLD  = make_mat("Mat_Jacket_Gold",  (0.96, 0.75, 0.10, 1.0), roughness=0.88, specular=0.04)
+MAT_JACKET_SHADE = make_mat("Mat_Jacket_Shade", (0.76, 0.54, 0.06, 1.0), roughness=0.92, specular=0.03)
+MAT_ARMOR_GREY   = make_mat("Mat_Armor_Grey",   (0.27, 0.28, 0.34, 1.0), roughness=0.76, metallic=0.08, specular=0.08)
+MAT_METAL_SILVER = make_mat("Mat_Metal_Silver", (0.76, 0.80, 0.86, 1.0), roughness=0.42, metallic=0.65, specular=0.25)
+MAT_GLOVE_BLUE   = make_mat("Mat_Glove_Blue",   (0.16, 0.36, 0.82, 1.0), roughness=0.86, specular=0.05)
+MAT_BELT_PURPLE  = make_mat("Mat_Belt_Purple",  (0.46, 0.18, 0.74, 1.0), roughness=0.88, specular=0.04)
+MAT_PANTS_NAVY   = make_mat("Mat_Pants_Navy",   (0.18, 0.26, 0.46, 1.0), roughness=0.92, specular=0.03)
+
 
 # ==============================================================================
-# 2. GEOMETRY HELPERS (HIGH-SUBDIVISION TOY-CHIBI PARTS)
+# 4. GEOMETRY HELPERS (WITH CLEAN AUTOMATIC UV SUPPORT)
 # ==============================================================================
-def assign_single_material(obj, mat):
+def ensure_uv_layer(mesh, default_uv=(0.5, 0.5)):
+    if not mesh.uv_layers:
+        uv_layer = mesh.uv_layers.new(name="UVMap")
+        for loop in uv_layer.data:
+            loop.uv = default_uv
+
+
+def assign_single_material(obj, mat, default_uv=(0.5, 0.5)):
     obj.data.materials.clear()
     obj.data.materials.append(mat)
     for poly in obj.data.polygons:
         poly.material_index = 0
         poly.use_smooth = True
+    ensure_uv_layer(obj.data, default_uv=default_uv)
     return obj
+
 
 def create_loft_object(name, rings, mat, cap_start=True, cap_end=True, segments=32):
     bm = bmesh.new()
@@ -98,7 +422,8 @@ def create_loft_object(name, rings, mat, cap_start=True, cap_end=True, segments=
     bpy.context.collection.objects.link(o)
     return assign_single_material(o, mat)
 
-def create_rounded_box(name, center, size, mat, rot_euler=(0.0, 0.0, 0.0), bevel_width=0.015, segments=3):
+
+def create_rounded_box(name, center, size, mat, rot_euler=(0.0, 0.0, 0.0), bevel_width=0.014, segments=3):
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
     rot_mat = Euler(rot_euler, 'XYZ').to_matrix()
@@ -114,7 +439,8 @@ def create_rounded_box(name, center, size, mat, rot_euler=(0.0, 0.0, 0.0), bevel
     bpy.context.collection.objects.link(o)
     return assign_single_material(o, mat)
 
-def create_ellipsoid(name, center, radii, mat, rot_euler=(0.0, 0.0, 0.0), u_seg=28, v_seg=20):
+
+def create_ellipsoid(name, center, radii, mat, rot_euler=(0.0, 0.0, 0.0), u_seg=28, v_seg=20, uv_v=0.40):
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=u_seg, v_segments=v_seg, radius=1.0)
     rot_mat = Euler(rot_euler, 'XYZ').to_matrix()
@@ -127,14 +453,14 @@ def create_ellipsoid(name, center, radii, mat, rot_euler=(0.0, 0.0, 0.0), u_seg=
     bm.free()
     o = bpy.data.objects.new(name, m)
     bpy.context.collection.objects.link(o)
-    return assign_single_material(o, mat)
+    return assign_single_material(o, mat, default_uv=(0.5, uv_v))
 
-def create_ribbon_hair_strand(name, points_widths, mat, segments=22, substeps=3):
+
+def create_ribbon_hair_strand(name, points_widths, mat, segments=18, substeps=4, v_start=0.05, v_end=0.98, radial_center=Vector((0.0, 0.02, 1.72))):
     """
-    Creates a smooth, flat-arched anime hair lock (crescent/lens cross-section)
-    by subdividing control points with smooth Catmull-Rom interpolation.
+    Creates a sleek, sharp-edged anime hair lock with Catmull-Rom spline smoothing AND
+    clean root-to-tip UV mapping (u = across width, v = root->tip) for hand-painted anime hair shading!
     """
-    # Smoothly subdivide control points so strands have silky curves without sharp kinks
     dense_pts = []
     K = len(points_widths)
     for i in range(K - 1):
@@ -147,7 +473,6 @@ def create_ribbon_hair_strand(name, points_widths, mat, segments=22, substeps=3)
             u = s / substeps
             u2 = u * u
             u3 = u2 * u
-            # Catmull-Rom spline position
             pt = 0.5 * (
                 (2.0 * p1)
                 + (-p0 + p2) * u
@@ -160,15 +485,23 @@ def create_ribbon_hair_strand(name, points_widths, mat, segments=22, substeps=3)
             dense_pts.append((pt, wu, tv, rr))
 
     bm = bmesh.new()
+    uv_layer = bm.loops.layers.uv.new("UVMap")
     N = segments
     vert_rings = []
+    ring_vs = []
+    total_rings = len(dense_pts)
+
     for idx, (pt, wu, tv, roll_rad) in enumerate(dense_pts):
-        if idx < len(dense_pts) - 1:
+        if idx < total_rings - 1:
             tangent = (dense_pts[idx + 1][0] - pt).normalized()
         else:
             tangent = (pt - dense_pts[idx - 1][0]).normalized()
-        radial = (pt - Vector((0.0, 0.02, 1.72)))
-        radial = (radial - tangent * radial.dot(tangent)).normalized()
+        radial = (pt - radial_center)
+        radial = radial - tangent * radial.dot(tangent)
+        if radial.length < 1e-5:
+            radial = Vector((0.0, -1.0, 0.0))
+        else:
+            radial.normalize()
         side_vec = tangent.cross(radial).normalized()
         ca, sa = math.cos(roll_rad), math.sin(roll_rad)
         u_dir = side_vec * ca + radial * sa
@@ -179,27 +512,43 @@ def create_ribbon_hair_strand(name, points_widths, mat, segments=22, substeps=3)
             ang = (2.0 * math.pi * i) / N
             cu = math.cos(ang)
             sv = math.sin(ang)
-            arch = (1.0 - cu * cu) * 0.35 * tv
-            p = pt + u_dir * (cu * wu) + v_dir * (sv * tv + arch)
+            # Crisp anime diamond-arch cross-section (sharp outer edges, softly ridged center!)
+            edge_pinch = 1.0 - 0.18 * (cu * cu)
+            arch = (1.0 - cu * cu) * 0.48 * tv
+            p = pt + u_dir * (cu * wu) + v_dir * (sv * tv * edge_pinch + arch)
             ring.append(bm.verts.new(p))
         vert_rings.append(ring)
+        frac = idx / max(1, total_rings - 1)
+        ring_vs.append(v_start + (v_end - v_start) * frac)
 
-    for r_idx in range(len(vert_rings) - 1):
+    for r_idx in range(total_rings - 1):
         r0 = vert_rings[r_idx]
         r1 = vert_rings[r_idx + 1]
+        v0 = ring_vs[r_idx]
+        v1 = ring_vs[r_idx + 1]
         for i in range(N):
             ni = (i + 1) % N
-            bm.faces.new((r0[i], r0[ni], r1[ni], r1[i]))
+            u0 = 0.5 + 0.48 * math.cos((2.0 * math.pi * i) / N)
+            u1 = 0.5 + 0.48 * math.cos((2.0 * math.pi * ni) / N)
+            f = bm.faces.new((r0[i], r0[ni], r1[ni], r1[i]))
+            f.loops[0][uv_layer].uv = (u0, v0)
+            f.loops[1][uv_layer].uv = (u1, v0)
+            f.loops[2][uv_layer].uv = (u1, v1)
+            f.loops[3][uv_layer].uv = (u0, v1)
 
     r0 = vert_rings[0]
     c0 = bm.verts.new(sum((v.co for v in r0), Vector((0, 0, 0))) / N)
     for i in range(N):
-        bm.faces.new((r0[(i + 1) % N], r0[i], c0))
+        f = bm.faces.new((r0[(i + 1) % N], r0[i], c0))
+        for lp in f.loops:
+            lp[uv_layer].uv = (0.5, v_start)
 
     rl = vert_rings[-1]
     cl = bm.verts.new(sum((v.co for v in rl), Vector((0, 0, 0))) / N)
     for i in range(N):
-        bm.faces.new((rl[i], rl[(i + 1) % N], cl))
+        f = bm.faces.new((rl[i], rl[(i + 1) % N], cl))
+        for lp in f.loops:
+            lp[uv_layer].uv = (0.5, v_end)
 
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     m = bpy.data.meshes.new(name)
@@ -207,117 +556,13 @@ def create_ribbon_hair_strand(name, points_widths, mat, segments=22, substeps=3)
     bm.free()
     o = bpy.data.objects.new(name, m)
     bpy.context.collection.objects.link(o)
-    return assign_single_material(o, mat)
+    o.data.materials.clear()
+    o.data.materials.append(mat)
+    for poly in o.data.polygons:
+        poly.material_index = 0
+        poly.use_smooth = True
+    return o
 
-def head_surface_point(x, z, hz=1.70, surface_offset=0.002):
-    """
-    Computes the exact front (-Y) surface point and outward normal on the Chibi head
-    at horizontal (x) and vertical (z) so facial features conform 100% flush to the face!
-    """
-    zn = max(-0.98, min(0.98, (z - hz) / 0.355))
-    t_h = (zn + 1.0) * 0.5
-    cheek = (math.sin(t_h * math.pi) ** 1.25) * 0.024
-    chin_taper = 1.0 - max(0.0, (-zn - 0.20)) * 0.18
-    rx = (0.388 * chin_taper) + cheek
-    ry = (0.365 * (0.94 + 0.06 * t_h)) + cheek * 0.65
-
-    xn = max(-0.96, min(0.96, x / rx))
-    yn_sq = max(0.02, 1.0 - xn * xn - zn * zn)
-    yn = -math.sqrt(yn_sq)  # Front face is -Y
-    y_chin_shift = -0.014 * max(0.0, -zn - 0.2) * (-yn)
-    y = yn * ry + y_chin_shift
-    nrm = Vector((xn / rx, yn / ry, zn / 0.355)).normalized()
-    return Vector((x, y, z)) + nrm * surface_offset, nrm
-
-def create_face_disc(name, cx, cz, rx, rz, mat, hz=1.70, offset=0.0015, thickness=0.0010, tilt_rad=0.0, rings=6, segs=40):
-    """Creates a smooth, flush-contoured oval patch hugging the head curvature."""
-    bm = bmesh.new()
-    ca, sa = math.cos(tilt_rad), math.sin(tilt_rad)
-    front_rings = []
-    back_rings = []
-    for r_i in range(1, rings + 1):
-        frac = r_i / rings
-        f_ring, b_ring = [], []
-        for s_i in range(segs):
-            ang = (2.0 * math.pi * s_i) / segs
-            lx = math.cos(ang) * rx * frac
-            lz = math.sin(ang) * rz * frac
-            wx = cx + lx * ca - lz * sa
-            wz = cz + lx * sa + lz * ca
-            pt, nrm = head_surface_point(wx, wz, hz=hz, surface_offset=offset)
-            dome = math.sqrt(max(0.0, 1.0 - frac * frac * 0.85)) * thickness
-            f_ring.append(bm.verts.new(pt + nrm * dome))
-            b_ring.append(bm.verts.new(pt - nrm * 0.0015))
-        front_rings.append(f_ring)
-        back_rings.append(b_ring)
-
-    c_pt, c_nrm = head_surface_point(cx, cz, hz=hz, surface_offset=offset)
-    c_front = bm.verts.new(c_pt + c_nrm * thickness)
-    c_back  = bm.verts.new(c_pt - c_nrm * 0.0015)
-
-    for s_i in range(segs):
-        ni = (s_i + 1) % segs
-        bm.faces.new((c_front, front_rings[0][s_i], front_rings[0][ni]))
-        bm.faces.new((c_back, back_rings[0][ni], back_rings[0][s_i]))
-
-    for r_i in range(rings - 1):
-        for s_i in range(segs):
-            ni = (s_i + 1) % segs
-            bm.faces.new((front_rings[r_i][s_i], front_rings[r_i+1][s_i], front_rings[r_i+1][ni], front_rings[r_i][ni]))
-            bm.faces.new((back_rings[r_i][ni], back_rings[r_i+1][ni], back_rings[r_i+1][s_i], back_rings[r_i][s_i]))
-
-    outer = rings - 1
-    for s_i in range(segs):
-        ni = (s_i + 1) % segs
-        bm.faces.new((front_rings[outer][s_i], back_rings[outer][s_i], back_rings[outer][ni], front_rings[outer][ni]))
-
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    m = bpy.data.meshes.new(name)
-    bm.to_mesh(m)
-    bm.free()
-    o = bpy.data.objects.new(name, m)
-    bpy.context.collection.objects.link(o)
-    return assign_single_material(o, mat)
-
-def create_face_curved_strip(name, pts_xz_halfw, mat, hz=1.70, offset=0.005, thickness=0.005):
-    """Creates a flush-contoured eyelash or eyebrow strip following the head surface."""
-    bm = bmesh.new()
-    top_f, bot_f, top_b, bot_b = [], [], [], []
-    for i, (px, pz, hw) in enumerate(pts_xz_halfw):
-        if i < len(pts_xz_halfw) - 1:
-            dx = pts_xz_halfw[i+1][0] - px
-            dz = pts_xz_halfw[i+1][1] - pz
-        else:
-            dx = px - pts_xz_halfw[i-1][0]
-            dz = pz - pts_xz_halfw[i-1][1]
-        length = max(1e-6, math.hypot(dx, dz))
-        nx, nz = -dz / length, dx / length
-
-        pt_t, nrm_t = head_surface_point(px + nx * hw, pz + nz * hw, hz=hz, surface_offset=offset)
-        pt_b, nrm_b = head_surface_point(px - nx * hw, pz - nz * hw, hz=hz, surface_offset=offset)
-
-        top_f.append(bm.verts.new(pt_t + nrm_t * thickness))
-        bot_f.append(bm.verts.new(pt_b + nrm_b * thickness))
-        top_b.append(bm.verts.new(pt_t - nrm_t * 0.003))
-        bot_b.append(bm.verts.new(pt_b - nrm_b * 0.003))
-
-    for i in range(len(pts_xz_halfw) - 1):
-        bm.faces.new((bot_f[i], bot_f[i+1], top_f[i+1], top_f[i]))
-        bm.faces.new((top_b[i], top_b[i+1], bot_b[i+1], bot_b[i]))
-        bm.faces.new((top_f[i], top_f[i+1], top_b[i+1], top_b[i]))
-        bm.faces.new((bot_b[i], bot_b[i+1], bot_f[i+1], bot_f[i]))
-
-    bm.faces.new((bot_b[0], bot_f[0], top_f[0], top_b[0]))
-    last = len(pts_xz_halfw) - 1
-    bm.faces.new((bot_f[last], bot_b[last], top_b[last], top_f[last]))
-
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    m = bpy.data.meshes.new(name)
-    bm.to_mesh(m)
-    bm.free()
-    o = bpy.data.objects.new(name, m)
-    bpy.context.collection.objects.link(o)
-    return assign_single_material(o, mat)
 
 def join_objects_into(target_obj, obj_list, final_name):
     bpy.ops.object.select_all(action='DESELECT')
@@ -333,347 +578,409 @@ def join_objects_into(target_obj, obj_list, final_name):
         poly.use_smooth = True
     return target_obj
 
+
 # ==============================================================================
-# 3. BUILD NENDOROID / TOY-CHIBI HEAD (Chibi_Base_Head)
-#    Matched to ChibiGhostOperator height & quality, with 25% sleeker head radius
+# 5. BUILD AVATAR-STAR INSPIRED ANIME CHIBI HEAD (Chibi_Base_Head)
+#    - Sculpted V-chin anime jaw + high-res 1024x1024 UV Face Texture
+#    - Sleek black athletic headband (NO baseball cap!)
+#    - Dynamic jagged violet bangs + dramatic high side-swept spiky ponytail!
 # ==============================================================================
 def build_tactical_girl_head():
     head_parts = []
-    HZ = 1.70  # Compact Toy-Chibi head center (sits right above popped collar at z=1.36)
+    HZ = 1.69  # Compact Avatar-Star Chibi head center
 
-    # 3.1 Smooth Nendoroid Head Mesh
+    # 5.1 Sculpted Anime Chibi Head Mesh (V-tapered jaw + flatter anime front plane!)
     bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=56, v_segments=40, radius=1.0)
+    bmesh.ops.create_uvsphere(bm, u_segments=64, v_segments=48, radius=1.0)
+    uv_layer = bm.loops.layers.uv.new("UVMap")
+
     for v in bm.verts:
         x, y, z = v.co.x, v.co.y, v.co.z
-        t_h = (z + 1.0) * 0.5
-        cheek = (math.sin(t_h * math.pi) ** 1.25) * 0.024
-        chin_taper = 1.0 - max(0.0, (-z - 0.20)) * 0.18
-        rx = (0.388 * chin_taper) + cheek
-        ry = (0.365 * (0.94 + 0.06 * t_h)) + cheek * 0.65
-        rz = 0.355
-        y_chin_shift = -0.014 * max(0.0, -z - 0.2) * max(0.0, -y)
-        v.co = Vector((x * rx, y * ry + y_chin_shift, HZ + z * rz))
+        # Soft full cheeks around z = -0.25, tapering smoothly into a crisp Avatar-Star V-chin!
+        cheek_bulge = math.exp(-((z + 0.16) / 0.42) ** 2) * 0.022
+        if z < -0.18:
+            t_chin = min(1.0, (-z - 0.18) / 0.82)
+            jaw_taper_x = 1.0 - 0.36 * (t_chin ** 1.35)
+            jaw_taper_y = 1.0 - 0.24 * (t_chin ** 1.30)
+        else:
+            jaw_taper_x = 1.0
+            jaw_taper_y = 1.0
+
+        rx = 0.378 * jaw_taper_x + cheek_bulge
+        ry = 0.348 * jaw_taper_y + cheek_bulge * 0.55
+        rz = 0.358
+
+        vx = x * rx
+        vy = y * ry
+        vz = HZ + z * rz
+
+        # Gentle flattening on the front eye/cheek plane so anime eyes read clean & sharp!
+        if y < -0.25:
+            front_f = (-y - 0.25) / 0.75
+            vy += 0.018 * front_f * (1.0 - abs(x) * 0.5)
+
+        # Subtle forward chin point at the bottom front
+        if y < 0.0 and z < -0.45:
+            t_pt = min(1.0, (-z - 0.45) / 0.55)
+            vy -= 0.018 * t_pt * max(0.0, -y) * (1.0 - abs(x))
+
+        # Tiny sculpted anime nose bridge bump
+        if y < -0.5:
+            d_n = math.hypot(x / 0.11, (z + 0.18) / 0.12)
+            if d_n < 1.0:
+                vy -= 0.012 * ((1.0 - d_n * d_n) ** 1.8)
+
+        v.co = Vector((vx, vy, vz))
+
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+    # Assign clean cylindrical-planar front UV coordinates to every face loop
+    for f in bm.faces:
+        center = f.calc_center_median()
+        if center.y <= 0.03:
+            f.material_index = 0  # MAT_FACE_TEX
+            for lp in f.loops:
+                co = lp.vert.co
+                theta = math.atan2(co.x, max(0.01, -co.y))
+                u = 0.5 + (theta / (0.50 * math.pi)) * 0.46
+                v_uv = 0.5 + ((co.z - HZ) / 0.365) * 0.44
+                lp[uv_layer].uv = (max(0.01, min(0.99, u)), max(0.01, min(0.99, v_uv)))
+        else:
+            f.material_index = 1  # MAT_SKIN
+            for lp in f.loops:
+                lp[uv_layer].uv = (0.04, 0.04)
+
     m_head = bpy.data.meshes.new("Chibi_Base_Head")
     bm.to_mesh(m_head)
     bm.free()
     head_base = bpy.data.objects.new("Chibi_Base_Head", m_head)
     bpy.context.collection.objects.link(head_base)
-    assign_single_material(head_base, MAT_SKIN)
+    head_base.data.materials.append(MAT_FACE_TEX)
+    head_base.data.materials.append(MAT_SKIN)
+    for poly in head_base.data.polygons:
+        poly.use_smooth = True
     head_parts.append(head_base)
 
-    # 3.2 Cute Sculpted Anime Ears
-    for side in [1.0, -1.0]:
+    # 5.2 Cute Sculpted Anime Ears
+    for side in (1.0, -1.0):
         ear = create_ellipsoid(
             f"Ear_{side}",
-            (side * 0.382, 0.015, HZ - 0.035),
-            (0.052, 0.038, 0.078),
+            (side * 0.365, 0.018, HZ - 0.035),
+            (0.046, 0.034, 0.072),
             MAT_SKIN,
-            rot_euler=(0.08, side * -0.22, side * 0.14)
+            rot_euler=(0.06, side * -0.20, side * 0.16)
         )
         head_parts.append(ear)
 
-    # 3.3 Flush-Contoured Nendoroid Anime Eyes (Sleek Almond Cat-Eye + Zero Shadow Shelves!)
-    for side in [1.0, -1.0]:
-        ex = side * 0.146
-        ez = HZ - 0.036
+    # 5.3 Sculpted Layered Purple Hair Crown & Back Shell (Replaces cap completely!)
+    bm_hcap = bmesh.new()
+    bmesh.ops.create_uvsphere(bm_hcap, u_segments=48, v_segments=32, radius=1.0)
+    uv_h = bm_hcap.loops.layers.uv.new("UVMap")
+    for v in bm_hcap.verts:
+        x, y, z = v.co.x, v.co.y, v.co.z
+        # Slightly puffed anime hair crown, hugging the back/top skull cleanly and tucked behind forehead
+        rx = 0.402 + 0.014 * max(0.0, z)
+        ry = 0.382 + 0.015 * max(0.0, y)
+        rz = 0.380
+        # Open the front face cutout cleanly higher above brows so zero purple rim peeks behind bangs!
+        if y < -0.14 and z < 0.44:
+            push = min(1.0, (-y - 0.14) / 0.86) * min(1.0, (0.44 - z) / 0.65)
+            ry *= (1.0 - 0.34 * push)
+            rx *= (1.0 - 0.12 * push)
+        v.co = Vector((x * rx, y * ry + 0.028, HZ + 0.025 + z * rz))
+    bmesh.ops.recalc_face_normals(bm_hcap, faces=bm_hcap.faces)
+    for f in bm_hcap.faces:
+        for lp in f.loops:
+            co = lp.vert.co
+            u_val = 0.5 + 0.45 * math.sin(math.atan2(co.x, co.y) * 2.0)
+            v_val = max(0.08, min(0.88, 0.18 + (co.z - (HZ - 0.32)) / 0.72 * 0.65))
+            lp[uv_h].uv = (u_val, v_val)
+    m_hcap = bpy.data.meshes.new("Hair_CrownShell")
+    bm_hcap.to_mesh(m_hcap)
+    bm_hcap.free()
+    hair_crown = bpy.data.objects.new("Hair_CrownShell", m_hcap)
+    bpy.context.collection.objects.link(hair_crown)
+    hair_crown.data.materials.append(MAT_HAIR_PURPLE)
+    for poly in hair_crown.data.polygons:
+        poly.use_smooth = True
+    head_parts.append(hair_crown)
 
-        # Dark outer eye socket / lash frame (tilted upward toward outer temple for sharp anime look!)
-        head_parts.append(create_face_disc(
-            f"EyeFrame_{side}", ex, ez + 0.004, 0.098, 0.068,
-            MAT_DARK_STRAP, hz=HZ, offset=0.0006, thickness=0.0008, tilt_rad=side * 0.11
-        ))
-        # Crisp White Sclera (almond-shaped)
-        head_parts.append(create_face_disc(
-            f"Sclera_{side}", ex, ez, 0.090, 0.058,
-            MAT_EYE_WHITE, hz=HZ, offset=0.0011, thickness=0.0009, tilt_rad=side * 0.10
-        ))
-        # Rich Amber-Orange Iris
-        head_parts.append(create_face_disc(
-            f"Iris_{side}", ex * 0.95, ez - 0.002, 0.060, 0.056,
-            MAT_EYE_AMBER, hz=HZ, offset=0.0017, thickness=0.0010, tilt_rad=0.0
-        ))
-        # Golden lower iris glow crescent
-        head_parts.append(create_face_disc(
-            f"IrisGlow_{side}", ex * 0.95, ez - 0.018, 0.042, 0.025,
-            MAT_EYE_GOLD_HI, hz=HZ, offset=0.0022, thickness=0.0009, tilt_rad=0.0
-        ))
-        # Deep Glossy Black Pupil (matches Ghost's glossy eye sheen!)
-        head_parts.append(create_face_disc(
-            f"Pupil_{side}", ex * 0.94, ez + 0.002, 0.033, 0.035,
-            MAT_GLOSSY_BLACK, hz=HZ, offset=0.0026, thickness=0.0010, tilt_rad=0.0
-        ))
-        # Large Upper-Outer White Catchlight + Small Lower-Inner Catchlight
-        head_parts.append(create_face_disc(
-            f"Hi1_{side}", ex + side * 0.024, ez + 0.020, 0.018, 0.016,
-            MAT_EYE_WHITE, hz=HZ, offset=0.0031, thickness=0.0009
-        ))
-        head_parts.append(create_face_disc(
-            f"Hi2_{side}", ex - side * 0.020, ez - 0.020, 0.010, 0.009,
-            MAT_EYE_WHITE, hz=HZ, offset=0.0031, thickness=0.0008
-        ))
+    # 5.4 Sleek Wide Matte-Black Athletic Headband (Prouder & clearly visible like 2D portrait!)
+    # Curves cleanly over upper-front crown right behind the bangs and tucks behind both ears
+    bm_hb = bmesh.new()
+    hb_steps = 36
+    hb_half_w = 0.050
+    hb_thick = 0.032
+    rings_hb = []
+    for i in range(hb_steps):
+        t = i / (hb_steps - 1)
+        # Arc from right-ear (-0.56*pi) over top crown (0) to left-ear (+0.56*pi)
+        ang = (-0.58 * math.pi) + t * (1.16 * math.pi)
+        sx = math.sin(ang)
+        cz = math.cos(ang)
+        # Sits prominently across upper-front crown right behind the bangs!
+        cx = sx * 0.415
+        cz_pos = HZ + 0.036 + cz * 0.390
+        cy = -0.145 * (max(0.0, cz) ** 0.95) + 0.055 * (1.0 - max(0.0, cz))
+        # Taper slightly near ear tips
+        w_scale = 0.68 + 0.32 * max(0.0, cz)
+        hw = hb_half_w * w_scale
+        out_n = Vector((sx, -0.28 * cz, cz)).normalized()
+        fwd_t = Vector((0.0, 1.0, 0.25 * cz)).normalized()
+        fwd_t = (fwd_t - out_n * fwd_t.dot(out_n)).normalized()
 
-        # Flush Winged Upper Eyeliner Strip (cuts cleanly across upper iris!)
-        lash_pts = [
-            (ex - side * 0.086, ez + 0.008, 0.009),
-            (ex - side * 0.032, ez + 0.042, 0.016),
-            (ex + side * 0.028, ez + 0.052, 0.019),
-            (ex + side * 0.086, ez + 0.046, 0.016),
-            (ex + side * 0.114, ez + 0.060, 0.006),
+        base = Vector((cx, cy, cz_pos))
+        ring = [
+            bm_hb.verts.new(base - fwd_t * hw - out_n * 0.008),
+            bm_hb.verts.new(base - fwd_t * (hw * 0.85) + out_n * hb_thick),
+            bm_hb.verts.new(base + fwd_t * (hw * 0.85) + out_n * hb_thick),
+            bm_hb.verts.new(base + fwd_t * hw - out_n * 0.008),
         ]
-        head_parts.append(create_face_curved_strip(
-            f"LashStrip_{side}", lash_pts, MAT_DARK_STRAP, hz=HZ, offset=0.0024, thickness=0.0014
-        ))
+        rings_hb.append(ring)
 
-        # Flush Determined Purple Eyebrow Strip (sloping down toward center!)
-        brow_pts = [
-            (ex - side * 0.084, ez + 0.078, 0.011),
-            (ex - side * 0.020, ez + 0.096, 0.015),
-            (ex + side * 0.045, ez + 0.112, 0.014),
-            (ex + side * 0.095, ez + 0.108, 0.007),
-        ]
-        head_parts.append(create_face_curved_strip(
-            f"BrowStrip_{side}", brow_pts, MAT_HAIR_DARK, hz=HZ, offset=0.0020, thickness=0.0012
-        ))
+    for r_i in range(hb_steps - 1):
+        r0, r1 = rings_hb[r_i], rings_hb[r_i + 1]
+        for k in range(4):
+            nk = (k + 1) % 4
+            bm_hb.faces.new((r0[k], r0[nk], r1[nk], r1[k]))
+    bm_hb.faces.new((rings_hb[0][3], rings_hb[0][2], rings_hb[0][1], rings_hb[0][0]))
+    bm_hb.faces.new((rings_hb[-1][0], rings_hb[-1][1], rings_hb[-1][2], rings_hb[-1][3]))
+    bmesh.ops.recalc_face_normals(bm_hb, faces=bm_hb.faces)
+    m_hb = bpy.data.meshes.new("Headband_Black")
+    bm_hb.to_mesh(m_hb)
+    bm_hb.free()
+    hb_obj = bpy.data.objects.new("Headband_Black", m_hb)
+    bpy.context.collection.objects.link(hb_obj)
+    assign_single_material(hb_obj, MAT_CAP_BLACK)
+    head_parts.append(hb_obj)
 
-    # Subtle Flush Mouth Line & Tiny Sculpted Skin Nose (No dark dot!)
-    mouth_pts = [
-        (-0.024, HZ - 0.145, 0.0038),
-        ( 0.000, HZ - 0.140, 0.0045),
-        ( 0.026, HZ - 0.143, 0.0038),
-    ]
-    head_parts.append(create_face_curved_strip("MouthLine", mouth_pts, MAT_DARK_STRAP, hz=HZ, offset=0.0010, thickness=0.0008))
-    head_parts.append(create_face_disc("NoseTip", 0.0, HZ - 0.082, 0.010, 0.007, MAT_SKIN, hz=HZ, offset=0.0015, thickness=0.0025))
-
-    # 3.4 Sculpted Purple Hair Base (Tucked cleanly under the Cap Crown!) + Side Temple Volumes
-    hair_back = create_ellipsoid(
-        "Hair_Back",
-        (0.0, 0.045, HZ - 0.015),
-        (0.392, 0.375, 0.310),
-        MAT_HAIR_PURPLE
-    )
-    head_parts.append(hair_back)
-
-    # Side-temple hair volumes so there is never a bald gap between the cap and side locks!
-    for side in [1.0, -1.0]:
-        temple_vol = create_ellipsoid(
-            f"Hair_Temple_{side}",
-            (side * 0.315, -0.08, HZ + 0.03),
-            (0.115, 0.195, 0.185),
-            MAT_HAIR_PURPLE,
-            rot_euler=(0.15, side * -0.18, side * 0.12)
-        )
-        head_parts.append(temple_vol)
-
-    # Flat-ribbon anime bangs (smooth Catmull-Rom curves hugging the forehead cleanly)
+    # 5.5 Dynamic Sweeping Layered Violet Anime Bangs (Matches 2D portrait's jagged parted fringe!)
+    # Note: In front view, -X is viewer's LEFT (portrait left), +X is viewer's RIGHT (portrait right).
     bang_ribbons = [
-        # Center-right main bang sweeping across forehead
+        # Hero Center-Left Spike (sweeping down right between the eyes — signature portrait lock!)
         [
-            (Vector((-0.06, -0.30, HZ + 0.15)), 0.072, 0.018,  0.10),
-            (Vector((-0.02, -0.35, HZ + 0.08)), 0.064, 0.016,  0.08),
-            (Vector(( 0.02, -0.36, HZ + 0.01)), 0.038, 0.011,  0.05),
-            (Vector(( 0.04, -0.35, HZ - 0.04)), 0.007, 0.004,  0.00),
+            (Vector((-0.02, -0.22, HZ + 0.34)), 0.092, 0.028,  0.10),
+            (Vector((-0.05, -0.35, HZ + 0.19)), 0.088, 0.025,  0.12),
+            (Vector((-0.04, -0.39, HZ + 0.05)), 0.058, 0.018,  0.08),
+            (Vector((-0.01, -0.37, HZ - 0.06)), 0.006, 0.004,  0.04),
         ],
-        # Left inner bang
+        # Secondary Center-Right Spike (sweeping over inner-right brow!)
         [
-            (Vector(( 0.07, -0.29, HZ + 0.15)), 0.068, 0.017, -0.15),
-            (Vector(( 0.11, -0.34, HZ + 0.08)), 0.056, 0.015, -0.18),
-            (Vector(( 0.14, -0.34, HZ + 0.02)), 0.032, 0.010, -0.20),
-            (Vector(( 0.16, -0.33, HZ - 0.03)), 0.007, 0.004, -0.20),
+            (Vector(( 0.06, -0.23, HZ + 0.34)), 0.084, 0.026, -0.14),
+            (Vector(( 0.11, -0.34, HZ + 0.19)), 0.076, 0.022, -0.18),
+            (Vector(( 0.14, -0.36, HZ + 0.06)), 0.046, 0.014, -0.22),
+            (Vector(( 0.13, -0.35, HZ - 0.03)), 0.006, 0.004, -0.22),
         ],
-        # Right inner bang
+        # Wide Sweeping Left-Forehead Lock (sweeping boldly over viewer's left eye!)
         [
-            (Vector((-0.14, -0.28, HZ + 0.15)), 0.070, 0.017,  0.22),
-            (Vector((-0.18, -0.33, HZ + 0.07)), 0.058, 0.015,  0.25),
-            (Vector((-0.20, -0.33, HZ + 0.00)), 0.034, 0.010,  0.28),
-            (Vector((-0.19, -0.32, HZ - 0.06)), 0.007, 0.004,  0.28),
+            (Vector((-0.08, -0.21, HZ + 0.35)), 0.105, 0.032,  0.24),
+            (Vector((-0.18, -0.32, HZ + 0.21)), 0.096, 0.028,  0.30),
+            (Vector((-0.23, -0.33, HZ + 0.06)), 0.062, 0.018,  0.34),
+            (Vector((-0.20, -0.31, HZ - 0.06)), 0.007, 0.004,  0.34),
         ],
-        # Left front cheek-framing lock (sweeping smoothly down & inward toward jaw!)
+        # Outer Left Swept Bang + Flared Wing Spike (matches portrait's energetic left crest!)
         [
-            (Vector(( 0.23, -0.22, HZ + 0.13)), 0.082, 0.022, -0.50),
-            (Vector(( 0.31, -0.25, HZ + 0.02)), 0.074, 0.020, -0.58),
-            (Vector(( 0.32, -0.24, HZ - 0.10)), 0.050, 0.015, -0.62),
-            (Vector(( 0.27, -0.21, HZ - 0.21)), 0.010, 0.005, -0.65),
+            (Vector((-0.12, -0.18, HZ + 0.37)), 0.100, 0.032,  0.42),
+            (Vector((-0.28, -0.26, HZ + 0.26)), 0.095, 0.028,  0.52),
+            (Vector((-0.41, -0.23, HZ + 0.12)), 0.056, 0.018,  0.58),
+            (Vector((-0.48, -0.18, HZ + 0.01)), 0.008, 0.005,  0.60),
         ],
-        # Right front cheek-framing lock
+        # Top-Left Crown Spiky Tuft (gives asymmetric anime volume above forehead!)
         [
-            (Vector((-0.23, -0.22, HZ + 0.13)), 0.085, 0.023,  0.50),
-            (Vector((-0.31, -0.25, HZ + 0.01)), 0.076, 0.021,  0.58),
-            (Vector((-0.32, -0.24, HZ - 0.11)), 0.052, 0.016,  0.62),
-            (Vector((-0.27, -0.21, HZ - 0.22)), 0.010, 0.005,  0.65),
+            (Vector((-0.06, -0.12, HZ + 0.39)), 0.098, 0.032,  0.35),
+            (Vector((-0.24, -0.17, HZ + 0.36)), 0.088, 0.028,  0.45),
+            (Vector((-0.40, -0.15, HZ + 0.27)), 0.048, 0.016,  0.52),
+            (Vector((-0.49, -0.11, HZ + 0.18)), 0.008, 0.005,  0.55),
+        ],
+        # Right-Forehead Layered Swept Bang (hugging right side cleanly under headband)
+        [
+            (Vector(( 0.14, -0.22, HZ + 0.31)), 0.085, 0.025, -0.32),
+            (Vector(( 0.23, -0.30, HZ + 0.16)), 0.078, 0.022, -0.40),
+            (Vector(( 0.27, -0.29, HZ + 0.02)), 0.048, 0.014, -0.46),
+            (Vector(( 0.24, -0.27, HZ - 0.09)), 0.006, 0.004, -0.48),
+        ],
+        # Long Dramatic Left Cheek-Framing Side Lock (curves down past jaw to sharp tip!)
+        [
+            (Vector((-0.24, -0.16, HZ + 0.24)), 0.095, 0.030,  0.68),
+            (Vector((-0.36, -0.21, HZ + 0.06)), 0.086, 0.026,  0.76),
+            (Vector((-0.37, -0.20, HZ - 0.13)), 0.058, 0.018,  0.80),
+            (Vector((-0.29, -0.17, HZ - 0.31)), 0.008, 0.005,  0.82),
+        ],
+        # Secondary Outer-Left Flared Cheek Lock
+        [
+            (Vector((-0.30, -0.08, HZ + 0.18)), 0.092, 0.030,  0.98),
+            (Vector((-0.43, -0.11, HZ - 0.01)), 0.082, 0.026,  1.05),
+            (Vector((-0.45, -0.09, HZ - 0.18)), 0.048, 0.016,  1.10),
+            (Vector((-0.40, -0.05, HZ - 0.32)), 0.008, 0.005,  1.12),
+        ],
+        # Long Sleek Right Cheek-Framing Lock (tucks slightly in front of ear & tapers to chin!)
+        [
+            (Vector(( 0.24, -0.17, HZ + 0.22)), 0.082, 0.026, -0.68),
+            (Vector(( 0.34, -0.22, HZ + 0.04)), 0.074, 0.022, -0.76),
+            (Vector(( 0.33, -0.21, HZ - 0.13)), 0.048, 0.015, -0.82),
+            (Vector(( 0.25, -0.18, HZ - 0.28)), 0.007, 0.004, -0.84),
+        ],
+        # Right Behind-Ear Frame Lock
+        [
+            (Vector(( 0.30,  0.04, HZ + 0.16)), 0.084, 0.026, -1.18),
+            (Vector(( 0.38,  0.04, HZ - 0.04)), 0.072, 0.022, -1.24),
+            (Vector(( 0.35,  0.05, HZ - 0.19)), 0.044, 0.014, -1.26),
+            (Vector(( 0.28,  0.06, HZ - 0.29)), 0.007, 0.004, -1.26),
+        ],
+        # Crown Top Swept Hair Plates (give sculpted spiky silhouette on top of the head!)
+        [
+            (Vector((-0.02, -0.14, HZ + 0.38)), 0.135, 0.036,  0.08),
+            (Vector(( 0.06,  0.02, HZ + 0.42)), 0.145, 0.038, -0.06),
+            (Vector(( 0.14,  0.20, HZ + 0.36)), 0.120, 0.032, -0.14),
+            (Vector(( 0.18,  0.30, HZ + 0.27)), 0.060, 0.020, -0.18),
+        ],
+        [
+            (Vector((-0.14, -0.10, HZ + 0.36)), 0.125, 0.034,  0.38),
+            (Vector((-0.12,  0.08, HZ + 0.40)), 0.132, 0.036,  0.24),
+            (Vector(( 0.02,  0.24, HZ + 0.35)), 0.110, 0.030,  0.08),
+            (Vector(( 0.14,  0.31, HZ + 0.27)), 0.055, 0.018,  0.00),
         ],
     ]
     for idx, br in enumerate(bang_ribbons):
-        head_parts.append(create_ribbon_hair_strand(f"BangRibbon_{idx}", br, MAT_HAIR_PURPLE))
+        head_parts.append(create_ribbon_hair_strand(f"BangRibbon_{idx}", br, MAT_HAIR_PURPLE, v_start=0.06, v_end=0.98))
 
-    # Overlapping Side Cheek Locks (2 per side so temples & cheeks are framed with zero gaps!)
-    for side in [1.0, -1.0]:
-        s_lock_front = [
-            (Vector((side * 0.31, -0.14, HZ + 0.09)), 0.084, 0.026, side * -0.95),
-            (Vector((side * 0.36, -0.16, HZ - 0.03)), 0.076, 0.024, side * -1.02),
-            (Vector((side * 0.34, -0.16, HZ - 0.15)), 0.052, 0.017, side * -1.05),
-            (Vector((side * 0.28, -0.14, HZ - 0.25)), 0.010, 0.006, side * -1.05),
+    # Back-Nape Short Tapered Locks (clean finished silhouette from behind!)
+    for idx, x_off in enumerate((-0.24, -0.12, 0.0, 0.12, 0.24)):
+        nape_lock = [
+            (Vector((x_off * 0.85, 0.32, HZ + 0.02)), 0.082, 0.028, x_off * 1.4),
+            (Vector((x_off * 0.95, 0.35, HZ - 0.14)), 0.070, 0.022, x_off * 1.5),
+            (Vector((x_off * 0.90, 0.31, HZ - 0.27)), 0.040, 0.014, x_off * 1.5),
+            (Vector((x_off * 0.80, 0.25, HZ - 0.34)), 0.008, 0.005, x_off * 1.5),
         ]
-        s_lock_back = [
-            (Vector((side * 0.34, -0.04, HZ + 0.08)), 0.082, 0.026, side * -1.25),
-            (Vector((side * 0.39, -0.06, HZ - 0.04)), 0.074, 0.024, side * -1.30),
-            (Vector((side * 0.37, -0.07, HZ - 0.15)), 0.048, 0.016, side * -1.30),
-            (Vector((side * 0.31, -0.07, HZ - 0.24)), 0.010, 0.006, side * -1.30),
-        ]
-        head_parts.append(create_ribbon_hair_strand(f"SideLockF_{side}", s_lock_front, MAT_HAIR_PURPLE))
-        head_parts.append(create_ribbon_hair_strand(f"SideLockB_{side}", s_lock_back, MAT_HAIR_PURPLE))
+        head_parts.append(create_ribbon_hair_strand(f"NapeLock_{idx}", nape_lock, MAT_HAIR_PURPLE, v_start=0.28, v_end=0.78))
 
-    # 3.5 High Spiky/Fluffy Purple Ponytail (Bursting high & wide above the cap!)
+    # 5.6 DRAMATIC HIGH SIDE-SWEPT SPIKY PONYTAIL (Exact portrait placement: upper-right in front view = +X!)
+    pt_anchor = Vector((0.18, 0.26, HZ + 0.30))
     tie = create_ellipsoid(
         "Ponytail_Tie",
-        (0.04, 0.25, HZ + 0.24),
-        (0.115, 0.085, 0.105),
-        MAT_DARK_STRAP,
-        rot_euler=(0.42, 0.12, 0.0)
+        pt_anchor,
+        (0.110, 0.088, 0.095),
+        MAT_CAP_BLACK,
+        rot_euler=(0.45, -0.42, -0.25)
     )
     head_parts.append(tie)
 
+    pt_center = Vector((0.14, 0.24, HZ + 0.28))
     ponytail_ribbons = [
-        # High central-left crest plume (visibly towering above the cap from front view!)
+        # 1. Towering Hero Top Crest Spike (sweeps UP and dramatically right, exactly like portrait!)
         [
-            (Vector(( 0.04, 0.24, HZ + 0.26)), 0.14, 0.070, -0.15),
-            (Vector(( 0.14, 0.30, HZ + 0.48)), 0.16, 0.075, -0.22),
-            (Vector(( 0.26, 0.36, HZ + 0.58)), 0.11, 0.052, -0.28),
-            (Vector(( 0.36, 0.42, HZ + 0.52)), 0.016, 0.010, -0.32),
+            (pt_anchor + Vector((0.00,  0.00,  0.02)), 0.125, 0.052, -0.15),
+            (pt_anchor + Vector((0.14,  0.04,  0.24)), 0.135, 0.054, -0.22),
+            (pt_anchor + Vector((0.36,  0.10,  0.30)), 0.095, 0.036, -0.28),
+            (pt_anchor + Vector((0.55,  0.16,  0.22)), 0.010, 0.006, -0.32),
         ],
-        # Highest crown spiky plume
+        # 2. Sharp Upper-Inner Spike (pointing up-left slightly above hair tie, exact portrait tuft!)
         [
-            (Vector(( 0.00, 0.24, HZ + 0.28)), 0.12, 0.060,  0.00),
-            (Vector(( 0.06, 0.29, HZ + 0.52)), 0.14, 0.065, -0.10),
-            (Vector(( 0.14, 0.35, HZ + 0.63)), 0.09, 0.042, -0.15),
-            (Vector(( 0.20, 0.40, HZ + 0.64)), 0.015, 0.010, -0.20),
+            (pt_anchor + Vector((-0.02, 0.00,  0.04)), 0.095, 0.040,  0.12),
+            (pt_anchor + Vector(( 0.02, 0.03,  0.24)), 0.088, 0.036,  0.04),
+            (pt_anchor + Vector(( 0.08, 0.07,  0.37)), 0.050, 0.020, -0.04),
+            (pt_anchor + Vector(( 0.14, 0.10,  0.44)), 0.008, 0.005, -0.08),
         ],
-        # Wide Left-Side Fanning Plume (matches reference artwork's spiky ponytail silhouette!)
+        # 3. Main Wide Sweeping Upper-Side Plume (biggest sweeping sickle silhouette!)
         [
-            (Vector(( 0.08, 0.25, HZ + 0.24)), 0.13, 0.062, -0.40),
-            (Vector(( 0.24, 0.30, HZ + 0.40)), 0.15, 0.066, -0.48),
-            (Vector(( 0.38, 0.35, HZ + 0.36)), 0.10, 0.046, -0.52),
-            (Vector(( 0.48, 0.40, HZ + 0.24)), 0.015, 0.010, -0.55),
+            (pt_anchor + Vector((0.02,  0.01,  0.01)), 0.145, 0.062, -0.36),
+            (pt_anchor + Vector((0.24,  0.08,  0.18)), 0.160, 0.064, -0.44),
+            (pt_anchor + Vector((0.48,  0.16,  0.14)), 0.115, 0.044, -0.52),
+            (pt_anchor + Vector((0.66,  0.22, -0.02)), 0.012, 0.007, -0.58),
         ],
-        # Lower-Left Spiky Plume
+        # 4. Mid-Outer Cascading Sweeping Plume
         [
-            (Vector(( 0.09, 0.26, HZ + 0.20)), 0.11, 0.052, -0.55),
-            (Vector(( 0.26, 0.32, HZ + 0.25)), 0.13, 0.056, -0.62),
-            (Vector(( 0.39, 0.36, HZ + 0.15)), 0.09, 0.038, -0.68),
-            (Vector(( 0.46, 0.40, HZ + 0.02)), 0.014, 0.009, -0.72),
+            (pt_anchor + Vector((0.03,  0.03, -0.01)), 0.135, 0.056, -0.52),
+            (pt_anchor + Vector((0.28,  0.12,  0.06)), 0.148, 0.058, -0.60),
+            (pt_anchor + Vector((0.48,  0.22, -0.08)), 0.102, 0.040, -0.66),
+            (pt_anchor + Vector((0.60,  0.28, -0.26)), 0.011, 0.006, -0.70),
         ],
-        # Right-Side Fanning Plume
+        # 5. Lower Curved Sickle Tail (curves gracefully downward behind shoulder!)
         [
-            (Vector((-0.03, 0.25, HZ + 0.25)), 0.12, 0.058,  0.30),
-            (Vector((-0.14, 0.33, HZ + 0.44)), 0.13, 0.060,  0.40),
-            (Vector((-0.24, 0.40, HZ + 0.38)), 0.09, 0.040,  0.45),
-            (Vector((-0.32, 0.46, HZ + 0.26)), 0.015, 0.010,  0.50),
+            (pt_anchor + Vector((0.04,  0.04, -0.04)), 0.120, 0.050, -0.68),
+            (pt_anchor + Vector((0.24,  0.14, -0.10)), 0.128, 0.052, -0.74),
+            (pt_anchor + Vector((0.39,  0.24, -0.26)), 0.088, 0.034, -0.78),
+            (pt_anchor + Vector((0.44,  0.28, -0.46)), 0.010, 0.006, -0.82),
         ],
-        # Back-Center Volume Plume
+        # 6. Lower-Inner Flowing Plume (fills back-right curve nicely!)
         [
-            (Vector(( 0.02, 0.28, HZ + 0.22)), 0.14, 0.068,  0.00),
-            (Vector(( 0.08, 0.44, HZ + 0.36)), 0.15, 0.070,  0.10),
-            (Vector(( 0.14, 0.56, HZ + 0.30)), 0.10, 0.048,  0.15),
-            (Vector(( 0.18, 0.64, HZ + 0.18)), 0.016, 0.010,  0.20),
+            (pt_anchor + Vector((0.02,  0.06, -0.05)), 0.110, 0.046, -0.40),
+            (pt_anchor + Vector((0.15,  0.20, -0.16)), 0.118, 0.048, -0.46),
+            (pt_anchor + Vector((0.24,  0.30, -0.34)), 0.078, 0.032, -0.50),
+            (pt_anchor + Vector((0.25,  0.32, -0.52)), 0.010, 0.006, -0.52),
+        ],
+        # 7. Back-Volume Sweeping Plume (so 3/4 & Back views look lush & full!)
+        [
+            (pt_anchor + Vector((-0.02, 0.06,  0.00)), 0.130, 0.056,  0.05),
+            (pt_anchor + Vector(( 0.12, 0.24,  0.08)), 0.140, 0.058,  0.00),
+            (pt_anchor + Vector(( 0.26, 0.38, -0.06)), 0.098, 0.040, -0.05),
+            (pt_anchor + Vector(( 0.32, 0.44, -0.26)), 0.011, 0.006, -0.08),
+        ],
+        # 8. Secondary High Back Accent Spike
+        [
+            (pt_anchor + Vector(( 0.00, 0.05,  0.03)), 0.105, 0.044, -0.10),
+            (pt_anchor + Vector(( 0.18, 0.20,  0.22)), 0.112, 0.046, -0.15),
+            (pt_anchor + Vector(( 0.38, 0.32,  0.20)), 0.072, 0.030, -0.20),
+            (pt_anchor + Vector(( 0.50, 0.38,  0.08)), 0.010, 0.006, -0.24),
+        ],
+        # 9. Dark-Purple Inner Under-Plume (adds rich anime depth & contrast under the tail!)
+        [
+            (pt_anchor + Vector(( 0.04, 0.03, -0.05)), 0.095, 0.038, -0.60),
+            (pt_anchor + Vector(( 0.22, 0.12, -0.14)), 0.100, 0.038, -0.66),
+            (pt_anchor + Vector(( 0.32, 0.19, -0.32)), 0.064, 0.024, -0.72),
+            (pt_anchor + Vector(( 0.33, 0.21, -0.48)), 0.009, 0.005, -0.75),
         ],
     ]
     for idx, pr in enumerate(ponytail_ribbons):
-        head_parts.append(create_ribbon_hair_strand(f"PonytailRibbon_{idx}", pr, MAT_HAIR_PURPLE))
-
-    # 3.6 Structured Tactical Baseball Cap (Snug Crown + Sweatband Rim + Curved Visor)
-    bm_cap = bmesh.new()
-    bmesh.ops.create_uvsphere(bm_cap, u_segments=48, v_segments=28, radius=1.0)
-    for v in bm_cap.verts:
-        x, y, z = v.co.x, v.co.y, v.co.z
-        if z < -0.08:
-            z = -0.08 + (z + 0.08) * 0.12
-        # Structured 6-panel cap silhouette (slightly boxy front crown like real tactical cap)
-        front_box = 1.0 + 0.04 * max(0.0, -y) * (1.0 - abs(x))
-        rx = 0.415 * front_box
-        ry = 0.400
-        rz = 0.295
-        v.co = Vector((x * rx, y * ry + 0.01, HZ + 0.10 + z * rz))
-    bmesh.ops.recalc_face_normals(bm_cap, faces=bm_cap.faces)
-    m_cap = bpy.data.meshes.new("Cap_Crown")
-    bm_cap.to_mesh(m_cap)
-    bm_cap.free()
-    cap_crown = bpy.data.objects.new("Cap_Crown", m_cap)
-    bpy.context.collection.objects.link(cap_crown)
-    assign_single_material(cap_crown, MAT_CAP_BLACK)
-    head_parts.append(cap_crown)
-
-    # Cap Visor / Curved Brim (Raised slightly so light illuminates the eyes cleanly!)
-    bm_visor = bmesh.new()
-    bmesh.ops.create_cube(bm_visor, size=1.0)
-    bmesh.ops.subdivide_edges(bm_visor, edges=bm_visor.edges[:], cuts=8, use_grid_fill=True)
-    for v in bm_visor.verts:
-        ux = v.co.x * 2.0
-        uy = (v.co.y + 0.5)
-        uz = v.co.z * 2.0
-        width_taper = 0.74 + 0.26 * uy
-        vx = ux * 0.325 * width_taper
-        vy = -0.57 + uy * 0.26
-        arch_z = (1.0 - ux * ux) * 0.068
-        slope_z = (uy - 0.4) * 0.045
-        vz = (HZ + 0.088) + arch_z + slope_z + uz * 0.014
-        v.co = Vector((vx, vy, vz))
-    bmesh.ops.recalc_face_normals(bm_visor, faces=bm_visor.faces)
-    m_visor = bpy.data.meshes.new("Cap_Visor")
-    bm_visor.to_mesh(m_visor)
-    bm_visor.free()
-    cap_visor = bpy.data.objects.new("Cap_Visor", m_visor)
-    bpy.context.collection.objects.link(cap_visor)
-    assign_single_material(cap_visor, MAT_DARK_STRAP)
-    head_parts.append(cap_visor)
-
-    cap_btn = create_ellipsoid("Cap_Button", (0.0, 0.01, HZ + 0.395), (0.028, 0.028, 0.014), MAT_DARK_STRAP)
-    head_parts.append(cap_btn)
+        m_use = MAT_HAIR_DARK if idx == len(ponytail_ribbons) - 1 else MAT_HAIR_PURPLE
+        head_parts.append(create_ribbon_hair_strand(
+            f"PonytailRibbon_{idx}", pr, m_use,
+            v_start=0.05, v_end=0.98, radial_center=pt_center
+        ))
 
     return join_objects_into(head_base, head_parts, "Chibi_Base_Head")
 
 
 # ==============================================================================
-# 4. BUILD CHUNKY TOY-CHIBI BODY & TACTICAL OUTFIT (Chibi_Base_Mesh)
-#    Matched to ChibiGhostOperator proportions (compact legs, chunky boots,
-#    sturdy torso, compact arms that hang cleanly at the sides in Idle!)
+# 6. BUILD AVATAR-STAR PROPORTIONED TACTICAL BODY (Chibi_Base_Mesh)
+#    Preserves exact 18-bone Rig coordinates so all 11 animations match 100%!
 # ==============================================================================
 def build_tactical_girl_body():
     body_parts = []
 
-    # 4.1 Neck (Skin)
+    # 6.1 Sleek Neck
     neck_rings = [
-        (Vector((0.0, 0.00, 1.24)), Vector((0.125, 0.0, 0.0)), Vector((0.0, 0.115, 0.0))),
-        (Vector((0.0, 0.00, 1.38)), Vector((0.102, 0.0, 0.0)), Vector((0.0, 0.098, 0.0))),
-        (Vector((0.0, 0.00, 1.52)), Vector((0.098, 0.0, 0.0)), Vector((0.0, 0.095, 0.0))),
+        (Vector((0.0, 0.00, 1.24)), Vector((0.112, 0.0, 0.0)), Vector((0.0, 0.104, 0.0))),
+        (Vector((0.0, 0.00, 1.38)), Vector((0.094, 0.0, 0.0)), Vector((0.0, 0.090, 0.0))),
+        (Vector((0.0, 0.00, 1.52)), Vector((0.092, 0.0, 0.0)), Vector((0.0, 0.088, 0.0))),
     ]
     neck_obj = create_loft_object("Torso_Neck", neck_rings, MAT_SKIN)
     body_parts.append(neck_obj)
 
-    # 4.2 Fitted Black Inner Tactical Tee (Compact Chibi Torso z = 0.76..1.30)
+    # 6.2 Fitted Charcoal-Black Tactical Inner Tee (Sleeker Avatar-Star hourglass taper!)
     tee_rings = [
-        (Vector((0.0,  0.000, 0.76)), Vector((0.220, 0.0, 0.0)), Vector((0.0, 0.168, 0.0))),
-        (Vector((0.0,  0.000, 0.88)), Vector((0.205, 0.0, 0.0)), Vector((0.0, 0.158, 0.0))),
-        (Vector((0.0, -0.008, 1.00)), Vector((0.225, 0.0, 0.0)), Vector((0.0, 0.175, 0.0))),
-        (Vector((0.0, -0.020, 1.12)), Vector((0.245, 0.0, 0.0)), Vector((0.0, 0.198, 0.0))),
-        (Vector((0.0, -0.010, 1.22)), Vector((0.228, 0.0, 0.0)), Vector((0.0, 0.172, 0.0))),
-        (Vector((0.0,  0.000, 1.30)), Vector((0.155, 0.0, 0.0)), Vector((0.0, 0.135, 0.0))),
+        (Vector((0.0,  0.000, 0.76)), Vector((0.205, 0.0, 0.0)), Vector((0.0, 0.156, 0.0))),
+        (Vector((0.0,  0.002, 0.89)), Vector((0.184, 0.0, 0.0)), Vector((0.0, 0.142, 0.0))),
+        (Vector((0.0, -0.010, 1.02)), Vector((0.208, 0.0, 0.0)), Vector((0.0, 0.168, 0.0))),
+        (Vector((0.0, -0.024, 1.13)), Vector((0.232, 0.0, 0.0)), Vector((0.0, 0.194, 0.0))),
+        (Vector((0.0, -0.010, 1.23)), Vector((0.214, 0.0, 0.0)), Vector((0.0, 0.164, 0.0))),
+        (Vector((0.0,  0.000, 1.30)), Vector((0.145, 0.0, 0.0)), Vector((0.0, 0.128, 0.0))),
     ]
     body_parts.append(create_loft_object("Torso_BlackTee", tee_rings, MAT_CAP_BLACK))
 
-    # 4.3 Chunky Cropped Mustard-Yellow Tactical Jacket (z = 0.86..1.30)
+    # 6.3 Structured Cropped Golden-Yellow Tactical Jacket (Flared open-front silhouette!)
     bm_jkt = bmesh.new()
     z_levels = [
-        (0.86, 0.232, 0.180,  0.000),
-        (0.96, 0.248, 0.192, -0.005),
-        (1.10, 0.268, 0.208, -0.014),
-        (1.21, 0.262, 0.194, -0.008),
-        (1.29, 0.215, 0.165,  0.000),
+        (0.86, 0.218, 0.168,  0.000),
+        (0.96, 0.232, 0.180, -0.006),
+        (1.10, 0.256, 0.204, -0.016),
+        (1.22, 0.252, 0.188, -0.008),
+        (1.29, 0.206, 0.158,  0.000),
     ]
-    ang_steps = 32
-    ang_start = -0.35 * math.pi
-    ang_end   =  1.35 * math.pi
-    thick = 0.032
+    ang_steps = 36
+    ang_start = -0.34 * math.pi
+    ang_end   =  1.34 * math.pi
+    thick = 0.030
 
     outer_rings, inner_rings = [], []
     for z, rx, ry, y_off in z_levels:
@@ -694,7 +1001,6 @@ def build_tactical_girl_body():
         bm_jkt.faces.new((inner_rings[r][0], outer_rings[r][0], outer_rings[r+1][0], inner_rings[r+1][0]))
         last = ang_steps - 1
         bm_jkt.faces.new((outer_rings[r][last], inner_rings[r][last], inner_rings[r+1][last], outer_rings[r+1][last]))
-
     for i in range(ang_steps - 1):
         bm_jkt.faces.new((inner_rings[0][i], inner_rings[0][i+1], outer_rings[0][i+1], outer_rings[0][i]))
         top_r = len(z_levels) - 1
@@ -709,31 +1015,31 @@ def build_tactical_girl_body():
     assign_single_material(jkt_obj, MAT_JACKET_GOLD)
     body_parts.append(jkt_obj)
 
-    # High Popped Collar (z = 1.26..1.38)
+    # Tall Sharp Flared Popped Anime Collar (Signature silhouette from 2D portrait!)
     bm_col = bmesh.new()
     col_levels = [
-        (1.26, 0.165, 0.145, 0.00),
-        (1.32, 0.182, 0.160, 0.01),
-        (1.38, 0.198, 0.172, 0.02),
+        (1.26, 0.155, 0.136, 0.000),
+        (1.33, 0.180, 0.156, 0.012),
+        (1.41, 0.212, 0.180, 0.024),
     ]
     c_outer, c_inner = [], []
     for z, rx, ry, y_off in col_levels:
         co_r, ci_r = [], []
-        for i in range(22):
-            t = i / 21.0
-            ang = (-0.30 * math.pi) + t * (1.60 * math.pi)
+        for i in range(26):
+            t = i / 25.0
+            ang = (-0.28 * math.pi) + t * (1.56 * math.pi)
             ca, sa = math.cos(ang), math.sin(ang)
             co_r.append(bm_col.verts.new(Vector((ca * (rx + 0.024), y_off + sa * (ry + 0.024), z))))
             ci_r.append(bm_col.verts.new(Vector((ca * rx, y_off + sa * ry, z))))
         c_outer.append(co_r)
         c_inner.append(ci_r)
     for r in range(len(col_levels) - 1):
-        for i in range(21):
+        for i in range(25):
             bm_col.faces.new((c_outer[r][i], c_outer[r][i+1], c_outer[r+1][i+1], c_outer[r+1][i]))
             bm_col.faces.new((c_inner[r][i+1], c_inner[r][i], c_inner[r+1][i], c_inner[r+1][i+1]))
         bm_col.faces.new((c_inner[r][0], c_outer[r][0], c_outer[r+1][0], c_inner[r+1][0]))
-        bm_col.faces.new((c_outer[r][21], c_inner[r][21], c_inner[r+1][21], c_outer[r+1][21]))
-    for i in range(21):
+        bm_col.faces.new((c_outer[r][25], c_inner[r][25], c_inner[r+1][25], c_outer[r+1][25]))
+    for i in range(25):
         bm_col.faces.new((c_inner[0][i], c_inner[0][i+1], c_outer[0][i+1], c_outer[0][i]))
         bm_col.faces.new((c_outer[2][i], c_outer[2][i+1], c_inner[2][i+1], c_inner[2][i]))
     bmesh.ops.recalc_face_normals(bm_col, faces=bm_col.faces)
@@ -745,262 +1051,312 @@ def build_tactical_girl_body():
     assign_single_material(col_obj, MAT_JACKET_GOLD)
     body_parts.append(col_obj)
 
-    # Chunky Beveled Jacket Pockets, Harness Straps, Buckles, Zippers & Shoulder Armor
-    for side in [1.0, -1.0]:
+    # Front Jacket Pockets, Harness Straps, Metallic Zippers & Layered Gunmetal Shoulder Pauldrons
+    for side in (1.0, -1.0):
+        # Lower front flap pocket with dark gold recessed seam
         pkt = create_rounded_box(
             f"Jacket_Pocket_{side}",
-            (side * 0.168, -0.198, 0.96),
-            (0.092, 0.048, 0.105),
+            (side * 0.165, -0.192, 0.96),
+            (0.095, 0.044, 0.105),
             MAT_JACKET_GOLD,
             rot_euler=(0.04, 0.0, side * 0.30),
             bevel_width=0.010
         )
         pkt_flap = create_rounded_box(
             f"Jacket_PocketFlap_{side}",
-            (side * 0.168, -0.205, 1.005),
-            (0.096, 0.052, 0.032),
-            MAT_JACKET_GOLD,
+            (side * 0.166, -0.198, 1.005),
+            (0.100, 0.048, 0.032),
+            MAT_JACKET_SHADE,
             rot_euler=(0.04, 0.0, side * 0.30),
             bevel_width=0.008
         )
-        pkt_trim = create_rounded_box(
-            f"Jacket_PocketTrim_{side}",
-            (side * 0.170, -0.216, 0.96),
-            (0.022, 0.020, 0.102),
-            MAT_DARK_STRAP,
-            rot_euler=(0.04, 0.0, side * 0.30),
-            bevel_width=0.005
-        )
+        # Tactical chest harness straps + angled buckles (exact portrait detail!)
         strap = create_rounded_box(
             f"Harness_Strap_{side}",
-            (side * 0.162, -0.192, 1.16),
-            (0.038, 0.040, 0.16),
+            (side * 0.156, -0.196, 1.155),
+            (0.036, 0.036, 0.21),
             MAT_DARK_STRAP,
-            rot_euler=(-0.12, 0.0, side * 0.26),
+            rot_euler=(-0.14, 0.0, side * 0.24),
             bevel_width=0.006
         )
         buckle = create_rounded_box(
             f"Harness_Buckle_{side}",
-            (side * 0.164, -0.208, 1.13),
-            (0.052, 0.026, 0.038),
+            (side * 0.158, -0.210, 1.135),
+            (0.054, 0.024, 0.040),
             MAT_ARMOR_GREY,
-            rot_euler=(-0.10, 0.0, side * 0.26),
+            rot_euler=(-0.12, 0.0, side * 0.24),
             bevel_width=0.006
         )
+        buckle_pin = create_rounded_box(
+            f"Harness_BucklePin_{side}",
+            (side * 0.158, -0.218, 1.135),
+            (0.026, 0.014, 0.020),
+            MAT_METAL_SILVER,
+            rot_euler=(-0.12, 0.0, side * 0.24),
+            bevel_width=0.003
+        )
+        # Crisp Metallic Open-Jacket Zipper Track
         zipper = create_rounded_box(
             f"Zipper_{side}",
-            (side * 0.098, -0.202, 1.08),
-            (0.014, 0.022, 0.38),
+            (side * 0.102, -0.196, 1.08),
+            (0.014, 0.020, 0.39),
             MAT_METAL_SILVER,
             bevel_width=0.003
         )
-        # Seamless Jacket Shoulder Joint Sphere at (side * 0.22, 0.0, 1.23)
+        # Seamless Jacket Shoulder Sphere
         sjoint = create_ellipsoid(
             f"ShoulderJoint_{side}",
-            (side * 0.22, 0.00, 1.23),
-            (0.135, 0.128, 0.128),
+            (side * 0.215, 0.00, 1.23),
+            (0.130, 0.124, 0.124),
             MAT_JACKET_GOLD
         )
-        # Chunky Gunmetal Armored Shoulder Pad (Perched cleanly on top of outer shoulder)
+        # 2-Tier Sculpted Gunmetal Armored Shoulder Pauldron (matches portrait armor!)
         spad = create_rounded_box(
             f"ShoulderPad_{side}",
-            (side * 0.255, 0.00, 1.315),
-            (0.175, 0.205, 0.068),
+            (side * 0.248, 0.00, 1.318),
+            (0.185, 0.210, 0.068),
             MAT_ARMOR_GREY,
-            rot_euler=(0.0, side * 0.34, 0.0),
-            bevel_width=0.018
+            rot_euler=(0.0, side * 0.36, 0.0),
+            bevel_width=0.020
         )
-        body_parts.extend([pkt, pkt_flap, pkt_trim, strap, buckle, zipper, sjoint, spad])
+        spad_ridge = create_rounded_box(
+            f"ShoulderPadRidge_{side}",
+            (side * 0.258, 0.00, 1.345),
+            (0.125, 0.155, 0.028),
+            MAT_DARK_STRAP,
+            rot_euler=(0.0, side * 0.36, 0.0),
+            bevel_width=0.008
+        )
+        body_parts.extend([pkt, pkt_flap, strap, buckle, buckle_pin, zipper, sjoint, spad, spad_ridge])
 
-    # 4.4 Compact Chibi Arms (|x| = 0.18..0.88 at z = 1.23)
-    # Short, chunky Toy-Chibi arms so when rotated down 72 deg in Idle, they hang right beside the torso!
+    # Back Tactical Y-Harness & Small Metallic Clip (clean top-down/behind silhouette!)
+    for side in (1.0, -1.0):
+        b_strap = create_rounded_box(
+            f"Back_HarnessStrap_{side}",
+            (side * 0.095, 0.208, 1.14),
+            (0.040, 0.026, 0.24),
+            MAT_DARK_STRAP,
+            rot_euler=(0.06, side * 0.34, 0.0),
+            bevel_width=0.006
+        )
+        body_parts.append(b_strap)
+    back_ring = create_rounded_box("Back_HarnessRing", (0.0, 0.214, 1.02), (0.072, 0.028, 0.064), MAT_ARMOR_GREY, bevel_width=0.010)
+    back_clip = create_rounded_box("Back_HarnessClip", (0.0, 0.222, 1.02), (0.036, 0.018, 0.036), MAT_METAL_SILVER, bevel_width=0.005)
+    body_parts.extend([back_ring, back_clip])
+
+    # 6.4 Compact Avatar-Star Arms & Chunky Royal-Blue Fingerless Tactical Gloves
     AZ = 1.23
-    for side in [1.0, -1.0]:
-        # Rolled Yellow Jacket Sleeve (|x| = 0.18..0.48)
+    for side in (1.0, -1.0):
         sleeve_rings = [
-            (Vector((side * 0.18, 0.0, AZ)), Vector((0.0, 0.122, 0.0)), Vector((0.0, 0.0, 0.122 * side))),
-            (Vector((side * 0.28, 0.0, AZ)), Vector((0.0, 0.118, 0.0)), Vector((0.0, 0.0, 0.118 * side))),
-            (Vector((side * 0.40, 0.0, AZ)), Vector((0.0, 0.110, 0.0)), Vector((0.0, 0.0, 0.110 * side))),
-            (Vector((side * 0.48, 0.0, AZ)), Vector((0.0, 0.106, 0.0)), Vector((0.0, 0.0, 0.106 * side))),
+            (Vector((side * 0.18, 0.0, AZ)), Vector((0.0, 0.118, 0.0)), Vector((0.0, 0.0, 0.118 * side))),
+            (Vector((side * 0.29, 0.0, AZ)), Vector((0.0, 0.112, 0.0)), Vector((0.0, 0.0, 0.112 * side))),
+            (Vector((side * 0.41, 0.0, AZ)), Vector((0.0, 0.106, 0.0)), Vector((0.0, 0.0, 0.106 * side))),
+            (Vector((side * 0.48, 0.0, AZ)), Vector((0.0, 0.104, 0.0)), Vector((0.0, 0.0, 0.104 * side))),
         ]
         body_parts.append(create_loft_object(f"Sleeve_{side}", sleeve_rings, MAT_JACKET_GOLD))
 
-        # Thick Rolled Sleeve Cuff at |x| = 0.46..0.54
+        # Thick Rolled Yellow Cuff
         cuff_rings = [
-            (Vector((side * 0.46, 0.0, AZ)), Vector((0.0, 0.118, 0.0)), Vector((0.0, 0.0, 0.118 * side))),
+            (Vector((side * 0.46, 0.0, AZ)), Vector((0.0, 0.116, 0.0)), Vector((0.0, 0.0, 0.116 * side))),
             (Vector((side * 0.50, 0.0, AZ)), Vector((0.0, 0.124, 0.0)), Vector((0.0, 0.0, 0.124 * side))),
-            (Vector((side * 0.54, 0.0, AZ)), Vector((0.0, 0.114, 0.0)), Vector((0.0, 0.0, 0.114 * side))),
+            (Vector((side * 0.54, 0.0, AZ)), Vector((0.0, 0.112, 0.0)), Vector((0.0, 0.0, 0.112 * side))),
         ]
         body_parts.append(create_loft_object(f"SleeveCuff_{side}", cuff_rings, MAT_JACKET_GOLD))
 
-        # Exposed Skin Forearm (|x| = 0.52..0.67)
+        # Fair Skin Forearm
         forearm_rings = [
-            (Vector((side * 0.52, 0.0, AZ)), Vector((0.0, 0.092, 0.0)), Vector((0.0, 0.0, 0.090 * side))),
-            (Vector((side * 0.60, 0.0, AZ)), Vector((0.0, 0.086, 0.0)), Vector((0.0, 0.0, 0.084 * side))),
-            (Vector((side * 0.67, 0.0, AZ)), Vector((0.0, 0.080, 0.0)), Vector((0.0, 0.0, 0.078 * side))),
+            (Vector((side * 0.52, 0.0, AZ)), Vector((0.0, 0.086, 0.0)), Vector((0.0, 0.0, 0.084 * side))),
+            (Vector((side * 0.60, 0.0, AZ)), Vector((0.0, 0.080, 0.0)), Vector((0.0, 0.0, 0.078 * side))),
+            (Vector((side * 0.66, 0.0, AZ)), Vector((0.0, 0.076, 0.0)), Vector((0.0, 0.0, 0.074 * side))),
         ]
         body_parts.append(create_loft_object(f"ForearmSkin_{side}", forearm_rings, MAT_SKIN))
 
-        # Chunky Navy Tactical Wrist Guard (|x| = 0.65..0.74)
+        # Chunky Royal-Blue Tactical Wrist Guard + Dark Strap Accent
         wrist_rings = [
-            (Vector((side * 0.65, 0.0, AZ)), Vector((0.0, 0.104, 0.0)), Vector((0.0, 0.0, 0.100 * side))),
-            (Vector((side * 0.70, 0.0, AZ)), Vector((0.0, 0.108, 0.0)), Vector((0.0, 0.0, 0.104 * side))),
-            (Vector((side * 0.74, 0.0, AZ)), Vector((0.0, 0.098, 0.0)), Vector((0.0, 0.0, 0.094 * side))),
+            (Vector((side * 0.64, 0.0, AZ)), Vector((0.0, 0.106, 0.0)), Vector((0.0, 0.0, 0.102 * side))),
+            (Vector((side * 0.69, 0.0, AZ)), Vector((0.0, 0.112, 0.0)), Vector((0.0, 0.0, 0.108 * side))),
+            (Vector((side * 0.74, 0.0, AZ)), Vector((0.0, 0.100, 0.0)), Vector((0.0, 0.0, 0.096 * side))),
         ]
         body_parts.append(create_loft_object(f"WristGuard_{side}", wrist_rings, MAT_GLOVE_BLUE))
+        wrist_trim = create_rounded_box(
+            f"WristTrim_{side}",
+            (side * 0.69, 0.0, AZ + 0.082),
+            (0.072, 0.120, 0.044),
+            MAT_DARK_STRAP,
+            bevel_width=0.008
+        )
+        body_parts.append(wrist_trim)
 
-        # Dark Palm / Inner Glove (|x| = 0.73..0.83)
+        # Fingerless Glove Palm + Armored Royal-Blue Dorsal Plate + Knuckle Guard
         glove_rings = [
-            (Vector((side * 0.73, -0.004, AZ - 0.008)), Vector((0.0, 0.084, 0.0)), Vector((0.0, 0.0, 0.060 * side))),
-            (Vector((side * 0.78, -0.004, AZ - 0.008)), Vector((0.0, 0.088, 0.0)), Vector((0.0, 0.0, 0.062 * side))),
-            (Vector((side * 0.83, -0.004, AZ - 0.008)), Vector((0.0, 0.082, 0.0)), Vector((0.0, 0.0, 0.058 * side))),
+            (Vector((side * 0.73, -0.004, AZ - 0.008)), Vector((0.0, 0.086, 0.0)), Vector((0.0, 0.0, 0.062 * side))),
+            (Vector((side * 0.78, -0.004, AZ - 0.008)), Vector((0.0, 0.090, 0.0)), Vector((0.0, 0.0, 0.064 * side))),
+            (Vector((side * 0.83, -0.004, AZ - 0.008)), Vector((0.0, 0.084, 0.0)), Vector((0.0, 0.0, 0.060 * side))),
         ]
         body_parts.append(create_loft_object(f"GlovePalm_{side}", glove_rings, MAT_DARK_STRAP))
 
-        # Navy Blue Armored Back-of-Hand Plate
         dorsal_plate = create_rounded_box(
             f"GlovePlate_{side}",
-            (side * 0.78, -0.004, AZ + 0.036),
-            (0.115, 0.162, 0.064),
+            (side * 0.785, -0.004, AZ + 0.036),
+            (0.118, 0.166, 0.066),
             MAT_GLOVE_BLUE,
-            bevel_width=0.012
+            bevel_width=0.014
         )
-        body_parts.append(dorsal_plate)
+        knuckle_bar = create_rounded_box(
+            f"GloveKnuckle_{side}",
+            (side * 0.822, -0.004, AZ + 0.056),
+            (0.038, 0.148, 0.032),
+            MAT_ARMOR_GREY,
+            bevel_width=0.008
+        )
+        body_parts.extend([dorsal_plate, knuckle_bar])
 
-        # Cute Chibi Fingers (|x| = 0.82..0.90) & Thumb
+        # Cute Chunky Chibi Fingers & Thumb
         finger_rings = [
-            (Vector((side * 0.82, -0.004, AZ)), Vector((0.0, 0.080, 0.0)), Vector((0.0, 0.0, 0.064 * side))),
-            (Vector((side * 0.87, -0.004, AZ)), Vector((0.0, 0.072, 0.0)), Vector((0.0, 0.0, 0.056 * side))),
-            (Vector((side * 0.90, -0.004, AZ)), Vector((0.0, 0.046, 0.0)), Vector((0.0, 0.0, 0.036 * side))),
+            (Vector((side * 0.82, -0.004, AZ)), Vector((0.0, 0.082, 0.0)), Vector((0.0, 0.0, 0.066 * side))),
+            (Vector((side * 0.87, -0.004, AZ)), Vector((0.0, 0.074, 0.0)), Vector((0.0, 0.0, 0.058 * side))),
+            (Vector((side * 0.905, -0.004, AZ)), Vector((0.0, 0.048, 0.0)), Vector((0.0, 0.0, 0.038 * side))),
         ]
         body_parts.append(create_loft_object(f"FingersSkin_{side}", finger_rings, MAT_SKIN))
 
         thumb_base = [
-            (Vector((side * 0.75, -0.045, AZ)), Vector((side * 0.036, 0.0, 0.0)), Vector((0.0, 0.0, 0.034 * side))),
-            (Vector((side * 0.79, -0.088, AZ)), Vector((side * 0.032, 0.01, 0.0)), Vector((0.0, 0.0, 0.030 * side))),
+            (Vector((side * 0.75, -0.045, AZ)), Vector((side * 0.038, 0.0, 0.0)), Vector((0.0, 0.0, 0.036 * side))),
+            (Vector((side * 0.79, -0.088, AZ)), Vector((side * 0.034, 0.01, 0.0)), Vector((0.0, 0.0, 0.032 * side))),
         ]
         body_parts.append(create_loft_object(f"ThumbGlove_{side}", thumb_base, MAT_GLOVE_BLUE))
 
         thumb_tip = [
-            (Vector((side * 0.78, -0.082, AZ)), Vector((side * 0.030, 0.01, 0.0)), Vector((0.0, 0.0, 0.028 * side))),
-            (Vector((side * 0.81, -0.118, AZ)), Vector((side * 0.022, 0.01, 0.0)), Vector((0.0, 0.0, 0.022 * side))),
+            (Vector((side * 0.78, -0.082, AZ)), Vector((side * 0.032, 0.01, 0.0)), Vector((0.0, 0.0, 0.030 * side))),
+            (Vector((side * 0.81, -0.120, AZ)), Vector((side * 0.024, 0.01, 0.0)), Vector((0.0, 0.0, 0.024 * side))),
         ]
         body_parts.append(create_loft_object(f"ThumbSkin_{side}", thumb_tip, MAT_SKIN))
 
-    # 4.5 Purple Tactical Utility Belt, Cobra Buckle & Chunky Hip Pouches (z = 0.74..0.85)
+    # 6.5 Signature Vivid Purple Utility Belt, Silver Cobra Buckle, Carabiner & Chunky Hip Pouches
     belt_rings = [
-        (Vector((0.0, 0.004, 0.74)), Vector((0.258, 0.0, 0.0)), Vector((0.0, 0.198, 0.0))),
-        (Vector((0.0, 0.002, 0.79)), Vector((0.264, 0.0, 0.0)), Vector((0.0, 0.202, 0.0))),
-        (Vector((0.0, 0.000, 0.85)), Vector((0.250, 0.0, 0.0)), Vector((0.0, 0.190, 0.0))),
+        (Vector((0.0, 0.004, 0.74)), Vector((0.248, 0.0, 0.0)), Vector((0.0, 0.192, 0.0))),
+        (Vector((0.0, 0.002, 0.795)), Vector((0.256, 0.0, 0.0)), Vector((0.0, 0.198, 0.0))),
+        (Vector((0.0, 0.000, 0.855)), Vector((0.240, 0.0, 0.0)), Vector((0.0, 0.184, 0.0))),
     ]
     body_parts.append(create_loft_object("Utility_Belt", belt_rings, MAT_BELT_PURPLE))
 
-    belt_buckle = create_rounded_box(
-        "Belt_Buckle",
-        (0.0, -0.200, 0.795),
-        (0.098, 0.042, 0.085),
-        MAT_METAL_SILVER,
-        bevel_width=0.009
-    )
-    buckle_core = create_rounded_box(
-        "Belt_BuckleCore",
-        (0.0, -0.212, 0.795),
-        (0.042, 0.024, 0.058),
-        MAT_DARK_STRAP,
-        bevel_width=0.005
-    )
-    body_parts.extend([belt_buckle, buckle_core])
+    belt_buckle = create_rounded_box("Belt_Buckle", (0.0, -0.198, 0.798), (0.108, 0.044, 0.090), MAT_METAL_SILVER, bevel_width=0.010)
+    buckle_core = create_rounded_box("Belt_BuckleCore", (0.0, -0.212, 0.798), (0.046, 0.024, 0.062), MAT_DARK_STRAP, bevel_width=0.005)
+    # Portrait detail: Silver carabiner hook hanging next to the front buckle!
+    carabiner = create_rounded_box("Belt_Carabiner", (0.105, -0.194, 0.742), (0.036, 0.020, 0.068), MAT_METAL_SILVER, rot_euler=(0.08, 0.0, 0.22), bevel_width=0.006)
+    body_parts.extend([belt_buckle, buckle_core, carabiner])
 
-    for side in [1.0, -1.0]:
+    for side in (1.0, -1.0):
         pouch = create_rounded_box(
             f"HipPouch_{side}",
-            (side * 0.248, -0.045, 0.77),
-            (0.088, 0.140, 0.142),
+            (side * 0.244, -0.040, 0.770),
+            (0.092, 0.142, 0.146),
             MAT_BELT_PURPLE,
             rot_euler=(0.0, side * -0.10, side * -0.18),
-            bevel_width=0.014
+            bevel_width=0.016
         )
         pouch_flap = create_rounded_box(
             f"HipPouchFlap_{side}",
-            (side * 0.252, -0.045, 0.825),
-            (0.094, 0.146, 0.042),
+            (side * 0.248, -0.040, 0.828),
+            (0.098, 0.148, 0.044),
             MAT_BELT_PURPLE,
             rot_euler=(0.0, side * -0.10, side * -0.18),
             bevel_width=0.010
         )
         pouch_strap = create_rounded_box(
             f"HipPouchStrap_{side}",
-            (side * 0.282, -0.048, 0.78),
-            (0.036, 0.046, 0.132),
+            (side * 0.280, -0.044, 0.782),
+            (0.036, 0.046, 0.136),
             MAT_DARK_STRAP,
             rot_euler=(0.0, side * -0.10, side * -0.18),
             bevel_width=0.006
         )
         body_parts.extend([pouch, pouch_flap, pouch_strap])
 
-    # 4.6 Compact Toy-Chibi Pelvis, Tactical Pants, Thigh Straps, Recessed Knee Pads & Chunky Boots
+    # 6.6 Avatar-Star Tapered Tactical Pants, Asymmetric Yellow Thigh Accent, Knee Armor & Chunky Combat Boots
     pelvis_rings = [
-        (Vector((0.0, 0.002, 0.56)), Vector((0.165, 0.0, 0.0)), Vector((0.0, 0.140, 0.0))),
-        (Vector((0.0, 0.005, 0.64)), Vector((0.242, 0.0, 0.0)), Vector((0.0, 0.188, 0.0))),
-        (Vector((0.0, 0.006, 0.71)), Vector((0.258, 0.0, 0.0)), Vector((0.0, 0.198, 0.0))),
-        (Vector((0.0, 0.004, 0.77)), Vector((0.240, 0.0, 0.0)), Vector((0.0, 0.182, 0.0))),
+        (Vector((0.0, 0.002, 0.56)), Vector((0.162, 0.0, 0.0)), Vector((0.0, 0.138, 0.0))),
+        (Vector((0.0, 0.004, 0.64)), Vector((0.236, 0.0, 0.0)), Vector((0.0, 0.182, 0.0))),
+        (Vector((0.0, 0.005, 0.71)), Vector((0.248, 0.0, 0.0)), Vector((0.0, 0.192, 0.0))),
+        (Vector((0.0, 0.003, 0.77)), Vector((0.232, 0.0, 0.0)), Vector((0.0, 0.178, 0.0))),
     ]
     body_parts.append(create_loft_object("Pelvis_Pants", pelvis_rings, MAT_PANTS_NAVY))
 
-    for side in [1.0, -1.0]:
-        # Chunky Toy-Chibi Pants Legs (z = 0.20..0.68, x = +-0.145)
+    for side in (1.0, -1.0):
+        # Tapered cargo silhouette (wider thigh, slightly cinched knee, flared tactical boot cuff!)
         leg_pants = [
-            (Vector((side * 0.145,  0.004, 0.68)), Vector((0.122, 0.0, 0.0)), Vector((0.0, -0.128, 0.0))),
-            (Vector((side * 0.148,  0.004, 0.56)), Vector((0.126, 0.0, 0.0)), Vector((0.0, -0.130, 0.0))),
-            (Vector((side * 0.150,  0.000, 0.44)), Vector((0.120, 0.0, 0.0)), Vector((0.0, -0.124, 0.0))),
-            (Vector((side * 0.152, -0.002, 0.32)), Vector((0.116, 0.0, 0.0)), Vector((0.0, -0.120, 0.0))),
-            (Vector((side * 0.152,  0.000, 0.21)), Vector((0.122, 0.0, 0.0)), Vector((0.0, -0.126, 0.0))), # Flared cuff like Ghost!
+            (Vector((side * 0.144,  0.004, 0.68)), Vector((0.122, 0.0, 0.0)), Vector((0.0, -0.126, 0.0))),
+            (Vector((side * 0.148,  0.004, 0.55)), Vector((0.128, 0.0, 0.0)), Vector((0.0, -0.132, 0.0))),
+            (Vector((side * 0.150,  0.000, 0.43)), Vector((0.114, 0.0, 0.0)), Vector((0.0, -0.118, 0.0))),
+            (Vector((side * 0.152, -0.002, 0.31)), Vector((0.108, 0.0, 0.0)), Vector((0.0, -0.112, 0.0))),
+            (Vector((side * 0.152,  0.000, 0.21)), Vector((0.118, 0.0, 0.0)), Vector((0.0, -0.122, 0.0))),
         ]
         body_parts.append(create_loft_object(f"LegPants_{side}", leg_pants, MAT_PANTS_NAVY))
 
-        # Tactical Yellow-Gold Thigh Strap (like Ghost's tan thigh bands & reference art!)
+        # Portrait-inspired Yellow Tactical Thigh Panel on Right Leg (-1) + Sleek Yellow Thigh Band on Both
         thigh_band = [
-            (Vector((side * 0.148, 0.002, 0.50)), Vector((0.130, 0.0, 0.0)), Vector((0.0, -0.134, 0.0))),
-            (Vector((side * 0.149, 0.002, 0.55)), Vector((0.131, 0.0, 0.0)), Vector((0.0, -0.135, 0.0))),
+            (Vector((side * 0.148, 0.002, 0.50)), Vector((0.133, 0.0, 0.0)), Vector((0.0, -0.137, 0.0))),
+            (Vector((side * 0.149, 0.002, 0.55)), Vector((0.134, 0.0, 0.0)), Vector((0.0, -0.138, 0.0))),
         ]
         body_parts.append(create_loft_object(f"ThighBand_{side}", thigh_band, MAT_JACKET_GOLD))
 
-        # 2-Layer Sculpted Tactical Knee Pad (like Ghost!) at z = 0.36
+        if side < 0:
+            # Flush contoured yellow tactical outer-thigh cargo pocket (zero protruding corners!)
+            thigh_panel = create_rounded_box(
+                "RightThigh_YellowPanel",
+                (-0.242, -0.008, 0.595),
+                (0.058, 0.125, 0.128),
+                MAT_JACKET_GOLD,
+                rot_euler=(0.0, 0.04, 0.0),
+                bevel_width=0.014
+            )
+            body_parts.append(thigh_panel)
+
+        # 2-Layer Sculpted Tactical Knee Pad
         kpad_outer = create_rounded_box(
             f"KneePadOuter_{side}",
-            (side * 0.152, -0.108, 0.365),
-            (0.125, 0.052, 0.128),
+            (side * 0.152, -0.106, 0.370),
+            (0.120, 0.050, 0.126),
             MAT_ARMOR_GREY,
             bevel_width=0.016
         )
         kpad_inner = create_rounded_box(
             f"KneePadInner_{side}",
-            (side * 0.152, -0.122, 0.365),
-            (0.088, 0.036, 0.092),
+            (side * 0.152, -0.120, 0.370),
+            (0.084, 0.036, 0.088),
             MAT_DARK_STRAP,
             bevel_width=0.012
         )
         body_parts.extend([kpad_outer, kpad_inner])
 
-        # Navy Boot Cuff Rim at z = 0.18..0.23
+        # Royal-Blue Tactical Boot Cuff Rim
         boot_cuff = [
-            (Vector((side * 0.152, 0.000, 0.23)), Vector((0.116, 0.0, 0.0)), Vector((0.0, -0.120, 0.0))),
-            (Vector((side * 0.152, 0.000, 0.18)), Vector((0.114, 0.0, 0.0)), Vector((0.0, -0.118, 0.0))),
+            (Vector((side * 0.152, 0.000, 0.24)), Vector((0.122, 0.0, 0.0)), Vector((0.0, -0.126, 0.0))),
+            (Vector((side * 0.152, 0.000, 0.185)), Vector((0.118, 0.0, 0.0)), Vector((0.0, -0.122, 0.0))),
         ]
         body_parts.append(create_loft_object(f"BootCuff_{side}", boot_cuff, MAT_GLOVE_BLUE))
 
-        # Chunky Toy-Chibi Combat Boots (wide rounded toe box + distinct lugged sole like Ghost!)
+        # Chunky Avatar-Star Combat Boots (Wide grounded stance, armored toe cap & thick lugged sole!)
         boot_upper = [
-            (Vector((side * 0.152,  0.000, 0.19)), Vector((0.108, 0.0, 0.0)), Vector((0.0, -0.112, 0.0))),
-            (Vector((side * 0.152, -0.010, 0.13)), Vector((0.112, 0.0, 0.0)), Vector((0.0, -0.125, 0.0))),
-            (Vector((side * 0.152, -0.045, 0.08)), Vector((0.122, 0.0, 0.0)), Vector((0.0, -0.165, 0.0))),
-            (Vector((side * 0.152, -0.055, 0.035)), Vector((0.125, 0.0, 0.0)), Vector((0.0, -0.175, 0.0))),
+            (Vector((side * 0.152,  0.000, 0.195)), Vector((0.108, 0.0, 0.0)), Vector((0.0, -0.114, 0.0))),
+            (Vector((side * 0.152, -0.015, 0.130)), Vector((0.116, 0.0, 0.0)), Vector((0.0, -0.132, 0.0))),
+            (Vector((side * 0.152, -0.052, 0.080)), Vector((0.128, 0.0, 0.0)), Vector((0.0, -0.178, 0.0))),
+            (Vector((side * 0.152, -0.062, 0.038)), Vector((0.132, 0.0, 0.0)), Vector((0.0, -0.188, 0.0))),
         ]
         body_parts.append(create_loft_object(f"BootUpper_{side}", boot_upper, MAT_DARK_STRAP))
 
+        # Armored Boot Ankle Strap + Toe Cap Accent
+        ankle_strap = create_rounded_box(
+            f"BootStrap_{side}",
+            (side * 0.152, -0.068, 0.148),
+            (0.196, 0.112, 0.036),
+            MAT_ARMOR_GREY,
+            bevel_width=0.010
+        )
+        body_parts.append(ankle_strap)
+
         boot_sole = [
-            (Vector((side * 0.152, -0.055, 0.040)), Vector((0.132, 0.0, 0.0)), Vector((0.0, -0.182, 0.0))),
-            (Vector((side * 0.152, -0.055, 0.004)), Vector((0.128, 0.0, 0.0)), Vector((0.0, -0.178, 0.0))),
+            (Vector((side * 0.152, -0.062, 0.044)), Vector((0.140, 0.0, 0.0)), Vector((0.0, -0.196, 0.0))),
+            (Vector((side * 0.152, -0.062, 0.003)), Vector((0.136, 0.0, 0.0)), Vector((0.0, -0.192, 0.0))),
         ]
         body_parts.append(create_loft_object(f"BootSole_{side}", boot_sole, MAT_ARMOR_GREY))
 
@@ -1011,7 +1367,7 @@ head_obj = build_tactical_girl_head()
 body_obj = build_tactical_girl_body()
 
 # ==============================================================================
-# 5. CREATE 18-BONE CHIBI ARMATURE (Chibi_Base_Rig) MATCHED TO TOY-CHIBI PROPORTIONS
+# 7. CREATE EXACT 18-BONE CHIBI ARMATURE (Chibi_Base_Rig) — 100% COMPATIBLE
 # ==============================================================================
 arm_data = bpy.data.armatures.new("Chibi_Base_Rig")
 rig_obj = bpy.data.objects.new("Chibi_Base_Rig", arm_data)
@@ -1060,7 +1416,7 @@ for bname, h, t, pname, roll_vec in bone_defs:
 bpy.ops.object.mode_set(mode='OBJECT')
 
 # ==============================================================================
-# 6. SKIN WEIGHT BINDING
+# 8. SKIN WEIGHT BINDING
 # ==============================================================================
 def point_to_segment_dist(p, a, b):
     ab = b - a
@@ -1070,6 +1426,7 @@ def point_to_segment_dist(p, a, b):
     t = max(0.0, min(1.0, (p - a).dot(ab) / len_sq))
     proj = a + ab * t
     return (p - proj).length
+
 
 def bind_mesh_to_rig(mesh_obj, rig, is_head=False):
     mesh_obj.parent = rig
@@ -1086,7 +1443,9 @@ def bind_mesh_to_rig(mesh_obj, rig, is_head=False):
     for v in mesh_obj.data.vertices:
         co = v.co
         if is_head:
-            neck_w = max(0.0, min(0.25, (1.46 - co.z) * 1.4)) if co.z < 1.46 else 0.0
+            # Keep ponytail & hair locks 100% bound to Head so long spikes never stretch into the neck!
+            is_near_neck = (co.z < 1.44) and (abs(co.x) < 0.22) and (co.y < 0.18) and (co.y > -0.22)
+            neck_w = max(0.0, min(0.20, (1.44 - co.z) * 1.2)) if is_near_neck else 0.0
             vgroups["Head"].add([v.index], 1.0 - neck_w, 'REPLACE')
             if neck_w > 0.001:
                 vgroups["Neck"].add([v.index], neck_w, 'REPLACE')
@@ -1123,16 +1482,18 @@ def bind_mesh_to_rig(mesh_obj, rig, is_head=False):
         for bname, w in top:
             vgroups[bname].add([v.index], w / total, 'REPLACE')
 
+
 bind_mesh_to_rig(head_obj, rig_obj, is_head=True)
 bind_mesh_to_rig(body_obj, rig_obj, is_head=False)
 
 # ==============================================================================
-# 7. ZERO-TWIST ANALYTICAL TWO-BONE IK & POSE HELPERS
+# 9. ZERO-TWIST ANALYTICAL TWO-BONE IK & ALL 11 ANIMATIONS (IDENTICAL TIMINGS)
 # ==============================================================================
 for pb in rig_obj.pose.bones:
     pb.rotation_mode = 'QUATERNION'
 
 rest_lengths = {b.name: (b.tail_local - b.head_local).length for b in arm_data.bones}
+
 
 def begin_frame_pose(frame):
     scene.frame_set(frame)
@@ -1142,11 +1503,13 @@ def begin_frame_pose(frame):
         pb.scale = Vector((1, 1, 1))
     bpy.context.view_layer.update()
 
+
 def set_local_euler_deg(bname, rx_deg, ry_deg, rz_deg):
     pb = rig_obj.pose.bones[bname]
     eul = Euler((math.radians(rx_deg), math.radians(ry_deg), math.radians(rz_deg)), 'XYZ')
     pb.rotation_quaternion = eul.to_quaternion()
     bpy.context.view_layer.update()
+
 
 def set_hips_transform(loc_offset, pitch_deg, yaw_deg, roll_deg):
     pb = rig_obj.pose.bones["Hips"]
@@ -1156,6 +1519,7 @@ def set_hips_transform(loc_offset, pitch_deg, yaw_deg, roll_deg):
     q_roll  = Quaternion(Vector((0, 0, 1)), math.radians(roll_deg))
     pb.rotation_quaternion = q_yaw @ q_roll @ q_pitch
     bpy.context.view_layer.update()
+
 
 def set_hips_world_offset(world_offset, pitch_deg, yaw_deg, roll_deg):
     pb = rig_obj.pose.bones["Hips"]
@@ -1167,6 +1531,7 @@ def set_hips_world_offset(world_offset, pitch_deg, yaw_deg, roll_deg):
     pb.rotation_quaternion = q_yaw @ q_roll @ q_pitch
     bpy.context.view_layer.update()
 
+
 def swing_bone_zero_twist(pb, target_end_pt):
     cur_dir = (pb.tail - pb.head).normalized()
     tgt_dir = (Vector(target_end_pt) - pb.head).normalized()
@@ -1177,6 +1542,7 @@ def swing_bone_zero_twist(pb, target_end_pt):
     new_world_mat = Matrix.LocRotScale(world_loc, new_world_rot, Vector((1, 1, 1)))
     pb.matrix = new_world_mat
     bpy.context.view_layer.update()
+
 
 def aim_two_bone_ik(upper_name, lower_name, end_name, target_world_pos, pole_world_vec, hand_rot_offset_deg=(0, 0, 0)):
     pb_u = rig_obj.pose.bones[upper_name]
@@ -1223,6 +1589,7 @@ def aim_two_bone_ik(upper_name, lower_name, end_name, target_world_pos, pole_wor
         pb_e.rotation_quaternion = Quaternion((1, 0, 0, 0))
         bpy.context.view_layer.update()
 
+
 def keyframe_all_bones(frame, prev_quats):
     for pb in rig_obj.pose.bones:
         q = pb.rotation_quaternion.copy()
@@ -1233,6 +1600,7 @@ def keyframe_all_bones(frame, prev_quats):
         pb.keyframe_insert(data_path="location", frame=frame)
         pb.keyframe_insert(data_path="rotation_quaternion", frame=frame)
         pb.keyframe_insert(data_path="scale", frame=frame)
+
 
 def create_new_action(name):
     act = bpy.data.actions.new(name=name)
@@ -1248,11 +1616,8 @@ def create_new_action(name):
             rig_obj.animation_data.action_slot = act.slots[0]
     return act
 
-# ==============================================================================
-# 8. BUILD ALL 10 ANIMATIONS CALIBRATED FOR TOY-CHIBI PROPORTIONS
-# ==============================================================================
 
-# 1. Idle (Frames 1..49) — Sleek Toy-Chibi stance with arms hanging cleanly at the sides!
+# 1. Idle (Frames 1..49)
 act_idle = create_new_action("Idle")
 prev_q = {}
 for f in range(1, 50):
@@ -1266,7 +1631,6 @@ for f in range(1, 50):
     set_local_euler_deg("Chest", -2.0 * breath, 0.0, 0.0)
     set_local_euler_deg("Head", 1.8 * breath, 2.5 * math.sin(ang), 1.2 * math.cos(ang))
 
-    # Arms hang naturally close to the body (x = +-0.31, z = 0.79) — zero chicken-wing bow!
     aim_two_bone_ik("LeftUpperArm", "LeftLowerArm", "LeftHand",
                     target_world_pos=(0.31, -0.04, 0.79 + 0.010 * breath),
                     pole_world_vec=(0.35, 0.65, -0.1))
@@ -1427,7 +1791,7 @@ for f in range(1, 16):
                     pole_world_vec=(-0.16, -1.0, 0.1))
     keyframe_all_bones(f, prev_q)
 
-# 6. Slash1 (Frames 1..19 — Right-to-Left Wide Horizontal Cleave)
+# 6. Slash1 (Frames 1..19)
 act_slash1 = create_new_action("Slash1")
 prev_q = {}
 for f in range(1, 20):
@@ -1470,7 +1834,7 @@ for f in range(1, 20):
                     pole_world_vec=(-0.16, -1.0, 0.2))
     keyframe_all_bones(f, prev_q)
 
-# 7. Slash2 (Frames 1..19 — Left-to-Right Rising Backhand Slash)
+# 7. Slash2 (Frames 1..19)
 act_slash2 = create_new_action("Slash2")
 prev_q = {}
 for f in range(1, 20):
@@ -1511,7 +1875,7 @@ for f in range(1, 20):
                     pole_world_vec=(-0.16, -1.0, 0.2))
     keyframe_all_bones(f, prev_q)
 
-# 8. Slash3 (Frames 1..23 — Heavy Leaping Overhead Slam Finisher)
+# 8. Slash3 (Frames 1..23)
 act_slash3 = create_new_action("Slash3")
 prev_q = {}
 for f in range(1, 24):
@@ -1594,7 +1958,7 @@ for f in range(1, 22):
     set_local_euler_deg("RightLowerLeg", 105.0 * tuck, 0.0, 0.0)
     keyframe_all_bones(f, prev_q)
 
-# 10. Death (Frames 1..37 — 1.5s Dramatic Tactical Collapse)
+# 10. Death (Frames 1..37)
 act_death = create_new_action("Death")
 prev_q = {}
 for f in range(1, 38):
@@ -1698,7 +2062,7 @@ for f in range(1, 38):
     set_local_euler_deg("Head", head_pitch, head_yaw, 0.0)
     keyframe_all_bones(f, prev_q)
 
-# 11. Sit (Frames 1..49 — Sitting on the ground with knees bent up / นั่งชันเข่า)
+# 11. Sit (Frames 1..49)
 act_sit = create_new_action("Sit")
 prev_q = {}
 for f in range(1, 50):
@@ -1743,12 +2107,12 @@ scene.frame_set(1)
 bpy.context.view_layer.update()
 
 # ==============================================================================
-# 9. EXPORT .FBX AND .BLEND + RENDER PREVIEW
+# 10. EXPORT .FBX (WITH EMBEDDED & LINKED TEXTURES) + .BLEND + STUDIO PREVIEW
 # ==============================================================================
-out_dir = r"d:\Unity Game Project\Eruption\TheLastEmpire\TheLastEmpire\Assets\GeneratedModels"
-blend_path = os.path.join(out_dir, "Chibi_TacticalGirl_Source.blend")
-fbx_path = os.path.join(out_dir, "Chibi_TacticalGirl_Rigged.fbx")
-preview_path = os.path.join(out_dir, "Chibi_TacticalGirl_Preview.png")
+blend_path = os.path.join(OUT_DIR, "Chibi_TacticalGirl_Source.blend")
+fbx_path = os.path.join(OUT_DIR, "Chibi_TacticalGirl_Rigged.fbx")
+preview_path = os.path.join(OUT_DIR, "Chibi_TacticalGirl_Preview.png")
+preview_back_path = os.path.join(OUT_DIR, "Chibi_TacticalGirl_Preview_Back.png")
 
 bpy.ops.object.select_all(action='DESELECT')
 rig_obj.select_set(True)
@@ -1771,45 +2135,56 @@ bpy.ops.export_scene.fbx(
     bake_anim_simplify_factor=0.0,
     axis_forward='-Y',
     axis_up='Z',
-    path_mode='AUTO'
+    path_mode='COPY',
+    embed_textures=True
 )
 
 bpy.ops.wm.save_as_mainfile(filepath=blend_path)
-print("SUCCESSFULLY EXPORTED TOY-CHIBI TACTICAL GIRL FBX AND BLEND:", fbx_path)
+print("SUCCESSFULLY EXPORTED AVATAR-STAR CHIBI TACTICAL GIRL FBX AND BLEND:", fbx_path)
 
-# Render high-contrast studio preview image
+# Render crisp studio front-3/4 and back-3/4 previews
 world = bpy.data.worlds.new("PreviewWorld")
 scene.world = world
 world.use_nodes = True
 bg_node = world.node_tree.nodes.get("Background")
 if bg_node:
-    bg_node.inputs[0].default_value = (0.18, 0.19, 0.22, 1.0)
-    bg_node.inputs[1].default_value = 1.2
+    bg_node.inputs[0].default_value = (0.17, 0.18, 0.22, 1.0)
+    bg_node.inputs[1].default_value = 1.35
 
 cam_data = bpy.data.cameras.new("PreviewCam")
-cam_data.lens = 55
+cam_data.lens = 58
 cam_obj = bpy.data.objects.new("PreviewCam", cam_data)
 bpy.context.collection.objects.link(cam_obj)
-cam_obj.location = Vector((-0.65, -4.15, 1.22))
-direction = Vector((0.0, 0.0, 1.15)) - cam_obj.location
-cam_obj.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
 scene.camera = cam_obj
 
 key_light_data = bpy.data.lights.new(name="KeyLight", type='SUN')
-key_light_data.energy = 3.4
+key_light_data.energy = 3.2
 key_light = bpy.data.objects.new(name="KeyLight", object_data=key_light_data)
 bpy.context.collection.objects.link(key_light)
-key_light.rotation_euler = Euler((math.radians(52), math.radians(-18), math.radians(-22)), 'XYZ')
+key_light.rotation_euler = Euler((math.radians(52), math.radians(-16), math.radians(-20)), 'XYZ')
 
 fill_light_data = bpy.data.lights.new(name="FillLight", type='SUN')
-fill_light_data.energy = 1.8
+fill_light_data.energy = 2.0
 fill_light = bpy.data.objects.new(name="FillLight", object_data=fill_light_data)
 bpy.context.collection.objects.link(fill_light)
-fill_light.rotation_euler = Euler((math.radians(68), math.radians(28), math.radians(32)), 'XYZ')
+fill_light.rotation_euler = Euler((math.radians(65), math.radians(28), math.radians(34)), 'XYZ')
 
 scene.render.engine = 'BLENDER_EEVEE_NEXT' if 'BLENDER_EEVEE_NEXT' in bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items.keys() else 'BLENDER_EEVEE'
-scene.render.resolution_x = 800
-scene.render.resolution_y = 800
+scene.render.resolution_x = 900
+scene.render.resolution_y = 900
+
+# Front-3/4 shot
+cam_obj.location = Vector((-0.55, -4.35, 1.28))
+direction = Vector((0.06, 0.0, 1.18)) - cam_obj.location
+cam_obj.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
 scene.render.filepath = preview_path
 bpy.ops.render.render(write_still=True)
-print("SUCCESSFULLY RENDERED PREVIEW:", preview_path)
+
+# Back-3/4 shot
+cam_obj.location = Vector((1.65, 3.85, 1.48))
+direction = Vector((0.08, 0.0, 1.18)) - cam_obj.location
+cam_obj.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+scene.render.filepath = preview_back_path
+bpy.ops.render.render(write_still=True)
+
+print("SUCCESSFULLY RENDERED PREVIEWS:", preview_path, preview_back_path)

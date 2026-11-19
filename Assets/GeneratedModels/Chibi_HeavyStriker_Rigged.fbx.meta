@@ -3,7 +3,22 @@ guid: a3a780451e6df274fa90186941efe474
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Face_Texture
+    second: {fileID: 2100000, guid: d59c11333e2fd3546ac778506e292d9b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Hair_Indigo
+    second: {fileID: 2100000, guid: b41c65984a85ba24db4402b8ca8b44e5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Undercut
+    second: {fileID: 2100000, guid: f418c41a94d37ee45ade846712e7e69d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -427,4 +442,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-
