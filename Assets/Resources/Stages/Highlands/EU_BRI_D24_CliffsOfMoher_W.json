@@ -295,25 +295,6 @@
             }
         },
         {
-            "resourcePath": "Prefabs/Environment/Building/Apoc_Tree_02_Scorched_Dead_Tree",
-            "rotation": {
-                "y": 270,
-                "z": 0,
-                "x": 90
-            },
-            "prefabName": "Apoc_Tree_02_Scorched_Dead_Tree",
-            "scale": {
-                "y": 1,
-                "z": 1,
-                "x": 1
-            },
-            "position": {
-                "y": 0,
-                "z": -8.4,
-                "x": -8.8
-            }
-        },
-        {
             "resourcePath": "Prefabs/Environment/Building/Prop_WoodenFence",
             "rotation": {
                 "y": 0,
@@ -330,44 +311,6 @@
                 "y": 0,
                 "z": -4.2,
                 "x": -4.6
-            }
-        },
-        {
-            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
-            "rotation": {
-                "y": 90,
-                "z": 0,
-                "x": 0
-            },
-            "prefabName": "Prop_BushRound_New",
-            "scale": {
-                "y": 0.68,
-                "z": 0.68,
-                "x": 0.68
-            },
-            "position": {
-                "y": 0,
-                "z": 3.7,
-                "x": -5.8
-            }
-        },
-        {
-            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
-            "rotation": {
-                "y": 90,
-                "z": 0,
-                "x": 0
-            },
-            "prefabName": "Prop_BushBerry_New",
-            "scale": {
-                "y": 0.68,
-                "z": 0.68,
-                "x": 0.68
-            },
-            "position": {
-                "y": 0,
-                "z": 7.3,
-                "x": -17.5
             }
         },
         {
@@ -390,44 +333,6 @@
             }
         },
         {
-            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
-            "rotation": {
-                "y": 90,
-                "z": 0,
-                "x": 0
-            },
-            "prefabName": "Prop_BushAutumnRock_New",
-            "scale": {
-                "y": 0.68,
-                "z": 0.68,
-                "x": 0.68
-            },
-            "position": {
-                "y": 0,
-                "z": -3.5,
-                "x": -9.8
-            }
-        },
-        {
-            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
-            "rotation": {
-                "y": 180,
-                "z": 0,
-                "x": 0
-            },
-            "prefabName": "Prop_BushBerry_New",
-            "scale": {
-                "y": 0.68,
-                "z": 0.68,
-                "x": 0.68
-            },
-            "position": {
-                "y": 0,
-                "z": 7.4,
-                "x": 9.6
-            }
-        },
-        {
             "resourcePath": "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
             "rotation": {
                 "y": 270,
@@ -444,6 +349,1374 @@
                 "y": 0,
                 "z": -6.8,
                 "x": -11.3
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 10.78,
+                "y": 0,
+                "z": -11.0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 158.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.095,
+                "y": 1.095,
+                "z": 1.095
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 9.88,
+                "y": 0,
+                "z": -10.45
+            },
+            "rotation": {
+                "x": 0,
+                "y": 178.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.184,
+                "y": 1.184,
+                "z": 1.184
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 14.53,
+                "y": 0,
+                "z": -11.44
+            },
+            "rotation": {
+                "x": 0,
+                "y": 291.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.042,
+                "y": 1.042,
+                "z": 1.042
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 9.56,
+                "y": 0,
+                "z": -9.96
+            },
+            "rotation": {
+                "x": 0,
+                "y": 320.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.058,
+                "y": 1.058,
+                "z": 1.058
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 11.32,
+                "y": 0,
+                "z": -8.91
+            },
+            "rotation": {
+                "x": 0,
+                "y": 249.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.968,
+                "y": 0.968,
+                "z": 0.968
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 8.26,
+                "y": 0,
+                "z": -8.34
+            },
+            "rotation": {
+                "x": 0,
+                "y": 135.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.111,
+                "y": 1.111,
+                "z": 1.111
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -9.53,
+                "y": 0,
+                "z": 4.0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 243.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.211,
+                "y": 1.211,
+                "z": 1.211
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -11.34,
+                "y": 0,
+                "z": 5.58
+            },
+            "rotation": {
+                "x": 0,
+                "y": 279.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.302,
+                "y": 1.302,
+                "z": 1.302
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -11.44,
+                "y": 0,
+                "z": 4.95
+            },
+            "rotation": {
+                "x": 0,
+                "y": 153.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.152,
+                "y": 1.152,
+                "z": 1.152
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -11.85,
+                "y": 0,
+                "z": 3.71
+            },
+            "rotation": {
+                "x": 0,
+                "y": 219.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.209,
+                "y": 1.209,
+                "z": 1.209
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 16.66,
+                "y": 0,
+                "z": -10.22
+            },
+            "rotation": {
+                "x": 0,
+                "y": 241.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.109,
+                "y": 1.109,
+                "z": 1.109
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 19.17,
+                "y": 0,
+                "z": -9.21
+            },
+            "rotation": {
+                "x": 0,
+                "y": 271.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.217,
+                "y": 1.217,
+                "z": 1.217
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 14.25,
+                "y": 0,
+                "z": -9.97
+            },
+            "rotation": {
+                "x": 0,
+                "y": 56.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.028,
+                "y": 1.028,
+                "z": 1.028
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 17.47,
+                "y": 0,
+                "z": -10.81
+            },
+            "rotation": {
+                "x": 0,
+                "y": 196.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.102,
+                "y": 1.102,
+                "z": 1.102
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 16.02,
+                "y": 0,
+                "z": -11.45
+            },
+            "rotation": {
+                "x": 0,
+                "y": 108.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.992,
+                "y": 0.992,
+                "z": 0.992
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 3.54,
+                "y": 0,
+                "z": -4.95
+            },
+            "rotation": {
+                "x": 0,
+                "y": 76.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.145,
+                "y": 1.145,
+                "z": 1.145
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 4.15,
+                "y": 0,
+                "z": -7.12
+            },
+            "rotation": {
+                "x": 0,
+                "y": 327.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.017,
+                "y": 1.017,
+                "z": 1.017
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 4.55,
+                "y": 0,
+                "z": -4.18
+            },
+            "rotation": {
+                "x": 0,
+                "y": 4.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.216,
+                "y": 1.216,
+                "z": 1.216
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 3.19,
+                "y": 0,
+                "z": -5.81
+            },
+            "rotation": {
+                "x": 0,
+                "y": 341.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.066,
+                "y": 1.066,
+                "z": 1.066
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 4.46,
+                "y": 0,
+                "z": -5.07
+            },
+            "rotation": {
+                "x": 0,
+                "y": 65.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.28,
+                "y": 1.28,
+                "z": 1.28
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 18.84,
+                "y": 0,
+                "z": -8.0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 221.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.134,
+                "y": 1.134,
+                "z": 1.134
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 18.73,
+                "y": 0,
+                "z": -4.85
+            },
+            "rotation": {
+                "x": 0,
+                "y": 344.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.317,
+                "y": 1.317,
+                "z": 1.317
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 17.48,
+                "y": 0,
+                "z": -8.14
+            },
+            "rotation": {
+                "x": 0,
+                "y": 23.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.302,
+                "y": 1.302,
+                "z": 1.302
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 19.86,
+                "y": 0,
+                "z": -10.03
+            },
+            "rotation": {
+                "x": 0,
+                "y": 276.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.262,
+                "y": 1.262,
+                "z": 1.262
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -22.79,
+                "y": 0,
+                "z": -7.35
+            },
+            "rotation": {
+                "x": 0,
+                "y": 312.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.093,
+                "y": 1.093,
+                "z": 1.093
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -22.17,
+                "y": 0,
+                "z": -5.19
+            },
+            "rotation": {
+                "x": 0,
+                "y": 320.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.249,
+                "y": 1.249,
+                "z": 1.249
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -22.27,
+                "y": 0,
+                "z": -6.31
+            },
+            "rotation": {
+                "x": 0,
+                "y": 314.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.13,
+                "y": 1.13,
+                "z": 1.13
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -20.09,
+                "y": 0,
+                "z": -7.27
+            },
+            "rotation": {
+                "x": 0,
+                "y": 143.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.106,
+                "y": 1.106,
+                "z": 1.106
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -22.85,
+                "y": 0,
+                "z": -6.06
+            },
+            "rotation": {
+                "x": 0,
+                "y": 178.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.963,
+                "y": 0.963,
+                "z": 0.963
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -13.44,
+                "y": 0,
+                "z": -11.52
+            },
+            "rotation": {
+                "x": 0,
+                "y": 109.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.994,
+                "y": 0.994,
+                "z": 0.994
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -10.01,
+                "y": 0,
+                "z": -10.99
+            },
+            "rotation": {
+                "x": 0,
+                "y": 352.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.181,
+                "y": 1.181,
+                "z": 1.181
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -13.3,
+                "y": 0,
+                "z": -9.92
+            },
+            "rotation": {
+                "x": 0,
+                "y": 22.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.127,
+                "y": 1.127,
+                "z": 1.127
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -12.09,
+                "y": 0,
+                "z": -9.51
+            },
+            "rotation": {
+                "x": 0,
+                "y": 343.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.042,
+                "y": 1.042,
+                "z": 1.042
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -14.14,
+                "y": 0,
+                "z": -9.56
+            },
+            "rotation": {
+                "x": 0,
+                "y": 128.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.282,
+                "y": 1.282,
+                "z": 1.282
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -20.19,
+                "y": 0,
+                "z": 10.4
+            },
+            "rotation": {
+                "x": 0,
+                "y": 165.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.017,
+                "y": 1.017,
+                "z": 1.017
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -22.93,
+                "y": 0,
+                "z": 11.41
+            },
+            "rotation": {
+                "x": 0,
+                "y": 337.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.305,
+                "y": 1.305,
+                "z": 1.305
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -21.29,
+                "y": 0,
+                "z": 6.5
+            },
+            "rotation": {
+                "x": 0,
+                "y": 186.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.069,
+                "y": 1.069,
+                "z": 1.069
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -20.87,
+                "y": 0,
+                "z": 7.39
+            },
+            "rotation": {
+                "x": 0,
+                "y": 332.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.291,
+                "y": 1.291,
+                "z": 1.291
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -20.21,
+                "y": 0,
+                "z": 11.07
+            },
+            "rotation": {
+                "x": 0,
+                "y": 242.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.985,
+                "y": 0.985,
+                "z": 0.985
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -18.88,
+                "y": 0,
+                "z": 7.16
+            },
+            "rotation": {
+                "x": 0,
+                "y": 196.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.087,
+                "y": 1.087,
+                "z": 1.087
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 23.83,
+                "y": 0,
+                "z": 7.66
+            },
+            "rotation": {
+                "x": 0,
+                "y": 135.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.264,
+                "y": 1.264,
+                "z": 1.264
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 20.73,
+                "y": 0,
+                "z": 7.72
+            },
+            "rotation": {
+                "x": 0,
+                "y": 323.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.263,
+                "y": 1.263,
+                "z": 1.263
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 21.62,
+                "y": 0,
+                "z": 5.85
+            },
+            "rotation": {
+                "x": 0,
+                "y": 47.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.088,
+                "y": 1.088,
+                "z": 1.088
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 23.26,
+                "y": 0,
+                "z": 8.7
+            },
+            "rotation": {
+                "x": 0,
+                "y": 42.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.98,
+                "y": 0.98,
+                "z": 0.98
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 19.02,
+                "y": 0,
+                "z": 5.95
+            },
+            "rotation": {
+                "x": 0,
+                "y": 339.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.961,
+                "y": 0.961,
+                "z": 0.961
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 18.53,
+                "y": 0,
+                "z": 4.57
+            },
+            "rotation": {
+                "x": 0,
+                "y": 215.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.958,
+                "y": 0.958,
+                "z": 0.958
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 18.1,
+                "y": 0,
+                "z": 6.5
+            },
+            "rotation": {
+                "x": 0,
+                "y": 265.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.973,
+                "y": 0.973,
+                "z": 0.973
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 18.15,
+                "y": 0,
+                "z": 3.62
+            },
+            "rotation": {
+                "x": 0,
+                "y": 210.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.071,
+                "y": 1.071,
+                "z": 1.071
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -9.88,
+                "y": 0,
+                "z": 10.3
+            },
+            "rotation": {
+                "x": 0,
+                "y": 169.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.311,
+                "y": 1.311,
+                "z": 1.311
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -10.21,
+                "y": 0,
+                "z": 11.23
+            },
+            "rotation": {
+                "x": 0,
+                "y": 138.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.088,
+                "y": 1.088,
+                "z": 1.088
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -10.5,
+                "y": 0,
+                "z": 9.76
+            },
+            "rotation": {
+                "x": 0,
+                "y": 189.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.893,
+                "y": 0.893,
+                "z": 0.893
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -9.02,
+                "y": 0,
+                "z": 10.24
+            },
+            "rotation": {
+                "x": 0,
+                "y": 154.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.138,
+                "y": 1.138,
+                "z": 1.138
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 6.12,
+                "y": 0,
+                "z": -8.9
+            },
+            "rotation": {
+                "x": 0,
+                "y": 218.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.204,
+                "y": 1.204,
+                "z": 1.204
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": 5.33,
+                "y": 0,
+                "z": -8.98
+            },
+            "rotation": {
+                "x": 0,
+                "y": 71.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.067,
+                "y": 1.067,
+                "z": 1.067
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 6.52,
+                "y": 0,
+                "z": -9.62
+            },
+            "rotation": {
+                "x": 0,
+                "y": 324.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.937,
+                "y": 0.937,
+                "z": 0.937
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -6.38,
+                "y": 0,
+                "z": -6.69
+            },
+            "rotation": {
+                "x": 0,
+                "y": 123.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.17,
+                "y": 1.17,
+                "z": 1.17
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -5.68,
+                "y": 0,
+                "z": -6.33
+            },
+            "rotation": {
+                "x": 0,
+                "y": 199.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.11,
+                "y": 1.11,
+                "z": 1.11
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -7.11,
+                "y": 0,
+                "z": -5.93
+            },
+            "rotation": {
+                "x": 0,
+                "y": 86.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.029,
+                "y": 1.029,
+                "z": 1.029
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -6.36,
+                "y": 0,
+                "z": -7.48
+            },
+            "rotation": {
+                "x": 0,
+                "y": 124.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.901,
+                "y": 0.901,
+                "z": 0.901
+            }
+        },
+        {
+            "prefabName": "Prop_BushHedge_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushHedge_New",
+            "position": {
+                "x": 10.85,
+                "y": 0,
+                "z": -6.83
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.953,
+                "y": 0.953,
+                "z": 0.953
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 10.88,
+                "y": 0,
+                "z": -6.16
+            },
+            "rotation": {
+                "x": 0,
+                "y": 77.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.02,
+                "y": 1.02,
+                "z": 1.02
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -13.12,
+                "y": 0,
+                "z": 9.9
+            },
+            "rotation": {
+                "x": 0,
+                "y": 276.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.254,
+                "y": 1.254,
+                "z": 1.254
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": -14.07,
+                "y": 0,
+                "z": 10.44
+            },
+            "rotation": {
+                "x": 0,
+                "y": 193.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.026,
+                "y": 1.026,
+                "z": 1.026
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": -12.36,
+                "y": 0,
+                "z": 10.34
+            },
+            "rotation": {
+                "x": 0,
+                "y": 222.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.104,
+                "y": 1.104,
+                "z": 1.104
+            }
+        },
+        {
+            "prefabName": "Prop_BushBerry_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "position": {
+                "x": -5.15,
+                "y": 0,
+                "z": 8.23
+            },
+            "rotation": {
+                "x": 0,
+                "y": 165.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.141,
+                "y": 1.141,
+                "z": 1.141
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -5.3,
+                "y": 0,
+                "z": 7.27
+            },
+            "rotation": {
+                "x": 0,
+                "y": 123.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.122,
+                "y": 1.122,
+                "z": 1.122
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -4.52,
+                "y": 0,
+                "z": 8.79
+            },
+            "rotation": {
+                "x": 0,
+                "y": 356.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.076,
+                "y": 1.076,
+                "z": 1.076
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": -5.82,
+                "y": 0,
+                "z": 8.76
+            },
+            "rotation": {
+                "x": 0,
+                "y": 79.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.129,
+                "y": 1.129,
+                "z": 1.129
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 5.72,
+                "y": 0,
+                "z": 9.25
+            },
+            "rotation": {
+                "x": 0,
+                "y": 175.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.075,
+                "y": 1.075,
+                "z": 1.075
+            }
+        },
+        {
+            "prefabName": "Prop_BushFlowering_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "position": {
+                "x": 4.89,
+                "y": 0,
+                "z": 9.84
+            },
+            "rotation": {
+                "x": 0,
+                "y": 234.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.077,
+                "y": 1.077,
+                "z": 1.077
+            }
+        },
+        {
+            "prefabName": "Prop_BushRound_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "position": {
+                "x": 5.42,
+                "y": 0,
+                "z": 8.19
+            },
+            "rotation": {
+                "x": 0,
+                "y": 192.4,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.127,
+                "y": 1.127,
+                "z": 1.127
+            }
+        },
+        {
+            "prefabName": "Prop_BushAutumnRock_New",
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "position": {
+                "x": 6.77,
+                "y": 0,
+                "z": 9.56
+            },
+            "rotation": {
+                "x": 0,
+                "y": 206.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.073,
+                "y": 1.073,
+                "z": 1.073
             }
         }
     ],
@@ -569,13 +1842,13 @@
             }
         },
         {
-            "resourcePath": "Prefabs/Environment/Vehicle_Sedan",
+            "resourcePath": "Prefabs/Environment/Vehicle_Taxi_NYC",
             "rotation": {
                 "y": 90,
                 "z": 0,
                 "x": 0
             },
-            "prefabName": "Vehicle_Sedan",
+            "prefabName": "Vehicle_Taxi_NYC",
             "scale": {
                 "y": 1,
                 "z": 1,
@@ -585,6 +1858,633 @@
                 "y": 0,
                 "z": 1.3,
                 "x": -9.5
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": 11.43,
+                "y": 0,
+                "z": -10.09
+            },
+            "rotation": {
+                "x": 0,
+                "y": 265.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.118,
+                "y": 1.118,
+                "z": 1.118
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 9.69,
+                "y": 0,
+                "z": -8.98
+            },
+            "rotation": {
+                "x": 0,
+                "y": 259.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.001,
+                "y": 1.001,
+                "z": 1.001
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 13.12,
+                "y": 0,
+                "z": -11.03
+            },
+            "rotation": {
+                "x": 0,
+                "y": 122.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.091,
+                "y": 1.091,
+                "z": 1.091
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 8.84,
+                "y": 0,
+                "z": -10.79
+            },
+            "rotation": {
+                "x": 0,
+                "y": 290.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.102,
+                "y": 1.102,
+                "z": 1.102
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": -10.54,
+                "y": 0,
+                "z": 4.19
+            },
+            "rotation": {
+                "x": 0,
+                "y": 62.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.043,
+                "y": 1.043,
+                "z": 1.043
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": 15.56,
+                "y": 0,
+                "z": -10.48
+            },
+            "rotation": {
+                "x": 0,
+                "y": 211.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.147,
+                "y": 1.147,
+                "z": 1.147
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Medium_02_ForestPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_02_ForestPine",
+            "position": {
+                "x": 18.36,
+                "y": 0,
+                "z": -10.43
+            },
+            "rotation": {
+                "x": 0,
+                "y": 254.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.922,
+                "y": 0.922,
+                "z": 0.922
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": 3.65,
+                "y": 0,
+                "z": -3.81
+            },
+            "rotation": {
+                "x": 0,
+                "y": 315.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.01,
+                "y": 1.01,
+                "z": 1.01
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "position": {
+                "x": 4.09,
+                "y": 0,
+                "z": -6.23
+            },
+            "rotation": {
+                "x": 0,
+                "y": 296.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.954,
+                "y": 0.954,
+                "z": 0.954
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": 18.02,
+                "y": 0,
+                "z": -7.38
+            },
+            "rotation": {
+                "x": 0,
+                "y": 327.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.138,
+                "y": 1.138,
+                "z": 1.138
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Medium_03_GoldenBirch",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_03_GoldenBirch",
+            "position": {
+                "x": 18.36,
+                "y": 0,
+                "z": -5.68
+            },
+            "rotation": {
+                "x": 0,
+                "y": 234.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.974,
+                "y": 0.974,
+                "z": 0.974
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 18.83,
+                "y": 0,
+                "z": -8.91
+            },
+            "rotation": {
+                "x": 0,
+                "y": 204.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.018,
+                "y": 1.018,
+                "z": 1.018
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "position": {
+                "x": 20.34,
+                "y": 0,
+                "z": -8.41
+            },
+            "rotation": {
+                "x": 0,
+                "y": 183.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.035,
+                "y": 1.035,
+                "z": 1.035
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Medium_03_GoldenBirch",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_03_GoldenBirch",
+            "position": {
+                "x": -21.37,
+                "y": 0,
+                "z": -6.25
+            },
+            "rotation": {
+                "x": 0,
+                "y": 5.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.015,
+                "y": 1.015,
+                "z": 1.015
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Medium_03_GoldenBirch",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_03_GoldenBirch",
+            "position": {
+                "x": -22.48,
+                "y": 0,
+                "z": -4.19
+            },
+            "rotation": {
+                "x": 0,
+                "y": 331.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.082,
+                "y": 1.082,
+                "z": 1.082
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -23.14,
+                "y": 0,
+                "z": -6.68
+            },
+            "rotation": {
+                "x": 0,
+                "y": 205.5,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.088,
+                "y": 1.088,
+                "z": 1.088
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -20.17,
+                "y": 0,
+                "z": -8.2
+            },
+            "rotation": {
+                "x": 0,
+                "y": 28.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.089,
+                "y": 1.089,
+                "z": 1.089
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": -12.73,
+                "y": 0,
+                "z": -10.62
+            },
+            "rotation": {
+                "x": 0,
+                "y": 233.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -10.76,
+                "y": 0,
+                "z": -10.44
+            },
+            "rotation": {
+                "x": 0,
+                "y": 236.0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.965,
+                "y": 0.965,
+                "z": 0.965
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -14.62,
+                "y": 0,
+                "z": -10.06
+            },
+            "rotation": {
+                "x": 0,
+                "y": 178.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.039,
+                "y": 1.039,
+                "z": 1.039
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "position": {
+                "x": -10.98,
+                "y": 0,
+                "z": -8.64
+            },
+            "rotation": {
+                "x": 0,
+                "y": 273.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.005,
+                "y": 1.005,
+                "z": 1.005
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": -20.21,
+                "y": 0,
+                "z": 8.75
+            },
+            "rotation": {
+                "x": 0,
+                "y": 234.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.086,
+                "y": 1.086,
+                "z": 1.086
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -21.59,
+                "y": 0,
+                "z": 10.95
+            },
+            "rotation": {
+                "x": 0,
+                "y": 337.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.953,
+                "y": 0.953,
+                "z": 0.953
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -20.25,
+                "y": 0,
+                "z": 6.85
+            },
+            "rotation": {
+                "x": 0,
+                "y": 163.1,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.015,
+                "y": 1.015,
+                "z": 1.015
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_03_AutumnMaple",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_03_AutumnMaple",
+            "position": {
+                "x": 22.48,
+                "y": 0,
+                "z": 7.39
+            },
+            "rotation": {
+                "x": 0,
+                "y": 155.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Medium_02_ForestPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_02_ForestPine",
+            "position": {
+                "x": 21.03,
+                "y": 0,
+                "z": 6.35
+            },
+            "rotation": {
+                "x": 0,
+                "y": 9.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.97,
+                "y": 0.97,
+                "z": 0.97
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 23.33,
+                "y": 0,
+                "z": 5.79
+            },
+            "rotation": {
+                "x": 0,
+                "y": 192.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.08,
+                "y": 1.08,
+                "z": 1.08
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "position": {
+                "x": 17.84,
+                "y": 0,
+                "z": 4.95
+            },
+            "rotation": {
+                "x": 0,
+                "y": 114.3,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.06,
+                "y": 1.06,
+                "z": 1.06
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": 19.78,
+                "y": 0,
+                "z": 5.14
+            },
+            "rotation": {
+                "x": 0,
+                "y": 196.9,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.066,
+                "y": 1.066,
+                "z": 1.066
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "position": {
+                "x": 18.99,
+                "y": 0,
+                "z": 7.18
+            },
+            "rotation": {
+                "x": 0,
+                "y": 306.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.03,
+                "y": 1.03,
+                "z": 1.03
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "position": {
+                "x": 5.96,
+                "y": 0,
+                "z": -9.75
+            },
+            "rotation": {
+                "x": 0,
+                "y": 138.6,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.014,
+                "y": 1.014,
+                "z": 1.014
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -6.61,
+                "y": 0,
+                "z": -7.54
+            },
+            "rotation": {
+                "x": 0,
+                "y": 99.8,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.105,
+                "y": 1.105,
+                "z": 1.105
+            }
+        },
+        {
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "position": {
+                "x": -13.07,
+                "y": 0,
+                "z": 10.75
+            },
+            "rotation": {
+                "x": 0,
+                "y": 229.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 1.092,
+                "y": 1.092,
+                "z": 1.092
             }
         }
     ],

@@ -27,12 +27,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 322475289993861894}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8489897660974064320}
+  - {fileID: 2758418284796491432}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7047320627892182801
@@ -76,8 +76,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.22, y: 2.1000001, z: 4.4}
-  m_Center: {x: 0, y: 1.09, z: 0}
+  m_Size: {x: 2.1920002, y: 1.7700001, z: 4.5299997}
+  m_Center: {x: 0, y: 0.88500005, z: -0.08500004}
 --- !u!114 &8377073064214474079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -91,6 +91,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
   containerName: Police Sedan
+  maxStorageSlots: 24
   moneyAmount: 0
   itemsInside: []
   randomizeLoot: 1
@@ -115,7 +116,7 @@ MonoBehaviour:
     dropProbability: 0.1
   isSearched: 0
   interactionRadius: 2
---- !u!1 &7812470137093693380
+--- !u!1 &8167791156478666866
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -123,46 +124,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8489897660974064320}
-  - component: {fileID: 4817231618038441474}
-  - component: {fileID: 2713198187777658998}
+  - component: {fileID: 2758418284796491432}
+  - component: {fileID: 634159915768064774}
+  - component: {fileID: 5083525267571816643}
   m_Layer: 0
-  m_Name: default
+  m_Name: Stylized_Vehicle_Police_Sedan
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8489897660974064320
+--- !u!4 &2758418284796491432
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7812470137093693380}
+  m_GameObject: {fileID: 8167791156478666866}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8381008053904940387}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &4817231618038441474
+--- !u!33 &634159915768064774
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7812470137093693380}
-  m_Mesh: {fileID: -2432090755550338912, guid: a5dff0f5f4fabb24798751e4b0a1b3a2, type: 3}
---- !u!23 &2713198187777658998
+  m_GameObject: {fileID: 8167791156478666866}
+  m_Mesh: {fileID: 8372523897155213294, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+--- !u!23 &5083525267571816643
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7812470137093693380}
+  m_GameObject: {fileID: 8167791156478666866}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -181,7 +182,16 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -3033667219593020291, guid: a5dff0f5f4fabb24798751e4b0a1b3a2, type: 3}
+  - {fileID: 405695604403225985, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: 7507402042184923473, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: -2850282157401561218, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: -7181685566173657166, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: -8589822895404907163, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: -2100561209057208147, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: 1593772877962494582, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: 579482889715120320, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: 3457701156311227767, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
+  - {fileID: -482887956499609092, guid: 3f9eb6d0f6527904784e05fedab3a4e9, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

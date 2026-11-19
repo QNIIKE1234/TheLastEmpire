@@ -174,6 +174,13 @@ namespace TheLastEmpire
             if (GUILayout.Button("Broken Streetlight")) SpawnPrefabToCategory(ObstaclesFolderName, "Prefabs/Environment/Apoc_Prop_Broken_Streetlight");
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("NYC Taxi")) SpawnPrefabToCategory(ObstaclesFolderName, "Prefabs/Environment/Vehicle_Taxi_NYC");
+            if (GUILayout.Button("Police SUV")) SpawnPrefabToCategory(ObstaclesFolderName, "Prefabs/Environment/Vehicle_Police_SUV");
+            if (GUILayout.Button("Fire Truck")) SpawnPrefabToCategory(ObstaclesFolderName, "Prefabs/Environment/Vehicle_FireTruck");
+            if (GUILayout.Button("Police Moto")) SpawnPrefabToCategory(ObstaclesFolderName, "Prefabs/Environment/Vehicle_Police_Motorcycle");
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Nature & Urban Structures:", EditorStyles.miniBoldLabel);
             EditorGUILayout.BeginHorizontal();

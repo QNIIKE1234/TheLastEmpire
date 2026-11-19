@@ -177,9 +177,52 @@ namespace TheLastEmpire
             }
         }
 
+        private static GameObject TrySpawnFoliageCluster(
+            string[] primaryPool,
+            string[] companionBushPool,
+            Transform parent,
+            Vector3 worldXZPos,
+            bool snapToGrid,
+            float primaryMinScale,
+            float primaryMaxScale,
+            int minBushes,
+            int maxBushes,
+            float bushMinRadius,
+            float bushMaxRadius,
+            float bushMinScale,
+            float bushMaxScale)
+        {
+            GameObject primary = TrySpawnPrefabFromPool(primaryPool, parent, worldXZPos, snapToGrid, primaryMinScale, primaryMaxScale);
+            if (primary == null) return null;
+
+            GameObject clusterRoot = new GameObject(primary.name + "_Cluster");
+            clusterRoot.transform.SetParent(parent, false);
+            clusterRoot.transform.position = primary.transform.position;
+            clusterRoot.transform.rotation = Quaternion.identity;
+
+            primary.transform.SetParent(clusterRoot.transform, true);
+
+            int bushCount = Random.Range(minBushes, maxBushes + 1);
+            float baseAngle = Random.Range(0f, Mathf.PI * 2f);
+            float step = (Mathf.PI * 2f) / Mathf.Max(1, bushCount);
+
+            for (int i = 0; i < bushCount; i++)
+            {
+                float ang = baseAngle + i * step + Random.Range(-0.35f, 0.35f);
+                float rad = Random.Range(bushMinRadius, bushMaxRadius);
+                Vector3 bPos = new Vector3(
+                    worldXZPos.x + Mathf.Cos(ang) * rad,
+                    worldXZPos.y + Mathf.Sin(ang) * rad,
+                    0f);
+                TrySpawnPrefabFromPool(companionBushPool, clusterRoot.transform, bPos, false, bushMinScale, bushMaxScale);
+            }
+
+            return clusterRoot;
+        }
+
         /// <summary>
         /// Spawns a prop of the given category at worldPos (ground Y = 0), preferring our real
-        /// Cozy Low-Poly / stylized prefabs via Addressables and falling back to primitives only if missing.
+        /// Cozy Low-Poly / stylized prefabs in natural clusters via Addressables and falling back to primitives only if missing.
         /// </summary>
         public static GameObject SpawnProp(
             PropCategory category,
@@ -192,13 +235,22 @@ namespace TheLastEmpire
             switch (category)
             {
                 case PropCategory.Tree:
-                    realInstance = TrySpawnPrefabFromPool(CozyTreeAddresses, parent, worldXZPos, snapToGrid, 0.90f, 1.12f);
+                    // Always dress a spawned tree with 2-3 lush Cozy bushes hugging its trunk
+                    realInstance = TrySpawnFoliageCluster(
+                        CozyTreeAddresses, CozyGroundClumpAddresses, parent, worldXZPos, snapToGrid,
+                        0.92f, 1.12f, 2, 3, 0.90f, 1.45f, 0.88f, 1.15f);
                     break;
                 case PropCategory.Bush:
-                    realInstance = TrySpawnPrefabFromPool(CozyBushAddresses, parent, worldXZPos, snapToGrid, 0.88f, 1.15f);
+                    // Always group 2-3 touching Cozy bushes together so none sit isolated
+                    realInstance = TrySpawnFoliageCluster(
+                        CozyBushAddresses, CozyGroundClumpAddresses, parent, worldXZPos, snapToGrid,
+                        0.95f, 1.22f, 2, 3, 0.72f, 1.08f, 0.85f, 1.12f);
                     break;
                 case PropCategory.Grass:
-                    realInstance = TrySpawnPrefabFromPool(CozyGroundClumpAddresses, parent, worldXZPos, snapToGrid, 0.55f, 0.72f);
+                    // Compact 2-bush ground cluster (never a lone tiny crumb)
+                    realInstance = TrySpawnFoliageCluster(
+                        CozyGroundClumpAddresses, CozyGroundClumpAddresses, parent, worldXZPos, snapToGrid,
+                        0.82f, 1.02f, 1, 2, 0.65f, 0.95f, 0.75f, 0.96f);
                     break;
                 default:
                     realInstance = TrySpawnPrefabFromPool(RealDebrisAddresses, parent, worldXZPos, snapToGrid, 0.85f, 1.05f);

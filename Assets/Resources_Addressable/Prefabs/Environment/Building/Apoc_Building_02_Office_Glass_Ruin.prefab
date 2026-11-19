@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &6336243108956925483
+--- !u!1 &5320372065173088494
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 607741807245242578}
-  - component: {fileID: 653607746385950327}
-  - component: {fileID: 4059676457460592322}
-  - component: {fileID: 349484033456826242}
-  - component: {fileID: 8823888870585676767}
+  - component: {fileID: 6537192781034987616}
+  - component: {fileID: 213105746072242404}
+  - component: {fileID: 1922710792120803794}
   m_Layer: 0
-  m_Name: Apoc_Building_02_Office_Glass_Ruin
+  m_Name: Stylized_Apoc_Building_02_Office_Glass_Ruin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &607741807245242578
+--- !u!4 &6537192781034987616
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6336243108956925483}
+  m_GameObject: {fileID: 5320372065173088494}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 3.2731, y: 0.05, z: 3.37643}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!33 &653607746385950327
+  m_Father: {fileID: 607741807245242578}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &213105746072242404
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6336243108956925483}
-  m_Mesh: {fileID: 4464566919089037387, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
---- !u!23 &4059676457460592322
+  m_GameObject: {fileID: 5320372065173088494}
+  m_Mesh: {fileID: -3762419712630281607, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+--- !u!23 &1922710792120803794
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6336243108956925483}
+  m_GameObject: {fileID: 5320372065173088494}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -68,13 +66,16 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -3131701701751934383, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: -303627124473957382, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: 3405914834977525984, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: -7461211274759323763, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: -3871226716573901997, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: -7956796678342932962, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
-  - {fileID: 4910360655824201586, guid: 9b8c4286b9706484c8e5d05da866701e, type: 3}
+  - {fileID: 7018494452378973129, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: -4418476121106185648, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: -5430719123078995249, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: 7507402042184923473, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: -8589822895404907163, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: 6623978844445042594, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: -482887956499609092, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: 405695604403225985, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: -2100561209057208147, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
+  - {fileID: 8282913710010418388, guid: 9e5f56979b80339439123adeda48a21e, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,6 +99,40 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &6336243108956925483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 607741807245242578}
+  - component: {fileID: 349484033456826242}
+  - component: {fileID: 8823888870585676767}
+  m_Layer: 0
+  m_Name: Apoc_Building_02_Office_Glass_Ruin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &607741807245242578
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6336243108956925483}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6537192781034987616}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &349484033456826242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,5 +174,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 6.3464546, y: 5.769739, z: 14.275003}
-  m_Center: {x: 0, y: -0.48986912, z: 7.1375017}
+  m_Size: {x: 6.38, y: 10.974999, z: 6.71}
+  m_Center: {x: 0, y: 5.4874997, z: 0.46500003}

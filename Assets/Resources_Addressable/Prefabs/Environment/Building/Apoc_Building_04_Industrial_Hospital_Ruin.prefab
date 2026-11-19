@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1162120936523993235
+--- !u!1 &469516174071887159
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 403462419089669392}
-  - component: {fileID: 3444262518025190880}
-  - component: {fileID: 3627085033525846649}
-  - component: {fileID: 4406155134120779398}
-  - component: {fileID: 8625778976203926178}
+  - component: {fileID: 8276750065022728465}
+  - component: {fileID: 2778660110168814094}
+  - component: {fileID: 7422801189061983706}
   m_Layer: 0
-  m_Name: Apoc_Building_04_Industrial_Hospital_Ruin
+  m_Name: Stylized_Apoc_Building_04_Industrial_Hospital_Ruin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &403462419089669392
+--- !u!4 &8276750065022728465
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1162120936523993235}
+  m_GameObject: {fileID: 469516174071887159}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 3.2731, y: 0.05, z: 3.37643}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!33 &3444262518025190880
+  m_Father: {fileID: 403462419089669392}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2778660110168814094
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1162120936523993235}
-  m_Mesh: {fileID: -5174380273939928802, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
---- !u!23 &3627085033525846649
+  m_GameObject: {fileID: 469516174071887159}
+  m_Mesh: {fileID: 1447668590376412652, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+--- !u!23 &7422801189061983706
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1162120936523993235}
+  m_GameObject: {fileID: 469516174071887159}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -68,13 +66,16 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -303627124473957382, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: -3131701701751934383, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: 3405914834977525984, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: -7461211274759323763, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: -3871226716573901997, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: -7956796678342932962, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
-  - {fileID: 4910360655824201586, guid: b51a5ea83cdd5124b8e005f87f85f0ae, type: 3}
+  - {fileID: 7611822336396784311, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -8838838567303244519, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -5430719123078995249, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: 7507402042184923473, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -2850282157401561218, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -3097416672209631751, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -7181685566173657166, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: 405695604403225985, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: 8282913710010418388, guid: d7315402a07113f499688575fb1b43d1, type: 3}
+  - {fileID: -2100561209057208147, guid: d7315402a07113f499688575fb1b43d1, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,6 +99,40 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1162120936523993235
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 403462419089669392}
+  - component: {fileID: 4406155134120779398}
+  - component: {fileID: 8625778976203926178}
+  m_Layer: 0
+  m_Name: Apoc_Building_04_Industrial_Hospital_Ruin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &403462419089669392
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1162120936523993235}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8276750065022728465}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &4406155134120779398
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,5 +174,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 6.5482197, y: 6.537708, z: 12.775003}
-  m_Center: {x: -0.000890255, y: -0.57385325, z: 6.3875017}
+  m_Size: {x: 6.58, y: 8, z: 6.94}
+  m_Center: {x: 0, y: 4, z: 0.48000002}

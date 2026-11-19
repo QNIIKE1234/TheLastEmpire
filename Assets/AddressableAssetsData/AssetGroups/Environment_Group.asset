@@ -107,20 +107,6 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1d776e688f225aa3b0b2d3f495bdb0f9
-    m_Address: Prefabs/Environment/Building/Landmark_EiffelTower
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1ddb02cda77974bc8d8489f4c9fc42b6
-    m_Address: Prefabs/Environment/Building/Landmark_TokyoTower
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 20290a8e15a55c64ba4a91b08525184b
     m_Address: Prefabs/Environment/Building/Apoc_Building_05_Shattered_Hotel_Midrise
     m_ReadOnly: 0
@@ -319,6 +305,12 @@ MonoBehaviour:
     - Craft
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 55062c8c374d3a044930afaf08b8a508
+    m_Address: Prefabs/Environment/Vehicle_Police_SUV
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 57e65bbaf7a16864a8d3cbe5392dd225
     m_Address: Prefabs/Environment/Apoc_Motorcycle_01_Rusted_Scrambler
     m_ReadOnly: 0
@@ -390,6 +382,18 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ed054cce45d277408d9cd204069fdaa
+    m_Address: Prefabs/Environment/Vehicle_FireTruck
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6fbfecb5a649c644ca2509b7549fe749
+    m_Address: Prefabs/Environment/Vehicle_Police_Motorcycle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 73c82cd67638890499e637b9df15ad62
     m_Address: Prefabs/Environment/Craft/13_Survivor_Sleeping_Bedroll
     m_ReadOnly: 0
@@ -398,26 +402,12 @@ MonoBehaviour:
     - Craft
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 773558eb724a93b78527bb20e0c1d99b
-    m_Address: Prefabs/Environment/Building/Landmark_BrandenburgGate
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7a443629fde70ed40aa07647b8140dde
     m_Address: Prefabs/Environment/Craft/01_Wooden_Floor_Foundation
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
     - Craft
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7a62d02937c21b8bf12b4e75ae324782
-    m_Address: Prefabs/Environment/Building/Landmark_StonehengeRing
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7bcd37172f0c3f1468e5234642aef812
@@ -454,6 +444,12 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
+    - Environment
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 803e1c7ed245bf44cbd66360b40d81b3
+    m_Address: Prefabs/Environment/Vehicle_Taxi_NYC
+    m_ReadOnly: 0
+    m_SerializedLabels:
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e5277865b3ad24eaecd6e91ac1c51f
@@ -520,13 +516,6 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 928b94df9f6d0e1a81fcc3a18b2b319f
-    m_Address: Prefabs/Environment/Building/Landmark_ArcDeTriomphe
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 94afea871e9caf94e8f7de95bf3c6279
     m_Address: Prefabs/Environment/Building/Apoc_Building_04_Industrial_Hospital_Ruin
     m_ReadOnly: 0
@@ -583,22 +572,8 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a00dbabc2fb5c06526cc0d24e6b1e8bc
-    m_Address: Prefabs/Environment/Building/Landmark_CastleTurret
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a0ed99618c07a5e4297e91be36db1ed6
     m_Address: Prefabs/Environment/Building/Landmark_GoldenGateTower
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a17100a438e1075d30e837323fbf88bd
-    m_Address: Prefabs/Environment/Building/Landmark_WindmillDutch
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
@@ -647,22 +622,8 @@ MonoBehaviour:
     - Craft
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b1aeab906bd83a6c21ecf3410fecbe84
-    m_Address: Prefabs/Environment/Building/Landmark_CathedralNotreDame
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b5695d85b07253e4a94d1ef322661ec3
     m_Address: Prefabs/Environment/Building/Apoc_Prop_Rusty_Drum_Stack
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b5ae8457bdff42d1286bb10ff1e1958d
-    m_Address: Prefabs/Environment/Building/Landmark_SagradaSpire
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
@@ -678,13 +639,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b97b8c584b3878b4dbea9ef449b04fce
     m_Address: Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: baa6dd9057d4acf327427e56e6a2a29d
-    m_Address: Prefabs/Environment/Building/Landmark_BigBenTower
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
@@ -732,22 +686,8 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c31decaec108ff262140ad75bc6e7a37
-    m_Address: Prefabs/Environment/Building/Landmark_LeaningTowerPisa
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c9624b4a6a7dbb50620738b9e6990094
     m_Address: Prefabs/Environment/Building/Landmark_StatueOfLiberty
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c97f6fdfd804a265ac9a72a6d849db71
-    m_Address: Prefabs/Environment/Building/Landmark_ParthenonTemple
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building
@@ -837,13 +777,6 @@ MonoBehaviour:
     - Building
     - Environment
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d8d980ab807077565794aa836ecb0fcb
-    m_Address: Prefabs/Environment/Building/Landmark_GiantSwingArch
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: da00badcdc845d54483edf8060314896
     m_Address: Prefabs/Environment/Craft/04_Reinforced_Wooden_Door
     m_ReadOnly: 0
@@ -883,13 +816,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e44636a22a739ac295c2d58de739752c
     m_Address: Prefabs/Environment/Building/Landmark_CapitolDome
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Building
-    - Environment
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e4c503032a1b1521a89540da1665f2b4
-    m_Address: Prefabs/Environment/Building/Landmark_ColosseumArch
     m_ReadOnly: 0
     m_SerializedLabels:
     - Building

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8436282832307893633
+--- !u!1 &3764733797686866599
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,49 +8,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7539460503848130768}
-  - component: {fileID: 115959570301589778}
-  - component: {fileID: 17007747518387899}
-  - component: {fileID: 1423701112541438333}
-  - component: {fileID: 315531450982172311}
-  - component: {fileID: 5801949761122037365}
+  - component: {fileID: 4839496503130311239}
+  - component: {fileID: 291408656423493069}
+  - component: {fileID: 250872009019110681}
   m_Layer: 0
-  m_Name: Apoc_Motorcycle_01_Rusted_Scrambler
+  m_Name: Stylized_Apoc_Motorcycle_01_Rusted_Scrambler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7539460503848130768
+--- !u!4 &4839496503130311239
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8436282832307893633}
+  m_GameObject: {fileID: 3764733797686866599}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!33 &115959570301589778
+  m_Father: {fileID: 7539460503848130768}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &291408656423493069
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8436282832307893633}
-  m_Mesh: {fileID: -205197430025110082, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
---- !u!23 &17007747518387899
+  m_GameObject: {fileID: 3764733797686866599}
+  m_Mesh: {fileID: 5891324442150165423, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+--- !u!23 &250872009019110681
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8436282832307893633}
+  m_GameObject: {fileID: 3764733797686866599}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -69,12 +66,14 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -1285521899497020297, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
-  - {fileID: -7673631771452353454, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
-  - {fileID: -7956796678342932962, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
-  - {fileID: 4910360655824201586, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
-  - {fileID: -5911327834093991398, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
-  - {fileID: -5102092516247522796, guid: 013c178c9c6f417496c20f3cd1034e73, type: 3}
+  - {fileID: -7181685566173657166, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: -8589822895404907163, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 405695604403225985, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 1593772877962494582, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 3205885576641329788, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 8431337906315347019, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 7507402042184923473, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
+  - {fileID: 579482889715120320, guid: 644026ea0cb66cc4ba676baa17bb31ce, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,6 +97,41 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8436282832307893633
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7539460503848130768}
+  - component: {fileID: 1423701112541438333}
+  - component: {fileID: 315531450982172311}
+  - component: {fileID: 5801949761122037365}
+  m_Layer: 0
+  m_Name: Apoc_Motorcycle_01_Rusted_Scrambler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7539460503848130768
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8436282832307893633}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4839496503130311239}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &1423701112541438333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,6 +145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
   containerName: Broken Bike
+  maxStorageSlots: 24
   moneyAmount: 0
   itemsInside: []
   randomizeLoot: 1
@@ -176,5 +211,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.9664526, y: 0.6791048, z: 1.4742872}
-  m_Center: {x: 0.22322631, y: 0, z: 0.7371436}
+  m_Size: {x: 0.86, y: 1.16, z: 2.22}
+  m_Center: {x: 0, y: 0.58, z: -0.00999999}
