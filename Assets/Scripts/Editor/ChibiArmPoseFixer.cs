@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System.IO;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
 namespace TheLastEmpire
@@ -374,6 +376,28 @@ namespace TheLastEmpire
                 if (SyncChibiPrefabSkinnedMeshes(fbxPath, prefabPath))
                 {
                     changed = true;
+                }
+
+                // Ensure all 5 Chibi Hero prefabs are registered in Addressables (Characters_Group)
+                AddressableAssetSettings addrSettings = AddressableAssetSettingsDefaultObject.Settings;
+                AddressableAssetGroup charGroup = addrSettings != null ? addrSettings.FindGroup("Characters_Group") : null;
+                if (addrSettings != null && charGroup != null && File.Exists(prefabPath))
+                {
+                    string guid = AssetDatabase.AssetPathToGUID(prefabPath);
+                    if (!string.IsNullOrEmpty(guid))
+                    {
+                        string expectedAddress = $"Prefabs/Character/Model/{hero}_Rigged";
+                        AddressableAssetEntry entry = addrSettings.FindAssetEntry(guid);
+                        if (entry == null || entry.address != expectedAddress || entry.parentGroup != charGroup)
+                        {
+                            entry = addrSettings.CreateOrMoveEntry(guid, charGroup, readOnly: false, postEvent: false);
+                            entry.address = expectedAddress;
+                            entry.SetLabel("Character", true, true, false);
+                            EditorUtility.SetDirty(charGroup);
+                            EditorUtility.SetDirty(addrSettings);
+                            changed = true;
+                        }
+                    }
                 }
             }
             return changed;
