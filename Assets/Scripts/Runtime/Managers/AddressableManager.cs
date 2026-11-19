@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -14,10 +17,22 @@ namespace TheLastEmpire
     {
         public static AddressableManager Instance { get; private set; }
 
+        public static bool IsPreloadComplete { get; private set; } = false;
+        public static float PreloadProgress { get; private set; } = 0f;
+        public static event Action OnPreloadCompleted;
+
         // Cache loaded handles so we don't load the same asset multiple times
         private readonly Dictionary<string, AsyncOperationHandle> _loadedAssetHandles = new Dictionary<string, AsyncOperationHandle>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, AsyncOperationHandle> _loadedLabelHandles = new Dictionary<string, AsyncOperationHandle>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<GameObject, AsyncOperationHandle> _instantiatedInstances = new Dictionary<GameObject, AsyncOperationHandle>();
+
+        // Preloaded RAM caches (Critical for WebGL where WaitForCompletion() cannot block HTTP bundles!)
+        private readonly Dictionary<string, List<UnityEngine.Object>> _preloadedByKey = new Dictionary<string, List<UnityEngine.Object>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<UnityEngine.Object>> _preloadedByFilename = new Dictionary<string, List<UnityEngine.Object>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<UnityEngine.Object>> _preloadedByLabel = new Dictionary<string, List<UnityEngine.Object>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Sprite[]> _preloadedSpritesByKey = new Dictionary<string, Sprite[]>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<AsyncOperationHandle> _preloadHandles = new List<AsyncOperationHandle>();
+        private bool _preloadStarted = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void AutoInitialize()
@@ -40,7 +55,307 @@ namespace TheLastEmpire
             else if (Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+
+#if UNITY_EDITOR
+            IsPreloadComplete = true;
+            PreloadProgress = 1f;
+#endif
+        }
+
+        private void Start()
+        {
+#if !UNITY_EDITOR
+            EnsurePreloadStarted();
+#endif
+        }
+
+        public static void EnsurePreloadStarted()
+        {
+#if UNITY_EDITOR
+            IsPreloadComplete = true;
+            PreloadProgress = 1f;
+            return;
+#else
+            if (Instance == null)
+            {
+                AutoInitialize();
+            }
+            if (Instance != null && !Instance._preloadStarted && !IsPreloadComplete)
+            {
+                Instance._preloadStarted = true;
+                Instance.StartCoroutine(Instance.PreloadAllCoroutine());
+            }
+#endif
+        }
+
+        private IEnumerator PreloadAllCoroutine()
+        {
+            PreloadProgress = 0.02f;
+
+            // 1. Initialize Addressables catalog asynchronously (required on WebGL!)
+            AsyncOperationHandle<IResourceLocator> initHandle = Addressables.InitializeAsync();
+            yield return initHandle;
+            PreloadProgress = 0.08f;
+
+            // 2. Gather every unique resource location & map keys/labels to locations
+            Dictionary<string, IResourceLocation> uniqueLocations = new Dictionary<string, IResourceLocation>(StringComparer.Ordinal);
+            Dictionary<string, List<string>> keyToLocationIds = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+            if (Addressables.ResourceLocators != null)
+            {
+                foreach (IResourceLocator locator in Addressables.ResourceLocators)
+                {
+                    if (locator == null || locator.Keys == null) continue;
+                    foreach (object rawKey in locator.Keys)
+                    {
+                        if (rawKey is not string keyStr || string.IsNullOrEmpty(keyStr)) continue;
+                        // Skip raw 32-char GUID keys to keep dictionary lean
+                        if (keyStr.Length == 32 && IsHexGuid(keyStr)) continue;
+
+                        if (!locator.Locate(rawKey, typeof(UnityEngine.Object), out IList<IResourceLocation> locs) || locs == null || locs.Count == 0)
+                            continue;
+
+                        if (!keyToLocationIds.TryGetValue(keyStr, out List<string> locIdList))
+                        {
+                            locIdList = new List<string>(locs.Count);
+                            keyToLocationIds[keyStr] = locIdList;
+                        }
+
+                        for (int i = 0; i < locs.Count; i++)
+                        {
+                            IResourceLocation loc = locs[i];
+                            if (loc == null || string.IsNullOrEmpty(loc.InternalId)) continue;
+                            // Skip scene files — never preload scenes as Object assets
+                            if (loc.InternalId.EndsWith(".unity", StringComparison.OrdinalIgnoreCase)) continue;
+                            if (loc.ResourceType != null && loc.ResourceType.Name.Contains("Scene")) continue;
+
+                            string uid = $"{loc.InternalId}|{loc.ResourceType?.FullName ?? "Obj"}";
+                            if (!uniqueLocations.ContainsKey(uid))
+                            {
+                                uniqueLocations[uid] = loc;
+                            }
+                            if (!locIdList.Contains(uid))
+                            {
+                                locIdList.Add(uid);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Load all unique locations asynchronously in parallel batches (super fast on WebGL!)
+            List<KeyValuePair<string, IResourceLocation>> allLocs = new List<KeyValuePair<string, IResourceLocation>>(uniqueLocations);
+            Dictionary<string, UnityEngine.Object> loadedByUid = new Dictionary<string, UnityEngine.Object>(allLocs.Count);
+            Dictionary<string, Sprite[]> loadedSpritesByUid = new Dictionary<string, Sprite[]>();
+
+            const int batchSize = 24;
+            int total = Mathf.Max(1, allLocs.Count);
+            int completed = 0;
+
+            for (int start = 0; start < allLocs.Count; start += batchSize)
+            {
+                int end = Mathf.Min(start + batchSize, allLocs.Count);
+                List<(string uid, IResourceLocation loc, AsyncOperationHandle handle, bool isSpriteSheet)> activeBatch =
+                    new List<(string, IResourceLocation, AsyncOperationHandle, bool)>(end - start);
+
+                for (int i = start; i < end; i++)
+                {
+                    string uid = allLocs[i].Key;
+                    IResourceLocation loc = allLocs[i].Value;
+
+                    // If location is a Sprite array/sheet or Texture/Sprite, also handle multi-sprite sheets cleanly
+                    bool isSpriteType = loc.ResourceType == typeof(Sprite) || loc.ResourceType == typeof(IList<Sprite>);
+                    if (isSpriteType)
+                    {
+                        AsyncOperationHandle<IList<Sprite>> sh = Addressables.LoadAssetAsync<IList<Sprite>>(loc);
+                        activeBatch.Add((uid, loc, sh, true));
+                    }
+                    else
+                    {
+                        AsyncOperationHandle<UnityEngine.Object> oh = Addressables.LoadAssetAsync<UnityEngine.Object>(loc);
+                        activeBatch.Add((uid, loc, oh, false));
+                    }
+                }
+
+                // Wait for batch to finish asynchronously
+                for (int i = 0; i < activeBatch.Count; i++)
+                {
+                    var item = activeBatch[i];
+                    if (!item.handle.IsDone)
+                    {
+                        yield return item.handle;
+                    }
+
+                    if (item.handle.Status == AsyncOperationStatus.Succeeded && item.handle.Result != null)
+                    {
+                        _preloadHandles.Add(item.handle);
+                        if (item.isSpriteSheet && item.handle.Result is IList<Sprite> spriteList && spriteList.Count > 0)
+                        {
+                            Sprite[] arr = new Sprite[spriteList.Count];
+                            for (int s = 0; s < spriteList.Count; s++) arr[s] = spriteList[s];
+                            loadedSpritesByUid[item.uid] = arr;
+                            loadedByUid[item.uid] = arr[0];
+                        }
+                        else if (item.handle.Result is UnityEngine.Object uObj)
+                        {
+                            loadedByUid[item.uid] = uObj;
+                            if (uObj is Sprite singleSp)
+                            {
+                                loadedSpritesByUid[item.uid] = new Sprite[] { singleSp };
+                            }
+                        }
+                    }
+                    else if (item.handle.IsValid())
+                    {
+                        // Retry single sprite fallback if IList<Sprite> failed on single-mode sprite
+                        if (item.isSpriteSheet)
+                        {
+                            Addressables.Release(item.handle);
+                            AsyncOperationHandle<Sprite> singleHandle = Addressables.LoadAssetAsync<Sprite>(item.loc);
+                            yield return singleHandle;
+                            if (singleHandle.Status == AsyncOperationStatus.Succeeded && singleHandle.Result != null)
+                            {
+                                _preloadHandles.Add(singleHandle);
+                                loadedByUid[item.uid] = singleHandle.Result;
+                                loadedSpritesByUid[item.uid] = new Sprite[] { singleHandle.Result };
+                            }
+                            else if (singleHandle.IsValid())
+                            {
+                                Addressables.Release(singleHandle);
+                            }
+                        }
+                        else
+                        {
+                            Addressables.Release(item.handle);
+                        }
+                    }
+
+                    completed++;
+                }
+
+                PreloadProgress = 0.08f + 0.90f * ((float)completed / total);
+                yield return null;
+            }
+
+            // 4. Index every key, normalized key, filename, and label into instant O(1) lookup dictionaries
+            foreach (var kvp in keyToLocationIds)
+            {
+                string rawKey = kvp.Key;
+                string normKey = NormalizeKey(rawKey);
+                string noExtKey = StripExtension(normKey);
+                string fileOnly = System.IO.Path.GetFileNameWithoutExtension(normKey);
+                List<string> uids = kvp.Value;
+
+                bool isLabel = uids.Count > 1 || !rawKey.Contains("/");
+
+                foreach (string uid in uids)
+                {
+                    if (loadedByUid.TryGetValue(uid, out UnityEngine.Object obj) && obj != null)
+                    {
+                        AddToCache(_preloadedByKey, rawKey, obj);
+                        if (!string.IsNullOrEmpty(normKey)) AddToCache(_preloadedByKey, normKey, obj);
+                        if (!string.IsNullOrEmpty(noExtKey)) AddToCache(_preloadedByKey, noExtKey, obj);
+                        if (!string.IsNullOrEmpty(fileOnly)) AddToCache(_preloadedByFilename, fileOnly, obj);
+                        if (isLabel)
+                        {
+                            AddToCache(_preloadedByLabel, rawKey, obj);
+                        }
+                    }
+
+                    if (loadedSpritesByUid.TryGetValue(uid, out Sprite[] sprites) && sprites != null && sprites.Length > 0)
+                    {
+                        _preloadedSpritesByKey[rawKey] = sprites;
+                        if (!string.IsNullOrEmpty(normKey)) _preloadedSpritesByKey[normKey] = sprites;
+                        if (!string.IsNullOrEmpty(noExtKey)) _preloadedSpritesByKey[noExtKey] = sprites;
+                        if (!string.IsNullOrEmpty(fileOnly) && !_preloadedSpritesByKey.ContainsKey(fileOnly))
+                        {
+                            _preloadedSpritesByKey[fileOnly] = sprites;
+                        }
+                    }
+                }
+            }
+
+            PreloadProgress = 1f;
+            IsPreloadComplete = true;
+            Debug.Log($"[AddressableManager] Preload complete! Cached {loadedByUid.Count} assets across {keyToLocationIds.Count} keys/labels.");
+            OnPreloadCompleted?.Invoke();
+        }
+
+        private static bool IsHexGuid(string s)
+        {
+            for (int i = 0; i < s.Length; i++)
+            {
+                char c = s[i];
+                bool hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+                if (!hex) return false;
+            }
+            return true;
+        }
+
+        private static string StripExtension(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return path;
+            int dot = path.LastIndexOf('.');
+            int slash = path.LastIndexOf('/');
+            if (dot > slash && dot > 0)
+            {
+                return path.Substring(0, dot);
+            }
+            return path;
+        }
+
+        private static void AddToCache(Dictionary<string, List<UnityEngine.Object>> dict, string key, UnityEngine.Object obj)
+        {
+            if (string.IsNullOrEmpty(key) || obj == null) return;
+            if (!dict.TryGetValue(key, out List<UnityEngine.Object> list))
+            {
+                list = new List<UnityEngine.Object>(2);
+                dict[key] = list;
+            }
+            if (!list.Contains(obj))
+            {
+                list.Add(obj);
+            }
+        }
+
+        private static T FindInPreloadCache<T>(string normalizedKey) where T : UnityEngine.Object
+        {
+            if (Instance == null || string.IsNullOrEmpty(normalizedKey)) return null;
+
+            string noExt = StripExtension(normalizedKey);
+            string filenameOnly = System.IO.Path.GetFileNameWithoutExtension(normalizedKey);
+
+            T found = TryMatchTyped<T>(Instance._preloadedByKey, normalizedKey);
+            if (found != null) return found;
+
+            if (!string.Equals(noExt, normalizedKey, StringComparison.OrdinalIgnoreCase))
+            {
+                found = TryMatchTyped<T>(Instance._preloadedByKey, noExt);
+                if (found != null) return found;
+            }
+
+            if (!string.IsNullOrEmpty(filenameOnly))
+            {
+                found = TryMatchTyped<T>(Instance._preloadedByKey, filenameOnly);
+                if (found != null) return found;
+
+                found = TryMatchTyped<T>(Instance._preloadedByFilename, filenameOnly);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
+
+        private static T TryMatchTyped<T>(Dictionary<string, List<UnityEngine.Object>> dict, string key) where T : UnityEngine.Object
+        {
+            if (dict == null || !dict.TryGetValue(key, out List<UnityEngine.Object> list) || list == null) return null;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] is T typed) return typed;
+            }
+            return null;
         }
 
         private void OnDestroy()
@@ -60,6 +375,10 @@ namespace TheLastEmpire
 
             string normalizedKey = NormalizeKey(key);
 
+            // 0. Instant check in preloaded WebGL/Runtime RAM cache!
+            T preloaded = FindInPreloadCache<T>(normalizedKey);
+            if (preloaded != null) return preloaded;
+
             // 1. Check in-memory handle cache
             if (Instance != null && Instance._loadedAssetHandles.TryGetValue(normalizedKey, out AsyncOperationHandle cachedHandle))
             {
@@ -78,7 +397,10 @@ namespace TheLastEmpire
             }
 #endif
 
-            // 3. Try Addressables only if catalog contains this key
+            string filenameOnly = System.IO.Path.GetFileNameWithoutExtension(normalizedKey);
+
+#if !UNITY_WEBGL
+            // 3. Try Addressables WaitForCompletion only on platforms that support synchronous I/O (not WebGL!)
             if (HasAddressableKey(normalizedKey))
             {
                 try
@@ -102,8 +424,7 @@ namespace TheLastEmpire
                 catch { }
             }
 
-            // 4. Fallback: If normalizedKey has folder, try filename only in Addressables if key exists
-            string filenameOnly = System.IO.Path.GetFileNameWithoutExtension(normalizedKey);
+            // 4. Fallback: filename only in Addressables
             if (!string.Equals(filenameOnly, normalizedKey, StringComparison.OrdinalIgnoreCase) && HasAddressableKey(filenameOnly))
             {
                 try
@@ -126,6 +447,7 @@ namespace TheLastEmpire
                 }
                 catch { }
             }
+#endif
 
             // 5. Fallback: Resources.Load
             T resFallback = Resources.Load<T>(normalizedKey);
@@ -148,6 +470,9 @@ namespace TheLastEmpire
             if (string.IsNullOrEmpty(key)) return null;
 
             string normalizedKey = NormalizeKey(key);
+
+            T preloaded = FindInPreloadCache<T>(normalizedKey);
+            if (preloaded != null) return preloaded;
 
             if (Instance != null && Instance._loadedAssetHandles.TryGetValue(normalizedKey, out AsyncOperationHandle cachedHandle))
             {
@@ -188,7 +513,6 @@ namespace TheLastEmpire
                 catch { }
             }
 
-            // Fallback to synchronous loader (Editor / Resources)
             return LoadAsset<T>(key);
         }
 
@@ -198,6 +522,43 @@ namespace TheLastEmpire
         public static IList<T> LoadAssetsByLabel<T>(string label) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(label)) return new List<T>();
+
+            // 0. Check preloaded RAM label cache first!
+            if (Instance != null && Instance._preloadedByLabel.TryGetValue(label, out List<UnityEngine.Object> preList) && preList != null)
+            {
+                List<T> matched = new List<T>(preList.Count);
+                for (int i = 0; i < preList.Count; i++)
+                {
+                    if (preList[i] is T typed && !matched.Contains(typed))
+                    {
+                        matched.Add(typed);
+                    }
+                }
+                if (matched.Count > 0) return matched;
+            }
+
+            // Secondary preloaded scan by key prefix (e.g. "Stage" -> "Stages/...", "ItemData" -> "Items/...")
+            if (Instance != null && Instance._preloadedByKey.Count > 0)
+            {
+                List<T> matched = new List<T>();
+                foreach (var kvp in Instance._preloadedByKey)
+                {
+                    for (int i = 0; i < kvp.Value.Count; i++)
+                    {
+                        if (kvp.Value[i] is T typed && !matched.Contains(typed))
+                        {
+                            // Match by folder prefix when label matches asset type/folder
+                            if (kvp.Key.StartsWith(label, StringComparison.OrdinalIgnoreCase) ||
+                                typeof(T) == typeof(ItemData) || typeof(T) == typeof(BuildingData) ||
+                                (typeof(T) == typeof(TextAsset) && kvp.Key.IndexOf("Stage", StringComparison.OrdinalIgnoreCase) >= 0))
+                            {
+                                matched.Add(typed);
+                            }
+                        }
+                    }
+                }
+                if (matched.Count > 0) return matched;
+            }
 
             if (Instance != null && Instance._loadedLabelHandles.TryGetValue(label, out AsyncOperationHandle cachedHandle))
             {
@@ -215,6 +576,7 @@ namespace TheLastEmpire
             }
 #endif
 
+#if !UNITY_WEBGL
             if (HasAddressableKey(label))
             {
                 try
@@ -237,6 +599,7 @@ namespace TheLastEmpire
                 }
                 catch { }
             }
+#endif
 
             // Fallback: Resources.LoadAll
             T[] resAll = Resources.LoadAll<T>(label);
@@ -254,6 +617,20 @@ namespace TheLastEmpire
         public static async Task<IList<T>> LoadAssetsByLabelAsync<T>(string label) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(label)) return new List<T>();
+
+            // Check preloaded label cache first
+            if (Instance != null && Instance._preloadedByLabel.TryGetValue(label, out List<UnityEngine.Object> preList) && preList != null)
+            {
+                List<T> matched = new List<T>(preList.Count);
+                for (int i = 0; i < preList.Count; i++)
+                {
+                    if (preList[i] is T typed && !matched.Contains(typed))
+                    {
+                        matched.Add(typed);
+                    }
+                }
+                if (matched.Count > 0) return matched;
+            }
 
             if (Instance != null && Instance._loadedLabelHandles.TryGetValue(label, out AsyncOperationHandle cachedHandle))
             {
@@ -312,6 +689,16 @@ namespace TheLastEmpire
             if (string.IsNullOrEmpty(key)) return new Sprite[0];
 
             string normalized = NormalizeKey(key);
+            string noExt = StripExtension(normalized);
+            string fileOnly = System.IO.Path.GetFileNameWithoutExtension(normalized);
+
+            // 0. Check preloaded WebGL/Runtime sprite sheet cache first!
+            if (Instance != null)
+            {
+                if (Instance._preloadedSpritesByKey.TryGetValue(normalized, out Sprite[] s1) && s1 != null && s1.Length > 0) return s1;
+                if (Instance._preloadedSpritesByKey.TryGetValue(noExt, out Sprite[] s2) && s2 != null && s2.Length > 0) return s2;
+                if (Instance._preloadedSpritesByKey.TryGetValue(fileOnly, out Sprite[] s3) && s3 != null && s3.Length > 0) return s3;
+            }
 
 #if UNITY_EDITOR
             string p1 = $"Assets/Resources_Addressable/{normalized}";
@@ -357,6 +744,12 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(key)) return null;
 
+            GameObject preloaded = LoadAsset<GameObject>(key);
+            if (preloaded != null)
+            {
+                return UnityEngine.Object.Instantiate(preloaded, position, rotation, parent);
+            }
+
             string normalizedKey = NormalizeKey(key);
 
             try
@@ -382,12 +775,11 @@ namespace TheLastEmpire
                 Debug.LogWarning($"[AddressableManager] InstantiateAsync Addressables failed for '{key}', fallback to Instantiate: {ex.Message}");
             }
 
-            // Fallback
             return Instantiate(key, position, rotation, parent);
         }
 
         // ==========================================
-        // 6. Release Memory / Unload
+        // 7. Release Memory / Unload
         // ==========================================
         public static void ReleaseAsset(string key)
         {
@@ -457,11 +849,21 @@ namespace TheLastEmpire
                 if (handle.IsValid()) Addressables.Release(handle);
             }
             _loadedLabelHandles.Clear();
+
+            for (int i = 0; i < _preloadHandles.Count; i++)
+            {
+                if (_preloadHandles[i].IsValid()) Addressables.Release(_preloadHandles[i]);
+            }
+            _preloadHandles.Clear();
+            _preloadedByKey.Clear();
+            _preloadedByFilename.Clear();
+            _preloadedByLabel.Clear();
+            _preloadedSpritesByKey.Clear();
+            IsPreloadComplete = false;
+            PreloadProgress = 0f;
+            _preloadStarted = false;
         }
 
-        /// <summary>
-        /// ตรวจสอบว่า key นี้มีอยู่ใน Addressables Catalog หรือไม่ ก่อนเรียก LoadAssetAsync เพื่อป้องกัน InvalidKeyException สีแดงใน Console
-        /// </summary>
         public static bool HasAddressableKey(object key)
         {
             if (key == null) return false;
@@ -486,7 +888,6 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(key)) return string.Empty;
             string trimmed = key.Trim().Replace('\\', '/');
-            // Remove leading "Assets/Resources/" or "Assets/Resources_Addressable/" or "Resources/" if present
             if (trimmed.StartsWith("Assets/Resources_Addressable/", StringComparison.OrdinalIgnoreCase))
                 trimmed = trimmed.Substring("Assets/Resources_Addressable/".Length);
             else if (trimmed.StartsWith("Assets/Resources/", StringComparison.OrdinalIgnoreCase))
@@ -502,19 +903,16 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(key)) return null;
 
-            // 1. Direct path check if starts with Assets/
             if (key.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
                 T direct = AssetDatabase.LoadAssetAtPath<T>(key);
                 if (direct != null) return direct;
             }
 
-            // 2. Direct path in Assets/Resources_Addressable
             string p1 = $"Assets/Resources_Addressable/{key}";
             T obj = AssetDatabase.LoadAssetAtPath<T>(p1);
             if (obj != null) return obj;
 
-            // 3. Try with common extensions in Assets/Resources_Addressable
             string[] extensions = { ".prefab", ".asset", ".png", ".jpg", ".json", ".txt" };
             foreach (var ext in extensions)
             {
@@ -522,7 +920,6 @@ namespace TheLastEmpire
                 if (obj != null) return obj;
             }
 
-            // 4. Try path directly under Assets/{key} (e.g. Assets/Settings/DefaultVolumeProfile.asset)
             string pAssets = $"Assets/{key}";
             obj = AssetDatabase.LoadAssetAtPath<T>(pAssets);
             if (obj != null) return obj;
@@ -532,7 +929,6 @@ namespace TheLastEmpire
                 if (obj != null) return obj;
             }
 
-            // 5. Search by filename across the entire project
             string fname = System.IO.Path.GetFileNameWithoutExtension(key);
             if (!string.IsNullOrEmpty(fname))
             {

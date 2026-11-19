@@ -116,6 +116,62 @@ namespace TheLastEmpire
 
             // Fade in smoothly from black
             StartCoroutine(FadeInRoutine());
+
+#if !UNITY_EDITOR
+            if (!AddressableManager.IsPreloadComplete)
+            {
+                StartCoroutine(WaitForAddressablesPreloadRoutine());
+            }
+#endif
+        }
+
+        private IEnumerator WaitForAddressablesPreloadRoutine()
+        {
+            AddressableManager.EnsurePreloadStarted();
+
+            // Create sleek blocking preload overlay so WebGL loads all Addressable bundles before entering Gameplay
+            GameObject overlayGo = new GameObject("AddressablePreloadOverlay");
+            Canvas parentCanvas = menuCanvas != null ? menuCanvas : FindFirstObjectByType<Canvas>();
+            if (parentCanvas != null)
+            {
+                overlayGo.transform.SetParent(parentCanvas.transform, false);
+                overlayGo.transform.SetAsLastSibling();
+            }
+
+            RectTransform rt = overlayGo.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            Image bg = overlayGo.AddComponent<Image>();
+            bg.color = new Color(0.03f, 0.03f, 0.05f, 0.88f);
+            bg.raycastTarget = true;
+
+            GameObject textGo = new GameObject("PreloadLabel");
+            textGo.transform.SetParent(overlayGo.transform, false);
+            RectTransform trt = textGo.AddComponent<RectTransform>();
+            trt.anchorMin = new Vector2(0.5f, 0.5f);
+            trt.anchorMax = new Vector2(0.5f, 0.5f);
+            trt.sizeDelta = new Vector2(560f, 80f);
+
+            TextMeshProUGUI label = textGo.AddComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = 32f;
+            label.color = new Color(0.96f, 0.72f, 0.14f, 1f);
+            if (_customFont != null) label.font = _customFont;
+            label.text = "LOADING ASSETS... 0%";
+
+            while (!AddressableManager.IsPreloadComplete)
+            {
+                int pct = Mathf.RoundToInt(AddressableManager.PreloadProgress * 100f);
+                label.text = $"LOADING ASSETS... {pct}%";
+                yield return null;
+            }
+
+            Destroy(overlayGo);
+            // Re-apply theme / refresh any icons loaded from Addressables
+            UpdateContinueButtonState();
         }
 
         private void Update()

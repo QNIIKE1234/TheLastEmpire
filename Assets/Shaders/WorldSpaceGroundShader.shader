@@ -48,12 +48,16 @@ Shader "Custom/WorldSpaceGroundShader"
                 float3 positionWS   : TEXCOORD0;
             };
 
-            Texture2D _BaseMap;
-            SamplerState sampler_BaseMap;
-            Texture2D _NorthBiomeMap;
-            Texture2D _EastBiomeMap;
-            Texture2D _SouthBiomeMap;
-            Texture2D _WestBiomeMap;
+            TEXTURE2D(_BaseMap);
+            SAMPLER(sampler_BaseMap);
+            TEXTURE2D(_NorthBiomeMap);
+            SAMPLER(sampler_NorthBiomeMap);
+            TEXTURE2D(_EastBiomeMap);
+            SAMPLER(sampler_EastBiomeMap);
+            TEXTURE2D(_SouthBiomeMap);
+            SAMPLER(sampler_SouthBiomeMap);
+            TEXTURE2D(_WestBiomeMap);
+            SAMPLER(sampler_WestBiomeMap);
 
             // Global ambient tint driven by DayNightManager
             half4 _GlobalAmbientTint;
@@ -87,7 +91,7 @@ Shader "Custom/WorldSpaceGroundShader"
             {
                 // Seamless World-Space Tiling across X and Z plane
                 float2 worldUV = input.positionWS.xz * _Tiling;
-                half4 albedo = _BaseMap.Sample(sampler_BaseMap, worldUV) * _BaseColor;
+                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, worldUV) * _BaseColor;
 
                 half luminance = dot(albedo.rgb, half3(0.299, 0.587, 0.114));
                 albedo.rgb = lerp(half3(luminance, luminance, luminance), albedo.rgb, saturate(_Saturation));
@@ -101,37 +105,37 @@ Shader "Custom/WorldSpaceGroundShader"
                 float westFade  = (1.0 - smoothstep(0.0, fadeWidth, max(input.positionWS.x - _GroundBounds.x, 0.0))) * _BiomeEdgeBlend.w;
                 float edgeFade = saturate(max(max(northFade, eastFade), max(southFade, westFade)));
 
-                half3 neighboringAlbedo = 0;
+                half3 neighboringAlbedo = half3(0.0, 0.0, 0.0);
                 float neighborWeight = 0.0;
                 if (northFade > 0.001)
                 {
-                    half3 neighbor = _NorthBiomeMap.Sample(sampler_BaseMap, input.positionWS.xz * _BiomeNeighborTiling.x).rgb * _NorthBiomeColor.rgb;
-                    half luminance = dot(neighbor, half3(0.299, 0.587, 0.114));
-                    neighbor = lerp(half3(luminance, luminance, luminance), neighbor, _BiomeNeighborSaturation.x);
+                    half3 neighbor = SAMPLE_TEXTURE2D(_NorthBiomeMap, sampler_NorthBiomeMap, input.positionWS.xz * _BiomeNeighborTiling.x).rgb * _NorthBiomeColor.rgb;
+                    half nLum = dot(neighbor, half3(0.299, 0.587, 0.114));
+                    neighbor = lerp(half3(nLum, nLum, nLum), neighbor, _BiomeNeighborSaturation.x);
                     neighboringAlbedo += neighbor * northFade;
                     neighborWeight += northFade;
                 }
                 if (eastFade > 0.001)
                 {
-                    half3 neighbor = _EastBiomeMap.Sample(sampler_BaseMap, input.positionWS.xz * _BiomeNeighborTiling.y).rgb * _EastBiomeColor.rgb;
-                    half luminance = dot(neighbor, half3(0.299, 0.587, 0.114));
-                    neighbor = lerp(half3(luminance, luminance, luminance), neighbor, _BiomeNeighborSaturation.y);
+                    half3 neighbor = SAMPLE_TEXTURE2D(_EastBiomeMap, sampler_EastBiomeMap, input.positionWS.xz * _BiomeNeighborTiling.y).rgb * _EastBiomeColor.rgb;
+                    half eLum = dot(neighbor, half3(0.299, 0.587, 0.114));
+                    neighbor = lerp(half3(eLum, eLum, eLum), neighbor, _BiomeNeighborSaturation.y);
                     neighboringAlbedo += neighbor * eastFade;
                     neighborWeight += eastFade;
                 }
                 if (southFade > 0.001)
                 {
-                    half3 neighbor = _SouthBiomeMap.Sample(sampler_BaseMap, input.positionWS.xz * _BiomeNeighborTiling.z).rgb * _SouthBiomeColor.rgb;
-                    half luminance = dot(neighbor, half3(0.299, 0.587, 0.114));
-                    neighbor = lerp(half3(luminance, luminance, luminance), neighbor, _BiomeNeighborSaturation.z);
+                    half3 neighbor = SAMPLE_TEXTURE2D(_SouthBiomeMap, sampler_SouthBiomeMap, input.positionWS.xz * _BiomeNeighborTiling.z).rgb * _SouthBiomeColor.rgb;
+                    half sLum = dot(neighbor, half3(0.299, 0.587, 0.114));
+                    neighbor = lerp(half3(sLum, sLum, sLum), neighbor, _BiomeNeighborSaturation.z);
                     neighboringAlbedo += neighbor * southFade;
                     neighborWeight += southFade;
                 }
                 if (westFade > 0.001)
                 {
-                    half3 neighbor = _WestBiomeMap.Sample(sampler_BaseMap, input.positionWS.xz * _BiomeNeighborTiling.w).rgb * _WestBiomeColor.rgb;
-                    half luminance = dot(neighbor, half3(0.299, 0.587, 0.114));
-                    neighbor = lerp(half3(luminance, luminance, luminance), neighbor, _BiomeNeighborSaturation.w);
+                    half3 neighbor = SAMPLE_TEXTURE2D(_WestBiomeMap, sampler_WestBiomeMap, input.positionWS.xz * _BiomeNeighborTiling.w).rgb * _WestBiomeColor.rgb;
+                    half wLum = dot(neighbor, half3(0.299, 0.587, 0.114));
+                    neighbor = lerp(half3(wLum, wLum, wLum), neighbor, _BiomeNeighborSaturation.w);
                     neighboringAlbedo += neighbor * westFade;
                     neighborWeight += westFade;
                 }
