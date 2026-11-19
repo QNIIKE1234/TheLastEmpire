@@ -256,6 +256,8 @@ namespace TheLastEmpire
 
             yield return new WaitForSeconds(0.4f); // brief aim delay
 
+            PlayActionAnimation("Attack", 0.55f, 0.06f);
+
             if (playerTransform != null)
             {
                 Vector3 spawnPos = transform.position + dir * 0.6f;
@@ -305,6 +307,7 @@ namespace TheLastEmpire
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
             // Dash forward
+            PlayActionAnimation("Attack", bladeDashDuration + 0.25f, 0.05f);
             if (playerTransform != null)
             {
                 Vector3 dashDir = (playerTransform.position - transform.position);
@@ -346,6 +349,7 @@ namespace TheLastEmpire
             }
 
             float chargeTimer = laserChargeDuration;
+            PlayActionAnimation("Charge", laserChargeDuration, 0.08f);
             while (chargeTimer > 0f && playerTransform != null)
             {
                 chargeTimer -= Time.deltaTime;
@@ -368,6 +372,7 @@ namespace TheLastEmpire
             }
 
             // Fire Laser Beam
+            PlayActionAnimation("Slash1", laserFireDuration, 0.06f);
             if (_laserLine != null)
             {
                 _laserLine.startWidth = 0.25f; // thick beam
@@ -465,6 +470,7 @@ namespace TheLastEmpire
             currentState = AIState.Telegraph;
 
             // Flash rapid warning
+            PlayActionAnimation("Explode", 0.75f, 0.05f);
             float timer = 0.7f;
             while (timer > 0f)
             {

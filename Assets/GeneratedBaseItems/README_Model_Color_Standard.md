@@ -92,3 +92,7 @@
 3. **โมเดลและอนิเมชันซอมบี้ (`Assets/GeneratedModels/Zombies/`)**:
    - ปรับท่าวิ่ง `Run` ของ `ZombieRunner` ให้มีความบิดเบี้ยวผิดรูป
    - สร้างโมเดล `Chibi_ZombieBoss_Rigged.fbx` แนวแฟรงเกนสไตน์ (แขนซ้ายใหญ่ผิดปกติ + แท่งเหล็ก 3 แท่งปักไหล่ซ้าย) พร้อมอนิเมชันครบ 10 ท่า (`Idle`, `Walk`, `Run`, `Slash1`, `Slash2`, `GroundSlam`, `Charge`, `Throw`, `RageRoar`, `Death`) และผูกเข้ากับ `ZombieLeader.prefab` และ `ZombieAI.cs`
+   - สร้าง `Chibi_ZombieBoomer_Rigged.fbx` พร้อมกระดูก `Belly` (19 กระดูก) และท่า `Explode` พองท้องระเบิด
+4. **โมเดลหุ่นยนต์ศัตรูครบทั้ง 8 ตัวแบบ Full-Robot พร้อม Rig + Animation (`Assets/GeneratedModels/Robots/Rigged/`)**:
+   - ปรับดีไซน์ใหม่ทั้งหมดเป็นหุ่นยนต์เต็มตัว (มีทั้งแบบ Tripod, Quadruped Walker, Spider-Mine, Hover Eye-Drone และ Heavy Mech) ภายใต้โทนสี **Crimson Strike (แดงเข้ม-เทากราไฟต์-ดำถ่าน + ไฟแดง)** และ **Hazard Siege (เหลืองอุตสาหกรรม-เทากราไฟต์-ดำถ่าน + ไฟส้มแดง)** ตามมาตรฐานพื้นผิวด้าน
+   - สร้างผ่าน `Tools/Create_Stylized_Robots_Rigged.py` ครบทั้ง 8 ตัว (`Robot_Normal`, `Robot_Blade`, `Robot_Drone`, `Robot_Gunner`, `Robot_Kamikaze`, `Robot_Laser`, `Robot_Tanker`, `Robot_Leader`) พร้อมสคริปต์ `Assets/Scripts/Editor/StylizedRobotModelBuilder.cs` สำหรับสร้าง AnimatorController และแทนที่โมเดลเดิมใน `Robot*.prefab` อัตโนมัติ และเชื่อม `PlayActionAnimation` ใน `RobotAI.cs`
