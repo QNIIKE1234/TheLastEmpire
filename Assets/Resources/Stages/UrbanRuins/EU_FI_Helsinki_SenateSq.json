@@ -1,837 +1,833 @@
 {
-    "biome":  0,
-    "lootSpawns":  [
-                       {
-                           "itemName":  "Money",
-                           "quantity":  1,
-                           "moneyAmount":  135,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  1.4,
-                                            "x":  -12.3
-                                        },
-                           "isMoney":  true
-                       },
-                       {
-                           "itemName":  "Bandage",
-                           "quantity":  1,
-                           "moneyAmount":  0,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  0.6,
-                                            "x":  6.8
-                                        },
-                           "isMoney":  false
-                       },
-                       {
-                           "itemName":  "Medkit",
-                           "quantity":  2,
-                           "moneyAmount":  0,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  -0.4,
-                                            "x":  -4.1
-                                        },
-                           "isMoney":  false
-                       }
-                   ],
-    "templateId":  "EU_FI_Helsinki_SenateSq",
-    "districtOffsetY":  0,
-    "npcSpawns":  [
-
-                  ],
-    "decorations":  [
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -2.2,
-                                             "x":  -9.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  1.9,
-                                             "x":  -9.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -2.2,
-                                             "x":  -4.6
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  1.9,
-                                             "x":  -4.6
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -2.2,
-                                             "x":  0.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  1.9,
-                                             "x":  0.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -2.2,
-                                             "x":  5.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.2,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  1.9,
-                                             "x":  5.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -22
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -17.1
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -12.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -7.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -2.4
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  2.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  7.4
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  12.3
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  17.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -11,
-                                             "x":  0
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  -6.3,
-                                             "x":  0
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  3.1,
-                                             "x":  0
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.8,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  7.8,
-                                             "x":  0
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Bench",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  4.8,
-                                             "x":  -6.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  4.8,
-                                             "x":  -8.78
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.28,
-                                             "x":  -4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  5.28,
-                                             "x":  4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Bench",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -4.8,
-                                             "x":  -6.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -5.28,
-                                             "x":  -4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_Streetlight",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_Streetlight",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -5.28,
-                                             "x":  4.55
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  8.2,
-                                             "x":  -11.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8.2,
-                                             "x":  -3.8
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  270
-                                         },
-                            "prefabName":  "Apoc_Prop_Rubble_Pile",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8,
-                                             "x":  -5.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  8.1,
-                                             "x":  13
-                                         }
-                        }
-                    ],
-    "roomSize":  {
-                     "y":  25,
-                     "x":  50
-                 },
-    "enemySpawns":  [
-
-                    ],
-    "selectionWeight":  1.4,
-    "obstacles":  [
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CapitolDome",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_CapitolDome",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  0
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_WarehouseHangar",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_WarehouseHangar",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  8,
-                                           "x":  -16.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Building_Townhouse",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Building_Townhouse",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  8.2,
-                                           "x":  -9.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_01_Brick_Rowhouse",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_House_01_Brick_Rowhouse",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  8.2,
-                                           "x":  9.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_BrownstoneRow",
-                          "rotation":  {
-                                           "y":  180,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_BrownstoneRow",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  8,
-                                           "x":  16.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_Building_02_Office_Glass_Ruin",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -8,
-                                           "x":  -16.5
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Blue",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  0
-                                       },
-                          "prefabName":  "Landmark_MarketStall_Blue",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -8.2,
-                                           "x":  -9.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_House_04_Ruined_Corner_Shop",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -8.2,
-                                           "x":  9.2
-                                       }
-                      },
-                      {
-                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin",
-                          "rotation":  {
-                                           "y":  0,
-                                           "z":  0,
-                                           "x":  270
-                                       },
-                          "prefabName":  "Apoc_Building_01_Residential_Ruin",
-                          "scale":  {
-                                        "y":  1,
-                                        "z":  1,
-                                        "x":  1
-                                    },
-                          "position":  {
-                                           "y":  0,
-                                           "z":  -8,
-                                           "x":  16.5
-                                       }
-                      }
-                  ],
-    "districtOffsetX":  0,
-    "districtId":  "",
-    "templateName":  "Helsinki Senate Cathedral Plaza (FI)"
+    "biome": 0,
+    "lootSpawns": [
+        {
+            "itemName": "Money",
+            "quantity": 1,
+            "moneyAmount": 135,
+            "position": {
+                "y": 0.25,
+                "z": 1.4,
+                "x": -12.3
+            },
+            "isMoney": true
+        },
+        {
+            "itemName": "Bandage",
+            "quantity": 1,
+            "moneyAmount": 0,
+            "position": {
+                "y": 0.25,
+                "z": 0.6,
+                "x": 6.8
+            },
+            "isMoney": false
+        },
+        {
+            "itemName": "Medkit",
+            "quantity": 2,
+            "moneyAmount": 0,
+            "position": {
+                "y": 0.25,
+                "z": -0.4,
+                "x": -4.1
+            },
+            "isMoney": false
+        }
+    ],
+    "templateId": "EU_FI_Helsinki_SenateSq",
+    "districtOffsetY": 0,
+    "npcSpawns": [],
+    "decorations": [
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -2.2,
+                "x": -9.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 1.9,
+                "x": -9.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -2.2,
+                "x": -4.6
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 1.9,
+                "x": -4.6
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -2.2,
+                "x": 0.3
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 1.9,
+                "x": 0.3
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -2.2,
+                "x": 5.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.2,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 1.9,
+                "x": 5.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -22
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -17.1
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -12.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -7.3
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -2.4
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 2.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 7.4
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 12.3
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 17.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -11,
+                "x": 0
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": -6.3,
+                "x": 0
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 3.1,
+                "x": 0
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.8,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 7.8,
+                "x": 0
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Bench",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Bench",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 4.8,
+                "x": -6.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushRound_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 4.8,
+                "x": -8.78
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Streetlight",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Streetlight",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 5.28,
+                "x": -4.55
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Streetlight",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Streetlight",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 5.28,
+                "x": 4.55
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Bench",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Bench",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -4.8,
+                "x": -6.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Streetlight",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Streetlight",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -5.28,
+                "x": -4.55
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_Streetlight",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_Streetlight",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -5.28,
+                "x": 4.55
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+            "rotation": {
+                "y": 270,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_Prop_Rubble_Pile",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 8.2,
+                "x": -11.9
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_Prop_Rubble_Pile",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8.2,
+                "x": -3.8
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+            "rotation": {
+                "y": 270,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_Prop_Rubble_Pile",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8,
+                "x": -5.9
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushFlowering_New",
+            "scale": {
+                "y": 0.68,
+                "z": 0.68,
+                "x": 0.68
+            },
+            "position": {
+                "y": 0,
+                "z": 8.1,
+                "x": 13
+            }
+        }
+    ],
+    "roomSize": {
+        "y": 25,
+        "x": 50
+    },
+    "enemySpawns": [],
+    "selectionWeight": 1.4,
+    "obstacles": [
+        {
+            "resourcePath": "Prefabs/Environment/Building/Landmark_CapitolDome",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Landmark_CapitolDome",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Landmark_WarehouseHangar",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Landmark_WarehouseHangar",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 8,
+                "x": -16.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Building_Townhouse",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Building_Townhouse",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 8.2,
+                "x": -9.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_House_01_Brick_Rowhouse",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_House_01_Brick_Rowhouse",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 8.2,
+                "x": 9.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Landmark_BrownstoneRow",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Landmark_BrownstoneRow",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 8,
+                "x": 16.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_Building_02_Office_Glass_Ruin",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_Building_02_Office_Glass_Ruin",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8,
+                "x": -16.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Landmark_MarketStall_Blue",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Landmark_MarketStall_Blue",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8.2,
+                "x": -9.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_House_04_Ruined_Corner_Shop",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_House_04_Ruined_Corner_Shop",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8.2,
+                "x": 9.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Apoc_Building_01_Residential_Ruin",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 270
+            },
+            "prefabName": "Apoc_Building_01_Residential_Ruin",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -8,
+                "x": 16.5
+            }
+        }
+    ],
+    "districtOffsetX": 0,
+    "districtId": "",
+    "templateName": "Helsinki Senate Cathedral Plaza (FI)"
 }

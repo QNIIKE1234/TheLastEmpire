@@ -1,379 +1,373 @@
 {
-    "biome":  5,
-    "lootSpawns":  [
-                       {
-                           "itemName":  "Money",
-                           "quantity":  1,
-                           "moneyAmount":  85,
-                           "position":  {
-                                            "y":  0.25,
-                                            "z":  -6.9,
-                                            "x":  -13.8
-                                        },
-                           "isMoney":  true
-                       }
-                   ],
-    "templateId":  "EU_BasePlot_08_AndalusiaPlain",
-    "districtOffsetY":  0,
-    "npcSpawns":  [
-
-                  ],
-    "decorations":  [
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.5,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -22
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.5,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  -17.1
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.5,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  16
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Street",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Street",
-                            "scale":  {
-                                          "y":  0.05,
-                                          "z":  4.5,
-                                          "x":  5
-                                      },
-                            "position":  {
-                                             "y":  0.01,
-                                             "z":  0,
-                                             "x":  20.9
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Pine",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9.2,
-                                             "x":  -20
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Broadleaf",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Broadleaf",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9.5,
-                                             "x":  -14.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushRound_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9.8,
-                                             "x":  5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_PlanterBox",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_PlanterBox",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9.5,
-                                             "x":  12
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Pine",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9.2,
-                                             "x":  19
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Broadleaf",
-                            "rotation":  {
-                                             "y":  270,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Broadleaf",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9.2,
-                                             "x":  -20
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Tree_Pine",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Tree_Pine",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9.5,
-                                             "x":  -14
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushFlowering_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9.8,
-                                             "x":  -7.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushFlowering_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9.8,
-                                             "x":  8.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushHedge_New",
-                            "rotation":  {
-                                             "y":  180,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushHedge_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9.5,
-                                             "x":  15
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushHedge_New",
-                            "rotation":  {
-                                             "y":  90,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushHedge_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -9,
-                                             "x":  19.5
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -7.4,
-                                             "x":  -16.2
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_GrassTuft",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_GrassTuft",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  -8.9,
-                                             "x":  -1.6
-                                         }
-                        },
-                        {
-                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
-                            "rotation":  {
-                                             "y":  0,
-                                             "z":  0,
-                                             "x":  0
-                                         },
-                            "prefabName":  "Prop_BushFlowering_New",
-                            "scale":  {
-                                          "y":  1,
-                                          "z":  1,
-                                          "x":  1
-                                      },
-                            "position":  {
-                                             "y":  0,
-                                             "z":  9,
-                                             "x":  -1.8
-                                         }
-                        }
-                    ],
-    "roomSize":  {
-                     "y":  25,
-                     "x":  50
-                 },
-    "enemySpawns":  [
-
-                    ],
-    "selectionWeight":  1.4,
-    "obstacles":  [
-
-                  ],
-    "districtOffsetX":  0,
-    "districtId":  "",
-    "templateName":  "EU Buildable Lot: Andalusia Hill Pad"
+    "biome": 5,
+    "lootSpawns": [
+        {
+            "itemName": "Money",
+            "quantity": 1,
+            "moneyAmount": 85,
+            "position": {
+                "y": 0.25,
+                "z": -6.9,
+                "x": -13.8
+            },
+            "isMoney": true
+        }
+    ],
+    "templateId": "EU_BasePlot_08_AndalusiaPlain",
+    "districtOffsetY": 0,
+    "npcSpawns": [],
+    "decorations": [
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.5,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -22
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.5,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": -17.1
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.5,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 16
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Street",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Street",
+            "scale": {
+                "y": 0.05,
+                "z": 4.5,
+                "x": 5
+            },
+            "position": {
+                "y": 0.01,
+                "z": 0,
+                "x": 20.9
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Medium_02_ForestPine",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Cozy_Tree_Medium_02_ForestPine",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9.2,
+                "x": -20
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_01_GiantOak",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Cozy_Tree_Large_01_GiantOak",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9.5,
+                "x": -14.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushRound_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9.8,
+                "x": 5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushHedge_New",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushHedge_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9.5,
+                "x": 12
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Cozy_Tree_Large_02_TallSpruce",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9.2,
+                "x": 19
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+            "rotation": {
+                "y": 270,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Cozy_Tree_Small_03_AutumnMini",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9.2,
+                "x": -20
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Cozy_Tree_Small_02_BabyPine",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9.5,
+                "x": -14
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushFlowering_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9.8,
+                "x": -7.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushFlowering_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9.8,
+                "x": 8.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushHedge_New",
+            "rotation": {
+                "y": 180,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushHedge_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9.5,
+                "x": 15
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushHedge_New",
+            "rotation": {
+                "y": 90,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushHedge_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": -9,
+                "x": 19.5
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushRound_New",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushRound_New",
+            "scale": {
+                "y": 0.68,
+                "z": 0.68,
+                "x": 0.68
+            },
+            "position": {
+                "y": 0,
+                "z": -7.4,
+                "x": -16.2
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushAutumnRock_New",
+            "scale": {
+                "y": 0.68,
+                "z": 0.68,
+                "x": 0.68
+            },
+            "position": {
+                "y": 0,
+                "z": -8.9,
+                "x": -1.6
+            }
+        },
+        {
+            "resourcePath": "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "rotation": {
+                "y": 0,
+                "z": 0,
+                "x": 0
+            },
+            "prefabName": "Prop_BushFlowering_New",
+            "scale": {
+                "y": 1,
+                "z": 1,
+                "x": 1
+            },
+            "position": {
+                "y": 0,
+                "z": 9,
+                "x": -1.8
+            }
+        }
+    ],
+    "roomSize": {
+        "y": 25,
+        "x": 50
+    },
+    "enemySpawns": [],
+    "selectionWeight": 1.4,
+    "obstacles": [],
+    "districtOffsetX": 0,
+    "districtId": "",
+    "templateName": "EU Buildable Lot: Andalusia Hill Pad"
 }

@@ -18,7 +18,105 @@ namespace TheLastEmpire
         }
 
         private static readonly Dictionary<int, Material> _materialCache = new Dictionary<int, Material>();
+        private static readonly Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
         private static Shader _cachedUrpLit;
+
+        private static readonly string[] CozyTreeAddresses =
+        {
+            "Prefabs/Environment/Building/Cozy_Tree_Large_01_GiantOak",
+            "Prefabs/Environment/Building/Cozy_Tree_Large_02_TallSpruce",
+            "Prefabs/Environment/Building/Cozy_Tree_Large_03_AutumnMaple",
+            "Prefabs/Environment/Building/Cozy_Tree_Medium_01_MeadowOak",
+            "Prefabs/Environment/Building/Cozy_Tree_Medium_02_ForestPine",
+            "Prefabs/Environment/Building/Cozy_Tree_Medium_03_GoldenBirch",
+            "Prefabs/Environment/Building/Cozy_Tree_Small_01_RoundSapling",
+            "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+            "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+        };
+
+        private static readonly string[] CozyBushAddresses =
+        {
+            "Prefabs/Environment/Building/Prop_BushRound_New",
+            "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "Prefabs/Environment/Building/Prop_BushHedge_New",
+            "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+        };
+
+        private static readonly string[] CozyGroundClumpAddresses =
+        {
+            "Prefabs/Environment/Building/Prop_BushRound_New",
+            "Prefabs/Environment/Building/Prop_BushBerry_New",
+            "Prefabs/Environment/Building/Prop_BushFlowering_New",
+            "Prefabs/Environment/Building/Prop_BushAutumnRock_New",
+        };
+
+        private static readonly string[] RealDebrisAddresses =
+        {
+            "Prefabs/Environment/Building/Apoc_Prop_Rubble_Pile",
+            "Prefabs/Environment/Building/Apoc_Prop_Sandbag_Pile",
+            "Prefabs/Environment/Building/Apoc_Prop_Rusty_Drum_Stack",
+            "Prefabs/Environment/Building/Apoc_Prop_Concrete_Barricade",
+            "Prefabs/Environment/Building/Prop_BoulderCluster",
+            "Prefabs/Environment/Building/Prop_TrashCan",
+            "Prefabs/Environment/Building/Prop_TrafficCone",
+            "Prefabs/Environment/Building/Prop_Bench",
+        };
+
+        private static readonly string[] RealCompactBuildingAddresses =
+        {
+            "Prefabs/Environment/Building/Building_CottageHouse",
+            "Prefabs/Environment/Building/Building_Townhouse",
+            "Prefabs/Environment/Building/Building_CornerShop",
+            "Prefabs/Environment/Building/Building_AlpineChalet",
+            "Prefabs/Environment/Building/Building_CanalHouse",
+        };
+
+        private static GameObject LoadCachedPrefab(string address)
+        {
+            if (string.IsNullOrEmpty(address)) return null;
+            if (_prefabCache.TryGetValue(address, out GameObject cached) && cached != null)
+            {
+                return cached;
+            }
+
+            GameObject loaded = AddressableManager.LoadAsset<GameObject>(address);
+            if (loaded != null)
+            {
+                _prefabCache[address] = loaded;
+            }
+            return loaded;
+        }
+
+        private static GameObject TrySpawnPrefabFromPool(
+            string[] pool,
+            Transform parent,
+            Vector3 worldXZPos,
+            bool snapToGrid,
+            float minScale,
+            float maxScale)
+        {
+            if (pool == null || pool.Length == 0) return null;
+
+            int start = Random.Range(0, pool.Length);
+            for (int i = 0; i < pool.Length; i++)
+            {
+                string addr = pool[(start + i) % pool.Length];
+                GameObject prefab = LoadCachedPrefab(addr);
+                if (prefab == null) continue;
+
+                float yaw = snapToGrid ? Random.Range(0, 4) * 90f : Random.Range(0f, 360f);
+                Vector3 pos = new Vector3(worldXZPos.x, 0f, worldXZPos.y);
+                GameObject instance = Object.Instantiate(prefab, pos, Quaternion.Euler(0f, yaw, 0f), parent);
+                instance.name = prefab.name;
+
+                float scaleFactor = Random.Range(minScale, maxScale);
+                instance.transform.localScale = prefab.transform.localScale * scaleFactor;
+                return instance;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Picks a category weighted by biome and returns the expected XZ footprint size for overlap checks.
@@ -80,7 +178,8 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// Spawns a procedural prop of the given category at worldPos (ground Y = 0).
+        /// Spawns a prop of the given category at worldPos (ground Y = 0), preferring our real
+        /// Cozy Low-Poly / stylized prefabs via Addressables and falling back to primitives only if missing.
         /// </summary>
         public static GameObject SpawnProp(
             PropCategory category,
@@ -89,6 +188,28 @@ namespace TheLastEmpire
             Material baseMaterial,
             bool snapToGrid)
         {
+            GameObject realInstance = null;
+            switch (category)
+            {
+                case PropCategory.Tree:
+                    realInstance = TrySpawnPrefabFromPool(CozyTreeAddresses, parent, worldXZPos, snapToGrid, 0.90f, 1.12f);
+                    break;
+                case PropCategory.Bush:
+                    realInstance = TrySpawnPrefabFromPool(CozyBushAddresses, parent, worldXZPos, snapToGrid, 0.88f, 1.15f);
+                    break;
+                case PropCategory.Grass:
+                    realInstance = TrySpawnPrefabFromPool(CozyGroundClumpAddresses, parent, worldXZPos, snapToGrid, 0.55f, 0.72f);
+                    break;
+                default:
+                    realInstance = TrySpawnPrefabFromPool(RealDebrisAddresses, parent, worldXZPos, snapToGrid, 0.85f, 1.05f);
+                    break;
+            }
+
+            if (realInstance != null)
+            {
+                return realInstance;
+            }
+
             GameObject root;
             switch (category)
             {
@@ -493,6 +614,13 @@ namespace TheLastEmpire
         // =====================================================================
         public static GameObject SpawnBuilding(Transform parent, Vector3 worldXZPos, bool snapToGrid, out Vector2 footprintXZ)
         {
+            GameObject realBuilding = TrySpawnPrefabFromPool(RealCompactBuildingAddresses, parent, worldXZPos, snapToGrid, 0.72f, 0.78f);
+            if (realBuilding != null)
+            {
+                footprintXZ = new Vector2(2.6f, 2.6f);
+                return realBuilding;
+            }
+
             int variant = Random.Range(0, 4);
             string[] names = { "Building_CottageHouse", "Building_Townhouse", "Building_CornerShop", "Building_SmallApartment" };
             GameObject root = CreateRoot(names[variant], parent, worldXZPos, snapToGrid);
