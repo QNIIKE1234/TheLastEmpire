@@ -83,7 +83,7 @@ namespace TheLastEmpire.Editor
         {
             new ShiftAnimSpec(0, "Shift_AdrenalineRush",    "Shift_AdrenalineRush",    true,  1.45f), // Vanguard
             new ShiftAnimSpec(1, "Shift_UnstoppableCharge", "Shift_UnstoppableCharge", true,  1.50f), // Juggernaut
-            new ShiftAnimSpec(2, "Shift_ShadowStep",        "Shift_ShadowStep",        true,  1.35f), // Phantom
+            new ShiftAnimSpec(2, "Shift_ShadowStep",        "Shift_ShadowStep",        true,  2.05f), // Phantom (+50% faster foot stride!)
             new ShiftAnimSpec(3, "Shift_EagleEye",          "Shift_EagleEye",          true,  1.00f), // Marksman
             new ShiftAnimSpec(4, "Shift_GrapplingHook",     "Shift_GrapplingHook",     true,  1.25f), // Scavenger
             new ShiftAnimSpec(5, "Shift_CycloneSwing",      "Shift_CycloneSwing",      true,  1.70f), // Rebel

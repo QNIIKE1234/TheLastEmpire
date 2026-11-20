@@ -127,7 +127,7 @@ namespace TheLastEmpire.Editor
             new WeaponSpec("Weapon_Knife",          false, new Vector3(-0.00074f, 0.00086f,  0.00037f), new Vector3(-90f,   90f,   0f), 0.020f),
             new WeaponSpec("Weapon_BaseballBat",    false, new Vector3( 0.00512f,-0.00063f, -0.00100f), new Vector3(  0f,    0f, -90f), 0.020f),
             new WeaponSpec("Weapon_Machete",        false, new Vector3( 0.00101f, 0.00089f, -0.00004f), new Vector3(-90f, -180f,  90f), 0.015f),
-            new WeaponSpec("Weapon_FireAxe",        false, new Vector3( 0.00213f, 0.00085f,  0.00000f), new Vector3(-90f,  180f,  90f), 0.015f),
+            new WeaponSpec("Weapon_FireAxe",        false, new Vector3( 0.00213f, 0.00085f,  0.00000f), new Vector3( 90f,    0f, -90f), 0.015f),
             new WeaponSpec("Weapon_Katana",         false, new Vector3( 0.00113f, 0.00138f,  0.00000f), new Vector3(  0f,    0f, -90f), 0.010f),
             new WeaponSpec("Weapon_Sledgehammer",   false, new Vector3( 0.00210f, 0.00085f,  0.00000f), new Vector3(-90f,  180f,  90f), 0.015f),
             new WeaponSpec("Weapon_SurvivalSpear",  false, new Vector3( 0.00150f, 0.00085f,  0.00000f), new Vector3(  0f,    0f, -90f), 0.012f),

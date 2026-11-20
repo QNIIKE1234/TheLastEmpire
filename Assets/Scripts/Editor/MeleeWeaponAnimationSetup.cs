@@ -45,7 +45,7 @@ namespace TheLastEmpire.Editor
                     {
                         _queued = false;
                         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-                        MeleeWeaponAnimationSetup.InstallMeleeAnimations(forceReinstall: false, showDialog: false);
+                        MeleeWeaponAnimationSetup.InstallMeleeAnimations(forceReinstall: true, showDialog: false);
                     };
                     break;
                 }
@@ -77,7 +77,7 @@ namespace TheLastEmpire.Editor
             new MeleeAnimSpec("Melee_Knife",         1.65f),
             new MeleeAnimSpec("Melee_BaseballBat",   1.35f),
             new MeleeAnimSpec("Melee_Machete",       1.30f),
-            new MeleeAnimSpec("Melee_FireAxe",       1.20f),
+            new MeleeAnimSpec("Melee_FireAxe",       1.30f),
             new MeleeAnimSpec("Melee_Katana",        1.55f),
             new MeleeAnimSpec("Melee_Sledgehammer",  1.15f),
             new MeleeAnimSpec("Melee_SurvivalSpear", 1.45f),
@@ -87,11 +87,25 @@ namespace TheLastEmpire.Editor
 
         static MeleeWeaponAnimationSetup()
         {
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
             EditorApplication.delayCall += () =>
             {
-                if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+                if (EditorApplication.isPlaying) return;
                 InstallMeleeAnimations(forceReinstall: false, showDialog: false);
             };
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (state == PlayModeStateChange.EnteredEditMode || state == PlayModeStateChange.ExitingEditMode)
+            {
+                if (IsFbxNewerThanExtractedAnims())
+                {
+                    InstallMeleeAnimations(forceReinstall: true, showDialog: false);
+                }
+            }
         }
 
         [MenuItem("Tools/The Last Empire/Install 9 Melee Weapon Attack Animations")]
@@ -124,7 +138,9 @@ namespace TheLastEmpire.Editor
 
             AnimatorStateMachine baseSm = controller.layers[0].stateMachine;
             bool alreadyInstalled = FindState(baseSm, "Melee_Chainsaw") != null && FindState(baseSm, "Melee_Knife") != null;
-            if (alreadyInstalled && !forceReinstall) return;
+            bool fbxIsNewer = IsFbxNewerThanExtractedAnims();
+            if (alreadyInstalled && !forceReinstall && !fbxIsNewer) return;
+            bool shouldOverwrite = forceReinstall || fbxIsNewer;
 
             UnityEngine.Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(MeleeFbxPath);
             if (subAssets == null || subAssets.Length == 0) return;
@@ -136,6 +152,7 @@ namespace TheLastEmpire.Editor
             AnimatorState runState = FindState(baseSm, "Run");
 
             int wiredCount = 0;
+            var updatedAnimPaths = new System.Collections.Generic.List<string>();
             for (int i = 0; i < Specs.Length; i++)
             {
                 MeleeAnimSpec spec = Specs[i];
@@ -156,12 +173,13 @@ namespace TheLastEmpire.Editor
                     ApplyNoLoop(extractedClip);
                     AssetDatabase.CreateAsset(extractedClip, animPath);
                 }
-                else if (forceReinstall)
+                else if (shouldOverwrite)
                 {
                     EditorUtility.CopySerialized(srcClip, extractedClip);
                     extractedClip.name = $"Chibi_Base_Rig_{spec.StateName}";
                     ApplyNoLoop(extractedClip);
                     EditorUtility.SetDirty(extractedClip);
+                    updatedAnimPaths.Add(animPath);
                 }
 
                 AnimatorState state = FindState(baseSm, spec.StateName);
@@ -212,7 +230,11 @@ namespace TheLastEmpire.Editor
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
-            Debug.Log($"<color=#50FA7B>[MeleeWeaponAnimationSetup]</color> Installed & wired {wiredCount}/9 unique melee weapon attack animations into Chibi_Player_Controller!");
+            if (updatedAnimPaths.Count > 0)
+            {
+                AssetDatabase.ForceReserializeAssets(updatedAnimPaths);
+            }
+            Debug.Log($"<color=#50FA7B>[MeleeWeaponAnimationSetup]</color> Installed & wired {wiredCount}/9 unique melee weapon attack animations (updated {updatedAnimPaths.Count} clips) into Chibi_Player_Controller!");
 
             if (showDialog)
             {
@@ -222,6 +244,20 @@ namespace TheLastEmpire.Editor
                     "OK"
                 );
             }
+        }
+
+        private static bool IsFbxNewerThanExtractedAnims()
+        {
+            if (!File.Exists(MeleeFbxPath)) return false;
+            DateTime fbxUtc = File.GetLastWriteTimeUtc(MeleeFbxPath);
+            for (int i = 0; i < Specs.Length; i++)
+            {
+                string animPath = $"{AnimOutDir}/Chibi_Base_Rig_{Specs[i].StateName}.anim";
+                if (!File.Exists(animPath)) return true;
+                if (fbxUtc > File.GetLastWriteTimeUtc(animPath).AddSeconds(1))
+                    return true;
+            }
+            return false;
         }
 
         private static AnimationClip FindClipByKey(UnityEngine.Object[] assets, string key)

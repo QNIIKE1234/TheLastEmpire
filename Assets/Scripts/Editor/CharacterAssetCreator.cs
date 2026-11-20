@@ -310,12 +310,13 @@ namespace TheLastEmpire.Editor
 
             data.shiftAbilityType = ShiftAbilityType.ShadowStep;
             data.shiftAbilityName = "Shadow Step";
-            data.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
+            data.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, 50% damage reduction, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
             data.shiftCooldown = 0f;
 
             data.shadowSpeedMultiplier = 1.40f;
             data.shadowHungerDrainRate = 2.5f;
             data.shadowExitCritMultiplier = 2.0f;
+            data.shadowDamageReduction = 0.50f;
 
             EditorUtility.SetDirty(data);
             return data;

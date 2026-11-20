@@ -151,7 +151,8 @@ namespace TheLastEmpire
             phantom.shootSprintLockDuration = 1.0f;
             phantom.shiftAbilityType = ShiftAbilityType.ShadowStep;
             phantom.shiftAbilityName = "Shadow Step";
-            phantom.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
+            phantom.shiftAbilityDescription = "Hold [Shift] to enter shadow phase: +40% speed, 50% damage reduction, pass through enemies freely. Exiting shadow guarantees 2.0x Critical Strike on your next attack.";
+            phantom.shadowDamageReduction = 0.50f;
             phantom.shiftCooldown = 0f;
             roster.Add(phantom);
 
@@ -211,7 +212,7 @@ namespace TheLastEmpire
             scavenger.startingMoney = 300;
             scavenger.startingRations = 2;
             scavenger.startingPistolAmmo = 0;
-            scavenger.startingWeapons = new List<string> { "Crossbow", "Survival Spear" };
+            scavenger.startingWeapons = new List<string> { "Crossbow", "Katana" };
             scavenger.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Bolts", 25) };
             scavenger.dropRateBonus = 0.25f;
             scavenger.moneyMultiplier = 1.30f;

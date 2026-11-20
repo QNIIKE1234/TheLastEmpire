@@ -90,6 +90,13 @@ namespace TheLastEmpire
                     float reduction = pc.ActiveCharacterData != null ? pc.ActiveCharacterData.cycloneDamageReduction : 0.40f;
                     damageAmount *= (1f - reduction);
                 }
+                if (pc.ActiveShiftAbility is ShadowStepAbility && pc.ActiveShiftAbility.IsActive)
+                {
+                    float reduction = (pc.ActiveCharacterData != null && pc.ActiveCharacterData.shadowDamageReduction > 0f)
+                        ? pc.ActiveCharacterData.shadowDamageReduction
+                        : 0.50f;
+                    damageAmount *= (1f - reduction); // 50% damage reduction during Shadow Step
+                }
                 if (isExplosion && pc.ActiveCharacterData != null && pc.ActiveCharacterData.blastDamageReduction > 0f)
                 {
                     damageAmount *= (1f - pc.ActiveCharacterData.blastDamageReduction);

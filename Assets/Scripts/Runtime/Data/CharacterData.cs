@@ -239,6 +239,7 @@ namespace TheLastEmpire
         [Range(1f, 3f)] public float shadowSpeedMultiplier = 1.40f;
         [Range(0.1f, 10f)] public float shadowHungerDrainRate = 2.5f;
         [Range(1f, 5f)] public float shadowExitCritMultiplier = 2.0f;
+        [Range(0f, 0.9f)] public float shadowDamageReduction = 0.50f;
 
         [Header("--- Ability Tuning: Eagle Eye (Marksman) ---")]
         [Range(1.1f, 2.5f)] public float eagleEyeZoomMultiplier = 1.30f;

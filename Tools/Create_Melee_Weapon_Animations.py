@@ -290,32 +290,50 @@ def main():
         keyframe_all_bones(f, prev_q)
 
     # =========================================================================
-    # 4. FIRE AXE: Heavy Two-Handed Overhead Lumberjack Chop! (Frames 1..23)
+    # 4. FIRE AXE: Massive Heavy Two-Handed 180° Half-Circle Horizontal Cleave! (Frames 1..23)
+    #    Coils deep to the right, then sweeps a full wide semicircle from far right -> front -> far left!
     # =========================================================================
-    actions.append((create_action("Melee_FireAxe"), 13))
+    actions.append((create_action("Melee_FireAxe"), 11))
     prev_q = {}
     for f in range(1, 24):
         begin_frame_pose(f)
-        if f <= 8:
-            slam = -smoothstep((f - 1) / 7.0)
-        elif f <= 13:
-            u = (f - 8) / 5.0
-            slam = -1.0 + 2.0 * (u * u)
-        elif f <= 16:
-            slam = 1.0
+        if f <= 7:
+            # Deep heavy windup coiled far to the right (-1.0)
+            u = smoothstep((f - 1) / 6.0)
+            sweep = -u
+            weight = u
+        elif f <= 14:
+            # Explosive 180° half-circle horizontal cleave from far right (-1.0) -> front (0) -> far left (+1.0)!
+            u = smoothstep((f - 7) / 7.0)
+            sweep = -1.0 + 2.0 * u
+            weight = 1.0
+        elif f <= 17:
+            # Heavy follow-through hold on far left
+            sweep = 1.0
+            weight = 1.0
         else:
-            slam = 1.0 - smoothstep((f - 16) / 7.0)
-        pitch = 26.0 * slam
-        set_hips_world((0.0, -0.12 * max(0.0, slam), -0.12 * max(0.0, slam) + 0.05 * max(0.0, -slam)), pitch * 0.55, 0.0, 0.0)
-        set_local_euler_deg("Spine", pitch * 0.50, 0.0, 0.0)
-        set_local_euler_deg("Chest", pitch * 0.55, 0.0, 0.0)
-        set_local_euler_deg("Head", -pitch * 0.35, 0.0, 0.0)
-        hy = -0.18 + 0.24 * (-slam) if slam < 0 else -0.18 - 0.34 * slam
-        hz = 1.24 + 0.56 * (-slam) if slam < 0 else 1.24 - 0.62 * slam
-        aim_ik("RightUpperArm", "RightLowerArm", "RightHand", (-0.05, hy, hz), (-0.45, 0.25, -0.3), (30.0 * slam, 0, 0))
-        aim_ik("LeftUpperArm", "LeftLowerArm", "LeftHand", (0.05, hy + 0.03, hz - 0.04), (0.45, 0.25, -0.3))
-        aim_ik("LeftUpperLeg", "LeftLowerLeg", "LeftFoot", (0.17, -0.16 * max(0.0, slam), 0.11), (0.17, -1.0, 0.2))
-        aim_ik("RightUpperLeg", "RightLowerLeg", "RightFoot", (-0.17, 0.14 * max(0.0, slam), 0.11), (-0.17, -1.0, 0.2))
+            # Smooth heavy recovery back to neutral stance
+            u = smoothstep((f - 17) / 6.0)
+            sweep = 1.0 - u
+            weight = 1.0 - u
+
+        # Huge torso coil & horizontal rotation driving the 180° arc!
+        yaw = -72.0 * sweep
+        forward_lunge = math.cos(sweep * math.pi * 0.5) * weight
+        set_hips_world((0.0, -0.14 * forward_lunge, -0.10 * weight), 14.0 * weight, yaw * 0.48, -10.0 * sweep)
+        set_local_euler_deg("Spine", 8.0 * weight, yaw * 0.28, 0.0)
+        set_local_euler_deg("Chest", 8.0 * weight, yaw * 0.34, 0.0)
+        set_local_euler_deg("Head", -10.0 * weight, -yaw * 0.55, 0.0)
+
+        # Wide 200° horizontal half-circle arc at chest height (radius ~0.58m!)
+        arc_rad = sweep * math.radians(102.0)
+        hx = 0.58 * math.sin(arc_rad)
+        hy = -0.54 * math.cos(arc_rad) - 0.04
+        hz = 1.08 + 0.06 * (1.0 - abs(sweep))
+        aim_ik("RightUpperArm", "RightLowerArm", "RightHand", (hx - 0.04 * math.cos(arc_rad), hy, hz), (-0.52, 0.25, -0.35), (0.0, 0.0, -68.0 * sweep))
+        aim_ik("LeftUpperArm", "LeftLowerArm", "LeftHand", (hx + 0.06 * math.cos(arc_rad), hy + 0.03, hz - 0.03), (0.52, 0.25, -0.35))
+        aim_ik("LeftUpperLeg", "LeftLowerLeg", "LeftFoot", (0.19, -0.18 * forward_lunge, 0.11), (0.19, -1.0, 0.25))
+        aim_ik("RightUpperLeg", "RightLowerLeg", "RightFoot", (-0.19, 0.14 * forward_lunge, 0.11), (-0.19, -1.0, 0.25))
         keyframe_all_bones(f, prev_q)
 
     # =========================================================================
