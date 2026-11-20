@@ -2482,6 +2482,14 @@ namespace TheLastEmpire
 
         private static Quaternion ResolveTemplateRotation(GameObject prefab, Vector3 eulerRotation)
         {
+            // Guard against legacy Z-up Stage JSONs that stored X=270 (-90) or X=90 for now-upright Y-up prefabs
+            if (prefab != null &&
+                Mathf.Abs(Mathf.DeltaAngle(prefab.transform.eulerAngles.x, 0f)) < 1f &&
+                (Mathf.Abs(Mathf.DeltaAngle(eulerRotation.x, 270f)) < 1f || Mathf.Abs(Mathf.DeltaAngle(eulerRotation.x, 90f)) < 1f))
+            {
+                eulerRotation.x = 0f;
+            }
+
             if (prefab != null && Mathf.Abs(eulerRotation.x) < 0.01f && Mathf.Abs(eulerRotation.z) < 0.01f)
             {
                 return Quaternion.Euler(0f, eulerRotation.y, 0f) * prefab.transform.rotation;
