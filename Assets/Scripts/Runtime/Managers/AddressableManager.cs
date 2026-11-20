@@ -932,9 +932,44 @@ namespace TheLastEmpire
             string fname = System.IO.Path.GetFileNameWithoutExtension(key);
             if (!string.IsNullOrEmpty(fname))
             {
+                // Prefer Prefabs inside Resources_Addressable/Prefabs/Environment/Building before global search
+                if (typeof(T) == typeof(GameObject))
+                {
+                    T envBuilding = AssetDatabase.LoadAssetAtPath<T>($"Assets/Resources_Addressable/Prefabs/Environment/Building/{fname}.prefab");
+                    if (envBuilding != null) return envBuilding;
+                    T envRoot = AssetDatabase.LoadAssetAtPath<T>($"Assets/Resources_Addressable/Prefabs/Environment/{fname}.prefab");
+                    if (envRoot != null) return envRoot;
+                }
+
                 string[] guids = AssetDatabase.FindAssets($"{fname} t:{typeof(T).Name}");
                 if (guids != null && guids.Length > 0)
                 {
+                    // For GameObjects, strictly prioritize .prefab inside Resources_Addressable over raw .fbx/.obj models!
+                    if (typeof(T) == typeof(GameObject))
+                    {
+                        foreach (var g in guids)
+                        {
+                            string assetPath = AssetDatabase.GUIDToAssetPath(g);
+                            if (assetPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) &&
+                                assetPath.StartsWith("Assets/Resources_Addressable/", StringComparison.OrdinalIgnoreCase) &&
+                                System.IO.Path.GetFileNameWithoutExtension(assetPath).Equals(fname, StringComparison.OrdinalIgnoreCase))
+                            {
+                                obj = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+                                if (obj != null) return obj;
+                            }
+                        }
+                        foreach (var g in guids)
+                        {
+                            string assetPath = AssetDatabase.GUIDToAssetPath(g);
+                            if (assetPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) &&
+                                System.IO.Path.GetFileNameWithoutExtension(assetPath).Equals(fname, StringComparison.OrdinalIgnoreCase))
+                            {
+                                obj = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+                                if (obj != null) return obj;
+                            }
+                        }
+                    }
+
                     foreach (var g in guids)
                     {
                         string assetPath = AssetDatabase.GUIDToAssetPath(g);

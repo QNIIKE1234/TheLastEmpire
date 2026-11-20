@@ -157,9 +157,10 @@ namespace TheLastEmpire.EditorTools
                 GameObject contents = PrefabUtility.LoadPrefabContents(prefabPath);
                 try
                 {
-                    // Ensure upright identity root transform (replaces old +90 X Apoc rotation)
+                    // Ensure upright identity root transform (replaces old +90/-90 X Apoc rotation & clears Euler hint)
                     contents.transform.localPosition = Vector3.zero;
                     contents.transform.localRotation = Quaternion.identity;
+                    contents.transform.localEulerAngles = Vector3.zero;
                     contents.transform.localScale = Vector3.one;
 
                     // Remove legacy MeshFilter/MeshRenderer directly on root if any

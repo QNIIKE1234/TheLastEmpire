@@ -466,6 +466,7 @@ for obj in TREES:
         bake_anim=False,
         axis_forward="-Z",
         axis_up="Y",
+        bake_space_transform=True,
         apply_scale_options="FBX_SCALE_ALL",
         path_mode="AUTO",
     )
