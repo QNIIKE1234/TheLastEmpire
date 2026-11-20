@@ -89,11 +89,11 @@ namespace TheLastEmpire
         [SerializeField] private Key toggleCraftKey = Key.C;
 
         [Header("Cheat / Debug Settings")]
-        [Tooltip("เปิดโหมด Free Craft: คราฟต์ได้ทุกสูตรโดยไม่ต้องมีวัตถุดิบ และไม่หักของออกจากกระเป๋า")]
+        [Tooltip("เปิดโหมด Free Craft: คราฟต์ได้ทุกสูตรโดยไม่ต้องมีวัตถุดิบ และไม่หักของออกจากกระเป๋า (สามารถเปิด/ปิดได้ในเมนู Cheat [F1])")]
         [SerializeField] private bool freeCraftMode = false;
 
-        [Tooltip("ปุ่มลัดสำหรับสลับโหมด Free Craft ทันทีในเกม (ค่าเริ่มต้น: ปุ่ม F8)")]
-        [SerializeField] private Key toggleFreeCraftKey = Key.F8;
+        [Tooltip("ปุ่มลัดเสริมสำหรับสลับ Free Craft (ค่าเริ่มต้น None — ย้ายไปควบคุมในเมนู [F1] แล้ว)")]
+        [SerializeField] private Key toggleFreeCraftKey = Key.None;
 
         private readonly List<CraftingRecipe> _filteredRecipes = new List<CraftingRecipe>();
 
@@ -165,16 +165,7 @@ namespace TheLastEmpire
                 return;
             }
 
-#if UNITY_EDITOR
-            // ในโหมด Unity Editor ให้เปิด Free Craft เป็นค่าเริ่มต้นเสมอ เพื่อให้ทดสอบได้ทันที
-            freeCraftMode = true;
-            CraftingDatabase.IsFreeCraft = true;
-#endif
-
-            if (freeCraftMode)
-            {
-                CraftingDatabase.IsFreeCraft = true;
-            }
+            CraftingDatabase.IsFreeCraft = freeCraftMode;
 
             if (craftingDatabase == null)
             {
@@ -230,14 +221,10 @@ namespace TheLastEmpire
 
             if (Keyboard.current == null) return;
 
-            // สลับโหมด Free Craft ด้วย F8, F1, หรือปุ่ม ~ (Backquote)
-            bool toggleFreePressed = false;
-            if (Keyboard.current.f8Key != null && Keyboard.current.f8Key.wasPressedThisFrame) toggleFreePressed = true;
-            if (Keyboard.current.backquoteKey != null && Keyboard.current.backquoteKey.wasPressedThisFrame) toggleFreePressed = true;
-            if (Keyboard.current.f1Key != null && Keyboard.current.f1Key.wasPressedThisFrame) toggleFreePressed = true;
-            if (toggleFreeCraftKey != Key.None && Keyboard.current[toggleFreeCraftKey] != null && Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame) toggleFreePressed = true;
-
-            if (toggleFreePressed)
+            // Free Craft ถูกย้ายไปควบคุมผ่านเมนู Cheat [F1] (รองรับคีย์เสริมเฉพาะกรณีตั้งค่าใน Inspector)
+            if (toggleFreeCraftKey != Key.None && toggleFreeCraftKey != Key.F8 &&
+                Keyboard.current[toggleFreeCraftKey] != null &&
+                Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame)
             {
                 ToggleFreeCraft();
             }

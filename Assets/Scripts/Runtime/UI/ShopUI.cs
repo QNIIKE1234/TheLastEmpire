@@ -65,6 +65,23 @@ namespace TheLastEmpire
         [SerializeField] private System.Collections.Generic.List<ShopItemConfig> shopItems = new System.Collections.Generic.List<ShopItemConfig>();
         private bool _isFree = false;
 
+        /// <summary>
+        /// Global Free Shop toggle controlled from the [F1] Cheat Menu.
+        /// When true, every NPC shop sells all items for $0 immediately.
+        /// </summary>
+        public static bool GlobalFreeShop { get; private set; } = false;
+
+        public bool IsEffectiveFree => _isFree || GlobalFreeShop;
+
+        public static void SetGlobalFreeShop(bool enabled)
+        {
+            GlobalFreeShop = enabled;
+            if (Instance != null && Instance.IsOpen)
+            {
+                Instance.RefreshUI();
+            }
+        }
+
         // =====================================================
         //  Internal State
         // =====================================================
@@ -348,7 +365,7 @@ namespace TheLastEmpire
                             continue;
                         }
 
-                        int displayPrice = _isFree ? 0 : item.price;
+                        int displayPrice = IsEffectiveFree ? 0 : item.price;
                         bool canAfford   = _playerInventory != null && _playerInventory.CanAfford(displayPrice);
 
                         // ชื่อ + จำนวนที่จะได้รับ เช่น Ammo x30
@@ -413,7 +430,7 @@ namespace TheLastEmpire
             ShopItemConfig item = shopItems != null ? shopItems.Find(s => s.item != null && s.item.itemName == realItemName) : default;
             if (item.item == null) return;
 
-            int price = _isFree ? 0 : item.price;
+            int price = IsEffectiveFree ? 0 : item.price;
 
             if (!_playerInventory.CanAfford(price))
             {

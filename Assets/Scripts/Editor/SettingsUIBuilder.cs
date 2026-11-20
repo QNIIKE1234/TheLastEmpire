@@ -304,7 +304,7 @@ namespace TheLastEmpire.Editor
                 "<color=#60A5FA>Dash / Dodge:</color> [Spacebar]   <color=#60A5FA>Signature Skill:</color> [Left Shift]\n" +
                 "<color=#60A5FA>Interact / Talk:</color> [E]       <color=#60A5FA>Reload Weapon:</color> [R]\n" +
                 "<color=#60A5FA>Inventory Bag:</color> [Tab / I]   <color=#60A5FA>Crafting Menu:</color> [C]\n" +
-                "<color=#60A5FA>Quick Item Slot:</color> [1, 2, 3, 4]  <color=#F59E0B>Freecraft Mode:</color> [F8]  |  <color=#F59E0B>Cheat:</color> [F1]";
+                "<color=#60A5FA>Quick Item Slot:</color> [1, 2, 3, 4]  <color=#F59E0B>Cheat Menu (Free Craft / Shop):</color> [F1]";
         }
 
         private static Button FindButton(Transform root, params string[] searchNames)

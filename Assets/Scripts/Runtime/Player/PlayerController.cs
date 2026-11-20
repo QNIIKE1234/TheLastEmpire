@@ -1191,14 +1191,37 @@ namespace TheLastEmpire
             _animator.SetBool("IsRunning", _isSprinting && moveMagnitude > 0.1f);
             _animator.SetBool("IsSitting", _isSitting);
             _animator.SetBool("HasGun", CurrentWeapon != null && !_isSitting);
+
+            // Drive unique per-character Shift Ability animations (0..6 matching ShiftAbilityType)
+            bool isShiftActive = _activeShiftAbility != null && _activeShiftAbility.IsActive && !_isSitting;
+            int shiftTypeIndex = activeCharacterData != null ? (int)activeCharacterData.shiftAbilityType : 0;
+            if (HasAnimatorParameter(_animator, "IsShiftActive"))
+                _animator.SetBool("IsShiftActive", isShiftActive);
+            if (HasAnimatorParameter(_animator, "ShiftType"))
+                _animator.SetInteger("ShiftType", shiftTypeIndex);
+
+            // Full-body action Shift abilities suppress UpperBody shooting layer; AdrenalineRush(0) & EagleEye(3) allow shooting
+            bool isFullBodyShift = isShiftActive && shiftTypeIndex != (int)ShiftAbilityType.AdrenalineRush && shiftTypeIndex != (int)ShiftAbilityType.EagleEye;
+
             if (_shootAnimLayerTimer > 0f) _shootAnimLayerTimer -= Time.deltaTime;
             if (_meleeAnimTimer > 0f) _meleeAnimTimer -= Time.deltaTime;
             if (_animator.layerCount > 1)
             {
-                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isSitting;
+                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isSitting && !isFullBodyShift;
                 _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
             }
             _animator.SetBool("IsDashing", _isDashing);
+        }
+
+        private static bool HasAnimatorParameter(Animator anim, string paramName)
+        {
+            if (anim == null || anim.runtimeAnimatorController == null) return false;
+            var ps = anim.parameters;
+            for (int i = 0; i < ps.Length; i++)
+            {
+                if (ps[i].name == paramName) return true;
+            }
+            return false;
         }
 
         public void ToggleSit()

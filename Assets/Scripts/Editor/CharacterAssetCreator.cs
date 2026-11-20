@@ -460,7 +460,7 @@ namespace TheLastEmpire.Editor
             data.startingMoney = 300;
             data.startingRations = 2;
             data.startingPistolAmmo = 0;
-            data.startingWeapons = new List<string> { "Crossbow", "Survival Spear" };
+            data.startingWeapons = new List<string> { "Crossbow", "Katana" };
             data.startingAmmo = new List<StartingAmmoConfig> { new StartingAmmoConfig("Bolts", 25) };
             data.dropRateBonus = 0.25f;
             data.moneyMultiplier = 1.30f;

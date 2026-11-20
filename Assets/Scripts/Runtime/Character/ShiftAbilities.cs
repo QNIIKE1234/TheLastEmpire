@@ -967,13 +967,10 @@ namespace TheLastEmpire
 
         private void PlaySpinAnimation()
         {
+            // Driven cleanly by Chibi_Player_Controller's dedicated 360° Shift_CycloneSwing state via IsShiftActive + ShiftType=5
             if (_player != null)
             {
-                Animator anim = _player.GetComponentInChildren<Animator>();
-                if (anim != null)
-                {
-                    anim.Play("Slash2", 0, 0f);
-                }
+                _player.ShowMeleeWeaponVisual();
             }
         }
 

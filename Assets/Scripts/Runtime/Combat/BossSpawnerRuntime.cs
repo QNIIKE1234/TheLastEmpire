@@ -89,12 +89,6 @@ namespace TheLastEmpire
                 KillAllBosses();
             }
 
-            // F8 key: Toggle Free Craft Mode
-            if (Keyboard.current.f8Key.wasPressedThisFrame)
-            {
-                ToggleFreeCraftMode();
-            }
-
             // Toast message countdown
             if (_toastTimer > 0f)
             {
@@ -363,7 +357,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Craft [F8]", "Events [F9]" };
+                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Free / Shop", "Events [F9]" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -783,6 +777,15 @@ namespace TheLastEmpire
             ShowToast(isFree ? "🔨 โหมด Free Craft: เปิด [ON] (คราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "🔨 โหมด Free Craft: ปิด [OFF] (ใช้วัตถุดิบตามปกติ)");
         }
 
+        private void ToggleFreeShopMode()
+        {
+            bool next = !ShopUI.GlobalFreeShop;
+            ShopUI.SetGlobalFreeShop(next);
+            ShowToast(next
+                ? "🛒 โหมด Free Shop (Is Free): เปิด [ON] (ซื้อของทุกร้าน $0)"
+                : "🛒 โหมด Free Shop (Is Free): ปิด [OFF] (ราคาปกติ)");
+        }
+
         private void DrawCraftCheatTab()
         {
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
@@ -792,26 +795,40 @@ namespace TheLastEmpire
                 alignment = TextAnchor.MiddleCenter
             };
             titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUILayout.Label("🔨 ระบบคราฟต์ & วัตถุดิบ", titleStyle);
+            GUILayout.Label("🔨 โหมดฟรี: คราฟต์ & ร้านค้า", titleStyle);
             GUILayout.Space(8);
 
-            bool isFree = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
-
-            GUI.backgroundColor = isFree ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
-            string btnText = isFree ? "★ โหมด Free Craft: [เปิดอยู่ / ON]" : "โหมด Free Craft: [ปิดอยู่ / OFF]";
-            if (GUILayout.Button(btnText, GUILayout.Height(40)))
+            // 1. Free Craft Toggle (ย้ายจาก F8 มาอยู่ใน F1)
+            bool isFreeCraft = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
+            GUI.backgroundColor = isFreeCraft ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
+            string craftBtnText = isFreeCraft ? "★ Free Craft (คราฟต์ฟรี): [เปิด / ON]" : "Free Craft (คราฟต์ฟรี): [ปิด / OFF]";
+            if (GUILayout.Button(craftBtnText, GUILayout.Height(40)))
             {
                 ToggleFreeCraftMode();
             }
 
             GUI.backgroundColor = Color.white;
-            GUILayout.Space(6);
-            GUILayout.Label("รายละเอียดสูตร:", EditorStylesBold());
-            GUILayout.Label(isFree
-                ? "• สามารถกดคราฟต์ไอเทมได้ทุกชิ้นทันที\n• ไม่ต้องมีวัตถุดิบในกระเป๋า\n• ไม่หักไอเทมใดๆ ออกจากตัว\n• กด [F8] เพื่อเปิด/ปิดได้ตลอดเวลา"
-                : "• โหมดปกติ: ต้องใช้วัตถุดิบตามสูตร\n• กด [F8] เพื่อเปิดโหมด Free Craft", EditorStylesMini());
+            GUILayout.Label(isFreeCraft
+                ? "• คราฟต์ได้ทุกสูตรทันที ไม่ต้องใช้วัตถุดิบและไม่หักของ"
+                : "• โหมดปกติ: ต้องใช้วัตถุดิบตามสูตรคราฟต์", EditorStylesMini());
 
-            GUILayout.Space(12);
+            GUILayout.Space(10);
+
+            // 2. Free Shop (Is Free) Toggle
+            bool isFreeShop = ShopUI.GlobalFreeShop;
+            GUI.backgroundColor = isFreeShop ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
+            string shopBtnText = isFreeShop ? "★ Free Shop (Is Free $0): [เปิด / ON]" : "Free Shop (Is Free $0): [ปิด / OFF]";
+            if (GUILayout.Button(shopBtnText, GUILayout.Height(40)))
+            {
+                ToggleFreeShopMode();
+            }
+
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label(isFreeShop
+                ? "• ซื้อสินค้าจาก NPC ทุกร้านฟรี ($0) ทันที"
+                : "• โหมดปกติ: ซื้อสินค้าตามราคาปกติของ NPC", EditorStylesMini());
+
+            GUILayout.Space(14);
             GUI.backgroundColor = new Color(1f, 0.8f, 0.2f);
             if (GUILayout.Button("เปิด/ปิด หน้าต่างคราฟต์ [C]", GUILayout.Height(32)))
             {
