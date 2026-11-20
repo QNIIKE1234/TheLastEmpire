@@ -4,6 +4,19 @@ using UnityEngine.InputSystem;
 
 namespace TheLastEmpire
 {
+    [System.Serializable]
+    public class CharacterModelEntry
+    {
+        [Tooltip("ลากไฟล์ CharacterData (เช่น CHAR_01_Vanguard) มาใส่เพื่อจับคู่ตัวละคร")]
+        public CharacterData characterData;
+
+        [Tooltip("หรือระบุ Character ID แทนได้ (เช่น VANGUARD, JUGGERNAUT, PHANTOM, MARKSMAN, SCAVENGER, REBEL, DEMOLITIONIST)")]
+        public string characterId;
+
+        [Tooltip("ลาก GameObject โมเดลลูกใต้ Model (หรือ Prefab ก็ได้) ที่จะใช้แสดงเมื่อเลือกตัวละครนี้")]
+        public GameObject modelObject;
+    }
+
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerController : MonoBehaviour
     {
@@ -14,9 +27,16 @@ namespace TheLastEmpire
 
         [Header("Character Selection Integration")]
         [SerializeField] private CharacterData activeCharacterData;
+        [Tooltip("Transform ที่รวมโมเดลตัวละครทั้งหมด (เช่น 'Model') — จะเปิดเฉพาะตัวที่เลือกและปิดตัวอื่นให้อัตโนมัติ")]
+        [SerializeField] private Transform characterModelRoot;
+        [Tooltip("List สำหรับใส่โมเดลของแต่ละตัวละครที่เลือกเล่น (รองรับทั้ง GameObject ลูกใน PlayerPrefabs/Model และ Prefab Asset)")]
+        [SerializeField] private List<CharacterModelEntry> characterModels = new List<CharacterModelEntry>();
         private IShiftAbility _activeShiftAbility;
+        private GameObject _activeCharacterModel;
 
         public CharacterData ActiveCharacterData => activeCharacterData;
+        public IReadOnlyList<CharacterModelEntry> CharacterModels => characterModels;
+        public GameObject ActiveCharacterModel => _activeCharacterModel;
         public IShiftAbility ActiveShiftAbility => _activeShiftAbility;
         public Vector2 MoveInput => _moveInput;
         public Vector3 AimDirection => _aimDirection;
@@ -391,20 +411,7 @@ namespace TheLastEmpire
 
                 InitShiftAbility();
 
-                if (activeCharacterData.characterModelPrefab != null)
-                {
-                    Transform existingCapsule = transform.Find("Capsule");
-                    if (existingCapsule != null) existingCapsule.gameObject.SetActive(false);
-                    Transform existingModel = transform.Find("CharacterModelInstance");
-                    if (existingModel == null)
-                    {
-                        GameObject modelInstance = Instantiate(activeCharacterData.characterModelPrefab, transform);
-                        modelInstance.name = "CharacterModelInstance";
-                        modelInstance.transform.localPosition = Vector3.zero;
-                        modelInstance.transform.localRotation = Quaternion.identity;
-                        _animator = modelInstance.GetComponentInChildren<Animator>();
-                    }
-                }
+                ApplySelectedCharacterModel(activeCharacterData);
             }
             else if (playerConfig != null)
             {
@@ -428,6 +435,259 @@ namespace TheLastEmpire
                 }
             }
         }
+
+        public void SwitchCharacterModel(CharacterData data)
+        {
+            if (data != null)
+            {
+                activeCharacterData = data;
+            }
+            ApplySelectedCharacterModel(activeCharacterData);
+        }
+
+        private void ApplySelectedCharacterModel(CharacterData data)
+        {
+            Transform modelRoot = characterModelRoot != null ? characterModelRoot : transform.Find("Model");
+            GameObject targetSource = FindModelForCharacter(data);
+
+            // Fallback to CharacterData.characterModelPrefab if not explicitly assigned in characterModels list
+            if (targetSource == null && data != null && data.characterModelPrefab != null)
+            {
+                targetSource = data.characterModelPrefab;
+            }
+
+            // Deactivate all child models registered in the list and under Model root
+            if (characterModels != null)
+            {
+                for (int i = 0; i < characterModels.Count; i++)
+                {
+                    GameObject mo = characterModels[i]?.modelObject;
+                    if (mo != null && mo.transform.IsChildOf(transform))
+                    {
+                        mo.SetActive(false);
+                    }
+                }
+            }
+
+            if (modelRoot != null)
+            {
+                for (int i = 0; i < modelRoot.childCount; i++)
+                {
+                    Transform ch = modelRoot.GetChild(i);
+                    if (ch != null) ch.gameObject.SetActive(false);
+                }
+            }
+
+            // Clean up any previously spawned prefab instance
+            Transform oldInstance = (modelRoot != null ? modelRoot.Find("CharacterModelInstance") : null)
+                                    ?? transform.Find("CharacterModelInstance");
+            if (oldInstance != null && (targetSource == null || oldInstance.gameObject != targetSource))
+            {
+                Destroy(oldInstance.gameObject);
+            }
+
+            GameObject activeModel = null;
+            if (targetSource != null)
+            {
+                if (targetSource.transform.IsChildOf(transform))
+                {
+                    // Case 1: Child GameObject inside PlayerPrefabs/Model — simply activate it
+                    activeModel = targetSource;
+                    activeModel.SetActive(true);
+                }
+                else
+                {
+                    // Case 2: Prefab asset dragged from Project — instantiate cleanly under Model root
+                    Transform parent = modelRoot != null ? modelRoot : transform;
+                    activeModel = Instantiate(targetSource, parent);
+                    activeModel.name = "CharacterModelInstance";
+                    activeModel.transform.localPosition = Vector3.zero;
+                    activeModel.transform.localRotation = Quaternion.identity;
+                    activeModel.SetActive(true);
+                }
+            }
+            else if (modelRoot != null && modelRoot.childCount > 0)
+            {
+                // Fallback: activate first child under Model so player is never invisible
+                activeModel = modelRoot.GetChild(0).gameObject;
+                activeModel.SetActive(true);
+            }
+
+            if (activeModel != null)
+            {
+                _activeCharacterModel = activeModel;
+
+                Transform existingCapsule = transform.Find("Capsule");
+                if (existingCapsule != null) existingCapsule.gameObject.SetActive(false);
+
+                RebindModelAnimatorAndWeapons(activeModel);
+            }
+        }
+
+        private GameObject FindModelForCharacter(CharacterData data)
+        {
+            if (data == null || characterModels == null || characterModels.Count == 0) return null;
+
+            string targetId = data.characterId;
+
+            // 1. Exact CharacterData ScriptableObject match
+            for (int i = 0; i < characterModels.Count; i++)
+            {
+                CharacterModelEntry entry = characterModels[i];
+                if (entry != null && entry.modelObject != null && entry.characterData == data)
+                {
+                    return entry.modelObject;
+                }
+            }
+
+            // 2. Character ID match (either from entry.characterData.characterId or entry.characterId)
+            if (!string.IsNullOrEmpty(targetId))
+            {
+                for (int i = 0; i < characterModels.Count; i++)
+                {
+                    CharacterModelEntry entry = characterModels[i];
+                    if (entry == null || entry.modelObject == null) continue;
+
+                    string entryId = entry.characterData != null && !string.IsNullOrEmpty(entry.characterData.characterId)
+                        ? entry.characterData.characterId
+                        : entry.characterId;
+
+                    if (!string.IsNullOrEmpty(entryId) &&
+                        entryId.Equals(targetId, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        return entry.modelObject;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private void RebindModelAnimatorAndWeapons(GameObject activeModel)
+        {
+            if (activeModel == null) return;
+
+            Animator modelAnim = activeModel.GetComponentInChildren<Animator>(true);
+            if (modelAnim != null)
+            {
+                _animator = modelAnim;
+                animator = modelAnim;
+                _animator.applyRootMotion = false;
+                _animator.Rebind();
+            }
+
+            // Check if the active character model already has its own Malee / Range weapon holders
+            Transform ownMelee = FindDeepChild(activeModel.transform, "Malee")
+                              ?? FindDeepChild(activeModel.transform, "Melee")
+                              ?? FindDeepChild(activeModel.transform, "MeleeWeapon");
+            Transform ownRange = FindDeepChild(activeModel.transform, "Range")
+                              ?? FindDeepChild(activeModel.transform, "Ranged")
+                              ?? FindDeepChild(activeModel.transform, "RangeWeapon");
+
+            if (ownMelee != null)
+            {
+                meleeWeapon = ownMelee.gameObject;
+            }
+            if (ownRange != null)
+            {
+                rangeWeapon = ownRange.gameObject;
+            }
+
+            // If this character model doesn't have its own Malee/Range holders yet,
+            // re-parent existing weapon holders onto the active model's RightHand bone cleanly!
+            if (ownMelee == null || ownRange == null)
+            {
+                Transform activeRightHand = FindDeepChild(activeModel.transform, "RightHand")
+                                         ?? FindDeepChild(activeModel.transform, "Hand_R")
+                                         ?? FindDeepChild(activeModel.transform, "mixamorig:RightHand");
+                if (activeRightHand != null)
+                {
+                    if (ownMelee == null && meleeWeapon != null && !meleeWeapon.transform.IsChildOf(activeModel.transform))
+                    {
+                        Vector3 lp = meleeWeapon.transform.localPosition;
+                        Quaternion lr = meleeWeapon.transform.localRotation;
+                        Vector3 ls = meleeWeapon.transform.localScale;
+                        meleeWeapon.transform.SetParent(activeRightHand, false);
+                        meleeWeapon.transform.localPosition = lp;
+                        meleeWeapon.transform.localRotation = lr;
+                        meleeWeapon.transform.localScale = ls;
+                    }
+                    if (ownRange == null && rangeWeapon != null && !rangeWeapon.transform.IsChildOf(activeModel.transform))
+                    {
+                        Vector3 lp = rangeWeapon.transform.localPosition;
+                        Quaternion lr = rangeWeapon.transform.localRotation;
+                        Vector3 ls = rangeWeapon.transform.localScale;
+                        rangeWeapon.transform.SetParent(activeRightHand, false);
+                        rangeWeapon.transform.localPosition = lp;
+                        rangeWeapon.transform.localRotation = lr;
+                        rangeWeapon.transform.localScale = ls;
+                    }
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        [ContextMenu("Auto-Populate Character Models List")]
+        private void EditorAutoPopulateCharacterModels()
+        {
+            if (characterModelRoot == null)
+            {
+                characterModelRoot = transform.Find("Model");
+            }
+
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("t:CharacterData", new[] { "Assets/Resources_Addressable/Database/Characters" });
+            System.Array.Sort(guids, (a, b) => string.Compare(
+                UnityEditor.AssetDatabase.GUIDToAssetPath(a),
+                UnityEditor.AssetDatabase.GUIDToAssetPath(b),
+                System.StringComparison.OrdinalIgnoreCase));
+
+            foreach (string guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                CharacterData cd = UnityEditor.AssetDatabase.LoadAssetAtPath<CharacterData>(path);
+                if (cd == null) continue;
+
+                bool exists = characterModels.Exists(e => e != null && (e.characterData == cd ||
+                    (!string.IsNullOrEmpty(e.characterId) && e.characterId.Equals(cd.characterId, System.StringComparison.OrdinalIgnoreCase))));
+                if (exists) continue;
+
+                GameObject matchedChild = null;
+                if (characterModelRoot != null)
+                {
+                    string hint = cd.characterId.ToUpperInvariant() switch
+                    {
+                        "VANGUARD" => "TacticalGirl",
+                        "JUGGERNAUT" => "HeavyStriker",
+                        "PHANTOM" => "BlueOperative",
+                        "MARKSMAN" => "CurlyGirl",
+                        "REBEL" => "PunkGirl",
+                        _ => null
+                    };
+                    if (!string.IsNullOrEmpty(hint))
+                    {
+                        for (int i = 0; i < characterModelRoot.childCount; i++)
+                        {
+                            Transform ch = characterModelRoot.GetChild(i);
+                            if (ch != null && ch.name.IndexOf(hint, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                matchedChild = ch.gameObject;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                characterModels.Add(new CharacterModelEntry
+                {
+                    characterData = cd,
+                    characterId = cd.characterId,
+                    modelObject = matchedChild != null ? matchedChild : cd.characterModelPrefab
+                });
+            }
+
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
 
         private void InitShiftAbility()
         {
@@ -483,7 +743,10 @@ namespace TheLastEmpire
             _rb.useGravity = true;
             _rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator == null)
+            {
+                _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            }
             if (_animator != null)
             {
                 _animator.applyRootMotion = false;
