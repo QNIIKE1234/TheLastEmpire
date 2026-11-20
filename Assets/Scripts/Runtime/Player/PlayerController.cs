@@ -1088,6 +1088,13 @@ namespace TheLastEmpire
 
             CheckBoundaries();
 
+            if (_isVaulting)
+            {
+                UpdateVehicleVault();
+                UpdateAnimation();
+                return;
+            }
+
             if (_isDashing)
             {
                 _dashTimer -= Time.deltaTime;
@@ -1207,10 +1214,10 @@ namespace TheLastEmpire
             if (_meleeAnimTimer > 0f) _meleeAnimTimer -= Time.deltaTime;
             if (_animator.layerCount > 1)
             {
-                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isSitting && !isFullBodyShift;
+                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isVaulting && !_isSitting && !isFullBodyShift;
                 _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
             }
-            _animator.SetBool("IsDashing", _isDashing);
+            _animator.SetBool("IsDashing", _isDashing || _isVaulting);
         }
 
         private static bool HasAnimatorParameter(Animator anim, string paramName)
@@ -1428,6 +1435,12 @@ namespace TheLastEmpire
                 _knockbackTimer -= Time.fixedDeltaTime;
                 _rb.linearVelocity = new Vector3(_knockbackVelocity.x, _rb.linearVelocity.y, _knockbackVelocity.z);
                 _knockbackVelocity = Vector3.Lerp(_knockbackVelocity, Vector3.zero, Time.fixedDeltaTime * 10f);
+                return;
+            }
+
+            if (_isVaulting)
+            {
+                if (_rb != null) _rb.linearVelocity = Vector3.zero;
                 return;
             }
 
@@ -2133,6 +2146,60 @@ namespace TheLastEmpire
             return "Bullet";
         }
 
+        private static string ResolveMeleeAttackState(string weaponName, int comboStep, out float animLockDuration)
+        {
+            string clean = (weaponName ?? "").Replace(" ", "").Replace("_", "").ToLowerInvariant();
+
+            if (clean.Contains("knife"))
+            {
+                animLockDuration = 0.24f;
+                return "Melee_Knife";
+            }
+            if (clean.Contains("baseball") || clean.Contains("bat") && !clean.Contains("baton"))
+            {
+                animLockDuration = 0.44f;
+                return "Melee_BaseballBat";
+            }
+            if (clean.Contains("machete"))
+            {
+                animLockDuration = 0.48f;
+                return "Melee_Machete";
+            }
+            if (clean.Contains("axe"))
+            {
+                animLockDuration = 0.56f;
+                return "Melee_FireAxe";
+            }
+            if (clean.Contains("katana"))
+            {
+                animLockDuration = 0.36f;
+                return "Melee_Katana";
+            }
+            if (clean.Contains("sledge") || clean.Contains("hammer"))
+            {
+                animLockDuration = 0.72f;
+                return "Melee_Sledgehammer";
+            }
+            if (clean.Contains("spear"))
+            {
+                animLockDuration = 0.40f;
+                return "Melee_SurvivalSpear";
+            }
+            if (clean.Contains("baton") || clean.Contains("stun"))
+            {
+                animLockDuration = 0.38f;
+                return "Melee_StunBaton";
+            }
+            if (clean.Contains("chainsaw"))
+            {
+                animLockDuration = 0.14f;
+                return "Melee_Chainsaw";
+            }
+
+            animLockDuration = 0.40f;
+            return "Slash" + comboStep;
+        }
+
         private void MeleeAttack()
         {
             if (_isSitting) SetSitting(false);
@@ -2225,14 +2292,21 @@ namespace TheLastEmpire
             if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
             if (_animator != null)
             {
-                string slashState = "Slash" + _meleeComboStep;
+                string slashState = ResolveMeleeAttackState(wName, _meleeComboStep, out float lockDuration);
+                int stateHash = Animator.StringToHash(slashState);
+                if (!_animator.HasState(0, stateHash))
+                {
+                    slashState = "Slash" + _meleeComboStep;
+                    lockDuration = 0.40f;
+                }
+
                 _animator.ResetTrigger("Slash1");
                 _animator.ResetTrigger("Slash2");
                 _animator.ResetTrigger("Slash3");
 
                 if (_animator.layerCount > 1) _animator.Play("UpperBody_Empty", 1, 0f);
                 _shootAnimLayerTimer = 0f;
-                _meleeAnimTimer = 0.40f;
+                _meleeAnimTimer = Mathf.Min(lockDuration, Mathf.Max(0.08f, activeRate * 0.92f));
                 _fireBufferTimer = 0f;
                 _animator.ResetTrigger("Shoot");
                 if (_animator.layerCount > 1)
@@ -2316,15 +2390,47 @@ namespace TheLastEmpire
             }
         }
 
+        private enum VehicleVaultKind
+        {
+            None,
+            Motorcycle,
+            Car
+        }
+
+        private bool _isVaulting = false;
+        private VehicleVaultKind _vaultKind = VehicleVaultKind.None;
+        private float _vaultElapsed = 0f;
+        private float _vaultDuration = 0.45f;
+        private Vector3 _vaultStartPos;
+        private Vector3 _vaultEndPos;
+        private float _vaultSurfaceY;
+        private bool _vaultPrevUseGravity = true;
+        private readonly List<Collider> _vaultIgnoredColliders = new List<Collider>();
+
+        public bool IsVaulting => _isVaulting;
+
         private void StartDash()
         {
             if (_isSitting) SetSitting(false);
+
+            // Dash towards movement input, or aim direction if standing still
+            Vector3 desiredDir = _moveInput.sqrMagnitude > 0.01f ? new Vector3(_moveInput.x, 0f, _moveInput.y).normalized : _aimDirection;
+            desiredDir.y = 0f;
+            if (desiredDir.sqrMagnitude < 0.001f) desiredDir = transform.forward;
+            desiredDir.Normalize();
+
+            // Context-sensitive Vehicle Parkour:
+            // - Blocked by Motorcycle -> Hurdle Jump over it (Vault_MotoJump)
+            // - Blocked by Car/SUV/Taxi/Van -> Hood/Roof Slide across it (Vault_CarSlide)
+            if (TryStartVehicleVault(desiredDir))
+            {
+                return;
+            }
+
             _isDashing = true;
             _dashTimer = dashDuration;
             _dashCooldownTimer = dashCooldown;
-
-            // Dash towards movement input, or aim direction if standing still
-            _dashDirection = _moveInput.sqrMagnitude > 0.01f ? new Vector3(_moveInput.x, 0f, _moveInput.y).normalized : _aimDirection;
+            _dashDirection = desiredDir;
 
             // Trigger Invulnerability Frames (I-Frames)
             if (_health != null)
@@ -2377,6 +2483,317 @@ namespace TheLastEmpire
             {
                 _animator.SetBool("IsDashing", false);
             }
+        }
+
+        private bool TryStartVehicleVault(Vector3 dir)
+        {
+            if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
+            Vector3 origin = transform.position + Vector3.up * 0.65f;
+
+            RaycastHit[] hits = Physics.SphereCastAll(origin, 0.42f, dir, 1.85f, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0) return false;
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            Collider targetCol = null;
+            RaycastHit targetHit = default;
+            VehicleVaultKind kind = VehicleVaultKind.None;
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider c = hits[i].collider;
+                if (c == null) continue;
+                if (c.transform.root == transform.root) continue;
+                if (c.CompareTag("Player") || c.CompareTag("Enemy")) continue;
+                if (c.GetComponent<BaseEnemyAI>() != null || c.GetComponent<CollectibleItem>() != null) continue;
+                if (hits[i].normal.y > 0.72f) continue; // Ignore flat ground
+
+                VehicleVaultKind detected = ClassifyVehicleVaultKind(c.transform);
+                if (detected != VehicleVaultKind.None)
+                {
+                    targetCol = c;
+                    targetHit = hits[i];
+                    kind = detected;
+                    break;
+                }
+            }
+
+            if (targetCol == null || kind == VehicleVaultKind.None) return false;
+
+            // Find exact exit edge on the opposite side of the vehicle along dir
+            Vector3 startPos = transform.position;
+            Vector3 probeOrigin = new Vector3(targetHit.point.x, targetCol.bounds.center.y, targetHit.point.z) + dir * 6.5f;
+            Vector3 exitPoint;
+            if (targetCol.Raycast(new Ray(probeOrigin, -dir), out RaycastHit exitHit, 7.5f))
+            {
+                exitPoint = exitHit.point;
+            }
+            else
+            {
+                // Fallback to bounding-box projection along dir
+                Bounds b = targetCol.bounds;
+                float proj = Mathf.Abs(dir.x) * b.extents.x + Mathf.Abs(dir.z) * b.extents.z;
+                exitPoint = new Vector3(b.center.x, startPos.y, b.center.z) + dir * proj;
+            }
+
+            Vector3 landingPos = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 0.78f;
+            float span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
+            if (span < 0.85f || span > 7.4f) return false;
+
+            // Ensure landing spot isn't buried inside a solid building wall
+            Transform vehicleRoot = FindVehicleRoot(targetCol.transform);
+            if (IsVaultLandingBlocked(landingPos, vehicleRoot))
+            {
+                Vector3 altLanding = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 1.25f;
+                if (IsVaultLandingBlocked(altLanding, vehicleRoot))
+                {
+                    return false;
+                }
+                landingPos = altLanding;
+                span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
+            }
+
+            // Compute exact top surface Y relative to the player's foot-to-root offset
+            float footToRoot = _playerCollider != null ? Mathf.Max(0.1f, startPos.y - _playerCollider.bounds.min.y) : 0.65f;
+            float vehicleTopY = targetCol.bounds.max.y;
+
+            _isVaulting = true;
+            _vaultKind = kind;
+            _vaultElapsed = 0f;
+            _vaultStartPos = startPos;
+            _vaultEndPos = landingPos;
+            _dashDirection = dir;
+            _dashCooldownTimer = dashCooldown;
+
+            if (kind == VehicleVaultKind.Motorcycle)
+            {
+                _vaultDuration = Mathf.Clamp(0.36f + span * 0.04f, 0.38f, 0.50f);
+                _vaultSurfaceY = Mathf.Clamp(vehicleTopY + footToRoot + 0.18f, startPos.y + 0.90f, startPos.y + 2.35f);
+            }
+            else
+            {
+                _vaultDuration = Mathf.Clamp(0.42f + span * 0.055f, 0.48f, 0.72f);
+                // Vault_CarSlide lowers Hips onto the car roof, so position player root cleanly on top of roof surface
+                _vaultSurfaceY = Mathf.Clamp(vehicleTopY + footToRoot - 0.08f, startPos.y + 0.85f, startPos.y + 2.75f);
+            }
+
+            if (_health != null) _health.TriggerInvulnerability(_vaultDuration + 0.08f);
+            IgnoreCollisionWithBoundaries(true);
+
+            // Temporarily ignore collisions with all colliders on this vehicle while vaulting/sliding over it
+            _vaultIgnoredColliders.Clear();
+            if (_playerCollider != null && vehicleRoot != null)
+            {
+                Collider[] vCols = vehicleRoot.GetComponentsInChildren<Collider>(true);
+                for (int i = 0; i < vCols.Length; i++)
+                {
+                    if (vCols[i] != null && !vCols[i].isTrigger)
+                    {
+                        Physics.IgnoreCollision(_playerCollider, vCols[i], true);
+                        _vaultIgnoredColliders.Add(vCols[i]);
+                    }
+                }
+            }
+
+            if (_rb != null)
+            {
+                _vaultPrevUseGravity = _rb.useGravity;
+                _rb.useGravity = false;
+                _rb.linearVelocity = Vector3.zero;
+            }
+
+            transform.forward = dir;
+
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                string stateName = kind == VehicleVaultKind.Motorcycle ? "Vault_MotoJump" : "Vault_CarSlide";
+                if (!_animator.HasState(0, Animator.StringToHash(stateName)))
+                {
+                    stateName = "DashRoll";
+                }
+                _shootAnimLayerTimer = 0f;
+                _meleeAnimTimer = 0f;
+                if (_animator.layerCount > 1)
+                {
+                    _animator.SetLayerWeight(1, 0f);
+                    _animator.Play("UpperBody_Empty", 1, 0f);
+                }
+                _animator.SetBool("IsDashing", true);
+                _animator.Play(stateName, 0, 0f);
+            }
+
+            Debug.Log($"[PlayerController] Vehicle Parkour: {(kind == VehicleVaultKind.Motorcycle ? "Motorcycle Hurdle Jump" : "Car Roof Slide")} over '{vehicleRoot?.name}' (span={span:F2}m, topY={vehicleTopY:F2}m)");
+            return true;
+        }
+
+        private void UpdateVehicleVault()
+        {
+            _vaultElapsed += Time.deltaTime;
+            float u = Mathf.Clamp01(_vaultElapsed / Mathf.Max(0.05f, _vaultDuration));
+
+            // Smooth ease-in-out horizontal progress across vehicle
+            float horizT = u * u * (3f - 2f * u);
+            Vector3 pos = Vector3.Lerp(_vaultStartPos, _vaultEndPos, horizT);
+
+            if (_vaultKind == VehicleVaultKind.Motorcycle)
+            {
+                // Parabolic hurdle jump arc cleanly clearing the motorcycle
+                float arc = 4f * u * (1f - u);
+                pos.y = Mathf.Lerp(_vaultStartPos.y, _vaultSurfaceY, arc);
+            }
+            else
+            {
+                // 3-phase Hollywood Car Roof/Hood Slide:
+                // 0.00..0.20: spring up onto car roof | 0.20..0.78: flat glide across roof | 0.78..1.00: crisp drop-off landing
+                if (u < 0.20f)
+                {
+                    float t = u / 0.20f;
+                    pos.y = Mathf.Lerp(_vaultStartPos.y, _vaultSurfaceY, Mathf.Sin(t * Mathf.PI * 0.5f));
+                }
+                else if (u <= 0.78f)
+                {
+                    pos.y = _vaultSurfaceY;
+                }
+                else
+                {
+                    float t = (u - 0.78f) / 0.22f;
+                    pos.y = Mathf.Lerp(_vaultSurfaceY, _vaultStartPos.y, t * t);
+                }
+            }
+
+            transform.position = pos;
+            if (_dashDirection.sqrMagnitude > 0.001f)
+            {
+                transform.forward = _dashDirection;
+            }
+
+            if (u >= 1f)
+            {
+                EndVehicleVault();
+            }
+        }
+
+        private void EndVehicleVault()
+        {
+            if (!_isVaulting) return;
+            _isVaulting = false;
+            _vaultKind = VehicleVaultKind.None;
+
+            transform.position = _vaultEndPos;
+
+            if (_rb != null)
+            {
+                _rb.useGravity = _vaultPrevUseGravity;
+                _rb.linearVelocity = Vector3.zero;
+            }
+
+            if (_playerCollider != null)
+            {
+                for (int i = 0; i < _vaultIgnoredColliders.Count; i++)
+                {
+                    if (_vaultIgnoredColliders[i] != null)
+                    {
+                        Physics.IgnoreCollision(_playerCollider, _vaultIgnoredColliders[i], false);
+                    }
+                }
+            }
+            _vaultIgnoredColliders.Clear();
+            IgnoreCollisionWithBoundaries(false);
+
+            if (_animator != null)
+            {
+                _animator.SetBool("IsDashing", false);
+            }
+        }
+
+        private static Transform FindVehicleRoot(Transform t)
+        {
+            Transform cur = t;
+            Transform best = t;
+            while (cur != null)
+            {
+                if (ClassifyVehicleVaultKindSingle(cur.name) != VehicleVaultKind.None)
+                {
+                    best = cur;
+                }
+                if (cur.parent != null && cur.parent.name.IndexOf("GeneratedEnvironment", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    break;
+                }
+                cur = cur.parent;
+            }
+            return best;
+        }
+
+        private static VehicleVaultKind ClassifyVehicleVaultKind(Transform t)
+        {
+            Transform cur = t;
+            while (cur != null)
+            {
+                VehicleVaultKind k = ClassifyVehicleVaultKindSingle(cur.name);
+                if (k != VehicleVaultKind.None) return k;
+                if (cur.parent != null && cur.parent.name.IndexOf("GeneratedEnvironment", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    break;
+                }
+                cur = cur.parent;
+            }
+            return VehicleVaultKind.None;
+        }
+
+        private static VehicleVaultKind ClassifyVehicleVaultKindSingle(string rawName)
+        {
+            if (string.IsNullOrEmpty(rawName)) return VehicleVaultKind.None;
+            string n = rawName.ToLowerInvariant();
+
+            // Exclude non-vehicle props whose name might contain "bus" or similar (e.g. Bus_Stop)
+            if (n.Contains("bus_stop") || n.Contains("busstop") || n.Contains("prop_") ||
+                n.Contains("building") || n.Contains("house") || n.Contains("wall") || n.Contains("fence"))
+            {
+                return VehicleVaultKind.None;
+            }
+
+            // 1. Motorcycles -> Hurdle Jump!
+            if (n.Contains("motorcycle") || n.Contains("scooter") || n.Contains("dirt_bike") ||
+                n.Contains("dirtbike") || n.Contains("scrambler") || n.Contains("motorbike") ||
+                n.Contains("moto_") || n.Contains("_bike"))
+            {
+                return VehicleVaultKind.Motorcycle;
+            }
+
+            // 2. Cars / SUVs / Taxis / Vans / Trucks / Buses -> Hood/Roof Slide!
+            if (n.Contains("sedan") || n.Contains("suv") || n.Contains("taxi") ||
+                n.Contains("van") || n.Contains("truck") || n.Contains("firetruck") ||
+                n.Contains("vehicle") || n.Contains("car_") || n.Contains("_car") ||
+                n.Contains("jeep") || n.Contains("pickup") || n.Contains("ambulance") ||
+                n.Contains("abandoned_bus"))
+            {
+                return VehicleVaultKind.Car;
+            }
+
+            return VehicleVaultKind.None;
+        }
+
+        private bool IsVaultLandingBlocked(Vector3 pos, Transform ignoredVehicleRoot)
+        {
+            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.85f, 0.32f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider c = hits[i];
+                if (c == null) continue;
+                if (c.transform.root == transform.root) continue;
+                if (ignoredVehicleRoot != null && c.transform.IsChildOf(ignoredVehicleRoot)) continue;
+                if (c.CompareTag("Player") || c.CompareTag("Enemy")) continue;
+                if (c.GetComponent<BaseEnemyAI>() != null || c.GetComponent<CollectibleItem>() != null) continue;
+                if (c.gameObject.name.IndexOf("Ground", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    c.gameObject.name.IndexOf("Floor", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    c.gameObject.name.IndexOf("Road", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    continue;
+                }
+                return true;
+            }
+            return false;
         }
 
         private void CheckBoundaries()
@@ -3612,28 +4029,55 @@ namespace TheLastEmpire
             if (childCount == 0) return;
 
             string cleanTarget = (targetWeaponName ?? "").Replace(" ", "").Replace("_", "").ToLowerInvariant();
-            bool anyMatched = false;
+            int bestIndex = -1;
 
-            for (int i = 0; i < childCount; i++)
+            if (!string.IsNullOrEmpty(cleanTarget))
             {
-                Transform child = parentObj.transform.GetChild(i);
-                string childClean = child.name.Replace("Weapon_", "").Replace("Weapon", "").Replace("_", "").Replace(" ", "").ToLowerInvariant();
-
-                bool isMatch = !string.IsNullOrEmpty(cleanTarget) &&
-                               (childClean.Contains(cleanTarget) || cleanTarget.Contains(childClean));
-
-                if (isMatch && !anyMatched)
+                // Pass 1: Exact match first (prevents "Sniper Rifle" from falsely matching "Weapon_Rifle"!)
+                for (int i = 0; i < childCount; i++)
                 {
-                    child.gameObject.SetActive(true);
-                    anyMatched = true;
+                    Transform child = parentObj.transform.GetChild(i);
+                    string childClean = child.name.Replace("Weapon_", "").Replace("Weapon", "").Replace("_", "").Replace(" ", "").ToLowerInvariant();
+                    if (childClean == cleanTarget)
+                    {
+                        bestIndex = i;
+                        break;
+                    }
                 }
-                else
+
+                // Pass 2: Longest substring match fallback (only if no exact match exists)
+                if (bestIndex < 0)
                 {
-                    child.gameObject.SetActive(false);
+                    int bestLen = -1;
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        Transform child = parentObj.transform.GetChild(i);
+                        string childClean = child.name.Replace("Weapon_", "").Replace("Weapon", "").Replace("_", "").Replace(" ", "").ToLowerInvariant();
+                        if (!string.IsNullOrEmpty(childClean) &&
+                            (childClean.Contains(cleanTarget) || cleanTarget.Contains(childClean)))
+                        {
+                            if (childClean.Length > bestLen)
+                            {
+                                bestLen = childClean.Length;
+                                bestIndex = i;
+                            }
+                        }
+                    }
                 }
             }
 
+            // Apply visibility cleanly
+            if (bestIndex >= 0)
+            {
+                for (int i = 0; i < childCount; i++)
+                {
+                    parentObj.transform.GetChild(i).gameObject.SetActive(i == bestIndex);
+                }
+                return;
+            }
+
             // Fallback: If no child matched and none are currently active, activate the first child
+            bool anyMatched = false;
             if (!anyMatched && childCount > 0)
             {
                 bool hasAnyActive = false;
