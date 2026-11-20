@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2300000000000000002}
   - component: {fileID: 2300000000000000005}
-  - component: {fileID: 4416449371666289999}
+  - component: {fileID: 171959253625769944}
   - component: {fileID: 2300000000000000006}
   - component: {fileID: 2300000000000000007}
   m_Layer: 0
@@ -59,7 +59,7 @@ MonoBehaviour:
   canBeDamagedByPlayer: 0
   hitVfxPrefab: {fileID: 0}
   destroyVfxPrefab: {fileID: 0}
---- !u!208 &4416449371666289999
+--- !u!208 &171959253625769944
 NavMeshObstacle:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
