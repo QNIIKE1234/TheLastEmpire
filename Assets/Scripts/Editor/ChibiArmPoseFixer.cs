@@ -35,7 +35,9 @@ namespace TheLastEmpire
             "Chibi_HeavyStriker",
             "Chibi_BlueOperative",
             "Chibi_PunkGirl",
-            "Chibi_CurlyGirl"
+            "Chibi_CurlyGirl",
+            "Chibi_WhiteRonin",
+            "Chibi_DreadBrawler"
         };
 
         private static bool IsChibiHeroFbx(string path)
@@ -71,10 +73,20 @@ namespace TheLastEmpire
                 return $"Assets/GeneratedModels/Textures/{hero}_HairBlonde.png";
             if (matName.Contains("Hair_Pink"))
                 return $"Assets/GeneratedModels/Textures/{hero}_HairPink.png";
-            if (matName.Contains("Hair_Purple") || matName.Contains("Hair_Indigo") || matName.Contains("Hair_Blue") || matName.Contains("Hair_Berry"))
+            if (matName.Contains("Hair_Purple") || matName.Contains("Hair_Indigo") || matName.Contains("Hair_Blue") || matName.Contains("Hair_Berry") || matName.Contains("Hair_White") || matName.Contains("Hair_Dread"))
                 return $"Assets/GeneratedModels/Textures/{hero}_Hair.png";
 
             return null;
+        }
+
+        private void OnPreprocessModel()
+        {
+            if (!IsChibiHeroFbx(assetPath)) return;
+            ModelImporter importer = assetImporter as ModelImporter;
+            if (importer == null) return;
+
+            importer.animationType = ModelImporterAnimationType.Generic;
+            importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
         }
 
         private void OnPostprocessMaterial(Material material)
@@ -104,7 +116,8 @@ namespace TheLastEmpire
                          matName.Contains("Eye_Gold_Hi") ||
                          matName.Contains("Eye_White") ||
                          matName.Contains("Eye_Red") ||
-                         matName.Contains("Lens_Cobalt");
+                         matName.Contains("Lens_Cobalt") ||
+                         matName.Contains("Visor_Red");
             bool isSilver = matName.Contains("Metal_Silver") || matName.Contains("Zipper_Teeth") || matName.Contains("Bat_Nail");
             bool isArmor = matName.Contains("Armor_Grey") || matName.Contains("Suit_Plate");
 
@@ -330,7 +343,42 @@ namespace TheLastEmpire
 
             ("Chibi_CurlyGirl",     "Mat_Face_Texture", "Chibi_CurlyGirl_Face.png"),
             ("Chibi_CurlyGirl",     "Mat_Hair_Berry",   "Chibi_CurlyGirl_Hair.png"),
+
+            ("Chibi_WhiteRonin",    "Mat_Face_Texture", "Chibi_WhiteRonin_Face.png"),
+            ("Chibi_WhiteRonin",    "Mat_Hair_White",   "Chibi_WhiteRonin_Hair.png"),
+
+            ("Chibi_DreadBrawler",  "Mat_Face_Texture", "Chibi_DreadBrawler_Face.png"),
+            ("Chibi_DreadBrawler",  "Mat_Hair_Dread",   "Chibi_DreadBrawler_Hair.png"),
+            ("Chibi_DreadBrawler",  "Mat_Undercut",     "Chibi_DreadBrawler_Undercut.png"),
         };
+
+        private static bool _postImportQueued;
+
+        private static void OnPostprocessAllAssets(
+            string[] importedAssets,
+            string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths)
+        {
+            if (_postImportQueued || importedAssets == null) return;
+            foreach (string path in importedAssets)
+            {
+                if (IsChibiHeroFbx(path))
+                {
+                    _postImportQueued = true;
+                    EditorApplication.delayCall += () =>
+                    {
+                        _postImportQueued = false;
+                        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+                        if (EnsureChibiHeroesRemappedAndSynced(forceReimport: false))
+                        {
+                            AssetDatabase.SaveAssets();
+                        }
+                    };
+                    break;
+                }
+            }
+        }
 
         private static bool EnsureChibiHeroesRemappedAndSynced(bool forceReimport)
         {
@@ -341,10 +389,28 @@ namespace TheLastEmpire
                 if (!File.Exists(fbxPath)) continue;
 
                 ModelImporter importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
+                if (importer == null)
+                {
+                    AssetDatabase.ImportAsset(fbxPath, ImportAssetOptions.ForceSynchronousImport);
+                    importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
+                }
                 bool needsReimport = forceReimport;
 
                 if (importer != null)
                 {
+                    if (importer.animationType != ModelImporterAnimationType.Generic)
+                    {
+                        importer.animationType = ModelImporterAnimationType.Generic;
+                        needsReimport = true;
+                        changed = true;
+                    }
+                    if (importer.avatarSetup != ModelImporterAvatarSetup.CreateFromThisModel)
+                    {
+                        importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                        needsReimport = true;
+                        changed = true;
+                    }
+
                     var externalMap = importer.GetExternalObjectMap();
                     foreach (var entry in ChibiHeroTextureRemaps)
                     {
@@ -373,7 +439,14 @@ namespace TheLastEmpire
                 }
 
                 string prefabPath = $"Assets/Resources_Addressable/Prefabs/Character/Model/{hero}_Rigged.prefab";
-                if (SyncChibiPrefabSkinnedMeshes(fbxPath, prefabPath))
+                if (!File.Exists(prefabPath))
+                {
+                    if (CreateChibiHeroPrefab(fbxPath, prefabPath, hero + "_Rigged"))
+                    {
+                        changed = true;
+                    }
+                }
+                else if (SyncChibiPrefabSkinnedMeshes(fbxPath, prefabPath))
                 {
                     changed = true;
                 }
@@ -450,6 +523,47 @@ namespace TheLastEmpire
                     AssetDatabase.SaveAssets();
                 }
             };
+        }
+
+        private const string PlayerAnimatorControllerPath = "Assets/Resources_Addressable/Image/Animation/Chibi_Player_Controller.controller";
+
+        private static bool CreateChibiHeroPrefab(string fbxPath, string prefabPath, string rootName)
+        {
+            if (!File.Exists(fbxPath)) return false;
+
+            GameObject fbxRoot = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+            if (fbxRoot == null) return false;
+
+            string dir = Path.GetDirectoryName(prefabPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            GameObject instance = Object.Instantiate(fbxRoot);
+            instance.name = rootName;
+            try
+            {
+                Animator anim = instance.GetComponent<Animator>();
+                if (anim == null) anim = instance.AddComponent<Animator>();
+
+                RuntimeAnimatorController ctrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerAnimatorControllerPath);
+                if (ctrl != null) anim.runtimeAnimatorController = ctrl;
+
+                Avatar fbxAvatar = AssetDatabase.LoadAssetAtPath<Avatar>(fbxPath);
+                if (fbxAvatar != null) anim.avatar = fbxAvatar;
+
+                anim.applyRootMotion = false;
+                anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+
+                PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
+                Debug.Log($"[ChibiTacticalGirlMaterialPostprocessor] Auto-created Chibi Hero prefab: {prefabPath}");
+                return true;
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
         }
 
         private static bool SyncChibiPrefabSkinnedMeshes(string fbxPath, string prefabPath)

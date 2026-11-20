@@ -1,84 +1,99 @@
-# Material library for TheLastEmpire weapons
+# Material library for TheLastEmpire stylized weapons
 newmtl GunMetal
-Ka 0.15 0.16 0.18
-Kd 0.22 0.24 0.27
-Ks 0.55 0.55 0.55
-Ns 45
+Ka 0.070 0.081 0.098
+Kd 0.200 0.230 0.280
+Ks 0.535 0.535 0.535
+Ns 57
 illum 2
 
 newmtl SteelBright
-Ka 0.40 0.42 0.45
-Kd 0.72 0.75 0.78
-Ks 0.85 0.85 0.85
-Ns 60
+Ka 0.280 0.294 0.311
+Kd 0.800 0.840 0.890
+Ks 0.654 0.654 0.654
+Ns 67
+illum 2
+
+newmtl ChromeSilver
+Ka 0.308 0.319 0.332
+Kd 0.880 0.910 0.950
+Ks 0.724 0.724 0.724
+Ns 72
 illum 2
 
 newmtl DarkPolymer
-Ka 0.08 0.08 0.09
-Kd 0.12 0.12 0.14
-Ks 0.18 0.18 0.18
-Ns 20
+Ka 0.032 0.035 0.042
+Kd 0.090 0.100 0.120
+Ks 0.192 0.192 0.192
+Ns 22
 illum 2
 
 newmtl RubberGrip
-Ka 0.05 0.05 0.06
-Kd 0.08 0.08 0.09
-Ks 0.10 0.10 0.10
-Ns 15
+Ka 0.017 0.017 0.021
+Kd 0.050 0.050 0.060
+Ks 0.150 0.150 0.150
+Ns 10
 illum 2
 
 newmtl WoodFinish
-Ka 0.25 0.15 0.08
-Kd 0.48 0.30 0.16
-Ks 0.15 0.15 0.15
-Ns 20
+Ka 0.203 0.098 0.035
+Kd 0.580 0.280 0.100
+Ks 0.150 0.150 0.150
+Ns 19
 illum 2
 
 newmtl WoodLight
-Ka 0.35 0.28 0.18
-Kd 0.74 0.62 0.44
-Ks 0.15 0.15 0.15
-Ns 20
+Ka 0.280 0.161 0.056
+Kd 0.800 0.460 0.160
+Ks 0.150 0.150 0.150
+Ns 25
 illum 2
 
 newmtl BrassGold
-Ka 0.55 0.40 0.12
-Kd 0.88 0.68 0.22
-Ks 0.80 0.70 0.35
-Ns 55
+Ka 0.329 0.238 0.035
+Kd 0.940 0.680 0.100
+Ks 0.682 0.682 0.682
+Ns 64
 illum 2
 
 newmtl MilitaryGreen
-Ka 0.15 0.18 0.12
-Kd 0.30 0.36 0.24
-Ks 0.20 0.20 0.20
-Ns 20
+Ka 0.147 0.171 0.042
+Kd 0.420 0.490 0.120
+Ks 0.206 0.206 0.206
+Ns 25
+illum 2
+
+newmtl SniperYellow
+Ka 0.266 0.252 0.028
+Kd 0.760 0.720 0.080
+Ks 0.192 0.192 0.192
+Ns 28
 illum 2
 
 newmtl FireRed
-Ka 0.45 0.08 0.06
-Kd 0.85 0.16 0.12
-Ks 0.35 0.35 0.35
-Ns 30
+Ka 0.322 0.032 0.028
+Kd 0.920 0.090 0.080
+Ks 0.248 0.248 0.248
+Ns 48
 illum 2
 
 newmtl HazardYellow
-Ka 0.50 0.42 0.05
-Kd 0.94 0.82 0.10
-Ks 0.35 0.35 0.35
-Ns 30
+Ka 0.346 0.273 0.010
+Kd 0.990 0.780 0.030
+Ks 0.220 0.220 0.220
+Ns 48
 illum 2
 
 newmtl ElectricCyan
-Ka 0.10 0.55 0.65
-Kd 0.15 0.85 0.98
-Ks 0.90 0.95 1.00
+Ka 0.350 0.315 0.042
+Kd 1.000 0.900 0.120
+Ks 0.255 0.255 0.255
 Ns 70
 illum 2
 
 newmtl SafetyOrange
-Ka 0.50 0.20 0.03
-Kd 0.95 0.42 0.08
-Ks 0.30 0.30 0.30
-Ns 25
+Ka 0.343 0.147 0.007
+Kd 0.980 0.420 0.020
+Ks 0.220 0.220 0.220
+Ns 48
 illum 2
+

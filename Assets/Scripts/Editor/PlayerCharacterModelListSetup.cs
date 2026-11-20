@@ -169,6 +169,8 @@ namespace TheLastEmpire.Editor
                     "PHANTOM" => "BlueOperative",
                     "MARKSMAN" => "CurlyGirl",
                     "REBEL" => "PunkGirl",
+                    "SCAVENGER" => "WhiteRonin",
+                    "DEMOLITIONIST" => "DreadBrawler",
                     _ => null
                 };
                 if (!string.IsNullOrEmpty(hint))
