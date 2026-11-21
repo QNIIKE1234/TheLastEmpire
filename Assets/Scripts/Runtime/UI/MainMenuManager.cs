@@ -19,6 +19,7 @@ namespace TheLastEmpire
 
         [Header("Scene Transition Settings")]
         [SerializeField] private string gameplaySceneName = "Gameplay_3D";
+        [SerializeField] private string onlineLobbySceneName = "Lobby_NetCode";
         [SerializeField] private float fadeDuration = 0.5f;
 
         [Header("Theme Color Palette (Black / Silver / Gold)")]
@@ -30,7 +31,10 @@ namespace TheLastEmpire
         [Header("Serialized References (Optional - Built procedurally if null)")]
         [SerializeField] private Canvas menuCanvas;
         [SerializeField] private CanvasGroup menuCanvasGroup;
+        [Tooltip("ปุ่ม PLAY OFFLINE (กดแล้วเปิดหน้าเลือกตัวละครเล่นคนเดียว)")]
         [SerializeField] private Button newGameBtn;
+        [Tooltip("ปุ่ม ONLINE (กดแล้วย้ายไปซีน Lobby_NetCode)")]
+        [SerializeField] private Button onlineBtn;
         [SerializeField] private Button continueBtn;
         [SerializeField] private Button controlsBtn;
         [SerializeField] private Button settingsBtn;
@@ -254,6 +258,7 @@ namespace TheLastEmpire
 
             // Reuse the silver framed panel from the supplied UI atlas for the existing scene buttons.
             ApplyFrame(newGameBtn != null ? newGameBtn.GetComponent<Image>() : null, primaryAccent);
+            ApplyFrame(onlineBtn != null ? onlineBtn.GetComponent<Image>() : null, Color.white);
             ApplyFrame(continueBtn != null ? continueBtn.GetComponent<Image>() : null, Color.white);
             ApplyFrame(controlsBtn != null ? controlsBtn.GetComponent<Image>() : null, Color.white);
             ApplyFrame(settingsBtn != null ? settingsBtn.GetComponent<Image>() : null, Color.white);
@@ -300,6 +305,7 @@ namespace TheLastEmpire
         public void OnClickNewGame()
         {
             if (_isTransitioning) return;
+            TheLastEmpire.Network.EmpireNetworkManager.Instance?.DisconnectSession();
             if (characterSelectModalObj != null)
             {
                 characterSelectModalObj.SetActive(true);
@@ -309,6 +315,14 @@ namespace TheLastEmpire
                 ShouldLoadSave = false;
                 StartCoroutine(TransitionRoutine(gameplaySceneName));
             }
+        }
+
+        public void OnClickOnline()
+        {
+            if (_isTransitioning) return;
+            ShouldLoadSave = false;
+            string targetLobbyScene = string.IsNullOrEmpty(onlineLobbySceneName) ? "Lobby_NetCode" : onlineLobbySceneName;
+            StartCoroutine(TransitionRoutine(targetLobbyScene));
         }
 
         public void OnCloseCharacterSelect()
@@ -489,6 +503,11 @@ namespace TheLastEmpire
                 newGameBtn.onClick.RemoveAllListeners();
                 newGameBtn.onClick.AddListener(OnClickNewGame);
             }
+            if (onlineBtn != null)
+            {
+                onlineBtn.onClick.RemoveAllListeners();
+                onlineBtn.onClick.AddListener(OnClickOnline);
+            }
             if (continueBtn != null)
             {
                 continueBtn.onClick.RemoveAllListeners();
@@ -542,6 +561,7 @@ namespace TheLastEmpire
             }
 
             AttachHoverEffect(newGameBtn);
+            AttachHoverEffect(onlineBtn);
             AttachHoverEffect(continueBtn);
             AttachHoverEffect(controlsBtn);
             AttachHoverEffect(settingsBtn);
