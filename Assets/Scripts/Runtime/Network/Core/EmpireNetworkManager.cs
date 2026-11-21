@@ -126,6 +126,7 @@ namespace TheLastEmpire.Network
             if (local != null && !local.IsRemotePlayer)
             {
                 local.NetworkPlayerName = _cachedLocalPlayerName;
+                local.RefreshOverheadNameLabel();
             }
 
             if (Instance != null && Instance._lobbyMembers.Count > 0)
@@ -428,6 +429,7 @@ namespace TheLastEmpire.Network
                 if (!local.IsRemotePlayer)
                 {
                     local.NetworkPlayerName = GetOrInitLocalPlayerName();
+                    local.RefreshOverheadNameLabel();
                 }
                 if (local.GetComponent<NetworkPlayerBridge>() == null)
                 {

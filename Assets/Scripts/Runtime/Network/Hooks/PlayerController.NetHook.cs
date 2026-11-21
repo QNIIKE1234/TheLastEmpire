@@ -14,6 +14,10 @@ namespace TheLastEmpire
     {
         public static bool NextInstantiatedIsRemote = false;
 
+        [Header("Overhead Player Name (Drag & Drop in Inspector)")]
+        [Tooltip("ลาก Text (TMP) บนหัวตัวละครใน PlayerPrefabs (เช่น Canvas -> Text (TMP)) มาใส่ช่องนี้เพื่อแสดงชื่อผู้เล่น")]
+        [SerializeField] private TMPro.TMP_Text overheadNameText;
+
         public bool IsRemotePlayer { get; set; } = false;
         public bool IsSimulatedCoopBot { get; set; } = false;
         public ulong NetworkClientId { get; set; } = 0;
@@ -21,6 +25,52 @@ namespace TheLastEmpire
         public string NetworkPlayerName { get; set; } = "PLAYER-1";
         public int NetworkStageX { get; set; } = 64;
         public int NetworkStageY { get; set; } = 64;
+
+        public bool HasOverheadNameLabel => ResolveOverheadNameText() != null;
+
+        private TMPro.TMP_Text ResolveOverheadNameText()
+        {
+            if (overheadNameText != null) return overheadNameText;
+            var labels = GetComponentsInChildren<TMPro.TMP_Text>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null)
+                {
+                    overheadNameText = labels[i];
+                    break;
+                }
+            }
+            return overheadNameText;
+        }
+
+        /// <summary>
+        /// อัปเดตข้อความชื่อผู้เล่นเหนือหัวใน PlayerPrefabs (Canvas -> Text (TMP))
+        /// แสดงชื่อของตัวเราเองและชื่อเพื่อนร่วมทีมแทนคำว่า "You"
+        /// </summary>
+        public void RefreshOverheadNameLabel()
+        {
+            TMPro.TMP_Text label = ResolveOverheadNameText();
+            if (label == null) return;
+
+            label.gameObject.SetActive(true);
+
+            string displayName = string.IsNullOrWhiteSpace(NetworkPlayerName)
+                ? (IsRemotePlayer ? $"ALLY-{PartySlotIndex + 1}" : EmpireNetworkManager.GetOrInitLocalPlayerName())
+                : NetworkPlayerName;
+
+            if (IsDowned)
+            {
+                label.text = $"{displayName}\n[HOLD E TO REVIVE {(ReviveProgress01 * 100f):F0}%]";
+                label.color = new Color(1f, 0.45f, 0.20f, 1f);
+            }
+            else
+            {
+                label.text = displayName;
+                label.color = IsRemotePlayer
+                    ? new Color(0.35f, 0.95f, 0.55f, 1f)
+                    : new Color(1f, 0.92f, 0.35f, 1f);
+            }
+        }
 
         /// <summary>
         /// ตรวจสอบว่าผู้เล่นคนนี้อยู่ในช่องพิกัดด่าน (Stage X, Y) เดียวกับผู้เล่นเครื่องเราหรือไม่
@@ -100,23 +150,8 @@ namespace TheLastEmpire
             if (_laserSightIndicator != null) _laserSightIndicator.gameObject.SetActive(false);
             if (_laserTargetDot != null) _laserTargetDot.gameObject.SetActive(false);
 
-            // ซ่อนป้ายคำว่า "You" ที่ติดมากับพรีแฟบตัวละครหลัก ไม่ให้ไปโชว์เหนือหัวเพื่อนร่วมทีม
-            var tmpLabels = GetComponentsInChildren<TMPro.TMP_Text>(true);
-            for (int i = 0; i < tmpLabels.Length; i++)
-            {
-                if (tmpLabels[i] != null && string.Equals(tmpLabels[i].text?.Trim(), "You", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    tmpLabels[i].gameObject.SetActive(false);
-                }
-            }
-            var legacyLabels = GetComponentsInChildren<TextMesh>(true);
-            for (int i = 0; i < legacyLabels.Length; i++)
-            {
-                if (legacyLabels[i] != null && string.Equals(legacyLabels[i].text?.Trim(), "You", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    legacyLabels[i].gameObject.SetActive(false);
-                }
-            }
+            // อัปเดตชื่อเพื่อนร่วมทีมลงบนป้ายชื่อเหนือหัวของ PlayerPrefabs (แทนคำว่า "You")
+            RefreshOverheadNameLabel();
 
             // สลับโมเดลตัวละครตาม Character ID ของเพื่อน
             if (!string.IsNullOrEmpty(characterId))
@@ -196,6 +231,7 @@ namespace TheLastEmpire
             IsDowned = state.isDowned;
             DownedBleedoutTimer = state.downedRemainingSeconds;
             ReviveProgress01 = state.reviveProgress01;
+            RefreshOverheadNameLabel();
 
             if (_isSitting != state.isSitting)
             {

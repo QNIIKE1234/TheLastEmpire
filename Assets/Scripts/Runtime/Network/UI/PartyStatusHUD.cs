@@ -189,6 +189,8 @@ namespace TheLastEmpire.Network
             {
                 PlayerController p = players[i];
                 if (p == null || !p.IsRemotePlayer || !p.gameObject.activeInHierarchy || !p.IsInSameStageAsLocalPlayer) continue;
+                // ถ้าพรีแฟบตัวละครมีป้ายชื่อ TMP_Text บนหัว (overheadNameText) อยู่แล้ว ไม่ต้องวาด OnGUI ซ้อนอีกชั้น
+                if (p.HasOverheadNameLabel) continue;
 
                 Vector3 worldHead = p.transform.position + Vector3.up * 2.15f;
                 Vector3 screenPos = cam.WorldToScreenPoint(worldHead);
