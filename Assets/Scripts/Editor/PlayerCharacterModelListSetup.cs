@@ -162,6 +162,20 @@ namespace TheLastEmpire.Editor
             if (cd == null) return null;
             if (modelRoot != null)
             {
+                // 1. Prefer exact match with CharacterData.characterModelPrefab name under Model root
+                if (cd.characterModelPrefab != null)
+                {
+                    string prefabName = cd.characterModelPrefab.name;
+                    for (int i = 0; i < modelRoot.childCount; i++)
+                    {
+                        Transform ch = modelRoot.GetChild(i);
+                        if (ch != null && ch.name.Equals(prefabName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return ch.gameObject;
+                        }
+                    }
+                }
+
                 string hint = (cd.characterId ?? "").ToUpperInvariant() switch
                 {
                     "VANGUARD" => "TacticalGirl",

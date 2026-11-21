@@ -456,7 +456,7 @@ namespace TheLastEmpire
         private void ApplySelectedCharacterModel(CharacterData data)
         {
             Transform modelRoot = characterModelRoot != null ? characterModelRoot : transform.Find("Model");
-            GameObject targetSource = FindModelForCharacter(data);
+            GameObject targetSource = FindModelForCharacter(data, modelRoot);
 
             // Fallback to CharacterData.characterModelPrefab if not explicitly assigned in characterModels list
             if (targetSource == null && data != null && data.characterModelPrefab != null)
@@ -507,10 +507,14 @@ namespace TheLastEmpire
                 {
                     // Case 2: Prefab asset dragged from Project — instantiate cleanly under Model root
                     Transform parent = modelRoot != null ? modelRoot : transform;
+                    Vector3 prefabLocalPos = targetSource.transform.localPosition;
+                    Quaternion prefabLocalRot = targetSource.transform.localRotation;
+                    Vector3 prefabLocalScale = targetSource.transform.localScale;
                     activeModel = Instantiate(targetSource, parent);
                     activeModel.name = "CharacterModelInstance";
-                    activeModel.transform.localPosition = Vector3.zero;
-                    activeModel.transform.localRotation = Quaternion.identity;
+                    activeModel.transform.localPosition = prefabLocalPos;
+                    activeModel.transform.localRotation = prefabLocalRot;
+                    activeModel.transform.localScale = prefabLocalScale;
                     activeModel.SetActive(true);
                 }
             }
@@ -532,13 +536,31 @@ namespace TheLastEmpire
             }
         }
 
-        private GameObject FindModelForCharacter(CharacterData data)
+        private GameObject FindModelForCharacter(CharacterData data, Transform modelRoot = null)
         {
-            if (data == null || characterModels == null || characterModels.Count == 0) return null;
+            if (data == null) return null;
+
+            // 1. If CharacterData.characterModelPrefab is assigned and a matching child exists under Model root
+            //    (e.g. user assigned NPC_Elena_Medic_Rigged in CHAR_04_Marksman.asset and placed it under PlayerPrefabs/Model),
+            //    prefer that matching child so swapping CharacterData.characterModelPrefab works immediately!
+            if (data.characterModelPrefab != null && modelRoot != null)
+            {
+                string desiredName = data.characterModelPrefab.name;
+                for (int i = 0; i < modelRoot.childCount; i++)
+                {
+                    Transform ch = modelRoot.GetChild(i);
+                    if (ch != null && ch.name.Equals(desiredName, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        return ch.gameObject;
+                    }
+                }
+            }
+
+            if (characterModels == null || characterModels.Count == 0) return null;
 
             string targetId = data.characterId;
 
-            // 1. Exact CharacterData ScriptableObject match
+            // 2. Exact CharacterData ScriptableObject match in characterModels list
             for (int i = 0; i < characterModels.Count; i++)
             {
                 CharacterModelEntry entry = characterModels[i];
@@ -548,7 +570,7 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Character ID match (either from entry.characterData.characterId or entry.characterId)
+            // 3. Character ID match (either from entry.characterData.characterId or entry.characterId)
             if (!string.IsNullOrEmpty(targetId))
             {
                 for (int i = 0; i < characterModels.Count; i++)
