@@ -171,8 +171,8 @@ namespace TheLastEmpire.Network
                 Projectile proj = bulletObj.GetComponent<Projectile>();
                 if (proj != null)
                 {
-                    float authoritativeDmg = isHost ? payload.damage : 0f; // ดาเมจจริงตัดสินที่ Host
-                    proj.SetStats(authoritativeDmg, payload.weaponRange, false, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, "Bullet");
+                    // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual (ดาเมจที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest เพื่อไม่ให้คิดดาเมจเบิ้ล)
+                    proj.SetStats(0f, payload.weaponRange, false, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, "Bullet");
                     if (payload.isRocketLauncher)
                     {
                         proj.ConfigureExplosiveOverride(13f, 2.5f, "Explosion");
@@ -231,24 +231,6 @@ namespace TheLastEmpire.Network
                     var serializer = new BufferSerializer<BinaryBufferReaderWriter>(BinaryBufferReaderWriter.CreateWriter(w));
                     payload.NetworkSerialize(serializer);
                 });
-
-                // Host ประมวลผลดาเมจระยะประชิดให้ศัตรูในรัศมี เฉพาะเมื่ออยู่ในช่อง (Stage X, Y) เดียวกัน
-                if (isSameStage)
-                {
-                    Collider[] hits = Physics.OverlapSphere(payload.attackOrigin, Mathf.Max(0.8f, payload.radius));
-                    for (int i = 0; i < hits.Length; i++)
-                    {
-                        BaseEnemyAI enemy = hits[i].GetComponent<BaseEnemyAI>();
-                        if (enemy != null)
-                        {
-                            IDamageable dmg = enemy.GetComponent<IDamageable>();
-                            if (dmg != null && !dmg.IsDead)
-                            {
-                                dmg.TakeDamage(payload.damage, enemy.transform.position, false);
-                            }
-                        }
-                    }
-                }
             }
 
             if (payload.attackerClientId == EmpireNetworkManager.Instance.LocalClientId || !isSameStage) return;

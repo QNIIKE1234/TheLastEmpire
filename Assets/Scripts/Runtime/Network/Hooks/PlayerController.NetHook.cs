@@ -100,6 +100,24 @@ namespace TheLastEmpire
             if (_laserSightIndicator != null) _laserSightIndicator.gameObject.SetActive(false);
             if (_laserTargetDot != null) _laserTargetDot.gameObject.SetActive(false);
 
+            // ซ่อนป้ายคำว่า "You" ที่ติดมากับพรีแฟบตัวละครหลัก ไม่ให้ไปโชว์เหนือหัวเพื่อนร่วมทีม
+            var tmpLabels = GetComponentsInChildren<TMPro.TMP_Text>(true);
+            for (int i = 0; i < tmpLabels.Length; i++)
+            {
+                if (tmpLabels[i] != null && string.Equals(tmpLabels[i].text?.Trim(), "You", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    tmpLabels[i].gameObject.SetActive(false);
+                }
+            }
+            var legacyLabels = GetComponentsInChildren<TextMesh>(true);
+            for (int i = 0; i < legacyLabels.Length; i++)
+            {
+                if (legacyLabels[i] != null && string.Equals(legacyLabels[i].text?.Trim(), "You", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    legacyLabels[i].gameObject.SetActive(false);
+                }
+            }
+
             // สลับโมเดลตัวละครตาม Character ID ของเพื่อน
             if (!string.IsNullOrEmpty(characterId))
             {
@@ -117,6 +135,18 @@ namespace TheLastEmpire
                 return;
             }
 
+            // 1. ค้นหาจาก CharacterDatabase SO กลางก่อน (ครบทั้ง 7 อาชีพ พร้อม characterModelPrefab)
+            if (CharacterDatabase.Instance != null)
+            {
+                CharacterData dbChar = CharacterDatabase.Instance.GetCharacter(characterId);
+                if (dbChar != null)
+                {
+                    SwitchCharacterModel(dbChar);
+                    return;
+                }
+            }
+
+            // 2. Fallback: ค้นหาจากลิสต์ characterModels ที่แปะไว้บน PlayerPrefabs
             if (characterModels != null)
             {
                 for (int i = 0; i < characterModels.Count; i++)

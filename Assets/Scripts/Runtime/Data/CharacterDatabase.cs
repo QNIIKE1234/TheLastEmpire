@@ -329,11 +329,17 @@ namespace TheLastEmpire
     public static class CharacterManager
     {
         private const string PrefsKey = "TheLastEmpire_SelectedCharacterId";
+        // เก็บค่าประจำโปรเซสแยกใน RAM เพื่อไม่ให้ 2 หน้าต่างเกมที่เปิดบนคอมเครื่องเดียวกันเขียนทับ PlayerPrefs ของกันและกัน
+        private static string _sessionSelectedCharacterId;
+
         public static string SelectedCharacterId
         {
-            get => PlayerPrefs.GetString(PrefsKey, "VANGUARD");
+            get => !string.IsNullOrEmpty(_sessionSelectedCharacterId)
+                ? _sessionSelectedCharacterId
+                : PlayerPrefs.GetString(PrefsKey, "VANGUARD");
             set
             {
+                _sessionSelectedCharacterId = value;
                 PlayerPrefs.SetString(PrefsKey, value);
                 PlayerPrefs.Save();
             }

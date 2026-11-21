@@ -30,6 +30,7 @@ namespace TheLastEmpire.Network
         EnemyBatchSync = 30,
         EnemyChaserPhasing = 31,
         DamageNumberBroadcast = 32,
+        EnemyDamageRequest = 33,
         LootSpawnBroadcast = 40,
         LootClaimRequest = 41,
         LootClaimResult = 42,
@@ -63,6 +64,7 @@ namespace TheLastEmpire.Network
         public const string PlayerNamePrefKey = "TLE_PlayerAccountName";
 
         public static EmpireNetworkManager Instance { get; private set; }
+        public static int PendingMatchWorldSeed { get; set; } = 0;
 
         private static string _cachedLocalPlayerName;
 
@@ -715,11 +717,22 @@ namespace TheLastEmpire.Network
                 StartHostSession();
             }
 
+            // บังคับใช้ตัวละครที่เครื่อง Host เลือกไว้ในห้อง Lobby (กัน PlayerPrefs โดนหน้าต่าง Client บนเครื่องเดียวกันเขียนทับ)
+            if (!string.IsNullOrEmpty(_localLobbyCharacterId))
+            {
+                CharacterManager.SelectedCharacterId = _localLobbyCharacterId;
+            }
+
+            // สุ่ม WorldSeed กลาง 1 ค่าแล้วส่งให้ทุกเครื่องก่อนโหลดเข้าด่าน เพื่อให้แมพ 128x128 และห้องศัตรูตรงกัน 100%
+            int matchWorldSeed = UnityEngine.Random.Range(1000, 99999);
+            PendingMatchWorldSeed = matchWorldSeed;
+
             if (_isHost)
             {
                 SendPacket(NetPacketType.HostStartGameplay, w =>
                 {
                     w.Write(gameplaySceneName ?? "Gameplay_3D");
+                    w.Write(matchWorldSeed);
                 });
             }
 
@@ -1080,6 +1093,15 @@ namespace TheLastEmpire.Network
                     if (!_isHost)
                     {
                         string targetScene = reader.ReadString();
+                        int matchWorldSeed = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;
+                        if (matchWorldSeed != 0)
+                        {
+                            PendingMatchWorldSeed = matchWorldSeed;
+                        }
+                        if (!string.IsNullOrEmpty(_localLobbyCharacterId))
+                        {
+                            CharacterManager.SelectedCharacterId = _localLobbyCharacterId;
+                        }
                         if (string.IsNullOrEmpty(targetScene)) targetScene = "Gameplay_3D";
                         if (SceneManager.GetActiveScene().name != targetScene)
                         {
@@ -1235,6 +1257,16 @@ namespace TheLastEmpire.Network
                         float dmg = reader.ReadSingle();
                         bool isCrit = reader.ReadBoolean();
                         DamageNumberManager.Instance?.SpawnDamageNumber(pos, dmg, isCrit);
+                    }
+                    break;
+
+                case NetPacketType.EnemyDamageRequest:
+                    if (_isHost)
+                    {
+                        int enemyNetId = reader.ReadInt32();
+                        float dmg = reader.ReadSingle();
+                        bool isCrit = reader.ReadBoolean();
+                        NetworkEnemyBridge.Instance?.HandleClientEnemyDamageOnHost(enemyNetId, dmg, isCrit);
                     }
                     break;
 

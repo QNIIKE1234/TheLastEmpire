@@ -41,7 +41,14 @@ namespace TheLastEmpire
                 if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
                 {
                     ResetMapProgression();
-                    TheLastEmpire.Network.NetworkStageSyncManager.Instance?.TryApplyPendingHostWorldOnSceneLoad();
+                    if (TheLastEmpire.Network.EmpireNetworkManager.PendingMatchWorldSeed != 0)
+                    {
+                        StartNewGame(TheLastEmpire.Network.EmpireNetworkManager.PendingMatchWorldSeed);
+                    }
+                    else
+                    {
+                        TheLastEmpire.Network.NetworkStageSyncManager.Instance?.TryApplyPendingHostWorldOnSceneLoad();
+                    }
                 }
                 else if (MainMenuManager.ShouldLoadSave && SaveSystem.HasSaveFile())
                 {
@@ -53,9 +60,11 @@ namespace TheLastEmpire
                     // Reset persistent editor memory at startup so it doesn't auto-save exploration
                     ResetMapProgression();
 
-                    // Always generate a fresh randomized map seed at startup (Clients wait for NetWorldSeed from Host)
-                    int randomSeed = Random.Range(1000, 99999);
-                    StartNewGame(randomSeed);
+                    // ใช้ WorldSeed เดียวกันกับที่ส่งให้ Client ตอนกดเริ่มเกม (หรือสุ่มใหม่ถ้าเล่นออฟไลน์)
+                    int seedToUse = (TheLastEmpire.Network.EmpireNetworkManager.IsOnline && TheLastEmpire.Network.EmpireNetworkManager.PendingMatchWorldSeed != 0)
+                        ? TheLastEmpire.Network.EmpireNetworkManager.PendingMatchWorldSeed
+                        : Random.Range(1000, 99999);
+                    StartNewGame(seedToUse);
                 }
             }
         }

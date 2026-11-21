@@ -76,6 +76,34 @@ namespace TheLastEmpire
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
 
+            // หากเครื่อง Client ยิงหรือฟันใส่ศัตรู Puppet ที่ซิงค์มาจาก Host ให้ส่งคำขอดาเมจไปให้ Host คำนวณและซิงค์เลือด/การตายกลับมา
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+            {
+                BaseEnemyAI enemyAi = GetComponent<BaseEnemyAI>();
+                if (enemyAi != null && enemyAi.IsNetworkPuppet && enemyAi.NetworkEnemyId > 0)
+                {
+                    TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendClientDamageToHost(enemyAi.NetworkEnemyId, damageAmount, isCrit);
+
+                    // แสดงตัวเลขดาเมจและเอฟเฟกต์เลือดทันทีบนเครื่อง Client (0ms Visual Feedback)
+                    Vector3 clientDmgPos = hitPoint ?? (transform.position + Vector3.up * 1.3f);
+                    if (DamageNumberManager.Instance != null)
+                    {
+                        DamageNumberManager.Instance.SpawnDamageNumber(clientDmgPos, damageAmount, isCrit);
+                    }
+                    if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)
+                    {
+                        Vector3 spawnPos = hitPoint ?? (transform.position + (Vector3.up * 1.5f));
+                        GameObject hitEffect = ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
+                        if (hitEffect != null)
+                        {
+                            PooledParticle pooledParticle = hitEffect.GetComponent<PooledParticle>();
+                            if (pooledParticle != null) pooledParticle.SetPoolKey(hitEffectPoolKey);
+                        }
+                    }
+                    return;
+                }
+            }
+
             // Player character defense traits & abilities
             PlayerController pc = GetComponent<PlayerController>();
             if (pc != null)
@@ -154,6 +182,18 @@ namespace TheLastEmpire
         {
             CurrentHealth = maxHealth;
             _invulnerabilityTimer = 0f; // Clear any active I-frames on reset
+        }
+
+        /// <summary>
+        /// อัปเดตค่าเลือดจากแพ็กเก็ตเครือข่ายโดยตรง (ไม่วนลูปส่งดาเมจซ้ำหรือเสก VFX ซ้ำ)
+        /// </summary>
+        public void SetHealthFromNetwork(float newCurrentHealth, float newMaxHealth)
+        {
+            if (newMaxHealth > 0f)
+            {
+                maxHealth = newMaxHealth;
+            }
+            CurrentHealth = Mathf.Clamp(newCurrentHealth, 0f, maxHealth);
         }
     }
 }

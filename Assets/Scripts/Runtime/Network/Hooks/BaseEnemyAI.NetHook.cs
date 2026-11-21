@@ -58,16 +58,7 @@ namespace TheLastEmpire
 
             if (health != null && state.maxHealth > 0f)
             {
-                if (Mathf.Abs(health.MaxHealth - state.maxHealth) > 0.5f)
-                {
-                    health.SetMaxHealth(state.maxHealth, false);
-                }
-                float diff = state.currentHealth - health.CurrentHealth;
-                if (Mathf.Abs(diff) > 0.5f)
-                {
-                    if (diff > 0f) health.Heal(diff);
-                    else health.TakeDamage(-diff, transform.position, false);
-                }
+                health.SetHealthFromNetwork(state.currentHealth, state.maxHealth);
             }
         }
 

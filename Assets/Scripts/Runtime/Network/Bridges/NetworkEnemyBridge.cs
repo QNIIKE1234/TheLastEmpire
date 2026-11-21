@@ -168,6 +168,10 @@ namespace TheLastEmpire.Network
                 return;
             }
 
+            // เมื่อ Client อยู่ในช่อง (Stage X, Y) เดียวกับ Host:
+            // เคลียร์ศัตรู Local ที่ Client อาจเสกไว้เองตอนเดินเข้าช่องนี้ก่อน Host เพื่อไม่ให้มีศัตรูซ้ำซ้อน/ไม่ตรงกัน!
+            DespawnLocalNonPuppetEnemiesOnClient();
+
             HashSet<int> aliveIds = new HashSet<int>();
 
             for (int i = 0; i < count; i++)
@@ -209,6 +213,7 @@ namespace TheLastEmpire.Network
                     int id = toRemove[i];
                     if (_clientPuppetEnemies.TryGetValue(id, out BaseEnemyAI oldPuppet) && oldPuppet != null)
                     {
+                        oldPuppet.IsNetworkPuppet = false;
                         if (!string.IsNullOrEmpty(oldPuppet.PoolKey) && ObjectPoolManager.Instance != null)
                         {
                             ObjectPoolManager.Instance.ReturnToPool(oldPuppet.PoolKey, oldPuppet.gameObject);
@@ -249,7 +254,84 @@ namespace TheLastEmpire.Network
 
         public void ClearClientPuppets()
         {
+            foreach (var kvp in _clientPuppetEnemies)
+            {
+                BaseEnemyAI oldPuppet = kvp.Value;
+                if (oldPuppet == null) continue;
+                oldPuppet.IsNetworkPuppet = false;
+                if (!string.IsNullOrEmpty(oldPuppet.PoolKey) && ObjectPoolManager.Instance != null)
+                {
+                    ObjectPoolManager.Instance.ReturnToPool(oldPuppet.PoolKey, oldPuppet.gameObject);
+                }
+                else
+                {
+                    Destroy(oldPuppet.gameObject);
+                }
+            }
             _clientPuppetEnemies.Clear();
+        }
+
+        private void DespawnLocalNonPuppetEnemiesOnClient()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.ActiveEnemies == null) return;
+            var list = GameManager.Instance.ActiveEnemies;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                GameObject obj = list[i];
+                if (obj == null)
+                {
+                    list.RemoveAt(i);
+                    continue;
+                }
+                BaseEnemyAI ai = obj.GetComponent<BaseEnemyAI>();
+                if (ai != null && !ai.IsNetworkPuppet)
+                {
+                    list.RemoveAt(i);
+                    if (!string.IsNullOrEmpty(ai.PoolKey) && ObjectPoolManager.Instance != null)
+                    {
+                        ObjectPoolManager.Instance.ReturnToPool(ai.PoolKey, obj);
+                    }
+                    else
+                    {
+                        Destroy(obj);
+                    }
+                }
+            }
+        }
+
+        public void SendClientDamageToHost(int enemyNetId, float damage, bool isCrit)
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || EmpireNetworkManager.Instance == null || enemyNetId <= 0) return;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.EnemyDamageRequest, w =>
+            {
+                w.Write(enemyNetId);
+                w.Write(damage);
+                w.Write(isCrit);
+            });
+        }
+
+        public void HandleClientEnemyDamageOnHost(int enemyNetId, float damage, bool isCrit)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || GameManager.Instance == null || GameManager.Instance.ActiveEnemies == null) return;
+
+            var list = GameManager.Instance.ActiveEnemies;
+            for (int i = 0; i < list.Count; i++)
+            {
+                GameObject obj = list[i];
+                if (obj == null || !obj.activeInHierarchy) continue;
+
+                BaseEnemyAI ai = obj.GetComponent<BaseEnemyAI>();
+                if (ai != null && ai.NetworkEnemyId == enemyNetId)
+                {
+                    Health h = obj.GetComponent<Health>();
+                    if (h != null && !h.IsDead)
+                    {
+                        h.TakeDamage(damage, obj.transform.position + Vector3.up * 1.2f, isCrit, false);
+                    }
+                    return;
+                }
+            }
         }
     }
 }
