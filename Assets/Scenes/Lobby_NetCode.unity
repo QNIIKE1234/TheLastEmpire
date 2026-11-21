@@ -6512,6 +6512,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -125
       objectReference: {fileID: 0}
+    - target: {fileID: 1866006687480123360, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
+      propertyPath: m_text
+      value: SELECT
+      objectReference: {fileID: 0}
+    - target: {fileID: 1866006687480123360, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
+      propertyPath: m_fontSize
+      value: 72
+      objectReference: {fileID: 0}
+    - target: {fileID: 1866006687480123360, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 72
+      objectReference: {fileID: 0}
     - target: {fileID: 2342022331997801084, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -13.474548
@@ -6732,6 +6744,11 @@ PrefabInstance:
 --- !u!224 &693475404 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8380843774165090664, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
+  m_PrefabInstance: {fileID: 693475403}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &693475405 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7192747761315224681, guid: a7d6287b764d99a4093d7f6f9241a531, type: 3}
   m_PrefabInstance: {fileID: 693475403}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &693641034
@@ -14394,7 +14411,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Network.MultiplayerLobbyUI
   selectRoomPanel: {fileID: 464201891}
   roomInfoPanel: {fileID: 1947735964}
-  characterSelectPanel: {fileID: 0}
+  characterSelectPanel: {fileID: 693475405}
   createRoomButton: {fileID: 4780191890136423827}
   closeSelectRoomButton: {fileID: 88181201}
   searchInputField: {fileID: 1907040913}

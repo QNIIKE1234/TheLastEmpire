@@ -1,7 +1,49 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 17 พฤศจิกายน 2026  
-**สถานะ Git**: `main` (Up to date with `origin/main`)  
+**วันที่บันทึกล่าสุด**: 22 พฤศจิกายน 2026  
+**สถานะ Git**: `multi-player-netcode` (Up to date with `origin/multi-player-netcode`)  
+
+---
+
+## 23. ระบบ Co-op Multiplayer 1–6 คน (LAN Netcode, `Lobby_NetCode` UI, Account Name, & Independent Grid Stage Encounter)
+- **สคริปต์ & ซีนที่เกี่ยวข้อง**:
+  - **Core & Transport**:
+    - [`Assets/Scripts/Runtime/Network/Core/NetcodeCompatLayer.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/NetcodeCompatLayer.cs)
+    - [`Assets/Scripts/Runtime/Network/Core/EmpireNetworkManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/EmpireNetworkManager.cs)
+    - [`Assets/Scripts/Runtime/Network/Core/LobbyRelayService.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/LobbyRelayService.cs)
+    - [`Assets/Scripts/Runtime/Network/Core/PlayerRegistry.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/PlayerRegistry.cs)
+    - [`Assets/Scripts/Runtime/Network/Data/NetDataModels.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Data/NetDataModels.cs)
+  - **Partial Class Hooks**:
+    - [`Assets/Scripts/Runtime/Network/Hooks/PlayerController.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/PlayerController.NetHook.cs)
+    - [`Assets/Scripts/Runtime/Network/Hooks/BaseEnemyAI.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/BaseEnemyAI.NetHook.cs)
+    - [`Assets/Scripts/Runtime/Network/Hooks/TransitionPortal.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/TransitionPortal.NetHook.cs)
+    - [`Assets/Scripts/Runtime/Network/Hooks/GameManager.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/GameManager.NetHook.cs)
+    - [`Assets/Scripts/Runtime/Network/Hooks/RandomStageEventManager.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/RandomStageEventManager.NetHook.cs)
+  - **Network Bridges**:
+    - [`Assets/Scripts/Runtime/Network/Bridges/NetworkPlayerBridge.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkPlayerBridge.cs)
+    - [`Assets/Scripts/Runtime/Network/Bridges/NetworkEnemyBridge.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkEnemyBridge.cs)
+    - [`Assets/Scripts/Runtime/Network/Bridges/NetworkStageSyncManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkStageSyncManager.cs)
+    - [`Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs)
+    - [`Assets/Scripts/Runtime/Network/Bridges/NetworkBuildingSyncManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkBuildingSyncManager.cs)
+  - **Lobby & Menu UI (100% Pure `[SerializeField]` Inspector References)**:
+    - [`Assets/Scripts/Runtime/Network/UI/MultiplayerLobbyUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/UI/MultiplayerLobbyUI.cs)
+    - [`Assets/Scripts/Runtime/Network/UI/RoomThumbnailUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/UI/RoomThumbnailUI.cs)
+    - [`Assets/Scripts/Runtime/Network/UI/RoomMemberSlotUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/UI/RoomMemberSlotUI.cs)
+    - [`Assets/Scripts/Runtime/Network/UI/PartyStatusHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/UI/PartyStatusHUD.cs)
+    - [`Assets/Scripts/Runtime/UI/MainMenuManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/MainMenuManager.cs)
+    - [`Assets/Scripts/Editor/MultiplayerDualClientLauncher.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/MultiplayerDualClientLauncher.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **ระบบเมนูหลัก & ตั้งชื่อผู้เล่น (`MainMenu.unity` & `MainMenuManager.cs`)**:
+     - แยกปุ่ม **`PLAY OFFLINE`** (`newGameBtn` — เลือกตัวละครเข้าเล่นคนเดียว) และปุ่ม **`ONLINE`** (`onlineBtn` — ย้ายไปซีน `Lobby_NetCode`)
+     - ระบบตั้งชื่อผู้เล่นมุมขวาบน (`AccountName`, `ChangeNamePanel`, `ChangeNameButton`): เริ่มต้นสุ่มรหัส 7 ตัวอักษร (เช่น `9CS51XE`) หรือโหลดจาก `PlayerPrefs` (`TLE_PlayerAccountName`) เมื่อกดปุ่มเหลืองจะซ่อน `AccountName` แล้วเปิดตา `ChangeNamePanel` โดยใช้ชื่อปัจจุบันแสดงใน `Placeholder` และเมื่อกดยืนยันจะปิดตา `ChangeNamePanel` แล้วอัปเดตชื่อใหม่ไปใช้ทั้งใน Lobby และ Gameplay
+  2. **ระบบค้นหาห้องและห้องเตรียมตัว 6 คน (`Lobby_NetCode.unity`)**:
+     - ออกแบบสคริปต์ `MultiplayerLobbyUI`, `RoomThumbnailUI`, และ `RoomMemberSlotUI` ให้ผูกผ่านช่อง `[SerializeField]` ใน Inspector 100% (เปลี่ยนชื่อ GameObject ได้อิสระ)
+     - **`SelectRoomPanel`**: ค้นหาห้องในวง LAN อัตโนมัติด้วย UDP Broadcast Beacon (Port `47777`) โดยใช้ชื่อหัวห้องเป็นชื่อห้อง หากยังไม่มีห้องใน LAN จะซ่อนแถวห้องทั้งหมด
+     - **`RoomInfoPanel`**: รองรับผู้เล่น 1–6 คน เชื่อมกับ `CharacterDatabase.asset` (`ScriptableObject` ตัวเดียวครบทั้ง 7 อาชีพ) หากผู้เล่นเพิ่งเข้าห้องและยังไม่ได้เลือกตัวละครจะแสดงรูป Default (เข็มทิศ) ปุ่มสีเหลืองรูปประแจ (`selectCharacterButton`) แสดงเฉพาะช่องของตัวเราเองเพื่อเปิดหน้าเลือกตัวละคร ปุ่มสีแดง `[X]` (`kickButton`) แสดงเฉพาะหัวห้องเพื่อเตะลูกทีม และปุ่ม `ENTER WASTELAND` จำกัดให้หัวห้องกดเริ่มเกมได้คนเดียว
+  3. **ระบบแยกเดินข้ามช่องพิกัด `(Stage X, Y)` แบบอิสระ & เจอกันเมื่ออยู่ช่องเดียวกัน**:
+     - ผู้เล่นแต่ละคนเดินเข้าประตู `TransitionPortal` ข้ามช่องพิกัด `(X, Y)` บนแผนที่โลก 128x128 ได้อย่างอิสระโดยไม่ดึงเพื่อนทั้งตี้ตามไป
+     - ซิงค์พิกัด `(stageX, stageY)` ของผู้เล่นแต่ละคนตลอดเวลา: หากผู้เล่นอยู่ในช่อง `(X, Y)` **เดียวกัน** จะเปิดแสดงตัวละคร เห็นกระสุน/การฟัน และสู้ซอมบี้ร่วมกันทันที แต่หากอยู่ **คนละช่อง** จะซ่อนตัวละครและกระสุนของอีกฝ่ายไว้จนกว่าจะเดินมาเจอกันในช่องเดียวกัน
+     - แถบสถานะปาร์ตี้ `PartyStatusHUD` ด้านขวาของหน้าจอแสดงชื่อ อาชีพ หลอดเลือด สถานะล้มรอชุบ (Downed & Revive 30s) และพิกัดช่องปัจจุบัน `(X,Y)` ของสมาชิกแต่ละคนในทีม
 
 ---
 
