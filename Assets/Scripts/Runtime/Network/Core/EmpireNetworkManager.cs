@@ -65,6 +65,8 @@ namespace TheLastEmpire.Network
 
         private bool _isSessionActive = false;
         private bool _isHost = true;
+        private bool _isClientHandshakeAccepted = false;
+        private float _handshakeRetryTimer = 0f;
         private ulong _localClientId = 0;
         private string _activeJoinCode = "";
         private string _activeHostIp = "127.0.0.1";
@@ -133,6 +135,9 @@ namespace TheLastEmpire.Network
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                // สำคัญมากสำหรับการเปิด 2 หน้าต่าง (Host + Client) บนคอมเครื่องเดียวกัน:
+                // ป้องกันไม่ให้หน้าต่างที่ไม่ได้คลิกโฟกัสหยุดรันเกมหรือหยุดส่งแพ็กเก็ต UDP
+                Application.runInBackground = true;
             }
             else if (Instance != this)
             {
@@ -141,6 +146,36 @@ namespace TheLastEmpire.Network
             }
 
             SceneManager.sceneLoaded += HandleSceneLoaded;
+        }
+
+        private void Start()
+        {
+            CheckCommandLineAutoConnect();
+        }
+
+        private void CheckCommandLineAutoConnect()
+        {
+            try
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (string.Equals(args[i], "-coopClient", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string target = (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                            ? args[i + 1]
+                            : "127.0.0.1:7777";
+                        StartClientSession(target);
+                        break;
+                    }
+                    else if (string.Equals(args[i], "-coopHost", StringComparison.OrdinalIgnoreCase))
+                    {
+                        StartHostSession();
+                        break;
+                    }
+                }
+            }
+            catch { }
         }
 
         private void OnDestroy()
@@ -162,6 +197,18 @@ namespace TheLastEmpire.Network
         {
             EnsureLocalPlayerBridgeAttached();
             PollUdpPackets();
+
+            // หากเป็นเครื่อง Client ที่กำลังรอ HandshakeAccept จาก Host ให้ส่ง HandshakeRequest ซ้ำทุก 1 วินาที
+            // เพื่อให้เปิด 2 หน้าต่างในลำดับไหนก็ได้ (จะกด Join ก่อนหรือกด Host ก่อนก็เชื่อมติดทันที)
+            if (_isSessionActive && !_isHost && !_isClientHandshakeAccepted)
+            {
+                _handshakeRetryTimer -= Time.unscaledDeltaTime;
+                if (_handshakeRetryTimer <= 0f)
+                {
+                    _handshakeRetryTimer = 1.0f;
+                    SendHandshakeRequestToHost();
+                }
+            }
         }
 
         private void EnsureLocalPlayerBridgeAttached()
@@ -256,8 +303,11 @@ namespace TheLastEmpire.Network
                 return false;
             }
 
+            Application.runInBackground = true;
             _isSessionActive = true;
             _isHost = false;
+            _isClientHandshakeAccepted = false;
+            _handshakeRetryTimer = 1.0f;
             _localClientId = (ulong)UnityEngine.Random.Range(100, 999);
             _activeHostIp = targetIp;
             _activePort = targetPort;
@@ -568,6 +618,7 @@ namespace TheLastEmpire.Network
                 case NetPacketType.HandshakeAccept:
                     if (!_isHost)
                     {
+                        _isClientHandshakeAccepted = true;
                         ulong assignedClientId = reader.ReadUInt64();
                         int assignedSlot = reader.ReadInt32();
                         int hostSeed = reader.ReadInt32();

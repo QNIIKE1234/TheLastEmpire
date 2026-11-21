@@ -14,6 +14,7 @@ namespace TheLastEmpire.Network
     public class MultiplayerLobbyUI : MonoBehaviour
     {
         public static MultiplayerLobbyUI Instance { get; private set; }
+        public static System.Action OnRequestLaunchSecondClientWindow;
 
         private bool _isWindowOpen = false;
         private Rect _windowRect = new Rect(0, 0, 480, 490);
@@ -189,11 +190,25 @@ namespace TheLastEmpire.Network
             GUILayout.Label("1. HOST OR JOIN MULTIPLAYER SESSION (UDP / NGO):", _subHeaderStyle);
 
             GUI.backgroundColor = new Color(0.18f, 0.80f, 0.42f);
-            if (GUILayout.Button("★ HOST CO-OP GAME (1–6 PLAYERS)", _btnStyle, GUILayout.Height(38)))
+            if (GUILayout.Button("★ HOST CO-OP GAME (1–6 PLAYERS)", _btnStyle, GUILayout.Height(36)))
             {
                 if (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.StartHostSession())
                 {
                     _statusMessage = $"Hosting room! Share Join Code: {EmpireNetworkManager.Instance.ActiveJoinCode}";
+                }
+            }
+
+            if (OnRequestLaunchSecondClientWindow != null)
+            {
+                GUI.backgroundColor = new Color(0.15f, 0.72f, 0.95f);
+                if (GUILayout.Button("🖥️ LAUNCH 2ND CLIENT WINDOW (Test 2 Clients on 1 PC)", _btnStyle, GUILayout.Height(34)))
+                {
+                    if (!EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
+                    {
+                        EmpireNetworkManager.Instance.StartHostSession();
+                    }
+                    OnRequestLaunchSecondClientWindow.Invoke();
+                    _statusMessage = "Launching 2nd Client Window (auto-connecting to 127.0.0.1:7777)...";
                 }
             }
 

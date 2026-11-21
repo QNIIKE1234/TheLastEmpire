@@ -116,7 +116,9 @@ namespace TheLastEmpire
 
         private void FindPlayerTarget()
         {
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                   ?? PlayerController.Instance
+                                   ?? Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 target = player.transform;

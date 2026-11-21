@@ -34,9 +34,10 @@ namespace TheLastEmpire
         private Vector3 _networkTargetVelocity;
         private bool _hasNetworkPose = false;
 
-        // AI timers for Simulated Co-op Teammate Bot
+        // AI timers for Simulated Co-op Teammate Bot (+ Manual P2 Arrow-Key Override)
         private float _botDecisionTimer = 0f;
         private float _botFireTimer = 0f;
+        private float _manualP2OverrideTimer = 0f;
         private Vector3 _botMoveTargetOffset = new Vector3(1.8f, 0f, -1.5f);
 
         public HeldItemType CurrentHeldItemType => _heldItemType;
@@ -236,6 +237,47 @@ namespace TheLastEmpire
             if (_fireCooldownTimer > 0f) _fireCooldownTimer -= Time.deltaTime;
             _botDecisionTimer -= Time.deltaTime;
             _botFireTimer -= Time.deltaTime;
+
+            // รองรับการบังคับผู้เล่นคนที่ 2 (P2) ด้วยปุ่มลูกศร (Arrow Keys) + Right Ctrl / Enter เพื่อยิงปืน
+            // สำหรับกรณีต้องการเทสต์บังคับ 2 ตัวละครพร้อมกันบนหน้าจอเดียว!
+            if (PartySlotIndex == 1 && Keyboard.current != null)
+            {
+                Vector2 p2ArrowInput = Vector2.zero;
+                if (Keyboard.current.upArrowKey.isPressed) p2ArrowInput.y += 1f;
+                if (Keyboard.current.downArrowKey.isPressed) p2ArrowInput.y -= 1f;
+                if (Keyboard.current.rightArrowKey.isPressed) p2ArrowInput.x += 1f;
+                if (Keyboard.current.leftArrowKey.isPressed) p2ArrowInput.x -= 1f;
+                bool p2Shoot = Keyboard.current.rightCtrlKey.isPressed || Keyboard.current.enterKey.isPressed || Keyboard.current.numpad0Key.isPressed;
+
+                if (p2ArrowInput.sqrMagnitude > 0.01f || p2Shoot)
+                {
+                    _manualP2OverrideTimer = 3.5f;
+                }
+
+                if (_manualP2OverrideTimer > 0f)
+                {
+                    _manualP2OverrideTimer -= Time.deltaTime;
+                    if (p2ArrowInput.sqrMagnitude > 1f) p2ArrowInput.Normalize();
+                    _moveInput = p2ArrowInput;
+                    _isSprinting = Keyboard.current.rightShiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+
+                    if (_moveInput.sqrMagnitude > 0.01f)
+                    {
+                        _aimDirection = new Vector3(_moveInput.x, 0f, _moveInput.y).normalized;
+                        transform.forward = _aimDirection;
+                    }
+
+                    if (p2Shoot && _fireCooldownTimer <= 0f)
+                    {
+                        if (CurrentWeapon != null && CurrentWeapon.currentMagazine <= 0)
+                        {
+                            CurrentWeapon.currentMagazine = CurrentWeapon.magazineSize > 0 ? CurrentWeapon.magazineSize : 12;
+                        }
+                        ShootWeapon();
+                    }
+                    return;
+                }
+            }
 
             PlayerController leader = PlayerRegistry.LocalPlayer;
             if (leader == null) return;
