@@ -453,76 +453,139 @@ namespace TheLastEmpire
             ApplySelectedCharacterModel(activeCharacterData);
         }
 
+        private static readonly Vector3 SpawnedModelLocalPosition = new Vector3(0f, -0.6f, 0f);
+        private static readonly Vector3 SpawnedModelLocalScale = new Vector3(0.7f, 0.7f, 0.7f);
+
         private void ApplySelectedCharacterModel(CharacterData data)
         {
             Transform modelRoot = characterModelRoot != null ? characterModelRoot : transform.Find("Model");
-            GameObject targetSource = FindModelForCharacter(data, modelRoot);
-
-            // Fallback to CharacterData.characterModelPrefab if not explicitly assigned in characterModels list
-            if (targetSource == null && data != null && data.characterModelPrefab != null)
+            if (modelRoot == null)
             {
-                targetSource = data.characterModelPrefab;
+                GameObject modelRootObj = new GameObject("Model");
+                modelRoot = modelRootObj.transform;
+                modelRoot.SetParent(transform, false);
+                characterModelRoot = modelRoot;
             }
 
-            // Deactivate all child models registered in the list and under Model root
+            // Preserve any existing AnimatorController (including from Chibi_Base_Rigged template) before hiding/swapping
+            RuntimeAnimatorController fallbackController = _animator != null ? _animator.runtimeAnimatorController : null;
+            if (fallbackController == null && animator != null)
+            {
+                fallbackController = animator.runtimeAnimatorController;
+            }
+
+            // Auto-locate master Malee / Range weapon holders under Model if Inspector refs are unset
+            if (meleeWeapon == null)
+            {
+                Transform m = modelRoot.Find("Malee") ?? modelRoot.Find("Melee") ?? transform.Find("Malee");
+                if (m != null) meleeWeapon = m.gameObject;
+            }
+            if (rangeWeapon == null)
+            {
+                Transform r = modelRoot.Find("Range") ?? modelRoot.Find("Ranged") ?? transform.Find("Range");
+                if (r != null) rangeWeapon = r.gameObject;
+            }
+
+            // Rescue master meleeWeapon / rangeWeapon onto PlayerPrefabs root before cleaning up old model instances
+            if (meleeWeapon != null && meleeWeapon.transform.IsChildOf(modelRoot))
+            {
+                meleeWeapon.transform.SetParent(transform, false);
+            }
+            if (rangeWeapon != null && rangeWeapon.transform.IsChildOf(modelRoot))
+            {
+                rangeWeapon.transform.SetParent(transform, false);
+            }
+
+            // Hide template/base model sitting directly under PlayerPrefabs (e.g. Chibi_Base_Rigged)
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                Transform child = transform.GetChild(i);
+                if (child == null || child == modelRoot) continue;
+                if (meleeWeapon != null && child == meleeWeapon.transform) continue;
+                if (rangeWeapon != null && child == rangeWeapon.transform) continue;
+
+                bool isTemplateModel = child.name.Equals("Chibi_Base_Rigged", System.StringComparison.OrdinalIgnoreCase)
+                                    || child.GetComponent<Animator>() != null
+                                    || child.GetComponentInChildren<SkinnedMeshRenderer>(true) != null;
+                if (isTemplateModel)
+                {
+                    if (fallbackController == null)
+                    {
+                        Animator tplAnim = child.GetComponentInChildren<Animator>(true);
+                        if (tplAnim != null && tplAnim.runtimeAnimatorController != null)
+                        {
+                            fallbackController = tplAnim.runtimeAnimatorController;
+                        }
+                    }
+                    child.gameObject.SetActive(false);
+                }
+            }
+
+            // Deactivate all legacy child models registered in the list and under Model root
             if (characterModels != null)
             {
                 for (int i = 0; i < characterModels.Count; i++)
                 {
                     GameObject mo = characterModels[i]?.modelObject;
-                    if (mo != null && mo.transform.IsChildOf(transform))
+                    if (mo != null && mo.transform.IsChildOf(transform) && mo != meleeWeapon && mo != rangeWeapon)
                     {
                         mo.SetActive(false);
                     }
                 }
             }
 
-            if (modelRoot != null)
+            for (int i = 0; i < modelRoot.childCount; i++)
             {
-                for (int i = 0; i < modelRoot.childCount; i++)
-                {
-                    Transform ch = modelRoot.GetChild(i);
-                    if (ch != null) ch.gameObject.SetActive(false);
-                }
+                Transform ch = modelRoot.GetChild(i);
+                if (ch != null) ch.gameObject.SetActive(false);
             }
 
             // Clean up any previously spawned prefab instance
-            Transform oldInstance = (modelRoot != null ? modelRoot.Find("CharacterModelInstance") : null)
+            Transform oldInstance = modelRoot.Find("CharacterModelInstance")
                                     ?? transform.Find("CharacterModelInstance");
-            if (oldInstance != null && (targetSource == null || oldInstance.gameObject != targetSource))
+            if (oldInstance != null)
             {
+                oldInstance.name = "CharacterModelInstance_Old";
                 Destroy(oldInstance.gameObject);
             }
 
+            // Priority 1: Always spawn directly from CharacterData ScriptableObject (characterModelPrefab) into PlayerPrefabs/Model
             GameObject activeModel = null;
-            if (targetSource != null)
+            if (data != null && data.characterModelPrefab != null)
             {
-                if (targetSource.transform.IsChildOf(transform))
-                {
-                    // Case 1: Child GameObject inside PlayerPrefabs/Model — simply activate it
-                    activeModel = targetSource;
-                    activeModel.SetActive(true);
-                }
-                else
-                {
-                    // Case 2: Prefab asset dragged from Project — instantiate cleanly under Model root
-                    Transform parent = modelRoot != null ? modelRoot : transform;
-                    Vector3 prefabLocalPos = targetSource.transform.localPosition;
-                    Quaternion prefabLocalRot = targetSource.transform.localRotation;
-                    Vector3 prefabLocalScale = targetSource.transform.localScale;
-                    activeModel = Instantiate(targetSource, parent);
-                    activeModel.name = "CharacterModelInstance";
-                    activeModel.transform.localPosition = prefabLocalPos;
-                    activeModel.transform.localRotation = prefabLocalRot;
-                    activeModel.transform.localScale = prefabLocalScale;
-                    activeModel.SetActive(true);
-                }
-            }
-            else if (modelRoot != null && modelRoot.childCount > 0)
-            {
-                // Fallback: activate first child under Model so player is never invisible
-                activeModel = modelRoot.GetChild(0).gameObject;
+                activeModel = Instantiate(data.characterModelPrefab, modelRoot);
+                activeModel.name = "CharacterModelInstance";
+                activeModel.transform.localPosition = SpawnedModelLocalPosition;
+                activeModel.transform.localRotation = Quaternion.identity;
+                activeModel.transform.localScale = SpawnedModelLocalScale;
                 activeModel.SetActive(true);
+            }
+            else
+            {
+                // Fallback if CharacterData SO has no characterModelPrefab assigned
+                GameObject targetSource = FindModelForCharacter(data, modelRoot);
+                if (targetSource != null)
+                {
+                    if (targetSource.transform.IsChildOf(transform))
+                    {
+                        activeModel = targetSource;
+                        activeModel.SetActive(true);
+                    }
+                    else
+                    {
+                        activeModel = Instantiate(targetSource, modelRoot);
+                        activeModel.name = "CharacterModelInstance";
+                        activeModel.transform.localPosition = SpawnedModelLocalPosition;
+                        activeModel.transform.localRotation = Quaternion.identity;
+                        activeModel.transform.localScale = SpawnedModelLocalScale;
+                        activeModel.SetActive(true);
+                    }
+                }
+                else if (modelRoot.childCount > 0)
+                {
+                    activeModel = modelRoot.GetChild(0).gameObject;
+                    activeModel.SetActive(true);
+                }
             }
 
             if (activeModel != null)
@@ -532,7 +595,7 @@ namespace TheLastEmpire
                 Transform existingCapsule = transform.Find("Capsule");
                 if (existingCapsule != null) existingCapsule.gameObject.SetActive(false);
 
-                RebindModelAnimatorAndWeapons(activeModel);
+                RebindModelAnimatorAndWeapons(activeModel, fallbackController);
             }
         }
 
@@ -593,20 +656,24 @@ namespace TheLastEmpire
             return null;
         }
 
-        private void RebindModelAnimatorAndWeapons(GameObject activeModel)
+        private void RebindModelAnimatorAndWeapons(GameObject activeModel, RuntimeAnimatorController fallbackController = null)
         {
             if (activeModel == null) return;
 
             Animator modelAnim = activeModel.GetComponentInChildren<Animator>(true);
             if (modelAnim != null)
             {
+                if (modelAnim.runtimeAnimatorController == null)
+                {
+                    modelAnim.runtimeAnimatorController = fallbackController ?? FindFallbackAnimatorControllerFromDatabase();
+                }
                 _animator = modelAnim;
                 animator = modelAnim;
                 _animator.applyRootMotion = false;
                 _animator.Rebind();
             }
 
-            // Check if the active character model already has its own Malee / Range weapon holders
+            // Check if the spawned character model already has baked Malee / Range weapon holders
             Transform ownMelee = FindDeepChild(activeModel.transform, "Malee")
                               ?? FindDeepChild(activeModel.transform, "Melee")
                               ?? FindDeepChild(activeModel.transform, "MeleeWeapon");
@@ -614,46 +681,99 @@ namespace TheLastEmpire
                               ?? FindDeepChild(activeModel.transform, "Ranged")
                               ?? FindDeepChild(activeModel.transform, "RangeWeapon");
 
-            if (ownMelee != null)
+            Transform activeRightHand = FindDeepChild(activeModel.transform, "RightHand")
+                                     ?? FindDeepChild(activeModel.transform, "Hand_R")
+                                     ?? FindDeepChild(activeModel.transform, "mixamorig:RightHand");
+
+            // Prefer PlayerPrefabs' master Malee / Range weapon holders (full 18-weapon set) and move them cleanly
+            // into the spawned character's RightHand bone with clean RightHand-local identity transform!
+            if (meleeWeapon != null && activeRightHand != null)
+            {
+                if (ownMelee != null && ownMelee.gameObject != meleeWeapon)
+                {
+                    ownMelee.gameObject.SetActive(false);
+                }
+                meleeWeapon.transform.SetParent(activeRightHand, false);
+                meleeWeapon.transform.localPosition = Vector3.zero;
+                meleeWeapon.transform.localRotation = Quaternion.identity;
+                meleeWeapon.transform.localScale = Vector3.one;
+            }
+            else if (ownMelee != null)
             {
                 meleeWeapon = ownMelee.gameObject;
             }
-            if (ownRange != null)
+            else if (activeRightHand != null)
+            {
+                meleeWeapon = CloneWeaponHolderFromDatabase("Malee", activeRightHand);
+            }
+
+            if (rangeWeapon != null && activeRightHand != null)
+            {
+                if (ownRange != null && ownRange.gameObject != rangeWeapon)
+                {
+                    ownRange.gameObject.SetActive(false);
+                }
+                rangeWeapon.transform.SetParent(activeRightHand, false);
+                rangeWeapon.transform.localPosition = Vector3.zero;
+                rangeWeapon.transform.localRotation = Quaternion.identity;
+                rangeWeapon.transform.localScale = Vector3.one;
+            }
+            else if (ownRange != null)
             {
                 rangeWeapon = ownRange.gameObject;
             }
-
-            // If this character model doesn't have its own Malee/Range holders yet,
-            // re-parent existing weapon holders onto the active model's RightHand bone cleanly!
-            if (ownMelee == null || ownRange == null)
+            else if (activeRightHand != null)
             {
-                Transform activeRightHand = FindDeepChild(activeModel.transform, "RightHand")
-                                         ?? FindDeepChild(activeModel.transform, "Hand_R")
-                                         ?? FindDeepChild(activeModel.transform, "mixamorig:RightHand");
-                if (activeRightHand != null)
+                rangeWeapon = CloneWeaponHolderFromDatabase("Range", activeRightHand);
+            }
+        }
+
+        private static RuntimeAnimatorController FindFallbackAnimatorControllerFromDatabase()
+        {
+            if (CharacterDatabase.Instance == null || CharacterDatabase.Instance.Characters == null) return null;
+            var all = CharacterDatabase.Instance.Characters;
+            for (int i = 0; i < all.Count; i++)
+            {
+                GameObject prefab = all[i]?.characterModelPrefab;
+                if (prefab == null) continue;
+                Animator anim = prefab.GetComponentInChildren<Animator>(true);
+                if (anim != null && anim.runtimeAnimatorController != null)
                 {
-                    if (ownMelee == null && meleeWeapon != null && !meleeWeapon.transform.IsChildOf(activeModel.transform))
-                    {
-                        Vector3 lp = meleeWeapon.transform.localPosition;
-                        Quaternion lr = meleeWeapon.transform.localRotation;
-                        Vector3 ls = meleeWeapon.transform.localScale;
-                        meleeWeapon.transform.SetParent(activeRightHand, false);
-                        meleeWeapon.transform.localPosition = lp;
-                        meleeWeapon.transform.localRotation = lr;
-                        meleeWeapon.transform.localScale = ls;
-                    }
-                    if (ownRange == null && rangeWeapon != null && !rangeWeapon.transform.IsChildOf(activeModel.transform))
-                    {
-                        Vector3 lp = rangeWeapon.transform.localPosition;
-                        Quaternion lr = rangeWeapon.transform.localRotation;
-                        Vector3 ls = rangeWeapon.transform.localScale;
-                        rangeWeapon.transform.SetParent(activeRightHand, false);
-                        rangeWeapon.transform.localPosition = lp;
-                        rangeWeapon.transform.localRotation = lr;
-                        rangeWeapon.transform.localScale = ls;
-                    }
+                    return anim.runtimeAnimatorController;
                 }
             }
+            return null;
+        }
+
+        private GameObject CloneWeaponHolderFromDatabase(string holderName, Transform targetHand)
+        {
+            if (targetHand == null || CharacterDatabase.Instance == null || CharacterDatabase.Instance.Characters == null) return null;
+            var all = CharacterDatabase.Instance.Characters;
+            Transform bestTemplate = null;
+            int bestChildCount = -1;
+
+            // Prefer the template prefab with the most calibrated weapons (e.g. Chibi_PunkGirl_Rigged with all 18 weapons)
+            for (int i = 0; i < all.Count; i++)
+            {
+                GameObject prefab = all[i]?.characterModelPrefab;
+                if (prefab == null) continue;
+                Transform found = FindDeepChild(prefab.transform, holderName);
+                if (found != null && found.childCount > bestChildCount)
+                {
+                    bestTemplate = found;
+                    bestChildCount = found.childCount;
+                }
+            }
+
+            if (bestTemplate == null) return null;
+
+            GameObject cloned = Instantiate(bestTemplate.gameObject, targetHand, false);
+            cloned.name = holderName;
+            cloned.transform.localPosition = bestTemplate.localPosition;
+            cloned.transform.localRotation = bestTemplate.localRotation;
+            cloned.transform.localScale = bestTemplate.localScale;
+            cloned.SetActive(false);
+            return cloned;
         }
 
 #if UNITY_EDITOR
