@@ -253,6 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3481b6d20fccd75499547e32c787cb9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.PlayerController
+  overheadNameText: {fileID: 4850948539880918495}
   playerConfig: {fileID: 11400000, guid: aaf71c175b2ae0b41a1b35f90bd26f72, type: 2}
   activeCharacterData: {fileID: 0}
   characterModelRoot: {fileID: 5171934269529432191}
@@ -401,8 +402,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4279418619
-  m_fontColor: {r: 0.9843138, g: 0.74509805, b: 0.07058824, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -425,7 +426,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
