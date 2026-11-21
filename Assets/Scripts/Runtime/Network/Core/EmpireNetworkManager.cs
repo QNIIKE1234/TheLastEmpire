@@ -60,8 +60,91 @@ namespace TheLastEmpire.Network
     public class EmpireNetworkManager : MonoBehaviour
     {
         public const int MaxPlayers = 6;
+        public const string PlayerNamePrefKey = "TLE_PlayerAccountName";
 
         public static EmpireNetworkManager Instance { get; private set; }
+
+        private static string _cachedLocalPlayerName;
+
+        /// <summary>
+        /// ชื่อผู้เล่นของเครื่องเรา (ตั้งค่าได้จากหน้า MainMenu มุมขวาบน และเซฟลง PlayerPrefs)
+        /// หากยังไม่เคยตั้งชื่อ จะสุ่มรหัส 7 ตัวอักษร (เช่น 9CS51XE) ให้เป็นค่าเริ่มต้น
+        /// </summary>
+        public static string LocalPlayerName => GetOrInitLocalPlayerName();
+
+        public static string GetOrInitLocalPlayerName(string fallbackFromScene = "")
+        {
+            if (!string.IsNullOrWhiteSpace(_cachedLocalPlayerName))
+            {
+                return _cachedLocalPlayerName;
+            }
+
+            string saved = PlayerPrefs.GetString(PlayerNamePrefKey, "").Trim();
+            if (!string.IsNullOrWhiteSpace(saved))
+            {
+                _cachedLocalPlayerName = saved;
+                return _cachedLocalPlayerName;
+            }
+
+            string cleanFallback = string.IsNullOrWhiteSpace(fallbackFromScene)
+                ? ""
+                : fallbackFromScene.Replace("\u200B", "").Trim();
+
+            if (!string.IsNullOrWhiteSpace(cleanFallback))
+            {
+                _cachedLocalPlayerName = cleanFallback;
+            }
+            else
+            {
+                const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                char[] buf = new char[7];
+                for (int i = 0; i < buf.Length; i++)
+                {
+                    buf[i] = chars[UnityEngine.Random.Range(0, chars.Length)];
+                }
+                _cachedLocalPlayerName = new string(buf);
+            }
+
+            PlayerPrefs.SetString(PlayerNamePrefKey, _cachedLocalPlayerName);
+            PlayerPrefs.Save();
+            return _cachedLocalPlayerName;
+        }
+
+        public static void SetLocalPlayerName(string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName)) return;
+            string cleaned = newName.Replace("\u200B", "").Trim();
+            if (string.IsNullOrWhiteSpace(cleaned)) return;
+
+            _cachedLocalPlayerName = cleaned;
+            PlayerPrefs.SetString(PlayerNamePrefKey, _cachedLocalPlayerName);
+            PlayerPrefs.Save();
+
+            PlayerController local = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (local != null && !local.IsRemotePlayer)
+            {
+                local.NetworkPlayerName = _cachedLocalPlayerName;
+            }
+
+            if (Instance != null && Instance._lobbyMembers.Count > 0)
+            {
+                for (int i = 0; i < Instance._lobbyMembers.Count; i++)
+                {
+                    if (Instance._lobbyMembers[i].clientId == Instance._localClientId)
+                    {
+                        var m = Instance._lobbyMembers[i];
+                        m.playerName = _cachedLocalPlayerName;
+                        Instance._lobbyMembers[i] = m;
+                        break;
+                    }
+                }
+                if (Instance._isSessionActive && Instance._isHost)
+                {
+                    Instance.BroadcastLobbyRosterFromHost();
+                }
+                Instance.OnLobbyRosterChanged?.Invoke();
+            }
+        }
 
         public static bool IsOnline => Instance != null && Instance._isSessionActive;
         public static bool IsMultiplayer => IsOnline || PlayerRegistry.GetTotalPlayerCount() > 1;
@@ -337,9 +420,16 @@ namespace TheLastEmpire.Network
         private void EnsureLocalPlayerBridgeAttached()
         {
             PlayerController local = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
-            if (local != null && local.GetComponent<NetworkPlayerBridge>() == null)
+            if (local != null)
             {
-                local.gameObject.AddComponent<NetworkPlayerBridge>();
+                if (!local.IsRemotePlayer)
+                {
+                    local.NetworkPlayerName = GetOrInitLocalPlayerName();
+                }
+                if (local.GetComponent<NetworkPlayerBridge>() == null)
+                {
+                    local.gameObject.AddComponent<NetworkPlayerBridge>();
+                }
             }
         }
 
@@ -380,8 +470,9 @@ namespace TheLastEmpire.Network
             _activePort = boundPort;
             _activeHostIp = LobbyRelayService.GetLocalIPv4();
             _activeJoinCode = LobbyRelayService.GenerateSixCharJoinCode(_activeHostIp, _activePort);
+            string hostPlayerName = GetOrInitLocalPlayerName();
             _activeRoomName = string.IsNullOrWhiteSpace(customRoomName)
-                ? $"EMPIRE SQUAD [{_activeJoinCode}]"
+                ? $"{hostPlayerName} [{_activeJoinCode}]"
                 : customRoomName.Trim();
 
             if (NetworkManager.Singleton != null)
@@ -394,7 +485,7 @@ namespace TheLastEmpire.Network
             {
                 local.NetworkClientId = 0;
                 local.PartySlotIndex = 0;
-                local.NetworkPlayerName = "HOST (YOU)";
+                local.NetworkPlayerName = hostPlayerName;
             }
 
             if (NetworkStageSyncManager.Instance != null)
@@ -408,7 +499,7 @@ namespace TheLastEmpire.Network
             {
                 clientId = 0,
                 slotIndex = 0,
-                playerName = "HOST (P1)",
+                playerName = hostPlayerName,
                 characterId = _localLobbyCharacterId,
                 isHost = true
             });
@@ -832,7 +923,7 @@ namespace TheLastEmpire.Network
 
             SendPacket(NetPacketType.HandshakeRequest, w =>
             {
-                w.Write($"SURVIVOR-{UnityEngine.Random.Range(10, 99)}");
+                w.Write(GetOrInitLocalPlayerName());
                 w.Write(charId);
             });
         }
@@ -1037,7 +1128,7 @@ namespace TheLastEmpire.Network
                         {
                             local.NetworkClientId = assignedClientId;
                             local.PartySlotIndex = assignedSlot;
-                            local.NetworkPlayerName = $"PLAYER-{assignedSlot + 1} (YOU)";
+                            local.NetworkPlayerName = GetOrInitLocalPlayerName();
                         }
 
                         NetworkStageSyncManager.Instance?.ApplyHostWorldAndStageOnClient(hostSeed, hostStageX, hostStageY, hostSceneName);

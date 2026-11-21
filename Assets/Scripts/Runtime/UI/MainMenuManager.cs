@@ -47,9 +47,18 @@ namespace TheLastEmpire
         [SerializeField] private GameObject fadeOverlayObj;
         [SerializeField] private CanvasGroup fadeOverlayGroup;
 
+        [Header("Player Account Name UI (Top-Right — Drag & Drop in Inspector)")]
+        [Tooltip("ข้อความแสดงชื่อผู้เล่นมุมขวาบน (เช่น AccountName)")]
+        [SerializeField] private TMP_Text accountNameText;
+        [Tooltip("ช่องกรอกเปลี่ยนชื่อผู้เล่น (เช่น ChangeNamePanel ที่มี TMP_InputField)")]
+        [SerializeField] private TMP_InputField changeNameInputField;
+        [Tooltip("ปุ่มเหลืองสำหรับกดเปิดช่องเปลี่ยนชื่อ / กดยืนยันการเปลี่ยนชื่อ (เช่น ChangeNameButton)")]
+        [SerializeField] private Button changeNameBtn;
+
         private GameObject _fadeOverlayObj;
         private CanvasGroup _fadeOverlayGroup;
         private bool _isTransitioning = false;
+        private float _lastNameEditClosedTime = -10f;
         private TMP_FontAsset _customFont;
         private Sprite _menuFrameSprite;
 
@@ -320,9 +329,122 @@ namespace TheLastEmpire
         public void OnClickOnline()
         {
             if (_isTransitioning) return;
+            // ถ้ายูสเซอร์กำลังพิมพ์ชื่อค้างอยู่แล้วกด ONLINE ให้บันทึกชื่อที่พิมพ์ไว้ก่อนย้ายไปหน้า Lobby
+            if (changeNameInputField != null && changeNameInputField.gameObject.activeSelf)
+            {
+                ConfirmAndCloseChangeName(changeNameInputField.text);
+            }
             ShouldLoadSave = false;
             string targetLobbyScene = string.IsNullOrEmpty(onlineLobbySceneName) ? "Lobby_NetCode" : onlineLobbySceneName;
             StartCoroutine(TransitionRoutine(targetLobbyScene));
+        }
+
+        // =========================================================================
+        //  Account Name (State 1: AccountName Text <-> State 2: ChangeNamePanel InputField)
+        // =========================================================================
+
+        private void InitAccountNameUI()
+        {
+            string currentName = TheLastEmpire.Network.EmpireNetworkManager.GetOrInitLocalPlayerName();
+
+            // รูป 1 (เริ่มต้น): แสดง AccountName และซ่อน ChangeNamePanel
+            if (accountNameText != null)
+            {
+                accountNameText.text = currentName;
+                accountNameText.gameObject.SetActive(true);
+            }
+
+            if (changeNameInputField != null)
+            {
+                changeNameInputField.text = string.Empty;
+                changeNameInputField.gameObject.SetActive(false);
+
+                changeNameInputField.onSubmit.RemoveListener(OnAccountNameInputSubmitted);
+                changeNameInputField.onSubmit.AddListener(OnAccountNameInputSubmitted);
+
+                changeNameInputField.onEndEdit.RemoveListener(OnAccountNameInputEndEdit);
+                changeNameInputField.onEndEdit.AddListener(OnAccountNameInputEndEdit);
+            }
+
+            if (changeNameBtn != null)
+            {
+                changeNameBtn.onClick.RemoveListener(OnClickChangeName);
+                changeNameBtn.onClick.AddListener(OnClickChangeName);
+            }
+        }
+
+        /// <summary>
+        /// เรียกเมื่อกดปุ่มเหลือง ChangeNameButton:
+        /// - ถ้าอยู่รูป 1 (โชว์ชื่อ AccountName) -> สลับไปรูป 2 (ซ่อน AccountName แล้วเปิด ChangeNamePanel ให้พิมพ์ชื่อใหม่)
+        /// - ถ้าอยู่รูป 2 (กำลังเปิด ChangeNamePanel) -> ยืนยันบันทึกชื่อที่พิมพ์ แล้วสลับกลับไปรูป 1
+        /// </summary>
+        public void OnClickChangeName()
+        {
+            if (changeNameInputField == null) return;
+
+            bool isEditing = changeNameInputField.gameObject.activeSelf;
+            if (!isEditing)
+            {
+                // ป้องกันกรณีคลิกปุ่ม ChangeNameButton ตอนที่ช่องพิมพ์ยังโฟกัสอยู่ แล้ว onEndEdit เพิ่งปิดช่องไปในเฟรมเดียวกัน
+                if (Time.unscaledTime - _lastNameEditClosedTime < 0.2f)
+                {
+                    return;
+                }
+
+                // สลับจาก รูป 1 -> รูป 2 (ซ่อน AccountName, เปิด ChangeNamePanel)
+                if (accountNameText != null)
+                {
+                    accountNameText.gameObject.SetActive(false);
+                }
+
+                changeNameInputField.gameObject.SetActive(true);
+                changeNameInputField.text = string.Empty;
+                changeNameInputField.Select();
+                changeNameInputField.ActivateInputField();
+            }
+            else
+            {
+                // สลับจาก รูป 2 -> รูป 1 (บันทึกชื่อที่พิมพ์ แล้วกลับไปโชว์ AccountName)
+                ConfirmAndCloseChangeName(changeNameInputField.text);
+            }
+        }
+
+        private void OnAccountNameInputSubmitted(string submittedText)
+        {
+            ConfirmAndCloseChangeName(submittedText);
+        }
+
+        private void OnAccountNameInputEndEdit(string editedText)
+        {
+            if (changeNameInputField != null && changeNameInputField.gameObject.activeSelf)
+            {
+                ConfirmAndCloseChangeName(editedText);
+            }
+        }
+
+        private void ConfirmAndCloseChangeName(string rawInput)
+        {
+            _lastNameEditClosedTime = Time.unscaledTime;
+
+            string cleaned = string.IsNullOrWhiteSpace(rawInput)
+                ? string.Empty
+                : rawInput.Replace("\u200B", "").Trim();
+
+            if (!string.IsNullOrEmpty(cleaned))
+            {
+                TheLastEmpire.Network.EmpireNetworkManager.SetLocalPlayerName(cleaned);
+            }
+
+            if (changeNameInputField != null)
+            {
+                changeNameInputField.gameObject.SetActive(false);
+            }
+
+            if (accountNameText != null)
+            {
+                accountNameText.text = TheLastEmpire.Network.EmpireNetworkManager.LocalPlayerName;
+                accountNameText.gameObject.SetActive(true);
+            }
         }
 
         public void OnCloseCharacterSelect()
@@ -567,6 +689,9 @@ namespace TheLastEmpire
             AttachHoverEffect(settingsBtn);
             AttachHoverEffect(quitBtn);
             AttachHoverEffect(closeControlsBtn);
+            AttachHoverEffect(changeNameBtn);
+
+            InitAccountNameUI();
         }
 
         // =========================================================================
