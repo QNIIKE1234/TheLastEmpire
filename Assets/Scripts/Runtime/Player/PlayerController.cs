@@ -18,7 +18,7 @@ namespace TheLastEmpire
     }
 
     [RequireComponent(typeof(Rigidbody))]
-    public class PlayerController : MonoBehaviour
+    public partial class PlayerController : MonoBehaviour
     {
         public static PlayerController Instance { get; private set; }
 
@@ -365,7 +365,15 @@ namespace TheLastEmpire
 
         private void Awake()
         {
-            Instance = this;
+            if (NextInstantiatedIsRemote)
+            {
+                IsRemotePlayer = true;
+            }
+            if (!IsRemotePlayer)
+            {
+                Instance = this;
+            }
+            TheLastEmpire.Network.PlayerRegistry.Register(this);
             ApplyPlayerConfig();
             InitIndicators();
         }
@@ -755,9 +763,9 @@ namespace TheLastEmpire
             {
             }
 
-            // Automatically attach CameraFollow and CameraObstacleFader components to main camera if not present
+            // Automatically attach CameraFollow and CameraObstacleFader components to main camera if not present (LocalPlayer only)
             Camera mainCam = Camera.main;
-            if (mainCam != null)
+            if (!IsRemotePlayer && mainCam != null)
             {
                 if (mainCam.GetComponent<CameraFollow>() == null)
                 {
@@ -796,51 +804,58 @@ namespace TheLastEmpire
                 _inventory = gameObject.AddComponent<PlayerInventory>();
             }
 
-            // Automatically setup PlayerInput component
+            // Automatically setup PlayerInput component (LocalPlayer only)
             PlayerInput playerInput = GetComponent<PlayerInput>();
-            if (playerInput == null)
+            if (IsRemotePlayer)
             {
-                playerInput = gameObject.AddComponent<PlayerInput>();
-            }
-
-            // Set notification behavior to SendMessages
-            playerInput.notificationBehavior = PlayerNotifications.SendMessages;
-
-            // Load and link the default Input Actions asset
-            if (playerInput.actions == null)
-            {
-                if (inputActions != null)
-                {
-                    playerInput.actions = inputActions;
-                }
-                else
-                {
-                    // Fallback to loading from Resources (for builds)
-                    playerInput.actions = Resources.Load<InputActionAsset>("InputSystem_Actions");
-                }
-
-#if UNITY_EDITOR
-                if (playerInput.actions == null)
-                {
-                    InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
-                    if (defaultActions != null)
-                    {
-                        playerInput.actions = defaultActions;
-                        inputActions = defaultActions;
-                    }
-                }
-#endif
-            }
-
-            if (playerInput.actions != null)
-            {
-                playerInput.currentActionMap = playerInput.actions.FindActionMap("Player");
-                playerInput.currentActionMap?.Enable();
-                Debug.Log($"PlayerController: Linked InputActions asset: {playerInput.actions.name}");
+                if (playerInput != null) playerInput.enabled = false;
             }
             else
             {
-                Debug.LogError("PlayerController: InputActions asset is NOT linked! Player input will not work in standalone builds. Please assign inputActions in the Inspector or place the asset in a Resources folder.");
+                if (playerInput == null)
+                {
+                    playerInput = gameObject.AddComponent<PlayerInput>();
+                }
+
+                // Set notification behavior to SendMessages
+                playerInput.notificationBehavior = PlayerNotifications.SendMessages;
+
+                // Load and link the default Input Actions asset
+                if (playerInput.actions == null)
+                {
+                    if (inputActions != null)
+                    {
+                        playerInput.actions = inputActions;
+                    }
+                    else
+                    {
+                        // Fallback to loading from Resources (for builds)
+                        playerInput.actions = Resources.Load<InputActionAsset>("InputSystem_Actions");
+                    }
+
+#if UNITY_EDITOR
+                    if (playerInput.actions == null)
+                    {
+                        InputActionAsset defaultActions = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+                        if (defaultActions != null)
+                        {
+                            playerInput.actions = defaultActions;
+                            inputActions = defaultActions;
+                        }
+                    }
+#endif
+                }
+
+                if (playerInput.actions != null)
+                {
+                    playerInput.currentActionMap = playerInput.actions.FindActionMap("Player");
+                    playerInput.currentActionMap?.Enable();
+                    Debug.Log($"PlayerController: Linked InputActions asset: {playerInput.actions.name}");
+                }
+                else
+                {
+                    Debug.LogError("PlayerController: InputActions asset is NOT linked! Player input will not work in standalone builds. Please assign inputActions in the Inspector or place the asset in a Resources folder.");
+                }
             }
 
             _currentReserveAmmo = startingReserveAmmo;
@@ -879,6 +894,7 @@ namespace TheLastEmpire
 
         private void OnDestroy()
         {
+            TheLastEmpire.Network.PlayerRegistry.Unregister(this);
             if (Instance == this)
             {
                 Instance = null;
@@ -893,6 +909,11 @@ namespace TheLastEmpire
 
         private void HandlePlayerDeath()
         {
+            // Co-op Downed & Revive System (Section 4.7): Enter 30s Downed state if party has teammates alive
+            if (TryEnterCoopDownedState())
+            {
+                return;
+            }
             // 1. Freeze corpse physics completely so enemies cannot push or slide it around
             if (_rb != null)
             {
@@ -973,6 +994,19 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (IsRemotePlayer)
+            {
+                UpdateRemotePlayerVisuals();
+                return;
+            }
+
+            UpdateCoopDownedAndRevive();
+            if (IsDowned)
+            {
+                UpdateAnimation();
+                return;
+            }
+
             if (IsControlLocked)
             {
                 _moveInput = Vector2.zero;
@@ -1420,6 +1454,18 @@ namespace TheLastEmpire
 
         private void FixedUpdate()
         {
+            if (IsRemotePlayer)
+            {
+                FixedUpdateRemotePlayer();
+                return;
+            }
+
+            if (IsDowned)
+            {
+                if (_rb != null) _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
+                return;
+            }
+
             if (_health != null && _health.IsDead)
             {
                 if (_rb != null)
@@ -1699,6 +1745,7 @@ namespace TheLastEmpire
         // Called by PlayerInput component via SendMessages
         private void OnMove(InputValue value)
         {
+            if (IsRemotePlayer || IsDowned) return;
             if (IsControlLocked)
             {
                 _moveInput = Vector2.zero;
@@ -1714,6 +1761,7 @@ namespace TheLastEmpire
 
         private void OnAttack(InputValue value)
         {
+            if (IsRemotePlayer || IsDowned) return;
             if (IsControlLocked) return;
             if (UnityEngine.EventSystems.EventSystem.current != null && 
                 UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
@@ -1825,6 +1873,7 @@ namespace TheLastEmpire
         public void CollectItem(CollectibleItem item)
         {
             if (item == null || item.IsCollected || _inventory == null) return;
+            if (TryNetworkClaimCollectible(item)) return;
             if (item.IsMoney)
             {
                 _inventory.AddMoney(item.MoneyAmount);
@@ -2107,6 +2156,14 @@ namespace TheLastEmpire
                     // Pass the aim target point for Arced trajectories
                     string arcVisualId = activeWeapon != null ? ResolveProjectileVisualId(activeWeapon) : "";
                     proj.Setup(bulletDir, _aimTargetPoint, gameObject, arcVisualId);
+
+                    if (i == 0 && activeWeapon != null)
+                    {
+                        bool isRocket = !string.IsNullOrEmpty(activeWeapon.weaponName) &&
+                                        activeWeapon.weaponName.IndexOf("Rocket", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                        float netDmg = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0 ? activeCharacterData.baseRangedDamage : 10f);
+                        NotifyNetworkShoot(spawnPos, bulletDir, _aimTargetPoint, activeWeapon.weaponName, netDmg, activeWeapon.range, isRocket);
+                    }
                 }
             }
         }
@@ -2351,6 +2408,8 @@ namespace TheLastEmpire
                 }
                 _animator.Play(slashState, 0, 0f);
             }
+
+            NotifyNetworkMelee(attackPoint, _aimDirection, wName, _meleeComboStep, meleeDmgResult.FinalDamage, activeRadius);
 
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
             int targetsHit = 0;

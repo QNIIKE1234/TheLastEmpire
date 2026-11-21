@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TheLastEmpire
 {
-    public class GameManager : MonoBehaviour
+    public partial class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
 
@@ -298,6 +298,12 @@ namespace TheLastEmpire
             if (EnvironmentManager.Instance != null)
             {
                 EnvironmentManager.Instance.GenerateStageEnvironment(stage);
+            }
+
+            // In Co-op Client mode, enemies and stage events are spawned deterministically from Host packets
+            if (IsNetworkClientOnly())
+            {
+                return;
             }
 
             // Spawn saved dropped items back into the scene

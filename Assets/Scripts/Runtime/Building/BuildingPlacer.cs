@@ -625,6 +625,8 @@ namespace TheLastEmpire
                 BuildingManager.Instance.TrackBuilding(buildingComp);
             }
 
+            TheLastEmpire.Network.NetworkBuildingSyncManager.NotifyLocalBuildingPlaced(buildingComp, _activeData);
+
             // 2. เมื่อวางบนพื้นสำเร็จเรียบร้อยแล้ว จึงค่อยหักวัตถุดิบออกจากกระเป๋า (ถ้าไม่ใช่โหมด Free Craft)
             PlayerInventory inv = PlayerInventory.Instance;
             if (!CraftingDatabase.IsFreeCraft && inv != null)

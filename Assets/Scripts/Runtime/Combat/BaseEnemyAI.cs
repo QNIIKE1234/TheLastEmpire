@@ -4,7 +4,7 @@ using TMPro;
 namespace TheLastEmpire
 {
     [RequireComponent(typeof(Rigidbody))]
-    public abstract class BaseEnemyAI : MonoBehaviour
+    public abstract partial class BaseEnemyAI : MonoBehaviour
     {
         public enum AIState
         {
@@ -349,6 +349,14 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
+            if (IsNetworkPuppet)
+            {
+                FixedUpdateNetworkPuppet();
+                return;
+            }
+
+            UpdateMultiplayerTargetAggro();
+
             // Chaser Phasing: ensure the enemy stays on ground level and does not drift vertically
             if (_isChaserPhasing)
             {
@@ -486,7 +494,8 @@ namespace TheLastEmpire
 
         protected virtual void FindPlayer()
         {
-            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.GetClosestAlivePlayer(transform.position)
+                                   ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 playerTransform = player.transform;

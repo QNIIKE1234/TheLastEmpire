@@ -298,9 +298,14 @@ namespace TheLastEmpire
             if (_isCollected) return;
             if (other.CompareTag("Player") || other.GetComponent<PlayerController>() != null || other.GetComponentInParent<PlayerController>() != null)
             {
+                PlayerController hitPc = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                if (hitPc != null && hitPc.IsRemotePlayer)
+                {
+                    return; // Remote player pickup is resolved authoritatively via NetworkLootManager
+                }
                 if (_playerController == null)
                 {
-                    _playerController = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                    _playerController = hitPc;
                 }
                 if (_playerController != null)
                 {
@@ -315,9 +320,11 @@ namespace TheLastEmpire
 
         private void FindPlayer()
         {
-            if (_playerController == null)
+            if (_playerController == null || _playerController.IsRemotePlayer)
             {
-                _playerController = Object.FindFirstObjectByType<PlayerController>();
+                _playerController = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                 ?? PlayerController.Instance
+                                 ?? Object.FindFirstObjectByType<PlayerController>();
             }
             if (_playerController != null)
             {

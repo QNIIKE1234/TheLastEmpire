@@ -116,6 +116,7 @@ namespace TheLastEmpire
             {
                 DamageNumberManager.Instance.SpawnDamageNumber(dmgNumberPos, damageAmount, isCrit);
             }
+            TheLastEmpire.Network.NetworkLootManager.BroadcastFloatingDamageNumber(dmgNumberPos, damageAmount, isCrit);
 
             // 🟢 เล่นเอฟเฟกต์เลือด/โดนตี ถ้ามีการตั้งค่า Pool Key ไว้
             if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)

@@ -43,12 +43,12 @@ namespace TheLastEmpire
                     MainMenuManager.ShouldLoadSave = false;
                     LoadGame();
                 }
-                else
+                else if (!TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
                 {
                     // Reset persistent editor memory at startup so it doesn't auto-save exploration
                     ResetMapProgression();
 
-                    // Always generate a fresh randomized map seed at startup
+                    // Always generate a fresh randomized map seed at startup (Clients wait for NetWorldSeed from Host)
                     int randomSeed = Random.Range(1000, 99999);
                     StartNewGame(randomSeed);
                 }

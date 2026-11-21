@@ -3,7 +3,7 @@ using DG.Tweening;
 
 namespace TheLastEmpire
 {
-    public class TransitionPortal : MonoBehaviour
+    public partial class TransitionPortal : MonoBehaviour
     {
         public enum TransitionDirection
         {
@@ -216,6 +216,11 @@ namespace TheLastEmpire
         public void TriggerTransition(PlayerController player)
         {
             if (WorldMapManager.Instance == null) return;
+
+            if (TryTriggerNetworkPartyTransition(player))
+            {
+                return;
+            }
 
             GetTargetCoordinates(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY, out int checkX, out int checkY);
             if (!IsWalkableDestinationStage(checkX, checkY))

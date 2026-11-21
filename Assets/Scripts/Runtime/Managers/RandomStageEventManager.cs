@@ -6,7 +6,7 @@ using TMPro;
 
 namespace TheLastEmpire
 {
-    public class RandomStageEventManager : MonoBehaviour
+    public partial class RandomStageEventManager : MonoBehaviour
     {
         private static RandomStageEventManager _instance;
         public static RandomStageEventManager Instance
@@ -232,6 +232,7 @@ namespace TheLastEmpire
         public void OnStageEntered(StageData stage)
         {
             if (!enableRandomEvents || stage == null) return;
+            if (ShouldDeferStageEventToHost()) return;
 
             // 1. เคลียร์อีเวนต์/Coroutine/NPC ของห้องเดิมทันที เพื่อไม่ให้รั่วข้ามห้อง
             CleanupActiveEvent();
