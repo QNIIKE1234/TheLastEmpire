@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using TMPro;
 
 namespace TheLastEmpire
@@ -14,9 +15,11 @@ namespace TheLastEmpire
     {
         public static string DraggedItemName { get; private set; }
         public static InventoryItemSlot HoveredSlot { get; private set; }
+        public static bool ConsumedByDropTarget { get; set; } = false;
 
         private static GameObject _dragGhostObj;
         private static Image _dragGhostImage;
+        private static TMP_Text _dragGhostDropBadge;
 
         [Header("UI References")]
         [Tooltip("Image สำหรับแสดง Icon ของไอเทม")]
@@ -284,6 +287,7 @@ namespace TheLastEmpire
                 return;
 
             DraggedItemName = _currentItemName;
+            ConsumedByDropTarget = false;
 
             Canvas rootCanvas = GetComponentInParent<Canvas>();
             if (rootCanvas != null)
@@ -302,11 +306,31 @@ namespace TheLastEmpire
 
                     RectTransform rt = _dragGhostObj.GetComponent<RectTransform>();
                     rt.sizeDelta = new Vector2(80f, 80f);
+
+                    GameObject badgeObj = new GameObject("DropHintBadge");
+                    badgeObj.transform.SetParent(_dragGhostObj.transform, false);
+                    _dragGhostDropBadge = badgeObj.AddComponent<TextMeshProUGUI>();
+                    _dragGhostDropBadge.fontSize = 18f;
+                    _dragGhostDropBadge.fontStyle = FontStyles.Bold;
+                    _dragGhostDropBadge.alignment = TextAlignmentOptions.Center;
+                    _dragGhostDropBadge.raycastTarget = false;
+                    RectTransform brt = badgeObj.GetComponent<RectTransform>();
+                    brt.anchorMin = new Vector2(0.5f, 0f);
+                    brt.anchorMax = new Vector2(0.5f, 0f);
+                    brt.pivot = new Vector2(0.5f, 1f);
+                    brt.anchoredPosition = new Vector2(0f, -4f);
+                    brt.sizeDelta = new Vector2(180f, 28f);
                 }
                 else
                 {
                     _dragGhostObj.transform.SetParent(rootCanvas.transform, false);
                     _dragGhostObj.SetActive(true);
+                }
+
+                if (_dragGhostDropBadge != null)
+                {
+                    _dragGhostDropBadge.text = "";
+                    _dragGhostDropBadge.gameObject.SetActive(false);
                 }
 
                 if (itemIcon != null && itemIcon.sprite != null)
@@ -334,15 +358,63 @@ namespace TheLastEmpire
             {
                 UpdateGhostPosition(rootCanvas, eventData.position);
             }
+
+            // แสดงข้อความบอกสถานะการโยนเมื่อลากไอเทมออกนอกกรอบกระเป๋า
+            if (_dragGhostDropBadge != null && InventoryUI.Instance != null && InventoryUI.Instance.IsOpen && InventoryUI.Instance.IsSlotOwnedByInventory(this))
+            {
+                bool outsideBag = InventoryUI.Instance.IsPointerOutsideInventoryPanel(eventData.position, eventData.pressEventCamera);
+                if (outsideBag)
+                {
+                    bool isAltHeld = Keyboard.current != null && (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed);
+                    int totalCount = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount(DraggedItemName) : 1;
+                    _dragGhostDropBadge.gameObject.SetActive(true);
+                    if (isAltHeld && totalCount > 1)
+                    {
+                        _dragGhostDropBadge.text = $"DROP ALL (x{totalCount})";
+                        _dragGhostDropBadge.color = new Color(1f, 0.42f, 0.22f, 1f);
+                    }
+                    else
+                    {
+                        _dragGhostDropBadge.text = "DROP x1";
+                        _dragGhostDropBadge.color = new Color(1f, 0.88f, 0.25f, 1f);
+                    }
+                }
+                else
+                {
+                    _dragGhostDropBadge.gameObject.SetActive(false);
+                }
+            }
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            string draggedItem = DraggedItemName;
             DraggedItemName = null;
+
             if (_dragGhostObj != null)
             {
                 _dragGhostObj.SetActive(false);
             }
+            if (_dragGhostDropBadge != null)
+            {
+                _dragGhostDropBadge.gameObject.SetActive(false);
+            }
+
+            // ถ้าไม่ได้ปล่อยลง QuickSlot และลากปล่อยออกนอกกรอบ Panel กระเป๋า -> โยนไอเทมลงพื้น!
+            if (!ConsumedByDropTarget &&
+                !string.IsNullOrEmpty(draggedItem) &&
+                InventoryUI.Instance != null &&
+                InventoryUI.Instance.IsOpen &&
+                InventoryUI.Instance.IsSlotOwnedByInventory(this))
+            {
+                if (InventoryUI.Instance.IsPointerOutsideInventoryPanel(eventData.position, eventData.pressEventCamera))
+                {
+                    bool isAltHeld = Keyboard.current != null && (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed);
+                    InventoryUI.Instance.DropItemFromInventory(draggedItem, dropAll: isAltHeld);
+                }
+            }
+
+            ConsumedByDropTarget = false;
         }
 
         private void UpdateGhostPosition(Canvas rootCanvas, Vector2 screenPos)

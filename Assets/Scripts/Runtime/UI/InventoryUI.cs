@@ -28,6 +28,8 @@ namespace TheLastEmpire
 
         [Header("UI References (Optional)")]
         [SerializeField] private GameObject inventoryPanel;
+        [Tooltip("กรอบ Panel กระเป๋าหลัก (ถ้าลากไอเทมออกไปปล่อยนอกกรอบนี้จะโยนของลงพื้น — ถ้าเว้นว่างระบบจะใช้กรอบของ Item Slots Container อัตโนมัติ)")]
+        [SerializeField] private RectTransform dropZonePanelRect;
         [SerializeField] private TMPro.TMP_Text moneyTextHUD;
         [SerializeField] private TMPro.TMP_Text healthTextHUD;
         [Tooltip("Content GameObject — วาง InventoryItemSlot ลูกไว้ข้างในได้เลย")]
@@ -67,6 +69,135 @@ namespace TheLastEmpire
         private bool _isOpen = false;
 
         public bool IsOpen => _isOpen;
+
+        // =====================================================
+        //  Drag Outside Inventory Panel -> Drop Item to Ground
+        // =====================================================
+
+        public bool IsSlotOwnedByInventory(InventoryItemSlot slot)
+        {
+            if (slot == null) return false;
+            if (itemSlots != null && itemSlots.Contains(slot)) return true;
+            if (_itemContainer != null && slot.transform.IsChildOf(_itemContainer.transform)) return true;
+            if (itemSlotsContainer != null && slot.transform.IsChildOf(itemSlotsContainer.transform)) return true;
+            return false;
+        }
+
+        public bool IsPointerOutsideInventoryPanel(Vector2 screenPos, Camera uiCam)
+        {
+            // ถ้าเมาส์อยู่บนปุ่ม QuickSlot (1-5) ห้ามถือว่าลากโยนทิ้งนอกกระเป๋า
+            if (UnityEngine.EventSystems.EventSystem.current != null)
+            {
+                var pointerData = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
+                {
+                    position = screenPos
+                };
+                var rayResults = new List<UnityEngine.EventSystems.RaycastResult>();
+                UnityEngine.EventSystems.EventSystem.current.RaycastAll(pointerData, rayResults);
+                for (int i = 0; i < rayResults.Count; i++)
+                {
+                    if (rayResults[i].gameObject != null &&
+                        (rayResults[i].gameObject.GetComponent<QuickSlotUIItem>() != null ||
+                         rayResults[i].gameObject.GetComponentInParent<QuickSlotUIItem>() != null))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            RectTransform panelRect = ResolveInventoryDropPanelRect();
+            if (panelRect == null) return false;
+
+            return !RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPos, uiCam);
+        }
+
+        private RectTransform ResolveInventoryDropPanelRect()
+        {
+            if (dropZonePanelRect != null) return dropZonePanelRect;
+
+            Transform containerT = _itemContainer != null ? _itemContainer.transform : (itemSlotsContainer != null ? itemSlotsContainer.transform : null);
+            if (containerT != null)
+            {
+                // ถ้าแม่ของ itemSlotsContainer เป็นกรอบ Panel กลาง (ไม่ใช่หน้าจอเต็ม 1920x1080) ให้ใช้กรอบแม่นั้น
+                RectTransform parentRt = containerT.parent as RectTransform;
+                if (parentRt != null && parentRt.gameObject != inventoryPanel && parentRt.rect.width < Screen.width * 0.85f)
+                {
+                    return parentRt;
+                }
+                RectTransform containerRt = containerT as RectTransform;
+                if (containerRt != null) return containerRt;
+            }
+
+            if (_panelObject != null) return _panelObject.GetComponent<RectTransform>();
+            if (inventoryPanel != null) return inventoryPanel.GetComponent<RectTransform>();
+            return null;
+        }
+
+        /// <summary>
+        /// โยนไอเทมออกจากกระเป๋าลงพื้น:
+        /// - ลากปกติ (dropAll = false): โยนทีละ 1 ชิ้น
+        /// - กด Alt ค้าง + ลากโยน (dropAll = true): โยนทั้งหมดในกองเป็นไอเทมบนพื้นชิ้นเดียว (เก็บแล้วได้ครบทั้งจำนวน เช่น x100)
+        /// - ของที่โยนลงพื้นจะปิดแม่เหล็กดูดอัตโนมัติ ต้องกด [E] เพื่อเก็บ
+        /// </summary>
+        public void DropItemFromInventory(string itemName, bool dropAll)
+        {
+            if (string.IsNullOrEmpty(itemName)) return;
+            if (_playerInventory == null) FindInventory();
+            if (_playerInventory == null) return;
+
+            int available = _playerInventory.GetItemCount(itemName);
+            if (available <= 0) return;
+
+            int dropQty = dropAll ? available : 1;
+            if (!_playerInventory.RemoveItem(itemName, dropQty)) return;
+
+            PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                        ?? player
+                                        ?? PlayerController.Instance;
+
+            Vector3 dropPos = Vector3.zero;
+            if (localPlayer != null)
+            {
+                Vector3 fwd = localPlayer.AimDirection;
+                fwd.y = 0f;
+                if (fwd.sqrMagnitude < 0.01f) fwd = localPlayer.transform.forward;
+                fwd.y = 0f;
+                fwd.Normalize();
+                dropPos = localPlayer.transform.position + fwd * 1.15f;
+                dropPos.y = CollectibleItem.GROUND_Y;
+            }
+
+            // หากเป็น Client ที่อยู่ในช่องเดียวกับ Host ให้ส่งคำขอวางไอเทมไปที่ Host เพื่อสร้างและซิงค์ให้ทุกคนเห็นเหมือนกัน
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient &&
+                TheLastEmpire.Network.NetworkLootManager.Instance != null &&
+                WorldMapManager.Instance != null)
+            {
+                PlayerController hostAvatar = TheLastEmpire.Network.PlayerRegistry.GetPlayerByClientId(0);
+                bool sameStageAsHost = hostAvatar != null &&
+                                       hostAvatar.NetworkStageX == WorldMapManager.Instance.CurrentPlayerX &&
+                                       hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY;
+                if (sameStageAsHost)
+                {
+                    TheLastEmpire.Network.NetworkLootManager.Instance.RequestClientDropItemToHost(itemName, dropQty, dropPos);
+                    RefreshUI();
+                    return;
+                }
+            }
+
+            // Host หรือ Singleplayer หรือ Client ที่อยู่คนละช่อง -> สร้างไอเทม 1 ชิ้นบนพื้นพร้อมจำนวน dropQty และเปิดโหมดต้องกด [E] เก็บ
+            SpawnManualPickupDropLocally(itemName, dropQty, dropPos);
+            RefreshUI();
+        }
+
+        public static CollectibleItem SpawnManualPickupDropLocally(string itemName, int quantity, Vector3 dropPos)
+        {
+            if (GameManager.Instance == null || GameManager.Instance.ItemDropPrefab == null) return null;
+
+            CollectibleItem dropped = Instantiate(GameManager.Instance.ItemDropPrefab, dropPos, Quaternion.identity);
+            dropped.SetItemDetails(itemName, quantity);
+            dropped.ConfigureAsPlayerDroppedItem();
+            return dropped;
+        }
 
         // =====================================================
         //  Unity Lifecycle

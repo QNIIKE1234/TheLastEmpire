@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using TMPro;
 
 namespace TheLastEmpire
@@ -45,12 +46,28 @@ namespace TheLastEmpire
 
         public int NetworkDropId { get; set; } = 0;
         public bool IsSpawnedFromNetwork { get; private set; } = false;
+        public bool RequireManualPickup { get; private set; } = false;
         public Vector3 InitialSpawnPosition { get; private set; }
+
+        private static GUIStyle _manualPromptStyle;
 
         public void MarkAsSpawnedFromNetwork(int dropId)
         {
             IsSpawnedFromNetwork = true;
             NetworkDropId = dropId;
+        }
+
+        /// <summary>
+        /// ตั้งค่าไอเทมชิ้นนี้เป็นของที่ผู้เล่นโยนออกจากกระเป๋า:
+        /// - ปิดแม่เหล็กดูดอัตโนมัติ (ไม่ดูดกลับเข้าตัว)
+        /// - ต้องเดินเข้าใกล้แล้วกด [E] เพื่อเก็บเข้ากระเป๋า (เก็บทีเดียวได้ครบทั้งจำนวน เช่น x100)
+        /// </summary>
+        public void ConfigureAsPlayerDroppedItem()
+        {
+            RequireManualPickup = true;
+            enableMagnet = false;
+            interactRange = Mathf.Max(interactRange, 2.2f);
+            UpdatePromptText();
         }
 
         private void Start()
@@ -304,14 +321,62 @@ namespace TheLastEmpire
                 bool inRange = distToPlayer <= interactRange;
                 if (promptText != null)
                 {
-                    promptText.gameObject.SetActive(!enableMagnet && inRange);
+                    promptText.gameObject.SetActive((!enableMagnet || RequireManualPickup) && inRange);
+                }
+
+                // ของที่ผู้เล่นโยนลงพื้นจะไม่ดูดเข้าตัวอัตโนมัติ ต้องกด [E] เพื่อเก็บ
+                if (RequireManualPickup && inRange && !_isPopping &&
+                    Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame &&
+                    (InventoryUI.Instance == null || !InventoryUI.Instance.IsOpen))
+                {
+                    if (_playerController != null)
+                    {
+                        _playerController.CollectItem(this);
+                    }
+                    else
+                    {
+                        Collect();
+                    }
+                    return;
                 }
             }
         }
 
+        private void OnGUI()
+        {
+            if (_isCollected || !RequireManualPickup || promptText != null) return;
+            if (_playerTransform == null || !IsPlayerInRange()) return;
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+
+            Camera cam = Camera.main;
+            if (cam == null) return;
+
+            Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 0.9f);
+            if (screenPos.z <= 0f) return;
+
+            if (_manualPromptStyle == null)
+            {
+                _manualPromptStyle = new GUIStyle(GUI.skin.box)
+                {
+                    fontSize = 13,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                _manualPromptStyle.normal.textColor = new Color(1f, 0.92f, 0.25f, 1f);
+            }
+
+            string label = isMoney ? $"[E] Pick up ${moneyAmount}" : $"[E] Pick up {itemName} x{quantity}";
+            float width = Mathf.Max(160f, label.Length * 8.5f);
+            Rect rect = new Rect(screenPos.x - width * 0.5f, Screen.height - screenPos.y - 26f, width, 26f);
+            Color prevBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.06f, 0.08f, 0.12f, 0.90f);
+            GUI.Box(rect, label, _manualPromptStyle);
+            GUI.backgroundColor = prevBg;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
-            if (_isCollected) return;
+            if (_isCollected || RequireManualPickup) return;
             if (other.CompareTag("Player") || other.GetComponent<PlayerController>() != null || other.GetComponentInParent<PlayerController>() != null)
             {
                 PlayerController hitPc = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();

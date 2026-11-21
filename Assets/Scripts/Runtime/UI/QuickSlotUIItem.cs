@@ -143,6 +143,7 @@ namespace TheLastEmpire
         {
             if (!string.IsNullOrEmpty(InventoryItemSlot.DraggedItemName))
             {
+                InventoryItemSlot.ConsumedByDropTarget = true;
                 string droppedItem = InventoryItemSlot.DraggedItemName;
                 if (!QuickSlotController.IsItemQuickSlotEligible(droppedItem))
                 {

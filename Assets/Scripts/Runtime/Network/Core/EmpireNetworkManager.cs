@@ -36,6 +36,7 @@ namespace TheLastEmpire.Network
         LootClaimRequest = 41,
         LootClaimResult = 42,
         ContainerLootSync = 43,
+        ClientDropItemRequest = 44,
         BuildingPlaceRequest = 50,
         BuildingPlaceBroadcast = 51,
         BuildingDestroyBroadcast = 52,
@@ -1308,7 +1309,20 @@ namespace TheLastEmpire.Network
                         bool isMoney = reader.ReadBoolean();
                         int moneyAmt = reader.ReadInt32();
                         Vector3 dropPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                        NetworkLootManager.Instance?.HandleHostLootSpawnOnClient(dropId, dropStageX, dropStageY, itemName, qty, isMoney, moneyAmt, dropPos);
+                        bool requireManualPickup = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
+                        NetworkLootManager.Instance?.HandleHostLootSpawnOnClient(dropId, dropStageX, dropStageY, itemName, qty, isMoney, moneyAmt, dropPos, requireManualPickup);
+                    }
+                    break;
+
+                case NetPacketType.ClientDropItemRequest:
+                    if (_isHost)
+                    {
+                        int dropStageX = reader.ReadInt32();
+                        int dropStageY = reader.ReadInt32();
+                        string itemName = reader.ReadString();
+                        int qty = reader.ReadInt32();
+                        Vector3 dropPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        NetworkLootManager.Instance?.HandleClientDropItemRequestOnHost(dropStageX, dropStageY, itemName, qty, dropPos);
                     }
                     break;
 

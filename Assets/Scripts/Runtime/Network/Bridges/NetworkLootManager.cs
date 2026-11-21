@@ -136,6 +136,7 @@ namespace TheLastEmpire.Network
             int qty = item.Quantity;
             bool isMoney = item.IsMoney;
             int moneyAmt = item.MoneyAmount;
+            bool requireManual = item.RequireManualPickup;
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootSpawnBroadcast, w =>
             {
@@ -149,7 +150,39 @@ namespace TheLastEmpire.Network
                 w.Write(spawnPos.x);
                 w.Write(spawnPos.y);
                 w.Write(spawnPos.z);
+                w.Write(requireManual);
             });
+        }
+
+        public void RequestClientDropItemToHost(string itemName, int quantity, Vector3 dropPos)
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || EmpireNetworkManager.Instance == null) return;
+
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.ClientDropItemRequest, w =>
+            {
+                w.Write(stageX);
+                w.Write(stageY);
+                w.Write(itemName ?? "");
+                w.Write(quantity);
+                w.Write(dropPos.x);
+                w.Write(dropPos.y);
+                w.Write(dropPos.z);
+            });
+        }
+
+        public void HandleClientDropItemRequestOnHost(int dropStageX, int dropStageY, string itemName, int quantity, Vector3 dropPos)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || GameManager.Instance == null) return;
+
+            int hostStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int hostStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            if (dropStageX != hostStageX || dropStageY != hostStageY) return;
+
+            // สร้างไอเทมบนเครื่อง Host (ซึ่ง CollectibleItem.Start() จะกระจาย LootSpawnBroadcast กลับไปให้ทุกเครื่องอัตโนมัติ)
+            InventoryUI.SpawnManualPickupDropLocally(itemName, quantity, dropPos);
         }
 
         /// <summary>
@@ -178,6 +211,7 @@ namespace TheLastEmpire.Network
                 int qty = item.Quantity;
                 bool isMoney = item.IsMoney;
                 int moneyAmt = item.MoneyAmount;
+                bool requireManual = item.RequireManualPickup;
 
                 EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootSpawnBroadcast, w =>
                 {
@@ -191,11 +225,12 @@ namespace TheLastEmpire.Network
                     w.Write(pos.x);
                     w.Write(pos.y);
                     w.Write(pos.z);
+                    w.Write(requireManual);
                 }, targetClientId);
             }
         }
 
-        public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos)
+        public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos, bool requireManualPickup = false)
         {
             if (!EmpireNetworkManager.IsOnlineClient || GameManager.Instance == null) return;
             if (_claimedDropIds.Contains(dropId)) return;
@@ -220,6 +255,7 @@ namespace TheLastEmpire.Network
                 if (sameKind && (cOrigin - spawnPos).sqrMagnitude < 0.35f)
                 {
                     c.MarkAsSpawnedFromNetwork(dropId);
+                    if (requireManualPickup) c.ConfigureAsPlayerDroppedItem();
                     _trackedItemsById[dropId] = c;
                     return;
                 }
@@ -239,6 +275,10 @@ namespace TheLastEmpire.Network
             else
             {
                 spawned.SetItemDetails(itemName, qty);
+            }
+            if (requireManualPickup)
+            {
+                spawned.ConfigureAsPlayerDroppedItem();
             }
             _trackedItemsById[dropId] = spawned;
         }
