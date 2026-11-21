@@ -624,35 +624,11 @@ namespace TheLastEmpire.Network
             }
             else
             {
+                // ถ้ายังไม่มีใครสร้างห้องใน LAN เลย ให้ซ่อนแถวห้องทั้งหมด (ไม่แสดงแถวห้องหลอก 0/6 Wait)
                 for (int i = 0; i < roomSlots.Count; i++)
                 {
                     RoomThumbnailUI slot = roomSlots[i];
-                    if (slot == null) continue;
-
-                    if (i == 0)
-                    {
-                        bool hasDirectQuery = !string.IsNullOrEmpty(query);
-                        if (hasDirectQuery)
-                        {
-                            string target = query;
-                            slot.SetRoomData(
-                                $"DIRECT JOIN / CREATE ROOM:  <color=#FACC15>{query}</color>",
-                                "1/6",
-                                true,
-                                "Join",
-                                () => OnJoinRoomClicked(target, target));
-                        }
-                        else
-                        {
-                            slot.SetRoomData(
-                                "<color=#94A3B8>NO LAN ROOMS FOUND — CLICK [CREATE] TO HOST A ROOM</color>",
-                                "0/6",
-                                false,
-                                "Wait",
-                                null);
-                        }
-                    }
-                    else
+                    if (slot != null)
                     {
                         slot.HideRow();
                     }

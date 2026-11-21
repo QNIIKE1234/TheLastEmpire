@@ -33,8 +33,31 @@ namespace TheLastEmpire.Network
         public Button JoinButton => joinButton;
         public TMP_Text JoinButtonLabel => joinButtonLabel;
 
+        private void Awake()
+        {
+            EnsureValidTextReferences();
+        }
+
+        private void EnsureValidTextReferences()
+        {
+            if (playerCountText == null || playerCountText == roomNameText)
+            {
+                TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    TMP_Text t = texts[i];
+                    if (t == null || t == roomNameText || t == joinButtonLabel) continue;
+                    if (joinButton != null && t.transform.IsChildOf(joinButton.transform)) continue;
+
+                    playerCountText = t;
+                    break;
+                }
+            }
+        }
+
         public void SetRoomData(string displayName, string countDisplay, bool isJoinable, string buttonText, Action onJoinClicked, bool isLocked = false)
         {
+            EnsureValidTextReferences();
             gameObject.SetActive(true);
 
             if (roomNameText != null)

@@ -34,6 +34,7 @@ namespace TheLastEmpire.Network
         [SerializeField] private bool hideCardWhenEmpty = false;
 
         private Sprite _cachedSceneDefaultSprite;
+        private bool _initialized;
 
         public Image ProfileImage => profileImage;
         public Sprite DefaultUnselectedSprite => defaultUnselectedSprite != null ? defaultUnselectedSprite : _cachedSceneDefaultSprite;
@@ -43,9 +44,37 @@ namespace TheLastEmpire.Network
 
         private void Awake()
         {
-            if (profileImage != null && profileImage.sprite != null)
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (!_initialized)
             {
-                _cachedSceneDefaultSprite = profileImage.sprite;
+                _initialized = true;
+                if (profileImage != null && profileImage.sprite != null)
+                {
+                    _cachedSceneDefaultSprite = profileImage.sprite;
+                }
+            }
+
+            if (selectCharacterButton == null)
+            {
+                Button[] childButtons = GetComponentsInChildren<Button>(true);
+                for (int i = 0; i < childButtons.Length; i++)
+                {
+                    Button btn = childButtons[i];
+                    if (btn == null || btn.gameObject == gameObject || btn == kickButton) continue;
+
+                    if (btn.name.IndexOf("Change", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        btn.name.IndexOf("Select", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        btn.name.IndexOf("Wrench", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        kickButton != null)
+                    {
+                        selectCharacterButton = btn;
+                        break;
+                    }
+                }
             }
         }
 
@@ -62,6 +91,7 @@ namespace TheLastEmpire.Network
             bool canHostKickThisSlot,
             Action onKickClicked)
         {
+            EnsureInitialized();
             gameObject.SetActive(true);
 
             if (nameText != null)
@@ -116,6 +146,8 @@ namespace TheLastEmpire.Network
         /// </summary>
         public void SetEmpty(int slotNumber, Sprite fallbackDefaultSprite = null)
         {
+            EnsureInitialized();
+
             if (hideCardWhenEmpty)
             {
                 gameObject.SetActive(false);
