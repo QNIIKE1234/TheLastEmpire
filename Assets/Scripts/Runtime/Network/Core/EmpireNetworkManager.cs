@@ -140,6 +140,7 @@ namespace TheLastEmpire.Network
                 }
                 if (Instance._isSessionActive && Instance._isHost)
                 {
+                    Instance._activeRoomName = _cachedLocalPlayerName;
                     Instance.BroadcastLobbyRosterFromHost();
                 }
                 Instance.OnLobbyRosterChanged?.Invoke();
@@ -472,7 +473,7 @@ namespace TheLastEmpire.Network
             _activeJoinCode = LobbyRelayService.GenerateSixCharJoinCode(_activeHostIp, _activePort);
             string hostPlayerName = GetOrInitLocalPlayerName();
             _activeRoomName = string.IsNullOrWhiteSpace(customRoomName)
-                ? $"{hostPlayerName} [{_activeJoinCode}]"
+                ? hostPlayerName
                 : customRoomName.Trim();
 
             if (NetworkManager.Singleton != null)

@@ -276,8 +276,9 @@ namespace TheLastEmpire.Network
         {
             if (EmpireNetworkManager.Instance == null) return;
 
-            string customName = GetCleanSearchQuery();
-            EmpireNetworkManager.Instance.StartHostSession(LobbyRelayService.DefaultUdpPort, customName);
+            // ใช้ชื่อหัวห้อง (LocalPlayerName) เป็นชื่อห้องโดยอัตโนมัติ
+            string hostRoomName = EmpireNetworkManager.GetOrInitLocalPlayerName();
+            EmpireNetworkManager.Instance.StartHostSession(LobbyRelayService.DefaultUdpPort, hostRoomName);
 
             if (selectRoomPanel != null) selectRoomPanel.SetActive(false);
             if (roomInfoPanel != null) roomInfoPanel.SetActive(true);
@@ -477,9 +478,7 @@ namespace TheLastEmpire.Network
 
             if (enterWastelandButtonLabel != null)
             {
-                enterWastelandButtonLabel.text = isHost
-                    ? $"ENTER WASTELAND ({partyCount}/6)"
-                    : "HOST ONLY (WAITING...)";
+                enterWastelandButtonLabel.text = "ENTER WASTELAND";
             }
 
             if (memberSlots == null || memberSlots.Count == 0) return;
@@ -608,7 +607,7 @@ namespace TheLastEmpire.Network
                     if (dataIndex < discovered.Count)
                     {
                         DiscoveredLanRoom room = discovered[dataIndex];
-                        string displayTitle = $"{room.roomName}   <color=#38BDF8>[{room.joinCode}]</color>   <size=80%><color=#94A3B8>({room.hostIp})</color></size>";
+                        string displayTitle = room.roomName;
                         string countStr = $"{room.currentPlayers}/{room.maxPlayers}";
                         bool canJoin = room.currentPlayers < room.maxPlayers;
                         string endpoint = $"{room.hostIp}:{room.hostPort}";
