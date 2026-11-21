@@ -1246,12 +1246,13 @@ namespace TheLastEmpire
 
             if (_shootAnimLayerTimer > 0f) _shootAnimLayerTimer -= Time.deltaTime;
             if (_meleeAnimTimer > 0f) _meleeAnimTimer -= Time.deltaTime;
+            bool isSatchelRolling = _activeShiftAbility is SatchelVaultAbility satchelAbility && satchelAbility.IsVaulting;
             if (_animator.layerCount > 1)
             {
-                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isVaulting && !_isSitting && !isFullBodyShift;
+                bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isVaulting && !isSatchelRolling && !_isSitting && !isFullBodyShift;
                 _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
             }
-            _animator.SetBool("IsDashing", _isDashing || _isVaulting);
+            _animator.SetBool("IsDashing", _isDashing || _isVaulting || isSatchelRolling);
         }
 
         private static bool HasAnimatorParameter(Animator anim, string paramName)
@@ -1494,9 +1495,12 @@ namespace TheLastEmpire
             {
                 _rb.linearVelocity = _dashDirection * dashSpeed;
             }
-            else if (_activeShiftAbility != null && _activeShiftAbility.IsActive && (_activeShiftAbility is GrapplingHookAbility gha && gha.IsPulling || _activeShiftAbility is UnstoppableChargeAbility))
+            else if (_activeShiftAbility != null && _activeShiftAbility.IsActive &&
+                     ((_activeShiftAbility is GrapplingHookAbility gha && gha.IsPulling) ||
+                      _activeShiftAbility is UnstoppableChargeAbility ||
+                      (_activeShiftAbility is SatchelVaultAbility sva && sva.IsVaulting)))
             {
-                // Active ability handles linearVelocity override directly (Grappling Hook zip or Juggernaut Charge)
+                // Active ability handles linearVelocity override directly (Grappling Hook zip, Juggernaut Charge, or Demolitionist Satchel Forward Roll)
                 return;
             }
             else

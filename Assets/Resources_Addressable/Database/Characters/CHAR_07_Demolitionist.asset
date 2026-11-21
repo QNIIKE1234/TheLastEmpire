@@ -66,10 +66,10 @@ MonoBehaviour:
   moneyMultiplier: 1
   shiftAbilityType: 6
   shiftAbilityName: Satchel Vault
-  shiftAbilityDescription: 'Press [Shift] to plant a C4 satchel charge and launch
-    yourself backward 4.5m with evasion I-frames. The mine arms in 0.3s and detonates
-    on enemy proximity or 2.5s timer dealing 65 AOE damage and 1.2s stun. (Passive:
-    Blast Shield reduces explosive damage taken by 60%, +30% blast radius)'
+  shiftAbilityDescription: 'Press [Shift] to plant a C4 satchel charge and roll
+    forward 4.5m with evasion I-frames. The mine arms in 0.3s and detonates on enemy
+    proximity or 2.5s timer dealing 65 AOE damage and 1.2s stun (safe for self & allies).
+    (Passive: Blast Shield reduces explosive damage taken by 60%, +30% blast radius)'
   shiftCooldown: 5
   adrenalineSpeedMultiplier: 1.75
   adrenalineAttackSpeedBonus: 0.3

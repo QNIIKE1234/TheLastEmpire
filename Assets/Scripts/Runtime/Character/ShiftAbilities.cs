@@ -1044,7 +1044,7 @@ namespace TheLastEmpire
     public class SatchelVaultAbility : IShiftAbility
     {
         public string AbilityName => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityName : "Satchel Vault";
-        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Plants C4 satchel mine and vaults backwards 4.5m with evasion I-frames";
+        public string Description => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftAbilityDescription : "Plants C4 satchel mine and rolls forward 4.5m with evasion I-frames";
         public bool IsActive => _isVaulting;
         public float CooldownRemaining => _cooldownTimer;
         public float CooldownDuration => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.shiftCooldown : 5.0f;
@@ -1075,9 +1075,24 @@ namespace TheLastEmpire
             float speed = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.vaultSpeed : 16f;
             float duration = distance / Mathf.Max(1f, speed);
 
-            _vaultDirection = -_player.AimDirection.normalized;
-            _vaultDirection.y = 0f;
-            if (_vaultDirection.sqrMagnitude < 0.01f) _vaultDirection = -_player.transform.forward;
+            // กลิ้งไปข้างหน้า (ถ้ากำลังกดเดิน WASD ให้กลิ้งไปทิศที่เดิน ถ้าไม่ได้กดเดินให้กลิ้งไปด้านหน้าตามทิศเล็ง)
+            if (_player.MoveInput.sqrMagnitude > 0.01f)
+            {
+                _vaultDirection = new Vector3(_player.MoveInput.x, 0f, _player.MoveInput.y).normalized;
+            }
+            else
+            {
+                _vaultDirection = _player.AimDirection;
+                _vaultDirection.y = 0f;
+                if (_vaultDirection.sqrMagnitude < 0.01f) _vaultDirection = _player.transform.forward;
+                _vaultDirection.y = 0f;
+                _vaultDirection.Normalize();
+            }
+
+            if (_vaultDirection.sqrMagnitude > 0.01f)
+            {
+                _player.transform.forward = _vaultDirection;
+            }
 
             _isVaulting = true;
             _vaultTimer = duration;
@@ -1271,6 +1286,15 @@ namespace TheLastEmpire
             foreach (var col in targets)
             {
                 if (col == null || col.gameObject == gameObject) continue;
+
+                // ไม่ให้ระเบิด C4 ของตัวเองสร้างดาเมจใส่เจ้าของหรือเพื่อนร่วมทีม (PlayerController)
+                if (col.gameObject == _owner ||
+                    col.CompareTag("Player") ||
+                    col.GetComponent<PlayerController>() != null ||
+                    col.GetComponentInParent<PlayerController>() != null)
+                {
+                    continue;
+                }
 
                 Health health = col.GetComponent<Health>();
                 if (health != null && !health.IsDead)
