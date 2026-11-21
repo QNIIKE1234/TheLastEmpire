@@ -15,18 +15,6 @@ MonoBehaviour:
   m_GroupName: Images_Group
   m_GUID: 7e0ffc3b6a3b9654798d9606e5beec69
   m_SerializeEntries:
-  - m_GUID: d7b55e23f8624c968e4b2a89d7310f52
-    m_Address: Image/Animation/Chibi_ZombieBoss_Controller
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Image
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5e15dec6ef8aa81cb6909a175a1ec4b6
-    m_Address: Image/Animation/Chibi_ZombieRunner_DeformedRun
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Image
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0bc1a540961b89e47a353895c4dbeb44
     m_Address: Image/NPC/exec-f2c89e01-1141-4c6f-bce3-1394b9d78bb2
     m_ReadOnly: 0
@@ -101,12 +89,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - Image
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 30456671400b3a645aa350fb58ef3189
-    m_Address: Image/NPC/exec-6f913f16-3c09-4584-9541-79142371dc58
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Image
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 333c8165129952048a4bcfe6894e5922
     m_Address: Image/ENV/ChatGPT Image Oct 24, 2026, 03_29_13 AM
     m_ReadOnly: 0
@@ -147,6 +129,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Image
     - UI
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e15dec6ef8aa81cb6909a175a1ec4b6
+    m_Address: Image/Animation/Chibi_ZombieRunner_DeformedRun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Image
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5e8c3d5ccf863a14b876f8e68048d112
     m_Address: Image/NPC/exec-641779df-e6c1-4c97-9224-cdb1c8bcd03d
@@ -298,6 +286,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d760af430e32cf549bd715462fcebd74
     m_Address: Image/items/money_icon
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Image
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d7b55e23f8624c968e4b2a89d7310f52
+    m_Address: Image/Animation/Chibi_ZombieBoss_Controller
     m_ReadOnly: 0
     m_SerializedLabels:
     - Image
