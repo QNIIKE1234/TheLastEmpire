@@ -2037,6 +2037,9 @@ namespace TheLastEmpire
                         int itemDamage = 0;
                         float weaponRange = activeWeapon.range; // fallback to default weapon range/lifetime
 
+                        bool isRocketLauncher = !string.IsNullOrEmpty(activeWeapon.weaponName) &&
+                                                activeWeapon.weaponName.IndexOf("Rocket", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
                         if (ItemDatabase.Instance != null)
                         {
                             ItemData item = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
@@ -2045,7 +2048,14 @@ namespace TheLastEmpire
                                 itemDamage = item.damage;
 
                                 // If attackRadius is configured in ItemData, calculate bullet lifetime based on projectile speed
-                                if (item.type == ItemType.ThrowingWeapon || (proj != null && proj.Trajectory == TrajectoryMode.Arced))
+                                if (isRocketLauncher)
+                                {
+                                    // Slow heavy rocket with very long flight range (~34m at 13 m/s)
+                                    const float rocketSpeed = 13f;
+                                    const float rocketMaxDistance = 34f;
+                                    weaponRange = rocketMaxDistance / rocketSpeed;
+                                }
+                                else if (item.type == ItemType.ThrowingWeapon || (proj != null && proj.Trajectory == TrajectoryMode.Arced))
                                 {
                                     weaponRange = 5.0f; // Give sufficient flight time for arced throwing weapons
                                 }
@@ -2066,6 +2076,31 @@ namespace TheLastEmpire
 
                         string visualId = ResolveProjectileVisualId(activeWeapon);
                         proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
+
+                        if (isRocketLauncher)
+                        {
+                            // Match Grenade's exact explosion radius & Explosion VFX, flying slow & very far
+                            float grenadeRadius = 2.5f;
+                            string grenadeVfxKey = "Explosion";
+                            if (weapons != null)
+                            {
+                                for (int wIdx = 0; wIdx < weapons.Count; wIdx++)
+                                {
+                                    if (weapons[wIdx] != null && weapons[wIdx].weaponName != null &&
+                                        weapons[wIdx].weaponName.IndexOf("Grenade", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                        weapons[wIdx].projectilePrefab != null)
+                                    {
+                                        if (weapons[wIdx].projectilePrefab.ExplosionRadius > 0.1f)
+                                            grenadeRadius = weapons[wIdx].projectilePrefab.ExplosionRadius;
+                                        if (!string.IsNullOrEmpty(weapons[wIdx].projectilePrefab.ExplosionVfxPoolKey))
+                                            grenadeVfxKey = weapons[wIdx].projectilePrefab.ExplosionVfxPoolKey;
+                                        break;
+                                    }
+                                }
+                            }
+                            proj.ConfigureExplosiveOverride(13f, grenadeRadius, grenadeVfxKey);
+                        }
+
                         Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Visual ID: {visualId} | Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
                     

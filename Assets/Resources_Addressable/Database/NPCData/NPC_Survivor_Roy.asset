@@ -19,9 +19,11 @@ MonoBehaviour:
   interactRange: 2.2
   customModelPrefab: {fileID: 5721804549086991470, guid: 9b40bb4bda7b13140b314669d2ffe99f, type: 3}
   tintColor: {r: 1, g: 1, b: 1, a: 1}
+  characterImage: {fileID: 21300000, guid: efff8078cbc99484885077a0602f7c40, type: 3}
+  npcIcon: {fileID: -1404108715, guid: bcd2e74f786231949af299fce984e7ef, type: 3}
+  npcPortrait: {fileID: 21300000, guid: efff8078cbc99484885077a0602f7c40, type: 3}
   dialogueId: Merchant_Rumor
   dialogueTree: {fileID: 0}
-  npcPortrait: {fileID: 0}
   shopItems:
   - item: {fileID: 11400000, guid: 367b81fe3d09402e9ff9715e12f7896a, type: 2}
     price: 1800

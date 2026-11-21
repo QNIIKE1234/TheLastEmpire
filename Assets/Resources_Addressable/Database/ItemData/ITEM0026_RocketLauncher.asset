@@ -22,7 +22,7 @@ MonoBehaviour:
   themeColor: {r: 0.9, g: 0.2, b: 0.2, a: 1}
   dropMaterial: {fileID: 0}
   damage: 150
-  attackRadius: 3.5
+  attackRadius: 2.5
   attackRate: 0
   knockbackForce: 3
   staggerDuration: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
     fireRate: 1.5
     magazineSize: 1
     reloadDuration: 2.5
-    range: 4
+    range: 34
     canPierce: 0
     spreadAngle: 0
     pelletsPerShot: 1

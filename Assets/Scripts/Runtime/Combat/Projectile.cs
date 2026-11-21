@@ -81,9 +81,13 @@ namespace TheLastEmpire
         private float _flightDuration;
         private float _currentFlightTime;
 
-        // Dynamic overrides set by Weapon stats
+        // Dynamic overrides set by Weapon stats (reset per-shot so pooled bullets stay clean)
         private float _activeDamage;
         private float _activeLifetime;
+        private float _activeSpeed;
+        private bool _activeIsExplosive;
+        private float _activeExplosionRadius;
+        private string _activeExplosionVfxPoolKey;
         private bool _canPierce = false;
         private string _weaponName = "";
         private float _maxFalloffDistance = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
@@ -95,9 +99,10 @@ namespace TheLastEmpire
             set => poolKey = value;
         }
 
-        public float Speed => speed;
-        public bool IsExplosive => isExplosive;
-        public float ExplosionRadius => explosionRadius;
+        public float Speed => _activeSpeed > 0f ? _activeSpeed : speed;
+        public bool IsExplosive => _activeIsExplosive;
+        public float ExplosionRadius => _activeExplosionRadius > 0f ? _activeExplosionRadius : explosionRadius;
+        public string ExplosionVfxPoolKey => !string.IsNullOrEmpty(_activeExplosionVfxPoolKey) ? _activeExplosionVfxPoolKey : explosionVfxPoolKey;
         public TrajectoryMode Trajectory => trajectoryMode;
         public GameObject Owner => _owner;
         public Light BulletLight => bulletLight;
@@ -243,8 +248,53 @@ namespace TheLastEmpire
             SetupBulletLight();
 
             // Set initial defaults
+            ResetDynamicOverrides();
+        }
+
+        private void ResetDynamicOverrides()
+        {
             _activeDamage = damage;
             _activeLifetime = lifetime;
+            _activeSpeed = speed;
+            _activeIsExplosive = isExplosive;
+            _activeExplosionRadius = explosionRadius;
+            _activeExplosionVfxPoolKey = explosionVfxPoolKey;
+            if (_trail != null)
+            {
+                _trail.startWidth = trailStartWidth;
+                _trail.time = trailTime;
+            }
+            if (bulletLight != null && useBulletLight)
+            {
+                bulletLight.color = lightColor;
+                bulletLight.range = lightRange;
+                bulletLight.intensity = lightIntensity;
+            }
+        }
+
+        /// <summary>
+        /// Dynamically configures this pooled projectile as a slow, long-range explosive rocket
+        /// (resets cleanly back to prefab defaults on next shot / pool reuse).
+        /// </summary>
+        public void ConfigureExplosiveOverride(float overrideSpeed, float overrideExplosionRadius, string overrideExplosionVfxKey = "Explosion")
+        {
+            if (overrideSpeed > 0.1f) _activeSpeed = overrideSpeed;
+            _activeIsExplosive = true;
+            if (overrideExplosionRadius > 0.1f) _activeExplosionRadius = overrideExplosionRadius;
+            if (!string.IsNullOrEmpty(overrideExplosionVfxKey)) _activeExplosionVfxPoolKey = overrideExplosionVfxKey;
+
+            if (_trail != null)
+            {
+                _trail.startWidth = Mathf.Max(trailStartWidth, 0.28f);
+                _trail.time = Mathf.Max(trailTime, 0.22f);
+            }
+            if (bulletLight != null)
+            {
+                bulletLight.color = new Color(1f, 0.42f, 0.1f, 1f);
+                bulletLight.range = Mathf.Max(lightRange, 8f);
+                bulletLight.intensity = Mathf.Max(lightIntensity, 4f);
+                bulletLight.enabled = true;
+            }
         }
 
         private void SetupTrailRenderer()
@@ -513,7 +563,7 @@ namespace TheLastEmpire
                 {
                     // Reached the destination
                     transform.position = _targetPoint;
-                    if (isExplosive) Explode();
+                    if (_activeIsExplosive) Explode();
                     DeactivateProjectile();
                     return;
                 }
@@ -536,7 +586,7 @@ namespace TheLastEmpire
                 _lifeTimer -= Time.deltaTime;
                 if (_lifeTimer <= 0f)
                 {
-                    if (isExplosive) Explode();
+                    if (_activeIsExplosive) Explode();
                     DeactivateProjectile();
                 }
             }
@@ -547,6 +597,7 @@ namespace TheLastEmpire
             _owner = owner;
             _targetPoint = targetPoint;
             _startPoint = transform.position;
+            float moveSpeed = _activeSpeed > 0.01f ? _activeSpeed : speed;
 
             if (!string.IsNullOrEmpty(visualId))
             {
@@ -557,14 +608,14 @@ namespace TheLastEmpire
             {
                 _rb.linearVelocity = Vector3.zero; // Manual movement via Update
                 float distance = Vector3.Distance(new Vector3(_startPoint.x, 0, _startPoint.z), new Vector3(_targetPoint.x, 0, _targetPoint.z));
-                _flightDuration = distance / speed;
+                _flightDuration = distance / moveSpeed;
                 
                 // Ensure it doesn't instantly snap if distance is extremely close
                 if (_flightDuration < 0.1f) _flightDuration = 0.1f;
             }
             else
             {
-                _rb.linearVelocity = direction.normalized * speed;
+                _rb.linearVelocity = direction.normalized * moveSpeed;
                 if (direction.sqrMagnitude > 0.01f)
                 {
                     transform.forward = direction.normalized;
@@ -574,6 +625,7 @@ namespace TheLastEmpire
 
         public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f, string visualId = "")
         {
+            ResetDynamicOverrides();
             _activeDamage = damageVal;
             _activeLifetime = lifetimeVal;
             _canPierce = pierceVal;
@@ -628,7 +680,7 @@ namespace TheLastEmpire
                     return;
                 }
 
-                if (isExplosive)
+                if (_activeIsExplosive)
                 {
                     Explode();
                     DeactivateProjectile();
@@ -663,7 +715,7 @@ namespace TheLastEmpire
             // Hit solid wall or obstacle
             if (!collision.isTrigger)
             {
-                if (isExplosive)
+                if (_activeIsExplosive)
                 {
                     Explode();
                 }
@@ -680,12 +732,14 @@ namespace TheLastEmpire
 
         private void Explode()
         {
-            Debug.Log($"[Projectile] Grenade exploded at {transform.position}!");
+            float activeRadius = _activeExplosionRadius > 0.01f ? _activeExplosionRadius : explosionRadius;
+            string activeVfxKey = !string.IsNullOrEmpty(_activeExplosionVfxPoolKey) ? _activeExplosionVfxPoolKey : explosionVfxPoolKey;
+            Debug.Log($"[Projectile] Explosive ({_weaponName}) detonated at {transform.position} (radius={activeRadius:F1}m)!");
 
             // Play Explosion VFX
-            if (!string.IsNullOrEmpty(explosionVfxPoolKey) && ObjectPoolManager.Instance != null)
+            if (!string.IsNullOrEmpty(activeVfxKey) && ObjectPoolManager.Instance != null)
             {
-                GameObject explosionVFX = ObjectPoolManager.Instance.SpawnFromPool(explosionVfxPoolKey, transform.position, Quaternion.identity);
+                GameObject explosionVFX = ObjectPoolManager.Instance.SpawnFromPool(activeVfxKey, transform.position, Quaternion.identity);
                 if (explosionVFX != null)
                 {
                     PooledParticle pooledParticle = explosionVFX.GetComponent<PooledParticle>();
@@ -693,18 +747,18 @@ namespace TheLastEmpire
 
                     if (pooledParticle != null)
                     {
-                        pooledParticle.SetPoolKey(explosionVfxPoolKey);
-                        pooledParticle.ApplyScaleMultiplier(explosionRadius * multiplier);
+                        pooledParticle.SetPoolKey(activeVfxKey);
+                        pooledParticle.ApplyScaleMultiplier(activeRadius * multiplier);
                     }
                     else
                     {
-                        explosionVFX.transform.localScale = Vector3.one * (explosionRadius * multiplier);
+                        explosionVFX.transform.localScale = Vector3.one * (activeRadius * multiplier);
                     }
                 }
             }
 
             // AOE Damage
-            Collider[] targets = Physics.OverlapSphere(transform.position, explosionRadius);
+            Collider[] targets = Physics.OverlapSphere(transform.position, activeRadius);
             foreach (var target in targets)
             {
                 if (_owner != null && target.gameObject == _owner) continue; // No friendly fire to owner
@@ -720,7 +774,7 @@ namespace TheLastEmpire
                     }
 
                     float distFromCenter = Vector3.Distance(transform.position, target.transform.position);
-                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, explosionRadius, _owner);
+                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, activeRadius, _owner);
                     damageable.TakeDamage(dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);
                 }
             }
