@@ -114,9 +114,6 @@ namespace TheLastEmpire
         public bool IsOpen => _isOpen;
         public CraftingCategory CurrentCategory => _currentCategory;
 
-        private Button _freeCraftButton;
-        private TMP_Text _freeCraftButtonText;
-
         public bool FreeCraftMode
         {
             get => freeCraftMode || CraftingDatabase.IsFreeCraft;
@@ -124,7 +121,6 @@ namespace TheLastEmpire
             {
                 freeCraftMode = value;
                 CraftingDatabase.IsFreeCraft = value;
-                UpdateFreeCraftButtonVisuals();
                 RefreshActiveThumbnailsState();
             }
         }
@@ -189,11 +185,6 @@ namespace TheLastEmpire
         private void Start()
         {
             FindPlayerInventory();
-            if (craftPanel != null && craftPanel.activeSelf)
-            {
-                EnsureFreeCraftButtonCreated();
-                UpdateFreeCraftButtonVisuals();
-            }
         }
 
         private bool _lastAtWorkbench = false;
@@ -245,62 +236,7 @@ namespace TheLastEmpire
         {
             FreeCraftMode = !FreeCraftMode;
             Debug.Log($"[CraftController] Free Craft Mode: {(FreeCraftMode ? "ENABLED (เปิดโหมดคราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "DISABLED (ปิดโหมดคราฟต์ฟรี)")}");
-            UpdateFreeCraftButtonVisuals();
             RefreshActiveThumbnailsState();
-        }
-
-        private void EnsureFreeCraftButtonCreated()
-        {
-            if (_freeCraftButton != null || craftPanel == null) return;
-
-            GameObject btnObj = new GameObject("FreeCraftToggleBtn");
-            btnObj.transform.SetParent(craftPanel.transform, false);
-
-            RectTransform rt = btnObj.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = new Vector2(300f, 420f);
-            rt.sizeDelta = new Vector2(210f, 40f);
-
-            Image img = btnObj.AddComponent<Image>();
-            img.color = new Color(0.15f, 0.15f, 0.18f, 0.95f);
-
-            _freeCraftButton = btnObj.AddComponent<Button>();
-            _freeCraftButton.onClick.AddListener(ToggleFreeCraft);
-
-            GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
-            RectTransform textRt = textObj.AddComponent<RectTransform>();
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = Vector2.one;
-            textRt.offsetMin = Vector2.zero;
-            textRt.offsetMax = Vector2.zero;
-
-            _freeCraftButtonText = textObj.AddComponent<TextMeshProUGUI>();
-            if (pageNumberText != null && pageNumberText.font != null)
-            {
-                _freeCraftButtonText.font = pageNumberText.font;
-            }
-            _freeCraftButtonText.alignment = TextAlignmentOptions.Center;
-            _freeCraftButtonText.fontSize = 20f;
-            _freeCraftButtonText.fontStyle = FontStyles.Bold;
-
-            UpdateFreeCraftButtonVisuals();
-        }
-
-        private void UpdateFreeCraftButtonVisuals()
-        {
-            if (_freeCraftButtonText != null)
-            {
-                bool isFree = FreeCraftMode;
-                _freeCraftButtonText.text = isFree ? "⚡ FREE CRAFT: ON" : "FREE CRAFT: OFF";
-                _freeCraftButtonText.color = isFree ? new Color(1f, 0.82f, 0.15f, 1f) : new Color(0.7f, 0.7f, 0.7f, 1f);
-                if (_freeCraftButton != null && _freeCraftButton.GetComponent<Image>() != null)
-                {
-                    _freeCraftButton.GetComponent<Image>().color = isFree ? new Color(0.28f, 0.22f, 0.05f, 0.95f) : new Color(0.15f, 0.15f, 0.18f, 0.95f);
-                }
-            }
         }
 
         private void OnDestroy()
@@ -487,8 +423,6 @@ namespace TheLastEmpire
             }
 
             UpdateWorkbenchCategoryTabsVisibility();
-            EnsureFreeCraftButtonCreated();
-            UpdateFreeCraftButtonVisuals();
 
             if (PopUpManager.Instance != null)
             {
