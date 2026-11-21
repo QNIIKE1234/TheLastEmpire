@@ -381,6 +381,7 @@ namespace TheLastEmpire
                                 {
                                     _playerInventory.AddMoney(_currentContainer.moneyAmount);
                                     _currentContainer.moneyAmount = 0;
+                                    TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                                     RefreshUI();
                                 }
                             },
@@ -416,6 +417,7 @@ namespace TheLastEmpire
                                     {
                                         _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
                                         _currentContainer.itemsInside.RemoveAt(index);
+                                        TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                                         RefreshUI();
                                     }
                                     else
@@ -458,6 +460,7 @@ namespace TheLastEmpire
                         {
                             _playerInventory.AddMoney(_currentContainer.moneyAmount);
                             _currentContainer.moneyAmount = 0;
+                            TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                             RefreshUI();
                         }
                     });
@@ -478,6 +481,7 @@ namespace TheLastEmpire
                             {
                                 _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
                                 _currentContainer.itemsInside.RemoveAt(index);
+                                TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                                 RefreshUI();
                             }
                             else
@@ -520,6 +524,7 @@ namespace TheLastEmpire
                 _currentContainer.isSearched = true;
             }
 
+            TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
             Close();
         }
 

@@ -1,17 +1,20 @@
 using System.Collections.Generic;
+using System.IO;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace TheLastEmpire.Network
 {
     /// <summary>
-    /// NetworkLootManager — ระบบป้องกันการเก็บของซ้ำ (Atomic Server Claim / Anti-Dupe Mutex Lock)
+    /// NetworkLootManager — ระบบป้องกันการเก็บของซ้ำ (Atomic Server Claim / Anti-Dupe Mutex Lock),
+    /// ซิงค์ไอเทมที่ดรอปจากศัตรูบนพื้น (LootSpawnBroadcast), ซิงค์การหยิบของออกจากกล่อง/ตู้ (ContainerLootSync),
     /// และซิงค์ตัวเลขดาเมจลอย (Floating Damage Numbers) ให้เห็นตรงกันทุกหน้าจอ (Section 4.5)
     /// </summary>
     public class NetworkLootManager : NetworkBehaviour
     {
         public static NetworkLootManager Instance { get; private set; }
 
+        private int _nextHostDropId = 1000;
         private readonly Dictionary<int, CollectibleItem> _trackedItemsById = new Dictionary<int, CollectibleItem>();
         private readonly HashSet<int> _claimedDropIds = new HashSet<int>();
 
@@ -24,18 +27,202 @@ namespace TheLastEmpire.Network
         }
 
         /// <summary>
-        /// คำนวณรหัสไอเทมดรอปบนพื้นแบบ Deterministic จากพิกัดและชื่อไอเทม
-        /// เพื่อให้ Host และ Client อ้างอิงไอเทมชิ้นเดียวกันด้วย dropId เดียวกัน
+        /// ดึงรหัสไอเทมดรอปบนพื้น (ใช้ NetworkDropId ที่ซิงค์มาจาก Host ก่อน หรือคำนวณจาก InitialSpawnPosition
+        /// เพื่อไม่ให้รหัสเปลี่ยนเมื่อไอเทมถูกแม่เหล็กดูดเคลื่อนที่เข้าหาตัวผู้เล่น!)
         /// </summary>
         public static int ComputeDeterministicDropId(CollectibleItem item)
         {
             if (item == null) return 0;
+            if (item.NetworkDropId != 0)
+            {
+                return item.NetworkDropId;
+            }
             unchecked
             {
-                int qx = Mathf.RoundToInt(item.transform.position.x * 10f);
-                int qz = Mathf.RoundToInt(item.transform.position.z * 10f);
+                Vector3 origin = item.InitialSpawnPosition != Vector3.zero ? item.InitialSpawnPosition : item.transform.position;
+                int qx = Mathf.RoundToInt(origin.x * 10f);
+                int qz = Mathf.RoundToInt(origin.z * 10f);
                 int nameHash = (item.ItemName ?? "").GetHashCode();
-                return (qx * 73856093) ^ (qz * 19349663) ^ nameHash ^ (item.Quantity * 83492791);
+                int computed = (qx * 73856093) ^ (qz * 19349663) ^ nameHash ^ (item.Quantity * 83492791);
+                if (computed == 0) computed = 1;
+                item.NetworkDropId = computed;
+                return computed;
+            }
+        }
+
+        /// <summary>
+        /// เรียกจาก CollectibleItem.Start() บนเครื่อง Host เพื่อออกรหัส DropId กลางและกระจายให้ Client ในช่องเดียวกันเห็นของดรอปตรงกัน
+        /// </summary>
+        public void RegisterAndBroadcastHostDrop(CollectibleItem item)
+        {
+            if (item == null || !EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+
+            int dropId = item.NetworkDropId != 0 ? item.NetworkDropId : _nextHostDropId++;
+            item.NetworkDropId = dropId;
+            _trackedItemsById[dropId] = item;
+
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            Vector3 spawnPos = item.InitialSpawnPosition != Vector3.zero ? item.InitialSpawnPosition : item.transform.position;
+            string iName = item.ItemName ?? "";
+            int qty = item.Quantity;
+            bool isMoney = item.IsMoney;
+            int moneyAmt = item.MoneyAmount;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootSpawnBroadcast, w =>
+            {
+                w.Write(dropId);
+                w.Write(stageX);
+                w.Write(stageY);
+                w.Write(iName);
+                w.Write(qty);
+                w.Write(isMoney);
+                w.Write(moneyAmt);
+                w.Write(spawnPos.x);
+                w.Write(spawnPos.y);
+                w.Write(spawnPos.z);
+            });
+        }
+
+        public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos)
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || GameManager.Instance == null) return;
+            if (_claimedDropIds.Contains(dropId)) return;
+
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            if (stageX != myStageX || stageY != myStageY) return;
+
+            if (_trackedItemsById.TryGetValue(dropId, out CollectibleItem existing) && existing != null)
+            {
+                return;
+            }
+
+            // ป้องกันการเสกซ้ำกับไอเทมที่เกิดจาก Seed ห้องเดียวกัน (เช่น SupplyAirdrop / ScavengerCache)
+            CollectibleItem[] all = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                CollectibleItem c = all[i];
+                if (c == null || c.IsCollected) continue;
+                Vector3 cOrigin = c.InitialSpawnPosition != Vector3.zero ? c.InitialSpawnPosition : c.transform.position;
+                bool sameKind = (c.IsMoney == isMoney) && (isMoney ? (c.MoneyAmount == moneyAmt) : string.Equals(c.ItemName, itemName, System.StringComparison.OrdinalIgnoreCase));
+                if (sameKind && (cOrigin - spawnPos).sqrMagnitude < 0.35f)
+                {
+                    c.MarkAsSpawnedFromNetwork(dropId);
+                    _trackedItemsById[dropId] = c;
+                    return;
+                }
+            }
+
+            CollectibleItem prefab = isMoney
+                ? (GameManager.Instance.MoneyDropPrefab != null ? GameManager.Instance.MoneyDropPrefab : GameManager.Instance.ItemDropPrefab)
+                : GameManager.Instance.ItemDropPrefab;
+            if (prefab == null) return;
+
+            CollectibleItem spawned = Instantiate(prefab, spawnPos, Quaternion.identity);
+            spawned.MarkAsSpawnedFromNetwork(dropId);
+            if (isMoney)
+            {
+                spawned.SetMoneyDetails(moneyAmt);
+            }
+            else
+            {
+                spawned.SetItemDetails(itemName, qty);
+            }
+            _trackedItemsById[dropId] = spawned;
+        }
+
+        // =====================================================
+        //  LootContainer / Crate / Locker Sync (Anti-Dupe)
+        // =====================================================
+
+        public void BroadcastContainerState(LootContainer container)
+        {
+            if (container == null || !EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
+
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            Vector3 pos = container.transform.position;
+            int money = container.moneyAmount;
+            var items = container.itemsInside;
+            int itemCount = items != null ? items.Count : 0;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.ContainerLootSync, w =>
+            {
+                w.Write(stageX);
+                w.Write(stageY);
+                w.Write(pos.x);
+                w.Write(pos.z);
+                w.Write(money);
+                w.Write(itemCount);
+                for (int i = 0; i < itemCount; i++)
+                {
+                    w.Write(items[i].itemName ?? "");
+                    w.Write(items[i].quantity);
+                }
+            });
+        }
+
+        public void HandleContainerLootSyncPacket(BinaryReader reader, bool relayIfHost)
+        {
+            int stageX = reader.ReadInt32();
+            int stageY = reader.ReadInt32();
+            float posX = reader.ReadSingle();
+            float posZ = reader.ReadSingle();
+            int remainingMoney = reader.ReadInt32();
+            int itemCount = reader.ReadInt32();
+            List<LootSlot> syncedItems = new List<LootSlot>(Mathf.Max(0, itemCount));
+            for (int i = 0; i < itemCount; i++)
+            {
+                string iName = reader.ReadString();
+                int qty = reader.ReadInt32();
+                syncedItems.Add(new LootSlot(iName, qty));
+            }
+
+            // หากเครื่อง Host ได้รับจาก Client ให้กระจายต่อให้ลูกทีมคนอื่นรู้ด้วย
+            if (relayIfHost && EmpireNetworkManager.IsOnlineHost && EmpireNetworkManager.Instance != null)
+            {
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.ContainerLootSync, w =>
+                {
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(posX);
+                    w.Write(posZ);
+                    w.Write(remainingMoney);
+                    w.Write(syncedItems.Count);
+                    for (int i = 0; i < syncedItems.Count; i++)
+                    {
+                        w.Write(syncedItems[i].itemName ?? "");
+                        w.Write(syncedItems[i].quantity);
+                    }
+                });
+            }
+
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            if (stageX != myStageX || stageY != myStageY) return;
+
+            LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
+            for (int i = 0; i < containers.Length; i++)
+            {
+                LootContainer c = containers[i];
+                if (c == null) continue;
+                Vector3 cPos = c.transform.position;
+                float dx = cPos.x - posX;
+                float dz = cPos.z - posZ;
+                if (dx * dx + dz * dz <= 0.36f)
+                {
+                    c.moneyAmount = remainingMoney;
+                    c.itemsInside.Clear();
+                    c.itemsInside.AddRange(syncedItems);
+                    c.isSearched = (remainingMoney <= 0 && syncedItems.Count == 0);
+
+                    if (LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == c)
+                    {
+                        LootUI.Instance.RefreshUI();
+                    }
+                    break;
+                }
             }
         }
 

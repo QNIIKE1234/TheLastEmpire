@@ -668,6 +668,18 @@ namespace TheLastEmpire
                 return false;
             }
 
+            // หาก Client เดินแยกไปอยู่คนละช่องพิกัดกับ Host และไอเทมนั้นไม่ได้มาจาก Host ให้เก็บได้ทันที
+            if (!item.IsSpawnedFromNetwork && WorldMapManager.Instance != null)
+            {
+                PlayerController hostAvatar = PlayerRegistry.GetPlayerByClientId(0);
+                if (hostAvatar != null &&
+                    (hostAvatar.NetworkStageX != WorldMapManager.Instance.CurrentPlayerX ||
+                     hostAvatar.NetworkStageY != WorldMapManager.Instance.CurrentPlayerY))
+                {
+                    return false;
+                }
+            }
+
             // เครื่อง Client ส่ง Atomic Claim ไปหา Host เพื่อป้องกัน Loot Dupe 100%
             if (NetworkLootManager.Instance != null)
             {

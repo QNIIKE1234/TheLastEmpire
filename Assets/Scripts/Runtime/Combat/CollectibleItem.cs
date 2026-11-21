@@ -43,9 +43,25 @@ namespace TheLastEmpire
         private bool _isCollected = false;
         public bool IsCollected => _isCollected;
 
+        public int NetworkDropId { get; set; } = 0;
+        public bool IsSpawnedFromNetwork { get; private set; } = false;
+        public Vector3 InitialSpawnPosition { get; private set; }
+
+        public void MarkAsSpawnedFromNetwork(int dropId)
+        {
+            IsSpawnedFromNetwork = true;
+            NetworkDropId = dropId;
+        }
+
         private void Start()
         {
+            InitialSpawnPosition = transform.position;
             CaptureInitialScale();
+
+            if (!IsSpawnedFromNetwork && TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost && TheLastEmpire.Network.NetworkLootManager.Instance != null)
+            {
+                TheLastEmpire.Network.NetworkLootManager.Instance.RegisterAndBroadcastHostDrop(this);
+            }
 
             // Ensure all colliders are triggers immediately so all units walk through freely
             Collider[] colliders = GetComponentsInChildren<Collider>();
