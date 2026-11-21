@@ -18,12 +18,15 @@ namespace TheLastEmpire.Network
         public static MultiplayerLobbyUI Instance { get; private set; }
         public static Action OnRequestLaunchSecondClientWindow;
 
-        [Header("1. Main Panels (ลาก 2 หน้าหลักมาใส่)")]
+        [Header("1. Main Panels (ลากหน้าหลักมาใส่)")]
         [Tooltip("หน้าแรก: หน้าเลือกห้อง / สร้างห้อง (เช่น SelectRoomPanel)")]
         [SerializeField] private GameObject selectRoomPanel;
 
-        [Tooltip("หน้าที่สอง: หน้าข้อมูลห้อง 6 คนเมื่อกด CREATE หรือ Join (เช่น RoomInfoPanel)")]
+        [Tooltip("หน้าที่สอง: หน้าเตรียมพร้อมในห้อง 6 คนเมื่อกด CREATE หรือ Join (เช่น RoomInfoPanel)")]
         [SerializeField] private GameObject roomInfoPanel;
+
+        [Tooltip("หน้าที่สาม: หน้าเลือกตัวละครที่เปิดขึ้นมาเมื่อเรากดปุ่มสีเหลืองรูปประแจบนการ์ดของตัวเอง (เช่น Lobby / CharacterSelectModal)")]
+        [SerializeField] private GameObject characterSelectPanel;
 
         [Header("2. SelectRoomPanel — ปุ่มสร้างห้อง & ค้นหาห้อง")]
         [Tooltip("ปุ่ม CREATE มุมขวาล่างในหน้า SelectRoomPanel (เช่น EmbarkButton)")]
@@ -55,12 +58,15 @@ namespace TheLastEmpire.Network
         [Tooltip("ลากแถว RoomThumbnail ทั้ง 5 แถว (ที่แปะสคริปต์ RoomThumbnailUI แล้ว) มาใส่ลิสต์นี้")]
         [SerializeField] private List<RoomThumbnailUI> roomSlots = new List<RoomThumbnailUI>();
 
-        [Header("5. RoomInfoPanel — ปุ่ม LEAVE, ENTER WASTELAND & หัวข้อห้อง")]
+        [Header("5. RoomInfoPanel — ปุ่ม LEAVE, ENTER WASTELAND (เฉพาะหัวห้อง) & หัวข้อห้อง")]
         [Tooltip("ปุ่มสีแดง LEAVE มุมซ้ายบนในหน้า RoomInfoPanel (เช่น ModalPanel/Close)")]
         [SerializeField] private Button leaveRoomButton;
 
-        [Tooltip("ปุ่มสีเหลือง ENTER WASTELAND มุมขวาบนในหน้า RoomInfoPanel (เช่น ModalPanel/EmbarkButton)")]
+        [Tooltip("ปุ่มสีเหลือง ENTER WASTELAND มุมขวาบนในหน้า RoomInfoPanel (หัวห้องกดเริ่มเกมได้คนเดียวเท่านั้น!)")]
         [SerializeField] private Button enterWastelandButton;
+
+        [Tooltip("ถ้าติ๊กถูก เครื่องลูกทีม (Client) จะมองไม่เห็นปุ่ม ENTER WASTELAND (ซ่อนปุ่มไว้ให้หัวห้องเห็นและกดได้คนเดียว)")]
+        [SerializeField] private bool hideStartButtonForNonHost = false;
 
         [Tooltip("ข้อความบนปุ่ม ENTER WASTELAND (Optional)")]
         [SerializeField] private TMP_Text enterWastelandButtonLabel;
@@ -75,8 +81,17 @@ namespace TheLastEmpire.Network
         [Tooltip("ลาก MemberPrefabs ทั้ง 6 ช่อง (ที่แปะสคริปต์ RoomMemberSlotUI แล้ว) เรียงช่อง 1..6 มาใส่ลิสต์นี้")]
         [SerializeField] private List<RoomMemberSlotUI> memberSlots = new List<RoomMemberSlotUI>();
 
-        [Tooltip("รูปโปรไฟล์สำรองสำหรับผู้เล่น 1..6 (ถ้าไม่ใส่ ระบบจะดึงรูปตัวละครจาก CharacterDatabase ให้อัตโนมัติ)")]
-        [SerializeField] private List<Sprite> defaultMemberPortraits = new List<Sprite>();
+        [Tooltip("รูป Default กรณีผู้เล่นเพิ่งเข้าห้องแล้วยังไม่ได้กดปุ่มประแจเลือกตัวละคร (เช่น รูปเข็มทิศในรูปของคุณ)")]
+        [SerializeField] private Sprite defaultUnselectedPortrait;
+
+        [Tooltip("รูปโปรไฟล์ประจำตัวละครทั้ง 7 (ถ้าไม่ลากใส่ ระบบจะดึงจาก CharacterSelectUI หรือ CharacterDatabase ให้อัตโนมัติ)")]
+        [SerializeField] private Sprite vanguardPortrait;
+        [SerializeField] private Sprite juggernautPortrait;
+        [SerializeField] private Sprite phantomPortrait;
+        [SerializeField] private Sprite marksmanPortrait;
+        [SerializeField] private Sprite scavengerPortrait;
+        [SerializeField] private Sprite rebelPortrait;
+        [SerializeField] private Sprite demolitionistPortrait;
 
         [Header("7. Scene Navigation Settings")]
         [Tooltip("ชื่อซีนเมนูหลักเมื่อกดปุ่มประตูออกในหน้า SelectRoomPanel")]
@@ -170,14 +185,12 @@ namespace TheLastEmpire.Network
 
             BindSerializedUIEvents();
 
-            // ตอนเริ่มซีน: เปิดหน้าเลือกห้อง (SelectRoomPanel) และปิดหน้าในห้อง (RoomInfoPanel)
+            // ตอนเริ่มซีน: เปิดหน้าเลือกห้อง (SelectRoomPanel) และปิดหน้าในห้อง (RoomInfoPanel) กับหน้าเลือกตัวละคร
             if (selectRoomPanel != null && !EmpireNetworkManager.IsOnline)
             {
                 selectRoomPanel.SetActive(true);
-                if (roomInfoPanel != null)
-                {
-                    roomInfoPanel.SetActive(false);
-                }
+                if (roomInfoPanel != null) roomInfoPanel.SetActive(false);
+                if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
             }
 
             RefreshSceneLobbyUI();
@@ -305,8 +318,39 @@ namespace TheLastEmpire.Network
         {
             if (selectRoomPanel == null) return false;
             EmpireNetworkManager.Instance?.DisconnectSession();
+            if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
             if (roomInfoPanel != null) roomInfoPanel.SetActive(false);
             selectRoomPanel.SetActive(true);
+            RefreshSceneLobbyUI();
+            return true;
+        }
+
+        /// <summary>
+        /// เรียกเมื่อผู้เล่นกดปุ่มสีเหลืองรูปประแจบนการ์ดของตัวเองในหน้า RoomInfoPanel เพื่อเปิดหน้าเลือกตัวละคร
+        /// </summary>
+        public void OpenLocalCharacterSelectFromRoomInfo()
+        {
+            if (characterSelectPanel == null) return;
+            characterSelectPanel.SetActive(true);
+        }
+
+        /// <summary>
+        /// เรียกเมื่อผู้เล่นเลือกตัวละครเสร็จในหน้า characterSelectPanel เพื่อซิงค์ตัวละครเข้าห้องและกลับไปหน้า RoomInfoPanel
+        /// </summary>
+        public bool CloseCharacterSelectBackToRoomInfo(string chosenCharacterId)
+        {
+            if (roomInfoPanel == null || characterSelectPanel == null || !characterSelectPanel.activeSelf)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(chosenCharacterId))
+            {
+                EmpireNetworkManager.Instance?.UpdateLocalLobbyCharacter(chosenCharacterId);
+            }
+
+            characterSelectPanel.SetActive(false);
+            roomInfoPanel.SetActive(true);
             RefreshSceneLobbyUI();
             return true;
         }
@@ -314,6 +358,7 @@ namespace TheLastEmpire.Network
         private void HandleKickedFromRoom()
         {
             _statusMessage = "You were removed from the room by the Host.";
+            if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
             if (roomInfoPanel != null) roomInfoPanel.SetActive(false);
             if (selectRoomPanel != null) selectRoomPanel.SetActive(true);
             RefreshSceneLobbyUI();
@@ -410,7 +455,8 @@ namespace TheLastEmpire.Network
 
             var members = EmpireNetworkManager.Instance.LobbyMembers;
             int partyCount = Mathf.Max(1, members.Count);
-            bool isHost = EmpireNetworkManager.IsOnlineHost;
+            bool isHost = EmpireNetworkManager.IsOnlineHost || !EmpireNetworkManager.IsOnline;
+            ulong localClientId = EmpireNetworkManager.Instance.LocalClientId;
 
             if (roomInfoSubtitleText != null)
             {
@@ -421,17 +467,25 @@ namespace TheLastEmpire.Network
                     $"PLAYERS: <color=#4ADE80>{partyCount}/6</color>";
             }
 
+            // ปุ่มเริ่มเกม ENTER WASTELAND: หัวห้อง (Host) เท่านั้นที่กดเริ่มเกมได้!
             if (enterWastelandButton != null)
             {
-                // เครื่อง Host กดเริ่มเกมได้ทันที ส่วนเครื่องลูกทีมรอให้ Host กดเริ่ม
-                enterWastelandButton.interactable = isHost || !EmpireNetworkManager.IsOnline;
+                if (hideStartButtonForNonHost)
+                {
+                    enterWastelandButton.gameObject.SetActive(isHost);
+                }
+                else
+                {
+                    enterWastelandButton.gameObject.SetActive(true);
+                    enterWastelandButton.interactable = isHost;
+                }
             }
 
             if (enterWastelandButtonLabel != null)
             {
                 enterWastelandButtonLabel.text = isHost
                     ? $"ENTER WASTELAND ({partyCount}/6)"
-                    : "WAITING FOR HOST...";
+                    : "HOST ONLY (WAITING...)";
             }
 
             if (memberSlots == null || memberSlots.Count == 0) return;
@@ -444,42 +498,91 @@ namespace TheLastEmpire.Network
                 if (slotIdx < members.Count)
                 {
                     LobbyMemberNetInfo info = members[slotIdx];
-                    Sprite portrait = ResolvePortraitForCharacter(info.characterId, slotIdx);
+                    // หาก info.characterId ยังว่างอยู่ (ยังไม่ได้กดปุ่มประแจเลือกตัวละคร) จะคืนค่า null เพื่อให้ Slot แสดงรูป Default เข็มทิศ!
+                    Sprite portrait = ResolvePortraitForCharacter(info.characterId);
 
-                    // ปุ่มแดง [X] เตะคน: แสดงเฉพาะบนหน้าจอของ Host และต้องไม่ใช่ช่องตัวเอง (slotIdx > 0)
-                    bool showKickBtn = isHost && slotIdx > 0 && !info.isHost;
+                    // 1. ปุ่มเหลืองรูปประแจ: แสดงและกดได้เฉพาะช่องของตัวเราเองเท่านั้น!
+                    bool isOurOwnSlot = isHost
+                        ? (info.isHost || slotIdx == 0)
+                        : (info.clientId == localClientId && !info.isHost);
+
+                    // 2. ปุ่มแดง [X] เตะคน: แสดงเฉพาะบนหน้าจอของหัวห้อง (Host) บนช่องของลูกทีมคนอื่น
+                    bool canHostKick = isHost && !isOurOwnSlot && !info.isHost;
                     int capturedSlot = info.slotIndex;
 
                     slotUI.SetOccupied(
                         info.playerName,
                         portrait,
-                        showKickBtn,
+                        defaultUnselectedPortrait,
+                        isOurOwnSlot,
+                        OpenLocalCharacterSelectFromRoomInfo,
+                        canHostKick,
                         () => EmpireNetworkManager.Instance?.KickLobbyMemberBySlot(capturedSlot));
                 }
                 else
                 {
-                    slotUI.SetEmpty(slotIdx + 1);
+                    slotUI.SetEmpty(slotIdx + 1, defaultUnselectedPortrait);
                 }
             }
         }
 
-        private Sprite ResolvePortraitForCharacter(string characterId, int fallbackSlotIndex)
+        private Sprite ResolvePortraitForCharacter(string characterId)
         {
-            if (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters != null && !string.IsNullOrEmpty(characterId))
+            // กรณีผู้เล่นเพิ่งเข้าห้องแล้วยังไม่ได้เลือกตัวละคร -> คืนค่า null เพื่อให้ใช้รูป Default (รูปเข็มทิศ)
+            if (string.IsNullOrWhiteSpace(characterId))
+            {
+                return null;
+            }
+
+            string id = characterId.Trim().ToUpperInvariant();
+            switch (id)
+            {
+                case "VANGUARD":
+                    if (vanguardPortrait != null) return vanguardPortrait;
+                    break;
+                case "JUGGERNAUT":
+                    if (juggernautPortrait != null) return juggernautPortrait;
+                    break;
+                case "PHANTOM":
+                    if (phantomPortrait != null) return phantomPortrait;
+                    break;
+                case "MARKSMAN":
+                    if (marksmanPortrait != null) return marksmanPortrait;
+                    break;
+                case "SCAVENGER":
+                    if (scavengerPortrait != null) return scavengerPortrait;
+                    break;
+                case "REBEL":
+                    if (rebelPortrait != null) return rebelPortrait;
+                    break;
+                case "DEMOLITIONIST":
+                    if (demolitionistPortrait != null) return demolitionistPortrait;
+                    break;
+            }
+
+            if (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters != null)
             {
                 var list = CharacterDatabase.Instance.Characters;
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (list[i] != null && string.Equals(list[i].characterId, characterId, StringComparison.OrdinalIgnoreCase) && list[i].characterPortrait != null)
+                    CharacterData data = list[i];
+                    if (data != null && string.Equals(data.characterId, id, StringComparison.OrdinalIgnoreCase))
                     {
-                        return list[i].characterPortrait;
+                        if (characterSelectPanel != null)
+                        {
+                            CharacterSelectUI csUi = characterSelectPanel.GetComponentInChildren<CharacterSelectUI>(true);
+                            if (csUi != null)
+                            {
+                                Sprite fromCs = csUi.GetPortraitForCharacter(data);
+                                if (fromCs != null) return fromCs;
+                            }
+                        }
+                        if (data.characterPortrait != null)
+                        {
+                            return data.characterPortrait;
+                        }
                     }
                 }
-            }
-
-            if (defaultMemberPortraits != null && defaultMemberPortraits.Count > 0)
-            {
-                return defaultMemberPortraits[Mathf.Abs(fallbackSlotIndex) % defaultMemberPortraits.Count];
             }
 
             return null;

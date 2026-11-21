@@ -16,6 +16,7 @@ namespace TheLastEmpire.Network
         DisconnectNotice = 3,
         LobbyRosterSync = 4,
         HostStartGameplay = 5,
+        LobbyCharacterChange = 6,
         PlayerStateSync = 10,
         ProjectileFire = 11,
         MeleeAttack = 12,
@@ -85,6 +86,7 @@ namespace TheLastEmpire.Network
         private string _activeRoomName = "THE LAST EMPIRE";
         private string _activeHostIp = "127.0.0.1";
         private int _activePort = LobbyRelayService.DefaultUdpPort;
+        private string _localLobbyCharacterId = ""; // ว่าง = ยังไม่ได้กดปุ่มประแจเลือกตัวละคร (แสดงรูป Default เข็มทิศ)
 
         private UdpClient _udpSocket;
         private UdpClient _lanDiscoverySocket;
@@ -401,15 +403,13 @@ namespace TheLastEmpire.Network
             }
 
             _lobbyMembers.Clear();
-            string hostCharId = !string.IsNullOrEmpty(CharacterManager.SelectedCharacterId)
-                ? CharacterManager.SelectedCharacterId
-                : CoOpOperativeOrder[0];
+            _localLobbyCharacterId = ""; // เริ่มต้นเข้าห้องยังไม่ได้เลือกตัวละคร ให้แสดงรูป Default ก่อน
             _lobbyMembers.Add(new LobbyMemberNetInfo
             {
                 clientId = 0,
                 slotIndex = 0,
                 playerName = "HOST (P1)",
-                characterId = hostCharId,
+                characterId = _localLobbyCharacterId,
                 isHost = true
             });
             OnLobbyRosterChanged?.Invoke();
@@ -446,6 +446,7 @@ namespace TheLastEmpire.Network
             _isHost = false;
             _isClientHandshakeAccepted = false;
             _handshakeRetryTimer = 1.0f;
+            _localLobbyCharacterId = ""; // เริ่มต้นเข้าห้องยังไม่ได้เลือกตัวละคร ให้แสดงรูป Default ก่อน
             _localClientId = (ulong)UnityEngine.Random.Range(100, 999);
             _activeHostIp = targetIp;
             _activePort = targetPort;
@@ -499,6 +500,42 @@ namespace TheLastEmpire.Network
             {
                 try { _udpSocket.Close(); } catch { }
                 _udpSocket = null;
+            }
+        }
+
+        /// <summary>
+        /// อัปเดตตัวละครที่ผู้เล่นเครื่องนี้เลือกจากปุ่มประแจสีเหลืองใน RoomInfoPanel
+        /// แล้วซิงค์ให้ทุกคนในห้องเห็นรูปโปรไฟล์ตัวละครใหม่ทันที
+        /// </summary>
+        public void UpdateLocalLobbyCharacter(string newCharacterId)
+        {
+            if (string.IsNullOrEmpty(newCharacterId)) return;
+            _localLobbyCharacterId = newCharacterId;
+            CharacterManager.SelectedCharacterId = newCharacterId;
+
+            if (!_isSessionActive) return;
+
+            if (_isHost)
+            {
+                for (int i = 0; i < _lobbyMembers.Count; i++)
+                {
+                    if (_lobbyMembers[i].clientId == _localClientId || _lobbyMembers[i].isHost)
+                    {
+                        var m = _lobbyMembers[i];
+                        m.characterId = newCharacterId;
+                        _lobbyMembers[i] = m;
+                        break;
+                    }
+                }
+                BroadcastLobbyRosterFromHost();
+                OnLobbyRosterChanged?.Invoke();
+            }
+            else
+            {
+                SendPacket(NetPacketType.LobbyCharacterChange, w =>
+                {
+                    w.Write(newCharacterId);
+                });
             }
         }
 
@@ -570,7 +607,7 @@ namespace TheLastEmpire.Network
                     w.Write(m.clientId);
                     w.Write(m.slotIndex);
                     w.Write(m.playerName ?? $"PLAYER-{i + 1}");
-                    w.Write(m.characterId ?? "VANGUARD");
+                    w.Write(m.characterId ?? "");
                     w.Write(m.isHost);
                 }
             });
@@ -789,12 +826,14 @@ namespace TheLastEmpire.Network
         private void SendHandshakeRequestToHost()
         {
             PlayerController local = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
-            string charId = local != null && local.ActiveCharacterData != null ? local.ActiveCharacterData.characterId : "VANGUARD";
+            string charId = local != null && local.ActiveCharacterData != null
+                ? local.ActiveCharacterData.characterId
+                : (_localLobbyCharacterId ?? "");
 
             SendPacket(NetPacketType.HandshakeRequest, w =>
             {
                 w.Write($"SURVIVOR-{UnityEngine.Random.Range(10, 99)}");
-                w.Write(charId ?? "VANGUARD");
+                w.Write(charId);
             });
         }
 
@@ -860,17 +899,18 @@ namespace TheLastEmpire.Network
                         string clientCharId = reader.ReadString();
                         int slotIdx = Mathf.Clamp(_clientEndpoints.Count, 1, MaxPlayers - 1);
 
-                        // บันทึกสมาชิกเข้า Lobby Roster (ป้องกันซ้ำหากส่ง Handshake ซ้ำ)
+                        // บันทึกสมาชิกเข้า Lobby Roster (ป้องกันซ้ำหากส่ง Handshake ซ้ำ; ถ้ายังไม่เลือกตัวละครให้เก็บ "" เพื่อโชว์รูป Default)
                         int existingIdx = _lobbyMembers.FindIndex(m => m.clientId == senderId);
                         if (existingIdx >= 0)
                         {
                             slotIdx = _lobbyMembers[existingIdx].slotIndex;
+                            string keepChar = !string.IsNullOrEmpty(clientCharId) ? clientCharId : _lobbyMembers[existingIdx].characterId;
                             _lobbyMembers[existingIdx] = new LobbyMemberNetInfo
                             {
                                 clientId = senderId,
                                 slotIndex = slotIdx,
                                 playerName = string.IsNullOrEmpty(clientName) ? $"PLAYER-{slotIdx + 1}" : clientName,
-                                characterId = string.IsNullOrEmpty(clientCharId) ? CoOpOperativeOrder[slotIdx % CoOpOperativeOrder.Length] : clientCharId,
+                                characterId = keepChar ?? "",
                                 isHost = false
                             };
                         }
@@ -882,7 +922,7 @@ namespace TheLastEmpire.Network
                                 clientId = senderId,
                                 slotIndex = slotIdx,
                                 playerName = string.IsNullOrEmpty(clientName) ? $"PLAYER-{slotIdx + 1}" : clientName,
-                                characterId = string.IsNullOrEmpty(clientCharId) ? CoOpOperativeOrder[slotIdx % CoOpOperativeOrder.Length] : clientCharId,
+                                characterId = clientCharId ?? "",
                                 isHost = false
                             });
                         }
@@ -953,6 +993,30 @@ namespace TheLastEmpire.Network
                         {
                             SceneManager.LoadScene(targetScene);
                         }
+                    }
+                    break;
+
+                case NetPacketType.LobbyCharacterChange:
+                    if (_isHost)
+                    {
+                        string newCharId = reader.ReadString();
+                        for (int i = 0; i < _lobbyMembers.Count; i++)
+                        {
+                            if (_lobbyMembers[i].clientId == senderId)
+                            {
+                                var m = _lobbyMembers[i];
+                                m.characterId = newCharId;
+                                _lobbyMembers[i] = m;
+                                break;
+                            }
+                        }
+                        PlayerController remoteAvatar = PlayerRegistry.GetPlayerByClientId(senderId);
+                        if (remoteAvatar != null)
+                        {
+                            remoteAvatar.ApplyRemoteCharacterById(newCharId);
+                        }
+                        BroadcastLobbyRosterFromHost();
+                        OnLobbyRosterChanged?.Invoke();
                     }
                     break;
 

@@ -292,6 +292,7 @@ namespace TheLastEmpire
             if (ch == null) return;
             _selectedCharacterId = ch.characterId;
             CharacterManager.SelectedCharacterId = _selectedCharacterId;
+            TheLastEmpire.Network.EmpireNetworkManager.Instance?.UpdateLocalLobbyCharacter(_selectedCharacterId);
 
             // 1. Update Character Portrait Artwork (ModalCharacter)
             EnsurePortraitReference();
@@ -355,9 +356,9 @@ namespace TheLastEmpire
 
         public void OnCancelClicked()
         {
-            // หากอยู่ในหน้า Lobby_NetCode ที่มี MultiplayerLobbyUI ให้สลับกลับไปหน้า RoomPanel ผ่าน Object Reference
+            // หากเปิดหน้าเลือกตัวละครมาจากปุ่มประแจสีเหลืองใน RoomInfoPanel ให้ปิดหน้าเลือกตัวละครแล้วกลับไปหน้า RoomInfoPanel
             if (TheLastEmpire.Network.MultiplayerLobbyUI.Instance != null &&
-                TheLastEmpire.Network.MultiplayerLobbyUI.Instance.TryReturnToRoomPanel())
+                TheLastEmpire.Network.MultiplayerLobbyUI.Instance.CloseCharacterSelectBackToRoomInfo(_selectedCharacterId))
             {
                 return;
             }
@@ -374,6 +375,15 @@ namespace TheLastEmpire
 
         public void OnEmbarkClicked()
         {
+            // หากอยู่ในซีน Lobby_NetCode (เปิดมาจากปุ่มประแจสีเหลืองใน RoomInfoPanel):
+            // การกดยืนยันในหน้าเลือกตัวละครจะบันทึกตัวละครที่เลือกแล้วกลับไปหน้าเตรียมพร้อม RoomInfoPanel
+            // (เพราะปุ่มเริ่มเกมเข้าด่านจริงคือปุ่ม ENTER WASTELAND ในหน้า RoomInfoPanel ที่หัวห้องกดเท่านั้น!)
+            if (TheLastEmpire.Network.MultiplayerLobbyUI.Instance != null &&
+                TheLastEmpire.Network.MultiplayerLobbyUI.Instance.CloseCharacterSelectBackToRoomInfo(_selectedCharacterId))
+            {
+                return;
+            }
+
             if (MainMenuManager.Instance != null)
             {
                 MainMenuManager.Instance.StartGameWithCharacter(_selectedCharacterId);
