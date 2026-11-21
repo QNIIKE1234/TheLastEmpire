@@ -19,6 +19,34 @@ namespace TheLastEmpire
         public ulong NetworkClientId { get; set; } = 0;
         public int PartySlotIndex { get; set; } = 0;
         public string NetworkPlayerName { get; set; } = "PLAYER-1";
+        public int NetworkStageX { get; set; } = 64;
+        public int NetworkStageY { get; set; } = 64;
+
+        /// <summary>
+        /// ตรวจสอบว่าผู้เล่นคนนี้อยู่ในช่องพิกัดด่าน (Stage X, Y) เดียวกับผู้เล่นเครื่องเราหรือไม่
+        /// - ถ้าอยู่ช่องเดียวกัน -> มองเห็นกันและร่วมสู้ด้วยกัน
+        /// - ถ้าอยู่คนละช่อง -> ซ่อนตัวละครของอีกฝ่ายไว้จนกว่าจะเดินมาเจอกันในช่องเดียวกัน
+        /// </summary>
+        public bool IsInSameStageAsLocalPlayer
+        {
+            get
+            {
+                if (!IsRemotePlayer || IsSimulatedCoopBot) return true;
+                int localX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+                int localY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+                return NetworkStageX == localX && NetworkStageY == localY;
+            }
+        }
+
+        public void RefreshStageVisibility()
+        {
+            if (!IsRemotePlayer || IsSimulatedCoopBot) return;
+            bool shouldBeVisible = IsInSameStageAsLocalPlayer;
+            if (gameObject.activeSelf != shouldBeVisible)
+            {
+                gameObject.SetActive(shouldBeVisible);
+            }
+        }
 
         // Co-op Downed & Revive State (Section 4.7)
         public const float MaxDownedBleedoutSeconds = 30f;
@@ -118,6 +146,10 @@ namespace TheLastEmpire
 
             NetworkPlayerName = string.IsNullOrEmpty(state.playerName) ? NetworkPlayerName : state.playerName;
             PartySlotIndex = state.slotIndex;
+            NetworkStageX = state.stageX;
+            NetworkStageY = state.stageY;
+            RefreshStageVisibility();
+
             _networkTargetPosition = state.position;
             _networkTargetVelocity = state.velocity;
             if (state.aimDirection.sqrMagnitude > 0.001f)

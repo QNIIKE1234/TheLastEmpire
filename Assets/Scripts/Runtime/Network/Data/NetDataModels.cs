@@ -64,6 +64,8 @@ namespace TheLastEmpire.Network
         public int slotIndex;
         public string playerName;
         public string characterId;
+        public int stageX;
+        public int stageY;
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 aimDirection;
@@ -86,6 +88,8 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref slotIndex);
             serializer.SerializeValue(ref playerName);
             serializer.SerializeValue(ref characterId);
+            serializer.SerializeValue(ref stageX);
+            serializer.SerializeValue(ref stageY);
             serializer.SerializeValue(ref position);
             serializer.SerializeValue(ref velocity);
             serializer.SerializeValue(ref aimDirection);
@@ -111,6 +115,8 @@ namespace TheLastEmpire.Network
     public struct ProjectileFireNetPayload : INetworkSerializable
     {
         public ulong shooterClientId;
+        public int stageX;
+        public int stageY;
         public Vector3 spawnPosition;
         public Vector3 aimDirection;
         public Vector3 aimTargetPoint;
@@ -123,6 +129,8 @@ namespace TheLastEmpire.Network
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref shooterClientId);
+            serializer.SerializeValue(ref stageX);
+            serializer.SerializeValue(ref stageY);
             serializer.SerializeValue(ref spawnPosition);
             serializer.SerializeValue(ref aimDirection);
             serializer.SerializeValue(ref aimTargetPoint);
@@ -141,6 +149,8 @@ namespace TheLastEmpire.Network
     public struct MeleeAttackNetPayload : INetworkSerializable
     {
         public ulong attackerClientId;
+        public int stageX;
+        public int stageY;
         public Vector3 attackOrigin;
         public Vector3 aimDirection;
         public string weaponName;
@@ -151,6 +161,8 @@ namespace TheLastEmpire.Network
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref attackerClientId);
+            serializer.SerializeValue(ref stageX);
+            serializer.SerializeValue(ref stageY);
             serializer.SerializeValue(ref attackOrigin);
             serializer.SerializeValue(ref aimDirection);
             serializer.SerializeValue(ref weaponName);

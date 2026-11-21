@@ -33,7 +33,18 @@ namespace TheLastEmpire
 
         private bool IsNetworkClientOnly()
         {
-            return EmpireNetworkManager.IsOnlineClient;
+            if (!EmpireNetworkManager.IsOnlineClient) return false;
+
+            // หาก Client อยู่ในช่องพิกัด (Stage X, Y) เดียวกับ Host ให้ใช้ศัตรูที่ซิงค์มาจาก Host
+            // แต่ถ้า Client เดินแยกไปสำรวจช่องพิกัดอื่นคนเดียว ให้ช่องนั้นเสกศัตรูและไอเทมตามปกติ!
+            PlayerController hostAvatar = PlayerRegistry.GetPlayerByClientId(0);
+            if (hostAvatar != null && WorldMapManager.Instance != null)
+            {
+                return hostAvatar.NetworkStageX == WorldMapManager.Instance.CurrentPlayerX &&
+                       hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY;
+            }
+
+            return true;
         }
     }
 }

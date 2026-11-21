@@ -45,12 +45,19 @@ namespace TheLastEmpire.Network
                 ? _player.CurrentMeleeWeaponName
                 : _player.CurrentWeaponName;
 
+            int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            _player.NetworkStageX = curStageX;
+            _player.NetworkStageY = curStageY;
+
             PlayerStateNetPayload payload = new PlayerStateNetPayload
             {
                 clientId = EmpireNetworkManager.Instance.LocalClientId,
                 slotIndex = _player.PartySlotIndex,
                 playerName = _player.NetworkPlayerName ?? "SURVIVOR",
                 characterId = _player.ActiveCharacterData != null ? _player.ActiveCharacterData.characterId : "VANGUARD",
+                stageX = curStageX,
+                stageY = curStageY,
                 position = _player.transform.position,
                 velocity = _rb != null ? _rb.linearVelocity : new Vector3(_player.MoveInput.x, 0f, _player.MoveInput.y),
                 aimDirection = _player.AimDirection,
@@ -83,9 +90,14 @@ namespace TheLastEmpire.Network
         {
             if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
 
+            int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+
             ProjectileFireNetPayload payload = new ProjectileFireNetPayload
             {
                 shooterClientId = EmpireNetworkManager.Instance.LocalClientId,
+                stageX = curStageX,
+                stageY = curStageY,
                 spawnPosition = spawnPos,
                 aimDirection = aimDir,
                 aimTargetPoint = targetPoint,
@@ -131,6 +143,14 @@ namespace TheLastEmpire.Network
                 return;
             }
 
+            // หากคนยิงอยู่คนละช่องพิกัด (Stage X, Y) กับเรา ไม่ต้องเสกกระสุนของเขาในช่องของเรา
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            if (payload.stageX != myStageX || payload.stageY != myStageY)
+            {
+                return;
+            }
+
             PlayerController shooter = PlayerRegistry.GetPlayerByClientId(payload.shooterClientId);
             GameObject bulletObj = null;
             if (ObjectPoolManager.Instance != null)
@@ -166,9 +186,14 @@ namespace TheLastEmpire.Network
         {
             if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
 
+            int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+
             MeleeAttackNetPayload payload = new MeleeAttackNetPayload
             {
                 attackerClientId = EmpireNetworkManager.Instance.LocalClientId,
+                stageX = curStageX,
+                stageY = curStageY,
                 attackOrigin = attackOrigin,
                 aimDirection = aimDir,
                 weaponName = weaponName ?? "Knife",
@@ -195,6 +220,10 @@ namespace TheLastEmpire.Network
         {
             if (EmpireNetworkManager.Instance == null) return;
 
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            bool isSameStage = payload.stageX == myStageX && payload.stageY == myStageY;
+
             if (isHost && payload.attackerClientId != EmpireNetworkManager.Instance.LocalClientId)
             {
                 EmpireNetworkManager.Instance.SendPacket(NetPacketType.MeleeAttack, w =>
@@ -203,23 +232,26 @@ namespace TheLastEmpire.Network
                     payload.NetworkSerialize(serializer);
                 });
 
-                // Host ประมวลผลดาเมจระยะประชิดให้ศัตรูในรัศมี
-                Collider[] hits = Physics.OverlapSphere(payload.attackOrigin, Mathf.Max(0.8f, payload.radius));
-                for (int i = 0; i < hits.Length; i++)
+                // Host ประมวลผลดาเมจระยะประชิดให้ศัตรูในรัศมี เฉพาะเมื่ออยู่ในช่อง (Stage X, Y) เดียวกัน
+                if (isSameStage)
                 {
-                    BaseEnemyAI enemy = hits[i].GetComponent<BaseEnemyAI>();
-                    if (enemy != null)
+                    Collider[] hits = Physics.OverlapSphere(payload.attackOrigin, Mathf.Max(0.8f, payload.radius));
+                    for (int i = 0; i < hits.Length; i++)
                     {
-                        IDamageable dmg = enemy.GetComponent<IDamageable>();
-                        if (dmg != null && !dmg.IsDead)
+                        BaseEnemyAI enemy = hits[i].GetComponent<BaseEnemyAI>();
+                        if (enemy != null)
                         {
-                            dmg.TakeDamage(payload.damage, enemy.transform.position, false);
+                            IDamageable dmg = enemy.GetComponent<IDamageable>();
+                            if (dmg != null && !dmg.IsDead)
+                            {
+                                dmg.TakeDamage(payload.damage, enemy.transform.position, false);
+                            }
                         }
                     }
                 }
             }
 
-            if (payload.attackerClientId == EmpireNetworkManager.Instance.LocalClientId) return;
+            if (payload.attackerClientId == EmpireNetworkManager.Instance.LocalClientId || !isSameStage) return;
 
             PlayerController attacker = PlayerRegistry.GetPlayerByClientId(payload.attackerClientId);
             if (attacker != null)

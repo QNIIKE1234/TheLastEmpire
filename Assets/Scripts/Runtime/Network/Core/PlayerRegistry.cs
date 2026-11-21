@@ -74,6 +74,23 @@ namespace TheLastEmpire.Network
             }
         }
 
+        /// <summary>
+        /// อัปเดตการแสดงผลของเพื่อนร่วมทีมทุกคนตามช่องพิกัด (Stage X, Y) ปัจจุบันของเรา
+        /// ถ้าอยู่ในช่องเดียวกันจะเปิดแสดงตัวละครให้เจอกัน ถ้าอยู่คนละช่องจะซ่อนไว้
+        /// </summary>
+        public static void RefreshAllRemotePlayersStageVisibility()
+        {
+            CleanupNullEntries();
+            for (int i = 0; i < _allPlayers.Count; i++)
+            {
+                PlayerController p = _allPlayers[i];
+                if (p != null && p.IsRemotePlayer)
+                {
+                    p.RefreshStageVisibility();
+                }
+            }
+        }
+
         public static int GetTotalPlayerCount()
         {
             CleanupNullEntries();

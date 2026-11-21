@@ -15,25 +15,23 @@ namespace TheLastEmpire
         {
             if (player == null || player.IsRemotePlayer) return false;
 
-            if (EmpireNetworkManager.IsOnline && NetworkStageSyncManager.Instance != null)
+            // ผู้เล่นแต่ละคนเดินข้ามช่องพิกัด (Stage X, Y) ได้อย่างอิสระ:
+            // - ถ้าเดินมาอยู่ในช่อง (X, Y) เดียวกัน จะมองเห็นและเจอกันในฉาก
+            // - ถ้าเดินแยกไปคนละช่อง (X, Y) จะไม่เจอกันจนกว่าจะเดินมาช่องเดียวกัน
+            if (EmpireNetworkManager.IsOnline)
             {
-                GetTargetCoordinates(
-                    WorldMapManager.Instance.CurrentPlayerX,
-                    WorldMapManager.Instance.CurrentPlayerY,
-                    out int targetX,
-                    out int targetY);
-
-                if (!IsWalkableDestinationStage(targetX, targetY))
+                ExecuteTeleport(player);
+                if (WorldMapManager.Instance != null)
                 {
-                    _playerInRange = false;
-                    return true;
+                    player.NetworkStageX = WorldMapManager.Instance.CurrentPlayerX;
+                    player.NetworkStageY = WorldMapManager.Instance.CurrentPlayerY;
                 }
-
-                NetworkStageSyncManager.Instance.RequestPartyPortalTransition(this, targetX, targetY);
+                NetworkEnemyBridge.Instance?.ClearClientPuppets();
+                PlayerRegistry.RefreshAllRemotePlayersStageVisibility();
                 return true;
             }
 
-            // กรณีออฟไลน์แต่มีบอทเพื่อนร่วมทีม (Simulated Co-op Teammates) ให้วาร์ปเพื่อนตามไปเข้าแถวหน้าประตูพร้อมกันด้วย!
+            // กรณีออฟไลน์แต่มีบอทเพื่อนร่วมทีม (Simulated Co-op Teammates) ให้วาร์ปบอทตามไปด้วย
             if (PlayerRegistry.GetTotalPlayerCount() > 1)
             {
                 ExecuteTeleport(player);

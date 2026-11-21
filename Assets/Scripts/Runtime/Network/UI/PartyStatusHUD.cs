@@ -136,8 +136,10 @@ namespace TheLastEmpire.Network
                 string displayName = string.IsNullOrEmpty(p.NetworkPlayerName)
                     ? (p.IsRemotePlayer ? $"ALLY-{p.PartySlotIndex + 1}" : "YOU (P1)")
                     : p.NetworkPlayerName;
+                int pStageX = !p.IsRemotePlayer && WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : p.NetworkStageX;
+                int pStageY = !p.IsRemotePlayer && WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : p.NetworkStageY;
 
-                GUI.Label(new Rect(cardRect.x + 12f, cardRect.y + 4f, cardRect.width - 18f, 18f), $"P{p.PartySlotIndex + 1} • {displayName} [{classId}]", _nameStyle);
+                GUI.Label(new Rect(cardRect.x + 12f, cardRect.y + 4f, cardRect.width - 18f, 18f), $"P{p.PartySlotIndex + 1} • {displayName} [{classId}] ({pStageX},{pStageY})", _nameStyle);
 
                 // หลอดเลือดหรือหลอด Bleedout ตอนล้ม
                 Rect barBg = new Rect(cardRect.x + 12f, cardRect.y + 25f, cardRect.width - 22f, 10f);
@@ -186,7 +188,7 @@ namespace TheLastEmpire.Network
             for (int i = 0; i < players.Count; i++)
             {
                 PlayerController p = players[i];
-                if (p == null || !p.IsRemotePlayer) continue;
+                if (p == null || !p.IsRemotePlayer || !p.gameObject.activeInHierarchy || !p.IsInSameStageAsLocalPlayer) continue;
 
                 Vector3 worldHead = p.transform.position + Vector3.up * 2.15f;
                 Vector3 screenPos = cam.WorldToScreenPoint(worldHead);
