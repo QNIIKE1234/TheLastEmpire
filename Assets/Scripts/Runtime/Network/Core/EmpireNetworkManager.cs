@@ -73,10 +73,14 @@ namespace TheLastEmpire.Network
         private int _activePort = LobbyRelayService.DefaultUdpPort;
 
         private UdpClient _udpSocket;
+        private UdpClient _lanDiscoverySocket;
+        private float _lanBeaconTimer = 0f;
         private IPEndPoint _serverEndPoint;
         private readonly Dictionary<ulong, IPEndPoint> _clientEndpoints = new Dictionary<ulong, IPEndPoint>();
         private readonly Dictionary<string, ulong> _endpointToClientId = new Dictionary<string, ulong>();
         private ulong _nextAssignedClientId = 1;
+
+        public int ConnectedPeerCount => _isSessionActive ? (_isHost ? 1 + _clientEndpoints.Count + _simulatedTeammates.Count : Mathf.Max(2, PlayerRegistry.GetTotalPlayerCount())) : 1;
 
         private readonly List<PlayerController> _simulatedTeammates = new List<PlayerController>();
         public IReadOnlyList<PlayerController> SimulatedTeammates => _simulatedTeammates;
@@ -150,7 +154,79 @@ namespace TheLastEmpire.Network
 
         private void Start()
         {
+            InitLanDiscoverySocket();
             CheckCommandLineAutoConnect();
+        }
+
+        private void InitLanDiscoverySocket()
+        {
+            if (_lanDiscoverySocket != null) return;
+            try
+            {
+                _lanDiscoverySocket = new UdpClient();
+                _lanDiscoverySocket.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                _lanDiscoverySocket.ExclusiveAddressUse = false;
+                _lanDiscoverySocket.EnableBroadcast = true;
+                _lanDiscoverySocket.Client.Bind(new IPEndPoint(IPAddress.Any, LobbyRelayService.LanDiscoveryPort));
+                _lanDiscoverySocket.Client.Blocking = false;
+            }
+            catch
+            {
+                // Fallback if port 47777 is restricted
+                try
+                {
+                    _lanDiscoverySocket = new UdpClient(0);
+                    _lanDiscoverySocket.EnableBroadcast = true;
+                    _lanDiscoverySocket.Client.Blocking = false;
+                }
+                catch { }
+            }
+        }
+
+        private void UpdateLanDiscovery()
+        {
+            if (_lanDiscoverySocket == null) InitLanDiscoverySocket();
+            if (_lanDiscoverySocket == null) return;
+
+            // 1. หากเป็น Host ให้กระจายสัญญาณ LAN Beacon ทุก 0.8 วินาที เพื่อให้เครื่องอื่นในวง LAN เห็นห้องอัตโนมัติ
+            if (_isSessionActive && _isHost)
+            {
+                _lanBeaconTimer -= Time.unscaledDeltaTime;
+                if (_lanBeaconTimer <= 0f)
+                {
+                    _lanBeaconTimer = 0.8f;
+                    byte[] beacon = LobbyRelayService.BuildLanBeaconPacket(
+                        _activeJoinCode,
+                        _activeHostIp,
+                        _activePort,
+                        ConnectedPeerCount,
+                        MaxPlayers,
+                        SceneManager.GetActiveScene().name);
+
+                    try
+                    {
+                        _lanDiscoverySocket.Send(beacon, beacon.Length, new IPEndPoint(IPAddress.Broadcast, LobbyRelayService.LanDiscoveryPort));
+                        _lanDiscoverySocket.Send(beacon, beacon.Length, new IPEndPoint(IPAddress.Loopback, LobbyRelayService.LanDiscoveryPort));
+                    }
+                    catch { }
+                }
+            }
+
+            // 2. รับสัญญาณ LAN Beacon จากเครื่อง Host ในวง LAN
+            int budget = 16;
+            while (budget-- > 0 && _lanDiscoverySocket != null && _lanDiscoverySocket.Available > 0)
+            {
+                try
+                {
+                    IPEndPoint senderEp = new IPEndPoint(IPAddress.Any, 0);
+                    byte[] data = _lanDiscoverySocket.Receive(ref senderEp);
+                    LobbyRelayService.TryParseLanBeaconPacket(data, senderEp, out _);
+                }
+                catch
+                {
+                    break;
+                }
+            }
         }
 
         private void CheckCommandLineAutoConnect()
@@ -182,6 +258,11 @@ namespace TheLastEmpire.Network
         {
             SceneManager.sceneLoaded -= HandleSceneLoaded;
             CloseUdpSocket();
+            if (_lanDiscoverySocket != null)
+            {
+                try { _lanDiscoverySocket.Close(); } catch { }
+                _lanDiscoverySocket = null;
+            }
             if (Instance == this)
             {
                 Instance = null;
@@ -204,6 +285,7 @@ namespace TheLastEmpire.Network
         private void Update()
         {
             EnsureLocalPlayerBridgeAttached();
+            UpdateLanDiscovery();
             PollUdpPackets();
 
             // หากเป็นเครื่อง Client ที่กำลังรอ HandshakeAccept จาก Host ให้ส่ง HandshakeRequest ซ้ำทุก 1 วินาที
@@ -368,6 +450,38 @@ namespace TheLastEmpire.Network
             {
                 try { _udpSocket.Close(); } catch { }
                 _udpSocket = null;
+            }
+        }
+
+        /// <summary>
+        /// ส่งข้อมูล WorldSeed และพิกัดด่านปัจจุบันของ Host ไปยังลูกทีมทุกคนที่เชื่อมต่ออยู่
+        /// (ใช้เมื่อ Host กด NEW GAME เข้าด่าน Gameplay_3D เพื่อดึงลูกทีมที่รออยู่หน้า MainMenu ตามเข้าด่านมาพร้อมกันทันที)
+        /// </summary>
+        public void BroadcastHostWorldStateToAllClients()
+        {
+            if (!_isSessionActive || !_isHost) return;
+
+            int worldSeed = (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+                ? WorldMapManager.Instance.MapGenerator.seed
+                : 12345;
+            int curX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int curY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            string activeSceneName = SceneManager.GetActiveScene().name;
+
+            int slotCounter = 1;
+            foreach (var kvp in _clientEndpoints)
+            {
+                ulong clientId = kvp.Key;
+                int slotIdx = Mathf.Clamp(slotCounter++, 1, MaxPlayers - 1);
+                SendPacket(NetPacketType.HandshakeAccept, w =>
+                {
+                    w.Write(clientId);
+                    w.Write(slotIdx);
+                    w.Write(worldSeed);
+                    w.Write(curX);
+                    w.Write(curY);
+                    w.Write(activeSceneName ?? "Gameplay_3D");
+                }, clientId);
             }
         }
 

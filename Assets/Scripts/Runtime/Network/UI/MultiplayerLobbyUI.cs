@@ -229,7 +229,30 @@ namespace TheLastEmpire.Network
             }
 
             GUILayout.Space(6);
-            GUILayout.Label("Enter 6-Digit Join Code or Host IP:Port:", _subHeaderStyle);
+
+            // แสดงรายการห้องในวง LAN ที่ตรวจพบอัตโนมัติ (1-Click LAN Auto-Discovery)
+            var lanRooms = LobbyRelayService.GetActiveLanRooms();
+            if (lanRooms.Count > 0)
+            {
+                GUILayout.Label($"📡 DISCOVERED LAN ROOMS ({lanRooms.Count}):", _subHeaderStyle);
+                for (int i = 0; i < lanRooms.Count; i++)
+                {
+                    var room = lanRooms[i];
+                    GUI.backgroundColor = new Color(0.16f, 0.78f, 0.55f);
+                    string roomBtnText = $"⚡ JOIN LAN [{room.joinCode}] ({room.hostIp}:{room.hostPort}) — {room.currentPlayers}/{room.maxPlayers}P [{room.sceneName}]";
+                    if (GUILayout.Button(roomBtnText, _btnStyle, GUILayout.Height(32)))
+                    {
+                        _joinCodeInput = $"{room.hostIp}:{room.hostPort}";
+                        if (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.StartClientSession(_joinCodeInput))
+                        {
+                            _statusMessage = $"Joined LAN Room [{room.joinCode}] at {_joinCodeInput}!";
+                        }
+                    }
+                }
+                GUILayout.Space(4);
+            }
+
+            GUILayout.Label("Enter 6-Digit Join Code or Host LAN IP:Port:", _subHeaderStyle);
             GUILayout.BeginHorizontal();
             GUI.backgroundColor = Color.white;
             _joinCodeInput = GUILayout.TextField(_joinCodeInput, 32, _textFieldStyle, GUILayout.Height(34), GUILayout.Width(240));

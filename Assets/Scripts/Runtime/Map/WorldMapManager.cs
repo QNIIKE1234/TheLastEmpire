@@ -38,12 +38,17 @@ namespace TheLastEmpire
         {
             if (mapGenerator != null)
             {
-                if (MainMenuManager.ShouldLoadSave && SaveSystem.HasSaveFile())
+                if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+                {
+                    ResetMapProgression();
+                    TheLastEmpire.Network.NetworkStageSyncManager.Instance?.TryApplyPendingHostWorldOnSceneLoad();
+                }
+                else if (MainMenuManager.ShouldLoadSave && SaveSystem.HasSaveFile())
                 {
                     MainMenuManager.ShouldLoadSave = false;
                     LoadGame();
                 }
-                else if (!TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+                else
                 {
                     // Reset persistent editor memory at startup so it doesn't auto-save exploration
                     ResetMapProgression();
@@ -71,6 +76,12 @@ namespace TheLastEmpire
             }
 
             InitializePlayerCoordinates();
+
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost)
+            {
+                TheLastEmpire.Network.NetworkStageSyncManager.Instance?.CaptureHostStageState();
+                TheLastEmpire.Network.EmpireNetworkManager.Instance?.BroadcastHostWorldStateToAllClients();
+            }
         }
 
         private void InitializePlayerCoordinates()
