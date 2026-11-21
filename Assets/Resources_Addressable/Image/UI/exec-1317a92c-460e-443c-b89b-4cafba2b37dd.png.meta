@@ -228,7 +228,7 @@ TextureImporter:
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -250,7 +250,7 @@ TextureImporter:
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -259,6 +259,28 @@ TextureImporter:
       bones: []
       spriteID: c087c9844c9d769479175681f22d85d9
       internalID: 559356556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: exec-1317a92c-460e-443c-b89b-4cafba2b37dd_7
+      rect:
+        serializedVersion: 2
+        x: 998
+        y: 292
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a78a2aea4cd1e547995134ce09eaff5
+      internalID: 1769017447
       vertices: []
       indices: 
       edges: []
@@ -284,6 +306,7 @@ TextureImporter:
       exec-1317a92c-460e-443c-b89b-4cafba2b37dd_4: -1761863419
       exec-1317a92c-460e-443c-b89b-4cafba2b37dd_5: -1972581371
       exec-1317a92c-460e-443c-b89b-4cafba2b37dd_6: 559356556
+      exec-1317a92c-460e-443c-b89b-4cafba2b37dd_7: 1769017447
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
