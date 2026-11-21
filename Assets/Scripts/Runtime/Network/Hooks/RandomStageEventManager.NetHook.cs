@@ -9,9 +9,48 @@ namespace TheLastEmpire
     /// </summary>
     public partial class RandomStageEventManager
     {
+        private bool IsClientSharingStageWithHost()
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || WorldMapManager.Instance == null) return false;
+            PlayerController hostAvatar = PlayerRegistry.GetPlayerByClientId(0);
+            if (hostAvatar == null) return false;
+            return hostAvatar.NetworkStageX == WorldMapManager.Instance.CurrentPlayerX &&
+                   hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY;
+        }
+
         private bool ShouldDeferStageEventToHost()
         {
-            return EmpireNetworkManager.IsOnlineClient;
+            // หาก Client อยู่ในช่องพิกัด (Stage X, Y) เดียวกับ Host ให้รอรับ StageEventBroadcast จาก Host เพื่อให้คัตซีน/อีเวนต์เริ่มพร้อมกันเป๊ะ
+            // แต่ถ้า Client เดินแยกไปสำรวจช่องอื่นคนเดียว ให้รันอีเวนต์จาก Seed ประจำห้องของตัวเองได้ตามปกติ 100%!
+            return IsClientSharingStageWithHost();
+        }
+
+        private void BroadcastStageEventIfHost(StageEventType eventType, StageData stage)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null || stage == null || eventType == StageEventType.None)
+            {
+                return;
+            }
+
+            int eventSeed = stage.stageSeed + 4242;
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.StageEventBroadcast, w =>
+            {
+                w.Write(stage.x);
+                w.Write(stage.y);
+                w.Write((byte)eventType);
+                w.Write(eventSeed);
+            });
+        }
+
+        public void HandleSyncedStageEventFromHost(int stageX, int stageY, StageEventType eventType, int eventSeed)
+        {
+            if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
+            if (WorldMapManager.Instance.CurrentPlayerX != stageX || WorldMapManager.Instance.CurrentPlayerY != stageY) return;
+
+            StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(stageX, stageY);
+            if (stage == null || stage.hasEventTriggered) return;
+
+            ExecuteEventWithSeed(eventType, stage, eventSeed);
         }
 
         /// <summary>

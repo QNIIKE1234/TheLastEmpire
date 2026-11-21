@@ -331,6 +331,8 @@ namespace TheLastEmpire
 
         private void ExecuteEvent(StageEventType eventType, StageData stage, System.Random rng)
         {
+            BroadcastStageEventIfHost(eventType, stage);
+
             switch (eventType)
             {
                 case StageEventType.SupplyAirdrop:
@@ -419,9 +421,12 @@ namespace TheLastEmpire
         {
             yield return new WaitForSeconds(1.2f);
 
+            // หาก Client อยู่ในช่องเดียวกับ Host ให้รับศัตรู Ambush จาก Host ผ่าน EnemyBatchSync (ไม่เสกซ้ำ)
+            if (IsClientSharingStageWithHost()) yield break;
+
             if (GameManager.Instance == null) yield break;
 
-            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             Vector3 pPos = player != null ? player.transform.position : Vector3.zero;
 
             for (int i = 0; i < count; i++)
@@ -601,7 +606,7 @@ namespace TheLastEmpire
                 stage.remainingEnemyPrefabNames = new List<string>();
             }
 
-            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
             // ระดับความสูงมาตรฐานของโมเดลตัวละคร Humanoid (Y = 1.0f เพื่อให้เท้าที่ offset -1.0 สัมผัสพื้น Y=0 พอดี ไม่จมและไม่ลอย)
@@ -867,6 +872,7 @@ namespace TheLastEmpire
 
         private IEnumerator SpawnChasingEnemyPackRoutine(Vector3 spawnCenter, Vector3 targetDir, System.Random rng, StageData stage)
         {
+            if (IsClientSharingStageWithHost()) yield break;
             if (GameManager.Instance == null) yield break;
 
             // กำหนดจำนวนศัตรูแบบ Fix 10 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)

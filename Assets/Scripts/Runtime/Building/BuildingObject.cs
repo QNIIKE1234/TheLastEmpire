@@ -298,6 +298,7 @@ namespace TheLastEmpire
             }
 
             OnDestroyed?.Invoke();
+            TheLastEmpire.Network.NetworkBuildingSyncManager.NotifyLocalBuildingDestroyed(this);
             Destroy(gameObject);
         }
 

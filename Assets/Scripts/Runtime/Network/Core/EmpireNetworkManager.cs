@@ -27,6 +27,7 @@ namespace TheLastEmpire.Network
         StageTransitionReady = 22,
         StageGameplayStart = 23,
         DayNightTimeSync = 24,
+        StageEventBroadcast = 25,
         EnemyBatchSync = 30,
         EnemyChaserPhasing = 31,
         DamageNumberBroadcast = 32,
@@ -564,6 +565,7 @@ namespace TheLastEmpire.Network
         {
             ClearSimulatedTeammates();
             RemoveAllRemotePlayers();
+            NetworkBuildingSyncManager.Instance?.ClearRegistry();
             CloseUdpSocket();
 
             _clientEndpoints.Clear();
@@ -726,6 +728,7 @@ namespace TheLastEmpire.Network
             }
 
             // สุ่ม WorldSeed กลาง 1 ค่าแล้วส่งให้ทุกเครื่องก่อนโหลดเข้าด่าน เพื่อให้แมพ 128x128 และห้องศัตรูตรงกัน 100%
+            NetworkBuildingSyncManager.Instance?.ClearRegistry();
             int matchWorldSeed = UnityEngine.Random.Range(1000, 99999);
             PendingMatchWorldSeed = matchWorldSeed;
 
@@ -1245,6 +1248,17 @@ namespace TheLastEmpire.Network
                     }
                     break;
 
+                case NetPacketType.StageEventBroadcast:
+                    if (!_isHost)
+                    {
+                        int evStageX = reader.ReadInt32();
+                        int evStageY = reader.ReadInt32();
+                        StageEventType evType = (StageEventType)reader.ReadByte();
+                        int evSeed = reader.ReadInt32();
+                        RandomStageEventManager.Instance?.HandleSyncedStageEventFromHost(evStageX, evStageY, evType, evSeed);
+                    }
+                    break;
+
                 case NetPacketType.EnemyBatchSync:
                     if (!_isHost)
                     {
@@ -1308,6 +1322,15 @@ namespace TheLastEmpire.Network
                         PlacedBuildingNetData bData = default;
                         bData.NetworkSerialize(serializer);
                         NetworkBuildingSyncManager.Instance?.ApplyRemotePlacedBuilding(bData);
+                    }
+                    break;
+
+                case NetPacketType.BuildingDestroyBroadcast:
+                    {
+                        int bStageX = reader.ReadInt32();
+                        int bStageY = reader.ReadInt32();
+                        Vector3 bPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        NetworkBuildingSyncManager.Instance?.HandleRemoteBuildingDestroyed(bStageX, bStageY, bPos, relayIfHost: _isHost);
                     }
                     break;
 

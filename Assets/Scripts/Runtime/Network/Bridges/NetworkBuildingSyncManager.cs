@@ -15,6 +15,86 @@ namespace TheLastEmpire.Network
         private int _nextBuildingInstanceId = 1;
         private readonly List<PlacedBuildingNetData> _placedBuildingRegistry = new List<PlacedBuildingNetData>();
         private static bool _isApplyingRemotePlacement = false;
+        private static bool _isApplyingRemoteDestruction = false;
+
+        public void ClearRegistry()
+        {
+            _placedBuildingRegistry.Clear();
+            _nextBuildingInstanceId = 1;
+        }
+
+        public static void NotifyLocalBuildingDestroyed(BuildingObject buildingObj)
+        {
+            if (_isApplyingRemoteDestruction || buildingObj == null) return;
+            if (!EmpireNetworkManager.IsOnline || Instance == null || EmpireNetworkManager.Instance == null) return;
+
+            int stX = buildingObj.StageX;
+            int stY = buildingObj.StageY;
+            Vector3 pos = buildingObj.transform.position;
+
+            Instance.RemoveFromRegistry(stX, stY, pos);
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.BuildingDestroyBroadcast, w =>
+            {
+                w.Write(stX);
+                w.Write(stY);
+                w.Write(pos.x);
+                w.Write(pos.y);
+                w.Write(pos.z);
+            });
+        }
+
+        public void HandleRemoteBuildingDestroyed(int stageX, int stageY, Vector3 position, bool relayIfHost)
+        {
+            RemoveFromRegistry(stageX, stageY, position);
+
+            if (relayIfHost && EmpireNetworkManager.IsOnlineHost && EmpireNetworkManager.Instance != null)
+            {
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.BuildingDestroyBroadcast, w =>
+                {
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(position.x);
+                    w.Write(position.y);
+                    w.Write(position.z);
+                });
+            }
+
+            if (BuildingManager.Instance == null || BuildingManager.Instance.ActiveBuildings == null) return;
+
+            _isApplyingRemoteDestruction = true;
+            try
+            {
+                var list = BuildingManager.Instance.ActiveBuildings;
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    BuildingObject b = list[i];
+                    if (b == null) continue;
+                    if (b.StageX == stageX && b.StageY == stageY && (b.transform.position - position).sqrMagnitude < 0.25f)
+                    {
+                        BuildingManager.Instance.UntrackBuilding(b);
+                        Destroy(b.gameObject);
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                _isApplyingRemoteDestruction = false;
+            }
+        }
+
+        private void RemoveFromRegistry(int stageX, int stageY, Vector3 position)
+        {
+            for (int i = _placedBuildingRegistry.Count - 1; i >= 0; i--)
+            {
+                var b = _placedBuildingRegistry[i];
+                if (b.stageX == stageX && b.stageY == stageY && (b.position - position).sqrMagnitude < 0.25f)
+                {
+                    _placedBuildingRegistry.RemoveAt(i);
+                }
+            }
+        }
 
         private void Awake()
         {
