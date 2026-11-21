@@ -131,7 +131,10 @@ namespace TheLastEmpire.Network
             root.AddComponent<NetworkEnemyBridge>();
             root.AddComponent<NetworkLootManager>();
             root.AddComponent<NetworkBuildingSyncManager>();
-            root.AddComponent<MultiplayerLobbyUI>();
+            if (FindFirstObjectByType<MultiplayerLobbyUI>() == null)
+            {
+                root.AddComponent<MultiplayerLobbyUI>();
+            }
             root.AddComponent<PartyStatusHUD>();
         }
 

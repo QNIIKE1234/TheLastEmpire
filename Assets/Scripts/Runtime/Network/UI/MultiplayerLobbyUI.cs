@@ -18,7 +18,8 @@ namespace TheLastEmpire.Network
         public static MultiplayerLobbyUI Instance { get; private set; }
         public static Action OnRequestLaunchSecondClientWindow;
 
-        private class RoomThumbnailSlot
+        [Serializable]
+        public class RoomThumbnailSlot
         {
             public GameObject root;
             public TMP_Text roomNameText;
@@ -28,18 +29,20 @@ namespace TheLastEmpire.Network
             public TMP_Text joinButtonLabel;
         }
 
-        // Scene UI References (auto-bound when Lobby_NetCode scene is active)
-        private GameObject _sceneRoomPanel;
-        private GameObject _sceneLobbyPanel;
-        private TMP_InputField _sceneSearchInput;
-        private Button _sceneCreateButton;
-        private Button _sceneCloseRoomPanelButton;
-        private Button _scenePrevPageButton;
-        private Button _sceneNextPageButton;
-        private TMP_Text _scenePageNumberText;
-        private TMP_Text _sceneLobbySubtitleText;
-        private TMP_Text _sceneLobbyEmbarkLabel;
-        private readonly List<RoomThumbnailSlot> _roomThumbnailSlots = new List<RoomThumbnailSlot>();
+        [Header("Lobby_NetCode Scene UI References (RoomPanel)")]
+        [SerializeField] private GameObject _sceneRoomPanel;
+        [SerializeField] private GameObject _sceneLobbyPanel;
+        [SerializeField] private TMP_InputField _sceneSearchInput;
+        [SerializeField] private Button _sceneCreateButton;
+        [SerializeField] private Button _sceneCloseRoomPanelButton;
+        [SerializeField] private Button _scenePrevPageButton;
+        [SerializeField] private Button _sceneNextPageButton;
+        [SerializeField] private TMP_Text _scenePageNumberText;
+        [SerializeField] private List<RoomThumbnailSlot> _roomThumbnailSlots = new List<RoomThumbnailSlot>();
+
+        [Header("Lobby_NetCode Scene UI References (Lobby Modal)")]
+        [SerializeField] private TMP_Text _sceneLobbySubtitleText;
+        [SerializeField] private TMP_Text _sceneLobbyEmbarkLabel;
 
         private bool _isSceneLobbyBound = false;
         private int _currentPage = 0;
@@ -70,7 +73,26 @@ namespace TheLastEmpire.Network
             {
                 Instance = this;
             }
+            else if (Instance != this)
+            {
+                // หากสคริปต์นี้แปะอยู่บน RoomPanel ในซีนโดยตรง ให้ยึดตัวบน RoomPanel เป็นหลัก
+                if (gameObject.name.IndexOf("RoomPanel", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    MultiplayerLobbyUI old = Instance;
+                    Instance = this;
+                    if (old != null && old.gameObject.name.IndexOf("EmpireNetworkBootstrap", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        Destroy(old);
+                    }
+                }
+            }
             SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        [ContextMenu("Auto-Bind RoomPanel UI References")]
+        public void EditorAutoBindReferences()
+        {
+            TryBindLobbyNetcodeSceneUI();
         }
 
         private void OnDestroy()
@@ -257,16 +279,19 @@ namespace TheLastEmpire.Network
                 }
             }
 
-            // ตั้งสถานะเริ่มต้นเมื่อเข้าซีน Lobby_NetCode: เปิด RoomPanel และซ่อน Lobby (ยกเว้นเชื่อมต่อห้องอยู่แล้ว)
-            if (!EmpireNetworkManager.IsOnline)
+            // ตั้งสถานะเริ่มต้นเมื่อเข้าซีน Lobby_NetCode ตอนรันเกม: เปิด RoomPanel และซ่อน Lobby (ยกเว้นเชื่อมต่อห้องอยู่แล้ว)
+            if (Application.isPlaying)
             {
-                _sceneRoomPanel.SetActive(true);
-                if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(false);
-            }
+                if (!EmpireNetworkManager.IsOnline)
+                {
+                    _sceneRoomPanel.SetActive(true);
+                    if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(false);
+                }
 
-            _isSceneLobbyBound = true;
-            RefreshSceneLobbyUI();
-            Debug.Log("<color=#38BDF8>[MultiplayerLobbyUI]</color> Bound Lobby_NetCode scene UI (RoomPanel + 5 RoomThumbnails + Lobby Operative Selection).");
+                _isSceneLobbyBound = true;
+                RefreshSceneLobbyUI();
+                Debug.Log("<color=#38BDF8>[MultiplayerLobbyUI]</color> Bound Lobby_NetCode scene UI (RoomPanel + 5 RoomThumbnails + Lobby Operative Selection).");
+            }
         }
 
         private void OnSceneCreateRoomClicked()
