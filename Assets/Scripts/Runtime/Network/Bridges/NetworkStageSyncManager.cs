@@ -56,6 +56,11 @@ namespace TheLastEmpire.Network
             }
         }
 
+        private bool _hasPendingHostWorld = false;
+        private int _pendingHostSeed = 0;
+        private int _pendingHostStageX = 64;
+        private int _pendingHostStageY = 64;
+
         public void CaptureHostStageState()
         {
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
@@ -66,22 +71,44 @@ namespace TheLastEmpire.Network
             }
         }
 
-        public void ApplyHostWorldAndStageOnClient(int worldSeed, int stageX, int stageY)
+        public void ApplyHostWorldAndStageOnClient(int worldSeed, int stageX, int stageY, string hostSceneName = "Gameplay_3D")
         {
             NetWorldSeed.Value = worldSeed;
             NetStageX.Value = stageX;
             NetStageY.Value = stageY;
 
+            _hasPendingHostWorld = true;
+            _pendingHostSeed = worldSeed;
+            _pendingHostStageX = stageX;
+            _pendingHostStageY = stageY;
+
+            // หาก Client ยังอยู่หน้า MainMenu แต่ Host อยู่ในฉาก Gameplay_3D แล้ว ให้โหลดตามเข้าฉาก Gameplay_3D อัตโนมัติทันที!
+            string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (!string.IsNullOrEmpty(hostSceneName) &&
+                !string.Equals(currentScene, hostSceneName, System.StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(hostSceneName, "Gameplay_3D", System.StringComparison.OrdinalIgnoreCase))
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Gameplay_3D");
+                return;
+            }
+
+            TryApplyPendingHostWorldOnSceneLoad();
+        }
+
+        public void TryApplyPendingHostWorldOnSceneLoad()
+        {
+            if (!_hasPendingHostWorld) return;
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
-                if (WorldMapManager.Instance.MapGenerator.seed != worldSeed)
+                _hasPendingHostWorld = false;
+                if (WorldMapManager.Instance.MapGenerator.seed != _pendingHostSeed)
                 {
-                    WorldMapManager.Instance.StartNewGame(worldSeed);
+                    WorldMapManager.Instance.StartNewGame(_pendingHostSeed);
                 }
 
-                if (WorldMapManager.Instance.CurrentPlayerX != stageX || WorldMapManager.Instance.CurrentPlayerY != stageY)
+                if (WorldMapManager.Instance.CurrentPlayerX != _pendingHostStageX || WorldMapManager.Instance.CurrentPlayerY != _pendingHostStageY)
                 {
-                    WorldMapManager.Instance.MovePlayer(stageX, stageY);
+                    WorldMapManager.Instance.MovePlayer(_pendingHostStageX, _pendingHostStageY);
                 }
             }
         }

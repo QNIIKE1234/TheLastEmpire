@@ -19,10 +19,30 @@ namespace TheLastEmpire.Editor
     {
         private const string BuildRelativeDir = "Builds/CoopTestClient";
         private const string ExeName = "TheLastEmpire.exe";
+        private const string PendingBuildSessionKey = "TLE_PendingDualClientBuildAndLaunch";
 
         static MultiplayerDualClientLauncher()
         {
             MultiplayerLobbyUI.OnRequestLaunchSecondClientWindow = LaunchOrBuildSecondClientWindow;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (state == PlayModeStateChange.EnteredEditMode && SessionState.GetBool(PendingBuildSessionKey, false))
+            {
+                SessionState.SetBool(PendingBuildSessionKey, false);
+                EditorApplication.delayCall += () =>
+                {
+                    if (BuildStandaloneTestClient())
+                    {
+                        string exePath = GetExeFullPath();
+                        SpawnClientProcess(exePath, "-coopClient 127.0.0.1:7777 -screen-fullscreen 0 -screen-width 1280 -screen-height 720");
+                        EditorApplication.isPlaying = true;
+                    }
+                };
+            }
         }
 
         private static string GetExeFullPath()
@@ -37,6 +57,20 @@ namespace TheLastEmpire.Editor
             string exePath = GetExeFullPath();
             if (!File.Exists(exePath))
             {
+                if (EditorApplication.isPlaying)
+                {
+                    bool confirmPlay = EditorUtility.DisplayDialog(
+                        "Build 2nd Test Client (.exe)",
+                        "การเปิดหน้าต่างเกมแยกจอที่ 2 ครั้งแรก ต้อง Build ไฟล์ทดสอบ (Builds/CoopTestClient/TheLastEmpire.exe) ก่อน ซึ่ง Unity ต้องออกจาก Play Mode ชั่วคราวตอน Build\n\nกด 'Auto Stop, Build & Relaunch' เพื่อให้ระบบหยุด Play Mode, สร้างไฟล์ .exe, เปิดจอที่ 2 และกลับเข้า Play Mode ให้อัตโนมัติเลยหรือไม่?",
+                        "Auto Stop, Build & Relaunch",
+                        "Cancel");
+
+                    if (!confirmPlay) return;
+                    SessionState.SetBool(PendingBuildSessionKey, true);
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+
                 bool confirm = EditorUtility.DisplayDialog(
                     "Build 2nd Test Client (.exe)",
                     "ยังไม่มีไฟล์ Build สำหรับเปิดหน้าต่าง Client ที่ 2 (Builds/CoopTestClient/TheLastEmpire.exe)\n\nต้องการให้ระบบ Build ไฟล์ทดสอบ (Windowed 1280x720) แล้วเปิดเชื่อมต่อเข้าหาเครื่อง Host อัตโนมัติเลยหรือไม่?",

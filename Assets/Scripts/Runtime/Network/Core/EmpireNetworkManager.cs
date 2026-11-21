@@ -191,6 +191,14 @@ namespace TheLastEmpire.Network
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             EnsureLocalPlayerBridgeAttached();
+            if (_isSessionActive && _isHost && NetworkStageSyncManager.Instance != null)
+            {
+                NetworkStageSyncManager.Instance.CaptureHostStageState();
+            }
+            if (_isSessionActive && !_isHost && NetworkStageSyncManager.Instance != null)
+            {
+                NetworkStageSyncManager.Instance.TryApplyPendingHostWorldOnSceneLoad();
+            }
         }
 
         private void Update()
@@ -600,6 +608,7 @@ namespace TheLastEmpire.Network
                             : 12345;
                         int curX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
                         int curY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+                        string activeSceneName = SceneManager.GetActiveScene().name;
 
                         SendPacket(NetPacketType.HandshakeAccept, w =>
                         {
@@ -608,6 +617,7 @@ namespace TheLastEmpire.Network
                             w.Write(worldSeed);
                             w.Write(curX);
                             w.Write(curY);
+                            w.Write(activeSceneName ?? "Gameplay_3D");
                         }, senderId);
 
                         NetworkBuildingSyncManager.Instance?.SendAllPlacedBuildingsToClient(senderId);
@@ -624,6 +634,7 @@ namespace TheLastEmpire.Network
                         int hostSeed = reader.ReadInt32();
                         int hostStageX = reader.ReadInt32();
                         int hostStageY = reader.ReadInt32();
+                        string hostSceneName = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadString() : "Gameplay_3D";
 
                         _localClientId = assignedClientId;
                         PlayerController local = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
@@ -634,7 +645,7 @@ namespace TheLastEmpire.Network
                             local.NetworkPlayerName = $"PLAYER-{assignedSlot + 1} (YOU)";
                         }
 
-                        NetworkStageSyncManager.Instance?.ApplyHostWorldAndStageOnClient(hostSeed, hostStageX, hostStageY);
+                        NetworkStageSyncManager.Instance?.ApplyHostWorldAndStageOnClient(hostSeed, hostStageX, hostStageY, hostSceneName);
                         OnPeerConnected?.Invoke(assignedClientId);
                     }
                     break;

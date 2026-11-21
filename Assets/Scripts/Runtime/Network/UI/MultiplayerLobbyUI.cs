@@ -189,6 +189,22 @@ namespace TheLastEmpire.Network
             GUILayout.BeginVertical(GUI.skin.box);
             GUILayout.Label("1. HOST OR JOIN MULTIPLAYER SESSION (UDP / NGO):", _subHeaderStyle);
 
+            // หากยังอยู่หน้า MainMenu ให้แสดงปุ่มลัดเข้าฉาก Gameplay_3D ทันที (หรือกด NEW GAME ด้านซ้ายก็ได้)
+            bool isInGameplayScene = PlayerController.Instance != null || PlayerRegistry.LocalPlayer != null;
+            if (!isInGameplayScene)
+            {
+                GUI.backgroundColor = new Color(0.96f, 0.72f, 0.12f);
+                if (GUILayout.Button("🚀 ENTER GAMEPLAY SCENE NOW (หรือกด NEW GAME ด้านซ้าย)", _btnStyle, GUILayout.Height(34)))
+                {
+                    if (!EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
+                    {
+                        EmpireNetworkManager.Instance.StartHostSession();
+                    }
+                    _isWindowOpen = false;
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("Gameplay_3D");
+                }
+            }
+
             GUI.backgroundColor = new Color(0.18f, 0.80f, 0.42f);
             if (GUILayout.Button("★ HOST CO-OP GAME (1–6 PLAYERS)", _btnStyle, GUILayout.Height(36)))
             {
