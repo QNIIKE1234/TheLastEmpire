@@ -232,7 +232,12 @@ namespace TheLastEmpire
         public void OnStageEntered(StageData stage)
         {
             if (!enableRandomEvents || stage == null) return;
-            if (ShouldDeferStageEventToHost()) return;
+            if (ShouldDeferStageEventToHost())
+            {
+                // หาก Client เดินตามเข้าห้องที่ Host กำลังมีอีเวนต์ค้างอยู่ ให้คืนค่าบรรยากาศ/พ่อค้าของอีเวนต์นั้นทันที
+                RestoreOngoingEventStateForLateEntryClient(stage);
+                return;
+            }
 
             // 1. เคลียร์อีเวนต์/Coroutine/NPC ของห้องเดิมทันที เพื่อไม่ให้รั่วข้ามห้อง
             CleanupActiveEvent();

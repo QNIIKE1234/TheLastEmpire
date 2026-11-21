@@ -152,6 +152,49 @@ namespace TheLastEmpire.Network
             });
         }
 
+        /// <summary>
+        /// เรียกเมื่อ Client เพิ่งเดินตามเข้ามาในช่องพิกัด (X, Y) เดียวกับ Host
+        /// เพื่อส่งของดรอปบนพื้นที่ยังไม่มีคนเก็บ (เช่น Airdrop หรือของจากซอมบี้ที่ตายก่อนเพื่อนเดินเข้ามา) ให้ Client เห็นครบทุกชิ้น
+        /// </summary>
+        public void BroadcastAllActiveStageDropsToClient(ulong targetClientId)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+
+            CollectibleItem[] all = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                CollectibleItem item = all[i];
+                if (item == null || item.IsCollected || !item.gameObject.activeInHierarchy) continue;
+
+                int dropId = ComputeDeterministicDropId(item);
+                if (_claimedDropIds.Contains(dropId)) continue;
+                _trackedItemsById[dropId] = item;
+
+                Vector3 pos = item.transform.position;
+                string iName = item.ItemName ?? "";
+                int qty = item.Quantity;
+                bool isMoney = item.IsMoney;
+                int moneyAmt = item.MoneyAmount;
+
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootSpawnBroadcast, w =>
+                {
+                    w.Write(dropId);
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(iName);
+                    w.Write(qty);
+                    w.Write(isMoney);
+                    w.Write(moneyAmt);
+                    w.Write(pos.x);
+                    w.Write(pos.y);
+                    w.Write(pos.z);
+                }, targetClientId);
+            }
+        }
+
         public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos)
         {
             if (!EmpireNetworkManager.IsOnlineClient || GameManager.Instance == null) return;

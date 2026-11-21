@@ -25,6 +25,36 @@ namespace TheLastEmpire
             return IsClientSharingStageWithHost();
         }
 
+        /// <summary>
+        /// เรียกเมื่อ Client เดินตามเข้ามาในช่องพิกัด (X, Y) ทีหลังจากที่ Host เริ่ม Event ไปแล้ว:
+        /// - คืนค่าบรรยากาศ (BloodMoon แสงแดง / Radioactive หมอกเขียว) และพ่อค้าพเนจร (NomadTrader) ให้เห็นตรงกัน
+        /// - ไม่เล่นคัตซีน Maya ซ้ำและไม่เสกมอน Ambush ซ้ำ (มอนที่เหลืออยู่ซิงค์ผ่าน EnemyBatchSync โดยตรง)
+        /// </summary>
+        private void RestoreOngoingEventStateForLateEntryClient(StageData stage)
+        {
+            if (stage == null || !stage.hasEventTriggered || stage.randomEventType == StageEventType.None) return;
+
+            CleanupActiveEvent();
+            switch (stage.randomEventType)
+            {
+                case StageEventType.BloodMoonSurge:
+                    ApplyEventAtmosphere(stage.randomEventType);
+                    break;
+
+                case StageEventType.RadioactiveFallout:
+                    ApplyEventAtmosphere(stage.randomEventType);
+                    break;
+
+                case StageEventType.NomadTrader:
+                    if (!stage.isCleared)
+                    {
+                        System.Random rng = new System.Random(stage.stageSeed + 4242);
+                        ExecuteNomadTrader(stage, rng);
+                    }
+                    break;
+            }
+        }
+
         private void BroadcastStageEventIfHost(StageEventType eventType, StageData stage)
         {
             if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null || stage == null || eventType == StageEventType.None)
@@ -45,10 +75,23 @@ namespace TheLastEmpire
         public void HandleSyncedStageEventFromHost(int stageX, int stageY, StageEventType eventType, int eventSeed)
         {
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
-            if (WorldMapManager.Instance.CurrentPlayerX != stageX || WorldMapManager.Instance.CurrentPlayerY != stageY) return;
 
             StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(stageX, stageY);
-            if (stage == null || stage.hasEventTriggered) return;
+            if (stage == null) return;
+
+            // บันทึกสถานะอีเวนต์ลง StageData เสมอแม้ตอนนั้น Client จะอยู่คนละช่องพิกัด!
+            // 1) ป้องกันไม่ให้ Client เดินเข้ามาทีหลังแล้วทริกเกอร์คัตซีน/แอร์ดรอปซ้ำเป็นรอบที่ 2
+            // 2) เพื่อให้ Client ที่เดินตามเข้ามาทีหลังดึงบรรยากาศ (BloodMoon/Radioactive) และ NomadTrader ขึ้นมาแสดงได้ตรงกัน
+            bool alreadyTriggered = stage.hasEventTriggered;
+            stage.randomEventType = eventType;
+            stage.hasEventTriggered = true;
+
+            if (WorldMapManager.Instance.CurrentPlayerX != stageX || WorldMapManager.Instance.CurrentPlayerY != stageY)
+            {
+                return;
+            }
+
+            if (alreadyTriggered) return;
 
             ExecuteEventWithSeed(eventType, stage, eventSeed);
         }

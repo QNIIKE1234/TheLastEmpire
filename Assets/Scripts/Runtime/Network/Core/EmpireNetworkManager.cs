@@ -1186,7 +1186,15 @@ namespace TheLastEmpire.Network
                             PlayerController remote = GetOrCreateRemotePlayerAvatar(payload.clientId, payload.slotIndex, payload.playerName, payload.characterId);
                             if (remote != null)
                             {
+                                bool wasSameStage = remote.IsInSameStageAsLocalPlayer;
                                 remote.ApplyNetworkState(payload);
+                                bool isNowSameStage = remote.IsInSameStageAsLocalPlayer;
+
+                                // หากเพื่อน (Client) เพิ่งเดินตามเข้ามาในช่องพิกัดเดียวกับ Host ให้ส่งของดรอปบนพื้นที่ยังเหลืออยู่ไปให้เห็นครบทันที!
+                                if (_isHost && !wasSameStage && isNowSameStage)
+                                {
+                                    NetworkLootManager.Instance?.BroadcastAllActiveStageDropsToClient(payload.clientId);
+                                }
                             }
                         }
                     }
