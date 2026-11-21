@@ -1,10 +1,11 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TheLastEmpire.Network
 {
     /// <summary>
     /// PartyStatusHUD — แถบแสดงรายชื่อ อาชีพ หลอดเลือด และสถานะล้มรอชุบชีวิต (Downed & Revive)
-    /// ของสมาชิกในปาร์ตี้ 1–6 คน ด้านซ้ายของหน้าจอ + ป้ายชื่อลอยเหนือหัวเพื่อนร่วมทีมในฉาก 3D
+    /// ของสมาชิกในปาร์ตี้ 1–6 คน ด้านขวาของหน้าจอ + ป้ายชื่อลอยเหนือหัวเพื่อนร่วมทีมในฉาก 3D
     /// + ป้ายนับถอยหลังเมื่อปาร์ตี้กำลังวาร์ปข้ามประตู (Party Portal Travel Banner)
     /// </summary>
     public class PartyStatusHUD : MonoBehaviour
@@ -81,6 +82,13 @@ namespace TheLastEmpire.Network
 
         private void OnGUI()
         {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (sceneName.IndexOf("Lobby", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                sceneName.IndexOf("Menu", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return;
+            }
+
             EnsureStyles();
 
             int totalPlayers = PlayerRegistry.GetTotalPlayerCount();
@@ -94,11 +102,11 @@ namespace TheLastEmpire.Network
         private void DrawPartySidebarHUD()
         {
             var players = PlayerRegistry.AllPlayers;
-            float startX = 14f;
-            float startY = 140f;
             float cardWidth = 215f;
             float cardHeight = 52f;
             float spacing = 6f;
+            float startX = Screen.width - cardWidth - 14f;
+            float startY = 140f;
 
             int drawnIndex = 0;
             for (int i = 0; i < players.Count; i++)
