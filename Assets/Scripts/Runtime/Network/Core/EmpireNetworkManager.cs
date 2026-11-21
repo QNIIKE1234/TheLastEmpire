@@ -14,6 +14,8 @@ namespace TheLastEmpire.Network
         HandshakeRequest = 1,
         HandshakeAccept = 2,
         DisconnectNotice = 3,
+        LobbyRosterSync = 4,
+        HostStartGameplay = 5,
         PlayerStateSync = 10,
         ProjectileFire = 11,
         MeleeAttack = 12,
@@ -35,6 +37,16 @@ namespace TheLastEmpire.Network
         BuildingDestroyBroadcast = 52,
         CrateTransactionRequest = 53,
         CrateTransactionBroadcast = 54
+    }
+
+    [Serializable]
+    public struct LobbyMemberNetInfo
+    {
+        public ulong clientId;
+        public int slotIndex;
+        public string playerName;
+        public string characterId;
+        public bool isHost;
     }
 
     /// <summary>
@@ -87,8 +99,13 @@ namespace TheLastEmpire.Network
         private readonly List<PlayerController> _simulatedTeammates = new List<PlayerController>();
         public IReadOnlyList<PlayerController> SimulatedTeammates => _simulatedTeammates;
 
+        private readonly List<LobbyMemberNetInfo> _lobbyMembers = new List<LobbyMemberNetInfo>();
+        public IReadOnlyList<LobbyMemberNetInfo> LobbyMembers => _lobbyMembers;
+
         public event Action OnSessionStarted;
         public event Action OnSessionEnded;
+        public event Action OnLobbyRosterChanged;
+        public event Action OnKickedFromRoom;
         public event Action<ulong> OnPeerConnected;
         public event Action<ulong> OnPeerDisconnected;
 
@@ -383,6 +400,20 @@ namespace TheLastEmpire.Network
                 NetworkStageSyncManager.Instance.CaptureHostStageState();
             }
 
+            _lobbyMembers.Clear();
+            string hostCharId = !string.IsNullOrEmpty(CharacterManager.SelectedCharacterId)
+                ? CharacterManager.SelectedCharacterId
+                : CoOpOperativeOrder[0];
+            _lobbyMembers.Add(new LobbyMemberNetInfo
+            {
+                clientId = 0,
+                slotIndex = 0,
+                playerName = "HOST (P1)",
+                characterId = hostCharId,
+                isHost = true
+            });
+            OnLobbyRosterChanged?.Invoke();
+
             Debug.Log($"<color=#38BDF8>[EmpireNetworkManager]</color> Hosted 1–6P Co-op Room! Join Code: <b>{_activeJoinCode}</b> ({_activeHostIp}:{_activePort})");
             OnSessionStarted?.Invoke();
             return true;
@@ -440,6 +471,7 @@ namespace TheLastEmpire.Network
 
             _clientEndpoints.Clear();
             _endpointToClientId.Clear();
+            _lobbyMembers.Clear();
             _nextAssignedClientId = 1;
 
             bool wasActive = _isSessionActive;
@@ -468,6 +500,102 @@ namespace TheLastEmpire.Network
                 try { _udpSocket.Close(); } catch { }
                 _udpSocket = null;
             }
+        }
+
+        /// <summary>
+        /// เตะผู้เล่นในช่อง slotIndex (1..5) ออกจากห้อง (เรียกได้เฉพาะ Host เมื่อกดปุ่มแดง [X] บนการ์ดสมาชิกใน RoomInfoPanel)
+        /// </summary>
+        public void KickLobbyMemberBySlot(int slotIndex)
+        {
+            if (!_isSessionActive || !_isHost || slotIndex <= 0) return;
+
+            int memberIdx = -1;
+            for (int i = 0; i < _lobbyMembers.Count; i++)
+            {
+                if (_lobbyMembers[i].slotIndex == slotIndex)
+                {
+                    memberIdx = i;
+                    break;
+                }
+            }
+
+            if (memberIdx < 0) return;
+
+            ulong targetClientId = _lobbyMembers[memberIdx].clientId;
+            _lobbyMembers.RemoveAt(memberIdx);
+
+            // จัดเรียง slotIndex ใหม่ให้ต่อเนื่อง (0..N-1)
+            for (int i = 0; i < _lobbyMembers.Count; i++)
+            {
+                var m = _lobbyMembers[i];
+                m.slotIndex = i;
+                _lobbyMembers[i] = m;
+            }
+
+            SendPacket(NetPacketType.DisconnectNotice, w =>
+            {
+                w.Write("Kicked by Host");
+            }, targetClientId);
+
+            if (_clientEndpoints.TryGetValue(targetClientId, out IPEndPoint ep) && ep != null)
+            {
+                _endpointToClientId.Remove(ep.ToString());
+                _clientEndpoints.Remove(targetClientId);
+            }
+
+            PlayerController avatar = PlayerRegistry.GetPlayerByClientId(targetClientId);
+            if (avatar != null && avatar.IsRemotePlayer)
+            {
+                PlayerRegistry.Unregister(avatar);
+                Destroy(avatar.gameObject);
+            }
+
+            BroadcastLobbyRosterFromHost();
+            OnLobbyRosterChanged?.Invoke();
+            OnPeerDisconnected?.Invoke(targetClientId);
+        }
+
+        public void BroadcastLobbyRosterFromHost()
+        {
+            if (!_isSessionActive || !_isHost) return;
+
+            SendPacket(NetPacketType.LobbyRosterSync, w =>
+            {
+                w.Write(_activeRoomName ?? "THE LAST EMPIRE");
+                w.Write(_activeJoinCode ?? "");
+                w.Write(_lobbyMembers.Count);
+                for (int i = 0; i < _lobbyMembers.Count; i++)
+                {
+                    var m = _lobbyMembers[i];
+                    w.Write(m.clientId);
+                    w.Write(m.slotIndex);
+                    w.Write(m.playerName ?? $"PLAYER-{i + 1}");
+                    w.Write(m.characterId ?? "VANGUARD");
+                    w.Write(m.isHost);
+                }
+            });
+        }
+
+        /// <summary>
+        /// เรียกเมื่อ Host กดปุ่ม `ENTER WASTELAND` ใน `RoomInfoPanel` เพื่อพาทุกคนในห้องโหลดเข้าฉาก `Gameplay_3D` พร้อมกัน
+        /// </summary>
+        public void HostStartGameplayFromLobby(string gameplaySceneName = "Gameplay_3D")
+        {
+            if (!_isSessionActive)
+            {
+                StartHostSession();
+            }
+
+            if (_isHost)
+            {
+                SendPacket(NetPacketType.HostStartGameplay, w =>
+                {
+                    w.Write(gameplaySceneName ?? "Gameplay_3D");
+                });
+            }
+
+            MainMenuManager.ShouldLoadSave = false;
+            SceneManager.LoadScene(string.IsNullOrEmpty(gameplaySceneName) ? "Gameplay_3D" : gameplaySceneName);
         }
 
         /// <summary>
@@ -732,6 +860,33 @@ namespace TheLastEmpire.Network
                         string clientCharId = reader.ReadString();
                         int slotIdx = Mathf.Clamp(_clientEndpoints.Count, 1, MaxPlayers - 1);
 
+                        // บันทึกสมาชิกเข้า Lobby Roster (ป้องกันซ้ำหากส่ง Handshake ซ้ำ)
+                        int existingIdx = _lobbyMembers.FindIndex(m => m.clientId == senderId);
+                        if (existingIdx >= 0)
+                        {
+                            slotIdx = _lobbyMembers[existingIdx].slotIndex;
+                            _lobbyMembers[existingIdx] = new LobbyMemberNetInfo
+                            {
+                                clientId = senderId,
+                                slotIndex = slotIdx,
+                                playerName = string.IsNullOrEmpty(clientName) ? $"PLAYER-{slotIdx + 1}" : clientName,
+                                characterId = string.IsNullOrEmpty(clientCharId) ? CoOpOperativeOrder[slotIdx % CoOpOperativeOrder.Length] : clientCharId,
+                                isHost = false
+                            };
+                        }
+                        else if (_lobbyMembers.Count < MaxPlayers)
+                        {
+                            slotIdx = _lobbyMembers.Count;
+                            _lobbyMembers.Add(new LobbyMemberNetInfo
+                            {
+                                clientId = senderId,
+                                slotIndex = slotIdx,
+                                playerName = string.IsNullOrEmpty(clientName) ? $"PLAYER-{slotIdx + 1}" : clientName,
+                                characterId = string.IsNullOrEmpty(clientCharId) ? CoOpOperativeOrder[slotIdx % CoOpOperativeOrder.Length] : clientCharId,
+                                isHost = false
+                            });
+                        }
+
                         GetOrCreateRemotePlayerAvatar(senderId, slotIdx, clientName, clientCharId);
 
                         int worldSeed = (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
@@ -751,8 +906,53 @@ namespace TheLastEmpire.Network
                             w.Write(activeSceneName ?? "Gameplay_3D");
                         }, senderId);
 
+                        BroadcastLobbyRosterFromHost();
+                        OnLobbyRosterChanged?.Invoke();
                         NetworkBuildingSyncManager.Instance?.SendAllPlacedBuildingsToClient(senderId);
                         OnPeerConnected?.Invoke(senderId);
+                    }
+                    break;
+
+                case NetPacketType.DisconnectNotice:
+                    if (!_isHost)
+                    {
+                        DisconnectSession();
+                        OnKickedFromRoom?.Invoke();
+                    }
+                    break;
+
+                case NetPacketType.LobbyRosterSync:
+                    if (!_isHost)
+                    {
+                        _activeRoomName = reader.ReadString();
+                        string hostJoinCode = reader.ReadString();
+                        if (!string.IsNullOrEmpty(hostJoinCode)) _activeJoinCode = hostJoinCode;
+                        int memberCount = reader.ReadInt32();
+                        _lobbyMembers.Clear();
+                        for (int i = 0; i < memberCount; i++)
+                        {
+                            _lobbyMembers.Add(new LobbyMemberNetInfo
+                            {
+                                clientId = reader.ReadUInt64(),
+                                slotIndex = reader.ReadInt32(),
+                                playerName = reader.ReadString(),
+                                characterId = reader.ReadString(),
+                                isHost = reader.ReadBoolean()
+                            });
+                        }
+                        OnLobbyRosterChanged?.Invoke();
+                    }
+                    break;
+
+                case NetPacketType.HostStartGameplay:
+                    if (!_isHost)
+                    {
+                        string targetScene = reader.ReadString();
+                        if (string.IsNullOrEmpty(targetScene)) targetScene = "Gameplay_3D";
+                        if (SceneManager.GetActiveScene().name != targetScene)
+                        {
+                            SceneManager.LoadScene(targetScene);
+                        }
                     }
                     break;
 
