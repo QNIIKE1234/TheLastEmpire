@@ -101,13 +101,13 @@ namespace TheLastEmpire
         {
             if (other.CompareTag("Player"))
             {
-                PlayerController player = other.GetComponent<PlayerController>();
-                if (player != null && !_isPlayerInsideAura)
+                PlayerController player = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                if (player != null && !player.IsRemotePlayer && !_isPlayerInsideAura)
                 {
                     _activePlayer = player;
                     _isPlayerInsideAura = true;
                     _activePlayer.AddSanityAura(sanityRegenRate);
-                    Debug.Log("[Campfire] Player entered campfire warmth: Gained Sanity recovery aura.");
+                    Debug.Log("[Campfire] Local player entered campfire warmth: Gained Sanity recovery aura.");
                 }
             }
         }
@@ -116,12 +116,13 @@ namespace TheLastEmpire
         {
             if (other.CompareTag("Player"))
             {
-                if (_activePlayer != null && _isPlayerInsideAura)
+                PlayerController player = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                if (player != null && !player.IsRemotePlayer && _activePlayer == player && _isPlayerInsideAura)
                 {
                     _activePlayer.RemoveSanityAura(sanityRegenRate);
                     _isPlayerInsideAura = false;
                     _activePlayer = null;
-                    Debug.Log("[Campfire] Player left campfire warmth: Removed Sanity aura.");
+                    Debug.Log("[Campfire] Local player left campfire warmth: Removed Sanity aura.");
                 }
             }
         }

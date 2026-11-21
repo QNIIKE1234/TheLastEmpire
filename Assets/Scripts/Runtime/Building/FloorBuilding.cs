@@ -36,8 +36,8 @@ namespace TheLastEmpire
         {
             if (other.CompareTag("Player"))
             {
-                PlayerController player = other.GetComponent<PlayerController>();
-                if (player != null)
+                PlayerController player = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                if (player != null && !player.IsRemotePlayer)
                 {
                     _playerOnFloor = player;
                     _isPlayerOnFloor = true;
@@ -49,7 +49,8 @@ namespace TheLastEmpire
         {
             if (other.CompareTag("Player"))
             {
-                if (_playerOnFloor != null && other.gameObject == _playerOnFloor.gameObject)
+                PlayerController player = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+                if (player != null && !player.IsRemotePlayer && _playerOnFloor == player)
                 {
                     _isPlayerOnFloor = false;
                     _playerOnFloor = null;

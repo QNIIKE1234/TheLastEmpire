@@ -59,6 +59,34 @@ namespace TheLastEmpire
 
         public bool IsPlayerInRange() => _playerInRange;
 
+        public bool IsPlayerInRange(PlayerController player)
+        {
+            if (!_playerInRange || player == null || player.IsRemotePlayer) return false;
+            Collider col = GetComponent<Collider>();
+            if (col == null || !col.enabled)
+            {
+                _playerInRange = false;
+                return false;
+            }
+            // Safety check against stale trigger state: ensure the local player is actually near this portal collider
+            Vector3 pPos = player.transform.position;
+            Vector3 closest = col.ClosestPoint(pPos);
+            float sqrDistXZ = (pPos.x - closest.x) * (pPos.x - closest.x) + (pPos.z - closest.z) * (pPos.z - closest.z);
+            if (sqrDistXZ > 2.25f)
+            {
+                _playerInRange = false;
+                return false;
+            }
+            return true;
+        }
+
+        private static bool IsLocalPlayerCollider(Collider other)
+        {
+            if (other == null) return false;
+            PlayerController pc = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
+            return pc != null && !pc.IsRemotePlayer;
+        }
+
         public static bool IsWorldPortal(TransitionPortal portal)
         {
             if (portal == null) return false;
@@ -77,10 +105,10 @@ namespace TheLastEmpire
         {
             if (!IsWorldPortal(this)) return;
 
-            if (other.CompareTag("Player"))
+            if (IsLocalPlayerCollider(other))
             {
                 _playerInRange = true;
-                Debug.Log($"[TransitionPortal] Player entered range of {direction} portal.");
+                Debug.Log($"[TransitionPortal] Local player entered range of {direction} portal.");
             }
         }
 
@@ -88,10 +116,10 @@ namespace TheLastEmpire
         {
             if (!IsWorldPortal(this)) return;
 
-            if (other.CompareTag("Player"))
+            if (IsLocalPlayerCollider(other))
             {
                 _playerInRange = false;
-                Debug.Log($"[TransitionPortal] Player exited range of {direction} portal.");
+                Debug.Log($"[TransitionPortal] Local player exited range of {direction} portal.");
             }
         }
 

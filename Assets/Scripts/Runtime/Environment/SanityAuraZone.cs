@@ -44,20 +44,20 @@ namespace TheLastEmpire
         {
             if (!isActive) return;
             PlayerController pc = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
-            if (pc != null)
+            if (pc != null && !pc.IsRemotePlayer)
             {
                 pc.AddSanityAura(sanityRegenPerSecond);
-                Debug.Log($"[SanityAuraZone] Player entered {zoneName}! Regenerating +{sanityRegenPerSecond} Sanity/sec.");
+                Debug.Log($"[SanityAuraZone] Local player entered {zoneName}! Regenerating +{sanityRegenPerSecond} Sanity/sec.");
             }
         }
 
         private void OnTriggerExit(Collider other)
         {
             PlayerController pc = other.GetComponent<PlayerController>() ?? other.GetComponentInParent<PlayerController>();
-            if (pc != null)
+            if (pc != null && !pc.IsRemotePlayer)
             {
                 pc.RemoveSanityAura(sanityRegenPerSecond);
-                Debug.Log($"[SanityAuraZone] Player exited {zoneName}.");
+                Debug.Log($"[SanityAuraZone] Local player exited {zoneName}.");
             }
         }
     }
