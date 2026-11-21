@@ -355,17 +355,11 @@ namespace TheLastEmpire
 
         public void OnCancelClicked()
         {
-            // หากอยู่ในหน้า Lobby_NetCode ที่มี RoomPanel ให้ตัดการเชื่อมต่อห้องและสลับกลับไปหน้า RoomPanel
-            if (transform.parent != null)
+            // หากอยู่ในหน้า Lobby_NetCode ที่มี MultiplayerLobbyUI ให้สลับกลับไปหน้า RoomPanel ผ่าน Object Reference
+            if (TheLastEmpire.Network.MultiplayerLobbyUI.Instance != null &&
+                TheLastEmpire.Network.MultiplayerLobbyUI.Instance.TryReturnToRoomPanel())
             {
-                Transform roomPanel = transform.parent.Find("RoomPanel");
-                if (roomPanel != null)
-                {
-                    TheLastEmpire.Network.EmpireNetworkManager.Instance?.DisconnectSession();
-                    gameObject.SetActive(false);
-                    roomPanel.gameObject.SetActive(true);
-                    return;
-                }
+                return;
             }
 
             if (MainMenuManager.Instance != null)

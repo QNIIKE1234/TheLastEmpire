@@ -75,8 +75,8 @@ namespace TheLastEmpire.Network
             }
             else if (Instance != this)
             {
-                // หากสคริปต์นี้แปะอยู่บน RoomPanel ในซีนโดยตรง ให้ยึดตัวบน RoomPanel เป็นหลัก
-                if (gameObject.name.IndexOf("RoomPanel", StringComparison.OrdinalIgnoreCase) >= 0)
+                // หากสคริปต์นี้แปะอยู่ในซีนโดยตรง (ไม่ได้อยู่บน EmpireNetworkBootstrap) ให้ยึดตัวในซีนเป็นหลักเสมอ
+                if (gameObject.name.IndexOf("EmpireNetworkBootstrap", StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     MultiplayerLobbyUI old = Instance;
                     Instance = this;
@@ -92,7 +92,20 @@ namespace TheLastEmpire.Network
         [ContextMenu("Auto-Bind RoomPanel UI References")]
         public void EditorAutoBindReferences()
         {
-            TryBindLobbyNetcodeSceneUI();
+            AutoDiscoverMissingReferences();
+        }
+
+        /// <summary>
+        /// เรียกจาก CharacterSelectUI เมื่อกดปุ่ม BACK ในหน้าเลือกตัวละคร เพื่อสลับกลับไปหน้า RoomPanel โดยอ้างอิงจาก Reference (ไม่พึ่งชื่อ GameObject)
+        /// </summary>
+        public bool TryReturnToRoomPanel()
+        {
+            if (_sceneRoomPanel == null) return false;
+            EmpireNetworkManager.Instance?.DisconnectSession();
+            if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(false);
+            _sceneRoomPanel.SetActive(true);
+            RefreshSceneLobbyUI();
+            return true;
         }
 
         private void OnDestroy()
@@ -114,7 +127,6 @@ namespace TheLastEmpire.Network
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             _isSceneLobbyBound = false;
-            _roomThumbnailSlots.Clear();
             TryBindLobbyNetcodeSceneUI();
         }
 
@@ -144,58 +156,158 @@ namespace TheLastEmpire.Network
         //  1. Scene-Native `Lobby_NetCode.unity` UI Binding
         // =====================================================
 
-        private void TryBindLobbyNetcodeSceneUI()
+        /// <summary>
+        /// ค้นหา Reference เฉพาะช่องที่ยังว่างอยู่ (null) ใน Inspector เท่านั้น
+        /// หากช่องใดถูกลากผูกไว้ใน Inspector แล้ว จะยึดตาม Object Reference (fileID) ใน Inspector 100%
+        /// ทำให้เปลี่ยนชื่อ GameObject ใน Hierarchy ได้อิสระโดยสคริปต์ไม่พัง
+        /// </summary>
+        public void AutoDiscoverMissingReferences()
         {
-            GameObject canvasObj = GameObject.Find("MainMenuCanvas");
-            if (canvasObj == null) return;
-
-            Transform roomPanelTf = canvasObj.transform.Find("RoomPanel");
-            if (roomPanelTf == null) return;
-
-            _sceneRoomPanel = roomPanelTf.gameObject;
-            Transform lobbyTf = canvasObj.transform.Find("Lobby");
-            _sceneLobbyPanel = lobbyTf != null ? lobbyTf.gameObject : null;
-
-            // 1. ปุ่ม CREATE (RoomPanel -> EmbarkButton)
-            Transform createBtnTf = roomPanelTf.Find("EmbarkButton");
-            if (createBtnTf != null)
+            if (_sceneRoomPanel == null)
             {
-                _sceneCreateButton = createBtnTf.GetComponent<Button>();
-                if (_sceneCreateButton != null)
+                // ถ้าสคริปต์นี้แปะอยู่บนตัว RoomPanel เอง ให้ใช้ gameObject นี้เลยโดยไม่ต้องเช็กชื่อ
+                if (GetComponent<RectTransform>() != null && gameObject.name.IndexOf("EmpireNetworkBootstrap", StringComparison.OrdinalIgnoreCase) < 0)
                 {
-                    _sceneCreateButton.onClick.RemoveListener(OnSceneCreateRoomClicked);
-                    _sceneCreateButton.onClick.AddListener(OnSceneCreateRoomClicked);
+                    _sceneRoomPanel = gameObject;
+                }
+                else
+                {
+                    GameObject canvasObj = GameObject.Find("MainMenuCanvas");
+                    Transform found = canvasObj != null ? canvasObj.transform.Find("RoomPanel") : null;
+                    if (found != null) _sceneRoomPanel = found.gameObject;
                 }
             }
 
-            // 2. ปุ่มประตูออกมุมซ้ายล่าง (RoomPanel -> Close)
-            Transform closeBtnTf = roomPanelTf.Find("Close");
-            if (closeBtnTf != null)
+            if (_sceneRoomPanel == null) return;
+            Transform roomPanelTf = _sceneRoomPanel.transform;
+
+            if (_sceneLobbyPanel == null && roomPanelTf.parent != null)
             {
-                _sceneCloseRoomPanelButton = closeBtnTf.GetComponent<Button>();
-                if (_sceneCloseRoomPanelButton != null)
+                CharacterSelectUI charSelect = roomPanelTf.parent.GetComponentInChildren<CharacterSelectUI>(true);
+                if (charSelect != null)
                 {
-                    _sceneCloseRoomPanelButton.onClick.RemoveListener(OnSceneExitToMainMenuClicked);
-                    _sceneCloseRoomPanelButton.onClick.AddListener(OnSceneExitToMainMenuClicked);
+                    _sceneLobbyPanel = charSelect.gameObject;
+                }
+                else
+                {
+                    Transform lobbyTf = roomPanelTf.parent.Find("Lobby");
+                    if (lobbyTf != null) _sceneLobbyPanel = lobbyTf.gameObject;
                 }
             }
 
-            // 3. ช่อง Search / ตั้งชื่อห้อง / กรอกรหัสห้อง (RoomPanel -> TopBar -> SearchInputField)
-            Transform topBarTf = roomPanelTf.Find("TopBar");
-            if (topBarTf != null)
+            if (_sceneCreateButton == null)
             {
-                Transform searchTf = topBarTf.Find("SearchInputField");
-                if (searchTf != null)
+                _sceneCreateButton = roomPanelTf.Find("EmbarkButton")?.GetComponent<Button>();
+            }
+
+            if (_sceneCloseRoomPanelButton == null)
+            {
+                _sceneCloseRoomPanelButton = roomPanelTf.Find("Close")?.GetComponent<Button>();
+            }
+
+            if (_sceneSearchInput == null)
+            {
+                _sceneSearchInput = roomPanelTf.Find("TopBar/SearchInputField")?.GetComponent<TMP_InputField>()
+                                  ?? roomPanelTf.GetComponentInChildren<TMP_InputField>(true);
+            }
+
+            Transform bottomBarTf = roomPanelTf.Find("BottomBar");
+            if (bottomBarTf != null)
+            {
+                if (_scenePrevPageButton == null)
+                    _scenePrevPageButton = bottomBarTf.Find("PreButton")?.GetComponent<Button>();
+                if (_sceneNextPageButton == null)
+                    _sceneNextPageButton = bottomBarTf.Find("NextButton")?.GetComponent<Button>();
+                if (_scenePageNumberText == null)
+                    _scenePageNumberText = bottomBarTf.Find("Text (TMP)")?.GetComponent<TMP_Text>()
+                                         ?? bottomBarTf.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            // ค้นหาสล็อตแถวห้องเฉพาะเมื่อลิสต์ใน Inspector ยังว่างอยู่
+            bool hasValidSlots = false;
+            if (_roomThumbnailSlots != null)
+            {
+                for (int i = 0; i < _roomThumbnailSlots.Count; i++)
                 {
-                    _sceneSearchInput = searchTf.GetComponent<TMP_InputField>();
-                    if (_sceneSearchInput != null)
+                    if (_roomThumbnailSlots[i] != null && _roomThumbnailSlots[i].root != null)
                     {
-                        _sceneSearchInput.onValueChanged.RemoveListener(OnSceneSearchInputChanged);
-                        _sceneSearchInput.onValueChanged.AddListener(OnSceneSearchInputChanged);
+                        hasValidSlots = true;
+                        break;
                     }
                 }
+            }
 
-                // ปุ่มลูกศรเรียงลำดับ / รีเฟรชห้องบน TopBar
+            if (!hasValidSlots)
+            {
+                if (_roomThumbnailSlots == null) _roomThumbnailSlots = new List<RoomThumbnailSlot>();
+                _roomThumbnailSlots.Clear();
+
+                Transform roomsListTf = roomPanelTf.Find("RoomsListPanel/RoomsList");
+                if (roomsListTf != null)
+                {
+                    for (int i = 0; i < roomsListTf.childCount; i++)
+                    {
+                        Transform rowTf = roomsListTf.GetChild(i);
+                        if (rowTf == null) continue;
+
+                        Transform joinTf = rowTf.Find("JoinButton");
+                        Button joinBtn = joinTf != null ? joinTf.GetComponent<Button>() : rowTf.GetComponentInChildren<Button>(true);
+                        TMP_Text joinLbl = joinBtn != null ? joinBtn.GetComponentInChildren<TMP_Text>(true) : null;
+
+                        _roomThumbnailSlots.Add(new RoomThumbnailSlot
+                        {
+                            root = rowTf.gameObject,
+                            roomNameText = rowTf.Find("RoomNameText")?.GetComponent<TMP_Text>(),
+                            countText = rowTf.Find("ConutText")?.GetComponent<TMP_Text>(),
+                            lockImage = rowTf.Find("LockImage")?.GetComponent<Image>(),
+                            joinButton = joinBtn,
+                            joinButtonLabel = joinLbl
+                        });
+                    }
+                }
+            }
+
+            if (_sceneLobbyPanel != null)
+            {
+                Transform modalPanelTf = _sceneLobbyPanel.transform.Find("ModalPanel") ?? _sceneLobbyPanel.transform;
+                if (_sceneLobbySubtitleText == null)
+                {
+                    _sceneLobbySubtitleText = modalPanelTf.Find("ModalSubtitle")?.GetComponent<TMP_Text>();
+                }
+                if (_sceneLobbyEmbarkLabel == null)
+                {
+                    _sceneLobbyEmbarkLabel = modalPanelTf.Find("EmbarkButton/Label")?.GetComponent<TMP_Text>();
+                }
+            }
+        }
+
+        private void TryBindLobbyNetcodeSceneUI()
+        {
+            AutoDiscoverMissingReferences();
+            if (_sceneRoomPanel == null) return;
+
+            // ผูก Event ปุ่มตาม Reference ที่อยู่ใน Inspector (เปลี่ยนชื่อ GameObject ก็ยังทำงานได้ 100%)
+            if (_sceneCreateButton != null)
+            {
+                _sceneCreateButton.onClick.RemoveListener(OnSceneCreateRoomClicked);
+                _sceneCreateButton.onClick.AddListener(OnSceneCreateRoomClicked);
+            }
+
+            if (_sceneCloseRoomPanelButton != null)
+            {
+                _sceneCloseRoomPanelButton.onClick.RemoveListener(OnSceneExitToMainMenuClicked);
+                _sceneCloseRoomPanelButton.onClick.AddListener(OnSceneExitToMainMenuClicked);
+            }
+
+            if (_sceneSearchInput != null)
+            {
+                _sceneSearchInput.onValueChanged.RemoveListener(OnSceneSearchInputChanged);
+                _sceneSearchInput.onValueChanged.AddListener(OnSceneSearchInputChanged);
+            }
+
+            Transform topBarTf = _sceneRoomPanel.transform.Find("TopBar");
+            if (topBarTf != null)
+            {
                 Button[] topButtons = topBarTf.GetComponentsInChildren<Button>(true);
                 for (int i = 0; i < topButtons.Length; i++)
                 {
@@ -205,81 +317,18 @@ namespace TheLastEmpire.Network
                 }
             }
 
-            // 4. แถบเปลี่ยนหน้า BottomBar (< 1/1 >)
-            Transform bottomBarTf = roomPanelTf.Find("BottomBar");
-            if (bottomBarTf != null)
+            if (_scenePrevPageButton != null)
             {
-                Transform preTf = bottomBarTf.Find("PreButton");
-                if (preTf != null)
-                {
-                    _scenePrevPageButton = preTf.GetComponent<Button>();
-                    if (_scenePrevPageButton != null)
-                    {
-                        _scenePrevPageButton.onClick.RemoveListener(OnScenePrevPageClicked);
-                        _scenePrevPageButton.onClick.AddListener(OnScenePrevPageClicked);
-                    }
-                }
-
-                Transform nextTf = bottomBarTf.Find("NextButton");
-                if (nextTf != null)
-                {
-                    _sceneNextPageButton = nextTf.GetComponent<Button>();
-                    if (_sceneNextPageButton != null)
-                    {
-                        _sceneNextPageButton.onClick.RemoveListener(OnSceneNextPageClicked);
-                        _sceneNextPageButton.onClick.AddListener(OnSceneNextPageClicked);
-                    }
-                }
-
-                Transform pageTxtTf = bottomBarTf.Find("Text (TMP)");
-                if (pageTxtTf != null)
-                {
-                    _scenePageNumberText = pageTxtTf.GetComponent<TMP_Text>();
-                }
+                _scenePrevPageButton.onClick.RemoveListener(OnScenePrevPageClicked);
+                _scenePrevPageButton.onClick.AddListener(OnScenePrevPageClicked);
             }
 
-            // 5. รายการ 5 แถวห้องใน RoomsListPanel -> RoomsList
-            _roomThumbnailSlots.Clear();
-            Transform roomsListTf = roomPanelTf.Find("RoomsListPanel/RoomsList");
-            if (roomsListTf != null)
+            if (_sceneNextPageButton != null)
             {
-                for (int i = 0; i < roomsListTf.childCount; i++)
-                {
-                    Transform rowTf = roomsListTf.GetChild(i);
-                    if (rowTf == null) continue;
-
-                    Transform joinTf = rowTf.Find("JoinButton");
-                    Button joinBtn = joinTf != null ? joinTf.GetComponent<Button>() : null;
-                    TMP_Text joinLbl = joinTf != null ? joinTf.GetComponentInChildren<TMP_Text>(true) : null;
-
-                    _roomThumbnailSlots.Add(new RoomThumbnailSlot
-                    {
-                        root = rowTf.gameObject,
-                        roomNameText = rowTf.Find("RoomNameText")?.GetComponent<TMP_Text>(),
-                        countText = rowTf.Find("ConutText")?.GetComponent<TMP_Text>(),
-                        lockImage = rowTf.Find("LockImage")?.GetComponent<Image>(),
-                        joinButton = joinBtn,
-                        joinButtonLabel = joinLbl
-                    });
-                }
+                _sceneNextPageButton.onClick.RemoveListener(OnSceneNextPageClicked);
+                _sceneNextPageButton.onClick.AddListener(OnSceneNextPageClicked);
             }
 
-            // 6. อ้างอิงข้อความสถานะห้องในหน้าเลือกตัวละคร (Lobby -> ModalPanel -> ModalSubtitle / EmbarkButton)
-            if (_sceneLobbyPanel != null)
-            {
-                Transform modalPanelTf = _sceneLobbyPanel.transform.Find("ModalPanel");
-                if (modalPanelTf != null)
-                {
-                    _sceneLobbySubtitleText = modalPanelTf.Find("ModalSubtitle")?.GetComponent<TMP_Text>();
-                    Transform lobbyEmbarkTf = modalPanelTf.Find("EmbarkButton/Label");
-                    if (lobbyEmbarkTf != null)
-                    {
-                        _sceneLobbyEmbarkLabel = lobbyEmbarkTf.GetComponent<TMP_Text>();
-                    }
-                }
-            }
-
-            // ตั้งสถานะเริ่มต้นเมื่อเข้าซีน Lobby_NetCode ตอนรันเกม: เปิด RoomPanel และซ่อน Lobby (ยกเว้นเชื่อมต่อห้องอยู่แล้ว)
             if (Application.isPlaying)
             {
                 if (!EmpireNetworkManager.IsOnline)
@@ -290,7 +339,7 @@ namespace TheLastEmpire.Network
 
                 _isSceneLobbyBound = true;
                 RefreshSceneLobbyUI();
-                Debug.Log("<color=#38BDF8>[MultiplayerLobbyUI]</color> Bound Lobby_NetCode scene UI (RoomPanel + 5 RoomThumbnails + Lobby Operative Selection).");
+                Debug.Log("<color=#38BDF8>[MultiplayerLobbyUI]</color> Bound Lobby_NetCode scene UI via serialized references.");
             }
         }
 

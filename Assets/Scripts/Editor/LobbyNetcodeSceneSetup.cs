@@ -49,17 +49,14 @@ namespace TheLastEmpire.Editor
                 modified = true;
             }
 
-            // ผูก Reference ทุกช่องใน Inspector อัตโนมัติ
+            // ผูก Reference ทุกช่องลงใน Inspector (บันทึกเป็น fileID ของ Unity เมื่อเปลี่ยนชื่อ GameObject ก็ไม่หลุด)
             SerializedObject so = new SerializedObject(lobbyUi);
-            if (so.FindProperty("_sceneRoomPanel")?.objectReferenceValue == null)
+            if (so.FindProperty("_sceneRoomPanel")?.objectReferenceValue == null ||
+                so.FindProperty("_roomThumbnailSlots")?.arraySize == 0)
             {
                 lobbyUi.EditorAutoBindReferences();
                 EditorUtility.SetDirty(lobbyUi);
                 modified = true;
-            }
-            else
-            {
-                lobbyUi.EditorAutoBindReferences();
             }
 
             // 2. สร้าง GameObject `EmpireNetworkManager` ไว้ในซีน Lobby_NetCode เพื่อให้เห็นใน Hierarchy ชัดเจน
