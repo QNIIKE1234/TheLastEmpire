@@ -77,21 +77,15 @@ namespace TheLastEmpire.Network
         [Tooltip("ข้อความหัวข้อรองแสดงรหัสห้อง/จำนวนคนในหน้า RoomInfoPanel (เช่น ModalSubtitle — Optional)")]
         [SerializeField] private TMP_Text roomInfoSubtitleText;
 
-        [Header("6. RoomInfoPanel — ช่องผู้เล่นทั้ง 6 คน (MemberPrefabs 6 ช่อง)")]
+        [Header("6. RoomInfoPanel — ช่องผู้เล่นทั้ง 6 คน & Character Database SO")]
         [Tooltip("ลาก MemberPrefabs ทั้ง 6 ช่อง (ที่แปะสคริปต์ RoomMemberSlotUI แล้ว) เรียงช่อง 1..6 มาใส่ลิสต์นี้")]
         [SerializeField] private List<RoomMemberSlotUI> memberSlots = new List<RoomMemberSlotUI>();
 
-        [Tooltip("รูป Default กรณีผู้เล่นเพิ่งเข้าห้องแล้วยังไม่ได้กดปุ่มประแจเลือกตัวละคร (เช่น รูปเข็มทิศในรูปของคุณ)")]
-        [SerializeField] private Sprite defaultUnselectedPortrait;
+        [Tooltip("ลากไฟล์ CharacterDatabase.asset (ใน Assets/Resources_Addressable/Database/CharacterDatabase.asset) มาใส่ช่องเดียวจบ (ถ้าเว้นว่างจะโหลด CharacterDatabase.Instance ให้อัตโนมัติ)")]
+        [SerializeField] private CharacterDatabase characterDatabase;
 
-        [Tooltip("รูปโปรไฟล์ประจำตัวละครทั้ง 7 (ถ้าไม่ลากใส่ ระบบจะดึงจาก CharacterSelectUI หรือ CharacterDatabase ให้อัตโนมัติ)")]
-        [SerializeField] private Sprite vanguardPortrait;
-        [SerializeField] private Sprite juggernautPortrait;
-        [SerializeField] private Sprite phantomPortrait;
-        [SerializeField] private Sprite marksmanPortrait;
-        [SerializeField] private Sprite scavengerPortrait;
-        [SerializeField] private Sprite rebelPortrait;
-        [SerializeField] private Sprite demolitionistPortrait;
+        [Tooltip("รูป Default กรณีผู้เล่นเพิ่งเข้าห้องแล้วยังไม่ได้กดปุ่มประแจเลือกตัวละคร (เช่น รูปเข็มทิศ)")]
+        [SerializeField] private Sprite defaultUnselectedPortrait;
 
         [Header("7. Scene Navigation Settings")]
         [Tooltip("ชื่อซีนเมนูหลักเมื่อกดปุ่มประตูออกในหน้า SelectRoomPanel")]
@@ -534,40 +528,20 @@ namespace TheLastEmpire.Network
                 return null;
             }
 
-            string id = characterId.Trim().ToUpperInvariant();
-            switch (id)
+            string id = characterId.Trim();
+            CharacterDatabase db = characterDatabase != null ? characterDatabase : CharacterDatabase.Instance;
+            if (db != null && db.Characters != null)
             {
-                case "VANGUARD":
-                    if (vanguardPortrait != null) return vanguardPortrait;
-                    break;
-                case "JUGGERNAUT":
-                    if (juggernautPortrait != null) return juggernautPortrait;
-                    break;
-                case "PHANTOM":
-                    if (phantomPortrait != null) return phantomPortrait;
-                    break;
-                case "MARKSMAN":
-                    if (marksmanPortrait != null) return marksmanPortrait;
-                    break;
-                case "SCAVENGER":
-                    if (scavengerPortrait != null) return scavengerPortrait;
-                    break;
-                case "REBEL":
-                    if (rebelPortrait != null) return rebelPortrait;
-                    break;
-                case "DEMOLITIONIST":
-                    if (demolitionistPortrait != null) return demolitionistPortrait;
-                    break;
-            }
-
-            if (CharacterDatabase.Instance != null && CharacterDatabase.Instance.Characters != null)
-            {
-                var list = CharacterDatabase.Instance.Characters;
+                var list = db.Characters;
                 for (int i = 0; i < list.Count; i++)
                 {
                     CharacterData data = list[i];
                     if (data != null && string.Equals(data.characterId, id, StringComparison.OrdinalIgnoreCase))
                     {
+                        if (data.characterPortrait != null)
+                        {
+                            return data.characterPortrait;
+                        }
                         if (characterSelectPanel != null)
                         {
                             CharacterSelectUI csUi = characterSelectPanel.GetComponentInChildren<CharacterSelectUI>(true);
@@ -576,10 +550,6 @@ namespace TheLastEmpire.Network
                                 Sprite fromCs = csUi.GetPortraitForCharacter(data);
                                 if (fromCs != null) return fromCs;
                             }
-                        }
-                        if (data.characterPortrait != null)
-                        {
-                            return data.characterPortrait;
                         }
                     }
                 }
