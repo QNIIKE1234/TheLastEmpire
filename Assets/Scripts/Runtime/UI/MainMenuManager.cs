@@ -357,6 +357,7 @@ namespace TheLastEmpire
             if (changeNameInputField != null)
             {
                 changeNameInputField.text = string.Empty;
+                UpdateChangeNamePlaceholder(currentName);
                 changeNameInputField.gameObject.SetActive(false);
 
                 changeNameInputField.onSubmit.RemoveListener(OnAccountNameInputSubmitted);
@@ -399,6 +400,7 @@ namespace TheLastEmpire
 
                 changeNameInputField.gameObject.SetActive(true);
                 changeNameInputField.text = string.Empty;
+                UpdateChangeNamePlaceholder(TheLastEmpire.Network.EmpireNetworkManager.LocalPlayerName);
                 changeNameInputField.Select();
                 changeNameInputField.ActivateInputField();
             }
@@ -437,6 +439,7 @@ namespace TheLastEmpire
 
             if (changeNameInputField != null)
             {
+                UpdateChangeNamePlaceholder(TheLastEmpire.Network.EmpireNetworkManager.LocalPlayerName);
                 changeNameInputField.gameObject.SetActive(false);
             }
 
@@ -444,6 +447,16 @@ namespace TheLastEmpire
             {
                 accountNameText.text = TheLastEmpire.Network.EmpireNetworkManager.LocalPlayerName;
                 accountNameText.gameObject.SetActive(true);
+            }
+        }
+
+        private void UpdateChangeNamePlaceholder(string currentName)
+        {
+            if (changeNameInputField == null || string.IsNullOrEmpty(currentName)) return;
+
+            if (changeNameInputField.placeholder is TMP_Text placeholderTmp)
+            {
+                placeholderTmp.text = currentName;
             }
         }
 
