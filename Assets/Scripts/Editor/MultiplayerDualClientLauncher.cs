@@ -81,7 +81,11 @@ namespace TheLastEmpire.Editor
                 if (!BuildStandaloneTestClient()) return;
             }
 
-            SpawnClientProcess(exePath, "-coopClient 127.0.0.1:7777 -screen-fullscreen 0 -screen-width 1280 -screen-height 720");
+            string activeSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string launchArg = string.Equals(activeSceneName, "Lobby_NetCode", System.StringComparison.OrdinalIgnoreCase)
+                ? "-coopLobby -screen-fullscreen 0 -screen-width 1280 -screen-height 720"
+                : "-coopClient 127.0.0.1:7777 -screen-fullscreen 0 -screen-width 1280 -screen-height 720";
+            SpawnClientProcess(exePath, launchArg);
         }
 
         [MenuItem("Tools/Multiplayer/2. Rebuild Test Client (.exe)", false, 11)]
@@ -140,7 +144,11 @@ namespace TheLastEmpire.Editor
             }
 
             SpawnClientProcess(exePath, "-coopHost -screen-fullscreen 0 -screen-width 1280 -screen-height 720");
-            SpawnClientProcess(exePath, "-coopClient 127.0.0.1:7777 -screen-fullscreen 0 -screen-width 1280 -screen-height 720");
+            string activeSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string launchArg = string.Equals(activeSceneName, "Lobby_NetCode", System.StringComparison.OrdinalIgnoreCase)
+                ? "-coopLobby -screen-fullscreen 0 -screen-width 1280 -screen-height 720"
+                : "-coopClient 127.0.0.1:7777 -screen-fullscreen 0 -screen-width 1280 -screen-height 720";
+            SpawnClientProcess(exePath, launchArg);
         }
 
         private static void SpawnClientProcess(string exePath, string arguments)

@@ -291,6 +291,7 @@ namespace TheLastEmpire
         {
             if (ch == null) return;
             _selectedCharacterId = ch.characterId;
+            CharacterManager.SelectedCharacterId = _selectedCharacterId;
 
             // 1. Update Character Portrait Artwork (ModalCharacter)
             EnsurePortraitReference();
@@ -354,6 +355,19 @@ namespace TheLastEmpire
 
         public void OnCancelClicked()
         {
+            // หากอยู่ในหน้า Lobby_NetCode ที่มี RoomPanel ให้ตัดการเชื่อมต่อห้องและสลับกลับไปหน้า RoomPanel
+            if (transform.parent != null)
+            {
+                Transform roomPanel = transform.parent.Find("RoomPanel");
+                if (roomPanel != null)
+                {
+                    TheLastEmpire.Network.EmpireNetworkManager.Instance?.DisconnectSession();
+                    gameObject.SetActive(false);
+                    roomPanel.gameObject.SetActive(true);
+                    return;
+                }
+            }
+
             if (MainMenuManager.Instance != null)
             {
                 MainMenuManager.Instance.OnCloseCharacterSelect();

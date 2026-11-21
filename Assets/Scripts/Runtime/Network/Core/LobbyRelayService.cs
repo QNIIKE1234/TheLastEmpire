@@ -10,6 +10,7 @@ namespace TheLastEmpire.Network
     [Serializable]
     public class DiscoveredLanRoom
     {
+        public string roomName;
         public string joinCode;
         public string hostIp;
         public int hostPort;
@@ -36,7 +37,7 @@ namespace TheLastEmpire.Network
         private static readonly Dictionary<string, DiscoveredLanRoom> _discoveredRooms = new Dictionary<string, DiscoveredLanRoom>();
         public static IReadOnlyDictionary<string, DiscoveredLanRoom> DiscoveredRooms => _discoveredRooms;
 
-        public static void RegisterDiscoveredRoom(string joinCode, string hostIp, int hostPort, int currentPlayers, int maxPlayers, string sceneName)
+        public static void RegisterDiscoveredRoom(string joinCode, string hostIp, int hostPort, int currentPlayers, int maxPlayers, string sceneName, string roomName = "")
         {
             if (string.IsNullOrEmpty(hostIp) || hostPort <= 0) return;
             string key = $"{hostIp}:{hostPort}";
@@ -45,12 +46,13 @@ namespace TheLastEmpire.Network
                 room = new DiscoveredLanRoom();
                 _discoveredRooms[key] = room;
             }
+            room.roomName = string.IsNullOrWhiteSpace(roomName) ? $"ROOM {joinCode}" : roomName.Trim();
             room.joinCode = joinCode ?? "";
             room.hostIp = hostIp;
             room.hostPort = hostPort;
             room.currentPlayers = currentPlayers;
             room.maxPlayers = maxPlayers;
-            room.sceneName = sceneName ?? "MainMenu";
+            room.sceneName = sceneName ?? "Lobby_NetCode";
             room.lastSeenRealtime = Time.realtimeSinceStartup;
         }
 
@@ -84,9 +86,10 @@ namespace TheLastEmpire.Network
             return active;
         }
 
-        public static byte[] BuildLanBeaconPacket(string joinCode, string hostIp, int hostPort, int currentPlayers, int maxPlayers, string sceneName)
+        public static byte[] BuildLanBeaconPacket(string joinCode, string hostIp, int hostPort, int currentPlayers, int maxPlayers, string sceneName, string roomName = "")
         {
-            string msg = $"{BeaconPrefix}{joinCode}|{hostIp}|{hostPort}|{currentPlayers}|{maxPlayers}|{sceneName}";
+            string safeRoomName = string.IsNullOrWhiteSpace(roomName) ? $"EMPIRE ROOM [{joinCode}]" : roomName.Replace("|", " ").Trim();
+            string msg = $"{BeaconPrefix}{joinCode}|{hostIp}|{hostPort}|{currentPlayers}|{maxPlayers}|{sceneName}|{safeRoomName}";
             return Encoding.UTF8.GetBytes(msg);
         }
 
@@ -111,8 +114,9 @@ namespace TheLastEmpire.Network
                 if (!int.TryParse(parts[3], out int curP)) curP = 1;
                 if (!int.TryParse(parts[4], out int maxP)) maxP = 6;
                 string scene = parts[5];
+                string rName = parts.Length >= 7 ? parts[6] : $"EMPIRE ROOM [{code}]";
 
-                RegisterDiscoveredRoom(code, ip, port, curP, maxP, scene);
+                RegisterDiscoveredRoom(code, ip, port, curP, maxP, scene, rName);
                 _discoveredRooms.TryGetValue($"{ip}:{port}", out room);
                 return room != null;
             }

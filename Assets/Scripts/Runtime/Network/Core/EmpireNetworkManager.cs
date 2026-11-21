@@ -60,6 +60,7 @@ namespace TheLastEmpire.Network
         public bool IsHostMode => _isHost;
         public ulong LocalClientId => _localClientId;
         public string ActiveJoinCode => _activeJoinCode;
+        public string ActiveRoomName => _activeRoomName;
         public string ActiveHostIp => _activeHostIp;
         public int ActivePort => _activePort;
 
@@ -69,6 +70,7 @@ namespace TheLastEmpire.Network
         private float _handshakeRetryTimer = 0f;
         private ulong _localClientId = 0;
         private string _activeJoinCode = "";
+        private string _activeRoomName = "THE LAST EMPIRE";
         private string _activeHostIp = "127.0.0.1";
         private int _activePort = LobbyRelayService.DefaultUdpPort;
 
@@ -201,7 +203,8 @@ namespace TheLastEmpire.Network
                         _activePort,
                         ConnectedPeerCount,
                         MaxPlayers,
-                        SceneManager.GetActiveScene().name);
+                        SceneManager.GetActiveScene().name,
+                        _activeRoomName);
 
                     try
                     {
@@ -236,7 +239,15 @@ namespace TheLastEmpire.Network
                 string[] args = Environment.GetCommandLineArgs();
                 for (int i = 0; i < args.Length; i++)
                 {
-                    if (string.Equals(args[i], "-coopClient", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(args[i], "-coopLobby", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (SceneManager.GetActiveScene().name != "Lobby_NetCode")
+                        {
+                            SceneManager.LoadScene("Lobby_NetCode");
+                        }
+                        break;
+                    }
+                    else if (string.Equals(args[i], "-coopClient", StringComparison.OrdinalIgnoreCase))
                     {
                         string target = (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
                             ? args[i + 1]
@@ -314,7 +325,7 @@ namespace TheLastEmpire.Network
         //  Host / Client / Disconnect Lifecycle
         // =====================================================
 
-        public bool StartHostSession(int port = LobbyRelayService.DefaultUdpPort)
+        public bool StartHostSession(int port = LobbyRelayService.DefaultUdpPort, string customRoomName = "")
         {
             DisconnectSession();
 
@@ -347,6 +358,9 @@ namespace TheLastEmpire.Network
             _activePort = boundPort;
             _activeHostIp = LobbyRelayService.GetLocalIPv4();
             _activeJoinCode = LobbyRelayService.GenerateSixCharJoinCode(_activeHostIp, _activePort);
+            _activeRoomName = string.IsNullOrWhiteSpace(customRoomName)
+                ? $"EMPIRE SQUAD [{_activeJoinCode}]"
+                : customRoomName.Trim();
 
             if (NetworkManager.Singleton != null)
             {

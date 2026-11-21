@@ -1,25 +1,57 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace TheLastEmpire.Network
 {
     /// <summary>
-    /// MultiplayerLobbyUI — หน้าต่างสร้างห้อง / กรอกรหัสเข้าห้อง 6 หลัก / เสกเพื่อนร่วมทีม Co-op (1–6 คน)
-    /// - เปิด/ปิดได้ทุกเมื่อด้วยปุ่มลัด [F2] หรือกดปุ่ม "CO-OP [F2]" มุมขวาบนของหน้าจอ
-    /// - รองรับ:
-    ///   1. Host Co-op Room (สร้างห้อง 1–6 คน พร้อมแสดงรหัส Join Code 6 หลัก และปุ่ม Copy Code)
-    ///   2. Join Co-op Room (กรอกรหัสห้อง 6 หลัก หรือ IP:Port เพื่อเข้าร่วมทีม)
-    ///   3. Spawn Co-op Teammate Bot (+1 Ally สูงสุดครบ 6 คน เพื่อทดสอบระบบปาร์ตี้/ชุบชีวิต/ข้ามประตูได้ทันทีในจอเดียว)
+    /// MultiplayerLobbyUI — ควบคุมทั้ง:
+    /// 1. หน้าจอ Canvas UI ในซีนใหม่ `Lobby_NetCode.unity` (`RoomPanel` ค้นหา/สร้างห้อง LAN และ `Lobby` เลือกตัวละครก่อนกด `ENTER WASTELAND`)
+    /// 2. หน้าต่างลัด [F2] สำหรับเสกบอทเพื่อนร่วมทีม / ทดสอบระหว่างอยู่ในด่าน
     /// </summary>
     public class MultiplayerLobbyUI : MonoBehaviour
     {
         public static MultiplayerLobbyUI Instance { get; private set; }
-        public static System.Action OnRequestLaunchSecondClientWindow;
+        public static Action OnRequestLaunchSecondClientWindow;
 
+        private class RoomThumbnailSlot
+        {
+            public GameObject root;
+            public TMP_Text roomNameText;
+            public TMP_Text countText;
+            public Image lockImage;
+            public Button joinButton;
+            public TMP_Text joinButtonLabel;
+        }
+
+        // Scene UI References (auto-bound when Lobby_NetCode scene is active)
+        private GameObject _sceneRoomPanel;
+        private GameObject _sceneLobbyPanel;
+        private TMP_InputField _sceneSearchInput;
+        private Button _sceneCreateButton;
+        private Button _sceneCloseRoomPanelButton;
+        private Button _scenePrevPageButton;
+        private Button _sceneNextPageButton;
+        private TMP_Text _scenePageNumberText;
+        private TMP_Text _sceneLobbySubtitleText;
+        private TMP_Text _sceneLobbyEmbarkLabel;
+        private readonly List<RoomThumbnailSlot> _roomThumbnailSlots = new List<RoomThumbnailSlot>();
+
+        private bool _isSceneLobbyBound = false;
+        private int _currentPage = 0;
+        private int _totalPages = 1;
+        private bool _sortDescending = false;
+        private float _sceneUiRefreshTimer = 0f;
+
+        // [F2] Debug Overlay state
         private bool _isWindowOpen = false;
         private Rect _windowRect = new Rect(0, 0, 480, 490);
-        private string _joinCodeInput = "";
-        private string _statusMessage = "Ready — Play Solo Offline or Host/Join 1–6 Player Co-op.";
+        private string _joinCodeInput = "127.0.0.1:7777";
+        private string _statusMessage = "Ready — Play Solo Offline or Host/Join 1–6 Player LAN Co-op.";
 
         private GUIStyle _windowStyle;
         private GUIStyle _headerStyle;
@@ -38,22 +70,439 @@ namespace TheLastEmpire.Network
             {
                 Instance = this;
             }
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         private void Start()
         {
             _windowRect.x = (Screen.width - _windowRect.width) * 0.5f;
             _windowRect.y = (Screen.height - _windowRect.height) * 0.5f;
-            _joinCodeInput = "127.0.0.1:7777";
+            TryBindLobbyNetcodeSceneUI();
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            _isSceneLobbyBound = false;
+            _roomThumbnailSlots.Clear();
+            TryBindLobbyNetcodeSceneUI();
         }
 
         private void Update()
         {
+            if (!_isSceneLobbyBound)
+            {
+                TryBindLobbyNetcodeSceneUI();
+            }
+            else
+            {
+                _sceneUiRefreshTimer -= Time.unscaledDeltaTime;
+                if (_sceneUiRefreshTimer <= 0f)
+                {
+                    _sceneUiRefreshTimer = 0.25f;
+                    RefreshSceneLobbyUI();
+                }
+            }
+
             if (Keyboard.current != null && Keyboard.current.f2Key.wasPressedThisFrame)
             {
                 ToggleLobbyWindow();
             }
         }
+
+        // =====================================================
+        //  1. Scene-Native `Lobby_NetCode.unity` UI Binding
+        // =====================================================
+
+        private void TryBindLobbyNetcodeSceneUI()
+        {
+            GameObject canvasObj = GameObject.Find("MainMenuCanvas");
+            if (canvasObj == null) return;
+
+            Transform roomPanelTf = canvasObj.transform.Find("RoomPanel");
+            if (roomPanelTf == null) return;
+
+            _sceneRoomPanel = roomPanelTf.gameObject;
+            Transform lobbyTf = canvasObj.transform.Find("Lobby");
+            _sceneLobbyPanel = lobbyTf != null ? lobbyTf.gameObject : null;
+
+            // 1. ปุ่ม CREATE (RoomPanel -> EmbarkButton)
+            Transform createBtnTf = roomPanelTf.Find("EmbarkButton");
+            if (createBtnTf != null)
+            {
+                _sceneCreateButton = createBtnTf.GetComponent<Button>();
+                if (_sceneCreateButton != null)
+                {
+                    _sceneCreateButton.onClick.RemoveListener(OnSceneCreateRoomClicked);
+                    _sceneCreateButton.onClick.AddListener(OnSceneCreateRoomClicked);
+                }
+            }
+
+            // 2. ปุ่มประตูออกมุมซ้ายล่าง (RoomPanel -> Close)
+            Transform closeBtnTf = roomPanelTf.Find("Close");
+            if (closeBtnTf != null)
+            {
+                _sceneCloseRoomPanelButton = closeBtnTf.GetComponent<Button>();
+                if (_sceneCloseRoomPanelButton != null)
+                {
+                    _sceneCloseRoomPanelButton.onClick.RemoveListener(OnSceneExitToMainMenuClicked);
+                    _sceneCloseRoomPanelButton.onClick.AddListener(OnSceneExitToMainMenuClicked);
+                }
+            }
+
+            // 3. ช่อง Search / ตั้งชื่อห้อง / กรอกรหัสห้อง (RoomPanel -> TopBar -> SearchInputField)
+            Transform topBarTf = roomPanelTf.Find("TopBar");
+            if (topBarTf != null)
+            {
+                Transform searchTf = topBarTf.Find("SearchInputField");
+                if (searchTf != null)
+                {
+                    _sceneSearchInput = searchTf.GetComponent<TMP_InputField>();
+                    if (_sceneSearchInput != null)
+                    {
+                        _sceneSearchInput.onValueChanged.RemoveListener(OnSceneSearchInputChanged);
+                        _sceneSearchInput.onValueChanged.AddListener(OnSceneSearchInputChanged);
+                    }
+                }
+
+                // ปุ่มลูกศรเรียงลำดับ / รีเฟรชห้องบน TopBar
+                Button[] topButtons = topBarTf.GetComponentsInChildren<Button>(true);
+                for (int i = 0; i < topButtons.Length; i++)
+                {
+                    Button b = topButtons[i];
+                    b.onClick.RemoveListener(OnSceneToggleSortClicked);
+                    b.onClick.AddListener(OnSceneToggleSortClicked);
+                }
+            }
+
+            // 4. แถบเปลี่ยนหน้า BottomBar (< 1/1 >)
+            Transform bottomBarTf = roomPanelTf.Find("BottomBar");
+            if (bottomBarTf != null)
+            {
+                Transform preTf = bottomBarTf.Find("PreButton");
+                if (preTf != null)
+                {
+                    _scenePrevPageButton = preTf.GetComponent<Button>();
+                    if (_scenePrevPageButton != null)
+                    {
+                        _scenePrevPageButton.onClick.RemoveListener(OnScenePrevPageClicked);
+                        _scenePrevPageButton.onClick.AddListener(OnScenePrevPageClicked);
+                    }
+                }
+
+                Transform nextTf = bottomBarTf.Find("NextButton");
+                if (nextTf != null)
+                {
+                    _sceneNextPageButton = nextTf.GetComponent<Button>();
+                    if (_sceneNextPageButton != null)
+                    {
+                        _sceneNextPageButton.onClick.RemoveListener(OnSceneNextPageClicked);
+                        _sceneNextPageButton.onClick.AddListener(OnSceneNextPageClicked);
+                    }
+                }
+
+                Transform pageTxtTf = bottomBarTf.Find("Text (TMP)");
+                if (pageTxtTf != null)
+                {
+                    _scenePageNumberText = pageTxtTf.GetComponent<TMP_Text>();
+                }
+            }
+
+            // 5. รายการ 5 แถวห้องใน RoomsListPanel -> RoomsList
+            _roomThumbnailSlots.Clear();
+            Transform roomsListTf = roomPanelTf.Find("RoomsListPanel/RoomsList");
+            if (roomsListTf != null)
+            {
+                for (int i = 0; i < roomsListTf.childCount; i++)
+                {
+                    Transform rowTf = roomsListTf.GetChild(i);
+                    if (rowTf == null) continue;
+
+                    Transform joinTf = rowTf.Find("JoinButton");
+                    Button joinBtn = joinTf != null ? joinTf.GetComponent<Button>() : null;
+                    TMP_Text joinLbl = joinTf != null ? joinTf.GetComponentInChildren<TMP_Text>(true) : null;
+
+                    _roomThumbnailSlots.Add(new RoomThumbnailSlot
+                    {
+                        root = rowTf.gameObject,
+                        roomNameText = rowTf.Find("RoomNameText")?.GetComponent<TMP_Text>(),
+                        countText = rowTf.Find("ConutText")?.GetComponent<TMP_Text>(),
+                        lockImage = rowTf.Find("LockImage")?.GetComponent<Image>(),
+                        joinButton = joinBtn,
+                        joinButtonLabel = joinLbl
+                    });
+                }
+            }
+
+            // 6. อ้างอิงข้อความสถานะห้องในหน้าเลือกตัวละคร (Lobby -> ModalPanel -> ModalSubtitle / EmbarkButton)
+            if (_sceneLobbyPanel != null)
+            {
+                Transform modalPanelTf = _sceneLobbyPanel.transform.Find("ModalPanel");
+                if (modalPanelTf != null)
+                {
+                    _sceneLobbySubtitleText = modalPanelTf.Find("ModalSubtitle")?.GetComponent<TMP_Text>();
+                    Transform lobbyEmbarkTf = modalPanelTf.Find("EmbarkButton/Label");
+                    if (lobbyEmbarkTf != null)
+                    {
+                        _sceneLobbyEmbarkLabel = lobbyEmbarkTf.GetComponent<TMP_Text>();
+                    }
+                }
+            }
+
+            // ตั้งสถานะเริ่มต้นเมื่อเข้าซีน Lobby_NetCode: เปิด RoomPanel และซ่อน Lobby (ยกเว้นเชื่อมต่อห้องอยู่แล้ว)
+            if (!EmpireNetworkManager.IsOnline)
+            {
+                _sceneRoomPanel.SetActive(true);
+                if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(false);
+            }
+
+            _isSceneLobbyBound = true;
+            RefreshSceneLobbyUI();
+            Debug.Log("<color=#38BDF8>[MultiplayerLobbyUI]</color> Bound Lobby_NetCode scene UI (RoomPanel + 5 RoomThumbnails + Lobby Operative Selection).");
+        }
+
+        private void OnSceneCreateRoomClicked()
+        {
+            if (EmpireNetworkManager.Instance == null) return;
+
+            string customName = GetCleanSearchQuery();
+            EmpireNetworkManager.Instance.StartHostSession(LobbyRelayService.DefaultUdpPort, customName);
+
+            // สลับจากหน้า RoomPanel ไปหน้า Lobby เลือกตัวละครทันที
+            if (_sceneRoomPanel != null) _sceneRoomPanel.SetActive(false);
+            if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(true);
+            RefreshSceneLobbyUI();
+        }
+
+        private void OnSceneJoinRoomClicked(string targetEndpoint, string roomDisplayName)
+        {
+            if (EmpireNetworkManager.Instance == null) return;
+
+            if (EmpireNetworkManager.Instance.StartClientSession(targetEndpoint))
+            {
+                _statusMessage = $"Joined {roomDisplayName} ({targetEndpoint})!";
+                if (_sceneRoomPanel != null) _sceneRoomPanel.SetActive(false);
+                if (_sceneLobbyPanel != null) _sceneLobbyPanel.SetActive(true);
+                RefreshSceneLobbyUI();
+            }
+        }
+
+        private void OnSceneExitToMainMenuClicked()
+        {
+            EmpireNetworkManager.Instance?.DisconnectSession();
+            if (SceneManager.GetActiveScene().name != "MainMenu")
+            {
+                SceneManager.LoadScene("MainMenu");
+            }
+            else if (_sceneRoomPanel != null)
+            {
+                _sceneRoomPanel.SetActive(false);
+            }
+        }
+
+        private void OnSceneSearchInputChanged(string newText)
+        {
+            _currentPage = 0;
+            RefreshSceneLobbyUI();
+        }
+
+        private void OnSceneToggleSortClicked()
+        {
+            _sortDescending = !_sortDescending;
+            RefreshSceneLobbyUI();
+        }
+
+        private void OnScenePrevPageClicked()
+        {
+            if (_currentPage > 0)
+            {
+                _currentPage--;
+                RefreshSceneLobbyUI();
+            }
+        }
+
+        private void OnSceneNextPageClicked()
+        {
+            if (_currentPage < _totalPages - 1)
+            {
+                _currentPage++;
+                RefreshSceneLobbyUI();
+            }
+        }
+
+        private string GetCleanSearchQuery()
+        {
+            if (_sceneSearchInput == null || string.IsNullOrEmpty(_sceneSearchInput.text)) return string.Empty;
+            return _sceneSearchInput.text.Replace("\u200B", "").Trim();
+        }
+
+        private void RefreshSceneLobbyUI()
+        {
+            if (!_isSceneLobbyBound) return;
+
+            // อัปเดตข้อความสถานะห้องบนหัวหน้าต่าง Lobby เลือกตัวละคร
+            if (_sceneLobbyPanel != null && _sceneLobbyPanel.activeSelf && EmpireNetworkManager.Instance != null)
+            {
+                int partyCount = EmpireNetworkManager.Instance.ConnectedPeerCount;
+                if (_sceneLobbySubtitleText != null)
+                {
+                    string roleTag = EmpireNetworkManager.IsOnlineHost ? "HOSTING LAN ROOM" : "CONNECTED TO LAN ROOM";
+                    _sceneLobbySubtitleText.text =
+                        $"<color=#FACC15>{roleTag}: {EmpireNetworkManager.Instance.ActiveRoomName}</color>   •   " +
+                        $"CODE: <color=#38BDF8>{EmpireNetworkManager.Instance.ActiveJoinCode}</color> ({EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort})   •   " +
+                        $"PARTY: <color=#4ADE80>{partyCount}/6 PLAYERS</color>";
+                }
+
+                if (_sceneLobbyEmbarkLabel != null)
+                {
+                    _sceneLobbyEmbarkLabel.text = EmpireNetworkManager.IsOnlineHost
+                        ? $"ENTER WASTELAND ({partyCount}/6)"
+                        : "ENTER WASTELAND (READY)";
+                }
+            }
+
+            if (_sceneRoomPanel == null || !_sceneRoomPanel.activeSelf) return;
+
+            string query = GetCleanSearchQuery();
+            List<DiscoveredLanRoom> discovered = LobbyRelayService.GetActiveLanRooms();
+
+            // กรองตามคำค้นหาในช่อง SEARCH
+            if (!string.IsNullOrEmpty(query))
+            {
+                for (int i = discovered.Count - 1; i >= 0; i--)
+                {
+                    var r = discovered[i];
+                    bool match = (r.roomName != null && r.roomName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                                 (r.joinCode != null && r.joinCode.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                                 (r.hostIp != null && r.hostIp.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (!match) discovered.RemoveAt(i);
+                }
+            }
+
+            discovered.Sort((a, b) => _sortDescending
+                ? string.Compare(b.roomName, a.roomName, StringComparison.OrdinalIgnoreCase)
+                : string.Compare(a.roomName, b.roomName, StringComparison.OrdinalIgnoreCase));
+
+            int slotsPerPage = Mathf.Max(1, _roomThumbnailSlots.Count);
+            _totalPages = Mathf.Max(1, Mathf.CeilToInt(discovered.Count / (float)slotsPerPage));
+            _currentPage = Mathf.Clamp(_currentPage, 0, _totalPages - 1);
+
+            if (_scenePageNumberText != null)
+            {
+                _scenePageNumberText.text = $"{_currentPage + 1}/{_totalPages}";
+            }
+            if (_scenePrevPageButton != null) _scenePrevPageButton.interactable = _currentPage > 0;
+            if (_sceneNextPageButton != null) _sceneNextPageButton.interactable = _currentPage < _totalPages - 1;
+
+            // กรณีพบห้องในวง LAN 1 ห้องขึ้นไป -> แสดงรายการห้องจริง
+            if (discovered.Count > 0)
+            {
+                int startIndex = _currentPage * slotsPerPage;
+                for (int i = 0; i < _roomThumbnailSlots.Count; i++)
+                {
+                    RoomThumbnailSlot slot = _roomThumbnailSlots[i];
+                    if (slot == null || slot.root == null) continue;
+
+                    int dataIndex = startIndex + i;
+                    if (dataIndex < discovered.Count)
+                    {
+                        DiscoveredLanRoom room = discovered[dataIndex];
+                        slot.root.SetActive(true);
+
+                        if (slot.roomNameText != null)
+                        {
+                            slot.roomNameText.text = $"{room.roomName}   <color=#38BDF8>[{room.joinCode}]</color>   <size=80%><color=#94A3B8>({room.hostIp})</color></size>";
+                        }
+                        if (slot.countText != null)
+                        {
+                            slot.countText.text = $"{room.currentPlayers}/{room.maxPlayers}";
+                        }
+                        if (slot.lockImage != null)
+                        {
+                            slot.lockImage.color = new Color(1f, 1f, 1f, 0.25f);
+                        }
+                        if (slot.joinButton != null)
+                        {
+                            slot.joinButton.gameObject.SetActive(true);
+                            slot.joinButton.interactable = room.currentPlayers < room.maxPlayers;
+                            string endpoint = $"{room.hostIp}:{room.hostPort}";
+                            string rName = room.roomName;
+                            slot.joinButton.onClick.RemoveAllListeners();
+                            slot.joinButton.onClick.AddListener(() => OnSceneJoinRoomClicked(endpoint, rName));
+                        }
+                        if (slot.joinButtonLabel != null)
+                        {
+                            slot.joinButtonLabel.text = "Join";
+                        }
+                    }
+                    else
+                    {
+                        slot.root.SetActive(false);
+                    }
+                }
+            }
+            else
+            {
+                // กรณียังไม่มีใครเปิดห้องในวง LAN (หรือพิมพ์รหัส 6 หลัก / IP:Port ในช่อง SEARCH เพื่อ Direct Join)
+                for (int i = 0; i < _roomThumbnailSlots.Count; i++)
+                {
+                    RoomThumbnailSlot slot = _roomThumbnailSlots[i];
+                    if (slot == null || slot.root == null) continue;
+
+                    if (i == 0)
+                    {
+                        slot.root.SetActive(true);
+                        bool hasDirectQuery = !string.IsNullOrEmpty(query);
+                        if (hasDirectQuery)
+                        {
+                            if (slot.roomNameText != null)
+                                slot.roomNameText.text = $"DIRECT JOIN / CREATE ROOM:  <color=#FACC15>{query}</color>";
+                            if (slot.countText != null)
+                                slot.countText.text = "1/6";
+                            if (slot.joinButton != null)
+                            {
+                                slot.joinButton.gameObject.SetActive(true);
+                                slot.joinButton.interactable = true;
+                                string target = query;
+                                slot.joinButton.onClick.RemoveAllListeners();
+                                slot.joinButton.onClick.AddListener(() => OnSceneJoinRoomClicked(target, query));
+                            }
+                            if (slot.joinButtonLabel != null)
+                                slot.joinButtonLabel.text = "Join";
+                        }
+                        else
+                        {
+                            if (slot.roomNameText != null)
+                                slot.roomNameText.text = "<color=#94A3B8>NO LAN ROOMS FOUND — CLICK [CREATE] TO HOST A ROOM</color>";
+                            if (slot.countText != null)
+                                slot.countText.text = "0/6";
+                            if (slot.joinButton != null)
+                            {
+                                slot.joinButton.interactable = false;
+                            }
+                            if (slot.joinButtonLabel != null)
+                                slot.joinButtonLabel.text = "Wait";
+                        }
+                    }
+                    else
+                    {
+                        slot.root.SetActive(false);
+                    }
+                }
+            }
+        }
+
+        // =====================================================
+        //  2. [F2] In-Game Co-op Quick Overlay & Test Menu
+        // =====================================================
 
         public void ToggleLobbyWindow()
         {
@@ -124,93 +573,77 @@ namespace TheLastEmpire.Network
         {
             EnsureStyles();
 
-            // ปุ่มทางลัดมุมขวาบนสำหรับเปิดหน้าต่าง Co-op Lobby (หรือกด F2)
-            int partyCount = Mathf.Max(1, PlayerRegistry.GetTotalPlayerCount());
-            string badgeLabel = EmpireNetworkManager.IsOnline
-                ? $"🌐 CO-OP ({partyCount}/6) [F2]"
-                : $"🌐 CO-OP LOBBY [F2]";
-
             Color prevBg = GUI.backgroundColor;
-            GUI.backgroundColor = EmpireNetworkManager.IsOnline
-                ? new Color(0.15f, 0.75f, 0.45f, 0.92f)
-                : new Color(0.18f, 0.24f, 0.34f, 0.88f);
 
-            if (GUI.Button(new Rect(Screen.width - 175f, 12f, 162f, 30f), badgeLabel, _badgeBtnStyle))
+            // ซ่อนปุ่มมุมขวาบนเมื่ออยู่ในหน้าซีน Lobby_NetCode เพื่อให้ UI ใหม่สะอาดตา 100% (ยังกดปุ่มลัด F2 ได้ตามปกติ)
+            if (!_isSceneLobbyBound)
             {
-                ToggleLobbyWindow();
+                int partyCount = Mathf.Max(1, PlayerRegistry.GetTotalPlayerCount());
+                string badgeLabel = EmpireNetworkManager.IsOnline
+                    ? $"🌐 CO-OP ({partyCount}/6) [F2]"
+                    : "🌐 CO-OP LOBBY [F2]";
+
+                GUI.backgroundColor = EmpireNetworkManager.IsOnline
+                    ? new Color(0.15f, 0.75f, 0.45f, 0.92f)
+                    : new Color(0.18f, 0.24f, 0.34f, 0.88f);
+
+                if (GUI.Button(new Rect(Screen.width - 175f, 12f, 162f, 30f), badgeLabel, _badgeBtnStyle))
+                {
+                    ToggleLobbyWindow();
+                }
+                GUI.backgroundColor = prevBg;
             }
-            GUI.backgroundColor = prevBg;
 
             if (!_isWindowOpen) return;
 
             GUI.backgroundColor = new Color(0.08f, 0.10f, 0.15f, 0.97f);
-            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "THE LAST EMPIRE — 1-6 PLAYER CO-OP NETCODE [F2]", _windowStyle);
+            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "THE LAST EMPIRE — 1-6 PLAYER LAN CO-OP [F2]", _windowStyle);
             GUI.backgroundColor = prevBg;
         }
 
         private void DrawLobbyWindowContents(int windowId)
         {
             GUILayout.Space(8);
-            int totalPlayers = Mathf.Max(1, PlayerRegistry.GetTotalPlayerCount());
+            int totalPlayers = EmpireNetworkManager.Instance != null ? EmpireNetworkManager.Instance.ConnectedPeerCount : Mathf.Max(1, PlayerRegistry.GetTotalPlayerCount());
             string modeLabel = !EmpireNetworkManager.IsOnline
                 ? "OFFLINE SINGLEPLAYER"
-                : (EmpireNetworkManager.IsOnlineHost ? $"HOSTING ROOM ({totalPlayers}/6 PLAYERS)" : $"CONNECTED AS CLIENT ({totalPlayers}/6 PLAYERS)");
+                : (EmpireNetworkManager.IsOnlineHost ? $"HOSTING LAN ROOM ({totalPlayers}/6 PLAYERS)" : $"CONNECTED AS LAN CLIENT ({totalPlayers}/6 PLAYERS)");
 
             GUILayout.Label($"Status: {modeLabel}", _headerStyle);
-            GUILayout.Label($"Region (Auto QoS): {LobbyRelayService.ActiveRegion} (~{LobbyRelayService.EstimatedPingMs} ms)", _subHeaderStyle);
-            GUILayout.Space(8);
+            GUILayout.Space(6);
 
-            // 1. แสดงรหัสห้อง 6 หลักเมื่อเป็น Host
             if (EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
             {
                 GUILayout.BeginVertical(GUI.skin.box);
-                GUILayout.Label("ROOM JOIN CODE (6-DIGIT) & LAN ENDPOINT:", _subHeaderStyle);
+                GUILayout.Label("LAN ROOM CODE & ENDPOINT:", _subHeaderStyle);
                 string codeDisplay = $"{EmpireNetworkManager.Instance.ActiveJoinCode}   ({EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort})";
-                GUILayout.Box(codeDisplay, _codeBoxStyle, GUILayout.Height(40));
+                GUILayout.Box(codeDisplay, _codeBoxStyle, GUILayout.Height(38));
 
                 GUILayout.BeginHorizontal();
                 GUI.backgroundColor = new Color(0.25f, 0.65f, 0.95f);
-                if (GUILayout.Button("📋 Copy 6-Digit Code", _btnStyle, GUILayout.Height(30)))
+                if (GUILayout.Button("📋 Copy 6-Digit Code", _btnStyle, GUILayout.Height(28)))
                 {
                     GUIUtility.systemCopyBuffer = EmpireNetworkManager.Instance.ActiveJoinCode;
-                    _statusMessage = $"Copied Join Code '{EmpireNetworkManager.Instance.ActiveJoinCode}' to clipboard!";
+                    _statusMessage = $"Copied Join Code '{EmpireNetworkManager.Instance.ActiveJoinCode}'!";
                 }
-                if (GUILayout.Button("📋 Copy IP:Port", _btnStyle, GUILayout.Height(30)))
+                if (GUILayout.Button("📋 Copy IP:Port", _btnStyle, GUILayout.Height(28)))
                 {
                     GUIUtility.systemCopyBuffer = $"{EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort}";
-                    _statusMessage = $"Copied '{GUIUtility.systemCopyBuffer}' to clipboard!";
+                    _statusMessage = $"Copied '{GUIUtility.systemCopyBuffer}'!";
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
-                GUILayout.Space(8);
+                GUILayout.Space(6);
             }
 
-            // 2. ปุ่มสร้างห้อง (Host) และกรอกรหัสเข้าห้อง (Join Client)
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("1. HOST OR JOIN MULTIPLAYER SESSION (UDP / NGO):", _subHeaderStyle);
-
-            // หากยังอยู่หน้า MainMenu ให้แสดงปุ่มลัดเข้าฉาก Gameplay_3D ทันที (หรือกด NEW GAME ด้านซ้ายก็ได้)
-            bool isInGameplayScene = PlayerController.Instance != null || PlayerRegistry.LocalPlayer != null;
-            if (!isInGameplayScene)
+            if (SceneManager.GetActiveScene().name != "Lobby_NetCode")
             {
                 GUI.backgroundColor = new Color(0.96f, 0.72f, 0.12f);
-                if (GUILayout.Button("🚀 ENTER GAMEPLAY SCENE NOW (หรือกด NEW GAME ด้านซ้าย)", _btnStyle, GUILayout.Height(34)))
+                if (GUILayout.Button("🌐 OPEN CO-OP ROOM BROWSER SCENE (Lobby_NetCode)", _btnStyle, GUILayout.Height(34)))
                 {
-                    if (!EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
-                    {
-                        EmpireNetworkManager.Instance.StartHostSession();
-                    }
                     _isWindowOpen = false;
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("Gameplay_3D");
-                }
-            }
-
-            GUI.backgroundColor = new Color(0.18f, 0.80f, 0.42f);
-            if (GUILayout.Button("★ HOST CO-OP GAME (1–6 PLAYERS)", _btnStyle, GUILayout.Height(36)))
-            {
-                if (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.StartHostSession())
-                {
-                    _statusMessage = $"Hosting room! Share Join Code: {EmpireNetworkManager.Instance.ActiveJoinCode}";
+                    SceneManager.LoadScene("Lobby_NetCode");
                 }
             }
 
@@ -219,18 +652,11 @@ namespace TheLastEmpire.Network
                 GUI.backgroundColor = new Color(0.15f, 0.72f, 0.95f);
                 if (GUILayout.Button("🖥️ LAUNCH 2ND CLIENT WINDOW (Test 2 Clients on 1 PC)", _btnStyle, GUILayout.Height(34)))
                 {
-                    if (!EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
-                    {
-                        EmpireNetworkManager.Instance.StartHostSession();
-                    }
                     OnRequestLaunchSecondClientWindow.Invoke();
-                    _statusMessage = "Launching 2nd Client Window (auto-connecting to 127.0.0.1:7777)...";
+                    _statusMessage = "Launching 2nd Client Window...";
                 }
             }
 
-            GUILayout.Space(6);
-
-            // แสดงรายการห้องในวง LAN ที่ตรวจพบอัตโนมัติ (1-Click LAN Auto-Discovery)
             var lanRooms = LobbyRelayService.GetActiveLanRooms();
             if (lanRooms.Count > 0)
             {
@@ -239,75 +665,41 @@ namespace TheLastEmpire.Network
                 {
                     var room = lanRooms[i];
                     GUI.backgroundColor = new Color(0.16f, 0.78f, 0.55f);
-                    string roomBtnText = $"⚡ JOIN LAN [{room.joinCode}] ({room.hostIp}:{room.hostPort}) — {room.currentPlayers}/{room.maxPlayers}P [{room.sceneName}]";
-                    if (GUILayout.Button(roomBtnText, _btnStyle, GUILayout.Height(32)))
+                    string roomBtnText = $"⚡ JOIN [{room.roomName}] ({room.hostIp}:{room.hostPort}) — {room.currentPlayers}/{room.maxPlayers}P";
+                    if (GUILayout.Button(roomBtnText, _btnStyle, GUILayout.Height(30)))
                     {
                         _joinCodeInput = $"{room.hostIp}:{room.hostPort}";
-                        if (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.StartClientSession(_joinCodeInput))
-                        {
-                            _statusMessage = $"Joined LAN Room [{room.joinCode}] at {_joinCodeInput}!";
-                        }
+                        EmpireNetworkManager.Instance?.StartClientSession(_joinCodeInput);
                     }
                 }
-                GUILayout.Space(4);
             }
-
-            GUILayout.Label("Enter 6-Digit Join Code or Host LAN IP:Port:", _subHeaderStyle);
-            GUILayout.BeginHorizontal();
-            GUI.backgroundColor = Color.white;
-            _joinCodeInput = GUILayout.TextField(_joinCodeInput, 32, _textFieldStyle, GUILayout.Height(34), GUILayout.Width(240));
-
-            GUI.backgroundColor = new Color(0.22f, 0.62f, 0.96f);
-            if (GUILayout.Button("▶ JOIN ROOM", _btnStyle, GUILayout.Height(34)))
-            {
-                if (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.StartClientSession(_joinCodeInput))
-                {
-                    _statusMessage = $"Connecting to {_joinCodeInput}...";
-                }
-                else
-                {
-                    _statusMessage = "Invalid Join Code or IP:Port format!";
-                }
-            }
-            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
-            GUILayout.Space(8);
+            GUILayout.Space(6);
 
-            // 3. ระบบเสกเพื่อนร่วมทีม Co-op จำลอง (Simulated Co-op Teammate Bot 1–6 คน)
+            // ระบบเสกเพื่อนร่วมทีม Co-op จำลอง (Simulated Co-op Teammate Bot 1–6 คน)
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("2. INSTANT CO-OP PARTY TEST (SPAWN AI SQUADMATES 1–6P):", _subHeaderStyle);
+            GUILayout.Label("INSTANT IN-GAME PARTY TEST (SPAWN AI SQUADMATES 1–6P):", _subHeaderStyle);
 
             GUILayout.BeginHorizontal();
             GUI.backgroundColor = new Color(0.95f, 0.65f, 0.15f);
-            if (GUILayout.Button($"➕ Spawn Co-op Teammate ({totalPlayers}/6)", _btnStyle, GUILayout.Height(34)))
+            if (GUILayout.Button($"➕ Spawn Co-op Teammate ({PlayerRegistry.GetTotalPlayerCount()}/6)", _btnStyle, GUILayout.Height(32)))
             {
-                if (EmpireNetworkManager.Instance != null)
-                {
-                    PlayerController bot = EmpireNetworkManager.Instance.SpawnSimulatedCoopTeammate();
-                    if (bot != null)
-                    {
-                        _statusMessage = $"Spawned {bot.NetworkPlayerName} ({bot.ActiveCharacterData?.characterId}) into party!";
-                    }
-                    else
-                    {
-                        _statusMessage = "Party is at maximum capacity (6/6) or not in gameplay scene.";
-                    }
-                }
+                PlayerController bot = EmpireNetworkManager.Instance?.SpawnSimulatedCoopTeammate();
+                _statusMessage = bot != null
+                    ? $"Spawned {bot.NetworkPlayerName} ({bot.ActiveCharacterData?.characterId})!"
+                    : "Enter Gameplay_3D first to spawn in-game teammates.";
             }
 
             GUI.backgroundColor = new Color(0.75f, 0.35f, 0.25f);
-            if (GUILayout.Button("✖ Clear Bots", _btnStyle, GUILayout.Height(34), GUILayout.Width(120)))
+            if (GUILayout.Button("✖ Clear Bots", _btnStyle, GUILayout.Height(32), GUILayout.Width(110)))
             {
                 EmpireNetworkManager.Instance?.ClearSimulatedTeammates();
-                _statusMessage = "Cleared simulated Co-op teammates.";
             }
             GUILayout.EndHorizontal();
 
-            // ปุ่มทดสอบล้มรอเพื่อนชุบชีวิต (Downed & Revive Test)
-            GUILayout.BeginHorizontal();
             GUI.backgroundColor = new Color(0.65f, 0.45f, 0.85f);
-            if (GUILayout.Button("🩹 Test Downed State on First Teammate (Hold [E] to Revive)", _btnStyle, GUILayout.Height(30)))
+            if (GUILayout.Button("🩹 Test Downed State on First Teammate (Hold [E] to Revive)", _btnStyle, GUILayout.Height(28)))
             {
                 var all = PlayerRegistry.AllPlayers;
                 for (int i = 0; i < all.Count; i++)
@@ -315,43 +707,32 @@ namespace TheLastEmpire.Network
                     if (all[i] != null && all[i].IsRemotePlayer && !all[i].IsDowned)
                     {
                         Health h = all[i].PlayerHealth ?? all[i].GetComponent<Health>();
-                        if (h != null)
-                        {
-                            h.TakeDamage(h.CurrentHealth + 999f, all[i].transform.position, false);
-                            _statusMessage = $"{all[i].NetworkPlayerName} is DOWNED! Walk close and hold [E] for 3s to revive.";
-                        }
+                        if (h != null) h.TakeDamage(h.CurrentHealth + 999f, all[i].transform.position, false);
                         break;
                     }
                 }
             }
-            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
-            GUILayout.Space(8);
-
-            // 4. ปุ่มตัดการเชื่อมต่อ / ปิดหน้าต่าง
+            GUILayout.Space(6);
             GUILayout.BeginHorizontal();
             if (EmpireNetworkManager.IsOnline)
             {
                 GUI.backgroundColor = new Color(0.88f, 0.25f, 0.28f);
-                if (GUILayout.Button("⏹ Disconnect Session", _btnStyle, GUILayout.Height(34)))
+                if (GUILayout.Button("⏹ Disconnect Session", _btnStyle, GUILayout.Height(32)))
                 {
                     EmpireNetworkManager.Instance?.DisconnectSession();
-                    _statusMessage = "Disconnected. Back to Singleplayer Offline mode.";
                 }
             }
-
             GUI.backgroundColor = new Color(0.45f, 0.50f, 0.58f);
-            if (GUILayout.Button("Close [F2]", _btnStyle, GUILayout.Height(34)))
+            if (GUILayout.Button("Close [F2]", _btnStyle, GUILayout.Height(32)))
             {
                 _isWindowOpen = false;
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Space(4);
             GUI.backgroundColor = Color.white;
             GUILayout.Label(_statusMessage, _subHeaderStyle);
-
             GUI.DragWindow(new Rect(0, 0, 10000, 28));
         }
     }

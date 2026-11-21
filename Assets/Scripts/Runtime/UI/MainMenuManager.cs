@@ -524,7 +524,8 @@ namespace TheLastEmpire
 
             if (characterSelectModalObj == null && menuCanvas != null)
             {
-                Transform existingModal = menuCanvas.transform.Find("CharacterSelectModal");
+                Transform existingModal = menuCanvas.transform.Find("CharacterSelectModal")
+                                       ?? menuCanvas.transform.Find("Lobby");
                 if (existingModal != null)
                 {
                     characterSelectModalObj = existingModal.gameObject;
