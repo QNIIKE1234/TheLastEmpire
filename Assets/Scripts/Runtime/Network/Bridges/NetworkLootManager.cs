@@ -14,9 +14,77 @@ namespace TheLastEmpire.Network
     {
         public static NetworkLootManager Instance { get; private set; }
 
+        private struct SyncedContainerState
+        {
+            public int stageX;
+            public int stageY;
+            public float posX;
+            public float posZ;
+            public int remainingMoney;
+            public List<LootSlot> remainingItems;
+        }
+
         private int _nextHostDropId = 1000;
         private readonly Dictionary<int, CollectibleItem> _trackedItemsById = new Dictionary<int, CollectibleItem>();
         private readonly HashSet<int> _claimedDropIds = new HashSet<int>();
+        private readonly Dictionary<string, SyncedContainerState> _syncedContainerStates = new Dictionary<string, SyncedContainerState>();
+
+        public void ClearMatchLootCache()
+        {
+            _trackedItemsById.Clear();
+            _claimedDropIds.Clear();
+            _syncedContainerStates.Clear();
+            _nextHostDropId = 1000;
+        }
+
+        private static string BuildContainerKey(int stageX, int stageY, float posX, float posZ)
+        {
+            return $"{stageX}_{stageY}_{Mathf.RoundToInt(posX * 2f)}_{Mathf.RoundToInt(posZ * 2f)}";
+        }
+
+        /// <summary>
+        /// เรียกจาก LootContainer.Start() เมื่อผู้เล่นเดินเข้ามาในช่องพิกัด (X, Y) ทีหลัง
+        /// หากเพื่อน (A) เคยเปิดรถ/กล่องใบนี้แล้วหยิบของออกไปแล้ว จะอัปเดตของที่เหลือทันที (ไม่ให้ของโผล่ซ้ำ!)
+        /// </summary>
+        public void ApplyCachedStateToContainer(LootContainer container)
+        {
+            if (container == null || !EmpireNetworkManager.IsOnline) return;
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            Vector3 pos = container.transform.position;
+
+            string exactKey = BuildContainerKey(stageX, stageY, pos.x, pos.z);
+            if (_syncedContainerStates.TryGetValue(exactKey, out SyncedContainerState state))
+            {
+                ApplyStateToContainerObject(container, state);
+                return;
+            }
+
+            // Fallback เผื่อพิกัดคลาดเคลื่อนเล็กน้อยข้ามขอบ 0.5m bucket
+            foreach (var kvp in _syncedContainerStates)
+            {
+                var s = kvp.Value;
+                if (s.stageX != stageX || s.stageY != stageY) continue;
+                float dx = pos.x - s.posX;
+                float dz = pos.z - s.posZ;
+                if (dx * dx + dz * dz <= 0.36f)
+                {
+                    ApplyStateToContainerObject(container, s);
+                    return;
+                }
+            }
+        }
+
+        private static void ApplyStateToContainerObject(LootContainer container, SyncedContainerState state)
+        {
+            container.moneyAmount = state.remainingMoney;
+            container.itemsInside.Clear();
+            if (state.remainingItems != null)
+            {
+                container.itemsInside.AddRange(state.remainingItems);
+            }
+            container.isSearched = (state.remainingMoney <= 0 && container.itemsInside.Count == 0);
+        }
 
         private void Awake()
         {
@@ -147,6 +215,19 @@ namespace TheLastEmpire.Network
             var items = container.itemsInside;
             int itemCount = items != null ? items.Count : 0;
 
+            // บันทึกสถานะล่าสุดของรถ/กล่องลง Cache กลางด้วย เผื่อผู้เล่นคนอื่นเดินเข้ามาช่องนี้ทีหลัง
+            List<LootSlot> snapshot = new List<LootSlot>(itemCount);
+            for (int i = 0; i < itemCount; i++) snapshot.Add(items[i]);
+            _syncedContainerStates[BuildContainerKey(stageX, stageY, pos.x, pos.z)] = new SyncedContainerState
+            {
+                stageX = stageX,
+                stageY = stageY,
+                posX = pos.x,
+                posZ = pos.z,
+                remainingMoney = money,
+                remainingItems = snapshot
+            };
+
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.ContainerLootSync, w =>
             {
                 w.Write(stageX);
@@ -178,6 +259,18 @@ namespace TheLastEmpire.Network
                 int qty = reader.ReadInt32();
                 syncedItems.Add(new LootSlot(iName, qty));
             }
+
+            // บันทึกสถานะรถ/กล่องที่เพื่อนเพิ่งเก็บไปเก็บไว้ใน Cache ทันที (แม้ตอนนี้เราจะอยู่คนละช่องพิกัดกับเพื่อน!)
+            // พอเราเดินตามเข้าไปในช่อง (stageX, stageY) นั้นทีหลัง รถ/กล่องใบนั้นจะว่างตามที่เพื่อนเก็บไปทันที
+            _syncedContainerStates[BuildContainerKey(stageX, stageY, posX, posZ)] = new SyncedContainerState
+            {
+                stageX = stageX,
+                stageY = stageY,
+                posX = posX,
+                posZ = posZ,
+                remainingMoney = remainingMoney,
+                remainingItems = new List<LootSlot>(syncedItems)
+            };
 
             // หากเครื่อง Host ได้รับจาก Client ให้กระจายต่อให้ลูกทีมคนอื่นรู้ด้วย
             if (relayIfHost && EmpireNetworkManager.IsOnlineHost && EmpireNetworkManager.Instance != null)

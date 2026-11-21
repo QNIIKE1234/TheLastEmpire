@@ -118,6 +118,9 @@ namespace TheLastEmpire
 
                 Random.state = oldState;
             }
+
+            // หากอยู่ในโหมด Co-op และเพื่อนเคยเปิดรถ/กล่องใบนี้แล้วเก็บของไปก่อนหน้านี้ ให้ใช้สถานะที่ซิงค์ไว้แทน
+            TheLastEmpire.Network.NetworkLootManager.Instance?.ApplyCachedStateToContainer(this);
         }
 
         private void OnDrawGizmosSelected()

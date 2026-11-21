@@ -567,6 +567,7 @@ namespace TheLastEmpire.Network
             ClearSimulatedTeammates();
             RemoveAllRemotePlayers();
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
+            NetworkLootManager.Instance?.ClearMatchLootCache();
             CloseUdpSocket();
 
             _clientEndpoints.Clear();
@@ -730,6 +731,7 @@ namespace TheLastEmpire.Network
 
             // สุ่ม WorldSeed กลาง 1 ค่าแล้วส่งให้ทุกเครื่องก่อนโหลดเข้าด่าน เพื่อให้แมพ 128x128 และห้องศัตรูตรงกัน 100%
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
+            NetworkLootManager.Instance?.ClearMatchLootCache();
             int matchWorldSeed = UnityEngine.Random.Range(1000, 99999);
             PendingMatchWorldSeed = matchWorldSeed;
 
