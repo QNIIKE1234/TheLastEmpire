@@ -412,7 +412,7 @@ namespace TheLastEmpire
             // Spawn 3-5 rapid ambush rushers (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             int ambushCount = rng.Next(3, 6);
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
-            List<string> rusherList = new List<string> { "ZombieRunner", "RobotKamikaze", "ZombieDog" };
+            List<string> rusherList = new List<string> { "ZombieRunner", "ZombieSpitter", "RobotKamikaze", "ZombieDog" };
             if (isNight)
             {
                 rusherList.Add("AlienCrawler");
@@ -883,7 +883,7 @@ namespace TheLastEmpire
             // กำหนดจำนวนศัตรูแบบ Fix 10 ตัว (ห้ามเกิดเอเลี่ยนตอนกลางวันเด็ดขาด)
             const int mobCount = 10;
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
-            List<string> rusherList = new List<string> { "ZombieRunner", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
+            List<string> rusherList = new List<string> { "ZombieRunner", "ZombieSpitter", "ZombieDog", "RobotKamikaze", "ZombieNormal" };
             if (isNight)
             {
                 rusherList.Add("AlienCrawler");

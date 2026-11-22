@@ -19185,6 +19185,12 @@ MonoBehaviour:
   - biomes: 111
     enemyPrefab: {fileID: 5020151313939889713, guid: 8e9c44a49cf812a4b8262c91f3dffb0a, type: 3}
     poolKey: ZombieRunner
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: df874172aa9460b28744da99e18eebae, type: 3}
+    poolKey: ZombieSpitter
+  - biomes: 111
+    enemyPrefab: {fileID: 5020151313939889713, guid: 917a1eb1e6118b9ed33c72a0041d28c4, type: 3}
+    poolKey: ZombieTank
   - biomes: 64
     enemyPrefab: {fileID: 5020151313939889713, guid: 6d07d001757ed0f4f804509afba6dee6, type: 3}
     poolKey: ZombieLeader
@@ -66268,6 +66274,12 @@ MonoBehaviour:
   - key: ZombieBoomer
     prefab: {fileID: 5020151313939889713, guid: 8a8146696e1c31f44afc068661e5a49f, type: 3}
     size: 10
+  - key: ZombieSpitter
+    prefab: {fileID: 5020151313939889713, guid: df874172aa9460b28744da99e18eebae, type: 3}
+    size: 8
+  - key: ZombieTank
+    prefab: {fileID: 5020151313939889713, guid: 917a1eb1e6118b9ed33c72a0041d28c4, type: 3}
+    size: 6
   - key: ZombieLeader
     prefab: {fileID: 5020151313939889713, guid: 6d07d001757ed0f4f804509afba6dee6, type: 3}
     size: 3

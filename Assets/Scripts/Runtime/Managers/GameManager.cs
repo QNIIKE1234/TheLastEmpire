@@ -488,13 +488,18 @@ namespace TheLastEmpire
             // 9a. Spawn standard enemies (Zombies): กลางวันเกิด 80%, กลางคืนเกิด 20%
             foreach (BiomeSpawnConfig currentConfig in standardConfigs)
             {
-                float spawnProbability = isNight ? 0.20f : 0.80f;
+                bool isTank = currentConfig.poolKey == "ZombieTank" || currentConfig.enemyPrefab.name.IndexOf("ZombieTank", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                bool isSpitter = currentConfig.poolKey == "ZombieSpitter" || currentConfig.enemyPrefab.name.IndexOf("ZombieSpitter", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                float spawnProbability = isTank
+                    ? (isNight ? 0.15f : 0.45f)
+                    : (isSpitter ? (isNight ? 0.20f : 0.65f) : (isNight ? 0.20f : 0.80f));
                 if (Random.value > spawnProbability)
                 {
                     continue;
                 }
 
-                int spawnCount = Random.Range(0, 4); // Randomly generates 0, 1, 2, or 3
+                int spawnCount = (isTank || isSpitter) ? Random.Range(1, 3) : Random.Range(0, 4); // Tank/Spitter: 1-2, Others: 0-3
 
                 // If this is a Boss, limit spawn to exactly 1
                 LootDropper loot = currentConfig.enemyPrefab.GetComponent<LootDropper>();
