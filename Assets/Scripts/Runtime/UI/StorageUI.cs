@@ -10,7 +10,7 @@ namespace TheLastEmpire
     /// StorageUI — ควบคุมหน้าต่างคลังเก็บของแบบ 2 ฝั่ง (ซ้าย: Inventory ผู้เล่น / ขวา: Storage กล่องเก็บของ)
     /// รองรับ:
     /// - ฝากของ (DEPOSIT) จาก Inventory -> Storage และถอนของ (WITHDRAW) จาก Storage -> Inventory
-    /// - คลิกปกติย้ายทั้งกองในช่อง / กด Shift ค้าง + คลิกเพื่อย้ายทีละ 1 ชิ้น
+    /// - คลิกปกติย้ายทีละ 1 ชิ้น / กด Alt ค้าง + คลิกเพื่อฝากหรือถอนทั้งหมดของไอเทมชิ้นนั้นๆ
     /// - รวม Stack อัตโนมัติตาม MaxStackSize และตรวจความจุช่องทั้งสองฝั่ง
     /// - แบ่งหน้า (Pagination) แยกอิสระทั้งฝั่ง Inventory และฝั่ง Storage (ใช้แถว InventoryItemSlot เดิมใน Scene)
     /// - ซิงค์สถานะกล่องผ่าน NetworkLootManager ในโหมด Co-op
@@ -614,15 +614,15 @@ namespace TheLastEmpire
         //  Deposit (Inventory -> Storage) & Withdraw (Storage -> Inventory)
         // =========================================================================
 
-        private static bool IsShiftHeld()
+        private static bool IsAltHeld()
         {
             if (Keyboard.current != null &&
-                (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed))
+                (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed))
             {
                 return true;
             }
 #if ENABLE_LEGACY_INPUT_MANAGER
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
             {
                 return true;
             }
@@ -639,7 +639,8 @@ namespace TheLastEmpire
             if (slot == null || string.IsNullOrEmpty(slot.itemName) || slot.quantity <= 0) return;
 
             string itemName = slot.itemName;
-            int desiredQty = IsShiftHeld() ? 1 : slot.quantity;
+            bool moveAll = IsAltHeld();
+            int desiredQty = moveAll ? _playerInventory.GetItemCount(itemName) : 1;
 
             // ตรวจสอบที่ว่างในคลัง (สามารถฝากบางส่วนได้ถ้าคลังใกล้เต็ม)
             int space = _currentContainer.GetSpaceForItem(itemName);
@@ -681,7 +682,22 @@ namespace TheLastEmpire
             if (string.IsNullOrEmpty(slot.itemName) || slot.quantity <= 0) return;
 
             string itemName = slot.itemName;
-            int desiredQty = IsShiftHeld() ? 1 : slot.quantity;
+            bool moveAll = IsAltHeld();
+
+            int availableInStorage = 0;
+            if (moveAll)
+            {
+                string clean = itemName.Trim().ToLowerInvariant();
+                for (int i = 0; i < _currentContainer.itemsInside.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(_currentContainer.itemsInside[i].itemName) &&
+                        _currentContainer.itemsInside[i].itemName.Trim().ToLowerInvariant() == clean)
+                    {
+                        availableInStorage += _currentContainer.itemsInside[i].quantity;
+                    }
+                }
+            }
+            int desiredQty = moveAll ? availableInStorage : 1;
 
             // คำนวณจำนวนที่ใส่ลงกระเป๋าผู้เล่นได้จริง
             int moveQty = CalculateInventoryFitQuantity(itemName, desiredQty);
@@ -699,7 +715,26 @@ namespace TheLastEmpire
 
             if (!addedToInv) return;
 
-            _currentContainer.RemoveSlotAt(slotIndex, moveQty);
+            if (moveAll)
+            {
+                int remainingToRemove = moveQty;
+                string clean = itemName.Trim().ToLowerInvariant();
+                for (int i = _currentContainer.itemsInside.Count - 1; i >= 0 && remainingToRemove > 0; i--)
+                {
+                    if (!string.IsNullOrEmpty(_currentContainer.itemsInside[i].itemName) &&
+                        _currentContainer.itemsInside[i].itemName.Trim().ToLowerInvariant() == clean)
+                    {
+                        int take = Mathf.Min(_currentContainer.itemsInside[i].quantity, remainingToRemove);
+                        _currentContainer.RemoveSlotAt(i, take);
+                        remainingToRemove -= take;
+                    }
+                }
+            }
+            else
+            {
+                _currentContainer.RemoveSlotAt(slotIndex, moveQty);
+            }
+
             TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
             RefreshUI();
         }
