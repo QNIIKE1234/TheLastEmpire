@@ -44,6 +44,12 @@ namespace TheLastEmpire
         [Tooltip("TMP_Text สำหรับข้อความใน DialogHint (ลาก Hint_text มาใส่)")]
         [SerializeField] private TMP_Text dialogHintText;
 
+        [Header("Hint Floating Animation")]
+        [Tooltip("ระยะลอยขึ้น-ลงในหน่วย UI Canvas (0 -> 15 -> 0)")]
+        [SerializeField] private float hintFloatAmplitude = 15f;
+        [Tooltip("ความเร็วรอบลอยขึ้น-ลง")]
+        [SerializeField] private float hintFloatSpeed = 4.2f;
+
         // ===== Internal Pool (built-in) =====
         private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
         private int _activeSlotCount = 0;
@@ -57,12 +63,14 @@ namespace TheLastEmpire
         private Vector3 _promptWorldOffset = Vector3.up * 1.5f;
         private Vector2 _originalPromptAnchoredPos;
         private bool _hasOriginalPromptPos = false;
+        private float _promptFloatElapsed = 0f;
 
         private Transform _dialogHintTarget;
         private Vector3 _dialogHintWorldOffset = Vector3.up * 2.2f;
         private Vector2 _originalDialogHintAnchoredPos;
         private bool _hasOriginalDialogHintPos = false;
         private float _dialogHintAutoHideTimer = -1f;
+        private float _dialogHintFloatElapsed = 0f;
 
         private LootContainer _currentContainer;
         private PlayerInventory _playerInventory;
@@ -188,37 +196,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (promptPanel != null && promptPanel.activeSelf && _promptTarget != null)
+            if (dialogHintPanel != null && dialogHintPanel.activeSelf && _dialogHintAutoHideTimer > 0f)
             {
-                if (Camera.main != null)
+                _dialogHintAutoHideTimer -= Time.unscaledDeltaTime;
+                if (_dialogHintAutoHideTimer <= 0f)
                 {
-                    // Project the target's 3D position to the screen (+ custom offset upwards)
-                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_promptTarget.position + _promptWorldOffset);
-                    if (screenPos.z > 0)
-                    {
-                        promptPanel.transform.position = screenPos;
-                    }
-                }
-            }
-
-            if (dialogHintPanel != null && dialogHintPanel.activeSelf)
-            {
-                if (_dialogHintTarget != null && Camera.main != null)
-                {
-                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_dialogHintTarget.position + _dialogHintWorldOffset);
-                    if (screenPos.z > 0)
-                    {
-                        dialogHintPanel.transform.position = screenPos;
-                    }
-                }
-
-                if (_dialogHintAutoHideTimer > 0f)
-                {
-                    _dialogHintAutoHideTimer -= Time.unscaledDeltaTime;
-                    if (_dialogHintAutoHideTimer <= 0f)
-                    {
-                        HideDialogHint();
-                    }
+                    HideDialogHint();
                 }
             }
 
@@ -312,9 +295,98 @@ namespace TheLastEmpire
             }
         }
 
+        private void LateUpdate()
+        {
+            if (promptPanel != null && promptPanel.activeSelf)
+            {
+                _promptFloatElapsed += Time.unscaledDeltaTime;
+                float bobY = EvaluateFloatOffset(_promptFloatElapsed);
+                PositionHintPanel(
+                    promptPanel,
+                    _promptTarget,
+                    _promptWorldOffset,
+                    _originalPromptAnchoredPos,
+                    _hasOriginalPromptPos,
+                    bobY
+                );
+            }
+
+            if (dialogHintPanel != null && dialogHintPanel.activeSelf)
+            {
+                _dialogHintFloatElapsed += Time.unscaledDeltaTime;
+                float bobY = EvaluateFloatOffset(_dialogHintFloatElapsed);
+                PositionHintPanel(
+                    dialogHintPanel,
+                    _dialogHintTarget,
+                    _dialogHintWorldOffset,
+                    _originalDialogHintAnchoredPos,
+                    _hasOriginalDialogHintPos,
+                    bobY
+                );
+            }
+        }
+
+        /// <summary>
+        /// Smooth float curve from 0 -> hintFloatAmplitude (15) -> 0.
+        /// </summary>
+        private float EvaluateFloatOffset(float elapsed)
+        {
+            if (hintFloatAmplitude <= 0f || hintFloatSpeed <= 0f) return 0f;
+            return (1f - Mathf.Cos(elapsed * hintFloatSpeed)) * 0.5f * hintFloatAmplitude;
+        }
+
+        /// <summary>
+        /// Positions a hint panel BEFORE showing it (or on LateUpdate) so it never flashes/teleports,
+        /// and applies the vertical 0 -> 15 -> 0 floating offset in UI Canvas units.
+        /// </summary>
+        private bool PositionHintPanel(
+            GameObject panel,
+            Transform target,
+            Vector3 worldOffset,
+            Vector2 fallbackAnchoredPos,
+            bool hasFallbackPos,
+            float floatOffsetY)
+        {
+            if (panel == null) return false;
+
+            RectTransform rect = panel.GetComponent<RectTransform>();
+            if (target != null)
+            {
+                Camera mainCam = Camera.main;
+                if (mainCam == null) return false;
+
+                Vector3 screenPos = mainCam.WorldToScreenPoint(target.position + worldOffset);
+                if (screenPos.z <= 0f) return false;
+
+                if (rect != null && rect.parent is RectTransform parentRect)
+                {
+                    Canvas parentCanvas = panel.GetComponentInParent<Canvas>();
+                    Camera uiCam = (parentCanvas != null && parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                        ? parentCanvas.worldCamera
+                        : null;
+
+                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPos, uiCam, out Vector2 localPoint))
+                    {
+                        rect.anchoredPosition = localPoint + new Vector2(0f, floatOffsetY);
+                        return true;
+                    }
+                }
+
+                panel.transform.position = screenPos + new Vector3(0f, floatOffsetY, 0f);
+                return true;
+            }
+
+            if (rect != null && hasFallbackPos)
+            {
+                rect.anchoredPosition = fallbackAnchoredPos + new Vector2(0f, floatOffsetY);
+            }
+            return true;
+        }
+
         /// <summary>
         /// Displays a compact key-only hint (e.g. "E", "E,Q", "SPACE") inside the styled prompt bubble
         /// without overwriting the Inspector RectTransform dimensions.
+        /// Positions the panel BEFORE activating it to eliminate 1-frame teleport flicker.
         /// </summary>
         public void ShowKeyHint(string keyLabel, Transform targetTransform = null, Vector3? worldOffset = null)
         {
@@ -326,14 +398,37 @@ namespace TheLastEmpire
                 return;
             }
 
+            bool wasHiddenOrNewTarget = !promptPanel.activeSelf || _promptTarget != targetTransform;
             _promptTarget = targetTransform;
             _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
+
+            if (wasHiddenOrNewTarget)
+            {
+                _promptFloatElapsed = 0f;
+            }
 
             promptText.text = string.IsNullOrWhiteSpace(keyLabel) ? "E" : keyLabel.Trim().ToUpperInvariant();
             promptText.alignment = TextAlignmentOptions.Center;
             promptText.textWrappingMode = TextWrappingModes.NoWrap;
 
-            promptPanel.SetActive(true);
+            float bobY = EvaluateFloatOffset(_promptFloatElapsed);
+            bool positioned = PositionHintPanel(
+                promptPanel,
+                _promptTarget,
+                _promptWorldOffset,
+                _originalPromptAnchoredPos,
+                _hasOriginalPromptPos,
+                bobY
+            );
+
+            if (positioned)
+            {
+                if (!promptPanel.activeSelf) promptPanel.SetActive(true);
+            }
+            else if (promptPanel.activeSelf)
+            {
+                promptPanel.SetActive(false);
+            }
         }
 
         public void ShowPrompt(string actionText, Transform targetTransform = null, Vector3? worldOffset = null)
@@ -388,11 +483,12 @@ namespace TheLastEmpire
                 }
             }
             _promptTarget = null;
+            _promptFloatElapsed = 0f;
         }
 
         /// <summary>
         /// Displays a full message in the DialogHint panel specifically for Stage Events or NPC speech.
-        /// Keeps the Inspector RectTransform size intact; optionally tracks a world target (e.g. speaking NPC).
+        /// Keeps the Inspector RectTransform size intact; positions BEFORE activating to avoid flicker.
         /// </summary>
         public void ShowDialogHint(string message, Transform targetTransform = null, Vector3? worldOffset = null, float autoHideDuration = 0f)
         {
@@ -408,27 +504,36 @@ namespace TheLastEmpire
                 return;
             }
 
+            bool wasHiddenOrNewTarget = !dialogHintPanel.activeSelf || _dialogHintTarget != targetTransform;
             _dialogHintTarget = targetTransform;
             _dialogHintWorldOffset = worldOffset ?? Vector3.up * 2.2f;
             _dialogHintAutoHideTimer = autoHideDuration > 0f ? autoHideDuration : -1f;
 
+            if (wasHiddenOrNewTarget)
+            {
+                _dialogHintFloatElapsed = 0f;
+            }
+
             dialogHintText.text = message;
 
-            if (_dialogHintTarget != null && Camera.main != null)
-            {
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(_dialogHintTarget.position + _dialogHintWorldOffset);
-                if (screenPos.z > 0f)
-                {
-                    dialogHintPanel.transform.position = screenPos;
-                }
-            }
-            else if (_hasOriginalDialogHintPos)
-            {
-                RectTransform r = dialogHintPanel.GetComponent<RectTransform>();
-                if (r != null) r.anchoredPosition = _originalDialogHintAnchoredPos;
-            }
+            float bobY = EvaluateFloatOffset(_dialogHintFloatElapsed);
+            bool positioned = PositionHintPanel(
+                dialogHintPanel,
+                _dialogHintTarget,
+                _dialogHintWorldOffset,
+                _originalDialogHintAnchoredPos,
+                _hasOriginalDialogHintPos,
+                bobY
+            );
 
-            dialogHintPanel.SetActive(true);
+            if (positioned)
+            {
+                if (!dialogHintPanel.activeSelf) dialogHintPanel.SetActive(true);
+            }
+            else if (dialogHintPanel.activeSelf)
+            {
+                dialogHintPanel.SetActive(false);
+            }
         }
 
         public void HideDialogHint()
@@ -444,6 +549,7 @@ namespace TheLastEmpire
             }
             _dialogHintTarget = null;
             _dialogHintAutoHideTimer = -1f;
+            _dialogHintFloatElapsed = 0f;
         }
 
         public void HideDialogHint(Transform expectedTarget)
