@@ -161,3 +161,10 @@ flowchart LR
 * **`RobotGunner`**: ยิงชุด **Burst ทีละ 5 นัด** แล้วสุ่มเว้นช่วง **`1 - 3 วินาที`** ก่อนยิงชุดถัดไป
 * **ปรับสมดุลเลือดศัตรู**: บอสทุกตัว (**×2**), ศัตรูทั่วไป (**+30%**), **ยกเว้น `ZombieBoomer`** (คงเดิม 500)
 * **มาตรฐาน `Name_text` / `Health_text`**: ปรับครบทั้ง 24 Prefab (`Width 300, Height 50`, `Teko SDF`, `Bold`, `Auto Size 18–36`, สีขาว, ล้างข้อความค้าง)
+
+---
+
+## 13. บันทึกแผนฟีเจอร์ถัดไป (TODO)
+* บันทึกรายละเอียดไว้ใน [`Docs/planned-features-stash-and-weapon-mod.md`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/planned-features-stash-and-weapon-mod.md):
+  1. **ระบบคลังเก็บของ (Stash / Storage System)** + หน้าต่าง UI ฝาก-ถอนของ
+  2. **ระบบปรับแต่งอาวุธ (`Modify Weapon`) + หน้าต่าง UI**: อาวุธ 1 ชิ้นใส่ **Artifact ได้ 4 ช่อง** และแต่ละอาวุธจะมีชุด Artifact เฉพาะของตัวเอง **4 – 10 อย่าง** (เช่น Sniper ยิงออกทีละ 2 นัด)
