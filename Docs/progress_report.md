@@ -1,7 +1,43 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 22 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced `main` + `feat/project-mayhem` + ล่าสุดรีโมเดล Alien/Zombie Boss & ปรับสมดุล Enemy)  
+**วันที่บันทึกล่าสุด**: 23 พฤศจิกายน 2026  
+**สถานะ Git**: `multi-player-netcode` (Synced `main` + `feat/project-mayhem` + ล่าสุดระบบ Hint/DialogHint, StorageUI 2 ฝั่ง + Drag&Drop, WeaponUpgradeUI + Artifact 4 ช่อง, Craft/Pickup กันกระเป๋าเต็ม, +7 ช่องกระเป๋าทุกตัวละคร และซิงค์ Online Co-op ครบทุกส่วน)  
+
+---
+
+## 27. ระบบ Key-Only Hint & DialogHint + คลังเก็บของ (`StorageUI`) + ปรับแต่งอาวุธ Artifact 4 ช่อง (`WeaponUpgradeUI` & `ArtifactSlotUI`) + กันกระเป๋าเต็ม & ซิงค์ Online ครบชุด
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - Hint & DialogHint UI:
+    - [`Assets/Scripts/Runtime/UI/LootUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LootUI.cs), [`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs), [`RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs), [`FleeingSurvivorRunner.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/FleeingSurvivorRunner.cs), [`NPCController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/NPCController.cs)
+  - Storage System:
+    - [`Assets/Scripts/Runtime/UI/StorageUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/StorageUI.cs), [`StorageCrateBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/StorageCrateBuilding.cs), [`LootContainer.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/LootContainer.cs), [`InventoryItemSlot.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryItemSlot.cs)
+  - Weapon Artifact Modification System:
+    - [`Assets/Scripts/Runtime/Combat/WeaponArtifactManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/WeaponArtifactManager.cs), [`WeaponUpgradeUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/WeaponUpgradeUI.cs), [`ArtifactSlotUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ArtifactSlotUI.cs), [`ItemData.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/ItemData.cs), [`HUDNavigationManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/HUDNavigationManager.cs)
+  - Crafting / Pickup Full-Bag Guards & Backpack Expansion:
+    - [`Assets/Scripts/Runtime/UI/CraftController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftController.cs), [`CraftThumbnail.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftThumbnail.cs), [`CraftDescriptionPanel.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftDescriptionPanel.cs), [`CollectibleItem.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/CollectibleItem.cs), [`ShopUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/ShopUI.cs), [`PlayerInventory.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerInventory.cs)
+  - Online Co-op Sync:
+    - [`NetworkLootManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs), [`NetworkBuildingSyncManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkBuildingSyncManager.cs), [`NetworkPlayerBridge.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkPlayerBridge.cs), [`NetDataModels.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Data/NetDataModels.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **Interaction Hint แบบปุ่มล้วน (Key-Only) + `DialogHint` สำหรับ Event & NPC พูด + แอนิเมชันลอยนุ่มๆ**:
+     - แก้ Hint เป็นแสดงเฉพาะปุ่มกด (`E`, `E,Q`, `Q`, `SPACE`, `E,SPACE`) โดยแสดง `SPACE` เมื่อพร้อมกระโดดข้ามรถ/มอเตอร์ไซค์ (`CanVehicleVaultAhead`) และ `E` ตอนอยู่หน้าจุดวาร์ป (`TransitionPortal`)
+     - เพิ่ม Ref แยก `dialogHintPanel` / `dialogHintText` ใน `LootUI` สำหรับแสดงข้อความตอนเกิด Stage Event และตอน NPC พูด (ทั้ง NPC ทั่วไปและ Maya วิ่งหนี)
+     - จัดตำแหน่ง Hint ผ่าน `RectTransformUtility.ScreenPointToLocalPointInRectangle` **ก่อน** `SetActive(true)` เพื่อแก้ปัญหากระพริบ/วาป 1 เฟรม และเพิ่มแอนิเมชันลอยขึ้น-ลง `0 → 15 → 0` ใน `LateUpdate()`
+  2. **ระบบคลังเก็บของ 2 ฝั่ง (`StorageUI` + `Storage_HUD` + `StorageCrateBuilding`)**:
+     - ผูกหน้าต่าง `Storage_HUD` (ฝั่งซ้าย `Inventory` / ฝั่งขวา `Storage`) พร้อมแบ่งหน้าอิสระทั้งสองฝั่ง และเชื่อมปุ่ม **`[E]`** บน `StorageCrateBuilding`
+     - รองรับทั้ง **กดปุ่ม** (`DEPOSIT` / `WITHDRAW`) และ **Drag & Drop ข้ามฝั่ง** — คลิก/ลากปกติย้าย **1 ชิ้น**, กด **`Alt` ค้าง + คลิก/ลาก** ย้าย **ทั้งหมดของไอเทมชิ้นนั้น**
+     - รวม Stack อัตโนมัติ, เช็กความจุ, ปลดอาวุธอัตโนมัติเมื่อฝากอาวุธที่ถืออยู่จนหมดกระเป๋า, และอัปเดตฝาหีบเปิด-ปิดตามสถานะหน้าต่าง
+  3. **ระบบปรับแต่งอาวุธ & ติดตั้ง Artifact 4 ช่อง (`WeaponUpgradeUI` + `ArtifactSlotUI` + `WeaponArtifactManager`)**:
+     - เพิ่ม `ItemType.Artifact` และ `ArtifactModConfig` ใน `ItemData` (รองรับ Double-Shot/Multi-Pellet, Damage +/%, Fire Rate, Magazine Size, Reload Speed, Range, Pierce, Full-Auto และกรองรายชื่ออาวุธที่รองรับ)
+     - `WeaponUpgradeUI` ดึงรายชื่อ **Weapon** และ **Artifact** จากกระเป๋า `PlayerInventory` โดยตรง พร้อมสคริปต์เฉพาะ **`ArtifactSlotUI`** สำหรับช่อง `A1 - A4` รองรับลากเข้าเพื่อใส่, ลากออกเพื่อถอด, ลากสลับช่อง `A1..A4`, และคลิกเพื่อถอดคืนกระเป๋า
+     - เชื่อมค่าโบนัส Artifact เข้าสู่การยิงจริง (`ShootWeapon`), รีโหลด (`TryStartReload`), ยิงอัตโนมัติ, และการฟันระยะประชิด (`MeleeAttack`)
+  4. **ระบบกันกระเป๋าเต็มครบทุกช่องทาง + เพิ่มช่องกระเป๋าเริ่มต้น `+7` ช่องให้ทุกตัวละคร**:
+     - **Craft (`CraftController`, `CraftThumbnail`, `CraftDescriptionPanel`)**: จำลองการหักวัตถุดิบก่อนคราฟต์ หากกระเป๋าไม่มีที่ว่างสำหรับ Weapon / Consumable / Item จะปิดปุ่มคราฟต์ (สีเทา), แจ้งเตือน `Inventory Full`, และห้ามคราฟต์ก่อนหักวัตถุดิบ (พร้อม safety rollback)
+     - **เก็บของ (`CollectibleItem`, `PlayerController`, `LootUI`, `ShopUI`)**: กระเป๋าเต็มจะไม่ดูดแม่เหล็กเข้าตัว (และปล่อยวางคืนพื้นทันทีหากเต็มกลางทาง), เช็ก `CanAddItem(name, qty)` ก่อน Network Claim, และแสดงข้อความ `INVENTORY FULL!`
+     - **เพิ่มช่องกระเป๋าเริ่มต้น `+7` ช่อง** ให้ทุกตัวละคร (`CHAR_01`–`CHAR_07` และ `PlayerConfig`: `18–30` → **`25–37`** ช่อง) พร้อมขยายเพดาน Clamp เป็น `50` ช่อง
+  5. **ครอบคลุมระบบ Online Co-op ครบทุกส่วน**:
+     - ซิงค์ `StorageUI` เรียลไทม์เมื่อเพื่อนฝาก/ถอนกล่องเดียวกัน, อัปเดตกล่องเก็บของข้ามห้อง (`BuildingManager.ActiveBuildings`), และส่งข้อมูลของในคลังให้ Client ที่เข้าห้องทีหลัง (`SendAllCachedContainersToClient`)
+     - ขยาย `ProjectileFireNetPayload` ซิงค์ `pelletCount`, `spreadAngle`, `canPierce`, `visualId` ให้เพื่อนเห็นกระสุน Multi-Pellet/Double-Shot/Pierce จาก Artifact ตรงกันทุกจอ + รีเซ็ต Artifact เมื่อจบ/ออกห้อง
+     - ป้องกันของหายในโหมด Online เมื่อ Client กระเป๋าเต็มระหว่างรอ `LootClaimResult` (โยนคืนพื้นผ่าน Host อัตโนมัติ) และแก้ทุกจุดให้ใช้ `PlayerRegistry.LocalPlayer` แทนการหา Tag `"Player"`
 
 ---
 
