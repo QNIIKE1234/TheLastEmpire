@@ -125,8 +125,10 @@ namespace TheLastEmpire
                 textToUpdate.text = npcName;
             }
 
-            PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-            if (player != null)
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                   ?? PlayerController.Instance
+                                   ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            if (player != null && !player.IsRemotePlayer)
             {
                 _playerTransform = player.transform;
             }
@@ -148,12 +150,15 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (_playerTransform == null)
+            PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (localPlayer != null && !localPlayer.IsRemotePlayer)
             {
-                PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
-                                       ?? PlayerController.Instance
-                                       ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-                if (player != null) _playerTransform = player.transform;
+                _playerTransform = localPlayer.transform;
+            }
+            else if (_playerTransform == null)
+            {
+                PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                if (player != null && !player.IsRemotePlayer) _playerTransform = player.transform;
             }
 
             if (_playerTransform == null) return;

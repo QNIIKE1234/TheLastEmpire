@@ -229,13 +229,14 @@ namespace TheLastEmpire
                     return;
                 }
 
-                // Auto close if player walked away
+                // Auto close if local player walked away (Co-op safe: uses LocalPlayer, not arbitrary Player tag)
                 if (_currentContainer != null)
                 {
-                    GameObject player = GameObject.FindGameObjectWithTag("Player");
-                    if (player != null)
+                    PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                                ?? PlayerController.Instance;
+                    if (localPlayer != null)
                     {
-                        float dist = Vector3.Distance(player.transform.position, _currentContainer.transform.position);
+                        float dist = Vector3.Distance(localPlayer.transform.position, _currentContainer.transform.position);
                         float maxRadius = (_currentContainer.interactionRadius > 0f ? _currentContainer.interactionRadius : 2.5f) + 1.5f;
                         if (dist > maxRadius)
                         {

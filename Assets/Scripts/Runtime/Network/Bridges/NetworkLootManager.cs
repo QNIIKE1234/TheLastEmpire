@@ -42,15 +42,30 @@ namespace TheLastEmpire.Network
             return $"{stageX}_{stageY}_{Mathf.RoundToInt(posX * 2f)}_{Mathf.RoundToInt(posZ * 2f)}";
         }
 
+        private static void ResolveContainerStageCoords(LootContainer container, out int stageX, out int stageY)
+        {
+            if (container != null)
+            {
+                BuildingObject bObj = container.GetComponent<BuildingObject>();
+                if (bObj != null)
+                {
+                    stageX = bObj.StageX;
+                    stageY = bObj.StageY;
+                    return;
+                }
+            }
+            stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+        }
+
         /// <summary>
-        /// เรียกจาก LootContainer.Start() เมื่อผู้เล่นเดินเข้ามาในช่องพิกัด (X, Y) ทีหลัง
-        /// หากเพื่อน (A) เคยเปิดรถ/กล่องใบนี้แล้วหยิบของออกไปแล้ว จะอัปเดตของที่เหลือทันที (ไม่ให้ของโผล่ซ้ำ!)
+        /// เรียกจาก LootContainer.Start() / StorageCrateBuilding.OnEnable() เมื่อผู้เล่นเดินเข้ามาในช่องพิกัด (X, Y) ทีหลัง
+        /// หากเพื่อน (A) เคยเปิดรถ/กล่อง/หีบเก็บของใบนี้แล้วหยิบหรือฝากของไว้ จะอัปเดตของที่เหลือทันที (ไม่ให้ของโผล่ซ้ำหรือหาย!)
         /// </summary>
         public void ApplyCachedStateToContainer(LootContainer container)
         {
             if (container == null || !EmpireNetworkManager.IsOnline) return;
-            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
-            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            ResolveContainerStageCoords(container, out int stageX, out int stageY);
             Vector3 pos = container.transform.position;
 
             string exactKey = BuildContainerKey(stageX, stageY, pos.x, pos.z);
@@ -72,6 +87,36 @@ namespace TheLastEmpire.Network
                     ApplyStateToContainerObject(container, s);
                     return;
                 }
+            }
+        }
+
+        /// <summary>
+        /// ส่งสถานะกล่อง/หีบเก็บของทั้งหมดที่เคยถูกแก้ไขไปยัง Client ที่เพิ่งเชื่อมต่อเข้ามา (Late-Join Sync)
+        /// </summary>
+        public void SendAllCachedContainersToClient(ulong targetClientId)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+
+            foreach (var kvp in _syncedContainerStates)
+            {
+                SyncedContainerState s = kvp.Value;
+                List<LootSlot> items = s.remainingItems;
+                int count = items != null ? items.Count : 0;
+
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.ContainerLootSync, w =>
+                {
+                    w.Write(s.stageX);
+                    w.Write(s.stageY);
+                    w.Write(s.posX);
+                    w.Write(s.posZ);
+                    w.Write(s.remainingMoney);
+                    w.Write(count);
+                    for (int i = 0; i < count; i++)
+                    {
+                        w.Write(items[i].itemName ?? "");
+                        w.Write(items[i].quantity);
+                    }
+                }, targetClientId);
             }
         }
 
@@ -291,8 +336,7 @@ namespace TheLastEmpire.Network
         {
             if (container == null || !EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
 
-            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
-            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            ResolveContainerStageCoords(container, out int stageX, out int stageY);
             Vector3 pos = container.transform.position;
             int money = container.moneyAmount;
             var items = container.itemsInside;
@@ -374,31 +418,69 @@ namespace TheLastEmpire.Network
                 });
             }
 
+            // 1. อัปเดตสิ่งปลูกสร้างหีบเก็บของ (StorageCrateBuilding) ที่อยู่ใน BuildingManager ด้วย
+            // แม้จะอยู่คนละช่องพิกัด (GameObject ถูก SetActive(false) อยู่) เพื่อไม่ให้ของค้างเป็นข้อมูลเก่าตอนเดินกลับฐาน
+            bool updatedAnyBuildingCrate = false;
+            if (BuildingManager.Instance != null && BuildingManager.Instance.ActiveBuildings != null)
+            {
+                var buildings = BuildingManager.Instance.ActiveBuildings;
+                for (int i = 0; i < buildings.Count; i++)
+                {
+                    BuildingObject b = buildings[i];
+                    if (b == null || b.StageX != stageX || b.StageY != stageY) continue;
+                    Vector3 bPos = b.transform.position;
+                    float dx = bPos.x - posX;
+                    float dz = bPos.z - posZ;
+                    if (dx * dx + dz * dz <= 0.36f)
+                    {
+                        LootContainer lc = b.GetComponent<LootContainer>();
+                        if (lc != null)
+                        {
+                            ApplySyncedItemsAndRefreshUI(lc, remainingMoney, syncedItems);
+                            updatedAnyBuildingCrate = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
             if (stageX != myStageX || stageY != myStageY) return;
 
-            LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
-            for (int i = 0; i < containers.Length; i++)
+            if (!updatedAnyBuildingCrate)
             {
-                LootContainer c = containers[i];
-                if (c == null) continue;
-                Vector3 cPos = c.transform.position;
-                float dx = cPos.x - posX;
-                float dz = cPos.z - posZ;
-                if (dx * dx + dz * dz <= 0.36f)
+                LootContainer[] containers = Object.FindObjectsByType<LootContainer>(FindObjectsSortMode.None);
+                for (int i = 0; i < containers.Length; i++)
                 {
-                    c.moneyAmount = remainingMoney;
-                    c.itemsInside.Clear();
-                    c.itemsInside.AddRange(syncedItems);
-                    c.isSearched = (remainingMoney <= 0 && syncedItems.Count == 0);
-
-                    if (LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == c)
+                    LootContainer c = containers[i];
+                    if (c == null) continue;
+                    Vector3 cPos = c.transform.position;
+                    float dx = cPos.x - posX;
+                    float dz = cPos.z - posZ;
+                    if (dx * dx + dz * dz <= 0.36f)
                     {
-                        LootUI.Instance.RefreshUI();
+                        ApplySyncedItemsAndRefreshUI(c, remainingMoney, syncedItems);
+                        break;
                     }
-                    break;
                 }
+            }
+        }
+
+        private static void ApplySyncedItemsAndRefreshUI(LootContainer c, int remainingMoney, List<LootSlot> syncedItems)
+        {
+            c.moneyAmount = remainingMoney;
+            c.itemsInside.Clear();
+            c.itemsInside.AddRange(syncedItems);
+            c.isSearched = (remainingMoney <= 0 && syncedItems.Count == 0);
+
+            if (LootUI.HasInstance && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == c)
+            {
+                LootUI.Instance.RefreshUI();
+            }
+            if (StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.CurrentContainer == c)
+            {
+                StorageUI.Instance.RefreshUI();
             }
         }
 

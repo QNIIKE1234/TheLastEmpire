@@ -72,6 +72,11 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             BuildingInteractionRegistry.Register(this);
+            if (_lootContainer == null) _lootContainer = GetComponent<LootContainer>();
+            if (_lootContainer != null)
+            {
+                TheLastEmpire.Network.NetworkLootManager.Instance?.ApplyCachedStateToContainer(_lootContainer);
+            }
         }
 
         private void OnDisable()
@@ -111,8 +116,10 @@ namespace TheLastEmpire
 
         private void FindPlayer()
         {
-            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
-            if (pc != null)
+            PlayerController pc = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                               ?? PlayerController.Instance
+                               ?? Object.FindFirstObjectByType<PlayerController>();
+            if (pc != null && !pc.IsRemotePlayer)
             {
                 _playerTransform = pc.transform;
             }

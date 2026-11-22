@@ -198,6 +198,12 @@ namespace TheLastEmpire.Network
                     int curX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : data.stageX;
                     int curY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : data.stageY;
                     instance.SetActive(data.stageX == curX && data.stageY == curY);
+
+                    LootContainer crateContainer = instance.GetComponent<LootContainer>();
+                    if (crateContainer != null && NetworkLootManager.Instance != null)
+                    {
+                        NetworkLootManager.Instance.ApplyCachedStateToContainer(crateContainer);
+                    }
                 }
             }
             finally
@@ -219,6 +225,9 @@ namespace TheLastEmpire.Network
                     bData.NetworkSerialize(serializer);
                 }, targetClientId);
             }
+
+            // ซิงค์รายการไอเทมในกล่องเก็บของ (StorageCrate) ทั้งหมดให้ Client ที่เพิ่งเข้าห้องด้วย
+            NetworkLootManager.Instance?.SendAllCachedContainersToClient(targetClientId);
         }
 
         // =====================================================
@@ -265,29 +274,45 @@ namespace TheLastEmpire.Network
 
         public void ApplyCrateTransactionOnClient(CrateTransactionNetPayload tx)
         {
-            // อัปเดตสถานะหีบเก็บของเมื่อเพื่อนฝากหรือดึงของออก
-            if (LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer != null)
+            // อัปเดตสถานะหีบเก็บของเมื่อเพื่อนฝากหรือดึงของออก (รองรับทั้ง StorageUI และ LootUI)
+            LootContainer targetContainer = null;
+            if (StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.CurrentContainer != null)
             {
-                var items = LootUI.Instance.CurrentContainer.itemsInside;
-                if (items == null) return;
+                targetContainer = StorageUI.Instance.CurrentContainer;
+            }
+            else if (LootUI.HasInstance && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer != null)
+            {
+                targetContainer = LootUI.Instance.CurrentContainer;
+            }
 
-                if (tx.isDeposit)
+            if (targetContainer == null || targetContainer.itemsInside == null) return;
+
+            var items = targetContainer.itemsInside;
+            if (tx.isDeposit)
+            {
+                targetContainer.AddItem(tx.itemName, tx.quantity);
+            }
+            else
+            {
+                int remainingToRemove = tx.quantity;
+                for (int i = items.Count - 1; i >= 0 && remainingToRemove > 0; i--)
                 {
-                    items.Add(new LootSlot(tx.itemName, tx.quantity));
-                }
-                else
-                {
-                    for (int i = 0; i < items.Count; i++)
+                    if (string.Equals(items[i].itemName, tx.itemName, System.StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.Equals(items[i].itemName, tx.itemName, System.StringComparison.OrdinalIgnoreCase))
-                        {
-                            int rem = items[i].quantity - tx.quantity;
-                            if (rem <= 0) items.RemoveAt(i);
-                            else items[i] = new LootSlot(tx.itemName, rem);
-                            break;
-                        }
+                        int take = Mathf.Min(items[i].quantity, remainingToRemove);
+                        targetContainer.RemoveSlotAt(i, take);
+                        remainingToRemove -= take;
                     }
                 }
+            }
+
+            if (StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.CurrentContainer == targetContainer)
+            {
+                StorageUI.Instance.RefreshUI();
+            }
+            if (LootUI.HasInstance && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == targetContainer)
+            {
+                LootUI.Instance.RefreshUI();
             }
         }
     }
