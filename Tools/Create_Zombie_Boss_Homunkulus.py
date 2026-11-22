@@ -54,6 +54,7 @@ def make_mat(name, rgba, roughness=0.72, metallic=0.0, coat=0.0, emit_rgb=None, 
 def _make_tube_chain(name, pts, radii, mat, segments=14):
     rings = []
     n = len(pts)
+    prev_side_a = None
     for i, p in enumerate(pts):
         pos = Vector(p)
         if i == 0:
@@ -64,9 +65,18 @@ def _make_tube_chain(name, pts, radii, mat, segments=14):
             tangent = (Vector(pts[i + 1]) - Vector(pts[i - 1])).normalized()
         if tangent.length < 1e-6:
             tangent = Vector((0, 0, 1))
-        up_ref = Vector((0, 0, 1)) if abs(tangent.z) < 0.9 else Vector((0, 1, 0))
-        side_a = tangent.cross(up_ref).normalized()
+        if prev_side_a is None:
+            up_ref = Vector((1, 0, 0)) if abs(tangent.x) < 0.85 else Vector((0, 0, 1))
+            side_a = tangent.cross(up_ref).normalized()
+        else:
+            proj = prev_side_a - tangent * prev_side_a.dot(tangent)
+            if proj.length < 1e-5:
+                up_ref = Vector((1, 0, 0)) if abs(tangent.x) < 0.85 else Vector((0, 0, 1))
+                side_a = tangent.cross(up_ref).normalized()
+            else:
+                side_a = proj.normalized()
         side_b = tangent.cross(side_a).normalized()
+        prev_side_a = side_a
         r = radii[i]
         rings.append((pos, side_a * r, side_b * r))
     return kit.create_loft_object(name, rings, mat, segments=segments)
@@ -84,13 +94,13 @@ def _setup_studio_render(scene):
     world.use_nodes = True
     bg = world.node_tree.nodes.get("Background")
     if bg:
-        bg.inputs[0].default_value = (0.16, 0.18, 0.24, 1.0)
+        bg.inputs[0].default_value = (0.20, 0.22, 0.28, 1.0)
         bg.inputs[1].default_value = 1.15
 
     for lname, energy, loc, rot in (
-        ("KeyLight", 2.9, (-3.0, -3.8, 4.4), (0.88, 0.12, -0.58)),
-        ("FillLight", 1.7, (3.4, -2.5, 2.8), (1.05, -0.1, 0.85)),
-        ("RimLight", 2.4, (0.4, 3.8, 3.4), (-0.95, 0.0, 0.05)),
+        ("KeyLight", 3.0, (-3.0, -3.8, 4.4), (0.88, 0.12, -0.58)),
+        ("FillLight", 1.8, (3.4, -2.5, 2.8), (1.05, -0.1, 0.85)),
+        ("RimLight", 2.6, (0.4, 3.8, 3.4), (-0.95, 0.0, 0.05)),
     ):
         ld = bpy.data.lights.new(lname, type="SUN")
         ld.energy = energy
@@ -232,212 +242,259 @@ def _export_zombie(rig_obj, mesh_objs, base_name):
 
 
 # ==============================================================================
-#  ZOMBIE BOSS — ANCIENT HOMUNKULUS (Ref 2!)
-#  Massive hunched teal-corpse brute, swollen forehead, spiky ginger hair,
-#  red scarf, purple ragged tunic, ochre pants, giant gorilla arms,
-#  + GIANT PARASITIC BLOODSHOT EYEBALL & CRIMSON-TIPPED TENTACLES ON HIS BACK!
+#  ZOMBIE BOSS — SLASH ROCKSTAR UNDEAD BRUTE (Ref 1: Top Hat, Wild Curly Hair,
+#  Dark Aviators, Black Rock Tank Top, HUGE Muscular Gorilla Arms, NO Guitar,
+#  Hunched Walk) + FLESHY PINK-CRIMSON OCTOPUS PARASITE ON HIS BACK (Ref 2 Colors!)
 # ==============================================================================
 
-def build_zombie_boss_homunkulus():
+def build_zombie_boss_slash_parasite():
     scene = kit.reset_scene()
 
-    # Exact Ancient Homunkulus palette!
-    m_skin       = make_mat("Mat_Boss_TealSkin",       (0.36, 0.68, 0.62, 1.0), roughness=0.58)
-    m_skin_dark  = make_mat("Mat_Boss_TealDark",       (0.20, 0.44, 0.42, 1.0), roughness=0.64)
-    m_pustule    = make_mat("Mat_Boss_AcidGlow",       (0.45, 0.92, 0.36, 1.0), emit_rgb=(0.35, 0.88, 0.25), emit_strength=0.90, roughness=0.22)
-    m_hair       = make_mat("Mat_Boss_GingerHair",     (0.66, 0.38, 0.14, 1.0), roughness=0.78)
-    m_scarf      = make_mat("Mat_Boss_RedScarf",       (0.76, 0.12, 0.14, 1.0), roughness=0.68)
-    m_vest       = make_mat("Mat_Boss_PurpleVest",     (0.34, 0.16, 0.48, 1.0), roughness=0.74)
-    m_sash       = make_mat("Mat_Boss_NavySash",       (0.10, 0.14, 0.28, 1.0), roughness=0.70)
-    m_pants      = make_mat("Mat_Boss_OchrePants",     (0.62, 0.36, 0.10, 1.0), roughness=0.76)
-    m_shackle    = make_mat("Mat_Boss_GoldShackle",    (0.82, 0.64, 0.16, 1.0), roughness=0.32, metallic=0.65)
-    m_eye_white  = make_mat("Mat_Boss_EyeGlossy",      (0.97, 0.88, 0.90, 1.0), roughness=0.08, coat=0.90)
-    m_eye_red    = make_mat("Mat_Boss_EyeRed",         (0.84, 0.08, 0.10, 1.0), emit_rgb=(0.75, 0.06, 0.08), emit_strength=0.55, roughness=0.14)
-    m_pupil      = make_mat("Mat_Boss_Pupil",          (0.06, 0.02, 0.03, 1.0), roughness=0.05)
-    m_fang       = make_mat("Mat_Boss_YellowFang",     (0.88, 0.64, 0.18, 1.0), roughness=0.30)
-    m_tent_tip   = make_mat("Mat_Boss_TentacleRed",    (0.88, 0.10, 0.12, 1.0), emit_rgb=(0.82, 0.08, 0.10), emit_strength=0.55, roughness=0.22)
-    m_nail       = make_mat("Mat_Boss_Nail",           (0.84, 0.88, 0.82, 1.0), roughness=0.26)
+    # Slash Rockstar Undead Brute Palette (Ref 1)
+    m_skin       = make_mat("Mat_Boss_ZombieSkin",     (0.56, 0.58, 0.48, 1.0), roughness=0.62)
+    m_skin_dark  = make_mat("Mat_Boss_ZombieShade",    (0.36, 0.38, 0.31, 1.0), roughness=0.68)
+    m_hat_black  = make_mat("Mat_Boss_TopHat",         (0.05, 0.05, 0.06, 1.0), roughness=0.72)
+    m_hat_band   = make_mat("Mat_Boss_LeatherBand",    (0.14, 0.09, 0.07, 1.0), roughness=0.52)
+    m_silver     = make_mat("Mat_Boss_Silver",         (0.82, 0.84, 0.88, 1.0), roughness=0.22, metallic=0.88)
+    m_hair       = make_mat("Mat_Boss_CurlyHair",      (0.035, 0.03, 0.035, 1.0), roughness=0.84)
+    m_glasses    = make_mat("Mat_Boss_Glasses",        (0.03, 0.03, 0.05, 1.0), roughness=0.06, metallic=0.25, coat=0.95)
+    m_shirt      = make_mat("Mat_Boss_BlackTank",      (0.06, 0.06, 0.07, 1.0), roughness=0.76)
+    m_shirt_pink = make_mat("Mat_Boss_RockPrint",      (0.84, 0.24, 0.56, 1.0), roughness=0.65)
+    m_pants      = make_mat("Mat_Boss_SnakePants",     (0.11, 0.11, 0.13, 1.0), roughness=0.44, metallic=0.14)
+    m_boots      = make_mat("Mat_Boss_LeatherBoots",   (0.04, 0.04, 0.05, 1.0), roughness=0.38)
+    m_brace_gold = make_mat("Mat_Boss_GoldBead",       (0.84, 0.64, 0.18, 1.0), roughness=0.28, metallic=0.72)
+    m_mouth      = make_mat("Mat_Boss_MouthDark",      (0.16, 0.03, 0.04, 1.0), roughness=0.30)
+    m_fang       = make_mat("Mat_Boss_Fang",           (0.90, 0.86, 0.72, 1.0), roughness=0.26)
+
+    # Back Octopus Parasite Palette — EXACT Ref 2 (AlienNormal glossy pink-coral flesh + deep crimson-maroon lips/suckers!)
+    m_para_pink  = make_mat("Mat_Boss_ParasitePink",   (0.92, 0.42, 0.48, 1.0), roughness=0.28, coat=0.65)
+    m_para_dark  = make_mat("Mat_Boss_ParasiteDark",   (0.72, 0.24, 0.30, 1.0), roughness=0.32, coat=0.55)
+    m_para_crim  = make_mat("Mat_Boss_ParasiteCrimson",(0.48, 0.07, 0.12, 1.0), roughness=0.20, coat=0.75)
 
     # Faces -Y, +Z UP, +X LEFT!
-    # Massive hunched gorilla-brute (~2.25m tall including back parasite eyeball!)
+    # Massive hunched gorilla-brute rig (~2.45m tall with Top Hat!)
     bone_defs = [
         ("Root",           (0.0,  0.0,   0.0),   (0.0,  0.0,   0.22),  None,          (0, 1, 0)),
-        ("Hips",           (0.0,  0.14,  0.76),  (0.0,  0.10,  1.06),  "Root",        (0, 1, 0)),
-        ("Spine",          (0.0,  0.10,  1.06),  (0.0, -0.14,  1.62),  "Hips",        (0.0, 1.0, 0.0)),
-        ("Head",           (0.0, -0.24,  1.48),  (0.0, -0.58,  1.76),  "Spine",       (0, 1, 0)),
+        ("Hips",           (0.0,  0.14,  0.78),  (0.0,  0.10,  1.08),  "Root",        (0, 1, 0)),
+        ("Spine",          (0.0,  0.10,  1.08),  (0.0, -0.14,  1.62),  "Hips",        (0, 1, 0)),
+        ("Head",           (0.0, -0.22,  1.50),  (0.0, -0.44,  1.92),  "Spine",       (0, 1, 0)),
 
-        # SIGNATURE BACK PARASITE EYEBALL + WRITHING TENTACLES!
-        ("ParasiteBase",   (0.0,  0.22,  1.58),  (0.0,  0.34,  2.14),  "Spine",       (0, 1, 0)),
-        ("ParasiteTentL",  (0.18, 0.30,  1.96),  (0.56, 0.42,  2.18),  "ParasiteBase",(0, 1, 0)),
-        ("ParasiteTentR",  (-0.18,0.30,  1.96),  (-0.56,0.42,  2.18),  "ParasiteBase",(0, 1, 0)),
-        ("ParasiteTentB",  (0.0,  0.40,  1.92),  (0.0,  0.78,  2.06),  "ParasiteBase",(0, 1, 0)),
+        # FLESHY PINK OCTOPUS PARASITE ON HIS HUNCHED BACK (Ref 2 colors!)
+        ("ParasiteBase",   (0.0,  0.22,  1.42),  (0.0,  0.46,  1.88),  "Spine",       (0, 1, 0)),
+        ("ParasiteTentL",  (0.22, 0.34,  1.66),  (0.78, 0.42,  2.02),  "ParasiteBase",(0, 1, 0)),
+        ("ParasiteTentR",  (-0.22,0.34,  1.66),  (-0.78,0.42,  2.02),  "ParasiteBase",(0, 1, 0)),
+        ("ParasiteTentB",  (0.0,  0.44,  1.56),  (0.0,  0.96,  1.78),  "ParasiteBase",(0, 1, 0)),
 
-        # HUGE HUNCHED GORILLA-MUSCULAR BRUTE ARMS (reaching down near ground!)
+        # HUGE HUNCHED MUSCULAR GORILLA ARMS (NO GUITAR!)
         ("LeftUpperArm",   (0.48, -0.06, 1.48),  (0.58, -0.16, 0.88),  "Spine",       (0, 1, 0)),
         ("LeftForeArm",    (0.58, -0.16, 0.88),  (0.54, -0.34, 0.34),  "LeftUpperArm",(0, 1, 0)),
         ("RightUpperArm",  (-0.48,-0.06, 1.48),  (-0.58,-0.16, 0.88),  "Spine",       (0, 1, 0)),
         ("RightForeArm",   (-0.58,-0.16, 0.88),  (-0.54,-0.34, 0.34),  "RightUpperArm",(0, 1, 0)),
 
-        # STURDY CROUCHED LEGS + BARE CORPSE FEET
-        ("LeftThigh",      (0.24,  0.14, 0.76),  (0.28, -0.02, 0.40),  "Hips",        (0, 1, 0)),
-        ("LeftShin",       (0.28, -0.02, 0.40),  (0.28,  0.06, 0.08),  "LeftThigh",   (0, 1, 0)),
-        ("RightThigh",     (-0.24, 0.14, 0.76),  (-0.28,-0.02, 0.40),  "Hips",        (0, 1, 0)),
-        ("RightShin",      (-0.28,-0.02, 0.40),  (-0.28, 0.06, 0.08),  "RightThigh",  (0, 1, 0)),
+        # CROUCHED HEAVY ROCKSTAR LEGS
+        ("LeftThigh",      (0.24,  0.14, 0.78),  (0.28, -0.02, 0.42),  "Hips",        (0, 1, 0)),
+        ("LeftShin",       (0.28, -0.02, 0.42),  (0.28,  0.06, 0.08),  "LeftThigh",   (0, 1, 0)),
+        ("RightThigh",     (-0.24, 0.14, 0.78),  (-0.28,-0.02, 0.42),  "Hips",        (0, 1, 0)),
+        ("RightShin",      (-0.28,-0.02, 0.42),  (-0.28, 0.06, 0.08),  "RightThigh",  (0, 1, 0)),
     ]
     rig_obj = _build_bone_tree("Chibi_ZombieBoss_Rig", bone_defs)
 
     parts = []
 
-    # --- 1. HUNCHED TORSO IN TATTERED PURPLE VEST + NAVY SASH + RED NECK SCARF ---
+    # --- 1. HUNCHED TORSO IN BLACK ROCKSTAR TANK TOP + PINK CHEST GRAPHIC STRIPES ---
     torso_rings = [
-        (Vector((0.0,  0.14, 0.76)), Vector((0.40, 0.0, 0.0)), Vector((0.0, 0.32, 0.0))),
-        (Vector((0.0,  0.08, 1.06)), Vector((0.46, 0.0, 0.0)), Vector((0.0, 0.38, 0.0))),
-        (Vector((0.0, -0.04, 1.44)), Vector((0.52, 0.0, 0.0)), Vector((0.0, 0.44, 0.0))),
-        (Vector((0.0, -0.10, 1.66)), Vector((0.42, 0.0, 0.0)), Vector((0.0, 0.36, 0.0))),
+        (Vector((0.0,  0.14, 0.76)), Vector((0.39, 0.0, 0.0)), Vector((0.0, 0.31, 0.0))),
+        (Vector((0.0,  0.08, 1.08)), Vector((0.46, 0.0, 0.0)), Vector((0.0, 0.36, 0.0))),
+        (Vector((0.0, -0.04, 1.44)), Vector((0.50, 0.0, 0.0)), Vector((0.0, 0.42, 0.0))),
+        (Vector((0.0, -0.10, 1.64)), Vector((0.38, 0.0, 0.0)), Vector((0.0, 0.32, 0.0))),
     ]
-    parts.append((kit.create_loft_object("Boss_PurpleVest", torso_rings, m_vest, segments=22), [("Spine", 0.75), ("Hips", 0.25)]))
+    parts.append((kit.create_loft_object("RockTankTop", torso_rings, m_shirt, segments=22), [("Spine", 0.75), ("Hips", 0.25)]))
+    # Distressed magenta-pink rock logo bars across chest (Ref 1 "I NEED MORE" pink shirt vibe!)
+    for gi, (gz, gw) in enumerate(((1.34, 0.28), (1.20, 0.32), (1.06, 0.24))):
+        parts.append((kit.create_rounded_box(f"ChestPrint_{gi}", (0.0, -0.40 + gi * 0.02, gz), (gw, 0.04, 0.065), m_shirt_pink, bevel_width=0.01), [("Spine", 1.0)]))
+    # Silver belt buckle & side wallet chain
+    parts.append((kit.create_torus_ring("LeatherBelt", (0.0, 0.12, 0.84), 0.37, 0.055, m_hat_band), [("Hips", 1.0)]))
+    parts.append((kit.create_rounded_box("BeltBuckle", (0.0, -0.25, 0.84), (0.14, 0.05, 0.10), m_silver, bevel_width=0.015), [("Hips", 1.0)]))
+    parts.append((_make_tube_chain("WalletChain", [(-0.34, 0.06, 0.82), (-0.42, -0.06, 0.64), (-0.36, 0.18, 0.56)], [0.018, 0.018, 0.018], m_silver, segments=8), [("Hips", 1.0)]))
 
-    # Tattered jagged shoulder vest fringes (exact Ref 2 purple shoulder rags!)
+    # --- 2. SLASH HEAD: UNDEAD FACE, DARK AVIATOR SUNGLASSES, MASSIVE CURLY BLACK HAIR & TALL TOP HAT! ---
+    # Hunched forward zombie rockstar head
+    parts.append((kit.create_ellipsoid("Boss_Head", (0.0, -0.40, 1.64), (0.24, 0.26, 0.27), m_skin), [("Head", 1.0)]))
+    parts.append((kit.create_ellipsoid("Boss_Nose", (0.0, -0.65, 1.62), (0.045, 0.055, 0.052), m_skin_dark), [("Head", 1.0)]))
+    # Snarling undead mouth + fangs
+    parts.append((kit.create_ellipsoid("Boss_Mouth", (0.0, -0.61, 1.49), (0.12, 0.05, 0.048), m_mouth), [("Head", 1.0)]))
     for side in (-1.0, 1.0):
-        for ti, y_off in enumerate((-0.14, 0.0, 0.14)):
-            parts.append((_make_tube_chain(f"VestTatter_{side}_{ti}", [(side * 0.42, y_off, 1.54), (side * 0.58, y_off + 0.02, 1.64)], [0.065, 0.012], m_vest, segments=8), [("Spine", 1.0)]))
+        parts.append((_make_tube_chain(f"BossFang_{side}", [(side * 0.065, -0.64, 1.52), (side * 0.065, -0.65, 1.46)], [0.018, 0.005], m_fang, segments=8), [("Head", 1.0)]))
 
-    # Dark navy waist sash belt + hanging cloth tie
-    parts.append((kit.create_torus_ring("NavyWaistSash", (0.0, 0.12, 0.86), 0.38, 0.068, m_sash), [("Hips", 1.0)]))
-    parts.append((_make_tube_chain("SashTail", [(0.16, -0.20, 0.86), (0.20, -0.26, 0.62), (0.18, -0.24, 0.46)], [0.055, 0.048, 0.020], m_sash, segments=10), [("Hips", 1.0)]))
-
-    # Torn Crimson Red Neck Scarf wrapping around the hunched neck!
-    parts.append((kit.create_torus_ring("RedNeckScarf", (0.0, -0.26, 1.32), 0.28, 0.088, m_scarf, rot_euler=(0.35, 0.0, 0.0)), [("Spine", 0.65), ("Head", 0.35)]))
-    parts.append((_make_tube_chain("ScarfEnd", [(-0.18, -0.44, 1.24), (-0.28, -0.48, 1.06), (-0.34, -0.46, 0.94)], [0.075, 0.062, 0.018], m_scarf, segments=10), [("Spine", 1.0)]))
-
-    # --- 2. SWOLLEN BULBOUS TEAL CORPSE HEAD + SPIKY GINGER HAIR + HOOKED NOSE + YELLOW FANGS! ---
-    # Heavy jutting hunched head
-    parts.append((kit.create_ellipsoid("Boss_Skull", (0.0, -0.46, 1.60), (0.28, 0.30, 0.28), m_skin), [("Head", 1.0)]))
-    # HUGE swollen bulbous forehead dome (exact Ancient Homunkulus iconic forehead!)
-    parts.append((kit.create_ellipsoid("SwollenForehead", (0.0, -0.56, 1.78), (0.26, 0.24, 0.20), m_skin), [("Head", 1.0)]))
-    parts.append((kit.create_ellipsoid("BrowLump", (0.0, -0.68, 1.72), (0.22, 0.14, 0.10), m_skin), [("Head", 1.0)]))
-    # Heavy square underbite jaw + grimacing lips + crooked yellow fangs
-    parts.append((kit.create_rounded_box("Boss_Jaw", (0.0, -0.56, 1.40), (0.38, 0.26, 0.18), m_skin_dark, bevel_width=0.045), [("Head", 1.0)]))
-    parts.append((kit.create_ellipsoid("MouthGrimace", (0.0, -0.69, 1.44), (0.16, 0.035, 0.032), m_pupil), [("Head", 1.0)]))
+    # Iconic Dark Aviator Sunglasses (Ref 1!)
     for side in (-1.0, 1.0):
-        parts.append((_make_tube_chain(f"YellowFang_{side}", [(side * 0.10, -0.68, 1.42), (side * 0.11, -0.71, 1.50)], [0.026, 0.008], m_fang, segments=8), [("Head", 1.0)]))
-    # Hooked bulbous corpse nose!
-    parts.append((_make_tube_chain("HookedNose", [(0.0, -0.68, 1.62), (0.0, -0.82, 1.55), (0.0, -0.76, 1.48)], [0.068, 0.058, 0.036], m_skin, segments=10), [("Head", 1.0)]))
-    # Small crazed bloodshot eyes under the massive swollen brow
+        parts.append((kit.create_ellipsoid(f"AviatorLens_{side}", (side * 0.105, -0.635, 1.68), (0.095, 0.032, 0.078), m_glasses, rot_euler=(0.0, side * 0.10, 0.0)), [("Head", 1.0)]))
+    parts.append((kit.create_rounded_box("AviatorBridge", (0.0, -0.65, 1.71), (0.28, 0.025, 0.022), m_silver, bevel_width=0.005), [("Head", 1.0)]))
+
+    # Massive Voluminous Wild Curly Black Hair cascading down both sides & back (exact Slash silhouette!)
+    curl_clusters = []
     for side in (-1.0, 1.0):
-        parts.append((kit.create_ellipsoid(f"BossEyeSocket_{side}", (side * 0.13, -0.68, 1.62), (0.068, 0.045, 0.060), m_skin_dark), [("Head", 1.0)]))
-        parts.append((kit.create_ellipsoid(f"BossEyeWhite_{side}", (side * 0.13, -0.715, 1.62), (0.052, 0.032, 0.050), m_eye_white), [("Head", 1.0)]))
-        parts.append((kit.create_ellipsoid(f"BossEyePupil_{side}", (side * 0.13, -0.742, 1.62), (0.022, 0.014, 0.022), m_eye_red), [("Head", 1.0)]))
+        for ci, (cy, cz, rx, ry, rz) in enumerate((
+            (-0.46, 1.74, 0.13, 0.13, 0.13),
+            (-0.44, 1.56, 0.15, 0.14, 0.15),
+            (-0.40, 1.38, 0.16, 0.15, 0.15),
+            (-0.34, 1.20, 0.14, 0.14, 0.14),
+            (-0.24, 1.72, 0.14, 0.14, 0.14),
+            (-0.22, 1.52, 0.16, 0.15, 0.16),
+            (-0.20, 1.32, 0.15, 0.15, 0.15),
+        )):
+            cx = side * (0.25 + (ci % 2) * 0.05)
+            parts.append((kit.create_ellipsoid(f"SlashCurl_{side}_{ci}", (cx, cy, cz), (rx, ry, rz), m_hair), [("Head", 0.85), ("Spine", 0.15)]))
+    # Back mane curls under the top hat
+    for bi, (bx, by, bz) in enumerate(((0.0, -0.14, 1.72), (0.14, -0.16, 1.56), (-0.14, -0.16, 1.56), (0.0, -0.12, 1.44))):
+        parts.append((kit.create_ellipsoid(f"BackCurl_{bi}", (bx, by, bz), (0.16, 0.15, 0.16), m_hair), [("Head", 1.0)]))
 
-    # Wild spiky golden-brown/ginger hair sweeping back from sides & crown (exact Ref 2!)
-    for hi, (hx, hy, hz, tx, ty, tz, rad) in enumerate((
-        (0.00, -0.44, 1.92,  0.00, -0.10, 1.98, 0.095),
-        (0.16, -0.44, 1.88,  0.26, -0.10, 1.92, 0.085),
-        (-0.16,-0.44, 1.88, -0.26, -0.10, 1.92, 0.085),
-        (0.24, -0.42, 1.76,  0.34, -0.06, 1.76, 0.082),
-        (-0.24,-0.42, 1.76, -0.34, -0.06, 1.76, 0.082),
-        (0.25, -0.40, 1.62,  0.32, -0.08, 1.56, 0.075),
-        (-0.25,-0.40, 1.62, -0.32, -0.08, 1.56, 0.075),
-    )):
-        parts.append((_make_tube_chain(f"GingerHair_{hi}", [(hx, hy, hz), (tx, ty, tz)], [rad, 0.015], m_hair, segments=10), [("Head", 1.0)]))
-
-    # --- 3. SIGNATURE BACK PARASITE: GIANT BLOODSHOT EYEBALL + 10 CRIMSON-TIPPED TENTACLES! ---
-    # Fleshy teal mutant tumor hump rising from his hunched upper back!
-    para_rings = [
-        (Vector((0.0, 0.24, 1.46)), Vector((0.36, 0.0, 0.0)), Vector((0.0, 0.34, 0.0))),
-        (Vector((0.0, 0.30, 1.76)), Vector((0.32, 0.0, 0.0)), Vector((0.0, 0.30, 0.0))),
-        (Vector((0.0, 0.32, 2.02)), Vector((0.26, 0.0, 0.0)), Vector((0.0, 0.25, 0.0))),
+    # ICONIC TALL BLACK TOP HAT WITH LEATHER BAND & SILVER CONCHO MEDALLIONS ("ใส่หมวกทรงสูง")!
+    hat_c = Vector((0.0, -0.40, 1.88))
+    # Curled wide brim
+    brim_rings = [
+        (hat_c + Vector((0.0, 0.0, -0.02)), Vector((0.40, 0.0, 0.0)), Vector((0.0, 0.43, 0.0))),
+        (hat_c + Vector((0.0, 0.0,  0.03)), Vector((0.42, 0.0, 0.0)), Vector((0.0, 0.45, 0.0))),
+        (hat_c + Vector((0.0, 0.0,  0.05)), Vector((0.36, 0.0, 0.0)), Vector((0.0, 0.39, 0.0))),
+        (hat_c + Vector((0.0, 0.0,  0.02)), Vector((0.26, 0.0, 0.0)), Vector((0.0, 0.28, 0.0))),
     ]
-    parts.append((kit.create_loft_object("ParasiteHump", para_rings, m_skin_dark, segments=20), [("ParasiteBase", 0.8), ("Spine", 0.2)]))
-    # GIANT BLOODSHOT WHITE-PINK PARASITE EYEBALL ON TOP OF BACK HUMP!
-    parts.append((kit.create_ellipsoid("ParasiteEyeRim", (0.0, 0.30, 2.06), (0.25, 0.24, 0.16), m_skin), [("ParasiteBase", 1.0)]))
-    parts.append((kit.create_ellipsoid("ParasiteGiantEye", (0.0, 0.29, 2.16), (0.21, 0.21, 0.18), m_eye_white), [("ParasiteBase", 1.0)]))
-    parts.append((kit.create_ellipsoid("ParasiteEyeIris", (0.0, 0.20, 2.28), (0.088, 0.088, 0.062), m_eye_red), [("ParasiteBase", 1.0)]))
-    parts.append((kit.create_ellipsoid("ParasiteEyePupil", (0.0, 0.18, 2.33), (0.042, 0.042, 0.032), m_pupil), [("ParasiteBase", 1.0)]))
-
-    # 10 Writhing Teal-to-Crimson-Tipped Parasitic Tentacles bursting out around the giant eyeball!
-    tent_specs = [
-        ( 0.22, 0.22, 2.06,  0.54, 0.16, 2.24, "ParasiteTentL"),
-        ( 0.26, 0.32, 2.02,  0.64, 0.36, 2.12, "ParasiteTentL"),
-        ( 0.24, 0.42, 1.94,  0.58, 0.56, 1.88, "ParasiteTentL"),
-        ( 0.18, 0.28, 2.14,  0.38, 0.24, 2.48, "ParasiteTentL"),
-        (-0.22, 0.22, 2.06, -0.54, 0.16, 2.24, "ParasiteTentR"),
-        (-0.26, 0.32, 2.02, -0.64, 0.36, 2.12, "ParasiteTentR"),
-        (-0.24, 0.42, 1.94, -0.58, 0.56, 1.88, "ParasiteTentR"),
-        (-0.18, 0.28, 2.14, -0.38, 0.24, 2.48, "ParasiteTentR"),
-        ( 0.08, 0.46, 2.00,  0.14, 0.84, 2.16, "ParasiteTentB"),
-        (-0.08, 0.46, 2.00, -0.14, 0.84, 2.16, "ParasiteTentB"),
+    parts.append((kit.create_loft_object("TopHat_Brim", brim_rings, m_hat_black, segments=28), [("Head", 1.0)]))
+    # Tall slightly flared stovepipe cylinder crown!
+    crown_rings = [
+        (hat_c + Vector((0.0, 0.0, 0.02)), Vector((0.26, 0.0, 0.0)), Vector((0.0, 0.28, 0.0))),
+        (hat_c + Vector((0.0, 0.0, 0.24)), Vector((0.27, 0.0, 0.0)), Vector((0.0, 0.29, 0.0))),
+        (hat_c + Vector((0.0, 0.0, 0.48)), Vector((0.31, 0.0, 0.0)), Vector((0.0, 0.33, 0.0))),
+        (hat_c + Vector((0.0, 0.0, 0.56)), Vector((0.28, 0.0, 0.0)), Vector((0.0, 0.30, 0.0))),
+        (hat_c + Vector((0.0, 0.0, 0.58)), Vector((0.04, 0.0, 0.0)), Vector((0.0, 0.04, 0.0))),
     ]
-    for idx, (x0, y0, z0, x1, y1, z1, bname) in enumerate(tent_specs):
-        xm, ym, zm = (x0 + x1) * 0.52, (y0 + y1) * 0.52, (z0 + z1) * 0.52 + 0.06
-        # Teal fleshy base half
-        parts.append((_make_tube_chain(f"ParaTentBase_{idx}", [(x0, y0, z0), (xm, ym, zm)], [0.052, 0.036], m_skin, segments=10), [(bname, 0.7), ("ParasiteBase", 0.3)]))
-        # Crimson-red sharp tip half (exact Ref 2 red-tipped tentacles!)
-        parts.append((_make_tube_chain(f"ParaTentTip_{idx}", [(xm, ym, zm), (x1, y1, z1)], [0.036, 0.008], m_tent_tip, segments=10), [(bname, 1.0)]))
+    parts.append((kit.create_loft_object("TopHat_Crown", crown_rings, m_hat_black, segments=28), [("Head", 1.0)]))
+    # Leather hatband + 7 metallic silver Slash concho medallions around the hat!
+    parts.append((kit.create_torus_ring("TopHat_Band", hat_c + Vector((0.0, 0.0, 0.085)), 0.27, 0.042, m_hat_band), [("Head", 1.0)]))
+    for mi in range(7):
+        ang = math.radians(-105.0 + mi * 35.0)
+        mx = math.sin(ang) * 0.295
+        my = -0.40 - math.cos(ang) * 0.315
+        parts.append((kit.create_ellipsoid(f"HatConcho_{mi}", (mx, my, hat_c.z + 0.09), (0.046, 0.026, 0.046), m_silver, rot_euler=(0.0, 0.0, -ang)), [("Head", 1.0)]))
 
-    # --- 4. ENORMOUS HUNCHED GORILLA-MUSCULAR TEAL ARMS & GIANT CORPSE HANDS! ---
+    # --- 3. FLESHY PINK-CRIMSON OCTOPUS PARASITE GROWING FROM HIS HUNCHED BACK (Ref 2 Colors!) ---
+    # Glossy wet fleshy-pink octopus mantle/bulb rooted into his upper back!
+    octo_rings = [
+        (Vector((0.0, 0.24, 1.32)), Vector((0.34, 0.0, 0.0)), Vector((0.0, 0.26, 0.0))),
+        (Vector((0.0, 0.40, 1.56)), Vector((0.36, 0.0, 0.0)), Vector((0.0, 0.32, 0.0))),
+        (Vector((0.0, 0.50, 1.82)), Vector((0.30, 0.0, 0.0)), Vector((0.0, 0.28, 0.0))),
+        (Vector((0.0, 0.54, 1.98)), Vector((0.18, 0.0, 0.0)), Vector((0.0, 0.18, 0.0))),
+        (Vector((0.0, 0.55, 2.04)), Vector((0.04, 0.0, 0.0)), Vector((0.0, 0.04, 0.0))),
+    ]
+    parts.append((kit.create_loft_object("OctopusMantle", octo_rings, m_para_pink, segments=24), [("ParasiteBase", 0.8), ("Spine", 0.2)]))
+    # Deep crimson-maroon fleshy vein ridge & pulsing parasite maw on the octopus dome (Ref 2 exact crimson lips/flesh!)
+    parts.append((kit.create_ellipsoid("OctoMawLip", (0.0, 0.68, 1.66), (0.14, 0.08, 0.14), m_para_crim), [("ParasiteBase", 1.0)]))
+    parts.append((kit.create_ellipsoid("OctoMawCore", (0.0, 0.72, 1.66), (0.08, 0.05, 0.08), m_mouth), [("ParasiteBase", 1.0)]))
+    for ri, (ry, rz) in enumerate(((0.56, 1.86), (0.58, 1.46))):
+        parts.append((kit.create_ellipsoid(f"OctoRidge_{ri}", (0.0, ry, rz), (0.24, 0.12, 0.065), m_para_dark), [("ParasiteBase", 1.0)]))
+
+    def _catmull_rom_chain(ctrl_pts, subdivisions=4):
+        pts = [Vector(p) for p in ctrl_pts]
+        ext = [pts[0] + (pts[0] - pts[1])] + pts + [pts[-1] + (pts[-1] - pts[-2])]
+        out = []
+        for i in range(1, len(ext) - 2):
+            p0, p1, p2, p3 = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+            for s in range(subdivisions):
+                t = s / float(subdivisions)
+                t2, t3 = t * t, t * t * t
+                pos = 0.5 * (
+                    (2.0 * p1)
+                    + (-p0 + p2) * t
+                    + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+                    + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3
+                )
+                out.append(pos)
+        out.append(pts[-1])
+        return out
+
+    # 8 LONG SMOOTH CURLING PINK OCTOPUS TENTACLES WITH CRIMSON SUCKER CUPS bursting outward over shoulders & back!
+    octo_tents = [
+        # Left curling tentacles arching smoothly over left shoulder & side with curled tips!
+        ([(0.20, 0.36, 1.68), (0.52, 0.34, 1.98), (0.86, 0.16, 2.08), (1.02, -0.10, 1.88), (0.94, -0.28, 1.68), (0.80, -0.20, 1.72)], "ParasiteTentL"),
+        ([(0.24, 0.42, 1.54), (0.62, 0.52, 1.66), (0.94, 0.52, 1.50), (1.04, 0.34, 1.24), (0.92, 0.22, 1.14)], "ParasiteTentL"),
+        ([(0.18, 0.46, 1.42), (0.46, 0.68, 1.32), (0.72, 0.78, 1.06), (0.68, 0.64, 0.84), (0.54, 0.58, 0.88)], "ParasiteTentL"),
+        # Right curling tentacles arching smoothly over right shoulder & side with curled tips!
+        ([(-0.20, 0.36, 1.68), (-0.52, 0.34, 1.98), (-0.86, 0.16, 2.08), (-1.02, -0.10, 1.88), (-0.94, -0.28, 1.68), (-0.80, -0.20, 1.72)], "ParasiteTentR"),
+        ([(-0.24, 0.42, 1.54), (-0.62, 0.52, 1.66), (-0.94, 0.52, 1.50), (-1.04, 0.34, 1.24), (-0.92, 0.22, 1.14)], "ParasiteTentR"),
+        ([(-0.18, 0.46, 1.42), (-0.46, 0.68, 1.32), (-0.72, 0.78, 1.06), (-0.68, 0.64, 0.84), (-0.54, 0.58, 0.88)], "ParasiteTentR"),
+        # Back 2 high sweeping curling octopus tentacles!
+        ([(0.12, 0.50, 1.72), (0.24, 0.82, 2.02), (0.36, 1.08, 2.12), (0.28, 1.20, 1.88), (0.18, 1.08, 1.82)], "ParasiteTentB"),
+        ([(-0.12, 0.50, 1.72), (-0.24, 0.82, 2.02), (-0.36, 1.08, 2.12), (-0.28, 1.20, 1.88), (-0.18, 1.08, 1.82)], "ParasiteTentB"),
+    ]
+    for tidx, (ctrl_pts, bname) in enumerate(octo_tents):
+        tpts = _catmull_rom_chain(ctrl_pts, subdivisions=4)
+        n_p = len(tpts)
+        rads = [0.095 * ((1.0 - 0.82 * (k / float(n_p - 1))) ** 0.85) for k in range(n_p)]
+        rads[-1] = 0.014
+        parts.append((_make_tube_chain(f"OctoTentacle_{tidx}", tpts, rads, m_para_pink, segments=14), [(bname, 0.85), ("ParasiteBase", 0.15)]))
+        # Row of crimson-maroon octopus sucker cups lining the underside along the smooth curve!
+        for k in range(2, n_p - 2, 2):
+            sp = tpts[k] + Vector((0.0, 0.0, -rads[k] * 0.82))
+            parts.append((kit.create_ellipsoid(f"OctoSucker_{tidx}_{k}", sp, (rads[k] * 0.52, rads[k] * 0.52, rads[k] * 0.42), m_para_crim), [(bname, 0.85), ("ParasiteBase", 0.15)]))
+
+    # --- 4. TWO HUGE MUSCULAR GORILLA-HUNCHED ARMS + ROCKSTAR WRISTBANDS & SKULL RINGS (NO GUITAR!) ---
     for side, up_b, fore_b in ((1.0, "LeftUpperArm", "LeftForeArm"), (-1.0, "RightUpperArm", "RightForeArm")):
         # Massive bulging shoulder & bicep
-        parts.append((kit.create_ellipsoid(f"BossShoulder_{side}", (side * 0.50, -0.06, 1.44), (0.22, 0.22, 0.24), m_skin), [(up_b, 0.7), ("Spine", 0.3)]))
+        parts.append((kit.create_ellipsoid(f"BossShoulder_{side}", (side * 0.50, -0.06, 1.44), (0.23, 0.23, 0.25), m_skin), [(up_b, 0.7), ("Spine", 0.3)]))
         up_arm = _make_tube_chain(
             f"BossUpperArm_{side}",
-            [(side * 0.48, -0.06, 1.44), (side * 0.55, -0.12, 1.16), (side * 0.58, -0.16, 0.88)],
-            [0.19, 0.175, 0.165], m_skin, segments=16
+            [(side * 0.48, -0.06, 1.44), (side * 0.56, -0.12, 1.16), (side * 0.58, -0.16, 0.88)],
+            [0.20, 0.185, 0.175], m_skin, segments=16
         )
         fore_arm = _make_tube_chain(
             f"BossForeArm_{side}",
             [(side * 0.58, -0.16, 0.88), (side * 0.57, -0.26, 0.60), (side * 0.54, -0.34, 0.34)],
-            [0.185, 0.21, 0.18], m_skin, segments=16
+            [0.195, 0.22, 0.19], m_skin, segments=16
         )
         parts.append((up_arm, [(up_b, 1.0)]))
         parts.append((fore_arm, [(fore_b, 1.0)]))
-        # Acid pustule sores on arms
-        parts.append((kit.create_ellipsoid(f"ArmPustule_{side}", (side * 0.68, -0.26, 0.62), (0.045, 0.055, 0.055), m_pustule), [(fore_b, 1.0)]))
-        # HUGE heavy gorilla-knuckle hand + 4 thick corpse fingers!
-        hand_p = Vector((side * 0.54, -0.36, 0.24))
-        parts.append((kit.create_rounded_box(f"BossHand_{side}", hand_p, (0.24, 0.26, 0.20), m_skin_dark, bevel_width=0.055), [(fore_b, 1.0)]))
+        # Slash's stacked leather/beaded/silver rockstar wristbands!
+        for wi, (wz, wy, wm) in enumerate(((0.44, -0.31, m_hat_black), (0.39, -0.33, m_silver), (0.34, -0.34, m_brace_gold))):
+            parts.append((kit.create_torus_ring(f"RockWrist_{side}_{wi}", (side * 0.55, wy, wz), 0.195, 0.026, wm, rot_euler=(0.30, 0.0, 0.0)), [(fore_b, 1.0)]))
+        # HUGE heavy gorilla-knuckle fists + silver rockstar rings!
+        hand_p = Vector((side * 0.54, -0.36, 0.23))
+        parts.append((kit.create_rounded_box(f"BossHand_{side}", hand_p, (0.25, 0.27, 0.21), m_skin_dark, bevel_width=0.055), [(fore_b, 1.0)]))
         for fi, y_off in enumerate((-0.09, -0.03, 0.03, 0.09)):
-            f_pts = [
-                hand_p + Vector((0.0, y_off, -0.08)),
-                hand_p + Vector((-side * 0.04, y_off - 0.03, -0.20)),
-            ]
-            parts.append((_make_tube_chain(f"BossFinger_{side}_{fi}", f_pts, [0.042, 0.032], m_skin, segments=8), [(fore_b, 1.0)]))
-            parts.append((kit.create_ellipsoid(f"BossNail_{side}_{fi}", hand_p + Vector((-side * 0.05, y_off - 0.04, -0.21)), (0.024, 0.024, 0.018), m_nail), [(fore_b, 1.0)]))
+            f_pts = [hand_p + Vector((0.0, y_off, -0.08)), hand_p + Vector((-side * 0.04, y_off - 0.03, -0.20))]
+            parts.append((_make_tube_chain(f"BossFinger_{side}_{fi}", f_pts, [0.044, 0.034], m_skin, segments=8), [(fore_b, 1.0)]))
+            if fi in (1, 2):
+                parts.append((kit.create_torus_ring(f"SkullRing_{side}_{fi}", hand_p + Vector((-side * 0.02, y_off - 0.015, -0.14)), 0.042, 0.014, m_silver), [(fore_b, 1.0)]))
 
-    # --- 5. OCHRE-BROWN TATTERED PANTS + PURPLE-GOLD ANKLE SHACKLES + BARE CORPSE FEET ---
+    # --- 5. BLACK SNAKESKIN ROCKSTAR PANTS & HEAVY LEATHER BOOTS ---
     for side, th_b, sh_b in ((1.0, "LeftThigh", "LeftShin"), (-1.0, "RightThigh", "RightShin")):
         thigh = _make_tube_chain(
-            f"BossPantsThigh_{side}",
-            [(side * 0.24, 0.14, 0.78), (side * 0.28, 0.04, 0.58), (side * 0.28, -0.02, 0.36)],
+            f"RockPantsThigh_{side}",
+            [(side * 0.24, 0.14, 0.78), (side * 0.28, 0.04, 0.58), (side * 0.28, -0.02, 0.38)],
             [0.21, 0.19, 0.17], m_pants, segments=14
         )
         shin = _make_tube_chain(
-            f"BossShin_{side}",
+            f"RockBootShin_{side}",
             [(side * 0.28, -0.02, 0.38), (side * 0.28, 0.04, 0.22), (side * 0.28, 0.06, 0.08)],
-            [0.14, 0.125, 0.12], m_skin_dark, segments=12
+            [0.16, 0.15, 0.145], m_boots, segments=12
         )
         parts.append((thigh, [(th_b, 1.0)]))
         parts.append((shin, [(sh_b, 1.0)]))
-        # Purple & gold ankle cuff shackle (exact Ref 2 detail!)
-        parts.append((kit.create_torus_ring(f"AnkleShackle_{side}", (side * 0.28, 0.05, 0.20), 0.135, 0.038, m_vest), [(sh_b, 1.0)]))
-        parts.append((kit.create_torus_ring(f"AnkleGold_{side}", (side * 0.28, 0.05, 0.23), 0.138, 0.018, m_shackle), [(sh_b, 1.0)]))
-        # Heavy bare teal corpse foot + toes
-        parts.append((kit.create_rounded_box(f"BossFoot_{side}", (side * 0.28, -0.06, 0.055), (0.22, 0.34, 0.10), m_skin, bevel_width=0.035), [(sh_b, 1.0)]))
+        parts.append((kit.create_torus_ring(f"BootStrap_{side}", (side * 0.28, 0.05, 0.20), 0.155, 0.022, m_silver), [(sh_b, 1.0)]))
+        parts.append((kit.create_rounded_box(f"RockBootFoot_{side}", (side * 0.28, -0.06, 0.06), (0.22, 0.36, 0.12), m_boots, bevel_width=0.035), [(sh_b, 1.0)]))
 
     body_mesh = _bind_parts_to_bones(rig_obj, parts, "Chibi_ZombieBoss_Body")
 
     # ==========================================================================
-    #  ANIMATIONS — Idle, Walk, Run, Leap, Spit, GroundSlam, Throw, RageRoar, Slash1, Death
+    #  ANIMATIONS — Same Hunched Gorilla Brute Walk + Leap, Spit, GroundSlam, Throw, RageRoar, Slash1, Death
     # ==========================================================================
     begin_frame, set_bone, key_all, new_action = _make_rig_helpers(scene, rig_obj)
 
     def _animate_parasite(s, c, mult=1.0):
-        set_bone("ParasiteBase", scale=(1.0 + 0.05 * s * mult, 1.0 + 0.05 * s * mult, 1.0 + 0.06 * c * mult))
-        set_bone("ParasiteTentL", rot_xyz=(12.0 * s * mult, 10.0 * c * mult, 14.0 * s * mult))
-        set_bone("ParasiteTentR", rot_xyz=(-12.0 * s * mult, -10.0 * c * mult, -14.0 * s * mult))
-        set_bone("ParasiteTentB", rot_xyz=(16.0 * c * mult, 0, 12.0 * s * mult))
+        set_bone("ParasiteBase", scale=(1.0 + 0.06 * s * mult, 1.0 + 0.06 * s * mult, 1.0 + 0.06 * c * mult))
+        set_bone("ParasiteTentL", rot_xyz=(14.0 * s * mult, 12.0 * c * mult, 16.0 * s * mult))
+        set_bone("ParasiteTentR", rot_xyz=(-14.0 * s * mult, -12.0 * c * mult, -16.0 * s * mult))
+        set_bone("ParasiteTentB", rot_xyz=(18.0 * c * mult, 0, 14.0 * s * mult))
 
-    # 1. Idle (Heavy hunched breathing + back parasite eyeball & tentacles writhing!)
+    # 1. Idle
     act_idle = new_action("Idle")
     prev_q = {}
     for f in range(1, 49):
@@ -452,7 +509,7 @@ def build_zombie_boss_homunkulus():
         _animate_parasite(s, c, 1.0)
         key_all(f, prev_q)
 
-    # 2. Walk & Run (Heavy gorilla-hunched stomping gait!)
+    # 2. Walk & Run (Hunched Gorilla-Brute Stomping Gait!)
     for clip_name, n_frames, mult in (("Run", 17, 1.0), ("Walk", 25, 0.68)):
         act_m = new_action(clip_name)
         prev_q = {}
@@ -471,10 +528,10 @@ def build_zombie_boss_homunkulus():
             set_bone("LeftForeArm", rot_xyz=(-18.0, 0, 0))
             set_bone("RightUpperArm", rot_xyz=(-32.0 * s * mult - 12.0, 8.0, 0))
             set_bone("RightForeArm", rot_xyz=(-18.0, 0, 0))
-            _animate_parasite(s, c, 1.45 * mult)
+            _animate_parasite(s, c, 1.5 * mult)
             key_all(f, prev_q)
 
-    # 3. Leap (NEW BOSS JUMP ATTACK — crouch -> explosive aerial pounce -> double-fist slam!)
+    # 3. Leap (High-Arc Boss Jump Slam!)
     act_leap = new_action("Leap")
     prev_q = {}
     for f in range(1, 25):
@@ -505,7 +562,7 @@ def build_zombie_boss_homunkulus():
             _animate_parasite(slam, p, 1.8)
         key_all(f, prev_q)
 
-    # 4. Spit (NEW BOSS ACID SPIT — rears back -> parasite flares -> hurls toxic acid forward!)
+    # 4. Spit (Acid Spit)
     act_spit = new_action("Spit")
     prev_q = {}
     for f in range(1, 21):
@@ -550,7 +607,7 @@ def build_zombie_boss_homunkulus():
             _animate_parasite(s, p, 2.2)
         key_all(f, prev_q)
 
-    # 6. Throw (Hurl spawned minion zombie!)
+    # 6. Throw
     act_throw = new_action("Throw")
     prev_q = {}
     for f in range(1, 21):
@@ -563,7 +620,7 @@ def build_zombie_boss_homunkulus():
         _animate_parasite(sw, u, 1.8)
         key_all(f, prev_q)
 
-    # 7. RageRoar (Double-arm flex roar + parasite tentacles erupting!)
+    # 7. RageRoar
     act_roar = new_action("RageRoar")
     prev_q = {}
     for f in range(1, 25):
@@ -580,7 +637,7 @@ def build_zombie_boss_homunkulus():
         _animate_parasite(sw, math.cos(u * 4.0 * math.pi), 2.5)
         key_all(f, prev_q)
 
-    # 8. Slash1 (Heavy sweeping fist smash)
+    # 8. Slash1
     act_slash = new_action("Slash1")
     prev_q = {}
     for f in range(1, 21):
@@ -611,18 +668,18 @@ def build_zombie_boss_homunkulus():
     bpy.context.view_layer.update()
     _export_zombie(rig_obj, [body_mesh], "Chibi_ZombieBoss")
 
-    # Preview 1: 3/4 Front-Side (Shows hunched Ancient Homunkulus brute, swollen forehead, red scarf, purple vest, giant gorilla arms + giant parasite eye on back!)
+    # Preview 1: 3/4 Front-Side (Shows Top Hat, Curly Black Hair, Aviators, HUGE Gorilla Arms, NO Guitar, + Pink Octopus Tentacles rising behind shoulders!)
     cam_obj = _setup_studio_render(scene)
-    cam_obj.location = Vector((-3.55, -3.55, 1.95))
-    cam_obj.rotation_euler = (Vector((0.0, 0.0, 1.25)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
+    cam_obj.location = Vector((-3.65, -3.65, 2.00))
+    cam_obj.rotation_euler = (Vector((0.0, 0.0, 1.32)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
     tmp_f = os.path.join(TMP_EXPORT_DIR, "Chibi_ZombieBoss_Preview.png")
     scene.render.filepath = tmp_f
     bpy.ops.render.render(write_still=True)
     _copy_with_retry(tmp_f, os.path.join(ZOMBIE_DIR, "Chibi_ZombieBoss_Preview.png"))
 
-    # Preview 2: 3/4 Back (Clearly displays the GIANT parasitic bloodshot eyeball & 10 crimson-tipped tentacles!)
-    cam_obj.location = Vector((2.95, 3.65, 2.25))
-    cam_obj.rotation_euler = (Vector((0.0, 0.15, 1.38)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
+    # Preview 2: 3/4 Back (Clearly displays the GIANT Fleshy Pink-Crimson Octopus Parasite & 8 curling tentacles on his back!)
+    cam_obj.location = Vector((3.20, 3.85, 2.25))
+    cam_obj.rotation_euler = (Vector((0.0, 0.25, 1.42)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
     tmp_b = os.path.join(TMP_EXPORT_DIR, "Chibi_ZombieBoss_Preview_Back.png")
     scene.render.filepath = tmp_b
     bpy.ops.render.render(write_still=True)
@@ -630,7 +687,7 @@ def build_zombie_boss_homunkulus():
 
 
 if __name__ == "__main__":
-    print("=== BUILDING RIGGED ZOMBIE BOSS (ANCIENT HOMUNKULUS + BACK PARASITE EYEBALL) ===")
-    build_zombie_boss_homunkulus()
+    print("=== BUILDING RIGGED ZOMBIE BOSS (SLASH TOP-HAT BRUTE + PINK OCTOPUS PARASITE) ===")
+    build_zombie_boss_slash_parasite()
     shutil.rmtree(TMP_EXPORT_DIR, ignore_errors=True)
-    print("=== DONE: ZOMBIE BOSS (ANCIENT HOMUNKULUS) EXPORTED & RENDERED! ===")
+    print("=== DONE: ZOMBIE BOSS (SLASH + PINK OCTOPUS PARASITE) EXPORTED & RENDERED! ===")

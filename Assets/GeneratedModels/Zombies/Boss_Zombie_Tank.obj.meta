@@ -3,7 +3,32 @@ guid: 4bc1f3919a42523cbdc1e5b05d71b5c7
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tank_calcified_bone
+    second: {fileID: 2100000, guid: 848939240cd283a45aa53b8868147d8e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tank_muscle_dark
+    second: {fileID: 2100000, guid: bca6824dcc8a6e54893641f04bb4e13a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tank_skin
+    second: {fileID: 2100000, guid: 63ef575ab8c5886459840f2733a8aedf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tank_toxic_pustule
+    second: {fileID: 2100000, guid: 5e536d0529d6a354bab89d2290e50b01, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tank_vein
+    second: {fileID: 2100000, guid: c23792ab64b672846b29e0839fb5e6e7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -3,7 +3,77 @@ guid: fdd1d3ac11e6d5b4a829b0215b576326
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Armor_Grey
+    second: {fileID: 2100000, guid: 951ffc1fcb69a604d9709f7284c317c8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Belt_Tan
+    second: {fileID: 2100000, guid: dfbd715110f323a49b1b5cd25b8a8a20, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boomer_Boil_Glow
+    second: {fileID: 2100000, guid: 2d2bf86b0f9fb5b4f9c9fb7b9bb2445f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boomer_Face_Texture
+    second: {fileID: 2100000, guid: 655b5f3eb14011c4c9338ac524d91599, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boomer_Hair
+    second: {fileID: 2100000, guid: 873e22965d40d9343a550cd46de4fe4f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boot_Black
+    second: {fileID: 2100000, guid: 0e529357fd23a0f4c9f4e1cf281bfce6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dark_Strap
+    second: {fileID: 2100000, guid: af8fd10e7f0df4b47a0028a524a66dd2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Hair_RedTip
+    second: {fileID: 2100000, guid: eb9ad3ca35cf43c47b3ac35e8f1ee416, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Metal_Silver
+    second: {fileID: 2100000, guid: ac479e908ed06ed42bb7b98bbffef64b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Pants_Navy
+    second: {fileID: 2100000, guid: 3b4a39222c7012840a381159b26dc1a4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Wrist_Leather
+    second: {fileID: 2100000, guid: 4c3af1f133eec4947b306dd5c0bb52e6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Zombie_Bruise
+    second: {fileID: 2100000, guid: 0dc504d0c16678648bb5478e807f5c4b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Zombie_Skin
+    second: {fileID: 2100000, guid: 6369e208599795548b300d018f3e8179, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Zombie_Wound
+    second: {fileID: 2100000, guid: ab37c7496f35af94c98663f3d56f344a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

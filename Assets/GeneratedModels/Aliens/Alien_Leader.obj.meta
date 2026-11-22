@@ -3,7 +3,32 @@ guid: b3d2adad0a1158ffa8564633875b05a6
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: queen_black_chitin
+    second: {fileID: 2100000, guid: a0095b8d6bf055d4691be8cafd6c2aac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: queen_bone_spikes
+    second: {fileID: 2100000, guid: e20fb22a91541894ab7c2117b661e374, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: queen_brood_glow
+    second: {fileID: 2100000, guid: 28ab98c1d80611342bdda5db7fa6643c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: queen_psionic_glow
+    second: {fileID: 2100000, guid: b775a0328a457904db0316d15cc79929, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: queen_purple_flesh
+    second: {fileID: 2100000, guid: 21f5d436c7df2444a8dfd44402ce899c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -3,7 +3,52 @@ guid: 539b82b74879f2b429267efb57cadc14
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_ArmorGrey
+    second: {fileID: 2100000, guid: 3ea9897a49aec8e478099dd05cb3b25c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_Brass
+    second: {fileID: 2100000, guid: 659ba6ee61a215847a972016cc397b1c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_Charcoal
+    second: {fileID: 2100000, guid: cddd7247e1f3b954bb82f7c3b13478b1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_Crimson
+    second: {fileID: 2100000, guid: d0dfa4b7ceb5c1e4d8e1196c541ad475, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_GlowAmber
+    second: {fileID: 2100000, guid: b0d2519862a67c3418419b1a8d883baa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_GlowRed
+    second: {fileID: 2100000, guid: 3ddeccd257ffd1d48889f501598bb77a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_Graphite
+    second: {fileID: 2100000, guid: 74a46b4735105e9449e827ba40dcf9da, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_HazardYellow
+    second: {fileID: 2100000, guid: 1751b8d4b38ec554fb851155aab8e216, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Robot_Steel
+    second: {fileID: 2100000, guid: 4c0cce6b5c086374286e9378507d39ac, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

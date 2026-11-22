@@ -3,7 +3,47 @@ guid: e5e08b70996ce5347b130ac21f4608ef
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_BioGlow
+    second: {fileID: 2100000, guid: 8e17eb676d54be742bdff4e6ef961b97, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_CraniumBio
+    second: {fileID: 2100000, guid: 1d0f2c1e34ad3f243939e96b74739b89, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_CyclopsEye
+    second: {fileID: 2100000, guid: 96aafd4076f349c4789f9e8035f5a657, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_Emerald
+    second: {fileID: 2100000, guid: 7998d0b8b265f744082cb0711f30cac3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_Indigo
+    second: {fileID: 2100000, guid: 6426f3b7513bdb9438eaaeeb12b051c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_NeonLime
+    second: {fileID: 2100000, guid: 60043e6206c019443bcde4b97620bd62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_Pupil
+    second: {fileID: 2100000, guid: 3f15775145278d841b96aa0def081409, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienHook_Purple
+    second: {fileID: 2100000, guid: e5c4738be3745274393fe7b3cdee686a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

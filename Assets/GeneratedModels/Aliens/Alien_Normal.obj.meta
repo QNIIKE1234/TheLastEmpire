@@ -3,7 +3,27 @@ guid: aa83263a17aa506a9b79b9f7ab6c15d9
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: alien_acid_glow
+    second: {fileID: 2100000, guid: 8c56199ac7f0a3f4fa1e615a176be10e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: alien_carapace
+    second: {fileID: 2100000, guid: d9ed5f70cb9be6c4b8c177c5353c1d71, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: alien_flesh
+    second: {fileID: 2100000, guid: 3151374e33cf507439f2a777cc7ed464, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: alien_teeth
+    second: {fileID: 2100000, guid: 41c3d14e10021e64ab8a22ddd29395e2, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

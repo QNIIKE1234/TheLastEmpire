@@ -3,7 +3,27 @@ guid: 333c5ace400755f59c387b0f753dafef
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blade_carbon
+    second: {fileID: 2100000, guid: 432223376b1ffff47a756b68bb891f25, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blade_chassis
+    second: {fileID: 2100000, guid: e054ff2ca7c6011488c87394c5b65895, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blade_edge_silver
+    second: {fileID: 2100000, guid: f1d1cea29c9b4424086d0d4f0d1a2ccc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: blade_ruby_glow
+    second: {fileID: 2100000, guid: c553d81f12966b946bfef349133283e9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -3,7 +3,27 @@ guid: 6e54809a062c5bdbacf7c17ab41a10c0
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crawler_belly
+    second: {fileID: 2100000, guid: c69af514eef5226419c4c512c471150d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crawler_chitin
+    second: {fileID: 2100000, guid: 730a59a9b5aa8324080936eba7608b00, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crawler_claws
+    second: {fileID: 2100000, guid: 577749b00df618a4a821831de0411a9d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crawler_eye_glow
+    second: {fileID: 2100000, guid: 4e5bb1361296d8945a55aa898ad409f9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

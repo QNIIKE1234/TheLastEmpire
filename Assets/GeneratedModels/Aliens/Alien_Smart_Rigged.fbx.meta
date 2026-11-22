@@ -7,8 +7,53 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_BioFlesh
+    second: {fileID: 2100000, guid: b59c4870ceae28347b9d30ece8e9db87, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_BrainGlow
+    second: {fileID: 2100000, guid: 80013e9bfb580744ab4cfdf65d3eff0b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_BrainVein
+    second: {fileID: 2100000, guid: 4a60259745ba39347b14933abf570a68, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_CyclopsEye
+    second: {fileID: 2100000, guid: 5ae088199d66c8b428897afb833e7b18, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_DeepBlue
+    second: {fileID: 2100000, guid: cf669f07f77c8b74984ad56dde2daba9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_ElecBlue
+    second: {fileID: 2100000, guid: 2161958aad6cc31428f54d790976140e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Mat_AlienSmart_GlassDome
     second: {fileID: 2100000, guid: 52d04fba9ec19194c914a5f9ba77da3f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_LimeClaw
+    second: {fileID: 2100000, guid: aa03321383792bd469ec150fd0592558, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_Pupil
+    second: {fileID: 2100000, guid: 91f7865a5326d564f8c31c7692f4513c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienSmart_PurpleShell
+    second: {fileID: 2100000, guid: a61ec491faa55144f8b349ece9293fd6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

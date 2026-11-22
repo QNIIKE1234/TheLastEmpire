@@ -7,13 +7,68 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_AcidGlow
+    second: {fileID: 2100000, guid: f52ee471aa06bcc458a52e5bfaf77288, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Black
+    second: {fileID: 2100000, guid: 004a8fd186eff064c814c695d062b508, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Boot
+    second: {fileID: 2100000, guid: 778186329b2ed9c4ab7181cd1b36d699, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Cape
+    second: {fileID: 2100000, guid: 18a9b908240967e488a5ce5ebe43b850, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Mat_Spitter_Face_Texture
     second: {fileID: 2100000, guid: f24e5eb2416c6c4499c0964c40d7b32e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Glasses
+    second: {fileID: 2100000, guid: 9b2ec077889a597479109a922e7a664a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Mat_Spitter_Hair
     second: {fileID: 2100000, guid: 9c66f1d665953be42bed8ceed361142f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Headband
+    second: {fileID: 2100000, guid: 0744e2efcf87a6e45a27bde4ff82ff09, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Jeans
+    second: {fileID: 2100000, guid: cd013f4d7c524f94da86580d19dedd13, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Silver
+    second: {fileID: 2100000, guid: 4a1b1c4c4227dd9478d62e294a634d86, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Skin
+    second: {fileID: 2100000, guid: 70397c8c745f30e46bbf831f036a1e2c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_TankTop
+    second: {fileID: 2100000, guid: e6d830ceb7a8e714590c4456e76f6072, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Spitter_Undercut
+    second: {fileID: 2100000, guid: b986dbf84b7c1274bbdcdc7c5993cac5, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

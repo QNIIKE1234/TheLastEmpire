@@ -3,7 +3,27 @@ guid: 8ce2a0e2b4d0567983bc864cf251c316
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: smart_body
+    second: {fileID: 2100000, guid: ac3174b709323134e84917837906335d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: smart_brain_glow
+    second: {fileID: 2100000, guid: 5e1781e184a061643afb9f53affc0e82, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: smart_chitin
+    second: {fileID: 2100000, guid: be7eafb24045bb9488a5efd42fa86fc3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: smart_nerves
+    second: {fileID: 2100000, guid: 325b2afad8e7748468bc757d91a8cdf8, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

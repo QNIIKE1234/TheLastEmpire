@@ -3,7 +3,62 @@ guid: 914c49002a1508f45bfe7c68c926f96a
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_EarPink
+    second: {fileID: 2100000, guid: e0efea765ce3c5a40b04ec9962d37b99, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_EyeVein
+    second: {fileID: 2100000, guid: 2f03f10cef0ffd64181db73791646f5e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_EyeWhite
+    second: {fileID: 2100000, guid: 71ea04db17b4d9642a81d1ce4ba516f8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_Fang
+    second: {fileID: 2100000, guid: 99efe26a064de3244b5d29586c220f0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_Fur
+    second: {fileID: 2100000, guid: fccc6c93e501f2a45acf0aea4d7a6594, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_FurDark
+    second: {fileID: 2100000, guid: 96ef4d70c0971a4479ee809a07c8106f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_LongClaw
+    second: {fileID: 2100000, guid: ad87ac4883c38a5428c0cba04e1cb0ae, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_MouthDark
+    second: {fileID: 2100000, guid: e5cc108fe32417346856865d62fe79f7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_OrangeSkin
+    second: {fileID: 2100000, guid: a8c0c6ec6351510488f836c594ba08a6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_Pupil
+    second: {fileID: 2100000, guid: 5a6ce830e7562794e9927293637a5eb7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienCrawler_Tongue
+    second: {fileID: 2100000, guid: 68dc5fb4db43e544487a336b20fa37ed, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

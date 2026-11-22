@@ -3,7 +3,92 @@ guid: c4523499917da5b429f585b6d24468b0
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Blood_Dark
+    second: {fileID: 2100000, guid: 4122a0a2c7ad82f4fb8c08d71437a44c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dark_Strap
+    second: {fileID: 2100000, guid: 49e4c753c7ac0cd40ac03d3ed480faab, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_RedGlow
+    second: {fileID: 2100000, guid: e39ab17dcb9c7284cb02c02535222860, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_Sclera
+    second: {fileID: 2100000, guid: 07aed342fc5db0247adb1a2c1743da1f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Franken_Flesh
+    second: {fileID: 2100000, guid: 7bd4f142dcc823a4c80a7351298358d0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Goggle_Lens
+    second: {fileID: 2100000, guid: 45210cdc707d7ab468b3d8adf990b501, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Gold_Stripe
+    second: {fileID: 2100000, guid: 52f2482132ad3fb449a363b51c83b140, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Guard_Silver
+    second: {fileID: 2100000, guid: 62e8b2d94303d4e44aa46b3a899c6341, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Riot_Helmet
+    second: {fileID: 2100000, guid: de3ac1632b6b2dc4ea7f82deb3fee69c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Riot_Navy
+    second: {fileID: 2100000, guid: ca9ee7f6fb184334198e012aac6c9b5c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Riot_Vest
+    second: {fileID: 2100000, guid: becc3805ea6f4b448bebd2f377b64b3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Rust_Iron
+    second: {fileID: 2100000, guid: 3ce0eb8b424a2f34e8a11c18e39c6490, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Steel_Rebar
+    second: {fileID: 2100000, guid: d37adccbf93d31f43837a046670524c3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Stitch_Scar
+    second: {fileID: 2100000, guid: bfb6bbc2943dbfb4b80f88ffbd205fdf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Teeth_Yellow
+    second: {fileID: 2100000, guid: f309a145c481c814b933c8031c6d43a1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Vein_Purple
+    second: {fileID: 2100000, guid: d6fae205911396d47a37310430388ca3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Zombie_Skin
+    second: {fileID: 2100000, guid: 886c530187639ef438ca94718f9eadc6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

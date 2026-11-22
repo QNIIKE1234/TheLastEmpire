@@ -3,7 +3,62 @@ guid: 98347fc37b9c8b4438c4187724e3412e
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bone
+    second: {fileID: 2100000, guid: b9e51422dcb208b449caf7de27f12a6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_gray
+    second: {fileID: 2100000, guid: 1f76170fcdfc2a742b4df76f0fbba198, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_olive
+    second: {fileID: 2100000, guid: 29f81658fb410c04eac9ec97b22b9838, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_olive_light
+    second: {fileID: 2100000, guid: 9d7d4b3093d208945b7cf3985f9335f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_rust
+    second: {fileID: 2100000, guid: f73819f2d9e58fb4190944533ddcfbab, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye
+    second: {fileID: 2100000, guid: 830960589008e224ba0caa87d9b58df7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye_glow
+    second: {fileID: 2100000, guid: 937bc634a755a5541bf67a78374b05c5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gear_black
+    second: {fileID: 2100000, guid: b24fa8af6156f3a41b0d62f49e8ea040, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: c3dd649863d607643b0edeecbaf7cfa0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: skin
+    second: {fileID: 2100000, guid: 1de47686ef8e96648b990df0a5618599, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wound
+    second: {fileID: 2100000, guid: 8fd600bd9e62f17498df7da1e95265ef, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

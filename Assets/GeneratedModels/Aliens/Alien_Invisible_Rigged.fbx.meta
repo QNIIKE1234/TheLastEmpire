@@ -3,7 +3,37 @@ guid: 314f9bf62b6052a40b0632ab46415f20
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_CyclopsEye
+    second: {fileID: 2100000, guid: 4204a3d1214470e4482da4762ed6be1c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_EyeCore
+    second: {fileID: 2100000, guid: 5abb9d067a74d234d9330b00b94ad8e7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_Obsidian
+    second: {fileID: 2100000, guid: 6dc87ec45334eb7438495d2a8affc669, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_ShadowTrim
+    second: {fileID: 2100000, guid: 3db5879fd7879e549982b4cc46212e0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_VoidMouth
+    second: {fileID: 2100000, guid: 0ca3898801f1b5b41a7ae6774ba3b6b9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienInv_VoidPulse
+    second: {fileID: 2100000, guid: d7c55a851c4c54c49bdb5ab2756a736a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

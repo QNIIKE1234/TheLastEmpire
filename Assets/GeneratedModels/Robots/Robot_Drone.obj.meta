@@ -3,7 +3,27 @@ guid: 1cefb74e066d586ab3f849e83e099591
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: drone_composite
+    second: {fileID: 2100000, guid: 047bf1a16217c7843adfebfb4d9d526c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: drone_sensor_cyan
+    second: {fileID: 2100000, guid: 910ddb8bd11b68243b13da052a5c2586, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: drone_trim_dark
+    second: {fileID: 2100000, guid: d03090603f24a7f4da4b0db32e4806d0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: drone_turbines
+    second: {fileID: 2100000, guid: d9739c102574e074d9e89de6367b568c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

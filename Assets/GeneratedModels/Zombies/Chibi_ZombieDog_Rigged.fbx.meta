@@ -3,7 +3,52 @@ guid: 23eec33e7aecb494f862f1c8365c7d43
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_BoneRib
+    second: {fileID: 2100000, guid: 329dacad47f48a34d857a4512f709388, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_CoatDark
+    second: {fileID: 2100000, guid: 672db3d0108d0294fbbb9086e051a3a8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_CollarPink
+    second: {fileID: 2100000, guid: 266f2f43e9ef12541b59b215d8aafa6c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_EyeGlow
+    second: {fileID: 2100000, guid: 7905b76fe91369f4b86b95ea092c6098, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_EyeRed
+    second: {fileID: 2100000, guid: f87c103aa2cd0fb44a951d8dbc1e21c3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_FangWhite
+    second: {fileID: 2100000, guid: 87751539005870747a99b924bddd6cb5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_Tan
+    second: {fileID: 2100000, guid: f2571162f4435704ba4cbc70137d5d3b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_TonguePink
+    second: {fileID: 2100000, guid: fc3ff63421d2b074ba325cf93b95c7d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dog_WoundRed
+    second: {fileID: 2100000, guid: dd3b812acbe2f8447bad0798b82c9933, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

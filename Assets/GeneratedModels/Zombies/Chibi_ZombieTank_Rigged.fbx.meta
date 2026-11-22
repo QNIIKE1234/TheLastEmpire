@@ -7,13 +7,58 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Black
+    second: {fileID: 2100000, guid: 11f888993721c734a89c5b685e30b15f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Mat_Tank_Face_Texture
     second: {fileID: 2100000, guid: 2b0ae513d2606884b9ff61c356e19510, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Glasses
+    second: {fileID: 2100000, guid: 7f53bb2dd797363469342e29a445cfb6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Hood
+    second: {fileID: 2100000, guid: 87fd3ded3013c5344a3957a1b5cdd80a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Jeans
+    second: {fileID: 2100000, guid: 9982bfe6806eb794e8054ba99311ca1e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Magenta
+    second: {fileID: 2100000, guid: 6e5676dbbb52a3447b94f0d10a291068, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_RedSpike
+    second: {fileID: 2100000, guid: e4055b44cf023c741a4b24e29e46e358, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Silver
+    second: {fileID: 2100000, guid: a0d9cdacb62eab14e8eb2ae4bb31ecc5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Skin
+    second: {fileID: 2100000, guid: c33546d7793cb9b45ab44c4cfd078ba0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Mat_Tank_TattooArm
     second: {fileID: 2100000, guid: 2aeebef9ac2569841ab461e971a4ade6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Tank_Vest
+    second: {fileID: 2100000, guid: 0a99e711d996a1a439e79455c60d0899, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

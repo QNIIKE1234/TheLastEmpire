@@ -3,7 +3,52 @@ guid: 0cdea0733c0022c4c88ed61a90012df0
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_BloodVein
+    second: {fileID: 2100000, guid: 9ff8025dd2570124c934b400189b96ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_BoneFang
+    second: {fileID: 2100000, guid: 21676026f941509459fd77078a4dc35e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_ClawTip
+    second: {fileID: 2100000, guid: f5cdba7225cdb64438037de7c0020607, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_FleshFold
+    second: {fileID: 2100000, guid: b4d6778a900b7d24889da7a68c8f8965, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_FleshSkin
+    second: {fileID: 2100000, guid: c1c7ddb27bcd5b948a0dccf35a7d859b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_GumLip
+    second: {fileID: 2100000, guid: 6a3ea1e454f83d245b4f1de16cfee905, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_MouthDark
+    second: {fileID: 2100000, guid: 41ca0ab393ea75d4b91d7dfba4f2bb6b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_Saliva
+    second: {fileID: 2100000, guid: 66bfa620d010a2c44b8f4738bd597852, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_AlienNormal_Tongue
+    second: {fileID: 2100000, guid: 7af7c04ab0c97bf4fb2583077239cbf6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

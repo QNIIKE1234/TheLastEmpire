@@ -414,6 +414,11 @@ namespace TheLastEmpire
         private bool _useSecondSlashAttack = false;
         private static readonly int Slash2StateHash = Animator.StringToHash("Slash2");
 
+        [Header("Locomotion Animation Speed")]
+        [Tooltip("ความเร็วเคลื่อนที่ขั้นต่ำที่ถือว่าเป็นศัตรูสายไว (เร่งท่า Walk/Run ขึ้นอีก +30%)")]
+        [SerializeField] private float fastEnemyMoveSpeedThreshold = 3.5f;
+        [SerializeField] private float fastEnemyAnimSpeedMultiplier = 1.30f;
+
         public void PlayActionAnimation(string stateName, float lockDuration = 0.75f, float crossFade = 0.06f)
         {
             if (enemyAnimator == null) enemyAnimator = GetComponentInChildren<Animator>();
@@ -422,6 +427,7 @@ namespace TheLastEmpire
             int stateHash = Animator.StringToHash(stateName);
             if (!enemyAnimator.HasState(0, stateHash)) return;
 
+            enemyAnimator.speed = 1f;
             _attackAnimCooldown = Mathf.Max(_attackAnimCooldown, lockDuration);
             enemyAnimator.CrossFadeInFixedTime(stateName, crossFade, 0);
         }
@@ -429,6 +435,7 @@ namespace TheLastEmpire
         public void ClearActionAnimationLock()
         {
             _attackAnimCooldown = 0f;
+            if (enemyAnimator != null) enemyAnimator.speed = 1f;
         }
 
         public void TriggerAttackAnimation()
@@ -443,6 +450,7 @@ namespace TheLastEmpire
                 _useSecondSlashAttack = !_useSecondSlashAttack;
             }
 
+            enemyAnimator.speed = 1f;
             _attackAnimCooldown = 0.72f;
             enemyAnimator.CrossFadeInFixedTime(attackState, 0.06f, 0);
         }
@@ -479,8 +487,13 @@ namespace TheLastEmpire
 
             if (_attackAnimCooldown > 0.15f)
             {
+                enemyAnimator.speed = 1f;
                 return;
             }
+
+            // Boost Walk/Run animation speed +30% for fast-moving enemies (Runner, Dog, Crawler, Aliens, Blade/Drone/Kamikaze, Rage Boss)!
+            bool isFastMover = moveSpeed >= fastEnemyMoveSpeedThreshold || horizSpeed >= fastEnemyMoveSpeedThreshold;
+            enemyAnimator.speed = (isMoving && isFastMover) ? fastEnemyAnimSpeedMultiplier : 1f;
 
             AnimatorStateInfo stateInfo = enemyAnimator.GetCurrentAnimatorStateInfo(0);
             string desiredState = !isMoving ? "Idle" : (isRunning ? "Run" : "Walk");

@@ -146,10 +146,12 @@ flowchart LR
 
 ---
 
-## 11. รีโมเดลบอสซอมบี้ (`Ancient Homunkulus`) & สลับพฤติกรรม/โมเดลกับ `ZombieTank`
+## 11. รีโมเดลบอสซอมบี้ (Slash Top-Hat + ปรสิตหนวดปลาหมึกชมพู), แก้ผิวดินน้ำมันศัตรูทุกตัว & เร่งท่าวิ่งศัตรูสายไว +30%
 
-* **`ZombieLeader` (Boss)**: รีโมเดลใหม่เป็น **`Ancient Homunkulus`** (ซอมบี้หลังค่อมผิวเขียวอมฟ้า + ปรสิตลูกตาเลือดยักษ์และหนวดปลายแดงบนหลัง) และเปลี่ยนสกิลเป็น **เสกลูกน้อง + กระโดดวิถีโค้ง (`Leap`) + พ่นกรด (`Spit`) + Ground Stomp**
+* **`ZombieLeader` (Boss)**: รีโมเดลเป็น **ร็อคสตาร์ซอมบี้หมวกทรงสูง (Slash Top-Hat + ผมหยิกดำฟู + แว่นกันแดด + แขนกอลิล่าใหญ่ 2 ข้าง ไม่มีกีตาร์ + เดินหลังค่อม + ปรสิตหนวดปลาหมึกสีชมพูเนื้อ/เลือดหมู 8 เส้นบนหลัง)** พร้อมสกิล **เสกลูกน้อง + กระโดดวิถีโค้ง (`Leap`) + พ่นกรด (`Spit`) + Ground Stomp**
 * **`ZombieTank`**: รับสกิลบอสเดิมทั้งหมด (**Charge Rush + Ground Stomp AOE + Rage Mode** ยกเว้นเสกลูกน้อง) และใช้โมเดลบอสเดิม (`Chibi_ZombieBoss_Legacy_Rigged.fbx`) โดยเก็บโมเดล `Chibi_ZombieTank_Rigged.fbx` เดิมไว้ครบถ้วน
+* **แก้ Texture ผิวดินน้ำมันศัตรูทุกตัว**: สร้าง Triplanar PBR Shader (`TheLastEmpire_EnemyDetailLit.shader`) + สคริปต์สร้าง Texture & Normal Map 512×512 6 ชุด (`EnemyPbrMaterialUpgrader.cs`) อัปเกรด Material ศัตรูทุกตัวทั้ง Zombies, Aliens, และ Robots
+* **เร่งท่า Walk/Run ศัตรูสายไว +30%**: ปรับ `BaseEnemyAI.cs` เร่ง `enemyAnimator.speed = 1.30f` อัตโนมัติเวลาเคลื่อนที่สำหรับศัตรูสายไว (`moveSpeed >= 3.5f`)
 
 ---
 

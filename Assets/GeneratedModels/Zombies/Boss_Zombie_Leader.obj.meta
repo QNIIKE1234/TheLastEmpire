@@ -3,7 +3,37 @@ guid: ed2eefcf35c45867baf469a181f100cc
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_bone
+    second: {fileID: 2100000, guid: 5c101ecf29e3dcc43bc7dbc4ed27afa0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_flesh
+    second: {fileID: 2100000, guid: 0a347617451c3874594eb14b0d71039d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_flesh_dark
+    second: {fileID: 2100000, guid: b6aae2f0989829d44864874dfa917ef8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_metal_armor
+    second: {fileID: 2100000, guid: 5df769d2ed532864d88539fc0b929ee6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_necro_core
+    second: {fileID: 2100000, guid: 06fdcd4fa6cfccb45a63c557acbdd2a8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: zombie_tactical_rag
+    second: {fileID: 2100000, guid: ab0675fcc8f460b42a4ad61e5a34c4c9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

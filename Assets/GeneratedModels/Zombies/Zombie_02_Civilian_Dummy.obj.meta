@@ -3,7 +3,57 @@ guid: 33086178035f8df49815ee87e6f6b499
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bone
+    second: {fileID: 2100000, guid: f689d22e63b189e41a0e2cf43bf3d6e3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_denim
+    second: {fileID: 2100000, guid: e01eda34b72b006438e86bbeccc8e995, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_gray
+    second: {fileID: 2100000, guid: 16461b7d4baf2494da63aec1d13f5e48, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth_maroon
+    second: {fileID: 2100000, guid: 3c6337ad5034056478d7deea3a9912fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye
+    second: {fileID: 2100000, guid: da109f0d0bd606847804b3e6cd6616a0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye_glow
+    second: {fileID: 2100000, guid: b87910be216b439419e6e4a12514a50a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gear_black
+    second: {fileID: 2100000, guid: 72c02201ee74e464cab7db762ad3663d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: 9b92a10ca9bd1f148800b45f24305761, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: skin
+    second: {fileID: 2100000, guid: f6d2df2a1224e5b4bb81a4a6e0244d70, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wound
+    second: {fileID: 2100000, guid: 2a8067c170aa43341afeb7418d28aaee, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

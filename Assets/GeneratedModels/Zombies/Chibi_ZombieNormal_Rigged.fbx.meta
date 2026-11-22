@@ -3,7 +3,132 @@ guid: 26ecdbcc0ebbed94da23c3de3341f3e4
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Bandage_White
+    second: {fileID: 2100000, guid: a7bdcff16c93b0d4db55236b933e380c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Blood_Knuckle
+    second: {fileID: 2100000, guid: c65b8c1edc60d1340b48577d417d400c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Brow_Dark
+    second: {fileID: 2100000, guid: 6501fabc1eb103d4880fb1228a3822b4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Buckle_Grey
+    second: {fileID: 2100000, guid: 3088fae451edc0f44ac13a4989df8027, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cap_Olive
+    second: {fileID: 2100000, guid: 14ced4df016383943bc30e96b85a8a09, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cap_VisorOlive
+    second: {fileID: 2100000, guid: efdf8d7058e241b4a9c40d5915695741, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Collar_DarkOlive
+    second: {fileID: 2100000, guid: 28fba6fbeb20fdf40b83b9ea49c7920f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Dark_Strap
+    second: {fileID: 2100000, guid: 19424986f50026e458648700b87e631c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_Bloodshot
+    second: {fileID: 2100000, guid: 5cbe060f0dce6eb4d9a43d5353499d26, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_ToxicYellow
+    second: {fileID: 2100000, guid: bec4a118aeca33d44b29b500b5b5d78c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_ZombieRed
+    second: {fileID: 2100000, guid: 9a44a6ea1a475664086c6e64db857d2c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Facial_Scar
+    second: {fileID: 2100000, guid: 6189bae563e7fcd4a8ca3453bbf92d6b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Glossy_Black
+    second: {fileID: 2100000, guid: 0d7a6bfa2c924364995cbb2ad465c5fd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Hair_AmberTuft
+    second: {fileID: 2100000, guid: 699e1ac14f86af745a5336571d39c833, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Hair_DarkCurly
+    second: {fileID: 2100000, guid: 804c2185f1d86ef45894afba17beede8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Jeans_Indigo
+    second: {fileID: 2100000, guid: 1de02818486de644dadff84027aef01a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Puffer_Olive
+    second: {fileID: 2100000, guid: 61404a9107fa0d047946937bc069421c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Puffer_QuiltOlive
+    second: {fileID: 2100000, guid: 944299dffc8e7ea4589af4a9048ffa9e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Strap_OliveTan
+    second: {fileID: 2100000, guid: 3824a3bef1fc10a4cbe92d067dc38632, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Strap_OliveTan.001
+    second: {fileID: 2100000, guid: 50ad4ec7765adb74bbd76a71c3152115, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Stripe_White
+    second: {fileID: 2100000, guid: 324f8815ed4ed5147aa4ef1b0cd0556e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Teeth_Line
+    second: {fileID: 2100000, guid: 339eeb6f99359c0428b50b5a53d6b489, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Teeth_White
+    second: {fileID: 2100000, guid: 0a382fe5c295733429f3ccbc0c25b101, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Trim_White
+    second: {fileID: 2100000, guid: 1e7d6d9c4cf895b44a75d51e814b263c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Zombie_Skin
+    second: {fileID: 2100000, guid: 1fd8241d4b43eeb4f8e0582cbbcd2fb5, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

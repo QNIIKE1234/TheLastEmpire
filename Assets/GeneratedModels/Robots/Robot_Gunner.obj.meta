@@ -3,7 +3,27 @@ guid: 1c87ff2615eb5f4888db113454633845
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gunner_brass
+    second: {fileID: 2100000, guid: 0c7814190d4a9ad4bbaeb2a95a1a5619, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gunner_olive
+    second: {fileID: 2100000, guid: ffd96c79e654dcb4690fefbf7fc5f068, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gunner_red_glow
+    second: {fileID: 2100000, guid: 45e7c2ad336972b49ac6544d0046d4f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: gunner_steel
+    second: {fileID: 2100000, guid: 5ec538badbca3934db010ffa3f60135e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

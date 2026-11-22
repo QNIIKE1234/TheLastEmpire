@@ -3,7 +3,92 @@ guid: c8a44f12e9734b859d3a1f78c6209e41
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_BlackTank
+    second: {fileID: 2100000, guid: e50cabbe1383fa14994dd00e0260437c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_CurlyHair
+    second: {fileID: 2100000, guid: 91cde252f6a4d7b48ad7bb9443b237a8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_Fang
+    second: {fileID: 2100000, guid: b76cfd24cf16a6e40907048aa83a0fbd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_Glasses
+    second: {fileID: 2100000, guid: 431f85fada5f1af4ab8afe7d0a1e25a1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_GoldBead
+    second: {fileID: 2100000, guid: bc85ed91cbfba244792464440685d7e6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_LeatherBand
+    second: {fileID: 2100000, guid: 01cdfdf33f7636d41b71d4e735f4fb65, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_LeatherBoots
+    second: {fileID: 2100000, guid: 8fd62c3167446864abc81c34d80895f5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_MouthDark
+    second: {fileID: 2100000, guid: 86aebdf2c1592bd47b564dd80b851251, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_ParasiteCrimson
+    second: {fileID: 2100000, guid: 6caaf45ad99e0cc43a119d4dc4fd1a6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_ParasiteDark
+    second: {fileID: 2100000, guid: 1feec31877f4c384e8f319e713240b0f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_ParasitePink
+    second: {fileID: 2100000, guid: 081de5ee7b0f65f4cbe5533aab36eba1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_RockPrint
+    second: {fileID: 2100000, guid: 8c0151346f99f5f42a1388a15ad91f6c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_Silver
+    second: {fileID: 2100000, guid: 2b9aeea4f90174847a1e42d7db83f8a7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_SnakePants
+    second: {fileID: 2100000, guid: b1d37dcf09242064e8f4d380cf7bd5ad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_TopHat
+    second: {fileID: 2100000, guid: b6b9028796f6a5b4fb32712264471b11, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_ZombieShade
+    second: {fileID: 2100000, guid: 6edab7edcb074df42838a6c023bf0f4e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Boss_ZombieSkin
+    second: {fileID: 2100000, guid: 33bb41240beca9f42ab144f18682c370, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

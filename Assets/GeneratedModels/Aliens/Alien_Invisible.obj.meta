@@ -3,7 +3,22 @@ guid: 87272d1548bd5e628fe333f07a6b98e2
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: shadow_carapace
+    second: {fileID: 2100000, guid: 42aaa37a88ec1644ea30df45ca4a5d9d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: shadow_psionic_glow
+    second: {fileID: 2100000, guid: cdef833fd772b64469ea1c58647a2dc6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: shadow_scythe
+    second: {fileID: 2100000, guid: 2a555b192e6a74b4db1c058089447d1a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

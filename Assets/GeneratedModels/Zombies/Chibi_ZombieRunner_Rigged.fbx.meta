@@ -3,7 +3,122 @@ guid: b2ddafc189535a24e855a17cce2ee66e
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Baton_Grip
+    second: {fileID: 2100000, guid: 39d8e0f850148e04985b2e871ae2dda4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Baton_Silver
+    second: {fileID: 2100000, guid: f46e76e2460dd3e4aacac1667c9dac35, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Brow_Brown
+    second: {fileID: 2100000, guid: f4b9579788c9d8943b3dea53a4ec56b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_BloodSplatter
+    second: {fileID: 2100000, guid: 0932b39df345d714d9949f4d83983949, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_CapBand
+    second: {fileID: 2100000, guid: 0f27b2911f6e1be41b3275af4dc77cdb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_CapNavy
+    second: {fileID: 2100000, guid: c6cc2d0b329034b439b35d94e85fd199, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_GearDark
+    second: {fileID: 2100000, guid: 0a235946d6e8d3e4282e611666548d37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_GloveBlack
+    second: {fileID: 2100000, guid: 168f43dfcb4c6d34f9ee38fe09eb1840, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_Gold
+    second: {fileID: 2100000, guid: 3496155194f497e49a7fe9cbe5006428, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_GoldTrim
+    second: {fileID: 2100000, guid: 24ec2ae173499dd499c7a6ed8b546c0f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_GoldTrim.001
+    second: {fileID: 2100000, guid: 281b371b311098645855660ab036c515, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_PantsNavy
+    second: {fileID: 2100000, guid: 050e1df3565a0004f83242ab1335133a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_UniformNavy
+    second: {fileID: 2100000, guid: 571f4c0ace2c53f4db87d09bb242b821, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_VestSlate
+    second: {fileID: 2100000, guid: 7e415e2c6b1e0054fb665d154ec2be9e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_VisorBlack
+    second: {fileID: 2100000, guid: 98e7541dc113fe54c8a7d7a6eb595acf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Cop_Wound
+    second: {fileID: 2100000, guid: 7717eafc471cdf14686c530f612b69b9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Eye_RedGlint
+    second: {fileID: 2100000, guid: 008e8705a0712044e9762a3693b901ac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Glass_Frame
+    second: {fileID: 2100000, guid: cb30760d5ba22f24d83c8c18c3a5f98d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Lens_Dark
+    second: {fileID: 2100000, guid: f6e6424ddb89c5548be343440b046c71, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Nose_Shade
+    second: {fileID: 2100000, guid: f4281715569c6b44aa7eb62064ebb060, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Teeth_Line
+    second: {fileID: 2100000, guid: 2f22350447bf4bc4989542ffe7ed84ff, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_Teeth_White
+    second: {fileID: 2100000, guid: ab0e724d55c23b64296d2fee0199e725, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat_ZombieCop_Skin
+    second: {fileID: 2100000, guid: dfc49822a0a350a4ab357567a9c9e827, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

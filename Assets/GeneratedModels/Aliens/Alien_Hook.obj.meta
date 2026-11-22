@@ -3,7 +3,27 @@ guid: 8eff1fca70bb569887063110a4d7f2af
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hook_barbs
+    second: {fileID: 2100000, guid: 5beb447eac0b637418267ea7c91f6272, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hook_carapace
+    second: {fileID: 2100000, guid: 86c2aa96a04c5024798e6d9ac17fbb23, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hook_skin
+    second: {fileID: 2100000, guid: 875f8dee9162a264684a047f58444a0b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hook_tendrils
+    second: {fileID: 2100000, guid: 63d4d36b8c914b94fb0a230a63150aab, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
