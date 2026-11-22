@@ -1,7 +1,49 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
 **วันที่บันทึกล่าสุด**: 22 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Up to date with `origin/multi-player-netcode`)  
+**สถานะ Git**: `multi-player-netcode` (Latest commits: `75e4bbc`, `b31204f`, `3610b52`)  
+
+---
+
+## 25. โมเดล 3D Chibi Anime NPC ใหม่ 3 ตัว & ระบบสร้างโมเดลผู้เล่นจาก Character SO โดยตรง
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - [`Tools/Create_Custom_3_NPCs.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Custom_3_NPCs.py)
+  - [`Assets/Scripts/Editor/NpcCustomModelsAutoSync.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/NpcCustomModelsAutoSync.cs)
+  - [`Assets/Scripts/Runtime/Player/PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+  - [`Assets/Scripts/Editor/PlayerCharacterModelListSetup.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/PlayerCharacterModelListSetup.cs)
+  - Prefabs: `NPC_Elena_Medic_Rigged.prefab`, `NPC_Maya_Scout_Rigged.prefab`, `NPC_Roy_Veteran_Rigged.prefab` (ใน `Assets/Resources_Addressable/Prefabs/Character/`)
+- **รายละเอียดการพัฒนา**:
+  1. **ปั้นและแทนที่โมเดล 3D Chibi Anime NPC 3 ตัวใหม่** (Rig 18 กระดูก `Chibi_Base_Rig` + 11 แอนิเมชัน + Texture ใบหน้า 1024×1024 และผม 512×512 + URP Lit Materials Remap อัตโนมัติ พร้อมรักษา Prefab GUID เดิม):
+     - **`NPC_Elena_Medic_Rigged`**: สาวสตรีทเทคผมบ๊อบดำ หูฟังเหลือง ตาสีม่วงลาย X-Sparkle หัวใจแดงใต้ตา แจ็คเก็ตเหลืองปกขนฟูขาว อาร์มหมี เข็มขัดแดงพร้อมขวดน้ำยา 3 สี (ฟ้า/เขียว/ชมพู) และรองเท้าผ้าใบขาว
+     - **`NPC_Maya_Scout_Rigged`**: สาวโกธิคสไตล์ `P4NDORA` ผมบ๊อบดำเรียบหน้าม้าตรง ปากแดงเข้ม โช้คเกอร์ดำห่วงเงิน เดรสสั้นสายเดี่ยวสีดำขอบระบาย สร้อยข้อมือจี้แดง และบูทดำหัวเข็มขัดเงิน
+     - **`NPC_Roy_Veteran_Rigged`**: สาวไซเบอร์เทคหางม้าสีฟ้า ตาสีม่วง ต่างหูห่วงทอง ปลอกคอไซเบอร์ดำแถบเหลือง เสื้อครอปขาว ปลอกแขนดำ-เหลือง กางเกงขาสั้นดำแถบข้างเหลือง และบูทสูงขอบเหลือง
+  2. **ระบบเสกโมเดลผู้เล่นจาก `CharacterData` SO เข้า `PlayerPrefabs/Model` อัตโนมัติ**:
+     - ปรับโครงสร้าง `PlayerPrefabs` ให้ไม่ต้องเก็บโมเดลตัวละครทั้ง 7 ตัวซ้ำไว้ใต้ `Model` อีกต่อไป โดยให้ `PlayerController.ApplySelectedCharacterModel()` ดึง `CharacterData.characterModelPrefab` จากไฟล์ SO (`CHAR_01`–`CHAR_07`) มา `Instantiate` ไว้ใต้ `PlayerPrefabs/Model` พร้อมตั้งค่ามาตรฐาน `Position = (0, -0.6, 0)`, `Rotation = (0, 0, 0)`, `Scale = (0.7, 0.7, 0.7)`
+     - ปิดตาโมเดลต้นแบบ (`Chibi_Base_Rigged`) อัตโนมัติ (พร้อมดึง `AnimatorController` สำรองมาใช้หากโมเดลปลายทางไม่ได้ผูกไว้)
+     - ย้ายชุดอาวุธหลัก `Model/Malee` และ `Model/Range` (ครบ 18 ชิ้น) เข้าไปในกระดูก `RightHand` ของโมเดลที่เพิ่งสร้างพร้อมรีเซ็ต Local Transform (`pos=0, rot=0, scale=1`) ป้องกันอาการอาวุธขยายสเกล 70 เท่า
+
+---
+
+## 24. ระบบซิงค์ Multiplayer เชิงลึก (Loot/Container, Building/Event, Drop ของจากกระเป๋า & แก้บั๊ก Trigger/Skill)
+- **สคริปต์ที่เกี่ยวข้อง**:
+  - [`Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs)
+  - [`Assets/Scripts/Runtime/Network/Hooks/RandomStageEventManager.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/RandomStageEventManager.NetHook.cs)
+  - [`Assets/Scripts/Runtime/Network/Hooks/PlayerController.NetHook.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Hooks/PlayerController.NetHook.cs)
+  - [`Assets/Scripts/Runtime/UI/InventoryUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryUI.cs) & [`Assets/Scripts/Runtime/UI/LootUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/LootUI.cs)
+  - [`Assets/Scripts/Runtime/Combat/CollectibleItem.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/CollectibleItem.cs) & [`Assets/Scripts/Runtime/Combat/ShiftAbilities.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/ShiftAbilities.cs)
+  - [`Assets/Scripts/Runtime/Map/TransitionPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs), [`CampfireBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/CampfireBuilding.cs), [`FloorBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/FloorBuilding.cs), [`SanityAuraZone.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Environment/SanityAuraZone.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **ระบบโยนของออกจากกระเป๋า (Drag-to-Drop + Stack Drop + Manual `[E]` Pickup)**:
+     - ลากไอเทมจากช่องกระเป๋าโยนออกนอกกรอบ `InventoryPanel` เพื่อโยนลงพื้นทีละ 1 ชิ้น หรือกด **`Alt + ลาก`** เพื่อโยนทั้งกองเป็นไอเทมบนพื้นเพียง 1 ชิ้นที่เก็บจำนวนเต็ม (เช่น ยา x100)
+     - ของที่ผู้เล่นโยนทิ้งจะไม่ถูกดูดเข้าตัวอัตโนมัติ (`RequireManualPickup = true`) ต้องเดินเข้าไปกด **`[E]`** เพื่อเก็บเท่านั้น และซิงค์ให้ผู้เล่นคนอื่นในด่านเดียวกันเห็น/เก็บได้ผ่าน `ClientDropItemRequest`
+  2. **ซิงค์การเก็บของจากรถ/กล่อง, ของดรอปจากศัตรู, Building & Stage Events ครบทุกกรณี**:
+     - แก้ไข `NetworkDropId` จากตำแหน่งเริ่มต้น (`InitialSpawnPosition`) ไม่ให้เพี้ยนตอนไอเทมโดนดูด, เพิ่ม `LootSpawnBroadcast` ให้ Client เห็นของดรอปจากศัตรูตรงกัน, และให้ Client เก็บของในด่านเดี่ยวได้
+     - ซิงค์สถานะของในรถ/กล่อง (`ContainerLootSync`) แบบเรียลไทม์: หาก A เปิดหน้าต่าง Loot อยู่แล้ว B หยิบของไป ช่องไอเทมฝั่ง A จะหายทันที และเก็บแคช `_syncedContainerStates` ข้ามด่านให้เพื่อนที่เดินตามเข้าด่านทีหลังเห็นรถที่ถูกรื้อไปแล้วตรงกัน
+     - ซิงค์การรื้อ/ทำลายสิ่งปลูกสร้าง (`BuildingDestroyBroadcast`), ซิงค์ Event สุ่มในด่าน (`StageEventBroadcast`) พร้อมกู้คืนบรรยากาศ Event, `NomadTrader`, และของดรอปบนพื้นสำหรับเพื่อนที่ย้ายแมพเข้ามาทีหลัง (`BroadcastAllActiveStageDropsToClient`)
+  3. **แก้บั๊ก Dual-Client, Overhead Name, Demolitionist Skill & Portal Trigger**:
+     - แยก `_sessionSelectedCharacterId` ต่อหน้าต่าง, ซิงค์ `WorldSeed`, ปรับ `EnemyBatchSync` + `EnemyDamageRequest`, และเพิ่มป้ายชื่อผู้เล่นเหนือหัวบน `PlayerPrefabs/Canvas/Text (TMP)`
+     - แก้สกิล `SatchelVaultAbility` ของ Demolitionist ให้กลิ้งไปข้างหน้า 4.5m พร้อมวาง C4 และไม่ทำดาเมจโดนตัวเอง/เพื่อนร่วมทีม
+     - แก้บั๊ก **A ยืนตรงจุดวาร์ปแล้ว B กด `E` เก็บของไกลๆ แต่ B โดนวาร์ปข้ามแมพ**: ปรับ `TransitionPortal` ให้ตรวจเฉพาะ Local Player (`!IsRemotePlayer`) + เช็คระยะห่างจาก Collider จริงซ้ำ 2 ชั้น รวมถึงแก้ Trigger ของ `CampfireBuilding`, `FloorBuilding`, และ `SanityAuraZone` ให้รับเฉพาะ Local Player เช่นเดียวกัน
 
 ---
 

@@ -9,6 +9,10 @@
 2. [ระบบค้นหาห้องและห้องเตรียมตัว 6 คน (Lobby_NetCode Pure Inspector Reference UI)](#2-ระบบค้นหาห้องและห้องเตรียมตัว-6-คน-lobby_netcode-pure-inspector-reference-ui)
 3. [ระบบเดินข้ามช่องพิกัด (Stage X, Y) แบบอิสระ & การพบเจอกันในช่องเดียวกัน](#3-ระบบเดินข้ามช่องพิกัด-stage-x-y-แบบอิสระ--การพบเจอกันในช่องเดียวกัน)
 4. [ระบบซิงค์เกมเพลย์ Co-op 1–6 คน (Combat, Enemies, Anti-Dupe Loot, Buildings & Revive)](#4-ระบบซิงค์เกมเพลย์-co-op-16-คน-combat-enemies-anti-dupe-loot-buildings--revive)
+5. [ซิงค์ระบบเก็บของจากรถ/กล่อง, ของดรอป, Building Destruction & Late-Entry Events](#5-ซิงค์ระบบเก็บของจากรถกล่อง-ของดรอป-building-destruction--late-entry-events)
+6. [ระบบโยนของออกจากกระเป๋า (Drag-to-Drop Stacked Items & Manual [E] Pickup)](#6-ระบบโยนของออกจากกระเป๋า-drag-to-drop-stacked-items--manual-e-pickup)
+7. [แก้บั๊ก Co-op (Portal Warp Trigger, Dual-Client Character/Seed Sync, Demolitionist SatchelVault & Overhead Name)](#7-แก้บั๊ก-co-op-portal-warp-trigger-dual-client-characterseed-sync-demolitionist-satchelvault--overhead-name)
+8. [โมเดล 3D Chibi Anime NPC ใหม่ 3 ตัว & ระบบสร้างโมเดลตัวละครจาก Character SO เข้า PlayerPrefabs/Model](#8-โมเดล-3d-chibi-anime-npc-ใหม่-3-ตัว--ระบบสร้างโมเดลตัวละครจาก-character-so-เข้า-playerprefabsmodel)
 
 ---
 
@@ -70,3 +74,55 @@ flowchart LR
 * **Multi-Target Enemy Aggro**: ศัตรูค้นหาผู้เล่นที่ยังมีชีวิตและอยู่ในช่องพิกัดเดียวกันที่ใกล้ที่สุดผ่าน `PlayerRegistry.GetClosestAlivePlayer` ทุก 0.3 วินาที
 * **Co-op Downed & Revive**: เมื่อเลือดหมดในโหมดปาร์ตี้จะเข้าสถานะล้มรอชุบ 30 วินาที เพื่อนในทีมสามารถเดินเข้าไปกด `[E]` ค้าง 3 วินาทีในระยะ 2.4 เมตรเพื่อชุบชีวิตกลับมาที่เลือด 30%
 * **Atomic Server Loot Claim & Shared Buildings**: ป้องกันการเก็บไอเทมชิ้นเดียวกันซ้ำ 100% (`NetworkLootManager`) และซิงค์การวางสิ่งปลูกสร้าง ระบบไฟฟ้า `PowerGridManager` รวมถึงหีบเก็บของส่วนกลาง (`NetworkBuildingSyncManager`)
+
+---
+
+## 5. ซิงค์ระบบเก็บของจากรถ/กล่อง, ของดรอป, Building Destruction & Late-Entry Events
+
+* **การเก็บของจากรถ/กล่อง (`LootContainer` & `LootUI`)**:
+  - ซิงค์การหยิบของจากรถ/กล่องด้วย `NetPacketType.ContainerLootSync` หาก A เปิด `LootUI` ค้างไว้แล้ว B หยิบของชิ้นนั้นไป ช่องไอเทมบนหน้าจอ A จะอัปเดตหายทันที
+  - เก็บแคชสถานะรถ/กล่องที่ถูกรื้อไปแล้วข้ามด่าน (`_syncedContainerStates`) ทำให้ผู้เล่นที่เดินเข้าแมพทีหลังเห็นรถที่ถูกรื้อแล้วตรงกัน
+* **ของดรอปจากศัตรู & การเก็บของในด่านเดี่ยว**:
+  - เพิ่ม `NetPacketType.LootSpawnBroadcast` ให้ของดรอปจากซอมบี้แสดงตรงกันทั้ง Host และ Client
+  - แก้ไข `NetworkDropId` ให้ผูกกับ `InitialSpawnPosition` เพื่อไม่ให้ ID เพี้ยนเมื่อไอเทมถูกแม่เหล็กดูดเข้าหาตัว และอนุญาตให้ Client เก็บของในด่านที่เดินอยู่คนเดียวได้
+* **การรื้อสิ่งปลูกสร้าง & อีเวนต์สุ่มในด่าน (`BuildingDestroyBroadcast` & `StageEventBroadcast`)**:
+  - ซิงค์การทำลาย/รื้อถอนสิ่งปลูกสร้างข้ามเครื่อง
+  - ซิงค์ Random Stage Event ทั้งกรณีอยู่ด่านเดียวกัน, Client เข้าด่านคนเดียว, และกู้คืน Event ที่กำลังดำเนินอยู่ (บรรยากาศแสง/หมอก, `NomadTrader`, และไอเทมดรอปที่ยังเหลือบนพื้น) ให้เพื่อนที่ย้ายแมพเข้ามาทีหลัง
+
+---
+
+## 6. ระบบโยนของออกจากกระเป๋า (Drag-to-Drop Stacked Items & Manual `[E]` Pickup)
+
+อัปเดต [`InventoryUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/InventoryUI.cs), [`CollectibleItem.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/CollectibleItem.cs), และ [`NetworkLootManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkLootManager.cs):
+
+* **ลากออกนอก `InventoryPanel` เพื่อโยนลงพื้น**:
+  - **ลากปกติ**: โยนออกจากกระเป๋าครั้งละ **1 ชิ้น**
+  - **กด `Alt + ลาก`**: โยน **ทั้งหมดในช่อง** โดยสร้างไอเทมบนพื้นเพียง **1 ชิ้น** แต่เก็บจำนวนเต็ม (เช่น ยา `x100` เมื่อเก็บจะได้ครบ 100 ชิ้นทันที)
+* **ไม่ดูดอัตโนมัติ — ต้องกด `[E]` เพื่อเก็บ**:
+  - ไอเทมที่ผู้เล่นโยนทิ้งถูกตั้งค่า `ConfigureAsPlayerDroppedItem()` (`RequireManualPickup = true`) ปิดแม่เหล็กดูดเข้าตัวและแสดงป้าย `[E] Pick up <Item> x<Qty>` ให้ผู้เล่นเดินมากด `E` เก็บเอง
+* **รองรับ Co-op Multiplayer**: ส่งคำขอโยนจาก Client -> Host ผ่าน `NetPacketType.ClientDropItemRequest` และกระจายให้เพื่อนในด่านเดียวกันเห็น/เก็บได้ตรงกัน
+
+---
+
+## 7. แก้บั๊ก Co-op (Portal Warp Trigger, Dual-Client Character/Seed Sync, Demolitionist SatchelVault & Overhead Name)
+
+* **แก้บั๊ก A ยืนจุดวาร์ปแล้ว B กด `E` เก็บของแต่ B วาร์ปข้ามแมพ**:
+  - แก้ [`TransitionPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs) ให้ `OnTriggerEnter`/`OnTriggerExit` รับเฉพาะ Local Player (`!IsRemotePlayer`) พร้อมเช็คระยะห่างจาก Collider จริงซ้ำใน `IsPlayerInRange(this)`
+  - แก้ Trigger แบบเดียวกันใน [`CampfireBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/CampfireBuilding.cs), [`FloorBuilding.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/FloorBuilding.cs), และ [`SanityAuraZone.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Environment/SanityAuraZone.cs)
+* **แก้ Dual-Client & WorldSeed & ป้ายชื่อเหนือหัว**:
+  - แยก `_sessionSelectedCharacterId` ต่อโปรเซสใน `CharacterDatabase.cs` ไม่ให้ 2 หน้าต่างทับตัวละครกัน, ซิงค์ `PendingMatchWorldSeed` ให้โลกตรงกัน 100%, ส่งดาเมจจาก Client ผ่าน `EnemyDamageRequest`, และแสดงชื่อผู้เล่นบนหัวผ่าน `PlayerPrefabs/Canvas/Text (TMP)` (`overheadNameText`)
+* **แก้สกิล `SatchelVaultAbility` ของ Demolitionist (`CHAR_07_Demolitionist`)**:
+  - กลิ้งไปข้างหน้า 4.5 เมตรพร้อมวาง C4 (ไม่โดน `FixedUpdate` ทับความเร็ว) และป้องกันแรงระเบิดไม่ให้โดนตัวเองหรือเพื่อนร่วมทีม
+
+---
+
+## 8. โมเดล 3D Chibi Anime NPC ใหม่ 3 ตัว & ระบบสร้างโมเดลตัวละครจาก Character SO เข้า `PlayerPrefabs/Model`
+
+* **โมเดล 3D Chibi Anime NPC 3 ตัวใหม่ ([`Create_Custom_3_NPCs.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Custom_3_NPCs.py) & [`NpcCustomModelsAutoSync.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/NpcCustomModelsAutoSync.cs))**:
+  - ปั้นด้วย Blender สไตล์ Toy-Chibi Anime (Rig 18 กระดูก `Chibi_Base_Rig` + 11 แอนิเมชัน + Texture ใบหน้า 1024×1024 / ผม 512×512 + URP Lit Material Remap อัตโนมัติ) แทนที่ 3 Prefab เดิมโดยรักษา GUID:
+    1. **`NPC_Elena_Medic_Rigged`**: สาวสตรีทเทคผมบ๊อบดำ หูฟังเหลือง ตา X-Sparkle สีม่วง แจ็คเก็ตเหลือง `69` อาร์มหมี และเข็มขัดแดงพร้อมขวดน้ำยา 3 สี
+    2. **`NPC_Maya_Scout_Rigged`**: สาวโกธิค `P4NDORA` ผมบ๊อบดำเรียบ ปากแดงเข้ม โช้คเกอร์ห่วงเงิน เดรสสั้นดำขอบระบาย สร้อยข้อมือจี้แดง และบูทดำหัวเข็มขัดเงิน
+    3. **`NPC_Roy_Veteran_Rigged`**: สาวไซเบอร์เทคหางม้าสีฟ้า ตาสีม่วง ปลอกคอ `69` เสื้อครอปขาว ปลอกแขนดำ-เหลือง กางเกงขาสั้นแถบเหลือง และบูทสูงขอบเหลือง
+* **ระบบสร้างโมเดลตัวละครผู้เล่นจาก SO โดยตรง ([`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs))**:
+  - เมื่อเข้าเกม (หรือเพื่อนจอยเข้ามา) ระบบจะ `Instantiate` โมเดลจาก `CharacterData.characterModelPrefab` (`CHAR_01`–`CHAR_07`) เข้าใต้ `PlayerPrefabs/Model` โดยตั้งค่า `Position = (0, -0.6, 0)`, `Rotation = (0, 0, 0)`, `Scale = (0.7, 0.7, 0.7)`
+  - ปิดตาโมเดลต้นแบบ (`Chibi_Base_Rigged`) อัตโนมัติ และย้ายชุดอาวุธ `Model/Malee` กับ `Model/Range` เข้ากระดูก `RightHand` พร้อมรีเซ็ต Local Transform (`0,0,0` / Scale `1,1,1`) ให้ถืออาวุธได้ครบทั้ง 18 ชิ้นทุกตัวละคร
