@@ -244,6 +244,9 @@ namespace TheLastEmpire
             currentState = AIState.Telegraph;
             rb.linearVelocity = Vector3.zero;
 
+            // Play the extendable giant left-hand Hook stretch animation!
+            PlayActionAnimation("Hook", 0.85f, 0.05f);
+
             Debug.Log($"[AlienAI] {gameObject.name} casted hook on player!");
 
             // Hold pull for 0.8s
