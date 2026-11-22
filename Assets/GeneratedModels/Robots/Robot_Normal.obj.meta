@@ -3,7 +3,27 @@ guid: 53edb32926c15f23aef34838abc4bae4
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mech_amber_glow
+    second: {fileID: 2100000, guid: a3a15e58a0178e74491c4771271cc771, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mech_armor_gray
+    second: {fileID: 2100000, guid: d65d9a9de380b0d4d8f327bc2877cd14, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mech_joint_black
+    second: {fileID: 2100000, guid: c7c4534b3af7d564db4672bc47041df6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mech_steel
+    second: {fileID: 2100000, guid: 7543ab494efadce48a5d87f953404ecc, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

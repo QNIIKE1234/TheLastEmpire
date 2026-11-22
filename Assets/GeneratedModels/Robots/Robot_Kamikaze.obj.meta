@@ -3,7 +3,27 @@ guid: cda43b9dabdc511795802bc391412fb9
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hazard_black
+    second: {fileID: 2100000, guid: 2d1e90ff573e2094b8da79b8562aeb37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hazard_yellow
+    second: {fileID: 2100000, guid: 3538f43a50acd994f8335f9eb02cd77f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kamikaze_core_glow
+    second: {fileID: 2100000, guid: 55f77bf67870e1b43956498ffc994328, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: spider_iron
+    second: {fileID: 2100000, guid: 59d448dd4461824438eec223680990d9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

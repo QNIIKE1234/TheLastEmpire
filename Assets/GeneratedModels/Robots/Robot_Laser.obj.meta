@@ -3,7 +3,27 @@ guid: c07fc57b40385a4ea7b13e065c9c96f8
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: laser_cobalt
+    second: {fileID: 2100000, guid: a69a09ddc731bfd4c8385d4e86219868, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: laser_cyan_glow
+    second: {fileID: 2100000, guid: e3ab384e0cb931642891e1b81c80a553, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: laser_heatsink
+    second: {fileID: 2100000, guid: 57b3896bef0764b44bdd14d572804c34, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: laser_white
+    second: {fileID: 2100000, guid: a530cfebdb65f774786e7d1c9f9bd217, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -3,7 +3,32 @@ guid: b2250313f307569a8080f68287f40840
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leader_armor_black
+    second: {fileID: 2100000, guid: 111147a1175025e4d8625caa4e2cf911, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leader_fusion_glow
+    second: {fileID: 2100000, guid: a1d20b2ae8b1f714eaa32fea552353b7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leader_gold_trim
+    second: {fileID: 2100000, guid: c987f8a2b30f2aa4289661f3c188ba95, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leader_gunmetal
+    second: {fileID: 2100000, guid: 207a94f1a21346b46aa4fdf415a9682d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: leader_sensor_red
+    second: {fileID: 2100000, guid: 03eddfeeeae0995499463e59c3c9061d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
