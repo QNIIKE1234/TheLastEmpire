@@ -20,7 +20,8 @@ namespace TheLastEmpire.Editor
         {
             if (string.IsNullOrEmpty(assetPath)) return false;
             return assetPath.Contains("Alien_Smart_Rigged") ||
-                   assetPath.Contains("Alien_Hook_Rigged");
+                   assetPath.Contains("Alien_Hook_Rigged") ||
+                   assetPath.Contains("Alien_Normal_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -76,7 +77,9 @@ namespace TheLastEmpire.Editor
             foreach (string path in importedAssets)
             {
                 if (!string.IsNullOrEmpty(path) &&
-                    (path.Contains("Alien_Smart_Rigged.fbx") || path.Contains("Alien_Hook_Rigged.fbx")))
+                    (path.Contains("Alien_Smart_Rigged.fbx") ||
+                     path.Contains("Alien_Hook_Rigged.fbx") ||
+                     path.Contains("Alien_Normal_Rigged.fbx")))
                 {
                     EditorApplication.delayCall += AlienModelBuilder.EnsureAlienModelsBuiltAuto;
                     break;
@@ -125,6 +128,16 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Alien_Hook", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
                 localScale = new Vector3(0.95f, 0.95f, 0.95f)
+            },
+            new AlienSetupSpec
+            {
+                fbxPath = $"{AlienFbxDir}/Alien_Normal_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Alien_Normal_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/AlienNormal.prefab",
+                childRootName = "Alien_Normal_Rigged_Model",
+                legacyChildNamesToRemove = new[] { "Alien_Normal", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(0.95f, 0.95f, 0.95f)
             }
         };
 
@@ -160,7 +173,7 @@ namespace TheLastEmpire.Editor
             }
         }
 
-        [MenuItem("Tools/The Last Empire/Apply Rigged Alien Models (Smart & Hook)")]
+        [MenuItem("Tools/The Last Empire/Apply Rigged Alien Models (Smart, Hook & Normal)")]
         public static void BuildFromMenu()
         {
             BuildAndApplyAll(true);
@@ -186,11 +199,11 @@ namespace TheLastEmpire.Editor
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
-                Debug.Log($"<color=#50FA7B>[AlienModelBuilder]</color> Configured & linked {updated}/2 rigged Alien models (AlienSmart & AlienHook)!");
+                Debug.Log($"<color=#50FA7B>[AlienModelBuilder]</color> Configured & linked {updated}/{Specs.Length} rigged Alien models (AlienSmart, AlienHook, AlienNormal)!");
                 if (showDialog)
                 {
                     EditorUtility.DisplayDialog("Alien Models Updated",
-                        $"อัปเดตโมเดล + Material + Animator ของ AlienSmart และ AlienHook เรียบร้อยแล้ว ({updated}/2)!", "OK");
+                        $"อัปเดตโมเดล + Material + Animator ของ AlienSmart, AlienHook และ AlienNormal เรียบร้อยแล้ว ({updated}/{Specs.Length})!", "OK");
                 }
             }
             finally
@@ -234,6 +247,23 @@ namespace TheLastEmpire.Editor
             else if (n.Contains("Pupil"))
             {
                 if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.95f);
+            }
+            else if (n.Contains("AlienNormal_Flesh") || n.Contains("AlienNormal_BloodVein"))
+            {
+                // Glossy wet fleshy worm skin finish
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.66f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+            }
+            else if (n.Contains("AlienNormal_GumLip") || n.Contains("AlienNormal_Tongue") || n.Contains("AlienNormal_Saliva"))
+            {
+                // Extra wet glossy mouth/tongue/saliva
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.85f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+            }
+            else if (n.Contains("AlienNormal_BoneFang"))
+            {
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.72f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.05f);
             }
             else
             {
