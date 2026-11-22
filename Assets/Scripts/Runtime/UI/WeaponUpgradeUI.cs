@@ -43,10 +43,11 @@ namespace TheLastEmpire
         [SerializeField] private TMP_Text weaponDescriptionText;
 
         [Header("Artifact Attach Slots (A1 - A4)")]
-        [SerializeField] private Button[] attachSlotButtons = new Button[WeaponArtifactManager.MaxArtifactSlots];
-        [SerializeField] private Image[] attachSlotIcons = new Image[WeaponArtifactManager.MaxArtifactSlots];
+        [Tooltip("ลากช่อง A1 - A4 ที่ติด Component ArtifactSlotUI มาใส่ (ลากเข้าเพื่อติดตั้ง / ลากออกเพื่อถอด / ลากสลับช่อง / คลิกถอด)")]
+        [SerializeField] private ArtifactSlotUI[] attachSlots = new ArtifactSlotUI[WeaponArtifactManager.MaxArtifactSlots];
 
         [Header("Artifact List Panel (Left - ArtifactPanel / ARTIFACT)")]
+        [SerializeField] private RectTransform artifactPanelRect;
         [SerializeField] private TMP_Text artifactTitleText;
         [SerializeField] private Transform artifactSlotsContainer;
         [SerializeField] private List<InventoryItemSlot> artifactSlots = new List<InventoryItemSlot>();
@@ -202,28 +203,25 @@ namespace TheLastEmpire
                 Transform attachPanel = upgPanel.Find("AttachPanel");
                 if (attachPanel != null)
                 {
-                    if (attachSlotButtons == null || attachSlotButtons.Length != WeaponArtifactManager.MaxArtifactSlots)
-                        attachSlotButtons = new Button[WeaponArtifactManager.MaxArtifactSlots];
-                    if (attachSlotIcons == null || attachSlotIcons.Length != WeaponArtifactManager.MaxArtifactSlots)
-                        attachSlotIcons = new Image[WeaponArtifactManager.MaxArtifactSlots];
+                    if (attachSlots == null || attachSlots.Length != WeaponArtifactManager.MaxArtifactSlots)
+                        attachSlots = new ArtifactSlotUI[WeaponArtifactManager.MaxArtifactSlots];
 
                     for (int i = 0; i < WeaponArtifactManager.MaxArtifactSlots; i++)
                     {
-                        Transform slotT = attachPanel.Find($"A{i + 1}");
-                        if (slotT == null && i < attachPanel.childCount) slotT = attachPanel.GetChild(i);
-                        if (slotT == null) continue;
-
-                        if (attachSlotButtons[i] == null)
+                        if (attachSlots[i] == null)
                         {
-                            Button btn = slotT.GetComponent<Button>();
-                            if (btn == null) btn = slotT.gameObject.AddComponent<Button>();
-                            attachSlotButtons[i] = btn;
+                            Transform slotT = attachPanel.Find($"A{i + 1}");
+                            if (slotT == null && i < attachPanel.childCount) slotT = attachPanel.GetChild(i);
+                            if (slotT == null) continue;
+
+                            ArtifactSlotUI slotUI = slotT.GetComponent<ArtifactSlotUI>();
+                            if (slotUI == null) slotUI = slotT.gameObject.AddComponent<ArtifactSlotUI>();
+                            attachSlots[i] = slotUI;
                         }
 
-                        if (attachSlotIcons[i] == null)
+                        if (attachSlots[i] != null)
                         {
-                            Transform iconChild = slotT.Find("icon") ?? slotT.Find("Icon");
-                            if (iconChild != null) attachSlotIcons[i] = iconChild.GetComponent<Image>();
+                            attachSlots[i].Initialize(this, i);
                         }
                     }
                 }
@@ -233,6 +231,8 @@ namespace TheLastEmpire
             Transform artPanel = root.Find("ArtifactPanel") ?? root.Find("ARTIFACT");
             if (artPanel != null)
             {
+                if (artifactPanelRect == null) artifactPanelRect = artPanel as RectTransform;
+
                 if (artifactTitleText == null)
                 {
                     Transform nameT = artPanel.Find("Name/NameText") ?? artPanel.Find("Name");
@@ -297,14 +297,12 @@ namespace TheLastEmpire
                 artifactNextButton.onClick.AddListener(NextArtifactPage);
             }
 
-            if (attachSlotButtons != null)
+            if (attachSlots != null)
             {
-                for (int i = 0; i < attachSlotButtons.Length; i++)
+                for (int i = 0; i < attachSlots.Length; i++)
                 {
-                    if (attachSlotButtons[i] == null) continue;
-                    int slotIdx = i;
-                    attachSlotButtons[i].onClick.RemoveAllListeners();
-                    attachSlotButtons[i].onClick.AddListener(() => OnAttachSlotClicked(slotIdx));
+                    if (attachSlots[i] == null) continue;
+                    attachSlots[i].Initialize(this, i);
                 }
             }
         }
@@ -492,27 +490,28 @@ namespace TheLastEmpire
                     : "No weapons found in your inventory.";
             }
 
-            // อัปเดตช่อง Artifact A1 - A4
+            // อัปเดตช่อง Artifact A1 - A4 (ใช้ ArtifactSlotUI เฉพาะทาง รองรับลากเข้า-ลากออก-สลับช่อง-คลิกถอด)
             string[] equippedSlots = hasWeapon
                 ? WeaponArtifactManager.GetEquippedSlots(currentWeapon)
                 : new string[WeaponArtifactManager.MaxArtifactSlots];
 
             for (int i = 0; i < WeaponArtifactManager.MaxArtifactSlots; i++)
             {
+                if (attachSlots == null || i >= attachSlots.Length || attachSlots[i] == null) continue;
+
+                ArtifactSlotUI uiSlot = attachSlots[i];
+                uiSlot.Initialize(this, i);
+
                 string artName = (equippedSlots != null && i < equippedSlots.Length) ? equippedSlots[i] : null;
-                bool occupied = !string.IsNullOrEmpty(artName);
+                bool occupied = hasWeapon && !string.IsNullOrEmpty(artName);
 
-                if (attachSlotIcons != null && i < attachSlotIcons.Length && attachSlotIcons[i] != null)
+                if (occupied)
                 {
-                    Sprite artIcon = occupied ? ResolveItemIcon(artName) : null;
-                    attachSlotIcons[i].sprite = artIcon;
-                    attachSlotIcons[i].enabled = occupied && artIcon != null;
-                    attachSlotIcons[i].color = occupied ? Color.white : new Color(1f, 1f, 1f, 0f);
+                    uiSlot.SetArtifact(artName, ResolveItemIcon(artName));
                 }
-
-                if (attachSlotButtons != null && i < attachSlotButtons.Length && attachSlotButtons[i] != null)
+                else
                 {
-                    attachSlotButtons[i].interactable = hasWeapon && occupied;
+                    uiSlot.Clear();
                 }
             }
         }
@@ -619,33 +618,55 @@ namespace TheLastEmpire
 
         private void EquipArtifactToSelectedWeapon(string artifactItemName, int targetSlotIndex = -1)
         {
+            EquipArtifactFromListIntoSlot(artifactItemName, targetSlotIndex);
+        }
+
+        public bool EquipArtifactFromListIntoSlot(string artifactItemName, int targetSlotIndex = -1)
+        {
             string weaponName = SelectedWeaponName;
-            if (string.IsNullOrEmpty(weaponName) || _playerInventory == null) return;
+            if (string.IsNullOrEmpty(weaponName) || _playerInventory == null) return false;
 
             if (!WeaponArtifactManager.EquipArtifact(weaponName, artifactItemName, _playerInventory, targetSlotIndex, out string failReason))
             {
                 if (!string.IsNullOrEmpty(failReason)) ShowFeedback(failReason);
-                return;
+                return false;
             }
 
             RefreshUI();
+            return true;
         }
 
-        private void OnAttachSlotClicked(int slotIndex)
+        public bool UnequipArtifactAtSlot(int slotIndex)
         {
             string weaponName = SelectedWeaponName;
-            if (string.IsNullOrEmpty(weaponName) || _playerInventory == null) return;
+            if (string.IsNullOrEmpty(weaponName) || _playerInventory == null) return false;
 
             if (!WeaponArtifactManager.UnequipArtifact(weaponName, slotIndex, _playerInventory, out string failReason))
             {
                 if (!string.IsNullOrEmpty(failReason)) ShowFeedback(failReason);
-                return;
+                return false;
             }
 
             RefreshUI();
+            return true;
+        }
+
+        public bool SwapArtifactSlots(int fromSlotIndex, int toSlotIndex)
+        {
+            string weaponName = SelectedWeaponName;
+            if (string.IsNullOrEmpty(weaponName)) return false;
+
+            bool swapped = WeaponArtifactManager.SwapSlots(weaponName, fromSlotIndex, toSlotIndex);
+            if (swapped) RefreshUI();
+            return swapped;
         }
 
         public bool IsSlotOwnedByWeaponUpgradeUI(InventoryItemSlot slot)
+        {
+            return IsArtifactListSlot(slot);
+        }
+
+        public bool IsArtifactListSlot(InventoryItemSlot slot)
         {
             if (slot == null) return false;
             if (_slotArtifactMap.ContainsKey(slot)) return true;
@@ -653,43 +674,99 @@ namespace TheLastEmpire
             return artifactSlotsContainer != null && slot.transform.IsChildOf(artifactSlotsContainer);
         }
 
+        private int FindAttachSlotUnderPointer(Vector2 screenPos, Camera uiCam)
+        {
+            if (attachSlots == null) return -1;
+            for (int i = 0; i < attachSlots.Length; i++)
+            {
+                if (attachSlots[i] == null) continue;
+                RectTransform slotRt = attachSlots[i].GetComponent<RectTransform>();
+                if (slotRt != null && RectTransformUtility.RectangleContainsScreenPoint(slotRt, screenPos, uiCam))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public bool TryGetAttachSlotDragPreview(ArtifactSlotUI sourceSlot, Vector2 screenPos, Camera uiCam, out string badgeText, out Color badgeColor)
+        {
+            badgeText = string.Empty;
+            badgeColor = Color.white;
+            if (!_isOpen || sourceSlot == null || string.IsNullOrEmpty(SelectedWeaponName)) return false;
+
+            int hoverAttachIdx = FindAttachSlotUnderPointer(screenPos, uiCam);
+            if (hoverAttachIdx >= 0 && hoverAttachIdx != sourceSlot.SlotIndex)
+            {
+                badgeText = $"SWAP -> A{hoverAttachIdx + 1}";
+                badgeColor = new Color(1f, 0.85f, 0.28f, 1f);
+                return true;
+            }
+
+            bool overArtifactPanel = artifactPanelRect != null && RectTransformUtility.RectangleContainsScreenPoint(artifactPanelRect, screenPos, uiCam);
+            bool outsideUpgradePanel = upgradePanelRect != null && !RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam);
+            if (overArtifactPanel || outsideUpgradePanel)
+            {
+                badgeText = "UNEQUIP";
+                badgeColor = new Color(0.25f, 0.88f, 1f, 1f);
+                return true;
+            }
+            return false;
+        }
+
+        public bool HandleAttachSlotDragEnd(ArtifactSlotUI sourceSlot, Vector2 screenPos, Camera uiCam)
+        {
+            if (!_isOpen || sourceSlot == null || string.IsNullOrEmpty(SelectedWeaponName)) return false;
+
+            int dropAttachIdx = FindAttachSlotUnderPointer(screenPos, uiCam);
+            if (dropAttachIdx >= 0 && dropAttachIdx != sourceSlot.SlotIndex)
+            {
+                return SwapArtifactSlots(sourceSlot.SlotIndex, dropAttachIdx);
+            }
+
+            bool overArtifactPanel = artifactPanelRect != null && RectTransformUtility.RectangleContainsScreenPoint(artifactPanelRect, screenPos, uiCam);
+            bool outsideUpgradePanel = upgradePanelRect != null && !RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam);
+            if (overArtifactPanel || outsideUpgradePanel)
+            {
+                return UnequipArtifactAtSlot(sourceSlot.SlotIndex);
+            }
+            return false;
+        }
+
         public bool TryGetDragPreview(InventoryItemSlot sourceSlot, Vector2 screenPos, Camera uiCam, out string badgeText, out Color badgeColor)
         {
             badgeText = string.Empty;
             badgeColor = Color.white;
             if (!_isOpen || sourceSlot == null || string.IsNullOrEmpty(SelectedWeaponName)) return false;
-            if (!IsSlotOwnedByWeaponUpgradeUI(sourceSlot)) return false;
-            if (upgradePanelRect == null || !RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam)) return false;
+            if (!IsArtifactListSlot(sourceSlot)) return false;
 
-            badgeText = "EQUIP ARTIFACT";
-            badgeColor = new Color(0.82f, 0.45f, 1f, 1f);
-            return true;
+            int hoverAttachIdx = FindAttachSlotUnderPointer(screenPos, uiCam);
+            if (hoverAttachIdx >= 0)
+            {
+                badgeText = $"EQUIP -> A{hoverAttachIdx + 1}";
+                badgeColor = new Color(0.82f, 0.45f, 1f, 1f);
+                return true;
+            }
+            if (upgradePanelRect != null && RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam))
+            {
+                badgeText = "EQUIP ARTIFACT";
+                badgeColor = new Color(0.82f, 0.45f, 1f, 1f);
+                return true;
+            }
+
+            return false;
         }
 
         public bool TryHandleArtifactDrop(InventoryItemSlot sourceSlot, Vector2 screenPos, Camera uiCam)
         {
             if (!_isOpen || sourceSlot == null || string.IsNullOrEmpty(SelectedWeaponName)) return false;
             if (!_slotArtifactMap.TryGetValue(sourceSlot, out string artName)) return false;
-            if (upgradePanelRect == null || !RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam)) return false;
 
-            // เช็กว่าปล่อยทับช่อง A1..A4 ช่องไหนโดยตรงหรือเปล่า
-            int targetSlot = -1;
-            if (attachSlotButtons != null)
-            {
-                for (int i = 0; i < attachSlotButtons.Length; i++)
-                {
-                    if (attachSlotButtons[i] == null) continue;
-                    RectTransform slotRt = attachSlotButtons[i].GetComponent<RectTransform>();
-                    if (slotRt != null && RectTransformUtility.RectangleContainsScreenPoint(slotRt, screenPos, uiCam))
-                    {
-                        targetSlot = i;
-                        break;
-                    }
-                }
-            }
+            int targetSlot = FindAttachSlotUnderPointer(screenPos, uiCam);
+            bool overUpgradePanel = upgradePanelRect != null && RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam);
+            if (targetSlot < 0 && !overUpgradePanel) return false;
 
-            EquipArtifactToSelectedWeapon(artName, targetSlot);
-            return true;
+            return EquipArtifactFromListIntoSlot(artName, targetSlot);
         }
 
         // =========================================================================

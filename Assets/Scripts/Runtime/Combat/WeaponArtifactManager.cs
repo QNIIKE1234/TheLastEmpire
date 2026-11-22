@@ -262,6 +262,25 @@ namespace TheLastEmpire
         }
 
         /// <summary>
+        /// สลับตำแหน่ง Artifact ระหว่างช่อง A1..A4 บนอาวุธเดียวกัน
+        /// </summary>
+        public static bool SwapSlots(string weaponName, int fromIndex, int toIndex)
+        {
+            if (string.IsNullOrWhiteSpace(weaponName)) return false;
+            if (fromIndex < 0 || fromIndex >= MaxArtifactSlots || toIndex < 0 || toIndex >= MaxArtifactSlots || fromIndex == toIndex)
+            {
+                return false;
+            }
+
+            string[] slots = GetEquippedSlots(weaponName);
+            string temp = slots[fromIndex];
+            slots[fromIndex] = slots[toIndex];
+            slots[toIndex] = temp;
+            OnWeaponArtifactsChanged?.Invoke(weaponName);
+            return true;
+        }
+
+        /// <summary>
         /// รวมค่าโบนัสจาก Artifact ทั้งหมดที่ติดอยู่บนอาวุธนี้
         /// </summary>
         public static WeaponArtifactModifiers GetAggregatedModifiers(string weaponName)
