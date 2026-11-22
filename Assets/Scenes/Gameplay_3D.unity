@@ -4886,6 +4886,82 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 129867694}
   m_CullTransparentMesh: 1
+--- !u!1 &131252052
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 131252053}
+  - component: {fileID: 131252055}
+  - component: {fileID: 131252054}
+  m_Layer: 5
+  m_Name: Loot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &131252053
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 131252052}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1573386324}
+  m_Father: {fileID: 1997520018}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 150, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &131252054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 131252052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -1865382333, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1.5
+--- !u!222 &131252055
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 131252052}
+  m_CullTransparentMesh: 1
 --- !u!1001 &134320791
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11817,6 +11893,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 346380707}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &346380709 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 346380707}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &347266456
 GameObject:
   m_ObjectHideFlags: 0
@@ -22265,7 +22352,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28.1
+  m_fontSize: 15.7
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -25089,6 +25176,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 816598947}
   m_Mesh: {fileID: 0}
+--- !u!114 &820096349 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 772409167}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &824359403
 GameObject:
   m_ObjectHideFlags: 0
@@ -26393,9 +26491,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1193287764, guid: bcd2e74f786231949af299fce984e7ef, type: 3}
+  m_Sprite: {fileID: 696193391, guid: 8b61fa39e2c37cc4fa97376dcc5c8287, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -29277,6 +29375,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 959009091}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &959009093 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 959009091}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &959622339
 GameObject:
   m_ObjectHideFlags: 0
@@ -30716,6 +30825,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 986243421}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &986243423 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 986243421}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &986261033
 GameObject:
   m_ObjectHideFlags: 0
@@ -31021,6 +31141,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 987904120}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &987904122 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 987904120}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &996104844
 GameObject:
   m_ObjectHideFlags: 0
@@ -31990,6 +32121,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1023023853}
   m_CullTransparentMesh: 1
+--- !u!114 &1026616392 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 939295528}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!114 &1031072706 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
@@ -38581,6 +38723,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1219751536}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1219751538 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1219751536}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1223163068
 GameObject:
   m_ObjectHideFlags: 0
@@ -38793,6 +38946,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1226297964}
   m_CullTransparentMesh: 1
+--- !u!114 &1229393374 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1192459740}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1235625166
 GameObject:
   m_ObjectHideFlags: 0
@@ -39020,6 +39184,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1236456750}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1236456752 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1236456750}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1236701540
 GameObject:
   m_ObjectHideFlags: 0
@@ -46447,6 +46622,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1500000001}
   - component: {fileID: 1500000002}
+  - component: {fileID: 1500000003}
   m_Layer: 5
   m_Name: Storage_HUD
   m_TagString: Untagged
@@ -46482,6 +46658,48 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1500000000}
   m_CullTransparentMesh: 1
+--- !u!114 &1500000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1500000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 531e6116eaac74f4cbaaae41a3e4772f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.StorageUI
+  hudRoot: {fileID: 1500000000}
+  panelObject: {fileID: 985457010}
+  closeButton: {fileID: 1580370739}
+  inventoryTitleText: {fileID: 1606100150}
+  inventorySlotsContainer: {fileID: 1597864118}
+  inventorySlots:
+  - {fileID: 1626029003}
+  - {fileID: 1026616392}
+  - {fileID: 1236456752}
+  - {fileID: 987904122}
+  - {fileID: 1219751538}
+  - {fileID: 820096349}
+  - {fileID: 959009093}
+  inventoryPrevButton: {fileID: 424098520}
+  inventoryNextButton: {fileID: 1978936697}
+  inventoryPageText: {fileID: 1944857083}
+  storageTitleText: {fileID: 724048352}
+  storageSlotsContainer: {fileID: 2108014215}
+  storageSlots:
+  - {fileID: 1900205146}
+  - {fileID: 1757565965}
+  - {fileID: 986243423}
+  - {fileID: 2115974022}
+  - {fileID: 1229393374}
+  - {fileID: 346380709}
+  - {fileID: 1524469221}
+  storagePrevButton: {fileID: 2127870282}
+  storageNextButton: {fileID: 113413172}
+  storagePageText: {fileID: 1833931743}
+  defaultSlotsPerPage: 7
 --- !u!1 &1500000004
 GameObject:
   m_ObjectHideFlags: 0
@@ -48212,6 +48430,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1521512289}
   m_CullTransparentMesh: 1
+--- !u!114 &1524469221 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1273097812}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1525439286
 GameObject:
   m_ObjectHideFlags: 0
@@ -49709,6 +49938,143 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1573103464}
+  m_CullTransparentMesh: 1
+--- !u!1 &1573386323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1573386324}
+  - component: {fileID: 1573386326}
+  - component: {fileID: 1573386325}
+  m_Layer: 5
+  m_Name: HintText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1573386324
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573386323}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 131252053}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 5}
+  m_SizeDelta: {x: 100, y: 60}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1573386325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573386323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: E
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 41.85
+  m_fontSizeBase: 42
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 1
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1573386326
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573386323}
   m_CullTransparentMesh: 1
 --- !u!1 &1580370737
 GameObject:
@@ -51428,6 +51794,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 1626029001}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1626029003 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1626029001}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1629064566
 GameObject:
   m_ObjectHideFlags: 0
@@ -55366,6 +55743,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1744037598}
   m_CullTransparentMesh: 1
+--- !u!114 &1757565965 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 77516774}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &1760403157
 GameObject:
   m_ObjectHideFlags: 0
@@ -59235,6 +59623,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1900032054}
   m_CullTransparentMesh: 1
+--- !u!114 &1900205146 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 1488957236}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1001 &1901199183
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62360,6 +62759,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 75770439}
+  - {fileID: 131252053}
   - {fileID: 2103220348}
   m_Father: {fileID: 386718287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -62389,6 +62789,10 @@ MonoBehaviour:
   closeButton: {fileID: 252136518}
   promptPanel: {fileID: 2103220347}
   promptText: {fileID: 713526378}
+  dialogHintPanel: {fileID: 0}
+  dialogHintText: {fileID: 0}
+  hintFloatAmplitude: 15
+  hintFloatSpeed: 4.2
 --- !u!1 &2006156516
 GameObject:
   m_ObjectHideFlags: 0
@@ -65928,7 +66332,7 @@ GameObject:
   - component: {fileID: 2103220350}
   - component: {fileID: 2103220349}
   m_Layer: 5
-  m_Name: Loot
+  m_Name: DialogHint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -65974,7 +66378,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 239875553, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
+  m_Sprite: {fileID: -1865382333, guid: 5741b25177e932f4b85a2c6259c132a2, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -65983,7 +66387,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 3
+  m_PixelsPerUnitMultiplier: 2
 --- !u!222 &2103220350
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -66476,6 +66880,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5953026062061682832, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
   m_PrefabInstance: {fileID: 2115974020}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2115974022 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7990381912948575205, guid: c5c79feb69cd501478884c50ebe8a4b2, type: 3}
+  m_PrefabInstance: {fileID: 2115974020}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2efe4280acf8c49a184044a3175a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.InventoryItemSlot
 --- !u!1 &2122960011
 GameObject:
   m_ObjectHideFlags: 0
