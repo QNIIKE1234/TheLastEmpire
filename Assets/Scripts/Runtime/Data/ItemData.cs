@@ -13,7 +13,36 @@ namespace TheLastEmpire
         MeleeWeapon,
         ThrowingWeapon,
         Material,
-        Water
+        Water,
+        Artifact
+    }
+
+    [System.Serializable]
+    public class ArtifactModConfig
+    {
+        [Tooltip("รายชื่ออาวุธที่ใส่ Artifact ชิ้นนี้ได้ (เว้นว่าง = ใส่ได้กับทุกอาวุธ) เช่น Sniper Rifle, Shotgun")]
+        public System.Collections.Generic.List<string> compatibleWeaponNames = new System.Collections.Generic.List<string>();
+
+        [Header("Stat Modifiers")]
+        public float bonusDamage = 0f;
+        [Tooltip("ตัวคูณดาเมจเพิ่ม เช่น 0.25 = +25%")]
+        public float damageMultiplier = 0f;
+        [Tooltip("จำนวนกระสุนที่ยิงออกเพิ่มต่อนัด เช่น +1 (สไนเปอร์ยิงออกทีละ 2 ลูก)")]
+        public int bonusPelletsPerShot = 0;
+        [Tooltip("มุมกระจายเพิ่มเมื่อยิงหลายลูกพร้อมกัน (องศา)")]
+        public float extraSpreadAngle = 0f;
+        [Tooltip("ความเร็วการยิงเพิ่ม เช่น 0.20 = ยิงไวขึ้น 20%")]
+        public float fireRateMultiplier = 0f;
+        public int bonusMagazineSize = 0;
+        [Tooltip("ความเร็วรีโหลดเพิ่ม เช่น 0.25 = รีโหลดไวขึ้น 25%")]
+        public float reloadSpeedMultiplier = 0f;
+        public float bonusRange = 0f;
+        public bool grantPierce = false;
+        public bool grantAutomatic = false;
+
+        [Header("Display")]
+        [Tooltip("ข้อความสรุปสั้นๆ (เว้นว่างให้สร้างอัตโนมัติจากค่าสถานะด้านบน)")]
+        public string shortEffectSummary;
     }
 
     [System.Serializable]
@@ -93,6 +122,9 @@ namespace TheLastEmpire
 
         [Header("Ranged/Throwing Weapon Config")]
         public WeaponConfig weaponConfig;
+
+        [Header("Weapon Artifact Config")]
+        public ArtifactModConfig artifactConfig;
     }
 }
 
@@ -125,6 +157,7 @@ namespace TheLastEmpire
             SerializedProperty knockbackForce = serializedObject.FindProperty("knockbackForce");
             SerializedProperty staggerDuration = serializedObject.FindProperty("staggerDuration");
             SerializedProperty weaponConfig = serializedObject.FindProperty("weaponConfig");
+            SerializedProperty artifactConfig = serializedObject.FindProperty("artifactConfig");
 
             EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(itemName);
@@ -165,6 +198,12 @@ namespace TheLastEmpire
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.PropertyField(weaponConfig);
+            }
+
+            if (type.enumValueIndex == (int)ItemType.Artifact)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.PropertyField(artifactConfig, true);
             }
 
             serializedObject.ApplyModifiedProperties();

@@ -692,15 +692,16 @@ namespace TheLastEmpire
                                 if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
                                 {
                                     LootSlot innerSlot = _currentContainer.itemsInside[index];
-                                    if (_playerInventory.CanAddItem(innerSlot.itemName))
+                                    if (_playerInventory.CanAddItem(innerSlot.itemName, innerSlot.quantity) &&
+                                        _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity))
                                     {
-                                        _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
                                         _currentContainer.itemsInside.RemoveAt(index);
                                         TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                                         RefreshUI();
                                     }
                                     else
                                     {
+                                        (TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance)?.ShowInventoryFullFeedback();
                                         Debug.LogWarning($"[LootUI] Cannot take '{innerSlot.itemName}': Inventory full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
                                     }
                                 }
@@ -756,15 +757,16 @@ namespace TheLastEmpire
                         if (_playerInventory != null && _currentContainer != null && index < _currentContainer.itemsInside.Count)
                         {
                             LootSlot innerSlot = _currentContainer.itemsInside[index];
-                            if (_playerInventory.CanAddItem(innerSlot.itemName))
+                            if (_playerInventory.CanAddItem(innerSlot.itemName, innerSlot.quantity) &&
+                                _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity))
                             {
-                                _playerInventory.AddItem(innerSlot.itemName, innerSlot.quantity);
                                 _currentContainer.itemsInside.RemoveAt(index);
                                 TheLastEmpire.Network.NetworkLootManager.Instance?.BroadcastContainerState(_currentContainer);
                                 RefreshUI();
                             }
                             else
                             {
+                                (TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance)?.ShowInventoryFullFeedback();
                                 Debug.LogWarning($"[LootUI] Cannot take '{innerSlot.itemName}': Inventory full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
                             }
                         }
@@ -789,14 +791,23 @@ namespace TheLastEmpire
                 _currentContainer.moneyAmount = 0;
             }
 
+            bool anyBlockedByFullBag = false;
             for (int i = _currentContainer.itemsInside.Count - 1; i >= 0; i--)
             {
                 LootSlot slot = _currentContainer.itemsInside[i];
-                if (_playerInventory.CanAddItem(slot.itemName))
+                if (_playerInventory.CanAddItem(slot.itemName, slot.quantity) &&
+                    _playerInventory.AddItem(slot.itemName, slot.quantity))
                 {
-                    _playerInventory.AddItem(slot.itemName, slot.quantity);
                     _currentContainer.itemsInside.RemoveAt(i);
                 }
+                else
+                {
+                    anyBlockedByFullBag = true;
+                }
+            }
+            if (anyBlockedByFullBag)
+            {
+                (TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance)?.ShowInventoryFullFeedback();
             }
             if (_currentContainer.itemsInside.Count == 0)
             {

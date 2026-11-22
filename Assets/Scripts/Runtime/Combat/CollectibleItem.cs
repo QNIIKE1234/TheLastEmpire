@@ -260,10 +260,11 @@ namespace TheLastEmpire
 
             Vector3 playerTargetPos = _playerTransform.position + Vector3.up * 0.7f;
             float distToPlayer = Vector3.Distance(transform.position, playerTargetPos);
+            bool canCollectNow = CanPlayerCollectThisItem();
 
             if (!_isMagnetizing)
             {
-                if (enableMagnet && distToPlayer <= magnetRange)
+                if (enableMagnet && canCollectNow && distToPlayer <= magnetRange)
                 {
                     if (!_isPopping)
                     {
@@ -274,6 +275,21 @@ namespace TheLastEmpire
 
             if (_isMagnetizing)
             {
+                // หากกระเป๋าเต็มระหว่างดูดเข้าตัว ให้หยุดดูดและวางกลับลงพื้นทันที
+                if (!canCollectNow)
+                {
+                    _isMagnetizing = false;
+                    _currentMagnetSpeed = 0f;
+                    if (_initialScale != Vector3.zero)
+                    {
+                        transform.localScale = _initialScale;
+                    }
+                    Vector3 resetPos = transform.position;
+                    resetPos.y = GROUND_Y;
+                    transform.position = resetPos;
+                    return;
+                }
+
                 // 1. Move & Accelerate towards player
                 _currentMagnetSpeed = Mathf.Min(maxMagnetSpeed, _currentMagnetSpeed + magnetAcceleration * Time.deltaTime);
                 transform.position = Vector3.MoveTowards(transform.position, playerTargetPos, _currentMagnetSpeed * Time.deltaTime);
@@ -390,6 +406,11 @@ namespace TheLastEmpire
                 {
                     _playerController = hitPc;
                 }
+                if (!CanPlayerCollectThisItem())
+                {
+                    _playerController?.ShowInventoryFullFeedback();
+                    return;
+                }
                 if (_playerController != null)
                 {
                     _playerController.CollectItem(this);
@@ -399,6 +420,17 @@ namespace TheLastEmpire
                     Collect();
                 }
             }
+        }
+
+        public bool CanPlayerCollectThisItem()
+        {
+            if (isMoney) return true;
+            PlayerInventory inv = _playerController != null
+                ? _playerController.GetComponent<PlayerInventory>()
+                : PlayerInventory.Instance;
+            if (inv == null) inv = PlayerInventory.Instance;
+            if (inv == null) return true;
+            return inv.CanAddItem(itemName, Mathf.Max(1, quantity));
         }
 
         private void FindPlayer()

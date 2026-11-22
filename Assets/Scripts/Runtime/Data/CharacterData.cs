@@ -180,9 +180,9 @@ namespace TheLastEmpire
         public float foodHealBonus = 0f;
 
         [Header("=== INVENTORY & STORAGE ===")]
-        [Range(18, 30)]
-        [Tooltip("ความจุช่องเก็บของในกระเป๋าสำหรับตัวละครนี้ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
-        public int maxInventorySlots = 20;
+        [Range(18, 50)]
+        [Tooltip("ความจุช่องเก็บของในกระเป๋าสำหรับตัวละครนี้ (ขั้นต่ำ 18 ช่อง, มากสุด 50 ช่อง)")]
+        public int maxInventorySlots = 27;
 
         [Header("=== STARTING ARSENAL & LOADOUT ===")]
         [Tooltip("Starting credits / gold in player pouch.")]

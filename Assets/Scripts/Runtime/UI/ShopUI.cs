@@ -438,8 +438,10 @@ namespace TheLastEmpire
                 return;
             }
 
-            if (!_playerInventory.CanAddItem(item.item.itemName))
+            int buyQty = Mathf.Max(1, item.item.defaultQuantity);
+            if (!_playerInventory.CanAddItem(item.item.itemName, buyQty))
             {
+                (TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance)?.ShowInventoryFullFeedback();
                 Debug.LogWarning($"[ShopUI] Cannot buy {item.item.itemName}: Inventory is full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
                 return;
             }
@@ -447,7 +449,11 @@ namespace TheLastEmpire
             if (!_playerInventory.SpendMoney(price)) return;
 
             // AddItem ให้ตามจำนวน defaultQuantity ที่ตั้งไว้ใน ItemData
-            _playerInventory.AddItem(item.item.itemName, item.item.defaultQuantity);
+            if (!_playerInventory.AddItem(item.item.itemName, buyQty))
+            {
+                if (price > 0) _playerInventory.AddMoney(price);
+                return;
+            }
 
             Debug.Log($"[ShopUI] Bought: {item.item.itemName} x{item.item.defaultQuantity} for ${price}.");
             RefreshUI();

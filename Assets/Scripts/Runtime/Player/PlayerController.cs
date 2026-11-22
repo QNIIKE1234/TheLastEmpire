@@ -1226,6 +1226,7 @@ namespace TheLastEmpire
             bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
                               (LootUI.HasInstance && LootUI.Instance.IsOpen) ||
                               (StorageUI.HasInstance && StorageUI.Instance.IsOpen) ||
+                              (WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen) ||
                               (TheLastEmpire.UI.DialogueUI.Instance != null && TheLastEmpire.UI.DialogueUI.Instance.IsDialogueActive);
             if (isMenuOpen)
             {
@@ -1763,7 +1764,8 @@ namespace TheLastEmpire
             }
             if ((InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) ||
                 (LootUI.HasInstance && LootUI.Instance.IsOpen) ||
-                (StorageUI.HasInstance && StorageUI.Instance.IsOpen)) return;
+                (StorageUI.HasInstance && StorageUI.Instance.IsOpen) ||
+                (WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen)) return;
 
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
@@ -2027,9 +2029,40 @@ namespace TheLastEmpire
             }
         }
 
+        private float _lastInventoryFullNoticeTime = -10f;
+
+        public void ShowInventoryFullFeedback()
+        {
+            if (Time.unscaledTime - _lastInventoryFullNoticeTime < 1.2f) return;
+            _lastInventoryFullNoticeTime = Time.unscaledTime;
+
+            if (DamageNumberManager.Instance != null)
+            {
+                DamageNumberManager.Instance.SpawnDamageNumber(
+                    transform.position + Vector3.up * 2.0f,
+                    0f,
+                    false,
+                    "INVENTORY FULL!"
+                );
+            }
+        }
+
         public void CollectItem(CollectibleItem item)
         {
             if (item == null || item.IsCollected || _inventory == null) return;
+
+            // ตรวจสอบความจุกระเป๋าก่อนส่ง Network Claim เสมอ เพื่อไม่ให้เก็บ/ลบไอเทมเมื่อกระเป๋าเต็ม
+            if (!item.IsMoney)
+            {
+                int qty = Mathf.Max(1, item.Quantity);
+                if (!_inventory.CanAddItem(item.ItemName, qty))
+                {
+                    ShowInventoryFullFeedback();
+                    Debug.LogWarning($"[PlayerController] Cannot collect '{item.ItemName}' x{qty}: Inventory full ({_inventory.UsedSlots}/{_inventory.MaxSlots} slots used)!");
+                    return;
+                }
+            }
+
             if (TryNetworkClaimCollectible(item)) return;
             if (item.IsMoney)
             {
@@ -2038,12 +2071,12 @@ namespace TheLastEmpire
             }
             else
             {
-                if (!_inventory.CanAddItem(item.ItemName))
+                int qty = Mathf.Max(1, item.Quantity);
+                if (!_inventory.AddItem(item.ItemName, qty))
                 {
-                    Debug.LogWarning($"[PlayerController] Cannot collect '{item.ItemName}': Inventory full ({_inventory.UsedSlots}/{_inventory.MaxSlots} slots used)!");
+                    ShowInventoryFullFeedback();
                     return;
                 }
-                _inventory.AddItem(item.ItemName, item.Quantity);
                 item.Collect();
             }
             OnAmmoChanged?.Invoke();
@@ -2077,8 +2110,16 @@ namespace TheLastEmpire
             }
             OnAmmoChanged?.Invoke();
 
+            WeaponArtifactModifiers artifactMods = activeWeapon != null
+                ? WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName)
+                : default;
+
             // Set cooldown
             float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
+            if (artifactMods.fireRateMultiplier > 0f)
+            {
+                rate /= (1f + artifactMods.fireRateMultiplier);
+            }
             if (_activeShiftAbility != null && _activeShiftAbility.IsActive && _activeShiftAbility is AdrenalineRushAbility)
             {
                 float atkBonus = activeCharacterData != null ? activeCharacterData.adrenalineAttackSpeedBonus : 0.30f;
@@ -2172,8 +2213,16 @@ namespace TheLastEmpire
 
             Projectile weaponProjectilePrefab = activeWeapon != null ? activeWeapon.projectilePrefab : projectilePrefab;
 
-            int pellets = (activeWeapon != null && activeWeapon.pelletsPerShot > 0) ? activeWeapon.pelletsPerShot : 1;
+            int pellets = ((activeWeapon != null && activeWeapon.pelletsPerShot > 0) ? activeWeapon.pelletsPerShot : 1) + Mathf.Max(0, artifactMods.bonusPellets);
             float spread = (activeWeapon != null) ? activeWeapon.spreadAngle : 0f;
+            if (artifactMods.extraSpreadAngle > 0f)
+            {
+                spread += artifactMods.extraSpreadAngle;
+            }
+            else if (artifactMods.bonusPellets > 0 && spread < 2.5f)
+            {
+                spread = 3.0f; // มุมแยกเล็กน้อยเมื่อ Artifact เพิ่มลูกกระสุน (เช่น สไนเปอร์ยิงออกทีละ 2 ลูก)
+            }
 
             for (int i = 0; i < pellets; i++)
             {
@@ -2271,7 +2320,9 @@ namespace TheLastEmpire
                                 }
                             }
                         }
-                        float finalDamage = basePlayerDamage + itemDamage;
+                        float finalDamage = (basePlayerDamage + itemDamage + artifactMods.bonusDamage) * (1f + artifactMods.damageMultiplier);
+                        weaponRange += artifactMods.bonusRange;
+                        bool effectivePierce = activeWeapon.canPierce || artifactMods.grantPierce;
 
                         // Effective falloff range (e.g. standard 14m, snipers extend further)
                         float effectiveFalloffDist = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
@@ -2281,7 +2332,7 @@ namespace TheLastEmpire
                         }
 
                         string visualId = ResolveProjectileVisualId(activeWeapon);
-                        proj.SetStats(finalDamage, weaponRange, activeWeapon.canPierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
+                        proj.SetStats(finalDamage, weaponRange, effectivePierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
 
                         if (isRocketLauncher)
                         {

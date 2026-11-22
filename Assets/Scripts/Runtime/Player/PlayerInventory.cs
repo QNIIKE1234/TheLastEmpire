@@ -33,9 +33,9 @@ namespace TheLastEmpire
         [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
         [Header("Inventory Capacity")]
-        [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 30 ช่อง)")]
-        [Range(18, 30)]
-        [SerializeField] private int maxSlots = 20;
+        [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 50 ช่อง)")]
+        [Range(18, 50)]
+        [SerializeField] private int maxSlots = 27;
 
         [Header("Starting Loadout")]
         [SerializeField] private PlayerConfigSO playerConfig;
@@ -112,7 +112,7 @@ namespace TheLastEmpire
                         money = playerConfig.startingMoney;
                         if (playerConfig.maxInventorySlots >= 18)
                         {
-                            maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 30);
+                            maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 50);
                         }
                     }
 
@@ -173,7 +173,7 @@ namespace TheLastEmpire
         /// </summary>
         public void SetMaxSlots(int slots)
         {
-            maxSlots = Mathf.Clamp(slots, 18, 30);
+            maxSlots = Mathf.Clamp(slots, 18, 50);
             Debug.Log($"[PlayerInventory] Max inventory slots configured to: {maxSlots}");
             OnInventoryChanged?.Invoke();
         }

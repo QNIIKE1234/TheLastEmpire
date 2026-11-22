@@ -205,6 +205,25 @@ namespace TheLastEmpire
         }
 
         // =========================================================================
+        //  3.5 Weapon Upgrade / Artifact Panel
+        // =========================================================================
+
+        public void OpenWeaponUpgrade()
+        {
+            WeaponUpgradeUI.Instance?.Open();
+        }
+
+        public void CloseWeaponUpgrade()
+        {
+            if (WeaponUpgradeUI.HasInstance) WeaponUpgradeUI.Instance.Close();
+        }
+
+        public void ToggleWeaponUpgrade()
+        {
+            WeaponUpgradeUI.Instance?.Toggle();
+        }
+
+        // =========================================================================
         //  4. Back Button & Close All Helper
         // =========================================================================
 

@@ -225,6 +225,10 @@ namespace TheLastEmpire
                         label = "MATERIAL";
                         color = new Color(0.35f, 0.85f, 1f, 1f);
                         break;
+                    case ItemType.Artifact:
+                        label = "ARTIFACT";
+                        color = new Color(0.82f, 0.45f, 1f, 1f);
+                        break;
                     default:
                         label = "ETC";
                         color = new Color(0.7f, 0.7f, 0.7f, 1f);
@@ -375,6 +379,22 @@ namespace TheLastEmpire
                 UpdateGhostPosition(rootCanvas, eventData.position);
             }
 
+            // แสดงข้อความบอกสถานะการติดตั้ง Artifact เมื่อลากไปฝั่งอาวุธใน WeaponUpgradeUI
+            if (_dragGhostDropBadge != null && WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen && WeaponUpgradeUI.Instance.IsSlotOwnedByWeaponUpgradeUI(this))
+            {
+                if (WeaponUpgradeUI.Instance.TryGetDragPreview(this, eventData.position, eventData.pressEventCamera, out string badgeText, out Color badgeColor))
+                {
+                    _dragGhostDropBadge.gameObject.SetActive(true);
+                    _dragGhostDropBadge.text = badgeText;
+                    _dragGhostDropBadge.color = badgeColor;
+                }
+                else
+                {
+                    _dragGhostDropBadge.gameObject.SetActive(false);
+                }
+                return;
+            }
+
             // แสดงข้อความบอกสถานะการฝาก/ถอนเมื่อลากข้ามฝั่งใน StorageUI
             if (_dragGhostDropBadge != null && StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.IsSlotOwnedByStorageUI(this))
             {
@@ -431,6 +451,19 @@ namespace TheLastEmpire
             if (_dragGhostDropBadge != null)
             {
                 _dragGhostDropBadge.gameObject.SetActive(false);
+            }
+
+            // ถ้าเปิด WeaponUpgradeUI อยู่และลาก Artifact ไปปล่อยบนแผงอาวุธ -> ติดตั้งทันที!
+            if (!ConsumedByDropTarget &&
+                !string.IsNullOrEmpty(draggedItem) &&
+                WeaponUpgradeUI.HasInstance &&
+                WeaponUpgradeUI.Instance.IsOpen &&
+                WeaponUpgradeUI.Instance.IsSlotOwnedByWeaponUpgradeUI(this))
+            {
+                if (WeaponUpgradeUI.Instance.TryHandleArtifactDrop(this, eventData.position, eventData.pressEventCamera))
+                {
+                    ConsumedByDropTarget = true;
+                }
             }
 
             // ถ้าเปิด StorageUI อยู่และลากปล่อยข้ามฝั่ง (Inventory <-> Storage) -> ฝาก/ถอนทันที!
