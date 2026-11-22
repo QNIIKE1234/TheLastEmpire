@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Chibi_ZombieNormal_Rigged__Mat_Hair_DarkCurly
-  m_Shader: {fileID: 4800000, guid: 58c4531c9c06d5b41be761bb758b2df1, type: 3}
+  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -17,7 +17,8 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
@@ -95,7 +96,7 @@ Material:
     - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 1.35
+    - _BumpScale: 0
     - _CavityStrength: 0.32
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -107,7 +108,7 @@ Material:
     - _DetailStrength: 0.85
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _EnvironmentReflections: 1
+    - _EnvironmentReflections: 0.35
     - _GlossMapScale: 1
     - _Glossiness: 0.08
     - _GlossyReflections: 1
@@ -117,7 +118,7 @@ Material:
     - _Parallax: 0.02
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _Smoothness: 0.1
+    - _Smoothness: 0.08
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -129,8 +130,8 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.2716997, g: 0.22091627, b: 0.18974823, a: 1}
-    - _Color: {r: 0.2716997, g: 0.22091627, b: 0.18974823, a: 1}
+    - _BaseColor: {r: 0.27169967, g: 0.22091624, b: 0.1897482, a: 1}
+    - _Color: {r: 0.27169967, g: 0.22091624, b: 0.1897482, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

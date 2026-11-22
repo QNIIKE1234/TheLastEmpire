@@ -286,7 +286,7 @@ namespace TheLastEmpire.Editor
         {
             if (mat == null) return;
             string n = mat.name;
-            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack") || n.Contains("Boil_Glow") || n.Contains("Glasses") || n.Contains("AcidGlow") || n.Contains("Parasite");
+            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack") || n.Contains("Boil_Glow") || n.Contains("Glasses") || n.Contains("AcidGlow");
             bool isMetal = n.Contains("Gold") || n.Contains("Silver") || n.Contains("Baton_Silver") || n.Contains("Buckle") ||
                            n.Contains("Steel") || n.Contains("Rebar") || n.Contains("Iron");
 

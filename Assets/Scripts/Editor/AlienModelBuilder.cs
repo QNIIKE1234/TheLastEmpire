@@ -268,43 +268,28 @@ namespace TheLastEmpire.Editor
             }
             else if (n.Contains("AlienHook_"))
             {
-                // Panoptes horror-flesh palette (warm peach-tan flesh, jet-black hair/crest, crimson accents, ghostly white eyeball)
                 if (n.Contains("CyclopsEye"))
                 {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.94f);
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.85f);
                     if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
-                }
-                else if (n.Contains("BioGlow"))
-                {
-                    SetEmission(mat, new Color(0.85f, 0.20f, 0.22f) * 0.75f, smoothness: 0.72f);
-                }
-                else if (n.Contains("CraniumBio") || n.Contains("Purple") || n.Contains("Indigo"))
-                {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.68f);
-                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.06f);
                 }
                 else
                 {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.48f);
-                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.08f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
                 }
             }
             else if (n.Contains("AlienCrawler_"))
             {
-                if (n.Contains("EyeWhite") || n.Contains("Tongue"))
+                if (n.Contains("EyeWhite") || n.Contains("Pupil"))
                 {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.86f);
-                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
-                }
-                else if (n.Contains("Fur"))
-                {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.14f);
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.85f);
                     if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
                 }
                 else
                 {
-                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.46f);
-                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.08f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
                 }
             }
             else if (n.Contains("CyclopsEye"))
@@ -333,25 +318,24 @@ namespace TheLastEmpire.Editor
             }
             else if (n.Contains("AlienNormal_Flesh") || n.Contains("AlienNormal_BloodVein"))
             {
-                // Glossy wet fleshy worm skin finish
-                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.66f);
-                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+                // Clean Chibi-Matte finish matching Chibi_PunkGirl
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.08f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
             }
             else if (n.Contains("AlienNormal_GumLip") || n.Contains("AlienNormal_Tongue") || n.Contains("AlienNormal_Saliva"))
             {
-                // Extra wet glossy mouth/tongue/saliva
-                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.85f);
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.25f);
                 if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
             }
             else if (n.Contains("AlienNormal_BoneFang"))
             {
-                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.72f);
-                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.05f);
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.20f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
             }
             else
             {
-                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.45f);
-                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.10f);
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.08f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
             }
         }
 
