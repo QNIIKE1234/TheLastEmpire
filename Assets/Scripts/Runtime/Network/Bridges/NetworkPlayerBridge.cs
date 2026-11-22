@@ -86,7 +86,18 @@ namespace TheLastEmpire.Network
         //  Ranged & Melee Combat RPC Sync (0ms Client Prediction)
         // =====================================================
 
-        public void NotifyLocalWeaponFired(Vector3 spawnPos, Vector3 aimDir, Vector3 targetPoint, string weaponName, float damage, float range, bool isRocket)
+        public void NotifyLocalWeaponFired(
+            Vector3 spawnPos,
+            Vector3 aimDir,
+            Vector3 targetPoint,
+            string weaponName,
+            float damage,
+            float range,
+            bool isRocket,
+            int pelletCount = 1,
+            float spreadAngle = 0f,
+            bool canPierce = false,
+            string visualId = "Bullet")
         {
             if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
 
@@ -105,7 +116,11 @@ namespace TheLastEmpire.Network
                 pelletSeed = UnityEngine.Random.Range(1, 999999),
                 damage = damage,
                 weaponRange = range,
-                isRocketLauncher = isRocket
+                isRocketLauncher = isRocket,
+                pelletCount = Mathf.Max(1, pelletCount),
+                spreadAngle = spreadAngle,
+                canPierce = canPierce,
+                visualId = string.IsNullOrEmpty(visualId) ? "Bullet" : visualId
             };
 
             FireProjectileServerRpc(payload);
@@ -152,32 +167,47 @@ namespace TheLastEmpire.Network
             }
 
             PlayerController shooter = PlayerRegistry.GetPlayerByClientId(payload.shooterClientId);
-            GameObject bulletObj = null;
-            if (ObjectPoolManager.Instance != null)
-            {
-                bulletObj = ObjectPoolManager.Instance.SpawnFromPool("Bullet", payload.spawnPosition, Quaternion.LookRotation(payload.aimDirection.sqrMagnitude > 0.01f ? payload.aimDirection : Vector3.forward));
-            }
-            if (bulletObj == null)
-            {
-                GameObject prefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BulletPrefabs");
-                if (prefab != null)
-                {
-                    bulletObj = Instantiate(prefab, payload.spawnPosition, Quaternion.LookRotation(payload.aimDirection.sqrMagnitude > 0.01f ? payload.aimDirection : Vector3.forward));
-                }
-            }
+            int pellets = Mathf.Max(1, payload.pelletCount);
+            float spread = Mathf.Max(0f, payload.spreadAngle);
+            string visualId = string.IsNullOrEmpty(payload.visualId) ? "Bullet" : payload.visualId;
+            Vector3 baseDir = payload.aimDirection.sqrMagnitude > 0.01f ? payload.aimDirection.normalized : Vector3.forward;
 
-            if (bulletObj != null)
+            for (int i = 0; i < pellets; i++)
             {
-                Projectile proj = bulletObj.GetComponent<Projectile>();
-                if (proj != null)
+                Vector3 bulletDir = baseDir;
+                if (spread > 0f && pellets > 1)
                 {
-                    // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual (ดาเมจที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest เพื่อไม่ให้คิดดาเมจเบิ้ล)
-                    proj.SetStats(0f, payload.weaponRange, false, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, "Bullet");
-                    if (payload.isRocketLauncher)
+                    float angleOffset = Mathf.Lerp(-spread * 0.5f, spread * 0.5f, (float)i / (pellets - 1));
+                    bulletDir = Quaternion.Euler(0f, angleOffset, 0f) * baseDir;
+                }
+
+                GameObject bulletObj = null;
+                if (ObjectPoolManager.Instance != null)
+                {
+                    bulletObj = ObjectPoolManager.Instance.SpawnFromPool("Bullet", payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                }
+                if (bulletObj == null)
+                {
+                    GameObject prefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BulletPrefabs");
+                    if (prefab != null)
                     {
-                        proj.ConfigureExplosiveOverride(13f, 2.5f, "Explosion");
+                        bulletObj = Instantiate(prefab, payload.spawnPosition, Quaternion.LookRotation(bulletDir));
                     }
-                    proj.Setup(payload.aimDirection, payload.aimTargetPoint, shooter != null ? shooter.gameObject : null, "Bullet");
+                }
+
+                if (bulletObj != null)
+                {
+                    Projectile proj = bulletObj.GetComponent<Projectile>();
+                    if (proj != null)
+                    {
+                        // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual (ดาเมจที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest เพื่อไม่ให้คิดดาเมจเบิ้ล)
+                        proj.SetStats(0f, payload.weaponRange, payload.canPierce, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, visualId);
+                        if (payload.isRocketLauncher)
+                        {
+                            proj.ConfigureExplosiveOverride(13f, 2.5f, "Explosion");
+                        }
+                        proj.Setup(bulletDir, payload.aimTargetPoint, shooter != null ? shooter.gameObject : null, visualId);
+                    }
                 }
             }
         }

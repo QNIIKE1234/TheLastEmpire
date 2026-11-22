@@ -125,6 +125,10 @@ namespace TheLastEmpire.Network
         public float damage;
         public float weaponRange;
         public bool isRocketLauncher;
+        public int pelletCount;
+        public float spreadAngle;
+        public bool canPierce;
+        public string visualId;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -139,6 +143,10 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref damage);
             serializer.SerializeValue(ref weaponRange);
             serializer.SerializeValue(ref isRocketLauncher);
+            serializer.SerializeValue(ref pelletCount);
+            serializer.SerializeValue(ref spreadAngle);
+            serializer.SerializeValue(ref canPierce);
+            serializer.SerializeValue(ref visualId);
         }
     }
 

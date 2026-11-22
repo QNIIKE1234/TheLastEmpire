@@ -1802,7 +1802,8 @@ namespace TheLastEmpire
                         _fireBufferTimer = 0.18f; // 180ms responsive buffer window
                     }
 
-                    bool isAuto = CurrentWeapon != null && CurrentWeapon.isAutomatic && IsHoldingRanged;
+                    bool artifactAuto = CurrentWeapon != null && WeaponArtifactManager.GetAggregatedModifiers(CurrentWeapon.weaponName).grantAutomatic;
+                    bool isAuto = CurrentWeapon != null && (CurrentWeapon.isAutomatic || artifactAuto) && IsHoldingRanged;
                     bool wantToAttack = (isAuto && Mouse.current.leftButton.isPressed) || _fireBufferTimer > 0f;
 
                     if (wantToAttack && _meleeAnimTimer <= 0f)
@@ -2369,8 +2370,17 @@ namespace TheLastEmpire
                     {
                         bool isRocket = !string.IsNullOrEmpty(activeWeapon.weaponName) &&
                                         activeWeapon.weaponName.IndexOf("Rocket", System.StringComparison.OrdinalIgnoreCase) >= 0;
-                        float netDmg = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0 ? activeCharacterData.baseRangedDamage : 10f);
-                        NotifyNetworkShoot(spawnPos, bulletDir, _aimTargetPoint, activeWeapon.weaponName, netDmg, activeWeapon.range, isRocket);
+                        float baseNetDmg = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0 ? activeCharacterData.baseRangedDamage : 10f);
+                        float itemNetDmg = 0f;
+                        if (ItemDatabase.Instance != null)
+                        {
+                            ItemData wItem = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                            if (wItem != null) itemNetDmg = wItem.damage;
+                        }
+                        float netDmg = (baseNetDmg + itemNetDmg + artifactMods.bonusDamage) * (1f + artifactMods.damageMultiplier);
+                        float netRange = activeWeapon.range + artifactMods.bonusRange;
+                        bool netPierce = activeWeapon.canPierce || artifactMods.grantPierce;
+                        NotifyNetworkShoot(spawnPos, _aimDirection, _aimTargetPoint, activeWeapon.weaponName, netDmg, netRange, isRocket, pellets, spread, netPierce, arcVisualId);
                     }
                 }
             }
@@ -2529,7 +2539,15 @@ namespace TheLastEmpire
                     if (item.staggerDuration > 0.01f) activeStagger = item.staggerDuration;
                 }
             }
-            float activeDamage = basePlayerDamage + itemDamage;
+            WeaponArtifactModifiers meleeArtMods = !string.IsNullOrEmpty(wName)
+                ? WeaponArtifactManager.GetAggregatedModifiers(wName)
+                : default;
+            activeRadius += meleeArtMods.bonusRange;
+            if (meleeArtMods.fireRateMultiplier > 0f)
+            {
+                activeRate /= (1f + meleeArtMods.fireRateMultiplier);
+            }
+            float activeDamage = (basePlayerDamage + itemDamage + meleeArtMods.bonusDamage) * (1f + meleeArtMods.damageMultiplier);
 
             // --- Weapon Special Effects (from Weapon GDD) ---
             bool isKatana = wName.IndexOf("Katana", System.StringComparison.OrdinalIgnoreCase) >= 0;
@@ -3321,8 +3339,9 @@ namespace TheLastEmpire
             Weapon activeWeapon = CurrentWeapon;
             if (activeWeapon == null) return; // ถ้าไม่ใส่ปืน ห้ามรีโหลด
             
+            WeaponArtifactModifiers reloadMods = WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName);
             int mag = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
-            int magSize = activeWeapon != null ? activeWeapon.magazineSize : magazineSize;
+            int magSize = (activeWeapon != null ? activeWeapon.magazineSize : magazineSize) + Mathf.Max(0, reloadMods.bonusMagazineSize);
             
             string ammoType = "Pistol Ammo";
             if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.ammoType))
@@ -3331,7 +3350,7 @@ namespace TheLastEmpire
             }
             int reserve = GetAmmoReserveCount(ammoType);
 
-            if (_isReloading || mag == magSize || reserve <= 0)
+            if (_isReloading || mag >= magSize || reserve <= 0)
             {
                 return;
             }
@@ -3344,7 +3363,14 @@ namespace TheLastEmpire
             OnAmmoChanged?.Invoke();
 
             Weapon activeWeapon = CurrentWeapon;
+            WeaponArtifactModifiers reloadMods = activeWeapon != null
+                ? WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName)
+                : default;
             float duration = activeWeapon != null ? activeWeapon.reloadDuration : reloadDuration;
+            if (reloadMods.reloadSpeedMultiplier > 0f)
+            {
+                duration /= (1f + reloadMods.reloadSpeedMultiplier);
+            }
 
             yield return new WaitForSeconds(duration);
 
@@ -3358,7 +3384,9 @@ namespace TheLastEmpire
 
             if (activeWeapon != null)
             {
-                int needed = activeWeapon.magazineSize - activeWeapon.currentMagazine;
+                WeaponArtifactModifiers postMods = WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName);
+                int effectiveMagSize = activeWeapon.magazineSize + Mathf.Max(0, postMods.bonusMagazineSize);
+                int needed = Mathf.Max(0, effectiveMagSize - activeWeapon.currentMagazine);
                 int reserve = GetAmmoReserveCount(ammoType);
                 int toLoad = Mathf.Min(needed, reserve);
                 activeWeapon.currentMagazine += toLoad;

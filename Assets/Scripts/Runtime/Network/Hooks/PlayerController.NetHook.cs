@@ -635,13 +635,24 @@ namespace TheLastEmpire
         //  Combat & Loot Network Notification Hooks
         // =====================================================
 
-        private void NotifyNetworkShoot(Vector3 spawnPos, Vector3 aimDir, Vector3 targetPoint, string weaponName, float finalDamage, float weaponRange, bool isRocket)
+        private void NotifyNetworkShoot(
+            Vector3 spawnPos,
+            Vector3 aimDir,
+            Vector3 targetPoint,
+            string weaponName,
+            float finalDamage,
+            float weaponRange,
+            bool isRocket,
+            int pelletCount = 1,
+            float spreadAngle = 0f,
+            bool canPierce = false,
+            string visualId = "Bullet")
         {
             if (IsRemotePlayer || !EmpireNetworkManager.IsOnline) return;
             NetworkPlayerBridge bridge = GetComponent<NetworkPlayerBridge>();
             if (bridge != null)
             {
-                bridge.NotifyLocalWeaponFired(spawnPos, aimDir, targetPoint, weaponName, finalDamage, weaponRange, isRocket);
+                bridge.NotifyLocalWeaponFired(spawnPos, aimDir, targetPoint, weaponName, finalDamage, weaponRange, isRocket, pelletCount, spreadAngle, canPierce, visualId);
             }
         }
 

@@ -363,15 +363,15 @@ namespace TheLastEmpire
         {
             if (_playerInventory != null) return;
 
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
+            PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (localPlayer != null && !localPlayer.IsRemotePlayer)
             {
-                _playerInventory = playerObj.GetComponent<PlayerInventory>();
+                _playerInventory = localPlayer.GetComponent<PlayerInventory>();
             }
 
             if (_playerInventory == null)
             {
-                _playerInventory = FindAnyObjectByType<PlayerInventory>();
+                _playerInventory = PlayerInventory.Instance ?? FindAnyObjectByType<PlayerInventory>();
             }
 
             if (_playerInventory != null)

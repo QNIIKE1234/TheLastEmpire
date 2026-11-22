@@ -27,14 +27,17 @@ namespace TheLastEmpire.Network
         private int _nextHostDropId = 1000;
         private readonly Dictionary<int, CollectibleItem> _trackedItemsById = new Dictionary<int, CollectibleItem>();
         private readonly HashSet<int> _claimedDropIds = new HashSet<int>();
+        private readonly Dictionary<int, float> _pendingClientClaimTime = new Dictionary<int, float>();
         private readonly Dictionary<string, SyncedContainerState> _syncedContainerStates = new Dictionary<string, SyncedContainerState>();
 
         public void ClearMatchLootCache()
         {
             _trackedItemsById.Clear();
             _claimedDropIds.Clear();
+            _pendingClientClaimTime.Clear();
             _syncedContainerStates.Clear();
             _nextHostDropId = 1000;
+            WeaponArtifactManager.ClearAll();
         }
 
         private static string BuildContainerKey(int stageX, int stageY, float posX, float posZ)
@@ -522,8 +525,18 @@ namespace TheLastEmpire.Network
         public void RequestClaimLootFromClient(CollectibleItem item)
         {
             if (item == null || item.IsCollected || EmpireNetworkManager.Instance == null) return;
+            if (!item.CanPlayerCollectThisItem())
+            {
+                (PlayerRegistry.LocalPlayer ?? PlayerController.Instance)?.ShowInventoryFullFeedback();
+                return;
+            }
 
             int dropId = ComputeDeterministicDropId(item);
+            if (_pendingClientClaimTime.TryGetValue(dropId, out float lastSent) && Time.unscaledTime - lastSent < 1.0f)
+            {
+                return; // ป้องกันส่ง Claim ซ้ำทุกเฟรมระหว่างรอ Host ตอบกลับ
+            }
+            _pendingClientClaimTime[dropId] = Time.unscaledTime;
             _trackedItemsById[dropId] = item;
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootClaimRequest, w =>
@@ -563,15 +576,41 @@ namespace TheLastEmpire.Network
         public void HandleLootClaimResultOnClient(int dropId, ulong winnerClientId, string itemName, int quantity, bool isMoney, int moneyAmount)
         {
             _claimedDropIds.Add(dropId);
+            _pendingClientClaimTime.Remove(dropId);
 
             // หากเครื่องเราเป็นคนที่ได้รับสิทธิ์เก็บไอเทมชิ้นนี้ ให้เสกเข้ากระเป๋า
             if (EmpireNetworkManager.Instance != null && winnerClientId == EmpireNetworkManager.Instance.LocalClientId)
             {
-                PlayerInventory inv = PlayerInventory.Instance;
+                PlayerController localPlayer = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                PlayerInventory inv = localPlayer != null ? localPlayer.GetComponent<PlayerInventory>() : PlayerInventory.Instance;
+                if (inv == null) inv = PlayerInventory.Instance;
+
                 if (inv != null)
                 {
-                    if (isMoney) inv.AddMoney(moneyAmount);
-                    else inv.AddItem(itemName, quantity);
+                    if (isMoney)
+                    {
+                        inv.AddMoney(moneyAmount);
+                    }
+                    else
+                    {
+                        int safeQty = Mathf.Max(1, quantity);
+                        bool added = inv.CanAddItem(itemName, safeQty) && inv.AddItem(itemName, safeQty);
+                        if (!added)
+                        {
+                            // กรณีกระเป๋าเพิ่งเต็มพอดีระหว่างรอ Host ตอบกลับ: โยนไอเทมกลับลงพื้นให้เพื่อน/ตัวเองเก็บใหม่ได้ ไม่หายฟรี!
+                            localPlayer?.ShowInventoryFullFeedback();
+                            Vector3 dropPos = localPlayer != null ? localPlayer.transform.position : Vector3.zero;
+                            dropPos.y = CollectibleItem.GROUND_Y;
+                            if (EmpireNetworkManager.IsOnlineClient)
+                            {
+                                RequestClientDropItemToHost(itemName, safeQty, dropPos);
+                            }
+                            else
+                            {
+                                InventoryUI.SpawnManualPickupDropLocally(itemName, safeQty, dropPos);
+                            }
+                        }
+                    }
                 }
             }
 
