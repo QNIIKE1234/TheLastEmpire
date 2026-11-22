@@ -21,7 +21,8 @@ namespace TheLastEmpire.Editor
             if (string.IsNullOrEmpty(assetPath)) return false;
             return assetPath.Contains("Alien_Smart_Rigged") ||
                    assetPath.Contains("Alien_Hook_Rigged") ||
-                   assetPath.Contains("Alien_Normal_Rigged");
+                   assetPath.Contains("Alien_Normal_Rigged") ||
+                   assetPath.Contains("Alien_Invisible_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -79,7 +80,8 @@ namespace TheLastEmpire.Editor
                 if (!string.IsNullOrEmpty(path) &&
                     (path.Contains("Alien_Smart_Rigged.fbx") ||
                      path.Contains("Alien_Hook_Rigged.fbx") ||
-                     path.Contains("Alien_Normal_Rigged.fbx")))
+                     path.Contains("Alien_Normal_Rigged.fbx") ||
+                     path.Contains("Alien_Invisible_Rigged.fbx")))
                 {
                     EditorApplication.delayCall += AlienModelBuilder.EnsureAlienModelsBuiltAuto;
                     break;
@@ -138,6 +140,16 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Alien_Normal", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
                 localScale = new Vector3(0.95f, 0.95f, 0.95f)
+            },
+            new AlienSetupSpec
+            {
+                fbxPath = $"{AlienFbxDir}/Alien_Invisible_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Alien_Invisible_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/AlienInvisible.prefab",
+                childRootName = "Alien_Invisible_Rigged_Model",
+                legacyChildNamesToRemove = new[] { "Alien_Invisible", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.0f, 1.0f, 1.0f)
             }
         };
 
@@ -173,7 +185,7 @@ namespace TheLastEmpire.Editor
             }
         }
 
-        [MenuItem("Tools/The Last Empire/Apply Rigged Alien Models (Smart, Hook & Normal)")]
+        [MenuItem("Tools/The Last Empire/Apply Rigged Alien Models (Smart, Hook, Normal & Invisible)")]
         public static void BuildFromMenu()
         {
             BuildAndApplyAll(true);
@@ -224,7 +236,25 @@ namespace TheLastEmpire.Editor
                 return;
             }
 
-            if (n.Contains("CyclopsEye"))
+            if (n.Contains("AlienInv_CyclopsEye"))
+            {
+                // Iconic glowing Enderman purple-magenta single cyclops eye!
+                SetEmission(mat, new Color(0.95f, 0.25f, 1.0f) * 2.6f, smoothness: 0.95f);
+            }
+            else if (n.Contains("AlienInv_EyeCore"))
+            {
+                SetEmission(mat, new Color(1.0f, 0.90f, 1.0f) * 3.4f, smoothness: 0.98f);
+            }
+            else if (n.Contains("AlienInv_VoidPulse") || n.Contains("AlienInv_VoidMouth"))
+            {
+                SetEmission(mat, new Color(0.58f, 0.10f, 0.92f) * 1.4f, smoothness: 0.72f);
+            }
+            else if (n.Contains("AlienInv_Obsidian") || n.Contains("AlienInv_ShadowTrim"))
+            {
+                if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.56f);
+                if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.14f);
+            }
+            else if (n.Contains("CyclopsEye"))
             {
                 SetEmission(mat, new Color(0.98f, 0.94f, 0.14f) * 2.0f, smoothness: 0.92f);
             }

@@ -222,18 +222,86 @@ namespace TheLastEmpire
             }
         }
 
+        private Renderer[] _invisRenderers;
+        private float _invisCurrentAlpha = 1f;
+        private bool _invisTransparentMode;
+
         private void HandleInvisibilityFade()
         {
-            if (alienType != AlienType.Invisible || _spriteRenderer == null) return;
+            if (alienType != AlienType.Invisible || playerTransform == null) return;
 
-            if (playerTransform != null)
+            float dist = Vector3.Distance(transform.position, playerTransform.position);
+            float targetAlpha = dist <= fadeDistance ? 1f : 0.10f; // nearly invisible ghost shadow when far
+            _invisCurrentAlpha = Mathf.MoveTowards(_invisCurrentAlpha, targetAlpha, Time.fixedDeltaTime * 2.2f);
+
+            if (_spriteRenderer != null)
             {
-                float dist = Vector3.Distance(transform.position, playerTransform.position);
-                float targetAlpha = dist <= fadeDistance ? 1f : 0.08f; // nearly invisible if far
-                
                 Color col = _spriteRenderer.color;
-                col.a = Mathf.MoveTowards(col.a, targetAlpha, Time.fixedDeltaTime * 2f);
+                col.a = _invisCurrentAlpha;
                 _spriteRenderer.color = col;
+            }
+
+            if (_invisRenderers == null || _invisRenderers.Length == 0)
+            {
+                _invisRenderers = GetComponentsInChildren<Renderer>(true);
+            }
+
+            bool wantTransparent = _invisCurrentAlpha < 0.98f;
+            for (int i = 0; i < _invisRenderers.Length; i++)
+            {
+                Renderer r = _invisRenderers[i];
+                if (r == null || r is SpriteRenderer) continue;
+                Material[] mats = r.materials;
+                for (int m = 0; m < mats.Length; m++)
+                {
+                    Material mat = mats[m];
+                    if (mat == null) continue;
+                    bool isEye = mat.name.Contains("CyclopsEye") || mat.name.Contains("EyeCore");
+                    // Keep the glowing Enderman cyclops eye eerily glinting faintly even while cloaked!
+                    float matAlpha = isEye ? Mathf.Lerp(0.45f, 1f, _invisCurrentAlpha) : _invisCurrentAlpha;
+
+                    if (_invisTransparentMode != wantTransparent)
+                    {
+                        SetUrpMaterialTransparency(mat, wantTransparent);
+                    }
+                    if (mat.HasProperty("_BaseColor"))
+                    {
+                        Color c = mat.GetColor("_BaseColor");
+                        c.a = matAlpha;
+                        mat.SetColor("_BaseColor", c);
+                    }
+                    else if (mat.HasProperty("_Color"))
+                    {
+                        Color c = mat.GetColor("_Color");
+                        c.a = matAlpha;
+                        mat.SetColor("_Color", c);
+                    }
+                }
+            }
+            _invisTransparentMode = wantTransparent;
+        }
+
+        private static void SetUrpMaterialTransparency(Material mat, bool transparent)
+        {
+            if (transparent)
+            {
+                if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+                if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
+                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                mat.SetOverrideTag("RenderType", "Transparent");
+                mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
+            else
+            {
+                if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 0f);
+                if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 1f);
+                mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                mat.SetOverrideTag("RenderType", "Opaque");
+                mat.renderQueue = -1;
             }
         }
 
