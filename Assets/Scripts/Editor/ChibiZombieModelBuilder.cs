@@ -23,7 +23,9 @@ namespace TheLastEmpire.Editor
                    assetPath.Contains("Chibi_ZombieRunner_Rigged") ||
                    assetPath.Contains("Chibi_ZombieDog_Rigged") ||
                    assetPath.Contains("Chibi_ZombieBoss_Rigged") ||
-                   assetPath.Contains("Chibi_ZombieBoomer_Rigged");
+                   assetPath.Contains("Chibi_ZombieBoomer_Rigged") ||
+                   assetPath.Contains("Chibi_ZombieSpitter_Rigged") ||
+                   assetPath.Contains("Chibi_ZombieTank_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -149,6 +151,26 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Zombie_Fat_Dummy", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
                 localScale = new Vector3(1.12f, 1.12f, 1.12f)
+            },
+            new ZombieSetupSpec
+            {
+                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieSpitter_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieSpitter_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/ZombieSpitter.prefab",
+                childRootName = "Chibi_ZombieSpitter_Model",
+                legacyChildNamesToRemove = new[] { "Zombie_01_Worker_Dummy", "Zombie_Spitter_Dummy", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = Vector3.one
+            },
+            new ZombieSetupSpec
+            {
+                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieTank_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieTank_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/ZombieTank.prefab",
+                childRootName = "Chibi_ZombieTank_Model",
+                legacyChildNamesToRemove = new[] { "Boss_Zombie_Tank", "Zombie_Tank_Dummy", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.26f, 1.26f, 1.26f)
             }
         };
 
@@ -232,31 +254,28 @@ namespace TheLastEmpire.Editor
         {
             if (mat == null) return;
             string n = mat.name;
-            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack") || n.Contains("Boil_Glow");
+            bool isGlossy = n.Contains("Glossy") || n.Contains("Eye") || n.Contains("Lens") || n.Contains("VisorBlack") || n.Contains("Boil_Glow") || n.Contains("Glasses") || n.Contains("AcidGlow");
             bool isMetal = n.Contains("Gold") || n.Contains("Silver") || n.Contains("Baton_Silver") || n.Contains("Buckle") ||
                            n.Contains("Steel") || n.Contains("Rebar") || n.Contains("Iron");
 
             float smoothness = isGlossy ? 0.85f : (isMetal ? 0.58f : 0.08f);
             float metallic = isMetal ? 0.68f : 0.0f;
 
-            if (n.Contains("Boomer_Face_Texture"))
+            string mappedTexPath = null;
+            if (n.Contains("Boomer_Face_Texture")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Face.png";
+            else if (n.Contains("Boomer_Hair")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Hair.png";
+            else if (n.Contains("Spitter_Face_Texture")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieSpitter_Face.png";
+            else if (n.Contains("Spitter_Hair")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieSpitter_Hair.png";
+            else if (n.Contains("Tank_Face_Texture")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieTank_Face.png";
+            else if (n.Contains("Tank_TattooArm")) mappedTexPath = $"{ZombieFbxDir}/Textures/Chibi_ZombieTank_Tattoo.png";
+
+            if (!string.IsNullOrEmpty(mappedTexPath))
             {
-                Texture2D faceTex = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Face.png");
-                if (faceTex != null)
+                Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(mappedTexPath);
+                if (tex != null)
                 {
-                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", faceTex);
-                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", faceTex);
-                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
-                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", Color.white);
-                }
-            }
-            else if (n.Contains("Boomer_Hair"))
-            {
-                Texture2D hairTex = AssetDatabase.LoadAssetAtPath<Texture2D>($"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Hair.png");
-                if (hairTex != null)
-                {
-                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", hairTex);
-                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", hairTex);
+                    if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", tex);
+                    if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", tex);
                     if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
                     if (mat.HasProperty("_Color")) mat.SetColor("_Color", Color.white);
                 }
@@ -314,17 +333,37 @@ namespace TheLastEmpire.Editor
                     }
                 }
 
+                (string matName, string texPath)[] remaps = null;
                 if (fbxPath.Contains("Chibi_ZombieBoomer_Rigged"))
                 {
-                    var extMap = importer.GetExternalObjectMap();
-                    string matDir = $"{ZombieFbxDir}/Materials";
-                    if (!Directory.Exists(matDir)) Directory.CreateDirectory(matDir);
-
-                    var remaps = new (string matName, string texPath)[]
+                    remaps = new (string matName, string texPath)[]
                     {
                         ("Mat_Boomer_Face_Texture", $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Face.png"),
                         ("Mat_Boomer_Hair", $"{ZombieFbxDir}/Textures/Chibi_ZombieBoomer_Hair.png"),
                     };
+                }
+                else if (fbxPath.Contains("Chibi_ZombieSpitter_Rigged"))
+                {
+                    remaps = new (string matName, string texPath)[]
+                    {
+                        ("Mat_Spitter_Face_Texture", $"{ZombieFbxDir}/Textures/Chibi_ZombieSpitter_Face.png"),
+                        ("Mat_Spitter_Hair", $"{ZombieFbxDir}/Textures/Chibi_ZombieSpitter_Hair.png"),
+                    };
+                }
+                else if (fbxPath.Contains("Chibi_ZombieTank_Rigged"))
+                {
+                    remaps = new (string matName, string texPath)[]
+                    {
+                        ("Mat_Tank_Face_Texture", $"{ZombieFbxDir}/Textures/Chibi_ZombieTank_Face.png"),
+                        ("Mat_Tank_TattooArm", $"{ZombieFbxDir}/Textures/Chibi_ZombieTank_Tattoo.png"),
+                    };
+                }
+
+                if (remaps != null)
+                {
+                    var extMap = importer.GetExternalObjectMap();
+                    string matDir = $"{ZombieFbxDir}/Materials";
+                    if (!Directory.Exists(matDir)) Directory.CreateDirectory(matDir);
 
                     foreach (var rm in remaps)
                     {
