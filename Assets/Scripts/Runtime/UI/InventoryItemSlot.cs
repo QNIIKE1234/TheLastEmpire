@@ -349,6 +349,22 @@ namespace TheLastEmpire
             }
         }
 
+        private static bool IsAltHeld()
+        {
+            if (Keyboard.current != null &&
+                (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed))
+            {
+                return true;
+            }
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+            {
+                return true;
+            }
+#endif
+            return false;
+        }
+
         public void OnDrag(PointerEventData eventData)
         {
             if (string.IsNullOrEmpty(DraggedItemName) || _dragGhostObj == null) return;
@@ -359,13 +375,30 @@ namespace TheLastEmpire
                 UpdateGhostPosition(rootCanvas, eventData.position);
             }
 
+            // แสดงข้อความบอกสถานะการฝาก/ถอนเมื่อลากข้ามฝั่งใน StorageUI
+            if (_dragGhostDropBadge != null && StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.IsSlotOwnedByStorageUI(this))
+            {
+                bool isAltHeld = IsAltHeld();
+                if (StorageUI.Instance.TryGetDragPreview(this, eventData.position, eventData.pressEventCamera, isAltHeld, out string badgeText, out Color badgeColor))
+                {
+                    _dragGhostDropBadge.gameObject.SetActive(true);
+                    _dragGhostDropBadge.text = badgeText;
+                    _dragGhostDropBadge.color = badgeColor;
+                }
+                else
+                {
+                    _dragGhostDropBadge.gameObject.SetActive(false);
+                }
+                return;
+            }
+
             // แสดงข้อความบอกสถานะการโยนเมื่อลากไอเทมออกนอกกรอบกระเป๋า
             if (_dragGhostDropBadge != null && InventoryUI.Instance != null && InventoryUI.Instance.IsOpen && InventoryUI.Instance.IsSlotOwnedByInventory(this))
             {
                 bool outsideBag = InventoryUI.Instance.IsPointerOutsideInventoryPanel(eventData.position, eventData.pressEventCamera);
                 if (outsideBag)
                 {
-                    bool isAltHeld = Keyboard.current != null && (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed);
+                    bool isAltHeld = IsAltHeld();
                     int totalCount = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount(DraggedItemName) : 1;
                     _dragGhostDropBadge.gameObject.SetActive(true);
                     if (isAltHeld && totalCount > 1)
@@ -400,6 +433,19 @@ namespace TheLastEmpire
                 _dragGhostDropBadge.gameObject.SetActive(false);
             }
 
+            // ถ้าเปิด StorageUI อยู่และลากปล่อยข้ามฝั่ง (Inventory <-> Storage) -> ฝาก/ถอนทันที!
+            if (!ConsumedByDropTarget &&
+                !string.IsNullOrEmpty(draggedItem) &&
+                StorageUI.HasInstance &&
+                StorageUI.Instance.IsOpen &&
+                StorageUI.Instance.IsSlotOwnedByStorageUI(this))
+            {
+                if (StorageUI.Instance.TryHandleSlotDrop(this, eventData.position, eventData.pressEventCamera, IsAltHeld()))
+                {
+                    ConsumedByDropTarget = true;
+                }
+            }
+
             // ถ้าไม่ได้ปล่อยลง QuickSlot และลากปล่อยออกนอกกรอบ Panel กระเป๋า -> โยนไอเทมลงพื้น!
             if (!ConsumedByDropTarget &&
                 !string.IsNullOrEmpty(draggedItem) &&
@@ -409,8 +455,7 @@ namespace TheLastEmpire
             {
                 if (InventoryUI.Instance.IsPointerOutsideInventoryPanel(eventData.position, eventData.pressEventCamera))
                 {
-                    bool isAltHeld = Keyboard.current != null && (Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed);
-                    InventoryUI.Instance.DropItemFromInventory(draggedItem, dropAll: isAltHeld);
+                    InventoryUI.Instance.DropItemFromInventory(draggedItem, dropAll: IsAltHeld());
                 }
             }
 

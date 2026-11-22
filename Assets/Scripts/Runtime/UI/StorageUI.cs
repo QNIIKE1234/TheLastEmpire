@@ -41,6 +41,7 @@ namespace TheLastEmpire
         [SerializeField] private Button closeButton;
 
         [Header("Inventory Side (Left)")]
+        [SerializeField] private RectTransform inventoryPanelRect;
         [SerializeField] private TMP_Text inventoryTitleText;
         [SerializeField] private Transform inventorySlotsContainer;
         [SerializeField] private List<InventoryItemSlot> inventorySlots = new List<InventoryItemSlot>();
@@ -49,6 +50,7 @@ namespace TheLastEmpire
         [SerializeField] private TMP_Text inventoryPageText;
 
         [Header("Storage Side (Right)")]
+        [SerializeField] private RectTransform storagePanelRect;
         [SerializeField] private TMP_Text storageTitleText;
         [SerializeField] private Transform storageSlotsContainer;
         [SerializeField] private List<InventoryItemSlot> storageSlots = new List<InventoryItemSlot>();
@@ -58,6 +60,9 @@ namespace TheLastEmpire
 
         [Header("Pagination Settings")]
         [SerializeField] private int defaultSlotsPerPage = 7;
+
+        private readonly Dictionary<InventoryItemSlot, int> _inventorySlotIndexMap = new Dictionary<InventoryItemSlot, int>();
+        private readonly Dictionary<InventoryItemSlot, int> _storageSlotIndexMap = new Dictionary<InventoryItemSlot, int>();
 
         private LootContainer _currentContainer;
         private StorageCrateBuilding _currentCrate;
@@ -198,6 +203,11 @@ namespace TheLastEmpire
             Transform invPanel = root.Find("Inventory") ?? root.Find("Inventory_Panel");
             if (invPanel != null)
             {
+                if (inventoryPanelRect == null)
+                {
+                    inventoryPanelRect = invPanel as RectTransform;
+                }
+
                 if (inventoryTitleText == null)
                 {
                     Transform nameT = invPanel.Find("Name/NameText") ?? invPanel.Find("Name");
@@ -231,6 +241,11 @@ namespace TheLastEmpire
             Transform storPanel = root.Find("Storage") ?? root.Find("Storage_SubPanel");
             if (storPanel != null)
             {
+                if (storagePanelRect == null)
+                {
+                    storagePanelRect = storPanel as RectTransform;
+                }
+
                 if (storageTitleText == null)
                 {
                     Transform nameT = storPanel.Find("Name/NameText") ?? storPanel.Find("Name");
@@ -458,6 +473,7 @@ namespace TheLastEmpire
                 inventoryTitleText.text = $"INVENTORY ({totalItems}/{_playerInventory.MaxSlots})";
             }
 
+            _inventorySlotIndexMap.Clear();
             int startIdx = _inventoryPage * perPage;
             for (int i = 0; i < inventorySlots.Count; i++)
             {
@@ -476,6 +492,7 @@ namespace TheLastEmpire
                     Sprite icon = ResolveItemIcon(itemName);
                     bool isEquipped = IsItemEquippedByPlayer(itemName);
 
+                    _inventorySlotIndexMap[uiSlot] = capturedIndex;
                     uiSlot.gameObject.SetActive(true);
                     uiSlot.SetData(
                         itemName: itemName,
@@ -509,6 +526,7 @@ namespace TheLastEmpire
                 storageTitleText.text = $"STORAGE ({totalItems}/{_currentContainer.maxStorageSlots})";
             }
 
+            _storageSlotIndexMap.Clear();
             int startIdx = _storagePage * perPage;
             for (int i = 0; i < storageSlots.Count; i++)
             {
@@ -526,6 +544,7 @@ namespace TheLastEmpire
 
                     Sprite icon = ResolveItemIcon(itemName);
 
+                    _storageSlotIndexMap[uiSlot] = capturedIndex;
                     uiSlot.gameObject.SetActive(true);
                     uiSlot.SetData(
                         itemName: itemName,
@@ -614,6 +633,123 @@ namespace TheLastEmpire
         //  Deposit (Inventory -> Storage) & Withdraw (Storage -> Inventory)
         // =========================================================================
 
+        // =========================================================================
+        //  Drag & Drop Transfer (Inventory <-> Storage)
+        // =========================================================================
+
+        public bool IsSlotOwnedByStorageUI(InventoryItemSlot slot)
+        {
+            return IsInventorySlot(slot) || IsStorageSlot(slot);
+        }
+
+        public bool IsInventorySlot(InventoryItemSlot slot)
+        {
+            if (slot == null) return false;
+            if (_inventorySlotIndexMap.ContainsKey(slot)) return true;
+            if (inventorySlots != null && inventorySlots.Contains(slot)) return true;
+            return inventorySlotsContainer != null && slot.transform.IsChildOf(inventorySlotsContainer);
+        }
+
+        public bool IsStorageSlot(InventoryItemSlot slot)
+        {
+            if (slot == null) return false;
+            if (_storageSlotIndexMap.ContainsKey(slot)) return true;
+            if (storageSlots != null && storageSlots.Contains(slot)) return true;
+            return storageSlotsContainer != null && slot.transform.IsChildOf(storageSlotsContainer);
+        }
+
+        public bool TryGetDragPreview(InventoryItemSlot sourceSlot, Vector2 screenPos, Camera uiCam, bool isAltHeld, out string badgeText, out Color badgeColor)
+        {
+            badgeText = string.Empty;
+            badgeColor = Color.white;
+            if (!_isOpen || sourceSlot == null || _currentContainer == null || _playerInventory == null) return false;
+
+            if (IsInventorySlot(sourceSlot) && IsPointerOverPanel(storagePanelRect, storageSlotsContainer, screenPos, uiCam))
+            {
+                int total = _playerInventory.GetItemCount(sourceSlot.CurrentItemName);
+                if (isAltHeld && total > 1)
+                {
+                    badgeText = $"DEPOSIT ALL (x{total})";
+                    badgeColor = new Color(1f, 0.48f, 0.20f, 1f);
+                }
+                else
+                {
+                    badgeText = "DEPOSIT x1";
+                    badgeColor = new Color(1f, 0.88f, 0.25f, 1f);
+                }
+                return true;
+            }
+
+            if (IsStorageSlot(sourceSlot) && IsPointerOverPanel(inventoryPanelRect, inventorySlotsContainer, screenPos, uiCam))
+            {
+                int total = GetStorageItemTotal(sourceSlot.CurrentItemName);
+                if (isAltHeld && total > 1)
+                {
+                    badgeText = $"WITHDRAW ALL (x{total})";
+                    badgeColor = new Color(0.28f, 1f, 0.58f, 1f);
+                }
+                else
+                {
+                    badgeText = "WITHDRAW x1";
+                    badgeColor = new Color(0.25f, 0.88f, 1f, 1f);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryHandleSlotDrop(InventoryItemSlot sourceSlot, Vector2 screenPos, Camera uiCam, bool isAltHeld)
+        {
+            if (!_isOpen || sourceSlot == null || _currentContainer == null || _playerInventory == null) return false;
+
+            if (IsInventorySlot(sourceSlot) && IsPointerOverPanel(storagePanelRect, storageSlotsContainer, screenPos, uiCam))
+            {
+                if (_inventorySlotIndexMap.TryGetValue(sourceSlot, out int slotIndex))
+                {
+                    DepositFromInventorySlot(slotIndex, forceMoveAll: isAltHeld);
+                    return true;
+                }
+            }
+            else if (IsStorageSlot(sourceSlot) && IsPointerOverPanel(inventoryPanelRect, inventorySlotsContainer, screenPos, uiCam))
+            {
+                if (_storageSlotIndexMap.TryGetValue(sourceSlot, out int slotIndex))
+                {
+                    WithdrawFromStorageSlot(slotIndex, forceMoveAll: isAltHeld);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsPointerOverPanel(RectTransform panelRect, Transform fallbackContainer, Vector2 screenPos, Camera uiCam)
+        {
+            RectTransform targetRect = panelRect;
+            if (targetRect == null && fallbackContainer != null)
+            {
+                targetRect = fallbackContainer as RectTransform;
+            }
+            if (targetRect == null) return false;
+            return RectTransformUtility.RectangleContainsScreenPoint(targetRect, screenPos, uiCam);
+        }
+
+        private int GetStorageItemTotal(string itemName)
+        {
+            if (_currentContainer == null || _currentContainer.itemsInside == null || string.IsNullOrEmpty(itemName)) return 0;
+            int total = 0;
+            string clean = itemName.Trim().ToLowerInvariant();
+            for (int i = 0; i < _currentContainer.itemsInside.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(_currentContainer.itemsInside[i].itemName) &&
+                    _currentContainer.itemsInside[i].itemName.Trim().ToLowerInvariant() == clean)
+                {
+                    total += _currentContainer.itemsInside[i].quantity;
+                }
+            }
+            return total;
+        }
+
         private static bool IsAltHeld()
         {
             if (Keyboard.current != null &&
@@ -630,7 +766,7 @@ namespace TheLastEmpire
             return false;
         }
 
-        private void DepositFromInventorySlot(int slotIndex)
+        private void DepositFromInventorySlot(int slotIndex, bool? forceMoveAll = null)
         {
             if (_currentContainer == null || _playerInventory == null) return;
             if (_playerInventory.Slots == null || slotIndex < 0 || slotIndex >= _playerInventory.Slots.Count) return;
@@ -639,7 +775,7 @@ namespace TheLastEmpire
             if (slot == null || string.IsNullOrEmpty(slot.itemName) || slot.quantity <= 0) return;
 
             string itemName = slot.itemName;
-            bool moveAll = IsAltHeld();
+            bool moveAll = forceMoveAll ?? IsAltHeld();
             int desiredQty = moveAll ? _playerInventory.GetItemCount(itemName) : 1;
 
             // ตรวจสอบที่ว่างในคลัง (สามารถฝากบางส่วนได้ถ้าคลังใกล้เต็ม)
@@ -673,7 +809,7 @@ namespace TheLastEmpire
             RefreshUI();
         }
 
-        private void WithdrawFromStorageSlot(int slotIndex)
+        private void WithdrawFromStorageSlot(int slotIndex, bool? forceMoveAll = null)
         {
             if (_currentContainer == null || _playerInventory == null) return;
             if (_currentContainer.itemsInside == null || slotIndex < 0 || slotIndex >= _currentContainer.itemsInside.Count) return;
@@ -682,7 +818,7 @@ namespace TheLastEmpire
             if (string.IsNullOrEmpty(slot.itemName) || slot.quantity <= 0) return;
 
             string itemName = slot.itemName;
-            bool moveAll = IsAltHeld();
+            bool moveAll = forceMoveAll ?? IsAltHeld();
 
             int availableInStorage = 0;
             if (moveAll)
