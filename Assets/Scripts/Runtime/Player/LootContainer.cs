@@ -72,6 +72,110 @@ namespace TheLastEmpire
         [Header("Interaction Radius")]
         public float interactionRadius = 2.0f;
 
+        public int UsedSlots => itemsInside != null ? itemsInside.Count : 0;
+
+        /// <summary>
+        /// คำนวณจำนวนไอเทมสูงสุดที่ยังสามารถฝากเพิ่มลงในภาชนะนี้ได้ตามกฎ MaxStackSize และ maxStorageSlots
+        /// </summary>
+        public int GetSpaceForItem(string itemName)
+        {
+            if (string.IsNullOrEmpty(itemName)) return 0;
+            if (itemsInside == null) itemsInside = new List<LootSlot>();
+
+            int maxStack = PlayerInventory.GetMaxStackSize(itemName);
+            int freeSlots = Mathf.Max(0, maxStorageSlots - itemsInside.Count);
+
+            if (maxStack <= 1)
+            {
+                return freeSlots;
+            }
+
+            int totalSpace = freeSlots * maxStack;
+            string clean = itemName.Trim().ToLowerInvariant();
+            for (int i = 0; i < itemsInside.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(itemsInside[i].itemName) &&
+                    itemsInside[i].itemName.Trim().ToLowerInvariant() == clean)
+                {
+                    totalSpace += Mathf.Max(0, maxStack - itemsInside[i].quantity);
+                }
+            }
+            return totalSpace;
+        }
+
+        public bool CanAddItem(string itemName, int quantity = 1)
+        {
+            if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
+            return GetSpaceForItem(itemName) >= quantity;
+        }
+
+        /// <summary>
+        /// เพิ่มไอเทมลงในภาชนะ (เติมเข้ากองเดิมก่อนแล้วจึงเปิดช่องใหม่ตาม maxStorageSlots)
+        /// คืนค่าจำนวนที่เพิ่มสำเร็จจริง
+        /// </summary>
+        public int AddItem(string itemName, int quantity)
+        {
+            if (string.IsNullOrEmpty(itemName) || quantity <= 0) return 0;
+            if (itemsInside == null) itemsInside = new List<LootSlot>();
+
+            string trimmed = itemName.Trim();
+            string clean = trimmed.ToLowerInvariant();
+            int maxStack = PlayerInventory.GetMaxStackSize(trimmed);
+            int remaining = quantity;
+
+            if (maxStack > 1)
+            {
+                for (int i = 0; i < itemsInside.Count && remaining > 0; i++)
+                {
+                    if (!string.IsNullOrEmpty(itemsInside[i].itemName) &&
+                        itemsInside[i].itemName.Trim().ToLowerInvariant() == clean)
+                    {
+                        int space = maxStack - itemsInside[i].quantity;
+                        if (space > 0)
+                        {
+                            int toAdd = Mathf.Min(space, remaining);
+                            LootSlot updated = itemsInside[i];
+                            updated.quantity += toAdd;
+                            itemsInside[i] = updated;
+                            remaining -= toAdd;
+                        }
+                    }
+                }
+            }
+
+            while (remaining > 0 && itemsInside.Count < maxStorageSlots)
+            {
+                int toAdd = Mathf.Min(remaining, Mathf.Max(1, maxStack));
+                itemsInside.Add(new LootSlot(trimmed, toAdd));
+                remaining -= toAdd;
+            }
+
+            return quantity - remaining;
+        }
+
+        /// <summary>
+        /// หักไอเทมออกจากช่องตาม index และลบช่องทิ้งหากจำนวนเหลือ 0
+        /// </summary>
+        public bool RemoveSlotAt(int slotIndex, int quantity)
+        {
+            if (itemsInside == null || slotIndex < 0 || slotIndex >= itemsInside.Count || quantity <= 0)
+            {
+                return false;
+            }
+
+            LootSlot slot = itemsInside[slotIndex];
+            if (slot.quantity <= quantity)
+            {
+                itemsInside.RemoveAt(slotIndex);
+            }
+            else
+            {
+                slot.quantity -= quantity;
+                itemsInside[slotIndex] = slot;
+            }
+            return true;
+        }
+
         private void Start()
         {
             if (randomizeLoot)

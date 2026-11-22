@@ -1224,7 +1224,8 @@ namespace TheLastEmpire
             }
 
             bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
-                              (LootUI.Instance != null && LootUI.Instance.IsOpen) ||
+                              (LootUI.HasInstance && LootUI.Instance.IsOpen) ||
+                              (StorageUI.HasInstance && StorageUI.Instance.IsOpen) ||
                               (TheLastEmpire.UI.DialogueUI.Instance != null && TheLastEmpire.UI.DialogueUI.Instance.IsDialogueActive);
             if (isMenuOpen)
             {
@@ -1760,7 +1761,9 @@ namespace TheLastEmpire
                 _fireBufferTimer = 0f;
                 return;
             }
-            if ((InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || (LootUI.Instance != null && LootUI.Instance.IsOpen)) return;
+            if ((InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) ||
+                (LootUI.HasInstance && LootUI.Instance.IsOpen) ||
+                (StorageUI.HasInstance && StorageUI.Instance.IsOpen)) return;
 
             // Direct input checks to ensure combat always works regardless of playerinput maps
             if (Mouse.current != null)
@@ -1981,6 +1984,14 @@ namespace TheLastEmpire
             {
                 PlayerInventory inv = GetComponent<PlayerInventory>();
                 if (inv == null) inv = _inventory;
+
+                StorageCrateBuilding crate = _closestContainer.GetComponent<StorageCrateBuilding>();
+                if (crate != null && StorageUI.Instance != null)
+                {
+                    StorageUI.Instance.Open(_closestContainer, inv, crate);
+                    return;
+                }
+
                 if (LootUI.Instance != null && inv != null)
                 {
                     LootUI.Instance.Open(_closestContainer, inv);

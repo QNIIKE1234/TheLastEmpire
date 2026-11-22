@@ -12,7 +12,7 @@ namespace TheLastEmpire
     /// </summary>
     [RequireComponent(typeof(BuildingObject))]
     [RequireComponent(typeof(LootContainer))]
-    public class StorageCrateBuilding : MonoBehaviour
+    public class StorageCrateBuilding : MonoBehaviour, IBuildingInteractable
     {
         [Header("Crate Visual Settings")]
         [Tooltip("Transform ของฝาหีบ (หากมี) เพื่อหมุนเปิดเมื่อใช้งาน")]
@@ -29,6 +29,55 @@ namespace TheLastEmpire
 
         private Quaternion _closedLidRot;
         private Quaternion _openLidRot;
+
+        public LootContainer Container => _lootContainer;
+
+        // IBuildingInteractable implementation
+        public Transform InteractionTransform => transform;
+        public Vector3 PromptWorldOffset => Vector3.up * 1.4f;
+        public float InteractionDistance => interactionDistance;
+        public bool CanInteract => _buildingObject == null || !_buildingObject.IsDead;
+
+        public string GetInteractionPrompt()
+        {
+            return "[E] Storage";
+        }
+
+        public void OnInteract()
+        {
+            if (_lootContainer == null) _lootContainer = GetComponent<LootContainer>();
+            if (_lootContainer == null) return;
+
+            PlayerController pc = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                               ?? PlayerController.Instance
+                               ?? Object.FindFirstObjectByType<PlayerController>();
+            PlayerInventory inv = pc != null ? pc.GetComponent<PlayerInventory>() : PlayerInventory.Instance;
+
+            if (StorageUI.Instance != null)
+            {
+                StorageUI.Instance.Open(_lootContainer, inv, this);
+                return;
+            }
+
+            if (LootUI.Instance != null && inv != null)
+            {
+                LootUI.Instance.Open(_lootContainer, inv);
+            }
+        }
+
+        public void OnSecondaryInteract()
+        {
+        }
+
+        private void OnEnable()
+        {
+            BuildingInteractionRegistry.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            BuildingInteractionRegistry.Unregister(this);
+        }
 
         private void Awake()
         {
@@ -81,8 +130,9 @@ namespace TheLastEmpire
             _isPlayerNearby = dist <= interactionDistance;
 
             // ตรวจสอบว่า UI คลังเก็บของกำลังเปิดอยู่หรือไม่
-            bool isLootUIActive = LootUI.Instance != null && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == _lootContainer;
-            _isLidOpen = isLootUIActive;
+            bool isStorageOpen = StorageUI.HasInstance && StorageUI.Instance.IsOpen && StorageUI.Instance.CurrentContainer == _lootContainer;
+            bool isLootUIActive = LootUI.HasInstance && LootUI.Instance.IsOpen && LootUI.Instance.CurrentContainer == _lootContainer;
+            _isLidOpen = isStorageOpen || isLootUIActive;
 
             if (lidTransform != null)
             {
