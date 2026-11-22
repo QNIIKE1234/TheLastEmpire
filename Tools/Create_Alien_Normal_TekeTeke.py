@@ -255,66 +255,94 @@ def build_alien_normal():
     m_saliva     = make_fleshy_mat("Mat_AlienNormal_Saliva",      (0.90, 0.42, 0.48, 1.0), roughness=0.10, coat=0.95)
 
     # Character faces -Y, +Z is UP, +X is LEFT!
-    # Low crouched legless posture: fleshy worm stump rests/drags on ground, 2 arms reach to ground for Teke Teke crawl!
+    # LONG HORIZONTAL LEGLESS CROCODILE-WORM POSTURE:
+    # Huge eyeless toothy head up front, 2 Teke Teke crawling arms hauling a LONG legless crocodile-like body stretching WAY backward along +Y (to y=+2.25)!
     bone_defs = [
         ("Root",          (0.0,  0.0,   0.0),   (0.0,  0.0,   0.18),  None,           (0, 1, 0)),
-        ("BodyBase",      (0.0,  0.22,  0.16),  (0.0,  0.10,  0.54),  "Root",         (0, 1, 0)),
-        ("TailStump",     (0.0,  0.26,  0.14),  (0.0,  0.62,  0.08),  "BodyBase",     (0, 1, 0)),
-        ("Spine",         (0.0,  0.10,  0.54),  (0.0, -0.02,  1.00),  "BodyBase",     (0, 1, 0)),
-        ("Head",          (0.0, -0.02,  1.00),  (0.0, -0.58,  1.12),  "Spine",        (0, 1, 0)),
-        ("JawTop",        (0.0, -0.14,  1.10),  (0.0, -0.82,  1.16),  "Head",         (0, 1, 0)),
-        ("JawBot",        (0.0, -0.12,  0.92),  (0.0, -0.78,  0.80),  "Head",         (0, 1, 0)),
+        ("BodyBase",      (0.0,  0.18,  0.26),  (0.0, -0.02,  0.54),  "Root",         (0, 1, 0)),
+        ("Spine",         (0.0, -0.02,  0.54),  (0.0, -0.14,  0.94),  "BodyBase",     (0, 1, 0)),
+        ("Head",          (0.0, -0.14,  0.94),  (0.0, -0.68,  1.06),  "Spine",        (0, 1, 0)),
+        ("JawTop",        (0.0, -0.24,  1.04),  (0.0, -0.90,  1.10),  "Head",         (0, 1, 0)),
+        ("JawBot",        (0.0, -0.22,  0.86),  (0.0, -0.86,  0.76),  "Head",         (0, 1, 0)),
 
-        # 2 Strong Crawling Arms (Teke Teke hand-walk — reach down & forward to pull the legless body!)
-        ("LeftUpperArm",  (0.24, -0.02, 0.68),  (0.46, -0.18, 0.36),  "Spine",        (0, 1, 0)),
-        ("LeftForeArm",   (0.46, -0.18, 0.36),  (0.42, -0.44, 0.06),  "LeftUpperArm", (0, 1, 0)),
-        ("RightUpperArm", (-0.24, -0.02, 0.68), (-0.46, -0.18, 0.36), "Spine",        (0, 1, 0)),
-        ("RightForeArm",  (-0.46, -0.18, 0.36), (-0.42, -0.44, 0.06), "RightUpperArm",(0, 1, 0)),
+        # LONG CROCODILE-LIKE LEGLESS BODY & TAIL CHAIN stretching far backward along +Y!
+        ("TailMid",       (0.0,  0.22,  0.24),  (0.0,  0.92,  0.20),  "BodyBase",     (0, 0, 1)),
+        ("TailRear",      (0.0,  0.92,  0.20),  (0.0,  1.62,  0.14),  "TailMid",      (0, 0, 1)),
+        ("TailStump",     (0.0,  1.62,  0.14),  (0.0,  2.28,  0.08),  "TailRear",     (0, 0, 1)),
+
+        # 2 Strong Crawling Arms (Teke Teke hand-walk — reach down & forward to pull the long legless croc body!)
+        ("LeftUpperArm",  (0.24, -0.06, 0.62),  (0.46, -0.22, 0.34),  "Spine",        (0, 1, 0)),
+        ("LeftForeArm",   (0.46, -0.22, 0.34),  (0.42, -0.48, 0.06),  "LeftUpperArm", (0, 1, 0)),
+        ("RightUpperArm", (-0.24, -0.06, 0.62), (-0.46, -0.22, 0.34), "Spine",        (0, 1, 0)),
+        ("RightForeArm",  (-0.46, -0.22, 0.34), (-0.42, -0.48, 0.06), "RightUpperArm",(0, 1, 0)),
     ]
     rig_obj = _build_bone_tree("Alien_Normal_Rig", bone_defs)
 
     parts = []
 
-    # --- 1. LEGLESS FLESHY WORM TORSO & SEVERED STUMP BASE (NO LEGS!) ---
-    # Main curving arched Sightless Worm body from ground stump up to thick neck!
+    # --- 1. LONG LEGLESS CROCODILE-LIKE FLESHY BODY STRETCHING WAY BACKWARD ALONG +Y (NO LEGS!) ---
+    # Front upright chest/neck curving down into long horizontal crocodile torso!
     torso_rings = [
-        (Vector((0.0,  0.34, 0.08)), Vector((0.36, 0.0, 0.0)), Vector((0.0, 0.34, 0.0))),
-        (Vector((0.0,  0.26, 0.24)), Vector((0.32, 0.0, 0.0)), Vector((0.0, 0.30, 0.0))),
-        (Vector((0.0,  0.18, 0.44)), Vector((0.30, 0.0, 0.0)), Vector((0.0, 0.28, 0.0))),
-        (Vector((0.0,  0.10, 0.66)), Vector((0.31, 0.0, 0.0)), Vector((0.0, 0.29, 0.0))),
-        (Vector((0.0,  0.02, 0.88)), Vector((0.33, 0.0, 0.0)), Vector((0.0, 0.32, 0.0))),
-        (Vector((0.0, -0.06, 1.06)), Vector((0.34, 0.0, 0.0)), Vector((0.0, 0.34, 0.0))),
+        (Vector((0.0,  0.24, 0.24)), Vector((0.33, 0.0, 0.0)), Vector((0.0, 0.0, 0.23))),
+        (Vector((0.0,  0.14, 0.38)), Vector((0.31, 0.0, 0.0)), Vector((0.0, 0.26, 0.0))),
+        (Vector((0.0,  0.04, 0.60)), Vector((0.30, 0.0, 0.0)), Vector((0.0, 0.27, 0.0))),
+        (Vector((0.0, -0.06, 0.82)), Vector((0.32, 0.0, 0.0)), Vector((0.0, 0.30, 0.0))),
+        (Vector((0.0, -0.14, 1.00)), Vector((0.34, 0.0, 0.0)), Vector((0.0, 0.33, 0.0))),
     ]
     torso_obj = kit.create_loft_object("WormTorso", torso_rings, m_skin, segments=26)
     parts.append((torso_obj, [("BodyBase", 0.45), ("Spine", 0.55)]))
 
-    # Squelchy fleshy puddle folds & severed legless worm stump trailing behind (Ref bottom rim + Teke Teke!)
-    for idx, (ang_deg, rad_dist, r_x, r_y, r_z) in enumerate((
-        (  0, 0.32, 0.14, 0.14, 0.08),
-        ( 45, 0.34, 0.15, 0.13, 0.08),
-        (-45, 0.34, 0.15, 0.13, 0.08),
-        ( 95, 0.36, 0.16, 0.14, 0.09),
-        (-95, 0.36, 0.16, 0.14, 0.09),
-        (145, 0.40, 0.18, 0.16, 0.09),
-        (-145, 0.40, 0.18, 0.16, 0.09),
-        (180, 0.46, 0.22, 0.20, 0.10),
+    # SINGLE CONTINUOUS LONG LEGLESS CROCODILE BODY + TAPERED TAIL (y=0.14 all the way back to y=+2.32!)
+    croc_rings = [
+        (Vector((0.0, 0.14, 0.27)), Vector((0.34, 0.0, 0.0)), Vector((0.0, 0.0, 0.25))),
+        (Vector((0.0, 0.42, 0.25)), Vector((0.35, 0.0, 0.0)), Vector((0.0, 0.0, 0.24))),
+        (Vector((0.0, 0.72, 0.23)), Vector((0.33, 0.0, 0.0)), Vector((0.0, 0.0, 0.22))),
+        (Vector((0.0, 1.02, 0.20)), Vector((0.29, 0.0, 0.0)), Vector((0.0, 0.0, 0.19))),
+        (Vector((0.0, 1.32, 0.17)), Vector((0.24, 0.0, 0.0)), Vector((0.0, 0.0, 0.16))),
+        (Vector((0.0, 1.62, 0.14)), Vector((0.19, 0.0, 0.0)), Vector((0.0, 0.0, 0.13))),
+        (Vector((0.0, 1.92, 0.11)), Vector((0.13, 0.0, 0.0)), Vector((0.0, 0.0, 0.10))),
+        (Vector((0.0, 2.18, 0.08)), Vector((0.07, 0.0, 0.0)), Vector((0.0, 0.0, 0.06))),
+        (Vector((0.0, 2.34, 0.06)), Vector((0.02, 0.0, 0.0)), Vector((0.0, 0.0, 0.02))),
+    ]
+    croc_body = kit.create_loft_object("CrocLongBody", croc_rings, m_skin, segments=24)
+    if croc_body.type == "MESH" and croc_body.data:
+        croc_body.data.polygons.foreach_set("use_smooth", [True] * len(croc_body.data.polygons))
+        vg_m = {bn: croc_body.vertex_groups.new(name=bn) for bn in ("BodyBase", "TailMid", "TailRear", "TailStump")}
+        for v in croc_body.data.vertices:
+            vy = v.co.y
+            if vy < 0.35:
+                t = max(0.0, min(1.0, (vy - 0.14) / 0.21))
+                vg_m["BodyBase"].add([v.index], 1.0 - 0.5 * t, "REPLACE")
+                vg_m["TailMid"].add([v.index], 0.5 * t, "REPLACE")
+            elif vy < 0.95:
+                t = max(0.0, min(1.0, (vy - 0.35) / 0.60))
+                vg_m["TailMid"].add([v.index], 1.0 - 0.4 * t, "REPLACE")
+                vg_m["TailRear"].add([v.index], 0.4 * t, "REPLACE")
+            elif vy < 1.60:
+                t = max(0.0, min(1.0, (vy - 0.95) / 0.65))
+                vg_m["TailMid"].add([v.index], max(0.0, 0.35 * (1.0 - t)), "REPLACE")
+                vg_m["TailRear"].add([v.index], 0.65 + 0.35 * (1.0 - abs(2.0 * t - 1.0) * 0.5), "REPLACE")
+                vg_m["TailStump"].add([v.index], 0.45 * t, "REPLACE")
+            else:
+                t = max(0.0, min(1.0, (vy - 1.60) / 0.72))
+                vg_m["TailRear"].add([v.index], max(0.0, 0.35 * (1.0 - t)), "REPLACE")
+                vg_m["TailStump"].add([v.index], 0.65 + 0.35 * t, "REPLACE")
+    parts.append((croc_body, []))
+
+    # Crocodile-like fleshy dorsal ridge crests running along the entire back/tail (y=0.35..2.05)!
+    for ri, (ry, rz, rs, rb) in enumerate((
+        (0.42, 0.48, 0.085, "TailMid"),
+        (0.68, 0.45, 0.082, "TailMid"),
+        (0.96, 0.40, 0.076, "TailRear"),
+        (1.24, 0.34, 0.068, "TailRear"),
+        (1.52, 0.28, 0.060, "TailRear"),
+        (1.78, 0.22, 0.050, "TailStump"),
+        (2.02, 0.16, 0.038, "TailStump"),
     )):
-        rad = math.radians(ang_deg)
-        lx = math.sin(rad) * rad_dist
-        ly = 0.28 + math.cos(rad) * rad_dist * 0.85
-        mat_l = m_skin if idx % 2 == 0 else m_skin_dark
-        w_spec = [("TailStump", 0.75), ("BodyBase", 0.25)] if abs(ang_deg) >= 120 else [("BodyBase", 1.0)]
-        parts.append((kit.create_ellipsoid(f"FleshStumpLobe_{idx}", (lx, ly, 0.075), (r_x, r_y, r_z), mat_l), w_spec))
+        for side in (-1.0, 1.0):
+            parts.append((kit.create_ellipsoid(f"CrocRidge_{ri}_{side}", (side * (0.095 - ri * 0.009), ry, rz), (rs * 0.45, rs * 1.15, rs * 0.75), m_skin_dark), [(rb, 1.0)]))
 
-    # Trailing wet torn worm-tail drag nub behind the legless torso
-    tail_drag = _make_tube_chain(
-        "LeglessTailDrag",
-        [(0.0, 0.34, 0.14), (0.0, 0.54, 0.10), (0.0, 0.72, 0.06)],
-        [0.24, 0.16, 0.07], m_skin_dark, segments=14
-    )
-    parts.append((tail_drag, [("TailStump", 0.85), ("BodyBase", 0.15)]))
-
-    # Fleshy neck wrinkles & crimson organic vein webbing on chest/belly (exact Sightless Worm detail!)
+    # Fleshy neck wrinkles & crimson organic vein webbing along chest & long croc sides!
     for fi, (fz, fy, rx, ry) in enumerate((
         (0.32, -0.06, 0.29, 0.065),
         (0.46, -0.11, 0.28, 0.062),
@@ -323,7 +351,7 @@ def build_alien_normal():
     )):
         parts.append((kit.create_ellipsoid(f"BellyFold_{fi}", (0.0, fy, fz), (rx, ry, 0.048), m_skin_dark), [("Spine", 0.7), ("BodyBase", 0.3)]))
 
-    # Raised dark-crimson organic veins climbing up the belly & sides
+    # Raised dark-crimson organic veins climbing up chest and along the long crocodile flank
     for side in (-1.0, 0.0, 1.0):
         v_pts = [
             (side * 0.16, 0.06 - abs(side) * 0.04, 0.20),
@@ -332,6 +360,13 @@ def build_alien_normal():
             (side * 0.14, -0.18 + abs(side) * 0.06, 0.88),
         ]
         parts.append((_make_tube_chain(f"BodyVein_{side}", v_pts, [0.022, 0.026, 0.024, 0.018], m_vein, segments=8), [("Spine", 0.65), ("BodyBase", 0.35)]))
+    for side in (-1.0, 1.0):
+        flank_vein = _make_tube_chain(
+            f"CrocFlankVein_{side}",
+            [(side * 0.32, 0.36, 0.26), (side * 0.30, 0.84, 0.22), (side * 0.21, 1.38, 0.16), (side * 0.10, 1.92, 0.11)],
+            [0.022, 0.020, 0.016, 0.011], m_vein, segments=8
+        )
+        parts.append((flank_vein, [("TailMid", 0.45), ("TailRear", 0.35), ("TailStump", 0.20)]))
 
     # --- 2. HUGE EYELESS SMOOTH ALIEN HEAD & MASSIVE GAPING TOOTHY JAW! (NO EYES!) ---
     # Smooth arched eyeless cranium/back-of-head curving massively forward (Sightless Worm iconic silhouette!)
@@ -514,7 +549,9 @@ def build_alien_normal():
         set_bone("Head", rot_xyz=(12.0, 4.0 * c, -8.0 * s))
         set_bone("JawTop", rot_xyz=(-5.0 - 4.0 * lurch, 0, 0))
         set_bone("JawBot", rot_xyz=(14.0 + 16.0 * lurch, 0, 0))
-        set_bone("TailStump", rot_xyz=(-6.0, 0, -22.0 * s))
+        set_bone("TailMid", rot_xyz=(0, 0, -14.0 * s))
+        set_bone("TailRear", rot_xyz=(0, 0, -18.0 * c))
+        set_bone("TailStump", rot_xyz=(0, 0, 22.0 * s))
 
         # Alternating LOW floor-slapping Teke Teke arm strokes:
         # NEGATIVE X (-34 deg) reaches low & far FORWARD along the ground; POSITIVE X (+36 deg) hauls BACKWARD!
@@ -543,7 +580,9 @@ def build_alien_normal():
         # Wide screaming toothy mouth snapping furiously as it sprints on its hands!
         set_bone("JawTop", rot_xyz=(-8.0 - 7.0 * hop, 0, 0))
         set_bone("JawBot", rot_xyz=(18.0 + 22.0 * hop, 0, 0))
-        set_bone("TailStump", rot_xyz=(-10.0, 0, -28.0 * s))
+        set_bone("TailMid", rot_xyz=(0, 0, -20.0 * s))
+        set_bone("TailRear", rot_xyz=(0, 0, -24.0 * c))
+        set_bone("TailStump", rot_xyz=(0, 0, 28.0 * s))
 
         # Aggressive LOW floor-clawing Teke Teke arm reach & haul strokes (hands stay low slapping the ground!)
         l_swing = -38.0 * s + 4.0
@@ -618,23 +657,23 @@ def build_alien_normal():
     bpy.context.view_layer.update()
     _export_alien(rig_obj, [body_mesh], "Alien_Normal")
 
-    # Render Preview 1: 3/4 Front-Side (Shows HUGE eyeless head, gaping toothy mouth, 2 hands, NO legs!)
+    # Render Preview 1: Wide 3/4 Side-Front (Shows huge eyeless toothy head + 2 hands + LONG legless crocodile body!)
     cam_obj = _setup_studio_render(scene)
-    cam_obj.location = Vector((-2.45, -3.15, 1.40))
-    cam_obj.rotation_euler = (Vector((0.0, -0.15, 0.72)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
+    cam_obj.location = Vector((-4.10, -2.55, 1.55))
+    cam_obj.rotation_euler = (Vector((0.0, 0.55, 0.55)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
     tmp_f = os.path.join(TMP_EXPORT_DIR, "Alien_Normal_Preview.png")
     scene.render.filepath = tmp_f
     bpy.ops.render.render(write_still=True)
     _copy_with_retry(tmp_f, os.path.join(ALIEN_DIR, "Alien_Normal_Preview.png"))
 
-    # Render Preview 2: Mid-Teke Teke Crawl Run Pose (Frame 4 — LEFT arm reaching WAY forward, RIGHT arm hauling legless body!)
+    # Render Preview 2: Mid-Teke Teke Crawl Run Pose (Frame 4 — hauling the long legless crocodile body!)
     rig_obj.animation_data.action = act_run
     if hasattr(rig_obj.animation_data, "action_slot") and len(act_run.slots) > 0:
         rig_obj.animation_data.action_slot = act_run.slots[0]
     scene.frame_set(4)
     bpy.context.view_layer.update()
-    cam_obj.location = Vector((2.95, -2.85, 1.45))
-    cam_obj.rotation_euler = (Vector((0.0, -0.25, 0.68)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
+    cam_obj.location = Vector((4.15, -2.40, 1.60))
+    cam_obj.rotation_euler = (Vector((0.0, 0.50, 0.55)) - cam_obj.location).to_track_quat('-Z', 'Y').to_euler()
     tmp_r = os.path.join(TMP_EXPORT_DIR, "Alien_Normal_Preview_TekeTeke.png")
     scene.render.filepath = tmp_r
     bpy.ops.render.render(write_still=True)

@@ -22,7 +22,8 @@ namespace TheLastEmpire.Editor
             return assetPath.Contains("Alien_Smart_Rigged") ||
                    assetPath.Contains("Alien_Hook_Rigged") ||
                    assetPath.Contains("Alien_Normal_Rigged") ||
-                   assetPath.Contains("Alien_Invisible_Rigged");
+                   assetPath.Contains("Alien_Invisible_Rigged") ||
+                   assetPath.Contains("Alien_Crawler_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -81,7 +82,8 @@ namespace TheLastEmpire.Editor
                     (path.Contains("Alien_Smart_Rigged.fbx") ||
                      path.Contains("Alien_Hook_Rigged.fbx") ||
                      path.Contains("Alien_Normal_Rigged.fbx") ||
-                     path.Contains("Alien_Invisible_Rigged.fbx")))
+                     path.Contains("Alien_Invisible_Rigged.fbx") ||
+                     path.Contains("Alien_Crawler_Rigged.fbx")))
                 {
                     EditorApplication.delayCall += AlienModelBuilder.EnsureAlienModelsBuiltAuto;
                     break;
@@ -149,6 +151,16 @@ namespace TheLastEmpire.Editor
                 childRootName = "Alien_Invisible_Rigged_Model",
                 legacyChildNamesToRemove = new[] { "Alien_Invisible", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.0f, 1.0f, 1.0f)
+            },
+            new AlienSetupSpec
+            {
+                fbxPath = $"{AlienFbxDir}/Alien_Crawler_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Alien_Crawler_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/AlienCrawler.prefab",
+                childRootName = "Alien_Crawler_Rigged_Model",
+                legacyChildNamesToRemove = new[] { "Alien_Crawler", "Capsule" },
+                localPosition = new Vector3(0f, -0.85f, 0f),
                 localScale = new Vector3(1.0f, 1.0f, 1.0f)
             }
         };
@@ -253,6 +265,47 @@ namespace TheLastEmpire.Editor
             {
                 if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.56f);
                 if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.14f);
+            }
+            else if (n.Contains("AlienHook_"))
+            {
+                // Panoptes horror-flesh palette (warm peach-tan flesh, jet-black hair/crest, crimson accents, ghostly white eyeball)
+                if (n.Contains("CyclopsEye"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.94f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else if (n.Contains("BioGlow"))
+                {
+                    SetEmission(mat, new Color(0.85f, 0.20f, 0.22f) * 0.75f, smoothness: 0.72f);
+                }
+                else if (n.Contains("CraniumBio") || n.Contains("Purple") || n.Contains("Indigo"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.68f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.06f);
+                }
+                else
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.48f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+                }
+            }
+            else if (n.Contains("AlienCrawler_"))
+            {
+                if (n.Contains("EyeWhite") || n.Contains("Tongue"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.86f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else if (n.Contains("Fur"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.14f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.46f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.02f);
+                }
             }
             else if (n.Contains("CyclopsEye"))
             {

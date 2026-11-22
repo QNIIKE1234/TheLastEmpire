@@ -424,6 +424,7 @@ namespace TheLastEmpire
                 col.isTrigger = true;
 
                 Projectile proj = spit.AddComponent<Projectile>();
+                proj.SetSpeed(50f);
                 proj.Setup(dir, playerTransform.position, gameObject);
             }
 

@@ -289,7 +289,7 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2062748020411968247}
-  - {fileID: 5099308012721069565}
+  - {fileID: 8639050101455680301}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -317,8 +317,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7103294edbd5e12429d2b847beca2efd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Health
-  maxHealth: 90
-  currentHealth: 90
+  maxHealth: 117
+  currentHealth: 117
   defaultInvulnerabilityDuration: 0.25
   onHealthChanged:
     m_PersistentCalls:
@@ -636,7 +636,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1001 &4705937133141473814
+--- !u!1001 &8101601031603623110
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -713,8 +713,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e5e08b70996ce5347b130ac21f4608ef, type: 3}
---- !u!4 &5099308012721069565 stripped
+--- !u!4 &8639050101455680301 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e5e08b70996ce5347b130ac21f4608ef, type: 3}
-  m_PrefabInstance: {fileID: 4705937133141473814}
+  m_PrefabInstance: {fileID: 8101601031603623110}
   m_PrefabAsset: {fileID: 0}

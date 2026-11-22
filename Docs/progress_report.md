@@ -1,7 +1,38 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
 **วันที่บันทึกล่าสุด**: 22 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Latest commits: `75e4bbc`, `b31204f`, `3610b52`)  
+**สถานะ Git**: `multi-player-netcode` (Synced `main` + `feat/project-mayhem` + ล่าสุดรีโมเดล Alien/Zombie Boss & ปรับสมดุล Enemy)  
+
+---
+
+## 26. รีโมเดล Alien 5 สายพันธุ์ + บอส Zombie (`Ancient Homunkulus`) + สลับพฤติกรรม/โมเดล `ZombieTank` + ปรับสมดุล HP & กระสุนศัตรู
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - Blender Scripts:
+    - [`Tools/Create_Aliens_Smart_And_Hook.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Aliens_Smart_And_Hook.py)
+    - [`Tools/Create_Alien_Normal_TekeTeke.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Alien_Normal_TekeTeke.py)
+    - [`Tools/Create_Alien_Invisible_Enderman.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Alien_Invisible_Enderman.py)
+    - [`Tools/Create_Alien_Crawler.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Alien_Crawler.py)
+    - [`Tools/Create_Zombie_Boss_Homunkulus.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Zombie_Boss_Homunkulus.py)
+    - [`Tools/Create_Zombie_Spitter_And_Tank.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Zombie_Spitter_And_Tank.py)
+  - Runtime & Editor Scripts:
+    - [`Assets/Scripts/Editor/AlienModelBuilder.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/AlienModelBuilder.cs) & [`Assets/Scripts/Editor/ChibiZombieModelBuilder.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/ChibiZombieModelBuilder.cs)
+    - [`Assets/Scripts/Runtime/Combat/ZombieAI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/ZombieAI.cs), [`RobotAI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/RobotAI.cs), [`AlienAI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/AlienAI.cs), [`Projectile.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Projectile.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **รีโมเดล Alien ครบ 5 สายพันธุ์พร้อม Rig & Animations**:
+     - **`AlienSmart`**: โดมหลอดไฟแก้วใส URP Transparent มองเห็นสมองเอเลี่ยนเต้นตุบๆ + เส้นประสาทเรืองแสง, ตาเดียวสีเหลือง, 4 ขาแมงมุม + 2 มือกรงเล็บ โทนม่วง-น้ำเงิน-เขียวมะนาว
+     - **`AlienHook`**: กะโหลกเอเลี่ยนยาว, ฐานหนวด 8 เส้น, ตาเดียว, **มือซ้ายก้ามยักษ์ยืดพุ่งคว้าได้ 2.75x** (ผูกท่า `Hook` กับ `AlienAI.ExecuteHookPull()`) และปรับโทนสีเป็นสไตล์ **`Panoptes`** (เนื้อชมพูอมส้ม-ดำเงา-ชมพูเลือด-ตาขาว)
+     - **`AlienNormal`**: ทรง `Sightless Worm` หัวโตไร้ตา ปากเขี้ยวใหญ่มีน้ำลายยืด ไม่มีขา แต่ยืดลำตัวไปข้างหลังยาวเหมือน **จระเข้ไร้ขา** + ท่าเดิน/วิ่งคลานลากตัวด้วย 2 มือแบบ **ผีเทเกะเทเกะ (`Teke Teke`)**
+     - **`AlienInvisible`**: ทรงตัวสูงผอมยาวสีดำสนิทสไตล์ **Enderman** (~2.92 ม.) ตาเดียวเรืองแสงสีม่วง + หนวดหลังหัวแบบ **จอมมารบูยาวถึงระดับก้น** พร้อมอัปเกรดระบบล่องหน 3D ใน `AlienAI.HandleInvisibilityFade()` ให้ตัวจางพรางตัวแต่ลูกตาเรืองแสงวาวในความมืด
+     - **`AlienCrawler`**: เอเลี่ยนคลาน 4 ขาขนสีน้ำตาล ตาเดียวโปนใหญ่ หางม้วน พร้อม **กรงเล็บยาวมากทั้ง 4 เท้า** และ **ลิ้นสีแดงยาวพิเศษ** ริก 3 ข้อสะบัดตามการวิ่ง/โจมตี
+  2. **รีโมเดลบอสซอมบี้ (`Ancient Homunkulus`) & สลับพฤติกรรม/โมเดลกับ `ZombieTank`**:
+     - **บอส `ZombieLeader`**: รีโมเดลใหม่เป็น **`Ancient Homunkulus`** (ซอมบี้ร่างยักษ์หลังค่อมผิวเขียวอมฟ้า หน้าผากบวม ผมแดงส้ม ผ้าพันคอแดง เสื้อม่วงขาด แขนกอลิล่า + **ปรสิตลูกตาเลือดยักษ์และหนวดปลายแดง 10 เส้นบนหลัง**) พร้อมชุดพฤติกรรมใหม่: **เสกลูกน้อง + กระโดดวิถีโค้งทับ (`Leap` ไม่ใช่พุ่ง!) + พ่นกรด (`Spit` 3 ทิศตอน Rage) + Ground Stomp**
+     - **`ZombieTank`**: ย้ายพฤติกรรมบอสซอมบี้เดิมทั้งหมด (พุ่ง Charge + Ground Stomp AOE + Rage Mode) **ยกเว้นเสกลูกน้อง** มาใส่ `ZombieTank` พร้อมนำโมเดลบอสเดิม (`Chibi_ZombieBoss_Legacy_Rigged.fbx`) มาใช้กับ `ZombieTank.prefab` และเก็บรักษาโมเดล Tank กอลิล่า (`Chibi_ZombieTank_Rigged.fbx`) ไว้ในโปรเจกต์เผื่อใช้งานต่อ
+     - เพิ่ม `ZombieSpitter` และ `ZombieTank` เข้า Object Pool + Spawn Configs ของ `Gameplay_3D.unity` และ Ambush Event ใน `RandomStageEventManager.cs`
+  3. **ปรับสมดุล Combat (HP, Projectile Speed, Robot Gunner 5-Round Burst) & มาตรฐาน UI ชื่อ/เลือด**:
+     - **ความเร็วกระสุนศัตรู (`Projectile.cs`, `RobotAI.cs`, `ZombieAI.cs`, `AlienAI.cs`)**: ปรับความเร็วกระสุนของศัตรูทุกตัวเป็น **`50f`** เท่ากระสุนผู้เล่น (`BulletPrefabs.prefab`)
+     - **`RobotGunner`**: ปรับการยิงเป็นชุด **Burst ทีละ 5 นัด** (ห่างกัน 0.12 วิ) แล้วสุ่มเว้นช่วงพัก **`1 - 3 วินาที`** ก่อนยิงชุดใหม่
+     - **ปรับสมดุลเลือด (HP) ศัตรูทุก Prefab**: บอสทุกตัว (**×2**: `ZombieLeader` 3000, `AlienLeader` 2800, `RobotLeader` 3200), ศัตรูทั่วไป (**+30%** ครบทุกตัว), **ยกเว้น `ZombieBoomer`** (คงเดิม 500)
+     - **มาตรฐาน `Name_text` & `Health_text` ครบทั้ง 24 Prefab**: ตั้งค่า RectTransform (`Width 300, Height 50`) และ TextMeshPro (`Teko SDF`, `Bold`, `Auto Size 18–36`, สีขาว, ล้างข้อความค้าง) ตรงกันทุก Enemy, Player, และ NPC
 
 ---
 

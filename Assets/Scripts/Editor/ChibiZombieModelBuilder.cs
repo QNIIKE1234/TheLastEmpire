@@ -23,6 +23,7 @@ namespace TheLastEmpire.Editor
                    assetPath.Contains("Chibi_ZombieRunner_Rigged") ||
                    assetPath.Contains("Chibi_ZombieDog_Rigged") ||
                    assetPath.Contains("Chibi_ZombieBoss_Rigged") ||
+                   assetPath.Contains("Chibi_ZombieBoss_Legacy_Rigged") ||
                    assetPath.Contains("Chibi_ZombieBoomer_Rigged") ||
                    assetPath.Contains("Chibi_ZombieSpitter_Rigged") ||
                    assetPath.Contains("Chibi_ZombieTank_Rigged");
@@ -79,11 +80,31 @@ namespace TheLastEmpire.Editor
             if (!IsTargetZombieFbx() || material == null) return;
             ChibiZombieModelBuilder.ApplyZombieMaterialFinish(material);
         }
+
+        private static void OnPostprocessAllAssets(
+            string[] importedAssets,
+            string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths)
+        {
+            if (importedAssets == null) return;
+            foreach (string path in importedAssets)
+            {
+                if (!string.IsNullOrEmpty(path) &&
+                    (path.Contains("Chibi_ZombieBoss_Rigged.fbx") ||
+                     path.Contains("Chibi_ZombieBoss_Legacy_Rigged.fbx")))
+                {
+                    EditorApplication.delayCall += ChibiZombieModelBuilder.EnsureZombieModelsBuiltAuto;
+                    break;
+                }
+            }
+        }
     }
 
     [InitializeOnLoad]
     public static class ChibiZombieModelBuilder
     {
+        private static bool _isBuilding;
         private const string ZombieFbxDir = "Assets/GeneratedModels/Zombies";
         private const string AnimCtrlDir = "Assets/Resources_Addressable/Image/Animation";
         private const string CharacterPrefabDir = "Assets/Resources_Addressable/Prefabs/Character";
@@ -164,13 +185,15 @@ namespace TheLastEmpire.Editor
             },
             new ZombieSetupSpec
             {
-                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieTank_Rigged.fbx",
-                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieTank_Controller.controller",
+                // ZombieTank uses the previous ZombieLeader model (preserved as Chibi_ZombieBoss_Legacy_Rigged.fbx);
+                // Chibi_ZombieTank_Rigged.fbx is kept safely in Assets/GeneratedModels/Zombies/ for future use!
+                fbxPath = $"{ZombieFbxDir}/Chibi_ZombieBoss_Legacy_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Chibi_ZombieTank_LegacyBoss_Controller.controller",
                 prefabPath = $"{CharacterPrefabDir}/ZombieTank.prefab",
-                childRootName = "Chibi_ZombieTank_Model",
-                legacyChildNamesToRemove = new[] { "Boss_Zombie_Tank", "Zombie_Tank_Dummy", "Capsule" },
+                childRootName = "Chibi_ZombieTank_LegacyBoss_Model",
+                legacyChildNamesToRemove = new[] { "Chibi_ZombieTank_Model", "Boss_Zombie_Tank", "Zombie_Tank_Dummy", "Capsule" },
                 localPosition = new Vector3(0f, -1.0f, 0f),
-                localScale = new Vector3(1.26f, 1.26f, 1.26f)
+                localScale = new Vector3(1.18f, 1.18f, 1.18f)
             }
         };
 
@@ -179,9 +202,9 @@ namespace TheLastEmpire.Editor
             EditorApplication.delayCall += EnsureZombieModelsBuiltAuto;
         }
 
-        private static void EnsureZombieModelsBuiltAuto()
+        public static void EnsureZombieModelsBuiltAuto()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (_isBuilding || EditorApplication.isPlayingOrWillChangePlaymode) return;
 
             // Check if controllers or prefab models still need to be linked
             bool needsBuild = false;
@@ -215,38 +238,47 @@ namespace TheLastEmpire.Editor
 
         public static void BuildAndApplyAll(bool showDialog)
         {
-            if (!Directory.Exists(AnimCtrlDir))
+            if (_isBuilding) return;
+            _isBuilding = true;
+            try
             {
-                Directory.CreateDirectory(AnimCtrlDir);
-            }
-
-            int updatedCount = 0;
-            foreach (var spec in Specs)
-            {
-                if (!File.Exists(spec.fbxPath))
+                if (!Directory.Exists(AnimCtrlDir))
                 {
-                    Debug.LogWarning($"[ChibiZombieModelBuilder] Missing FBX at {spec.fbxPath}");
-                    continue;
+                    Directory.CreateDirectory(AnimCtrlDir);
                 }
 
-                EnsureFbxImportSettingsAndMaterials(spec.fbxPath);
-                AnimatorController ctrl = CreateOrUpdateAnimatorController(spec.fbxPath, spec.controllerPath);
-                if (ApplyModelToPrefab(spec, ctrl))
+                int updatedCount = 0;
+                foreach (var spec in Specs)
                 {
-                    updatedCount++;
+                    if (!File.Exists(spec.fbxPath))
+                    {
+                        Debug.LogWarning($"[ChibiZombieModelBuilder] Missing FBX at {spec.fbxPath}");
+                        continue;
+                    }
+
+                    EnsureFbxImportSettingsAndMaterials(spec.fbxPath);
+                    AnimatorController ctrl = CreateOrUpdateAnimatorController(spec.fbxPath, spec.controllerPath);
+                    if (ApplyModelToPrefab(spec, ctrl))
+                    {
+                        updatedCount++;
+                    }
+                }
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                Debug.Log($"<color=#50FA7B>[ChibiZombieModelBuilder]</color> Configured & linked {updatedCount}/{Specs.Length} rigged Chibi Zombie models!");
+                if (showDialog)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Chibi Zombie Models Applied",
+                        $"Successfully rigged, animated, and applied {updatedCount} Chibi Zombie models!",
+                        "OK");
                 }
             }
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            Debug.Log($"<color=#50FA7B>[ChibiZombieModelBuilder]</color> Configured & linked {updatedCount}/3 rigged Chibi Zombie models (Normal, Runner Cop, Zombie Dog)!");
-            if (showDialog)
+            finally
             {
-                EditorUtility.DisplayDialog(
-                    "Chibi Zombie Models Applied",
-                    $"Successfully rigged, animated, and applied {updatedCount} Chibi Zombie models to ZombieNormal, ZombieRunner, and ZombieDog prefabs!",
-                    "OK");
+                _isBuilding = false;
             }
         }
 
@@ -518,6 +550,16 @@ namespace TheLastEmpire.Editor
             if (clipsByShortName.ContainsKey("Explode"))
             {
                 EnsureStateWithMotion(sm, "Explode", FindClip(clipsByShortName, "Explode", "Slash1"));
+            }
+            if (clipsByShortName.ContainsKey("Leap"))
+            {
+                AnimatorState leapState = EnsureStateWithMotion(sm, "Leap", FindClip(clipsByShortName, "Leap", "GroundSlam", "Slash1"));
+                EnsureExitToIdleTransition(leapState, idleState);
+            }
+            if (clipsByShortName.ContainsKey("Spit"))
+            {
+                AnimatorState spitState = EnsureStateWithMotion(sm, "Spit", FindClip(clipsByShortName, "Spit", "Throw", "Slash1"));
+                EnsureExitToIdleTransition(spitState, idleState);
             }
 
             EditorUtility.SetDirty(controller);

@@ -36,7 +36,7 @@ namespace TheLastEmpire
         public System.Collections.Generic.List<ProjectileVisualEntry> VisualEntries => visualEntries;
 
         [Header("Settings")]
-        [SerializeField] private float speed = 12f;
+        [SerializeField] private float speed = 50f;
         [SerializeField] private float damage = 20;
         [SerializeField] private float decreseMulti = 0.1f;
         [SerializeField] private float lifetime = 3f;
@@ -100,6 +100,19 @@ namespace TheLastEmpire
         }
 
         public float Speed => _activeSpeed > 0f ? _activeSpeed : speed;
+
+        public void SetSpeed(float newSpeed)
+        {
+            if (newSpeed > 0.1f)
+            {
+                speed = newSpeed;
+                _activeSpeed = newSpeed;
+                if (_rb != null && _rb.linearVelocity.sqrMagnitude > 0.001f)
+                {
+                    _rb.linearVelocity = _rb.linearVelocity.normalized * newSpeed;
+                }
+            }
+        }
         public bool IsExplosive => _activeIsExplosive;
         public float ExplosionRadius => _activeExplosionRadius > 0f ? _activeExplosionRadius : explosionRadius;
         public string ExplosionVfxPoolKey => !string.IsNullOrEmpty(_activeExplosionVfxPoolKey) ? _activeExplosionVfxPoolKey : explosionVfxPoolKey;

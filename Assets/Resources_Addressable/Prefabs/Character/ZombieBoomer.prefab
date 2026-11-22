@@ -173,7 +173,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7861954115729961477}
-  - {fileID: 6903460713113474635}
+  - {fileID: 52001116646040637}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -296,6 +296,15 @@ MonoBehaviour:
   rageTelegraphSpeedMultiplier: 0.7
   rageChargeSpeedMultiplier: 1.35
   rageTint: {r: 1, g: 0.22, b: 0.15, a: 1}
+  bossLeapCooldown: 5.5
+  bossLeapMinRange: 3.5
+  bossLeapMaxRange: 11
+  bossLeapDuration: 0.65
+  bossLeapArcHeight: 3.2
+  bossLeapLandRadius: 3.5
+  bossLeapLandDamage: 40
+  bossLeapKnockback: 11
+  acidProjectileSpeed: 50
 --- !u!114 &-5781105677173290729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -671,7 +680,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1001 &6360416983741313440
+--- !u!1001 &518485428502856662
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -748,8 +757,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fdd1d3ac11e6d5b4a829b0215b576326, type: 3}
---- !u!4 &6903460713113474635 stripped
+--- !u!4 &52001116646040637 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: fdd1d3ac11e6d5b4a829b0215b576326, type: 3}
-  m_PrefabInstance: {fileID: 6360416983741313440}
+  m_PrefabInstance: {fileID: 518485428502856662}
   m_PrefabAsset: {fileID: 0}

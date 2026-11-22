@@ -454,8 +454,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7103294edbd5e12429d2b847beca2efd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Health
-  maxHealth: 1600
-  currentHealth: 1600
+  maxHealth: 3200
+  currentHealth: 3200
   defaultInvulnerabilityDuration: 0.25
   onHealthChanged:
     m_PersistentCalls:

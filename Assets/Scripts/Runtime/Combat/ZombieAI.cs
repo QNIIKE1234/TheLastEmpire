@@ -100,6 +100,19 @@ namespace TheLastEmpire
         [Tooltip("แสงออร่าสีแดงเมื่ออยู่ในโหมดคลั่ง")]
         [SerializeField] private Color rageTint = new Color(1f, 0.22f, 0.15f, 1f);
 
+        [Header("Boss Leap Attack Settings (ZombieLeader)")]
+        [SerializeField] private float bossLeapCooldown = 5.5f;
+        [SerializeField] private float bossLeapMinRange = 3.5f;
+        [SerializeField] private float bossLeapMaxRange = 11.0f;
+        [SerializeField] private float bossLeapDuration = 0.65f;
+        [SerializeField] private float bossLeapArcHeight = 3.2f;
+        [SerializeField] private float bossLeapLandRadius = 3.5f;
+        [SerializeField] private int bossLeapLandDamage = 40;
+        [SerializeField] private float bossLeapKnockback = 11f;
+
+        [Header("Enemy Projectile Speed")]
+        [SerializeField] private float acidProjectileSpeed = 50f;
+
         private float _spawnCooldownTimer = 0f;
         private int _currentChildSpawns = 0;
 
@@ -107,6 +120,13 @@ namespace TheLastEmpire
         private float _leapActiveTimer = 0f;
         private bool _isLeaping = false;
         private Vector3 _leapDirection;
+
+        // Boss Parabolic Leap State (ZombieLeader jumps onto player instead of charging!)
+        private bool _isBossLeaping = false;
+        private float _bossLeapElapsed = 0f;
+        private Vector3 _bossLeapStartPos;
+        private Vector3 _bossLeapTargetPos;
+        private bool _isSpitting = false;
 
         private bool _isExploding = false;
         private float _fuseTimer = 0f;
@@ -142,10 +162,12 @@ namespace TheLastEmpire
         private SpriteRenderer _boomerDecalRenderer;
 
         public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
-        public bool IsRageMode => IsBossUnit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
+        // ZombieTank inherits former ZombieLeader's heavy boss combat kit (Charge + Ground Stomp + Rage) WITHOUT minion spawning!
+        public bool HasHeavyBossKit => IsBossUnit || zombieType == ZombieType.Tank;
+        public bool IsRageMode => HasHeavyBossKit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
 
-        // ซอมบี้เปิดใช้งานระบบเดินอ้อมสิ่งกีดขวางอัจฉริยะเฉพาะระดับบอส (IsBossUnit) เท่านั้น
-        public override bool UseSmartObstacleAvoidance => useSmartObstacleAvoidance || IsBossUnit;
+        // ซอมบี้ระดับบอสและ Tank เปิดใช้งานระบบเดินอ้อมสิ่งกีดขวางอัจฉริยะ
+        public override bool UseSmartObstacleAvoidance => useSmartObstacleAvoidance || HasHeavyBossKit;
 
         protected override void OnEnable()
         {
@@ -156,11 +178,15 @@ namespace TheLastEmpire
             _isStompTelegraphing = false;
             _isCharging = false;
             _isChargeWindingUp = false;
+            _isBossLeaping = false;
+            _isSpitting = false;
             _hasTriggeredRageMode = false;
             _rageRoarTimer = 0f;
             ResetRageVisuals();
             _chargeCooldownTimer = 2.0f;
             _stompCooldownTimer = 2.0f;
+            _leapCooldownTimer = 2.0f;
+            _spitCooldownTimer = 2.5f;
             if (_spriteRenderer != null && _originalColor != default)
             {
                 _spriteRenderer.color = _originalColor;
@@ -226,7 +252,7 @@ namespace TheLastEmpire
                 }
             }
 
-            if (IsBossUnit)
+            if (HasHeavyBossKit)
             {
                 useSmartObstacleAvoidance = true;
                 InitBossIndicators();
@@ -244,7 +270,7 @@ namespace TheLastEmpire
                     break;
                 case ZombieType.Leader:
                     moveSpeed = 2.5f;
-                    detectionRange = 6f;
+                    detectionRange = 9f;
                     break;
                 case ZombieType.Boomer:
                     moveSpeed = 2f;
@@ -254,8 +280,8 @@ namespace TheLastEmpire
                     detectionRange = 9f;
                     break;
                 case ZombieType.Tank:
-                    moveSpeed = 1.6f;
-                    detectionRange = 7f;
+                    moveSpeed = 2.4f;
+                    detectionRange = 8f;
                     staggerDuration = 0.1f;
                     knockbackForce = 12f;
                     break;
@@ -266,8 +292,8 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
-            // Check Boss Rage Mode (HP <= 30%)
-            if (IsBossUnit)
+            // Check Boss / Tank Rage Mode (HP <= 30%)
+            if (HasHeavyBossKit)
             {
                 CheckRageModeState();
                 if (_rageRoarTimer > 0f)
@@ -278,9 +304,45 @@ namespace TheLastEmpire
                 }
             }
 
-            // Handle dog leap countdown timers
-            if (_spitCooldownTimer > 0f) _spitCooldownTimer -= Time.fixedDeltaTime;
-            if (_leapCooldownTimer > 0f) _leapCooldownTimer -= Time.fixedDeltaTime;
+            // Cooldown rate multiplier (Skills tick down faster during Rage Mode!)
+            float cooldownSpeedMult = IsRageMode ? (1f / Mathf.Max(0.1f, rageSkillCooldownMultiplier)) : 1f;
+
+            // Handle spit & leap countdown timers
+            if (_spitCooldownTimer > 0f) _spitCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
+            if (_leapCooldownTimer > 0f) _leapCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
+
+            if (_isSpitting)
+            {
+                if (rb != null) rb.linearVelocity = Vector3.zero;
+                return;
+            }
+
+            // Handle Boss Parabolic Leap Attack (ZombieLeader jumps in high arc onto player!)
+            if (_isBossLeaping)
+            {
+                _bossLeapElapsed += Time.fixedDeltaTime;
+                float duration = Mathf.Max(0.25f, bossLeapDuration);
+                float t = Mathf.Clamp01(_bossLeapElapsed / duration);
+                Vector3 flatPos = Vector3.Lerp(_bossLeapStartPos, _bossLeapTargetPos, t);
+                float arcY = 4f * bossLeapArcHeight * t * (1f - t);
+                Vector3 nextPos = new Vector3(flatPos.x, Mathf.Lerp(_bossLeapStartPos.y, _bossLeapTargetPos.y, t) + arcY, flatPos.z);
+
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector3.zero;
+                    rb.MovePosition(nextPos);
+                }
+                else
+                {
+                    transform.position = nextPos;
+                }
+
+                if (t >= 1f)
+                {
+                    FinishBossLeapSlam();
+                }
+                return;
+            }
             
             if (_isLeaping)
             {
@@ -328,10 +390,7 @@ namespace TheLastEmpire
                 return;
             }
 
-            // Cooldown rate multiplier (Skills tick down faster during Rage Mode!)
-            float cooldownSpeedMult = IsRageMode ? (1f / Mathf.Max(0.1f, rageSkillCooldownMultiplier)) : 1f;
-
-            // Handle Boss / Leader Stomp AOE Telegraph
+            // Handle Boss / Tank Stomp AOE Telegraph
             if (_stompCooldownTimer > 0f) _stompCooldownTimer -= Time.fixedDeltaTime * cooldownSpeedMult;
             if (_isStompTelegraphing)
             {
@@ -538,19 +597,45 @@ namespace TheLastEmpire
                     return;
                 }
 
-                // Boss / Leader Special Attacks
+                // Boss (ZombieLeader) Special Attacks: Minion Spawn (in FixedUpdate) + Parabolic Leap Slam (NOT Charge!) + Acid Spit + Close Stomp
                 if (IsBossUnit)
                 {
                     bool hasLineOfSight = HasLineOfSightToPlayer();
 
-                    // 1. Ground Stomp AOE: If player is in attack range (<= 4.8m), visible, and cooldown is ready
+                    // 1. Ground Stomp AOE up close
+                    if (_stompCooldownTimer <= 0f && distanceToPlayer <= stompAttackRange && hasLineOfSight && !_isStompTelegraphing && !_isBossLeaping && !_isSpitting)
+                    {
+                        StartStompTelegraph();
+                        return;
+                    }
+
+                    // 2. Boss Parabolic Leap Slam onto player (กระโดดใส่ ไม่ใช่พุ่ง!)
+                    if (_leapCooldownTimer <= 0f && distanceToPlayer >= bossLeapMinRange && distanceToPlayer <= bossLeapMaxRange && hasLineOfSight && !_isBossLeaping && !_isStompTelegraphing && !_isSpitting)
+                    {
+                        StartBossLeap();
+                        return;
+                    }
+
+                    // 3. Boss Acid Spit (พ่นกรดใส่ผู้เล่น!)
+                    if (_spitCooldownTimer <= 0f && distanceToPlayer >= 3.0f && distanceToPlayer <= Mathf.Max(spitRange, 10.5f) && hasLineOfSight && !_isBossLeaping && !_isStompTelegraphing && !_isSpitting)
+                    {
+                        StartCoroutine(ExecuteSpitterSpit());
+                        return;
+                    }
+                }
+                // ZombieTank inherits former Boss behaviors (Ground Stomp AOE + Charge Rush + Rage) EXCEPT Minion Spawning!
+                else if (zombieType == ZombieType.Tank)
+                {
+                    bool hasLineOfSight = HasLineOfSightToPlayer();
+
+                    // 1. Ground Stomp AOE
                     if (_stompCooldownTimer <= 0f && distanceToPlayer <= stompAttackRange && hasLineOfSight && !_isStompTelegraphing && !_isCharging && !_isChargeWindingUp)
                     {
                         StartStompTelegraph();
                         return;
                     }
 
-                    // 2. Boss Charge: If player is at medium-long distance, has clear line of sight (no obstacle in between), and cooldown is ready
+                    // 2. Tank Charge Rush (อดีตท่าพุ่งของบอสซอมบี้!)
                     if (_chargeCooldownTimer <= 0f && distanceToPlayer >= minChargeDistance && distanceToPlayer <= maxChargeDistance && hasLineOfSight && !_isCharging && !_isChargeWindingUp && !_isStompTelegraphing)
                     {
                         StartBossCharge();
@@ -576,6 +661,75 @@ namespace TheLastEmpire
                 // ซอมบี้เดินช้าลง 50% ตอนกลางคืน
                 WanderMovement(isNight ? 0.5f : 1.0f);
             }
+        }
+
+        private void StartBossLeap()
+        {
+            _isBossLeaping = true;
+            _bossLeapElapsed = 0f;
+            _leapCooldownTimer = IsRageMode ? (bossLeapCooldown * rageSkillCooldownMultiplier) : bossLeapCooldown;
+            currentState = AIState.Telegraph;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
+
+            _bossLeapStartPos = transform.position;
+            if (playerTransform != null)
+            {
+                Vector3 toPlayer = playerTransform.position - transform.position;
+                toPlayer.y = 0f;
+                float dist = Mathf.Clamp(toPlayer.magnitude, bossLeapMinRange * 0.7f, bossLeapMaxRange);
+                Vector3 dir = toPlayer.sqrMagnitude > 0.001f ? toPlayer.normalized : transform.forward;
+                transform.forward = dir;
+                _bossLeapTargetPos = new Vector3(_bossLeapStartPos.x + dir.x * dist, _bossLeapStartPos.y, _bossLeapStartPos.z + dir.z * dist);
+            }
+            else
+            {
+                _bossLeapTargetPos = _bossLeapStartPos + transform.forward * 5f;
+            }
+
+            PlayActionAnimation("Leap", bossLeapDuration + 0.25f, 0.05f);
+            Debug.Log($"[ZombieAI] Boss {gameObject.name} leaped towards {_bossLeapTargetPos}!");
+        }
+
+        private void FinishBossLeapSlam()
+        {
+            _isBossLeaping = false;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
+
+            // Landing VFX + Camera Shake + AOE Impact
+            if (!string.IsNullOrEmpty(stompVfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                GameObject vfx = ObjectPoolManager.Instance.SpawnFromPool(stompVfxPoolKey.Trim(), transform.position, Quaternion.identity);
+                if (vfx != null)
+                {
+                    PooledParticle pp = vfx.GetComponent<PooledParticle>();
+                    if (pp != null)
+                    {
+                        pp.SetPoolKey(stompVfxPoolKey.Trim());
+                        pp.ApplyScaleMultiplier(bossLeapLandRadius * 0.85f);
+                    }
+                }
+            }
+            CameraFollow.TriggerShake(IsRageMode ? 0.35f : 0.22f, 0.45f);
+
+            Collider[] targets = Physics.OverlapSphere(transform.position, bossLeapLandRadius);
+            foreach (var target in targets)
+            {
+                if (target.gameObject == gameObject || target.CompareTag("Enemy")) continue;
+                IDamageable dmg = target.GetComponent<IDamageable>();
+                if (dmg != null) dmg.TakeDamage(bossLeapLandDamage);
+
+                PlayerController pc = target.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    Vector3 pushDir = pc.transform.position - transform.position;
+                    pushDir.y = 0f;
+                    if (pushDir.sqrMagnitude < 0.001f) pushDir = transform.forward;
+                    pc.ApplyKnockback(pushDir.normalized * bossLeapKnockback, 0.3f);
+                }
+            }
+
+            ClearActionAnimationLock();
+            currentState = AIState.Chase;
         }
 
         private void StartDogLeap()
@@ -686,8 +840,8 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
-            // Boss units are immune to stagger and interruption during Stomp Telegraph or Charge!
-            if (IsBossUnit && (_isStompTelegraphing || _isCharging || _isChargeWindingUp))
+            // Boss & Tank units are immune to stagger and interruption during Stomp Telegraph, Charge, or Boss Leap!
+            if (HasHeavyBossKit && (_isStompTelegraphing || _isCharging || _isChargeWindingUp || _isBossLeaping))
             {
                 hasBeenAttacked = true;
                 return;
@@ -1512,37 +1666,58 @@ namespace TheLastEmpire
     
         private System.Collections.IEnumerator ExecuteSpitterSpit()
         {
-            _spitCooldownTimer = spitCooldown;
-            rb.linearVelocity = Vector3.zero;
+            _isSpitting = true;
+            _spitCooldownTimer = IsRageMode ? (spitCooldown * rageSkillCooldownMultiplier) : spitCooldown;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
             if (_spriteRenderer != null) _spriteRenderer.color = new Color(0.2f, 0.9f, 0.2f);
 
-            yield return new WaitForSeconds(0.4f);
+            if (playerTransform != null)
+            {
+                Vector3 faceDir = playerTransform.position - transform.position;
+                faceDir.y = 0f;
+                if (faceDir.sqrMagnitude > 0.001f) transform.forward = faceDir.normalized;
+            }
+
+            PlayActionAnimation(IsBossUnit ? "Spit" : "Slash1", 0.65f, 0.05f);
+            yield return new WaitForSeconds(0.35f);
 
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            if (playerTransform != null)
+            if (playerTransform != null && (health == null || !health.IsDead))
             {
-                Vector3 dir = (playerTransform.position - transform.position);
-                dir.y = 0f;
-                dir.Normalize();
+                Vector3 baseDir = (playerTransform.position - transform.position);
+                baseDir.y = 0f;
+                if (baseDir.sqrMagnitude < 0.001f) baseDir = transform.forward;
+                baseDir.Normalize();
+                transform.forward = baseDir;
 
-                Vector3 spawnPos = transform.position + dir * 0.6f + Vector3.up * 0.3f;
-                GameObject acid = new GameObject("ZombieAcidSpit");
-                acid.transform.position = spawnPos;
-                acid.transform.localScale = new Vector3(0.22f, 0.22f, 0.22f);
+                // Boss spits a 3-way toxic spread when enraged, or single heavy acid blast normally!
+                float[] spreadAngles = (IsBossUnit && IsRageMode) ? new[] { -14f, 0f, 14f } : new[] { 0f };
+                float projScale = IsBossUnit ? 0.34f : 0.22f;
 
-                SpriteRenderer sr = acid.AddComponent<SpriteRenderer>();
-                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                sr.color = new Color(0.35f, 0.95f, 0.15f);
+                foreach (float angleDeg in spreadAngles)
+                {
+                    Vector3 dir = Quaternion.Euler(0f, angleDeg, 0f) * baseDir;
+                    Vector3 spawnPos = transform.position + dir * 0.8f + Vector3.up * (IsBossUnit ? 0.8f : 0.3f);
+                    GameObject acid = new GameObject("ZombieAcidSpit");
+                    acid.transform.position = spawnPos;
+                    acid.transform.localScale = Vector3.one * projScale;
 
-                SphereCollider col = acid.AddComponent<SphereCollider>();
-                col.isTrigger = true;
+                    SpriteRenderer sr = acid.AddComponent<SpriteRenderer>();
+                    sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                    sr.color = new Color(0.35f, 0.95f, 0.15f);
 
-                Projectile proj = acid.AddComponent<Projectile>();
-                proj.Setup(dir, playerTransform.position, gameObject);
+                    SphereCollider col = acid.AddComponent<SphereCollider>();
+                    col.isTrigger = true;
+
+                    Projectile proj = acid.AddComponent<Projectile>();
+                    proj.SetSpeed(acidProjectileSpeed);
+                    proj.Setup(dir, spawnPos + dir * 12f, gameObject);
+                }
             }
 
+            _isSpitting = false;
             currentState = AIState.Chase;
         }
 }

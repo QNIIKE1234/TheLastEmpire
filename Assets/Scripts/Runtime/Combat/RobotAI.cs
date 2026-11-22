@@ -26,6 +26,11 @@ namespace TheLastEmpire
         [SerializeField] private Projectile enemyBulletPrefab;
         [SerializeField] private float fireRate = 1.2f;
         [SerializeField] private float shootingDistance = 5f;
+        [SerializeField] private int gunnerBurstCount = 5;
+        [SerializeField] private float gunnerBurstShotInterval = 0.12f;
+        [SerializeField] private float gunnerPauseMin = 1.0f;
+        [SerializeField] private float gunnerPauseMax = 3.0f;
+        [SerializeField] private float enemyProjectileSpeed = 50f;
 
         [Header("Robot Blade / Dash Settings")]
         [SerializeField] private float bladeDashSpeed = 15f;
@@ -241,26 +246,28 @@ namespace TheLastEmpire
         private IEnumerator ExecuteGunnerShot()
         {
             _isActionActive = true;
-            _actionCooldownTimer = fireRate;
             rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
-            // Lock rotation towards player
-            Vector3 dir = (playerTransform.position - transform.position);
-            dir.y = 0f;
-            dir.Normalize();
-            if (dir.sqrMagnitude > 0.01f)
+            yield return new WaitForSeconds(0.25f); // brief aim lock before 5-round burst
+
+            int shotsToFire = Mathf.Max(1, gunnerBurstCount);
+            float shotInterval = Mathf.Max(0.05f, gunnerBurstShotInterval);
+
+            for (int shot = 0; shot < shotsToFire; shot++)
             {
+                if (health != null && health.IsDead) break;
+                if (playerTransform == null || IsTargetDead()) break;
+
+                Vector3 dir = (playerTransform.position - transform.position);
+                dir.y = 0f;
+                if (dir.sqrMagnitude < 0.0001f) dir = transform.forward;
+                dir.Normalize();
                 transform.forward = dir;
-            }
 
-            yield return new WaitForSeconds(0.4f); // brief aim delay
+                PlayActionAnimation("Attack", shotInterval + 0.25f, 0.04f);
 
-            PlayActionAnimation("Attack", 0.55f, 0.06f);
-
-            if (playerTransform != null)
-            {
-                Vector3 spawnPos = transform.position + dir * 0.6f;
+                Vector3 spawnPos = transform.position + dir * 0.6f + Vector3.up * 0.25f;
                 GameObject bullet;
 
                 if (enemyBulletPrefab != null)
@@ -269,7 +276,6 @@ namespace TheLastEmpire
                 }
                 else
                 {
-                    // Fallback procedural projectile
                     bullet = new GameObject("RobotBullet");
                     bullet.transform.position = spawnPos;
                     bullet.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
@@ -285,10 +291,23 @@ namespace TheLastEmpire
                 }
 
                 Projectile proj = bullet.GetComponent<Projectile>();
-                // ถ้ามีเป้าหมาย (ผู้เล่น) ให้ส่งพิกัดไปเผื่อว่ากระสุนเป็นแบบวิถีโค้ง
-                Vector3 targetPoint = playerTransform != null ? playerTransform.position : transform.position + dir * 10f;
-                proj.Setup(dir, targetPoint, gameObject);
+                if (proj != null)
+                {
+                    proj.SetSpeed(enemyProjectileSpeed);
+                    Vector3 targetPoint = playerTransform != null ? playerTransform.position : transform.position + dir * 10f;
+                    proj.Setup(dir, targetPoint, gameObject);
+                }
+
+                if (shot < shotsToFire - 1)
+                {
+                    yield return new WaitForSeconds(shotInterval);
+                }
             }
+
+            // Random 1 - 3 second pause before the next 5-round burst!
+            float minPause = Mathf.Max(0.2f, gunnerPauseMin);
+            float maxPause = Mathf.Max(minPause, gunnerPauseMax);
+            _actionCooldownTimer = Random.Range(minPause, maxPause);
 
             _isActionActive = false;
             currentState = AIState.Chase;

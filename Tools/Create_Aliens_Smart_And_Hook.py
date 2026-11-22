@@ -511,15 +511,15 @@ def build_alien_smart():
 def build_alien_hook():
     scene = kit.reset_scene()
 
-    # Pure Alien Palette: Toxic Emerald-Green + Deep Cosmic Violet-Blue + Glowing Neon Yellow-Lime! (NO grey/white!)
-    m_emerald   = make_emissive_mat("Mat_AlienHook_Emerald",    (0.08, 0.48, 0.30, 1.0), roughness=0.40, metallic=0.10)
-    m_lime      = make_emissive_mat("Mat_AlienHook_NeonLime",   (0.62, 0.98, 0.14, 1.0), emit_rgb=(0.48, 0.92, 0.10), emit_strength=0.65, roughness=0.32)
-    m_purple    = make_emissive_mat("Mat_AlienHook_Purple",     (0.28, 0.12, 0.56, 1.0), roughness=0.44, metallic=0.12)
-    m_indigo    = make_emissive_mat("Mat_AlienHook_Indigo",     (0.12, 0.24, 0.62, 1.0), roughness=0.46)
-    m_dome_glow = make_emissive_mat("Mat_AlienHook_CraniumBio", (0.42, 0.14, 0.72, 1.0), emit_rgb=(0.48, 0.18, 0.88), emit_strength=0.65, roughness=0.16)
-    m_eye_glow  = make_emissive_mat("Mat_AlienHook_CyclopsEye", (0.98, 0.94, 0.14, 1.0), emit_rgb=(0.98, 0.92, 0.12), emit_strength=1.75, roughness=0.08)
-    m_pupil     = make_emissive_mat("Mat_AlienHook_Pupil",      (0.08, 0.02, 0.16, 1.0), roughness=0.05)
-    m_yellow_g  = make_emissive_mat("Mat_AlienHook_BioGlow",    (0.96, 0.88, 0.12, 1.0), emit_rgb=(0.96, 0.86, 0.10), emit_strength=1.40, roughness=0.22)
+    # Panoptes Horror-Flesh Palette (Ref: Warm Peach-Tan Flesh, Shaded Ochre-Brown, Jet-Black Hair/Crest, Crimson-Rose Mouth/Claws, Ghostly White Cyclops Eye!)
+    m_emerald   = make_emissive_mat("Mat_AlienHook_Emerald",    (0.88, 0.63, 0.42, 1.0), roughness=0.38, metallic=0.02)  # Warm fleshy peach-tan body & cranium
+    m_lime      = make_emissive_mat("Mat_AlienHook_NeonLime",   (0.84, 0.44, 0.42, 1.0), roughness=0.32, metallic=0.02)  # Bloody rose-pink claws, coils & tubes
+    m_purple    = make_emissive_mat("Mat_AlienHook_Purple",     (0.06, 0.05, 0.07, 1.0), roughness=0.28, metallic=0.08)  # Glossy jet-black tendrils & rims (Panoptes hair!)
+    m_indigo    = make_emissive_mat("Mat_AlienHook_Indigo",     (0.66, 0.39, 0.23, 1.0), roughness=0.42, metallic=0.02)  # Shaded amber-tan flesh folds & tentacles
+    m_dome_glow = make_emissive_mat("Mat_AlienHook_CraniumBio", (0.04, 0.03, 0.05, 1.0), roughness=0.14, metallic=0.12)  # Glossy jet-black dome crest
+    m_eye_glow  = make_emissive_mat("Mat_AlienHook_CyclopsEye", (0.97, 0.95, 0.93, 1.0), emit_rgb=(0.96, 0.92, 0.90), emit_strength=0.45, roughness=0.08)  # Eerie bloodshot white Panoptes eye!
+    m_pupil     = make_emissive_mat("Mat_AlienHook_Pupil",      (0.14, 0.02, 0.04, 1.0), roughness=0.05)                 # Dark crimson-black pupil
+    m_yellow_g  = make_emissive_mat("Mat_AlienHook_BioGlow",    (0.62, 0.14, 0.16, 1.0), emit_rgb=(0.68, 0.16, 0.18), emit_strength=0.55, roughness=0.24)  # Deep fleshy crimson glow accents
 
     # Note: Character faces -Y. Character's LEFT side is +X!
     bone_defs = [

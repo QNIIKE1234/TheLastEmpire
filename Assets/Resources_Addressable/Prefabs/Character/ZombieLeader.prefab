@@ -426,7 +426,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9006210731034324075}
-  - {fileID: 215419157895246832}
+  - {fileID: 2838543574038776394}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -454,8 +454,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7103294edbd5e12429d2b847beca2efd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.Health
-  maxHealth: 1500
-  currentHealth: 1500
+  maxHealth: 3000
+  currentHealth: 3000
   defaultInvulnerabilityDuration: 0.25
   onHealthChanged:
     m_PersistentCalls:
@@ -557,6 +557,15 @@ MonoBehaviour:
   rageTelegraphSpeedMultiplier: 0.7
   rageChargeSpeedMultiplier: 1.35
   rageTint: {r: 1, g: 0.22, b: 0.15, a: 1}
+  bossLeapCooldown: 5.5
+  bossLeapMinRange: 3.5
+  bossLeapMaxRange: 11
+  bossLeapDuration: 0.65
+  bossLeapArcHeight: 3.2
+  bossLeapLandRadius: 3.5
+  bossLeapLandDamage: 40
+  bossLeapKnockback: 11
+  acidProjectileSpeed: 50
 --- !u!114 &-5402344508740751457
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -691,7 +700,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!1001 &394042875401573403
+--- !u!1001 &2372888110610640289
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -768,8 +777,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c8a44f12e9734b859d3a1f78c6209e41, type: 3}
---- !u!4 &215419157895246832 stripped
+--- !u!4 &2838543574038776394 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8a44f12e9734b859d3a1f78c6209e41, type: 3}
-  m_PrefabInstance: {fileID: 394042875401573403}
+  m_PrefabInstance: {fileID: 2372888110610640289}
   m_PrefabAsset: {fileID: 0}

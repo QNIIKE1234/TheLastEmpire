@@ -126,3 +126,36 @@ flowchart LR
 * **ระบบสร้างโมเดลตัวละครผู้เล่นจาก SO โดยตรง ([`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs))**:
   - เมื่อเข้าเกม (หรือเพื่อนจอยเข้ามา) ระบบจะ `Instantiate` โมเดลจาก `CharacterData.characterModelPrefab` (`CHAR_01`–`CHAR_07`) เข้าใต้ `PlayerPrefabs/Model` โดยตั้งค่า `Position = (0, -0.6, 0)`, `Rotation = (0, 0, 0)`, `Scale = (0.7, 0.7, 0.7)`
   - ปิดตาโมเดลต้นแบบ (`Chibi_Base_Rigged`) อัตโนมัติ และย้ายชุดอาวุธ `Model/Malee` กับ `Model/Range` เข้ากระดูก `RightHand` พร้อมรีเซ็ต Local Transform (`0,0,0` / Scale `1,1,1`) ให้ถืออาวุธได้ครบทั้ง 18 ชิ้นทุกตัวละคร
+
+---
+
+## 9. รีโมเดล `ZombieSpitter`, `ZombieTank` และนำเข้า Pool + Spawn จริงใน `Gameplay_3D`
+
+* รีโมเดล `ZombieSpitter` (ซอมบี้ผิวเข้มพังก์โมฮอว์ก + ผ้าคลุม + ท่าวิ่งเอนตัวไปข้างหน้า) และ `ZombieTank` (ซอมบี้ผิวเข้มกอลิล่าหลังค่อมแขนใหญ่สักลายทอง) พร้อมเพิ่มเข้า `ObjectPoolManager.pools`, `GameManager.spawnConfigs`, และ `RandomStageEventManager` Ambush Event
+* จัดทำแผน `Docs/steam-ugs-cloud-architecture-plan.md`, `Docs/Project_Mayhem.md`, แตก Branch `feat/project-mayhem`, และซิงก์ `main`
+
+---
+
+## 10. รีโมเดล Alien 5 สายพันธุ์ (Smart, Hook, Normal, Invisible, Crawler) & ระบบล่องหน 3D
+
+* **`AlienSmart`**: โดมหลอดไฟแก้วใส URP Transparent + สมองโตเต้นตุบๆ + 4 ขา 2 มือ + ตาเดียวสีเหลือง (โทนม่วง-น้ำเงิน-เขียวมะนาว)
+* **`AlienHook`**: กะโหลกยาว + ฐานหนวด 8 เส้น + ตาเดียว + มือซ้ายก้ามยักษ์ยืดพุ่งคว้าได้ 2.75x (ผูก `Hook` กับ `AlienAI.ExecuteHookPull()`) และปรับสีโทน **`Panoptes`**
+* **`AlienNormal`**: หัวโตไร้ตา ปากเขี้ยวใหญ่มีน้ำลายยืด ไม่มีขา ลำตัวยาวไปข้างหลังแบบ **จระเข้ไร้ขา** + ท่าคลานลากตัวด้วย 2 มือแบบ **ผีเทเกะเทเกะ (`Teke Teke`)**
+* **`AlienInvisible`**: ตัวสูงผอมยาวสีดำสไตล์ **Enderman** (~2.92 ม.) ตาเดียวสีม่วง + หนวดหลังหัวแบบ **จอมมารบูยาวถึงก้น** + อัปเกรด `AlienAI.HandleInvisibilityFade()` ให้ล่องหนโมเดล 3D URP ได้จริง
+* **`AlienCrawler`**: สัตว์คลาน 4 ขาขนสีน้ำตาล ตาเดียวโปน หางม้วน พร้อม **เล็บยาวมากทั้ง 4 เท้า** และ **ลิ้นแดงยาวพิเศษ** ริก 3 ข้อ
+
+---
+
+## 11. รีโมเดลบอสซอมบี้ (`Ancient Homunkulus`) & สลับพฤติกรรม/โมเดลกับ `ZombieTank`
+
+* **`ZombieLeader` (Boss)**: รีโมเดลใหม่เป็น **`Ancient Homunkulus`** (ซอมบี้หลังค่อมผิวเขียวอมฟ้า + ปรสิตลูกตาเลือดยักษ์และหนวดปลายแดงบนหลัง) และเปลี่ยนสกิลเป็น **เสกลูกน้อง + กระโดดวิถีโค้ง (`Leap`) + พ่นกรด (`Spit`) + Ground Stomp**
+* **`ZombieTank`**: รับสกิลบอสเดิมทั้งหมด (**Charge Rush + Ground Stomp AOE + Rage Mode** ยกเว้นเสกลูกน้อง) และใช้โมเดลบอสเดิม (`Chibi_ZombieBoss_Legacy_Rigged.fbx`) โดยเก็บโมเดล `Chibi_ZombieTank_Rigged.fbx` เดิมไว้ครบถ้วน
+
+---
+
+## 12. ปรับสมดุล Combat (HP, Projectile Speed, Gunner Burst) & มาตรฐาน `Name_text` / `Health_text`
+
+* **ความเร็วกระสุนศัตรู**: ปรับ `Projectile.speed` เริ่มต้นและกระสุนศัตรูทุกประเภทเป็น **`50f`** เท่ากระสุนผู้เล่น (`BulletPrefabs.prefab`)
+* **`RobotGunner`**: ยิงชุด **Burst ทีละ 5 นัด** แล้วสุ่มเว้นช่วง **`1 - 3 วินาที`** ก่อนยิงชุดถัดไป
+* **ปรับสมดุลเลือดศัตรู**: บอสทุกตัว (**×2**), ศัตรูทั่วไป (**+30%**), **ยกเว้น `ZombieBoomer`** (คงเดิม 500)
+* **มาตรฐาน `Name_text` / `Health_text`**: ปรับครบทั้ง 24 Prefab (`Width 300, Height 50`, `Teko SDF`, `Bold`, `Auto Size 18–36`, สีขาว, ล้างข้อความค้าง)
