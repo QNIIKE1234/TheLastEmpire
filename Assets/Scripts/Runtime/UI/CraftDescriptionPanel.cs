@@ -181,6 +181,15 @@ namespace TheLastEmpire
                 desc += "\n\n<color=#FF6666>Requires Survivor Workbench to craft.</color>";
             }
 
+            PlayerInventory localInv = TheLastEmpire.Network.PlayerRegistry.LocalPlayer != null
+                ? TheLastEmpire.Network.PlayerRegistry.LocalPlayer.GetComponent<PlayerInventory>()
+                : PlayerInventory.Instance;
+            bool isFree = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
+            if (localInv != null && !CraftController.HasInventorySpaceForRecipe(recipe, localInv, isFree))
+            {
+                desc += "\n\n<color=#FF6666>Inventory Full — cannot craft this item.</color>";
+            }
+
             if (itemDescriptionText != null)
             {
                 itemDescriptionText.text = desc;

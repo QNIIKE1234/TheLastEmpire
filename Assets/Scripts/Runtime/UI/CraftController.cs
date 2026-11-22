@@ -806,7 +806,98 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// ทำการคราฟต์ไอเทมตามสูตร: ตรวจสอบวัตถุดิบ -> หักวัตถุดิบออกจากกระเป๋า -> เพิ่มไอเทมผลลัพธ์
+        /// ตรวจสอบว่ากระเป๋าผู้เล่นมีที่ว่างพอรับไอเทมผลลัพธ์จากสูตรคราฟต์นี้หรือไม่
+        /// (จำลองการหักวัตถุดิบก่อนตามจริง เผื่อกรณีช่องวัตถุดิบหมดพอดีแล้วว่างให้ใส่ผลลัพธ์ได้
+        /// ส่วนสิ่งปลูกสร้างและเงินจะไม่กินช่องกระเป๋า จึงคืนค่า true เสมอ)
+        /// </summary>
+        public static bool HasInventorySpaceForRecipe(CraftingRecipe recipe, PlayerInventory inventory, bool isFreeCraft = false)
+        {
+            if (recipe == null || inventory == null) return false;
+
+            // สิ่งปลูกสร้างจะเข้าสู่โหมดวาง (Build Mode) ไม่ได้เข้ากระเป๋า
+            if (BuildingManager.Instance != null && BuildingManager.Instance.GetBuildingDataForRecipe(recipe) != null)
+            {
+                return true;
+            }
+
+            // เงินเข้ากระเป๋าตังค์ ไม่กินช่องกระเป๋า
+            if (recipe.resultItem != null && recipe.resultItem.type == ItemType.Money)
+            {
+                return true;
+            }
+
+            string rawResultName = recipe.ResolvedResultName;
+            int resultAmount = Mathf.Max(1, recipe.resultAmount);
+            if (string.IsNullOrEmpty(rawResultName)) return false;
+
+            string resolvedResult = inventory.ResolveItemName(rawResultName);
+            int maxStack = PlayerInventory.GetMaxStackSize(resolvedResult);
+
+            // คัดลอกช่องกระเป๋าปัจจุบันเพื่อจำลอง (ไม่แก้ไขข้อมูลจริง)
+            var simSlots = new List<(string cleanName, int qty)>();
+            if (inventory.Slots != null)
+            {
+                for (int i = 0; i < inventory.Slots.Count; i++)
+                {
+                    InventorySlot s = inventory.Slots[i];
+                    if (s != null && !string.IsNullOrEmpty(s.itemName) && s.quantity > 0)
+                    {
+                        simSlots.Add((s.itemName.Trim().ToLowerInvariant(), s.quantity));
+                    }
+                }
+            }
+
+            // จำลองการหักวัตถุดิบก่อน (ถ้าไม่ใช่โหมด Free Craft)
+            if (!isFreeCraft && recipe.ingredients != null)
+            {
+                for (int i = 0; i < recipe.ingredients.Count; i++)
+                {
+                    CraftingIngredient ing = recipe.ingredients[i];
+                    string reqName = ing.ResolvedItemName;
+                    int needed = ing.amount;
+                    if (string.IsNullOrEmpty(reqName) || needed <= 0) continue;
+
+                    string cleanReq = reqName.Trim().ToLowerInvariant();
+                    for (int s = simSlots.Count - 1; s >= 0 && needed > 0; s--)
+                    {
+                        if (simSlots[s].cleanName == cleanReq)
+                        {
+                            int take = Mathf.Min(simSlots[s].qty, needed);
+                            int rem = simSlots[s].qty - take;
+                            needed -= take;
+                            if (rem <= 0) simSlots.RemoveAt(s);
+                            else simSlots[s] = (simSlots[s].cleanName, rem);
+                        }
+                    }
+                }
+            }
+
+            // ตรวจสอบว่าจะใส่ผลลัพธ์ลงช่องที่เหลือได้หรือไม่
+            int remainingToAdd = resultAmount;
+            if (maxStack > 1)
+            {
+                string cleanResult = resolvedResult.Trim().ToLowerInvariant();
+                for (int i = 0; i < simSlots.Count && remainingToAdd > 0; i++)
+                {
+                    if (simSlots[i].cleanName == cleanResult)
+                    {
+                        int space = maxStack - simSlots[i].qty;
+                        if (space > 0)
+                        {
+                            remainingToAdd -= Mathf.Min(space, remainingToAdd);
+                        }
+                    }
+                }
+            }
+
+            if (remainingToAdd <= 0) return true;
+
+            int newSlotsNeeded = Mathf.CeilToInt((float)remainingToAdd / Mathf.Max(1, maxStack));
+            return (simSlots.Count + newSlotsNeeded) <= inventory.MaxSlots;
+        }
+
+        /// <summary>
+        /// ทำการคราฟต์ไอเทมตามสูตร: ตรวจสอบวัตถุดิบ + พื้นที่กระเป๋า -> หักวัตถุดิบออกจากกระเป๋า -> เพิ่มไอเทมผลลัพธ์
         /// </summary>
         public bool TryCraftRecipe(CraftingRecipe recipe)
         {
@@ -842,19 +933,43 @@ namespace TheLastEmpire
                 }
             }
 
+            // 1.5 ตรวจสอบว่ากระเป๋ามีที่ว่างพอสำหรับรับไอเทมผลลัพธ์หรือไม่ (ห้ามคราฟต์ถ้ากระเป๋าเต็ม!)
+            if (!HasInventorySpaceForRecipe(recipe, _playerInventory, isFree))
+            {
+                Debug.LogWarning($"[CraftController] Cannot craft '{recipe.recipeName}': Inventory is full ({_playerInventory.UsedSlots}/{_playerInventory.MaxSlots})!");
+                PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                if (localPlayer != null && DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        localPlayer.transform.position + Vector3.up * 2.0f,
+                        0f,
+                        false,
+                        "INVENTORY FULL!"
+                    );
+                }
+                RefreshActiveThumbnailsState();
+                return false;
+            }
+
             // 2. หักวัตถุดิบทั้งหมดออกจาก PlayerInventory (ถ้าไม่ใช่โหมด Free Craft)
+            var deductedIngredients = new List<(string itemName, int amount)>();
             if (!isFree && recipe.ingredients != null)
             {
                 for (int i = 0; i < recipe.ingredients.Count; i++)
                 {
                     CraftingIngredient ing = recipe.ingredients[i];
-                    _playerInventory.RemoveItem(ing.ResolvedItemName, ing.amount);
+                    string reqName = ing.ResolvedItemName;
+                    if (_playerInventory.RemoveItem(reqName, ing.amount))
+                    {
+                        deductedIngredients.Add((reqName, ing.amount));
+                    }
                 }
             }
 
             // 3. มอบไอเทมผลลัพธ์เข้า PlayerInventory
             string resultName = recipe.ResolvedResultName;
             int resultAmount = Mathf.Max(1, recipe.resultAmount);
+            bool craftAdded = false;
 
             bool prevSuppress = _playerInventory.SuppressNotificationEvents;
             _playerInventory.SuppressNotificationEvents = true;
@@ -863,15 +978,32 @@ namespace TheLastEmpire
                 if (recipe.resultItem != null && recipe.resultItem.type == ItemType.Money)
                 {
                     _playerInventory.AddMoney(resultAmount);
+                    craftAdded = true;
                 }
                 else
                 {
-                    _playerInventory.AddItem(resultName, resultAmount);
+                    craftAdded = _playerInventory.AddItem(resultName, resultAmount);
+                }
+
+                // Safety rollback: หาก AddItem ล้มเหลวให้คืนวัตถุดิบที่หักไปแล้วทั้งหมด
+                if (!craftAdded && deductedIngredients.Count > 0)
+                {
+                    for (int i = 0; i < deductedIngredients.Count; i++)
+                    {
+                        _playerInventory.AddItem(deductedIngredients[i].itemName, deductedIngredients[i].amount);
+                    }
                 }
             }
             finally
             {
                 _playerInventory.SuppressNotificationEvents = prevSuppress;
+            }
+
+            if (!craftAdded)
+            {
+                Debug.LogWarning($"[CraftController] Rolled back craft '{recipe.recipeName}' because result could not be added to inventory.");
+                RefreshActiveThumbnailsState();
+                return false;
             }
 
             if (isFree)
@@ -886,6 +1018,10 @@ namespace TheLastEmpire
 
             // 4. รีเฟรชสถานะปุ่มและจำนวนของทันที
             RefreshActiveThumbnailsState();
+            if (descriptionPanel != null && descriptionPanel.CurrentRecipe != null)
+            {
+                descriptionPanel.DisplayRecipe(descriptionPanel.CurrentRecipe);
+            }
             return true;
         }
     }

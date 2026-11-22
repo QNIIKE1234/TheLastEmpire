@@ -438,6 +438,12 @@ namespace TheLastEmpire
                 canCraftAll = CraftingDatabase.Instance.CanCraft(_currentRecipe, playerInventory);
             }
 
+            // ตรวจสอบพื้นที่กระเป๋า: หากกระเป๋าเต็มและรับไอเทมผลลัพธ์ไม่ได้ ให้ปิดปุ่มคราฟต์ทันที
+            if (canCraftAll && playerInventory != null && !CraftController.HasInventorySpaceForRecipe(_currentRecipe, playerInventory, isFreeCraft))
+            {
+                canCraftAll = false;
+            }
+
             // อัปเดตสถานะปุ่มคราฟต์ (สีเหลืองเมื่อคราฟต์ได้ / สีดำเทาเมื่อคราฟต์ไม่ได้)
             if (craftButton != null)
             {
