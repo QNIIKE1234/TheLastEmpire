@@ -20,6 +20,7 @@ namespace TheLastEmpire
             }
         }
         private static LootUI _instance;
+        public static bool HasInstance => _instance != null;
 
         [Header("UI Customization")]
         [SerializeField] private Color panelColor = new Color(0.08f, 0.08f, 0.1f, 0.94f); // Sleek slate dark mode
@@ -37,6 +38,12 @@ namespace TheLastEmpire
         [SerializeField] private GameObject promptPanel;
         [SerializeField] private TMP_Text promptText;
 
+        [Header("Dialog Hint (Events & NPC Speech)")]
+        [Tooltip("Panel สำหรับข้อความ Event หรือ NPC พูด (ลาก DialogHint มาใส่)")]
+        [SerializeField] private GameObject dialogHintPanel;
+        [Tooltip("TMP_Text สำหรับข้อความใน DialogHint (ลาก Hint_text มาใส่)")]
+        [SerializeField] private TMP_Text dialogHintText;
+
         // ===== Internal Pool (built-in) =====
         private readonly List<InventoryItemSlot> _slotPool = new List<InventoryItemSlot>();
         private int _activeSlotCount = 0;
@@ -51,12 +58,20 @@ namespace TheLastEmpire
         private Vector2 _originalPromptAnchoredPos;
         private bool _hasOriginalPromptPos = false;
 
+        private Transform _dialogHintTarget;
+        private Vector3 _dialogHintWorldOffset = Vector3.up * 2.2f;
+        private Vector2 _originalDialogHintAnchoredPos;
+        private bool _hasOriginalDialogHintPos = false;
+        private float _dialogHintAutoHideTimer = -1f;
+
         private LootContainer _currentContainer;
         private PlayerInventory _playerInventory;
         private bool _isOpen = false;
         private int _justOpenedFrame = -1;
 
         public bool IsOpen => _isOpen;
+        public bool HasDialogHintUI => dialogHintPanel != null && dialogHintText != null;
+        public bool IsDialogHintActive => dialogHintPanel != null && dialogHintPanel.activeSelf;
         public LootContainer CurrentContainer => _currentContainer;
         public LootContainer ActiveContainer => _currentContainer;
 
@@ -66,6 +81,8 @@ namespace TheLastEmpire
             {
                 _instance = this;
                 DontDestroyOnLoad(gameObject);
+
+                ResolveHintReferences();
 
                 if (lootPanel != null)
                 {
@@ -86,7 +103,7 @@ namespace TheLastEmpire
                     if (promptText != null)
                     {
                         promptText.alignment = TextAlignmentOptions.Center;
-                        promptText.enableWordWrapping = false;
+                        promptText.textWrappingMode = TextWrappingModes.NoWrap;
                     }
                     if (promptPanel != null) 
                     {
@@ -98,15 +115,74 @@ namespace TheLastEmpire
                             _hasOriginalPromptPos = true;
                         }
                     }
+
+                    InitializeDialogHintPanel();
                 }
                 else
                 {
                     CreateProceduralUI();
+                    InitializeDialogHintPanel();
                 }
             }
             else if (_instance != this)
             {
                 Destroy(gameObject);
+            }
+        }
+
+        private void ResolveHintReferences()
+        {
+            // Auto-discover DialogHint child if unassigned in Inspector
+            if (dialogHintPanel == null)
+            {
+                Transform foundDialog = transform.Find("DialogHint") ?? transform.Find("Dialog_Hint");
+                if (foundDialog != null)
+                {
+                    dialogHintPanel = foundDialog.gameObject;
+                }
+            }
+
+            // If user temporarily assigned DialogHint to promptPanel before the new fields existed,
+            // auto-bind promptPanel back to the compact "Loot" key-hint child if present.
+            if (dialogHintPanel != null && promptPanel == dialogHintPanel)
+            {
+                Transform foundLootPrompt = transform.Find("Loot");
+                if (foundLootPrompt != null && foundLootPrompt.gameObject != dialogHintPanel)
+                {
+                    promptPanel = foundLootPrompt.gameObject;
+                    promptText = promptPanel.GetComponentInChildren<TMP_Text>(true);
+                }
+            }
+
+            if (promptPanel == null)
+            {
+                Transform foundLootPrompt = transform.Find("Loot");
+                if (foundLootPrompt != null && foundLootPrompt.gameObject != dialogHintPanel)
+                {
+                    promptPanel = foundLootPrompt.gameObject;
+                }
+            }
+
+            if (promptText == null && promptPanel != null)
+            {
+                promptText = promptPanel.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            if (dialogHintText == null && dialogHintPanel != null)
+            {
+                dialogHintText = dialogHintPanel.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        private void InitializeDialogHintPanel()
+        {
+            if (dialogHintPanel == null) return;
+            dialogHintPanel.SetActive(false);
+            RectTransform r = dialogHintPanel.GetComponent<RectTransform>();
+            if (r != null)
+            {
+                _originalDialogHintAnchoredPos = r.anchoredPosition;
+                _hasOriginalDialogHintPos = true;
             }
         }
 
@@ -121,6 +197,27 @@ namespace TheLastEmpire
                     if (screenPos.z > 0)
                     {
                         promptPanel.transform.position = screenPos;
+                    }
+                }
+            }
+
+            if (dialogHintPanel != null && dialogHintPanel.activeSelf)
+            {
+                if (_dialogHintTarget != null && Camera.main != null)
+                {
+                    Vector3 screenPos = Camera.main.WorldToScreenPoint(_dialogHintTarget.position + _dialogHintWorldOffset);
+                    if (screenPos.z > 0)
+                    {
+                        dialogHintPanel.transform.position = screenPos;
+                    }
+                }
+
+                if (_dialogHintAutoHideTimer > 0f)
+                {
+                    _dialogHintAutoHideTimer -= Time.unscaledDeltaTime;
+                    if (_dialogHintAutoHideTimer <= 0f)
+                    {
+                        HideDialogHint();
                     }
                 }
             }
@@ -215,7 +312,11 @@ namespace TheLastEmpire
             }
         }
 
-        public void ShowPrompt(string actionText, Transform targetTransform = null, Vector3? worldOffset = null)
+        /// <summary>
+        /// Displays a compact key-only hint (e.g. "E", "E,Q", "SPACE") inside the styled prompt bubble
+        /// without overwriting the Inspector RectTransform dimensions.
+        /// </summary>
+        public void ShowKeyHint(string keyLabel, Transform targetTransform = null, Vector3? worldOffset = null)
         {
             if (promptPanel == null || promptText == null) return;
 
@@ -228,44 +329,51 @@ namespace TheLastEmpire
             _promptTarget = targetTransform;
             _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
 
-            promptText.text = $"Press <color=yellow><b>[E]</b></color> to {actionText}";
+            promptText.text = string.IsNullOrWhiteSpace(keyLabel) ? "E" : keyLabel.Trim().ToUpperInvariant();
             promptText.alignment = TextAlignmentOptions.Center;
-            promptText.enableWordWrapping = false;
-
-            RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
-            if (promptRect != null)
-            {
-                promptRect.sizeDelta = new Vector2(340f, 50f);
-            }
+            promptText.textWrappingMode = TextWrappingModes.NoWrap;
 
             promptPanel.SetActive(true);
         }
 
+        public void ShowPrompt(string actionText, Transform targetTransform = null, Vector3? worldOffset = null)
+        {
+            ShowKeyHint("E", targetTransform, worldOffset);
+        }
+
         public void ShowRawPrompt(string fullPromptText, Transform targetTransform = null, Vector3? worldOffset = null)
         {
-            if (promptPanel == null || promptText == null) return;
+            ShowKeyHint(ExtractKeyOnlyLabel(fullPromptText), targetTransform, worldOffset);
+        }
 
-            if (_isOpen)
+        public static string ExtractKeyOnlyLabel(string rawPrompt)
+        {
+            if (string.IsNullOrWhiteSpace(rawPrompt)) return "E";
+
+            // Strip rich-text tags like <color=...> and <b>
+            string stripped = System.Text.RegularExpressions.Regex.Replace(rawPrompt, "<.*?>", string.Empty);
+
+            // Extract bracketed key tokens such as [E], [Q], [Z], [SPACE]
+            var matches = System.Text.RegularExpressions.Regex.Matches(stripped, @"\[([^\[\]]+)\]");
+            if (matches.Count > 0)
             {
-                HidePrompt();
-                return;
+                var keys = new List<string>();
+                foreach (System.Text.RegularExpressions.Match m in matches)
+                {
+                    string k = m.Groups[1].Value.Trim().ToUpperInvariant();
+                    if (string.IsNullOrEmpty(k)) continue;
+                    // Ignore status percentages/progress brackets like [45%]
+                    if (k.Contains("%") || char.IsDigit(k[0])) continue;
+                    if (!keys.Contains(k)) keys.Add(k);
+                }
+                if (keys.Count > 0)
+                {
+                    return string.Join(",", keys);
+                }
             }
 
-            _promptTarget = targetTransform;
-            _promptWorldOffset = worldOffset ?? Vector3.up * 1.5f;
-
-            promptText.text = fullPromptText;
-            promptText.alignment = TextAlignmentOptions.Center;
-            promptText.enableWordWrapping = fullPromptText.Contains("\n");
-
-            RectTransform promptRect = promptPanel.GetComponent<RectTransform>();
-            if (promptRect != null)
-            {
-                bool isMultiLine = fullPromptText.Contains("\n");
-                promptRect.sizeDelta = isMultiLine ? new Vector2(320f, 75f) : new Vector2(300f, 50f);
-            }
-
-            promptPanel.SetActive(true);
+            string clean = stripped.Trim().ToUpperInvariant();
+            return clean.Length <= 12 ? clean : "E";
         }
 
         public void HidePrompt()
@@ -280,6 +388,70 @@ namespace TheLastEmpire
                 }
             }
             _promptTarget = null;
+        }
+
+        /// <summary>
+        /// Displays a full message in the DialogHint panel specifically for Stage Events or NPC speech.
+        /// Keeps the Inspector RectTransform size intact; optionally tracks a world target (e.g. speaking NPC).
+        /// </summary>
+        public void ShowDialogHint(string message, Transform targetTransform = null, Vector3? worldOffset = null, float autoHideDuration = 0f)
+        {
+            if (dialogHintPanel == null || dialogHintText == null)
+            {
+                ResolveHintReferences();
+                if (dialogHintPanel == null || dialogHintText == null) return;
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                HideDialogHint();
+                return;
+            }
+
+            _dialogHintTarget = targetTransform;
+            _dialogHintWorldOffset = worldOffset ?? Vector3.up * 2.2f;
+            _dialogHintAutoHideTimer = autoHideDuration > 0f ? autoHideDuration : -1f;
+
+            dialogHintText.text = message;
+
+            if (_dialogHintTarget != null && Camera.main != null)
+            {
+                Vector3 screenPos = Camera.main.WorldToScreenPoint(_dialogHintTarget.position + _dialogHintWorldOffset);
+                if (screenPos.z > 0f)
+                {
+                    dialogHintPanel.transform.position = screenPos;
+                }
+            }
+            else if (_hasOriginalDialogHintPos)
+            {
+                RectTransform r = dialogHintPanel.GetComponent<RectTransform>();
+                if (r != null) r.anchoredPosition = _originalDialogHintAnchoredPos;
+            }
+
+            dialogHintPanel.SetActive(true);
+        }
+
+        public void HideDialogHint()
+        {
+            if (dialogHintPanel != null)
+            {
+                dialogHintPanel.SetActive(false);
+                if (_hasOriginalDialogHintPos)
+                {
+                    RectTransform r = dialogHintPanel.GetComponent<RectTransform>();
+                    if (r != null) r.anchoredPosition = _originalDialogHintAnchoredPos;
+                }
+            }
+            _dialogHintTarget = null;
+            _dialogHintAutoHideTimer = -1f;
+        }
+
+        public void HideDialogHint(Transform expectedTarget)
+        {
+            if (expectedTarget == null || _dialogHintTarget == expectedTarget)
+            {
+                HideDialogHint();
+            }
         }
 
         private bool _savedCursorVisible;

@@ -316,11 +316,19 @@ namespace TheLastEmpire
         /// </summary>
         public void ShowShout(string specificMessage = null)
         {
+            string msg = !string.IsNullOrEmpty(specificMessage)
+                ? specificMessage
+                : PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
+
+            if (LootUI.Instance != null && LootUI.Instance.HasDialogHintUI)
+            {
+                LootUI.Instance.ShowDialogHint(msg, transform, Vector3.up * 2.2f, 2.2f);
+                if (dialogPanel != null) dialogPanel.SetActive(false);
+                return;
+            }
+
             if (dialogText != null)
             {
-                string msg = !string.IsNullOrEmpty(specificMessage)
-                    ? specificMessage
-                    : PanickedShouts[UnityEngine.Random.Range(0, PanickedShouts.Length)];
                 dialogText.text = msg;
             }
             if (dialogPanel != null)
@@ -449,8 +457,20 @@ namespace TheLastEmpire
         private void EscapeAndDespawn()
         {
             _isInitialized = false;
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint(transform);
+            }
             _onEscaped?.Invoke();
             Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint(transform);
+            }
         }
     }
 }

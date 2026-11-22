@@ -223,6 +223,10 @@ namespace TheLastEmpire
             }
 
             ResetAtmosphere();
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint();
+            }
         }
 
         /// <summary>
@@ -1017,6 +1021,14 @@ namespace TheLastEmpire
         // ==============================================================================
         public void ShowEventBanner(string title, string subtitle, Color accentColor)
         {
+            if (LootUI.Instance != null && LootUI.Instance.HasDialogHintUI)
+            {
+                string eventText = string.IsNullOrWhiteSpace(subtitle)
+                    ? title
+                    : $"{title}\n{subtitle}";
+                LootUI.Instance.ShowDialogHint(eventText, null, null, 4.2f);
+            }
+
             if (_bannerCoroutine != null)
             {
                 StopCoroutine(_bannerCoroutine);

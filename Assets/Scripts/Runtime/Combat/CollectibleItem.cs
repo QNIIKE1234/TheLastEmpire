@@ -344,6 +344,8 @@ namespace TheLastEmpire
 
         private void OnGUI()
         {
+            // LootUI now handles the sleek key-only "E" hint for manual-pickup items.
+            if (LootUI.HasInstance) return;
             if (_isCollected || !RequireManualPickup || promptText != null) return;
             if (_playerTransform == null || !IsPlayerInRange()) return;
             if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
@@ -594,14 +596,7 @@ namespace TheLastEmpire
         {
             if (promptText != null)
             {
-                if (isMoney)
-                {
-                    promptText.text = $"Press [E] (${moneyAmount})";
-                }
-                else
-                {
-                    promptText.text = $"Press [E] ({itemName} x{quantity})";
-                }
+                promptText.text = "E";
             }
         }
 

@@ -2725,6 +2725,79 @@ namespace TheLastEmpire
             }
         }
 
+        private bool CanVehicleVaultAhead(out Transform vehicleTarget)
+        {
+            vehicleTarget = null;
+            if (_isVaulting || _isDashing || _dashCooldownTimer > 0f) return false;
+            if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
+
+            Vector3 dir = _moveInput.sqrMagnitude > 0.01f
+                ? new Vector3(_moveInput.x, 0f, _moveInput.y).normalized
+                : new Vector3(transform.forward.x, 0f, transform.forward.z).normalized;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+
+            Vector3 origin = transform.position + Vector3.up * 0.65f;
+            RaycastHit[] hits = Physics.SphereCastAll(origin, 0.42f, dir, 1.85f, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0) return false;
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            Collider targetCol = null;
+            RaycastHit targetHit = default;
+            VehicleVaultKind kind = VehicleVaultKind.None;
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider c = hits[i].collider;
+                if (c == null) continue;
+                if (c.transform.root == transform.root) continue;
+                if (c.CompareTag("Player") || c.CompareTag("Enemy")) continue;
+                if (c.GetComponent<BaseEnemyAI>() != null || c.GetComponent<CollectibleItem>() != null) continue;
+                if (hits[i].normal.y > 0.72f) continue;
+
+                VehicleVaultKind detected = ClassifyVehicleVaultKind(c.transform);
+                if (detected != VehicleVaultKind.None)
+                {
+                    targetCol = c;
+                    targetHit = hits[i];
+                    kind = detected;
+                    break;
+                }
+            }
+
+            if (targetCol == null || kind == VehicleVaultKind.None) return false;
+
+            Vector3 startPos = transform.position;
+            Vector3 probeOrigin = new Vector3(targetHit.point.x, targetCol.bounds.center.y, targetHit.point.z) + dir * 6.5f;
+            Vector3 exitPoint;
+            if (targetCol.Raycast(new Ray(probeOrigin, -dir), out RaycastHit exitHit, 7.5f))
+            {
+                exitPoint = exitHit.point;
+            }
+            else
+            {
+                Bounds b = targetCol.bounds;
+                float proj = Mathf.Abs(dir.x) * b.extents.x + Mathf.Abs(dir.z) * b.extents.z;
+                exitPoint = new Vector3(b.center.x, startPos.y, b.center.z) + dir * proj;
+            }
+
+            Vector3 landingPos = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 0.78f;
+            float span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
+            if (span < 0.85f || span > 7.4f) return false;
+
+            Transform vehicleRoot = FindVehicleRoot(targetCol.transform);
+            if (IsVaultLandingBlocked(landingPos, vehicleRoot))
+            {
+                Vector3 altLanding = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 1.25f;
+                if (IsVaultLandingBlocked(altLanding, vehicleRoot))
+                {
+                    return false;
+                }
+            }
+
+            vehicleTarget = vehicleRoot != null ? vehicleRoot : targetCol.transform;
+            return true;
+        }
+
         private bool TryStartVehicleVault(Vector3 dir)
         {
             if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
@@ -4465,41 +4538,88 @@ namespace TheLastEmpire
                 _closestContainer = null;
             }
 
-            // 5. Display prompt via LootUI (only one prompt at any given time)
+            // 5. Display compact key-only hint via LootUI (only one prompt at any given time)
             if (LootUI.Instance == null) return;
+
+            // Priority 0: TransitionPortal warp zone -> show "E"
+            if (WorldMapManager.Instance != null)
+            {
+                TransitionPortal[] portals = Object.FindObjectsByType<TransitionPortal>(FindObjectsSortMode.None);
+                for (int i = 0; i < portals.Length; i++)
+                {
+                    TransitionPortal portal = portals[i];
+                    if (TransitionPortal.IsWorldPortal(portal) && portal.IsPlayerInRange(this))
+                    {
+                        LootUI.Instance.ShowKeyHint("E", transform, Vector3.up * 2.1f);
+                        return;
+                    }
+                }
+            }
+
+            // Check if player can vault/jump over a vehicle ahead ("SPACE")
+            bool canVault = CanVehicleVaultAhead(out Transform vaultVehicle);
+
+            // Check if a manual-pickup dropped item is in range ("E")
+            CollectibleItem closestManualItem = null;
+            if (_bestInteractableType == TargetInteractableType.None)
+            {
+                CollectibleItem[] droppedItems = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
+                float minDropDist = float.MaxValue;
+                for (int i = 0; i < droppedItems.Length; i++)
+                {
+                    CollectibleItem item = droppedItems[i];
+                    if (item == null || !item.RequireManualPickup || !item.IsPlayerInRange()) continue;
+                    float d = Vector3.Distance(transform.position, item.transform.position);
+                    if (d < minDropDist)
+                    {
+                        minDropDist = d;
+                        closestManualItem = item;
+                    }
+                }
+            }
 
             switch (_bestInteractableType)
             {
                 case TargetInteractableType.Building:
-                    LootUI.Instance.ShowRawPrompt(_closestBuilding.GetInteractionPrompt(), _closestBuilding.InteractionTransform, _closestBuilding.PromptWorldOffset);
+                {
+                    string keyLabel = LootUI.ExtractKeyOnlyLabel(_closestBuilding.GetInteractionPrompt());
+                    if (canVault && !keyLabel.Contains("SPACE")) keyLabel += ",SPACE";
+                    LootUI.Instance.ShowKeyHint(keyLabel, _closestBuilding.InteractionTransform, _closestBuilding.PromptWorldOffset);
                     break;
+                }
 
                 case TargetInteractableType.Container:
-                    LootUI.Instance.ShowPrompt("Search " + _closestContainer.containerName, _closestContainer.transform);
+                {
+                    string keyLabel = canVault ? "E,SPACE" : "E";
+                    LootUI.Instance.ShowKeyHint(keyLabel, _closestContainer.transform);
                     break;
+                }
 
                 case TargetInteractableType.NPC:
-                    if (_closestNpc.HasShop && _closestNpc.HasDialogue)
+                {
+                    string keyLabel;
+                    if (_closestNpc.HasShop && _closestNpc.HasDialogue) keyLabel = "E,Q";
+                    else if (_closestNpc.HasShop) keyLabel = "E";
+                    else if (_closestNpc.HasDialogue) keyLabel = "Q";
+                    else keyLabel = "E";
+                    LootUI.Instance.ShowKeyHint(keyLabel, _closestNpc.transform);
+                    break;
+                }
+
+                default:
+                    if (closestManualItem != null)
                     {
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop\n<color=#00e5ff><b>[Q]</b></color> Talk", _closestNpc.transform);
+                        string keyLabel = canVault ? "E,SPACE" : "E";
+                        LootUI.Instance.ShowKeyHint(keyLabel, closestManualItem.transform, Vector3.up * 1.1f);
                     }
-                    else if (_closestNpc.HasShop)
+                    else if (canVault)
                     {
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> Shop", _closestNpc.transform);
-                    }
-                    else if (_closestNpc.HasDialogue)
-                    {
-                        LootUI.Instance.ShowRawPrompt($"<color=#00e5ff><b>[Q]</b></color> Talk", _closestNpc.transform);
+                        LootUI.Instance.ShowKeyHint("SPACE", transform, Vector3.up * 2.1f);
                     }
                     else
                     {
-                        string action = _closestNpc.NpcType == NPCType.Shop ? "Shop" : "Interact";
-                        LootUI.Instance.ShowRawPrompt($"<color=yellow><b>[E]</b></color> {action}", _closestNpc.transform);
+                        LootUI.Instance.HidePrompt();
                     }
-                    break;
-
-                default:
-                    LootUI.Instance.HidePrompt();
                     break;
             }
         }

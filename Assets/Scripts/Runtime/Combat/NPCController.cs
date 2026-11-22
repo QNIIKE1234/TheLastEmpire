@@ -103,9 +103,17 @@ namespace TheLastEmpire
         [SerializeField] private float standDetectionRadius = 3.5f;
         [SerializeField] private float sitCooldownDuration = 5.0f; // ดีเลย์ 5 วินาทีก่อนกลับไปนั่ง
 
+        [Header("NPC Speech (DialogHint)")]
+        [SerializeField] private bool speakOnPlayerApproach = true;
+        [SerializeField] private string[] approachSpeechLines;
+        [SerializeField] private float speechDuration = 3.2f;
+        [SerializeField] private float speechCooldown = 12f;
+
         private Animator _animator;
         private bool _isSitting = false;
         private float _leaveTimer = 0f;
+        private bool _wasPlayerNearby = false;
+        private float _nextSpeechAllowedTime = 0f;
         private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
 
         private void Start()
@@ -140,11 +148,11 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (!canSit) return;
-
             if (_playerTransform == null)
             {
-                PlayerController player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                       ?? PlayerController.Instance
+                                       ?? UnityEngine.Object.FindFirstObjectByType<PlayerController>();
                 if (player != null) _playerTransform = player.transform;
             }
 
@@ -153,27 +161,88 @@ namespace TheLastEmpire
             float dist = Vector3.Distance(transform.position, _playerTransform.position);
             bool playerNearby = dist <= standDetectionRadius;
 
-            if (playerNearby)
+            if (canSit)
             {
-                _leaveTimer = 0f; // รีเซ็ตตัวนับเวลาตราบใดที่ Player ยังอยู่ใกล้ๆ
-                // ผู้เล่นเข้าใกล้ -> ลุกขึ้นยืน
-                if (_isSitting)
+                if (playerNearby)
                 {
-                    SetSittingState(false);
-                }
-            }
-            else
-            {
-                // ผู้เล่นเดินห่างออกไป -> เริ่มนับถอยหลังดีเลย์ 5 วิก่อนกลับไปนั่ง
-                if (!_isSitting)
-                {
-                    _leaveTimer += Time.deltaTime;
-                    if (_leaveTimer >= sitCooldownDuration)
+                    _leaveTimer = 0f; // รีเซ็ตตัวนับเวลาตราบใดที่ Player ยังอยู่ใกล้ๆ
+                    // ผู้เล่นเข้าใกล้ -> ลุกขึ้นยืน
+                    if (_isSitting)
                     {
-                        SetSittingState(true);
-                        _leaveTimer = 0f;
+                        SetSittingState(false);
                     }
                 }
+                else
+                {
+                    // ผู้เล่นเดินห่างออกไป -> เริ่มนับถอยหลังดีเลย์ 5 วิก่อนกลับไปนั่ง
+                    if (!_isSitting)
+                    {
+                        _leaveTimer += Time.deltaTime;
+                        if (_leaveTimer >= sitCooldownDuration)
+                        {
+                            SetSittingState(true);
+                            _leaveTimer = 0f;
+                        }
+                    }
+                }
+            }
+
+            if (speakOnPlayerApproach && canInteract)
+            {
+                bool hasPopUp = PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps;
+                if (playerNearby && !_wasPlayerNearby && !hasPopUp && Time.time >= _nextSpeechAllowedTime)
+                {
+                    Speak(GetRandomApproachLine(), speechDuration);
+                    _nextSpeechAllowedTime = Time.time + speechCooldown;
+                }
+                else if (!playerNearby && _wasPlayerNearby)
+                {
+                    if (LootUI.Instance != null)
+                    {
+                        LootUI.Instance.HideDialogHint(transform);
+                    }
+                }
+            }
+
+            _wasPlayerNearby = playerNearby;
+        }
+
+        /// <summary>
+        /// Displays an NPC speech line above this NPC via LootUI's DialogHint panel.
+        /// </summary>
+        public void Speak(string message, float duration = 3.2f)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            if (LootUI.Instance != null && LootUI.Instance.HasDialogHintUI)
+            {
+                LootUI.Instance.ShowDialogHint(message, transform, Vector3.up * 2.25f, duration);
+            }
+        }
+
+        private string GetRandomApproachLine()
+        {
+            if (approachSpeechLines != null && approachSpeechLines.Length > 0)
+            {
+                string picked = approachSpeechLines[UnityEngine.Random.Range(0, approachSpeechLines.Length)];
+                if (!string.IsNullOrWhiteSpace(picked)) return picked;
+            }
+
+            if (HasShop)
+            {
+                return $"{npcName}: Need supplies? Take a look.";
+            }
+            if (HasDialogue)
+            {
+                return $"{npcName}: Hey, got a minute?";
+            }
+            return $"{npcName}: Stay safe out there.";
+        }
+
+        private void OnDisable()
+        {
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint(transform);
             }
         }
 
