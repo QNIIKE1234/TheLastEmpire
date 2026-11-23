@@ -715,9 +715,10 @@ namespace TheLastEmpire
             if (craftingDatabase == null) return;
 
             List<CraftingRecipe> matched = craftingDatabase.SearchRecipes(_currentSearchQuery, _currentCategory);
-            if (_currentCategory == CraftingCategory.Artifact)
+            if (_currentCategory == CraftingCategory.Artifact && !CraftingDatabase.UnlockLegendaryArtifactCraft)
             {
-                // แสดงเฉพาะ Artifact ที่ใส่ได้จริงกับอาวุธที่ผู้เล่นมีอยู่ในกระเป๋าตอนนี้ (ตรงกับหน้าแต่งอาวุธ [U] 100%)
+                // โหมดปกติ: แสดงเฉพาะ Artifact ที่ใส่ได้จริงกับอาวุธที่ผู้เล่นมีอยู่ในกระเป๋าตอนนี้ (ตรงกับหน้าแต่งอาวุธ [U] 100%)
+                // แต่ถ้าเปิด Cheat "Unlock Legend Artifact Craft" จะโชว์และค้นหา Artifact ได้ทุกชิ้นแม้ยังไม่มีอาวุธชิ้นนั้นในกระเป๋า
                 HashSet<string> ownedWeapons = CollectOwnedWeaponNames();
                 if (ownedWeapons.Count == 0) return;
 
