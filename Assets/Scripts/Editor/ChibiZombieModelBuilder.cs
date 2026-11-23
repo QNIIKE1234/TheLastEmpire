@@ -49,14 +49,41 @@ namespace TheLastEmpire.Editor
             ModelImporter importer = assetImporter as ModelImporter;
             if (importer == null) return;
 
+            ModelImporterClipAnimation[] defaults = importer.defaultClipAnimations;
             ModelImporterClipAnimation[] clips = importer.clipAnimations;
+            bool modified = false;
+
             if (clips == null || clips.Length == 0)
             {
-                clips = importer.defaultClipAnimations;
+                clips = defaults;
+            }
+            else if (defaults != null && defaults.Length > 0)
+            {
+                // ตรวจสอบว่า takeName ใน .meta ยังตรงกับ Take จริงใน FBX หรือไม่ (กันเคสเปลี่ยนโมเดล/Rig แล้ว Animation ตายทั้งชุด)
+                var validTakes = new HashSet<string>();
+                for (int i = 0; i < defaults.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(defaults[i].takeName)) validTakes.Add(defaults[i].takeName);
+                }
+
+                bool hasStaleTake = false;
+                for (int i = 0; i < clips.Length; i++)
+                {
+                    if (!validTakes.Contains(clips[i].takeName))
+                    {
+                        hasStaleTake = true;
+                        break;
+                    }
+                }
+
+                if (hasStaleTake)
+                {
+                    clips = defaults;
+                    modified = true;
+                }
             }
             if (clips == null || clips.Length == 0) return;
 
-            bool modified = false;
             for (int i = 0; i < clips.Length; i++)
             {
                 string cName = clips[i].name;

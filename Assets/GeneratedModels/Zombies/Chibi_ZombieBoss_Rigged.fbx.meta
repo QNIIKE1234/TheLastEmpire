@@ -116,40 +116,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Charge
-      takeName: Chibi_Base_Rig|Charge
-      internalID: 4120856102938471001
-      firstFrame: 0
-      lastFrame: 20
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 1
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: Chibi_Base_Rig|Death
-      takeName: Chibi_Base_Rig|Death
+      name: Chibi_ZombieBoss_Rig|Death
+      takeName: Chibi_ZombieBoss_Rig|Death
       internalID: -5810131458076621004
       firstFrame: 0
-      lastFrame: 36
+      lastFrame: 25
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -174,11 +145,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|GroundSlam
-      takeName: Chibi_Base_Rig|GroundSlam
+      name: Chibi_ZombieBoss_Rig|GroundSlam
+      takeName: Chibi_ZombieBoss_Rig|GroundSlam
       internalID: 4120856102938471002
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 23
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -203,11 +174,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Idle
-      takeName: Chibi_Base_Rig|Idle
+      name: Chibi_ZombieBoss_Rig|Idle
+      takeName: Chibi_ZombieBoss_Rig|Idle
       internalID: -5479441088890340897
       firstFrame: 0
-      lastFrame: 48
+      lastFrame: 47
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -232,11 +203,40 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|RageRoar
-      takeName: Chibi_Base_Rig|RageRoar
+      name: Chibi_ZombieBoss_Rig|Leap
+      takeName: Chibi_ZombieBoss_Rig|Leap
+      internalID: 4120856102938471005
+      firstFrame: 0
+      lastFrame: 23
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Chibi_ZombieBoss_Rig|RageRoar
+      takeName: Chibi_ZombieBoss_Rig|RageRoar
       internalID: 4120856102938471003
       firstFrame: 0
-      lastFrame: 32
+      lastFrame: 23
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -261,11 +261,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Run
-      takeName: Chibi_Base_Rig|Run
+      name: Chibi_ZombieBoss_Rig|Run
+      takeName: Chibi_ZombieBoss_Rig|Run
       internalID: 5095346171612772636
       firstFrame: 0
-      lastFrame: 20
+      lastFrame: 16
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -290,11 +290,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Slash1
-      takeName: Chibi_Base_Rig|Slash1
+      name: Chibi_ZombieBoss_Rig|Slash1
+      takeName: Chibi_ZombieBoss_Rig|Slash1
       internalID: 8091083523817171162
       firstFrame: 0
-      lastFrame: 20
+      lastFrame: 19
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -319,11 +319,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Slash2
-      takeName: Chibi_Base_Rig|Slash2
-      internalID: -8701358304251513166
+      name: Chibi_ZombieBoss_Rig|Spit
+      takeName: Chibi_ZombieBoss_Rig|Spit
+      internalID: 4120856102938471006
       firstFrame: 0
-      lastFrame: 24
+      lastFrame: 19
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -348,11 +348,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Throw
-      takeName: Chibi_Base_Rig|Throw
+      name: Chibi_ZombieBoss_Rig|Throw
+      takeName: Chibi_ZombieBoss_Rig|Throw
       internalID: 4120856102938471004
       firstFrame: 0
-      lastFrame: 24
+      lastFrame: 19
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -377,11 +377,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Chibi_Base_Rig|Walk
-      takeName: Chibi_Base_Rig|Walk
+      name: Chibi_ZombieBoss_Rig|Walk
+      takeName: Chibi_ZombieBoss_Rig|Walk
       internalID: -6281228131187104629
       firstFrame: 0
-      lastFrame: 32
+      lastFrame: 24
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
