@@ -78,8 +78,91 @@ namespace TheLastEmpire
             GlobalFreeShop = enabled;
             if (Instance != null && Instance.IsOpen)
             {
+                Instance._currentPage = 0;
                 Instance.RefreshUI();
             }
+        }
+
+        private readonly List<ShopItemConfig> _effectiveBuyItemsCache = new List<ShopItemConfig>();
+
+        /// <summary>
+        /// คืนรายการสินค้าสำหรับแท็บ Buy:
+        /// - โหมดปกติ: แสดงสินค้าของ NPC ร้านนั้นตามปกติ
+        /// - โหมด Free Shop (_isFree หรือ GlobalFreeShop): ปลดล็อกอาวุธทุกชิ้นในเกม (ปืน + อาวุธประชิด + ระเบิด)
+        ///   และกระสุนจริงทุกชนิดขึ้นหน้าแรกให้ซื้อฟรี $0 พร้อมสินค้าเดิมของร้านทั้งหมดแบบไม่ซ้ำ
+        /// </summary>
+        private List<ShopItemConfig> GetEffectiveBuyItems()
+        {
+            if (!IsEffectiveFree)
+            {
+                return shopItems;
+            }
+
+            _effectiveBuyItemsCache.Clear();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (ItemDatabase.Instance != null && ItemDatabase.Instance.allItems != null)
+            {
+                var weapons = new List<ItemData>();
+                var ammos = new List<ItemData>();
+
+                for (int i = 0; i < ItemDatabase.Instance.allItems.Count; i++)
+                {
+                    ItemData data = ItemDatabase.Instance.allItems[i];
+                    if (data == null || string.IsNullOrWhiteSpace(data.itemName)) continue;
+
+                    if (data.type == ItemType.RangedWeapon ||
+                        data.type == ItemType.MeleeWeapon ||
+                        data.type == ItemType.ThrowingWeapon)
+                    {
+                        weapons.Add(data);
+                    }
+                    else if (data.type == ItemType.Ammo &&
+                             !data.itemName.Trim().Equals("Ammo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ammos.Add(data);
+                    }
+                }
+
+                weapons.Sort((a, b) =>
+                {
+                    int tCmp = ((int)a.type).CompareTo((int)b.type);
+                    if (tCmp != 0) return tCmp;
+                    return string.Compare(a.itemName, b.itemName, StringComparison.OrdinalIgnoreCase);
+                });
+
+                for (int i = 0; i < weapons.Count; i++)
+                {
+                    if (seen.Add(weapons[i].itemName.Trim()))
+                    {
+                        _effectiveBuyItemsCache.Add(new ShopItemConfig { item = weapons[i], price = 0 });
+                    }
+                }
+
+                ammos.Sort((a, b) => string.Compare(a.itemName, b.itemName, StringComparison.OrdinalIgnoreCase));
+                for (int i = 0; i < ammos.Count; i++)
+                {
+                    if (seen.Add(ammos[i].itemName.Trim()))
+                    {
+                        _effectiveBuyItemsCache.Add(new ShopItemConfig { item = ammos[i], price = 0 });
+                    }
+                }
+            }
+
+            if (shopItems != null)
+            {
+                for (int i = 0; i < shopItems.Count; i++)
+                {
+                    ShopItemConfig cfg = shopItems[i];
+                    if (cfg.item == null || string.IsNullOrWhiteSpace(cfg.item.itemName)) continue;
+                    if (seen.Add(cfg.item.itemName.Trim()))
+                    {
+                        _effectiveBuyItemsCache.Add(cfg);
+                    }
+                }
+            }
+
+            return _effectiveBuyItemsCache;
         }
 
         // =====================================================
@@ -287,11 +370,13 @@ namespace TheLastEmpire
                 walletText.text = $"Wallet: <color=yellow>${_playerInventory.Money}</color>";
 
             int totalItems = 0;
+            List<ShopItemConfig> activeBuyItems = null;
             List<KeyValuePair<string, int>> sellItems = null;
 
             if (_currentMode == ShopMode.Buy)
             {
-                totalItems = shopItems != null ? shopItems.Count : 0;
+                activeBuyItems = GetEffectiveBuyItems();
+                totalItems = activeBuyItems != null ? activeBuyItems.Count : 0;
             }
             else
             {
@@ -358,7 +443,7 @@ namespace TheLastEmpire
 
                     if (_currentMode == ShopMode.Buy)
                     {
-                        ShopItemConfig item = shopItems[itemIndex];
+                        ShopItemConfig item = activeBuyItems[itemIndex];
                         if (item.item == null)
                         {
                             slot.gameObject.SetActive(false);
@@ -427,7 +512,8 @@ namespace TheLastEmpire
         {
             if (_playerInventory == null) return;
 
-            ShopItemConfig item = shopItems != null ? shopItems.Find(s => s.item != null && s.item.itemName == realItemName) : default;
+            List<ShopItemConfig> activeBuyItems = GetEffectiveBuyItems();
+            ShopItemConfig item = activeBuyItems != null ? activeBuyItems.Find(s => s.item != null && s.item.itemName == realItemName) : default;
             if (item.item == null) return;
 
             int price = IsEffectiveFree ? 0 : item.price;
@@ -480,7 +566,9 @@ namespace TheLastEmpire
         private void FindInventory()
         {
             if (_playerInventory != null) return;
-            PlayerController player = FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer
+                                   ?? PlayerController.Instance
+                                   ?? FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 _playerInventory = player.GetComponent<PlayerInventory>();
