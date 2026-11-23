@@ -432,6 +432,27 @@ namespace TheLastEmpire
             enemyAnimator.CrossFadeInFixedTime(stateName, crossFade, 0);
         }
 
+        public void PlayActionAnimationWithFallback(float lockDuration, float crossFade, params string[] stateNames)
+        {
+            if (stateNames == null || stateNames.Length == 0) return;
+            if (enemyAnimator == null) enemyAnimator = GetComponentInChildren<Animator>();
+            if (enemyAnimator == null || !enemyAnimator.isActiveAndEnabled || enemyAnimator.runtimeAnimatorController == null) return;
+
+            for (int i = 0; i < stateNames.Length; i++)
+            {
+                string candidate = stateNames[i];
+                if (string.IsNullOrEmpty(candidate)) continue;
+                int hash = Animator.StringToHash(candidate);
+                if (enemyAnimator.HasState(0, hash))
+                {
+                    enemyAnimator.speed = 1f;
+                    _attackAnimCooldown = Mathf.Max(_attackAnimCooldown, lockDuration);
+                    enemyAnimator.CrossFadeInFixedTime(candidate, crossFade, 0);
+                    return;
+                }
+            }
+        }
+
         public void ClearActionAnimationLock()
         {
             _attackAnimCooldown = 0f;
@@ -475,10 +496,13 @@ namespace TheLastEmpire
             bool isRunning = isMoving && (currentState == AIState.Chase || currentState == AIState.Telegraph || horizSpeed > moveSpeed * 0.65f);
 
             // Auto-trigger melee attack swing when in close contact range with the player
+            // Use horizontal XZ distance + scale range with collider radius so large Bosses play Slash1/Slash2 properly
             if (_attackAnimCooldown <= 0f && playerTransform != null && !IsTargetDead())
             {
-                float distToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-                if (distToPlayer <= 1.45f)
+                Vector3 toTarget = playerTransform.position - transform.position;
+                toTarget.y = 0f;
+                float contactAnimRange = Mathf.Max(1.55f, GetAgentRadius() + 1.25f);
+                if (toTarget.magnitude <= contactAnimRange)
                 {
                     TriggerAttackAnimation();
                     return;

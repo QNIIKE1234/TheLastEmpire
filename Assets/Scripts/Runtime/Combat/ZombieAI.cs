@@ -687,7 +687,7 @@ namespace TheLastEmpire
                 _bossLeapTargetPos = _bossLeapStartPos + transform.forward * 5f;
             }
 
-            PlayActionAnimation("Leap", bossLeapDuration + 0.25f, 0.05f);
+            PlayActionAnimationWithFallback(bossLeapDuration + 0.15f, 0.05f, "Leap", "GroundSlam", "Charge", "Slash1");
             Debug.Log($"[ZombieAI] Boss {gameObject.name} leaped towards {_bossLeapTargetPos}!");
         }
 
@@ -730,6 +730,7 @@ namespace TheLastEmpire
             }
 
             ClearActionAnimationLock();
+            PlayActionAnimationWithFallback(0.45f, 0.04f, "GroundSlam", "Slash2", "Slash1");
             currentState = AIState.Chase;
         }
 
@@ -1680,7 +1681,7 @@ namespace TheLastEmpire
                 if (faceDir.sqrMagnitude > 0.001f) transform.forward = faceDir.normalized;
             }
 
-            PlayActionAnimation(IsBossUnit ? "Spit" : "Slash1", 0.65f, 0.05f);
+            PlayActionAnimationWithFallback(0.70f, 0.05f, IsBossUnit ? "Spit" : "Slash1", "RageRoar", "Throw", "Slash1");
             yield return new WaitForSeconds(0.35f);
 
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
