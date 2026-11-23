@@ -1,7 +1,32 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 23 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced `main` + `feat/project-mayhem` + ล่าสุดระบบ Hint/DialogHint, StorageUI 2 ฝั่ง + Drag&Drop, WeaponUpgradeUI + Artifact 4 ช่อง, Craft/Pickup กันกระเป๋าเต็ม, +7 ช่องกระเป๋าทุกตัวละคร และซิงค์ Online Co-op ครบทุกส่วน)  
+**วันที่บันทึกล่าสุด**: 24 พฤศจิกายน 2026  
+**สถานะ Git**: `multi-player-netcode` (Synced `main` + `feat/project-mayhem` + ล่าสุด Online Co-op Downed/Revive, ซิงค์เวลากลางวัน/กลางคืน, ถอดคีย์ลัดเสกของ และสร้าง Weapon Artifacts ครบ 230 ชิ้นพร้อมกติกา 4C/2R/1L + Universal Ranged `Double-Tap Trigger` & `Heavy Caliber Shell`)  
+
+---
+
+## 28. ระบบ Online Co-op Downed/Revive + ซิงค์เวลากลางวัน-กลางคืน + ถอดปุ่มโกง/เสกของ + Weapon Artifacts ครบ 230 ชิ้น (4C / 2R / 1L)
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - Online Co-op Downed / Revive & Day/Night Sync:
+    - [`Assets/Scripts/Runtime/Network/Core/PlayerRegistry.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/PlayerRegistry.cs), [`Assets/Scripts/Runtime/Network/Core/EmpireNetworkManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Core/EmpireNetworkManager.cs), [`Assets/Scripts/Runtime/Managers/DayNightManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/DayNightManager.cs), [`Assets/Scripts/Runtime/Player/PlayerHUD.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerHUD.cs), [`Assets/Scripts/Runtime/Network/Bridges/NetworkStageSyncManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Network/Bridges/NetworkStageSyncManager.cs)
+  - Debug Hotkey Cleanup:
+    - [`Assets/Scripts/Runtime/Combat/BossSpawnerRuntime.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/BossSpawnerRuntime.cs), [`Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/RandomStageEventManager.cs), [`Assets/Scripts/Runtime/UI/CraftController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/CraftController.cs)
+  - Weapon Artifacts System & 230 Assets:
+    - [`Assets/Scripts/Runtime/Data/ItemData.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/ItemData.cs), [`Assets/Scripts/Runtime/Combat/WeaponArtifactManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/WeaponArtifactManager.cs), [`Assets/Scripts/Runtime/Combat/DamageCalculator.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/DamageCalculator.cs), [`Assets/Scripts/Runtime/Combat/Projectile.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/Projectile.cs), [`Assets/Scripts/Runtime/Player/PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs), [`Assets/Scripts/Runtime/UI/WeaponUpgradeUI.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/UI/WeaponUpgradeUI.cs)
+    - [`Assets/Resources_Addressable/Database/ItemDatabase.asset`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Database/ItemDatabase.asset) & `Assets/Resources_Addressable/Database/ItemData/Artifacts/` (230 `.asset` files)
+    - [`Tools/Generate_All_228_Weapon_Artifacts.ps1`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Generate_All_228_Weapon_Artifacts.ps1), [`Docs/weapon-artifacts-catalog.md`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/weapon-artifacts-catalog.md), [`Docs/planned-features-stash-and-weapon-mod.md`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Docs/planned-features-stash-and-weapon-mod.md)
+- **รายละเอียดการพัฒนา**:
+  1. **ระบบ Online Co-op ล้มรอเพื่อนชุบ (No Premature Game Over)**:
+     - ในโหมดออนไลน์ หากผู้เล่นตายแต่ยังมีเพื่อนในทีมรอดชีวิตอยู่ (`PlayerRegistry.HasAnyOtherAlivePlayer`) จะไม่เด้งหน้าต่าง Game Over / ไม่ให้กด Retry ข้ามเพื่อน แต่เข้าสู่สถานะล้มรอเพื่อนมาชุบผ่าน `NetPacketType.ReviveAction` และจะขึ้น Game Over เฉพาะเมื่อตายหมดทีมเท่านั้น
+  2. **ซิงค์เวลากลางวัน-กลางคืนออนไลน์ (`NetPacketType.DayNightTimeSync`) & ถอดปุ่มลัดเสกของ/โกงทั้งหมด**:
+     - Host ส่งเวลาและจำนวนวันใน `DayNightManager` ซิงค์ให้ Client ทุกเครื่องและผู้เล่นที่เข้าห้องทีหลังตรงกันตลอดเวลา
+     - ถอดคีย์ลัดเสกบอส/เสกอีเวนต์/คราฟต์ฟรี (`T`, `F1`, `N`, `K`, `F9`, `Shift+F9`, `toggleFreeCraftKey`) ออกจาก Runtime เพื่อป้องกันกดโดนระหว่างเล่นจริง
+  3. **Weapon Artifacts ครบ 230 ชิ้น (ไม่รวมระบบธาตุ พิษ/ไฟ/น้ำแข็ง/ช็อต) + กติกาจำกัดระดับ (4C / 2R / 1L)**:
+     - สร้าง `ItemData` Asset จริงครบ **230 ชิ้น** และลงทะเบียนใน `ItemDatabase.asset` (322 รายการ, ซ้ำ 0):
+       - **19 อาวุธ × 12 ชิ้นเฉพาะตัว = 228 ชิ้น** (Ranged 9, Melee 9, Throwing 1 — สัดส่วนอาวุธละ `4 Common / 6 Rare / 2 Legendary`)
+       - **2 ชิ้น Universal Ranged Rare** (ใส่ได้กับปืนทั้ง 9 ชนิด): **`Double-Tap Trigger`** (กดยิง 1 ทีออก 2 ทีติดกันโดยไม่เสียกระสุนเพิ่ม) และ **`Heavy Caliber Shell`** (ขยายขนาดกระสุนและ Hitbox ใหญ่ขึ้น **2.5 เท่า** ช่วยยิงศัตรูตัวเล็กอย่างหมาโดนง่ายขึ้น)
+     - บังคับกติกาต่อ 1 อาวุธใน `WeaponArtifactManager` & `WeaponUpgradeUI`: **Common 0–4 ใบ**, **Rare สูงสุด 2 ใบ (1–2 ใบ)**, **Legendary 1 ใบเท่านั้น** พร้อมแสดงโควตาสดบน UI และรองรับการลากวางทับช่องระดับเดิมเพื่อสลับใบ
+     - ผูกค่าโบนัสทุกตัวใช้งานจริงใน Combat ทั้งยิง/ฟัน/ระเบิด (Damage, Damage%, Multi-Shot/Multi-Throw, Echo Burst, Bullet Size x2.5, Fire Rate/Attack Speed, Mag, Reload, Range, Pierce, Full-Auto, Crit Chance/Damage, Knockback, Stagger, Lifesteal On-Hit, Ammo Save) และจดตารางนับจำนวนครบทุกอาวุธใน `Docs/weapon-artifacts-catalog.md`
 
 ---
 
