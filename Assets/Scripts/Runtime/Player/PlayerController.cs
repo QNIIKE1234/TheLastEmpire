@@ -4631,6 +4631,17 @@ namespace TheLastEmpire
             // 5. Display compact key-only hint via LootUI (only one prompt at any given time)
             if (LootUI.Instance == null) return;
 
+            // Priority -1: Downed Co-op teammate nearby -> show "E" (Hold E to revive)
+            if (!IsDowned && TheLastEmpire.Network.PlayerRegistry.GetTotalPlayerCount() > 1)
+            {
+                PlayerController downedAlly = FindNearestDownedTeammate(ReviveInteractRadius);
+                if (downedAlly != null)
+                {
+                    LootUI.Instance.ShowKeyHint("E", downedAlly.transform, Vector3.up * 2.0f);
+                    return;
+                }
+            }
+
             // Priority 0: TransitionPortal warp zone -> show "E"
             if (WorldMapManager.Instance != null)
             {

@@ -1217,6 +1217,26 @@ namespace TheLastEmpire.Network
                     }
                     break;
 
+                case NetPacketType.ReviveAction:
+                    {
+                        ulong targetClientId = reader.ReadUInt64();
+                        float progress01 = reader.ReadSingle();
+                        bool isCompleted = reader.ReadBoolean();
+
+                        if (_isHost)
+                        {
+                            SendPacket(NetPacketType.ReviveAction, w =>
+                            {
+                                w.Write(targetClientId);
+                                w.Write(progress01);
+                                w.Write(isCompleted);
+                            });
+                        }
+
+                        PlayerController.HandleIncomingReviveAction(targetClientId, progress01, isCompleted);
+                    }
+                    break;
+
                 case NetPacketType.StageTransitionRequest:
                     if (_isHost)
                     {

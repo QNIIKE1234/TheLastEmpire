@@ -689,15 +689,50 @@ namespace TheLastEmpire
             }
         }
 
+        private bool _isShowingGameOver = false;
+
+        private bool ShouldSuppressGameOverForOnlineCoop()
+        {
+            PlayerController local = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? player ?? PlayerController.Instance;
+            if (local != null && local.ShouldSuppressGameOverForCoop())
+            {
+                return true;
+            }
+            if (local != null && local.IsDowned && !TheLastEmpire.Network.PlayerRegistry.AreAllPlayersDeadOrDowned())
+            {
+                return true;
+            }
+            return false;
+        }
+
         private void ShowDeathResultScreen()
         {
+            // โหมด Online / Co-op: ถ้ายังมีเพื่อนร่วมทีมรอดชีวิตอยู่ ห้ามขึ้นหน้าจอ GameOver เด็ดขาด (ให้ล้มรอเพื่อนมาช่วยแทน!)
+            if (ShouldSuppressGameOverForOnlineCoop())
+            {
+                Debug.Log("[PlayerHUD] Suppressed GameOver because at least one Co-op teammate is still alive. Waiting for revive.");
+                return;
+            }
+
+            if (_isShowingGameOver) return;
+            _isShowingGameOver = true;
+            StartCoroutine(DeathSequenceCoroutine());
+        }
+
+        /// <summary>
+        /// เรียกเมื่อทั้งปาร์ตี้ในโหมด Co-op ล้ม/ตายครบทุกคนแล้วจริงๆ (Party Wipe)
+        /// </summary>
+        public void TriggerCoopPartyWipeGameOver()
+        {
+            if (_isShowingGameOver) return;
+            _isShowingGameOver = true;
             StartCoroutine(DeathSequenceCoroutine());
         }
 
         private System.Collections.IEnumerator DeathSequenceCoroutine()
         {
-            // ถ้าไม่ได้ตั้งค่าให้หยุดเวลา เกมจะเล่นต่อไปเรื่อยๆ ซอมบี้และโลกจะขยับต่อตามปกติ
-            if (pauseGameOnDeath)
+            // ห้ามหยุด Time.timeScale ในโหมด Online เพื่อไม่ให้ Network ค้าง
+            if (pauseGameOnDeath && !TheLastEmpire.Network.EmpireNetworkManager.IsOnline)
             {
                 Time.timeScale = 0f;
             }
@@ -706,6 +741,13 @@ namespace TheLastEmpire
             if (deathDelayBeforeFade > 0f)
             {
                 yield return new WaitForSeconds(deathDelayBeforeFade);
+            }
+
+            // เช็กซ้ำอีกครั้งก่อนเปิดแผง GameOver (เผื่อระหว่างรอมีเพื่อนชุบหรือยังรอดอยู่ในโหมด Online)
+            if (ShouldSuppressGameOverForOnlineCoop())
+            {
+                _isShowingGameOver = false;
+                yield break;
             }
 
             // 2. จัดเตรียม CanvasGroup สำหรับ Fade In
@@ -901,6 +943,21 @@ namespace TheLastEmpire
 
         public void RetryGame()
         {
+            // กันการกด Retry ในโหมด Online ขณะที่ยังมีเพื่อนรอดชีวิตอยู่ (ไม่งั้นโหลดซีนแล้วห้องพัง)
+            if (ShouldSuppressGameOverForOnlineCoop())
+            {
+                Debug.LogWarning("[PlayerHUD] Retry blocked in Online Co-op while teammates are still alive!");
+                return;
+            }
+
+            // หากเป็นโหมด Online ที่ทั้งทีมตายหมดแล้ว (Party Wipe) ให้ตัดการเชื่อมต่อห้องอย่างสะอาดก่อนโหลดซีนใหม่
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnline && TheLastEmpire.Network.EmpireNetworkManager.Instance != null)
+            {
+                TheLastEmpire.Network.EmpireNetworkManager.Instance.DisconnectSession();
+            }
+
+            _isShowingGameOver = false;
+
             // Restore normal game speed
             Time.timeScale = 1f;
 

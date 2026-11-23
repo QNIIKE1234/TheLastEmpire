@@ -119,6 +119,27 @@ namespace TheLastEmpire.Network
         }
 
         /// <summary>
+        /// ตรวจสอบว่ายังมีเพื่อนร่วมทีมคนอื่น (ที่ไม่ใช่ excludePlayer) ที่ยังยืนสู้ได้อยู่หรือไม่
+        /// ใช้ตัดสินใจไม่ให้ขึ้นหน้าจอ GameOver ในโหมด Online/Co-op ตราบใดที่ยังมีเพื่อนรอดชีวิตอยู่
+        /// </summary>
+        public static bool HasAnyOtherAlivePlayer(PlayerController excludePlayer)
+        {
+            CleanupNullEntries();
+            for (int i = 0; i < _allPlayers.Count; i++)
+            {
+                PlayerController p = _allPlayers[i];
+                if (p == null || p == excludePlayer) continue;
+                Health h = p.PlayerHealth ?? p.GetComponent<Health>();
+                bool isDead = h != null && h.IsDead;
+                if (!isDead && !p.IsDowned)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// ตรวจสอบว่าปาร์ตี้ล้ม/ตายครบทุกคนแล้วหรือยัง (ใช้ตัดสิน Game Over ในโหมด Co-op)
         /// </summary>
         public static bool AreAllPlayersDeadOrDowned()

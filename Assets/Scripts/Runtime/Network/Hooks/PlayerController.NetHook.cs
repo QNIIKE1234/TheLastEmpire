@@ -60,7 +60,10 @@ namespace TheLastEmpire
 
             if (IsDowned)
             {
-                label.text = $"{displayName}\n[HOLD E TO REVIVE {(ReviveProgress01 * 100f):F0}%]";
+                string reviveStatus = ReviveProgress01 > 0.01f
+                    ? $"[REVIVING {(ReviveProgress01 * 100f):F0}%]"
+                    : (IsRemotePlayer ? "[HOLD E TO REVIVE]" : "[WAITING FOR TEAMMATE]");
+                label.text = $"{displayName}\n{reviveStatus}";
                 label.color = new Color(1f, 0.45f, 0.20f, 1f);
             }
             else
@@ -101,11 +104,22 @@ namespace TheLastEmpire
         // Co-op Downed & Revive State (Section 4.7)
         public const float MaxDownedBleedoutSeconds = 30f;
         public const float ReviveHoldDurationSeconds = 3.0f;
-        public const float ReviveInteractRadius = 2.4f;
+        public const float ReviveInteractRadius = 2.6f;
 
         public bool IsDowned { get; private set; } = false;
         public float DownedBleedoutTimer { get; private set; } = 0f;
         public float ReviveProgress01 { get; private set; } = 0f;
+        private float _revivePacketSendTimer = 0f;
+        private bool _hasTriggeredCoopPartyWipe = false;
+
+        /// <summary>
+        /// true เมื่อผู้เล่นอยู่ในโหมด Co-op / Online และยังมีเพื่อนร่วมทีมคนอื่นรอดชีวิตอยู่ -> ห้ามขึ้น GameOver
+        /// </summary>
+        public bool ShouldSuppressGameOverForCoop()
+        {
+            if (PlayerRegistry.GetTotalPlayerCount() <= 1) return false;
+            return PlayerRegistry.HasAnyOtherAlivePlayer(this);
+        }
 
         private Vector3 _networkTargetPosition;
         private Vector3 _networkTargetAimDir = Vector3.forward;
@@ -248,6 +262,10 @@ namespace TheLastEmpire
                 if (Mathf.Abs(_health.MaxHealth - state.maxHealth) > 0.5f)
                 {
                     _health.SetMaxHealth(state.maxHealth, false);
+                }
+                if (_health.IsDead && state.currentHealth > 0f)
+                {
+                    _health.ResetHealth();
                 }
                 float diff = state.currentHealth - _health.CurrentHealth;
                 if (Mathf.Abs(diff) > 0.5f)
@@ -497,41 +515,48 @@ namespace TheLastEmpire
                 return false;
             }
 
-            // หากยังไม่ได้อยู่ในสถานะ Downed และยังมีเพื่อนคนอื่นยืนสู้ได้ ให้เข้าสู่สถานะล้มรอชุบ 30 วินาที
-            if (!IsDowned)
+            // หากไม่มีเพื่อนคนอื่นยืนสู้ได้เลย (Party Wipe จริงๆ) -> ให้ตายและขึ้น GameOver ตามปกติ
+            if (!PlayerRegistry.HasAnyOtherAlivePlayer(this))
             {
-                IsDowned = true;
-                DownedBleedoutTimer = MaxDownedBleedoutSeconds;
-                ReviveProgress01 = 0f;
-
-                // คงเลือดไว้ที่ 1 HP ชั่วคราวระหว่างล้มคลาน เพื่อไม่ให้ Health.IsDead ล็อกทุกอย่างถาวรจนชุบไม่ได้
-                if (_health != null)
-                {
-                    _health.ResetHealth();
-                    float leaveOneHp = Mathf.Max(0f, _health.MaxHealth - 1f);
-                    if (leaveOneHp > 0f)
-                    {
-                        _health.TakeDamage(leaveOneHp, transform.position, false);
-                    }
-                    _health.TriggerInvulnerability(2.5f);
-                }
-
-                SetSitting(true);
-                Debug.Log($"<color=#F59E0B>[Co-op Revive]</color> {NetworkPlayerName} is DOWNED! 30s to revive (Hold [E] near teammate).");
-
-                // ตรวจสอบว่าถ้าทุกคนในปาร์ตี้ล้มพร้อมกันหมดแล้ว ให้สั่ง Party Wipe ทันที
-                if (PlayerRegistry.AreAllPlayersDeadOrDowned())
-                {
-                    TriggerPartyWipeDeath();
-                }
-                return true;
+                TriggerPartyWipeDeath();
+                return false;
             }
 
-            return false;
+            // ยังมีเพื่อนร่วมทีมรอดชีวิตอยู่ -> เข้าสู่สถานะล้มรอเพื่อนมาช่วย (ห้ามขึ้น GameOver!)
+            IsDowned = true;
+            DownedBleedoutTimer = MaxDownedBleedoutSeconds;
+            ReviveProgress01 = 0f;
+            _hasTriggeredCoopPartyWipe = false;
+
+            // คงเลือดไว้ที่ 1 HP ชั่วคราวระหว่างล้มรอเพื่อน เพื่อไม่ให้ Health.IsDead ล็อกทุกอย่างถาวรจนชุบไม่ได้
+            if (_health != null)
+            {
+                _health.ResetHealth();
+                float leaveOneHp = Mathf.Max(0f, _health.MaxHealth - 1f);
+                if (leaveOneHp > 0f)
+                {
+                    _health.TakeDamage(leaveOneHp, transform.position, false);
+                }
+                _health.TriggerInvulnerability(2.5f);
+            }
+
+            SetSitting(true);
+            RefreshOverheadNameLabel();
+
+            if (!IsRemotePlayer && LootUI.HasInstance && LootUI.Instance.HasDialogHintUI)
+            {
+                LootUI.Instance.ShowDialogHint("DOWNED — Waiting for teammate to revive [Hold E]", transform, Vector3.up * 2.3f, 0f);
+            }
+
+            Debug.Log($"<color=#F59E0B>[Co-op Revive]</color> {NetworkPlayerName} is DOWNED! Waiting for teammate to revive (no GameOver while teammates are alive).");
+            return true;
         }
 
         private void TriggerPartyWipeDeath()
         {
+            if (_hasTriggeredCoopPartyWipe) return;
+            _hasTriggeredCoopPartyWipe = true;
+
             var all = PlayerRegistry.AllPlayers;
             for (int i = 0; i < all.Count; i++)
             {
@@ -541,44 +566,122 @@ namespace TheLastEmpire
                     p.IsDowned = false;
                 }
             }
+
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint(transform);
+            }
+
             Debug.Log("<color=#EF4444>[Co-op Revive]</color> PARTY WIPE! All operatives are downed.");
+
+            // แสดง GameOver บนเครื่องตัวเองเมื่อทั้งทีมล้ม/ตายหมดแล้วจริงๆ
+            PlayerHUD hud = Object.FindFirstObjectByType<PlayerHUD>();
+            if (hud != null)
+            {
+                hud.TriggerCoopPartyWipeGameOver();
+            }
         }
 
         private void UpdateCoopDownedAndRevive()
         {
             if (IsDowned)
             {
-                DownedBleedoutTimer -= Time.deltaTime;
                 if (_health != null)
                 {
-                    // ป้องกันซอมบี้ตีซ้ำตอนล้มรอชุบ
+                    // ป้องกันซอมบี้ตีซ้ำตอนล้มรอเพื่อนมาช่วย
                     _health.TriggerInvulnerability(0.5f);
                 }
 
-                if (DownedBleedoutTimer <= 0f)
+                // ตรวจว่าเพื่อนทุกคนในปาร์ตี้ล้ม/ตายหมดแล้วหรือยัง (Party Wipe)
+                if (!IsRemotePlayer && PlayerRegistry.AreAllPlayersDeadOrDowned())
                 {
                     IsDowned = false;
                     SetSitting(false);
+                    TriggerPartyWipeDeath();
                     if (_health != null && !_health.IsDead)
                     {
                         _health.TakeDamage(_health.CurrentHealth + 999f, transform.position, false);
+                    }
+                    return;
+                }
+
+                // ตราบใดที่ยังมีเพื่อนรอดชีวิตอยู่ในโหมด Online/Co-op ให้รอเพื่อนมาช่วยต่อไปเรื่อยๆ ห้ามตายขึ้น GameOver!
+                if (!IsRemotePlayer)
+                {
+                    RefreshOverheadNameLabel();
+                    if (LootUI.HasInstance && LootUI.Instance.HasDialogHintUI)
+                    {
+                        string msg = ReviveProgress01 > 0.01f
+                            ? $"REVIVING... {(ReviveProgress01 * 100f):F0}%"
+                            : "DOWNED — Waiting for teammate to revive [Hold E]";
+                        LootUI.Instance.ShowDialogHint(msg, transform, Vector3.up * 2.3f, 0f);
                     }
                 }
                 return;
             }
 
-            // หากเรายืนอยู่และกดปุ่ม [E] ค้างใกล้เพื่อนที่ล้มอยู่ (ระยะ 2.4m) ให้ชุบชีวิตเพื่อน
-            if (!IsRemotePlayer && Keyboard.current != null && Keyboard.current.eKey.isPressed)
+            // หากเรายืนอยู่และกดปุ่ม [E] ค้างใกล้เพื่อนที่ล้มอยู่ (ระยะ 2.6m, ด่านเดียวกัน) ให้ชุบชีวิตเพื่อน
+            if (!IsRemotePlayer)
             {
                 PlayerController downedAlly = FindNearestDownedTeammate(ReviveInteractRadius);
-                if (downedAlly != null)
+                bool holdingE = (Keyboard.current != null && Keyboard.current.eKey.isPressed);
+#if ENABLE_LEGACY_INPUT_MANAGER
+                if (Input.GetKey(KeyCode.E)) holdingE = true;
+#endif
+                if (downedAlly != null && holdingE)
                 {
-                    downedAlly.AddReviveProgress(Time.deltaTime / ReviveHoldDurationSeconds);
+                    float delta = Time.deltaTime / ReviveHoldDurationSeconds;
+                    bool completed = downedAlly.ReviveProgress01 + delta >= 1f;
+                    downedAlly.AddReviveProgress(delta);
+                    downedAlly.RefreshOverheadNameLabel();
+
+                    // ส่งซิงค์ความคืบหน้าการชุบชีวิตข้าม Network ให้เครื่องเพื่อนที่ล้มฟื้นจริง!
+                    if (EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
+                    {
+                        _revivePacketSendTimer -= Time.deltaTime;
+                        if (completed || _revivePacketSendTimer <= 0f)
+                        {
+                            _revivePacketSendTimer = 0.1f;
+                            ulong targetId = downedAlly.NetworkClientId;
+                            float prog = completed ? 1f : downedAlly.ReviveProgress01;
+                            EmpireNetworkManager.Instance.SendPacket(NetPacketType.ReviveAction, w =>
+                            {
+                                w.Write(targetId);
+                                w.Write(prog);
+                                w.Write(completed);
+                            });
+                        }
+                    }
                 }
             }
         }
 
-        private PlayerController FindNearestDownedTeammate(float radius)
+        public static void HandleIncomingReviveAction(ulong targetClientId, float progress01, bool isCompleted)
+        {
+            PlayerController target = null;
+            if (EmpireNetworkManager.Instance != null && targetClientId == EmpireNetworkManager.Instance.LocalClientId)
+            {
+                target = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            }
+            else
+            {
+                target = PlayerRegistry.GetPlayerByClientId(targetClientId);
+            }
+
+            if (target == null) return;
+
+            target.ReviveProgress01 = Mathf.Clamp01(progress01);
+            if (isCompleted)
+            {
+                target.CompleteRevive();
+            }
+            else
+            {
+                target.RefreshOverheadNameLabel();
+            }
+        }
+
+        public PlayerController FindNearestDownedTeammate(float radius)
         {
             PlayerController best = null;
             float bestDistSq = radius * radius;
@@ -587,6 +690,7 @@ namespace TheLastEmpire
             {
                 PlayerController candidate = all[i];
                 if (candidate == null || candidate == this || !candidate.IsDowned) continue;
+                if (!candidate.IsInSameStageAsLocalPlayer || !candidate.gameObject.activeInHierarchy) continue;
                 float dSq = (candidate.transform.position - transform.position).sqrMagnitude;
                 if (dSq <= bestDistSq)
                 {
@@ -613,6 +717,7 @@ namespace TheLastEmpire
             IsDowned = false;
             DownedBleedoutTimer = 0f;
             ReviveProgress01 = 0f;
+            _hasTriggeredCoopPartyWipe = false;
             SetSitting(false);
 
             if (_health != null)
@@ -625,7 +730,13 @@ namespace TheLastEmpire
                 {
                     _health.TakeDamage(dmgToTrim, transform.position, false);
                 }
-                _health.TriggerInvulnerability(2.0f);
+                _health.TriggerInvulnerability(2.5f);
+            }
+
+            RefreshOverheadNameLabel();
+            if (!IsRemotePlayer && LootUI.HasInstance)
+            {
+                LootUI.Instance.HideDialogHint(transform);
             }
 
             Debug.Log($"<color=#22C55E>[Co-op Revive]</color> {NetworkPlayerName} was REVIVED at 30% HP!");
