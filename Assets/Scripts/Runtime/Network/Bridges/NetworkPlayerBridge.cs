@@ -173,11 +173,16 @@ namespace TheLastEmpire.Network
             bool isFireballSkill = visualId.Equals("FlamethrowerFireball", System.StringComparison.OrdinalIgnoreCase);
             Vector3 baseDir = payload.aimDirection.sqrMagnitude > 0.01f ? payload.aimDirection.normalized : Vector3.forward;
 
-            // หากเพื่อนกำลังพ่นไฟ Flamethrower ให้เปิด Cone Fire VFX บนตัวเพื่อนด้วย
-            if (!isFireballSkill && shooter != null && !string.IsNullOrEmpty(payload.weaponName) &&
-                payload.weaponName.IndexOf("Flamethrower", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            // หากเพื่อนกำลังพ่นไฟ Flamethrower ให้เปิด Cone Fire VFX บนตัวเพื่อนด้วย และไม่ต้องเสกกระสุนโลหะซ้อน
+            bool isFlameConeShot = visualId.Equals("FlameCone", System.StringComparison.OrdinalIgnoreCase);
+            if (!isFireballSkill && (isFlameConeShot || (!string.IsNullOrEmpty(payload.weaponName) &&
+                payload.weaponName.IndexOf("Flamethrower", System.StringComparison.OrdinalIgnoreCase) >= 0)))
             {
-                shooter.TriggerRemoteFlamethrowerConeVfx();
+                if (shooter != null)
+                {
+                    shooter.TriggerRemoteFlamethrowerConeVfx();
+                }
+                return;
             }
 
             for (int i = 0; i < pellets; i++)

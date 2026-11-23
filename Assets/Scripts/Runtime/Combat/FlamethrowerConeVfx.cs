@@ -25,10 +25,13 @@ namespace TheLastEmpire
         private bool _isFiring = false;
         private bool _isConfigured = false;
 
+        private static Material _sharedFlameMaterial;
+        private static Texture2D _sharedFlameTexture;
+
         private void Awake()
         {
             EnsureConfigured();
-            if (Application.isPlaying)
+            if (Application.isPlaying && !_isFiring)
             {
                 SetFiring(false, immediate: true);
             }
@@ -37,10 +40,50 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             EnsureConfigured();
-            if (Application.isPlaying)
+            if (Application.isPlaying && !_isFiring)
             {
                 SetFiring(false, immediate: true);
             }
+        }
+
+        private static Material GetOrCreateFlameMaterial()
+        {
+            if (_sharedFlameMaterial != null) return _sharedFlameMaterial;
+
+            if (_sharedFlameTexture == null)
+            {
+                const int size = 64;
+                _sharedFlameTexture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                _sharedFlameTexture.wrapMode = TextureWrapMode.Clamp;
+                _sharedFlameTexture.filterMode = FilterMode.Bilinear;
+                float half = (size - 1) * 0.5f;
+                Color[] pixels = new Color[size * size];
+                for (int y = 0; y < size; y++)
+                {
+                    for (int x = 0; x < size; x++)
+                    {
+                        float dx = (x - half) / half;
+                        float dy = (y - half) / half;
+                        float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                        float alpha = Mathf.Clamp01(1f - dist);
+                        alpha = alpha * alpha; // soft glowing fire puff falloff
+                        pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    }
+                }
+                _sharedFlameTexture.SetPixels(pixels);
+                _sharedFlameTexture.Apply();
+            }
+
+            Shader s = Shader.Find("Sprites/Default");
+            if (s == null) s = Shader.Find("Particles/Standard Unlit");
+            if (s == null) s = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (s != null)
+            {
+                _sharedFlameMaterial = new Material(s);
+                _sharedFlameMaterial.mainTexture = _sharedFlameTexture;
+                _sharedFlameMaterial.color = Color.white;
+            }
+            return _sharedFlameMaterial;
         }
 
 #if UNITY_EDITOR
@@ -116,16 +159,17 @@ namespace TheLastEmpire
             sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1.0f, sizeCurve);
 
             var psRenderer = GetComponent<ParticleSystemRenderer>();
-            if (psRenderer != null && psRenderer.sharedMaterial == null)
+            if (psRenderer != null)
             {
-                Shader s = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-                if (s == null) s = Shader.Find("Particles/Standard Unlit");
-                if (s == null) s = Shader.Find("Sprites/Default");
-                if (s != null)
+                psRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                psRenderer.sortingOrder = 12;
+                if (psRenderer.sharedMaterial == null || psRenderer.sharedMaterial.mainTexture == null)
                 {
-                    Material mat = new Material(s);
-                    mat.color = new Color(1f, 0.65f, 0.2f, 1f);
-                    psRenderer.sharedMaterial = mat;
+                    Material flameMat = GetOrCreateFlameMaterial();
+                    if (flameMat != null)
+                    {
+                        psRenderer.sharedMaterial = flameMat;
+                    }
                 }
             }
 
@@ -150,10 +194,30 @@ namespace TheLastEmpire
             _isConfigured = true;
         }
 
+        public void UpdateAimTransform(Vector3 playerPos, Vector3 aimDir, float forwardOffset = 0.95f, float heightOffset = 0.35f)
+        {
+            Vector3 flatDir = aimDir;
+            flatDir.y = 0f;
+            if (flatDir.sqrMagnitude < 0.0001f) flatDir = Vector3.forward;
+            flatDir.Normalize();
+
+            transform.position = playerPos + flatDir * forwardOffset + Vector3.up * heightOffset;
+            transform.rotation = Quaternion.LookRotation(flatDir, Vector3.up);
+        }
+
         public void SetFiring(bool firing, bool immediate = false)
         {
+            if (firing && !gameObject.activeSelf)
+            {
+                _isFiring = true;
+                gameObject.SetActive(true);
+            }
+
             EnsureConfigured();
-            if (!immediate && _isFiring == firing) return;
+            if (!immediate && _isFiring == firing && (!firing || (_flamePs != null && _flamePs.isPlaying && _flamePs.emission.enabled)))
+            {
+                return;
+            }
             _isFiring = firing;
 
             if (_flamePs != null)

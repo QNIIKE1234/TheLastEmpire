@@ -307,11 +307,13 @@ namespace TheLastEmpire
             _lifestealOnHit = 0f;
             if (_trail != null)
             {
+                _trail.enabled = useTrailRenderer;
                 _trail.startWidth = trailStartWidth;
                 _trail.time = trailTime;
             }
             if (bulletLight != null && useBulletLight)
             {
+                bulletLight.enabled = true;
                 bulletLight.color = lightColor;
                 bulletLight.range = lightRange;
                 bulletLight.intensity = lightIntensity;
@@ -448,6 +450,14 @@ namespace TheLastEmpire
         {
             if (string.IsNullOrEmpty(visualId)) return;
             _activeVisualId = visualId;
+
+            // โหมดซ่อนโมเดลกระสุน (เช่น Flamethrower ที่ใช้ Particle Effect เปลวไฟทรงกรวยแทนลูกกระสุน)
+            if (visualId.Equals("FlameCone", System.StringComparison.OrdinalIgnoreCase) ||
+                visualId.Equals("Hidden", System.StringComparison.OrdinalIgnoreCase))
+            {
+                HideAllVisualsForInvisibleHitbox();
+                return;
+            }
 
             string cleanTarget = visualId.Trim().ToLower();
             string normTarget = NormalizeVisualKey(cleanTarget);
@@ -601,6 +611,39 @@ namespace TheLastEmpire
                 {
                     sphere.gameObject.SetActive(false);
                 }
+            }
+        }
+
+        private void HideAllVisualsForInvisibleHitbox()
+        {
+            if (visualEntries != null)
+            {
+                for (int i = 0; i < visualEntries.Count; i++)
+                {
+                    if (visualEntries[i] != null && visualEntries[i].visualObject != null)
+                    {
+                        visualEntries[i].visualObject.SetActive(false);
+                    }
+                }
+            }
+
+            MeshRenderer rootMr = GetComponent<MeshRenderer>();
+            if (rootMr != null) rootMr.enabled = false;
+            SpriteRenderer rootSr = GetComponent<SpriteRenderer>();
+            if (rootSr != null) rootSr.enabled = false;
+
+            Transform sphere = transform.Find("Sphere");
+            if (sphere != null) sphere.gameObject.SetActive(false);
+
+            if (_trail != null)
+            {
+                _trail.Clear();
+                _trail.enabled = false;
+            }
+
+            if (bulletLight != null)
+            {
+                bulletLight.enabled = false;
             }
         }
 

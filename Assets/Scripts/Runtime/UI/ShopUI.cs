@@ -124,6 +124,16 @@ namespace TheLastEmpire
                     }
                 }
 
+                // วางกระสุนจริงทุกชนิดขึ้นหน้าแรกก่อน แล้วตามด้วยอาวุธทุกชิ้น (จะได้เห็นทั้งกระสุนและอาวุธทันที)
+                ammos.Sort((a, b) => string.Compare(a.itemName, b.itemName, StringComparison.OrdinalIgnoreCase));
+                for (int i = 0; i < ammos.Count; i++)
+                {
+                    if (seen.Add(ammos[i].itemName.Trim()))
+                    {
+                        _effectiveBuyItemsCache.Add(new ShopItemConfig { item = ammos[i], price = 0 });
+                    }
+                }
+
                 weapons.Sort((a, b) =>
                 {
                     int tCmp = ((int)a.type).CompareTo((int)b.type);
@@ -136,15 +146,6 @@ namespace TheLastEmpire
                     if (seen.Add(weapons[i].itemName.Trim()))
                     {
                         _effectiveBuyItemsCache.Add(new ShopItemConfig { item = weapons[i], price = 0 });
-                    }
-                }
-
-                ammos.Sort((a, b) => string.Compare(a.itemName, b.itemName, StringComparison.OrdinalIgnoreCase));
-                for (int i = 0; i < ammos.Count; i++)
-                {
-                    if (seen.Add(ammos[i].itemName.Trim()))
-                    {
-                        _effectiveBuyItemsCache.Add(new ShopItemConfig { item = ammos[i], price = 0 });
                     }
                 }
             }

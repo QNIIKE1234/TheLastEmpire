@@ -2228,15 +2228,16 @@ namespace TheLastEmpire
                 FlamethrowerConeVfx coneVfx = ResolveFlamethrowerConeVfx();
                 if (coneVfx != null)
                 {
+                    coneVfx.UpdateAimTransform(transform.position, _aimDirection);
                     coneVfx.SetFiring(true);
                 }
             }
 
             // ─── Helper methods for Muzzle Flash Point Light ───
             
-            // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
-            string flashKey = activeWeapon != null ? activeWeapon.vfxPoolKey : null;
-            if (string.IsNullOrEmpty(flashKey) || flashKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase))
+            // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ (ยกเว้น Flamethrower ที่ใช้เปลวไฟทรงกรวยอยู่แล้ว)
+            string flashKey = isFlamethrowerWeapon ? null : (activeWeapon != null ? activeWeapon.vfxPoolKey : null);
+            if (!isFlamethrowerWeapon && (string.IsNullOrEmpty(flashKey) || flashKey.Equals("PistalFlash", System.StringComparison.OrdinalIgnoreCase)))
             {
                 flashKey = "PistolFlash";
             }
@@ -2380,7 +2381,7 @@ namespace TheLastEmpire
                             effectiveFalloffDist = 22f; // Marksman maintains high damage at sniper ranges
                         }
 
-                        string visualId = ResolveProjectileVisualId(activeWeapon);
+                        string visualId = isFlamethrowerWeapon ? "FlameCone" : ResolveProjectileVisualId(activeWeapon);
                         proj.SetStats(finalDamage, weaponRange, effectivePierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
                         proj.SetArtifactImpactModifiers(artifactMods.bonusKnockback, artifactMods.bonusStagger, artifactMods.lifestealOnHit, artifactMods.projectileScaleBonus);
 
@@ -2412,7 +2413,7 @@ namespace TheLastEmpire
                     }
                     
                     // Pass the aim target point for Arced trajectories (fan out landing points for multi-throw Grenade artifacts)
-                    string arcVisualId = activeWeapon != null ? ResolveProjectileVisualId(activeWeapon) : "";
+                    string arcVisualId = isFlamethrowerWeapon ? "FlameCone" : (activeWeapon != null ? ResolveProjectileVisualId(activeWeapon) : "");
                     Vector3 shotTargetPoint = _aimTargetPoint;
                     if (proj.Trajectory == TrajectoryMode.Arced && pellets > 1)
                     {
@@ -2528,6 +2529,11 @@ namespace TheLastEmpire
             if (coneVfx != null)
             {
                 bool shouldEmit = canKeepFiring && _flamethrowerVfxTimer > 0f;
+                if (shouldEmit)
+                {
+                    Vector3 aim = IsRemotePlayer ? _networkTargetAimDir : _aimDirection;
+                    coneVfx.UpdateAimTransform(transform.position, aim);
+                }
                 coneVfx.SetFiring(shouldEmit);
             }
         }
