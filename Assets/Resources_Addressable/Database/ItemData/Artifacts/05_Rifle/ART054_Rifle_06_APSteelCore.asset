@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "AP Steel Core"
   description: "กระสุนแกนเหล็กเจาะทะลุศัตรู (Pierce)"
-  icon: {fileID: 21300052, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}
+  icon: {fileID: -1755011708, guid: bcd2e74f786231949af299fce984e7ef, type: 3}
   type: 10
   restorationValue: 0
   sanityRestorationValue: 0
@@ -63,4 +63,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 0
     projectileScaleBonus: 0
+    rightClickSkillId: ""
+    rightClickCooldown: 5
+    rightClickChargeDuration: 0
+    rightClickAmmoCost: 0
+    rightClickDamage: 0
+    rightClickRange: 0
+    rightClickUseFlatDamage: 0
     shortEffectSummary: "Pierce, ATK +10"

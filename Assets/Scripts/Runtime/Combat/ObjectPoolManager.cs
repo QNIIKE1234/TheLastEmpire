@@ -116,6 +116,16 @@ namespace TheLastEmpire
                     }
                 }
             }
+
+            // Auto pre-populate FlamethrowerFireball pool for Legendary Flamethrower RMB skill
+            if (!_poolDictionary.ContainsKey("FlamethrowerFireball"))
+            {
+                GameObject fireballPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/FlamethrowerFireballPrefabs");
+                if (fireballPrefab != null)
+                {
+                    CreatePool("FlamethrowerFireball", fireballPrefab, 10);
+                }
+            }
         }
 
         public void CreatePool(string key, GameObject prefab, int size = 15)
@@ -160,6 +170,10 @@ namespace TheLastEmpire
                 if (loadedPrefab == null && trimmedKey.Equals("Bolt001", System.StringComparison.OrdinalIgnoreCase))
                 {
                     loadedPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BoltPrefabs");
+                }
+                if (loadedPrefab == null && trimmedKey.Equals("FlamethrowerFireball", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    loadedPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/FlamethrowerFireballPrefabs");
                 }
                 if (loadedPrefab == null)
                 {

@@ -66,6 +66,22 @@ namespace TheLastEmpire
         [Tooltip("เพิ่มขนาดกระสุนและ Hitbox เช่น 1.5 = ขนาดใหญ่ขึ้นเป็น 2.5 เท่า (1 + 1.5)")]
         public float projectileScaleBonus = 0f;
 
+        [Header("Legendary Right-Click Active Skill")]
+        [Tooltip("รหัสสกิลคลิกขวาของ Artifact ระดับ Legendary เช่น Flamethrower_Fireball, Knife_Hook, Bat_Boomerang, Katana_RipperCombo")]
+        public string rightClickSkillId = "";
+        [Tooltip("คูลดาวน์สกิลคลิกขวา (วินาที) ค่าเริ่มต้น 5 วินาที")]
+        public float rightClickCooldown = 5.0f;
+        [Tooltip("เวลาชาร์จคลิกขวา (วินาที) เช่น 2.0 สำหรับปืนไฟ, 0 สำหรับกดออกทันที")]
+        public float rightClickChargeDuration = 0f;
+        [Tooltip("จำนวนกระสุนที่ใช้ต่อการยิงสกิลคลิกขวา 1 ครั้ง เช่น 10")]
+        public int rightClickAmmoCost = 0;
+        [Tooltip("ดาเมจสกิลคลิกขวา (ค่าเริ่มต้นเป็นตัวคูณดาเมจปืน เช่น 8.5 = 8.5x หรือเปิด rightClickUseFlatDamage เพื่อใช้เป็นค่าตรง)")]
+        public float rightClickDamage = 0f;
+        [Tooltip("ระยะยิงของสกิลคลิกขวา (เมตร) เช่น 20")]
+        public float rightClickRange = 0f;
+        [Tooltip("ถ้าติ๊กถูกจะใช้ rightClickDamage เป็นดาเมจคงที่โดยตรง (ไม่คูณกับดาเมจปืน)")]
+        public bool rightClickUseFlatDamage = false;
+
         [Header("Display")]
         [Tooltip("ข้อความสรุปสั้นๆ (เว้นว่างให้สร้างอัตโนมัติจากค่าสถานะด้านบน)")]
         public string shortEffectSummary;

@@ -560,7 +560,15 @@ namespace TheLastEmpire.Network
             bool isMoney = targetItem.IsMoney;
             int moneyAmt = targetItem.MoneyAmount;
 
-            targetItem.Collect();
+            PlayerController claimingPlayer = PlayerRegistry.GetPlayerByClientId(requestingClientId);
+            if (claimingPlayer != null && claimingPlayer.gameObject.activeInHierarchy)
+            {
+                targetItem.CollectWithVisualFlyTo(claimingPlayer.transform);
+            }
+            else
+            {
+                targetItem.Collect();
+            }
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.LootClaimResult, w =>
             {
@@ -614,11 +622,31 @@ namespace TheLastEmpire.Network
                 }
             }
 
-            // ลบไอเทมออกจากพื้นของหน้าจอทุกเครื่องทันที
+            // แสดงภาพไอเทมบินเข้าตัวคนเก็บ (เพื่อนร่วมทีม) แทนการหายวับไปเฉยๆ
             CollectibleItem item = FindCollectibleByDropId(dropId);
             if (item != null && !item.IsCollected)
             {
-                item.Collect();
+                bool isLocalWinner = EmpireNetworkManager.Instance != null && winnerClientId == EmpireNetworkManager.Instance.LocalClientId;
+                PlayerController winnerPlayer = isLocalWinner
+                    ? (PlayerRegistry.LocalPlayer ?? PlayerController.Instance)
+                    : PlayerRegistry.GetPlayerByClientId(winnerClientId);
+
+                if (winnerPlayer != null && winnerPlayer.gameObject.activeInHierarchy)
+                {
+                    float distToWinner = Vector3.Distance(item.transform.position, winnerPlayer.transform.position + Vector3.up * 0.7f);
+                    if (!isLocalWinner || distToWinner > 0.65f)
+                    {
+                        item.CollectWithVisualFlyTo(winnerPlayer.transform);
+                    }
+                    else
+                    {
+                        item.Collect();
+                    }
+                }
+                else
+                {
+                    item.Collect();
+                }
             }
         }
 

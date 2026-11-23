@@ -170,7 +170,15 @@ namespace TheLastEmpire.Network
             int pellets = Mathf.Max(1, payload.pelletCount);
             float spread = Mathf.Max(0f, payload.spreadAngle);
             string visualId = string.IsNullOrEmpty(payload.visualId) ? "Bullet" : payload.visualId;
+            bool isFireballSkill = visualId.Equals("FlamethrowerFireball", System.StringComparison.OrdinalIgnoreCase);
             Vector3 baseDir = payload.aimDirection.sqrMagnitude > 0.01f ? payload.aimDirection.normalized : Vector3.forward;
+
+            // หากเพื่อนกำลังพ่นไฟ Flamethrower ให้เปิด Cone Fire VFX บนตัวเพื่อนด้วย
+            if (!isFireballSkill && shooter != null && !string.IsNullOrEmpty(payload.weaponName) &&
+                payload.weaponName.IndexOf("Flamethrower", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                shooter.TriggerRemoteFlamethrowerConeVfx();
+            }
 
             for (int i = 0; i < pellets; i++)
             {
@@ -182,16 +190,31 @@ namespace TheLastEmpire.Network
                 }
 
                 GameObject bulletObj = null;
-                if (ObjectPoolManager.Instance != null)
+                if (isFireballSkill)
                 {
-                    bulletObj = ObjectPoolManager.Instance.SpawnFromPool("Bullet", payload.spawnPosition, Quaternion.LookRotation(bulletDir));
-                }
-                if (bulletObj == null)
-                {
-                    GameObject prefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BulletPrefabs");
-                    if (prefab != null)
+                    if (ObjectPoolManager.Instance != null)
                     {
-                        bulletObj = Instantiate(prefab, payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                        bulletObj = ObjectPoolManager.Instance.SpawnFromPool("FlamethrowerFireball", payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                    }
+                    if (bulletObj == null)
+                    {
+                        GameObject fbPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/FlamethrowerFireballPrefabs");
+                        if (fbPrefab != null) bulletObj = Instantiate(fbPrefab, payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                    }
+                }
+                else
+                {
+                    if (ObjectPoolManager.Instance != null)
+                    {
+                        bulletObj = ObjectPoolManager.Instance.SpawnFromPool("Bullet", payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                    }
+                    if (bulletObj == null)
+                    {
+                        GameObject prefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/BulletPrefabs");
+                        if (prefab != null)
+                        {
+                            bulletObj = Instantiate(prefab, payload.spawnPosition, Quaternion.LookRotation(bulletDir));
+                        }
                     }
                 }
 
@@ -201,12 +224,17 @@ namespace TheLastEmpire.Network
                     if (proj != null)
                     {
                         // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual (ดาเมจที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest เพื่อไม่ให้คิดดาเมจเบิ้ล)
-                        proj.SetStats(0f, payload.weaponRange, payload.canPierce, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, visualId);
-                        if (payload.isRocketLauncher)
+                        proj.SetStats(0f, payload.weaponRange, payload.canPierce, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, isFireballSkill ? "" : visualId);
+                        if (isFireballSkill)
+                        {
+                            proj.PoolKey = "FlamethrowerFireball";
+                            proj.SetSpeed(25f);
+                        }
+                        else if (payload.isRocketLauncher)
                         {
                             proj.ConfigureExplosiveOverride(13f, 2.5f, "Explosion");
                         }
-                        proj.Setup(bulletDir, payload.aimTargetPoint, shooter != null ? shooter.gameObject : null, visualId);
+                        proj.Setup(bulletDir, payload.aimTargetPoint, shooter != null ? shooter.gameObject : null, isFireballSkill ? "" : visualId);
                     }
                 }
             }
@@ -256,6 +284,12 @@ namespace TheLastEmpire.Network
 
             if (isHost && payload.attackerClientId != EmpireNetworkManager.Instance.LocalClientId)
             {
+                // หาก Client ใช้สกิล Knife Hook (comboStep == 101) ให้ Host ดึงมอนตัวจริงให้ตรงกันทุกเครื่อง (ยกเว้นบอส)
+                if (payload.comboStep == 101 && isSameStage)
+                {
+                    PlayerController.ExecuteHostAuthoritativeKnifeHookPull(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
+
                 EmpireNetworkManager.Instance.SendPacket(NetPacketType.MeleeAttack, w =>
                 {
                     var serializer = new BufferSerializer<BinaryBufferReaderWriter>(BinaryBufferReaderWriter.CreateWriter(w));
@@ -269,9 +303,32 @@ namespace TheLastEmpire.Network
             if (attacker != null)
             {
                 Animator anim = attacker.GetComponentInChildren<Animator>();
-                if (anim != null)
+                if (payload.comboStep == 101)
                 {
-                    anim.Play("Slash1", 0, 0f);
+                    if (anim != null) anim.Play("Slash3", 0, 0f);
+                    attacker.SpawnRemoteVisualKnifeHook(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
+                else if (payload.comboStep == 102)
+                {
+                    if (anim != null) anim.Play("Slash2", 0, 0f);
+                    attacker.SpawnRemoteVisualBatBoomerang(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
+                else
+                {
+                    int step = Mathf.Clamp(payload.comboStep, 1, 3);
+                    if (anim != null) anim.Play("Slash" + step, 0, 0f);
+                    if (ObjectPoolManager.Instance != null)
+                    {
+                        Vector3 dir = payload.aimDirection.sqrMagnitude > 0.001f ? payload.aimDirection.normalized : attacker.transform.forward;
+                        GameObject vfx = ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", payload.attackOrigin, Quaternion.LookRotation(dir));
+                        if (vfx != null)
+                        {
+                            PooledParticle pp = vfx.GetComponent<PooledParticle>();
+                            float sc = Mathf.Max(0.8f, payload.radius);
+                            if (pp != null) { pp.SetPoolKey("SwordSlash"); pp.ApplyScaleMultiplier(sc); }
+                            else vfx.transform.localScale = Vector3.one * sc;
+                        }
+                    }
                 }
             }
         }

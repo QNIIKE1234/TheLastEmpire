@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 namespace TheLastEmpire
@@ -28,6 +29,7 @@ namespace TheLastEmpire
             }
         }
         private static WeaponUpgradeUI _instance;
+        private static bool _sceneHookRegistered = false;
         public static bool HasInstance => _instance != null;
 
         [Header("Root & Controls")]
@@ -75,6 +77,21 @@ namespace TheLastEmpire
         public string SelectedWeaponName => (_selectedWeaponIndex >= 0 && _selectedWeaponIndex < _ownedWeapons.Count) ? _ownedWeapons[_selectedWeaponIndex] : null;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void RegisterAndEnsureHUDInScene()
+        {
+            if (!_sceneHookRegistered)
+            {
+                _sceneHookRegistered = true;
+                SceneManager.sceneLoaded += OnSceneLoaded;
+            }
+            EnsureHUDInScene();
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            EnsureHUDInScene();
+        }
+
         private static void EnsureHUDInScene()
         {
             WeaponUpgradeUI ui = FindExistingOrBindInScene();
@@ -154,15 +171,44 @@ namespace TheLastEmpire
             else gameObject.SetActive(false);
         }
 
+        private static Transform FindDescendant(Transform parent, string targetName)
+        {
+            if (parent == null || string.IsNullOrEmpty(targetName)) return null;
+            Transform direct = parent.Find(targetName);
+            if (direct != null) return direct;
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                if (child == null) continue;
+                if (child.name == targetName) return child;
+                Transform nested = FindDescendant(child, targetName);
+                if (nested != null) return nested;
+            }
+            return null;
+        }
+
         public void AutoBindReferences()
         {
-            if (hudRoot == null) hudRoot = gameObject;
+            // หาก hudRoot ยังไม่ได้ตั้ง หรือชี้มาที่ตัว WeaponUpgrade_HUD เอง แต่มีลูกชื่อ WeaponUpgradePanel -> ใช้ WeaponUpgradePanel เป็น hudRoot เพื่อเปิด/ปิดได้จริงโดยไม่ปิดสคริปต์
+            if (hudRoot == null || hudRoot == gameObject)
+            {
+                Transform panelChild = transform.Find("WeaponUpgradePanel");
+                if (panelChild != null)
+                {
+                    hudRoot = panelChild.gameObject;
+                }
+                else if (hudRoot == null)
+                {
+                    hudRoot = gameObject;
+                }
+            }
             Transform root = hudRoot.transform;
 
             // 1. Close / BACK button
             if (closeButton == null)
             {
-                Transform closeT = root.Find("Close") ?? root.Find("Back") ?? root.Find("CloseButton");
+                Transform closeT = FindDescendant(root, "Close") ?? FindDescendant(root, "Back") ?? FindDescendant(root, "CloseButton");
                 if (closeT != null) closeButton = closeT.GetComponent<Button>();
             }
             if (closeButton != null)
@@ -172,10 +218,13 @@ namespace TheLastEmpire
             }
 
             // 2. Right Side: UpgradePanel
-            Transform upgPanel = root.Find("UpgradePanel");
+            Transform upgPanel = FindDescendant(root, "UpgradePanel");
             if (upgPanel != null)
             {
-                if (upgradePanelRect == null) upgradePanelRect = upgPanel as RectTransform;
+                if (upgradePanelRect == null || upgradePanelRect.gameObject == hudRoot || upgradePanelRect.gameObject == gameObject)
+                {
+                    upgradePanelRect = upgPanel as RectTransform;
+                }
 
                 Transform top = upgPanel.Find("Top");
                 if (top != null)
@@ -200,7 +249,7 @@ namespace TheLastEmpire
                     if (descT != null) weaponDescriptionText = descT.GetComponent<TMP_Text>();
                 }
 
-                Transform attachPanel = upgPanel.Find("AttachPanel");
+                Transform attachPanel = FindDescendant(upgPanel, "AttachPanel");
                 if (attachPanel != null)
                 {
                     if (attachSlots == null || attachSlots.Length != WeaponArtifactManager.MaxArtifactSlots)
@@ -228,7 +277,7 @@ namespace TheLastEmpire
             }
 
             // 3. Left Side: ArtifactPanel / ARTIFACT
-            Transform artPanel = root.Find("ArtifactPanel") ?? root.Find("ARTIFACT");
+            Transform artPanel = FindDescendant(root, "ArtifactPanel") ?? FindDescendant(root, "ARTIFACT");
             if (artPanel != null)
             {
                 if (artifactPanelRect == null) artifactPanelRect = artPanel as RectTransform;
@@ -331,6 +380,7 @@ namespace TheLastEmpire
                 LootUI.Instance.HidePrompt();
             }
 
+            if (!gameObject.activeSelf) gameObject.SetActive(true);
             if (hudRoot != null) hudRoot.SetActive(true);
             SubscribeEvents();
 

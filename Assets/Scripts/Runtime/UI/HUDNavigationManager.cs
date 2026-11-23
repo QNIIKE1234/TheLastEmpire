@@ -1,25 +1,90 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 namespace TheLastEmpire
 {
     /// <summary>
-    /// HUDNavigationManager — ตัวจัดการรวมสำหรับปุ่มควบคุม HUD หลัก (Building, Inventory, Setting)
-    /// สามารถนำไปแนบไว้ที่ Game_HUD หรือ Canvas แล้วลากฟังก์ชันใส่ OnClick ของปุ่ม UI ใน Unity Inspector ได้ทันที
+    /// HUDNavigationManager — ตัวจัดการรวมสำหรับปุ่มควบคุม HUD หลักทั้ง 4 ปุ่ม (Upgrade [U], Inventory [I], Craft/Build [C], Setting [ESC])
+    /// รองรับ Auto-Initialize ในฉาก (รวมถึงตอนย้ายซีนจาก MainMenu -> Gameplay_3D) + คลิกซ้ำหรือกดคีย์ลัดเพื่อสลับเปิด/ปิดได้สมบูรณ์ + สลับหน้าต่างไม่ซ้อนทับกัน
     /// </summary>
     public class HUDNavigationManager : MonoBehaviour
     {
         public static HUDNavigationManager Instance { get; private set; }
+        private static bool _sceneHookRegistered = false;
 
-        [Header("Bottom HUD Buttons (Optional: ลากปุ่มมุมขวาล่างมาใส่ หรือปล่อยว่างให้ค้นหาอัตโนมัติ)")]
-        [Tooltip("ปุ่มเปิดหน้าต่างสร้าง / คราฟต์ (รูปประแจ [C])")]
-        [SerializeField] private Button buildingButton;
+        [Header("Bottom HUD Buttons (4 ปุ่มมุมขวาล่าง: U, I, C, ESC)")]
+        [Tooltip("ปุ่มเปิด/ปิดหน้าต่างแต่งอาวุธ Artifact (ปุ่ม [U])")]
+        [SerializeField] private Button upgradeButton;
 
-        [Tooltip("ปุ่มเปิดหน้าต่างกระเป๋า Inventory (รูปกระเป๋า [i])")]
+        [Tooltip("ปุ่มเปิด/ปิดหน้าต่างกระเป๋า Inventory (รูปกระเป๋า [i])")]
         [SerializeField] private Button inventoryButton;
 
-        [Tooltip("ปุ่มเปิดหน้าต่างตั้งค่า Setting (รูปฟันเฟือง [ESC])")]
+        [Tooltip("ปุ่มเปิด/ปิดหน้าต่างสร้าง / คราฟต์ (รูปประแจ [C])")]
+        [SerializeField] private Button buildingButton;
+
+        [Tooltip("ปุ่มเปิด/ปิดหน้าต่างตั้งค่า Setting (รูปฟันเฟือง [ESC])")]
         [SerializeField] private Button settingButton;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void RegisterAndEnsureInScene()
+        {
+            if (!_sceneHookRegistered)
+            {
+                _sceneHookRegistered = true;
+                SceneManager.sceneLoaded += OnSceneLoaded;
+            }
+            EnsureInScene();
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            EnsureInScene();
+        }
+
+        private static void EnsureInScene()
+        {
+            if (Instance != null)
+            {
+                Instance.AutoWireButtons();
+                return;
+            }
+            HUDNavigationManager existing = UnityEngine.Object.FindFirstObjectByType<HUDNavigationManager>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                existing.AutoWireButtons();
+                return;
+            }
+
+            GameObject menuHud = GameObject.Find("Menu_HUD");
+            if (menuHud != null)
+            {
+                HUDNavigationManager nav = menuHud.AddComponent<HUDNavigationManager>();
+                nav.AutoWireButtons();
+            }
+            else
+            {
+                // ค้นหาจาก Canvas ทั้งหมดเผื่อ Menu_HUD ยังไม่ได้ active หรืออยู่ใต้ลูกหลาน
+                Canvas[] canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                for (int i = 0; i < canvases.Length; i++)
+                {
+                    if (canvases[i] == null) continue;
+                    Transform[] children = canvases[i].GetComponentsInChildren<Transform>(true);
+                    for (int j = 0; j < children.Length; j++)
+                    {
+                        if (children[j] != null && children[j].name == "Menu_HUD")
+                        {
+                            HUDNavigationManager nav = children[j].gameObject.AddComponent<HUDNavigationManager>();
+                            nav.AutoWireButtons();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
 
         private void Awake()
         {
@@ -36,63 +101,121 @@ namespace TheLastEmpire
             AutoWireButtons();
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
         private void Start()
         {
             AutoWireButtons();
         }
 
+        private void Update()
+        {
+            // ปุ่มลัด [U] เปิด/ปิดหน้าต่าง Weapon Upgrade / Artifact
+            bool uPressed = Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame;
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKeyDown(KeyCode.U)) uPressed = true;
+#endif
+            if (uPressed && !IsTypingInInputField())
+            {
+                ToggleWeaponUpgrade();
+            }
+        }
+
+        private static bool IsTypingInInputField()
+        {
+            if (EventSystem.current == null) return false;
+            GameObject selected = EventSystem.current.currentSelectedGameObject;
+            if (selected == null) return false;
+            return selected.GetComponent<TMP_InputField>() != null || selected.GetComponent<InputField>() != null;
+        }
+
         private void AutoWireButtons()
         {
-            // ค้นหาปุ่มอัตโนมัติจากลูกหลานหากยังไม่ได้ลากใส่ใน Inspector
-            if (buildingButton == null || inventoryButton == null || settingButton == null)
+            // ค้นหาทั้งในลูกหลานและทั้งฉาก (กรณีแนบไว้คนละ GameObject กับ Menu_HUD)
+            if (upgradeButton == null || buildingButton == null || inventoryButton == null || settingButton == null)
             {
-                Button[] buttons = GetComponentsInChildren<Button>(true);
-                foreach (Button btn in buttons)
+                Button[] localButtons = GetComponentsInChildren<Button>(true);
+                MatchButtons(localButtons);
+
+                if (upgradeButton == null || buildingButton == null || inventoryButton == null || settingButton == null)
                 {
-                    string bName = btn.gameObject.name.ToLowerInvariant();
-                    if (buildingButton == null && (bName.Contains("craft") || bName.Contains("build") || bName.Contains("wrench")))
+                    GameObject menuHud = GameObject.Find("Menu_HUD");
+                    if (menuHud != null)
                     {
-                        buildingButton = btn;
-                    }
-                    else if (inventoryButton == null && (bName.Contains("inv") || bName.Contains("bag") || bName.Contains("backpack")))
-                    {
-                        inventoryButton = btn;
-                    }
-                    else if (settingButton == null && (bName.Contains("set") || bName.Contains("gear") || bName.Contains("cog") || bName.Contains("option")))
-                    {
-                        settingButton = btn;
+                        MatchButtons(menuHud.GetComponentsInChildren<Button>(true));
                     }
                 }
             }
 
-            if (buildingButton != null)
-            {
-                buildingButton.onClick.RemoveListener(ToggleBuilding);
-                buildingButton.onClick.AddListener(ToggleBuilding);
-            }
+            BindToggleButton(upgradeButton, ToggleWeaponUpgrade);
+            BindToggleButton(inventoryButton, ToggleInventory);
+            BindToggleButton(buildingButton, ToggleBuilding);
+            BindToggleButton(settingButton, ToggleSetting);
+        }
 
-            if (inventoryButton != null)
+        private void MatchButtons(Button[] buttons)
+        {
+            if (buttons == null) return;
+            foreach (Button btn in buttons)
             {
-                inventoryButton.onClick.RemoveListener(ToggleInventory);
-                inventoryButton.onClick.AddListener(ToggleInventory);
-            }
-
-            if (settingButton != null)
-            {
-                settingButton.onClick.RemoveListener(ToggleSetting);
-                settingButton.onClick.AddListener(ToggleSetting);
+                if (btn == null) continue;
+                string bName = btn.gameObject.name.ToLowerInvariant();
+                if (upgradeButton == null && (bName.Contains("upgrade") || bName.Contains("artifact")))
+                {
+                    upgradeButton = btn;
+                }
+                else if (buildingButton == null && (bName.Contains("craft") || bName.Contains("build") || bName.Contains("wrench")))
+                {
+                    buildingButton = btn;
+                }
+                else if (inventoryButton == null && (bName.Contains("inv") || bName.Contains("bag") || bName.Contains("backpack")))
+                {
+                    inventoryButton = btn;
+                }
+                else if (settingButton == null && (bName.Contains("set") || bName.Contains("gear") || bName.Contains("cog") || bName.Contains("option")))
+                {
+                    settingButton = btn;
+                }
             }
         }
 
+        private static void BindToggleButton(Button btn, UnityEngine.Events.UnityAction action)
+        {
+            if (btn == null || action == null) return;
+
+            // ล้าง persistent SetActive(true) ที่อาจหลงเหลือใน Scene/Prefab เพื่อไม่ให้บังคับเปิดค้างจนปิดไม่ได้
+            bool hasLegacySetActive = false;
+            int persistentCount = btn.onClick.GetPersistentEventCount();
+            for (int i = 0; i < persistentCount; i++)
+            {
+                if (btn.onClick.GetPersistentMethodName(i) == "SetActive")
+                {
+                    hasLegacySetActive = true;
+                    break;
+                }
+            }
+            if (hasLegacySetActive)
+            {
+                btn.onClick = new Button.ButtonClickedEvent();
+            }
+
+            btn.onClick.RemoveListener(action);
+            btn.onClick.AddListener(action);
+        }
+
         // =========================================================================
-        //  1. Building / Crafting Panel
+        //  1. Building / Crafting Panel [C]
         // =========================================================================
 
-        /// <summary>
-        /// เปิดหน้าต่างสร้าง / คราฟต์
-        /// </summary>
         public void OpenBuilding()
         {
+            CloseOtherMainPanels(keepBuilding: true);
             CraftController craft = GetCraftController();
             if (craft != null)
             {
@@ -100,9 +223,6 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// ปิดหน้าต่างสร้าง / คราฟต์ (สำหรับปุ่ม Back หรือ Close)
-        /// </summary>
         public void CloseBuilding()
         {
             CraftController craft = GetCraftController();
@@ -112,27 +232,28 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// สลับเปิด/ปิดหน้าต่างสร้าง
-        /// </summary>
         public void ToggleBuilding()
         {
             CraftController craft = GetCraftController();
-            if (craft != null)
+            if (craft == null) return;
+            if (craft.IsOpen)
             {
-                craft.ToggleCraftMenu();
+                craft.CloseCraftMenu();
+            }
+            else
+            {
+                CloseOtherMainPanels(keepBuilding: true);
+                craft.OpenCraftMenu();
             }
         }
 
         // =========================================================================
-        //  2. Inventory Panel
+        //  2. Inventory Panel [I]
         // =========================================================================
 
-        /// <summary>
-        /// เปิดหน้าต่างกระเป๋า Inventory
-        /// </summary>
         public void OpenInventory()
         {
+            CloseOtherMainPanels(keepInventory: true);
             InventoryUI inv = GetInventoryUI();
             if (inv != null)
             {
@@ -140,9 +261,6 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// ปิดหน้าต่างกระเป๋า Inventory (สำหรับปุ่ม Back หรือ Close)
-        /// </summary>
         public void CloseInventory()
         {
             InventoryUI inv = GetInventoryUI();
@@ -152,27 +270,28 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// สลับเปิด/ปิดหน้าต่างกระเป๋า Inventory
-        /// </summary>
         public void ToggleInventory()
         {
             InventoryUI inv = GetInventoryUI();
-            if (inv != null)
+            if (inv == null) return;
+            if (inv.IsOpen)
             {
-                inv.ToggleInventory();
+                inv.CloseInventory();
+            }
+            else
+            {
+                CloseOtherMainPanels(keepInventory: true);
+                inv.OpenInventory();
             }
         }
 
         // =========================================================================
-        //  3. Setting Panel
+        //  3. Setting Panel [ESC]
         // =========================================================================
 
-        /// <summary>
-        /// เปิดหน้าต่างตั้งค่า Setting
-        /// </summary>
         public void OpenSetting()
         {
+            CloseOtherMainPanels(keepSetting: true);
             SettingManager set = GetSettingManager();
             if (set != null)
             {
@@ -180,9 +299,6 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// ปิดหน้าต่างตั้งค่า Setting (สำหรับปุ่ม Back หรือ Close)
-        /// </summary>
         public void CloseSetting()
         {
             SettingManager set = GetSettingManager();
@@ -192,24 +308,28 @@ namespace TheLastEmpire
             }
         }
 
-        /// <summary>
-        /// สลับเปิด/ปิดหน้าต่างตั้งค่า Setting
-        /// </summary>
         public void ToggleSetting()
         {
             SettingManager set = GetSettingManager();
-            if (set != null)
+            if (set == null) return;
+            if (set.IsOpen)
             {
-                set.ToggleSettingsModal();
+                set.CloseSettingsModal();
+            }
+            else
+            {
+                CloseOtherMainPanels(keepSetting: true);
+                set.OpenSettingsModal();
             }
         }
 
         // =========================================================================
-        //  3.5 Weapon Upgrade / Artifact Panel
+        //  3.5 Weapon Upgrade / Artifact Panel [U]
         // =========================================================================
 
         public void OpenWeaponUpgrade()
         {
+            CloseOtherMainPanels(keepUpgrade: true);
             WeaponUpgradeUI.Instance?.Open();
         }
 
@@ -220,16 +340,46 @@ namespace TheLastEmpire
 
         public void ToggleWeaponUpgrade()
         {
-            WeaponUpgradeUI.Instance?.Toggle();
+            WeaponUpgradeUI ui = WeaponUpgradeUI.Instance;
+            if (ui == null) return;
+            if (ui.IsOpen)
+            {
+                ui.Close();
+            }
+            else
+            {
+                CloseOtherMainPanels(keepUpgrade: true);
+                ui.Open();
+            }
+        }
+
+        private void CloseOtherMainPanels(bool keepBuilding = false, bool keepInventory = false, bool keepSetting = false, bool keepUpgrade = false)
+        {
+            if (!keepBuilding)
+            {
+                CraftController craft = GetCraftController();
+                if (craft != null && craft.IsOpen) craft.CloseCraftMenu();
+            }
+            if (!keepInventory)
+            {
+                InventoryUI inv = GetInventoryUI();
+                if (inv != null && inv.IsOpen) inv.CloseInventory();
+            }
+            if (!keepSetting)
+            {
+                SettingManager set = GetSettingManager();
+                if (set != null && set.IsOpen) set.CloseSettingsModal();
+            }
+            if (!keepUpgrade && WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen)
+            {
+                WeaponUpgradeUI.Instance.Close();
+            }
         }
 
         // =========================================================================
         //  4. Back Button & Close All Helper
         // =========================================================================
 
-        /// <summary>
-        /// กดปุ่ม Back ทั่วไป: ปิด PopUp บนสุด หรือปิดหน้าต่างที่เปิดอยู่
-        /// </summary>
         public void OnBackButtonClicked()
         {
             if (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps)
@@ -238,19 +388,15 @@ namespace TheLastEmpire
                 return;
             }
 
-            CloseBuilding();
-            CloseInventory();
-            CloseSetting();
+            CloseAll();
         }
 
-        /// <summary>
-        /// ปิดหน้าต่างหลักทั้ง 3 หน้าต่างพร้อมกัน
-        /// </summary>
         public void CloseAll()
         {
             CloseBuilding();
             CloseInventory();
             CloseSetting();
+            CloseWeaponUpgrade();
         }
 
         // =========================================================================

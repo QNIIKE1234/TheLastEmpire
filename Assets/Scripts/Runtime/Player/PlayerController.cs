@@ -341,6 +341,21 @@ namespace TheLastEmpire
         [Header("Gunshot Noise Settings")]
         [SerializeField] private float gunshotAlertRange = 5f;
 
+        [Header("Flamethrower Cone VFX & Legendary Fireball Skill")]
+        [Tooltip("ลาก VFX_FlamethrowerConeFire ที่วางไว้ใน PlayerPrefabs มาใส่ หรือปล่อยว่างให้ค้นหาอัตโนมัติ")]
+        [SerializeField] private FlamethrowerConeVfx flamethrowerConeVfx;
+        [Tooltip("คีย์ใน ObjectPoolManager สำหรับลูกบอลเพลิงของสกิลคลิกขวา Legendary Flamethrower")]
+        [SerializeField] private string fireballPoolKey = "FlamethrowerFireball";
+        [SerializeField] private float fireballSpeed = 25f;
+
+        private float _flamethrowerVfxTimer = 0f;
+        private float _rmbSkillCooldownTimer = 0f;
+        private bool _isChargingRmbSkill = false;
+        private float _rmbChargeTimer = 0f;
+        private float _rmbChargeTargetDuration = 2.0f;
+        private bool _rmbSkillFiredThisHold = false;
+        private string _rmbChargeWeaponName = "";
+
         [Header("Grenade / AOE Indicators")]
         [Tooltip("Custom sprite for the Grenade AOE circle (optional). If unassigned, uses the red LineRenderer circle.")]
         [SerializeField] private Sprite aoeIndicatorSprite;
@@ -1825,7 +1840,12 @@ namespace TheLastEmpire
                         }
                     }
 
-                    // เอาคลิกขวาตีใกล้ออกตามที่ผู้เล่นต้องการ (อาวุธใช้งานได้แค่อย่างเดียวต่อครั้ง)
+                    // สกิลคลิกขวาของ Artifact ระดับ Legendary (เช่น Flamethrower: ชาร์จ 2 วิ ใช้แก๊ส 10 ยิงบอลเพลิงตรง 20 เมตร)
+                    UpdateLegendaryRightClickSkill();
+                }
+                else
+                {
+                    CancelLegendaryRmbCharge();
                 }
 
                 // Scroll wheel weapon cycling
@@ -1839,6 +1859,8 @@ namespace TheLastEmpire
                     CycleWeapon(1);
                 }
             }
+
+            UpdateFlamethrowerConeVfx();
 
             if (Keyboard.current != null)
             {
@@ -2197,6 +2219,19 @@ namespace TheLastEmpire
             Vector3 spawnPos = transform.position + _aimDirection * 0.95f;
             TriggerMuzzleFlashLight();
 
+            // เปิด Particle Effect เปลวไฟทรงกรวยอัตโนมัติเมื่อยิง Flamethrower
+            bool isFlamethrowerWeapon = activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.weaponName) &&
+                                        activeWeapon.weaponName.IndexOf("Flamethrower", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isFlamethrowerWeapon)
+            {
+                _flamethrowerVfxTimer = 0.22f;
+                FlamethrowerConeVfx coneVfx = ResolveFlamethrowerConeVfx();
+                if (coneVfx != null)
+                {
+                    coneVfx.SetFiring(true);
+                }
+            }
+
             // ─── Helper methods for Muzzle Flash Point Light ───
             
             // 💥 เล่นเอฟเฟกต์ Muzzle Flash ถ้าระบุไว้ในอาวุธ
@@ -2223,6 +2258,12 @@ namespace TheLastEmpire
 
             int pellets = ((activeWeapon != null && activeWeapon.pelletsPerShot > 0) ? activeWeapon.pelletsPerShot : 1) + Mathf.Max(0, artifactMods.bonusPellets);
             float spread = (activeWeapon != null) ? activeWeapon.spreadAngle : 0f;
+            if (isFlamethrowerWeapon)
+            {
+                // ยิงเป็นรูปกรวยกว้างเพื่อให้ระยะโจมตีตรงกับ Particle Effect เปลวไฟทรงกรวย
+                pellets = Mathf.Max(3, pellets);
+                spread = Mathf.Max(22f, spread);
+            }
             if (artifactMods.extraSpreadAngle > 0f)
             {
                 spread += artifactMods.extraSpreadAngle;
@@ -2423,6 +2464,880 @@ namespace TheLastEmpire
                 if (cur == null || !string.Equals(cur.weaponName, expectedWeaponName, System.StringComparison.OrdinalIgnoreCase)) yield break;
                 ShootWeapon(isEchoBurst: true);
             }
+        }
+
+        // =========================================================================
+        //  Flamethrower Cone Particle Effect & Legendary Right-Click Fireball Skill
+        // =========================================================================
+
+        private FlamethrowerConeVfx ResolveFlamethrowerConeVfx()
+        {
+            if (flamethrowerConeVfx != null) return flamethrowerConeVfx;
+
+            flamethrowerConeVfx = GetComponentInChildren<FlamethrowerConeVfx>(true);
+            if (flamethrowerConeVfx != null) return flamethrowerConeVfx;
+
+            // เผื่อผู้เล่นลาก ParticleSystem เปล่าชื่อ VFX_FlamethrowerConeFire เข้ามาใน PlayerPrefabs
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (children[i] == null) continue;
+                string n = children[i].name;
+                if (n.IndexOf("FlamethrowerConeFire", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    n.IndexOf("FlamethrowerFire", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    flamethrowerConeVfx = children[i].GetComponent<FlamethrowerConeVfx>()
+                                          ?? children[i].gameObject.AddComponent<FlamethrowerConeVfx>();
+                    return flamethrowerConeVfx;
+                }
+            }
+            return null;
+        }
+
+        public void TriggerRemoteFlamethrowerConeVfx()
+        {
+            _flamethrowerVfxTimer = 0.28f;
+            FlamethrowerConeVfx coneVfx = ResolveFlamethrowerConeVfx();
+            if (coneVfx != null)
+            {
+                coneVfx.SetFiring(true);
+            }
+        }
+
+        private void UpdateFlamethrowerConeVfx()
+        {
+            if (_rmbSkillCooldownTimer > 0f)
+            {
+                _rmbSkillCooldownTimer = Mathf.Max(0f, _rmbSkillCooldownTimer - Time.deltaTime);
+            }
+
+            bool holdingFlamethrower = IsRemotePlayer
+                ? true
+                : (IsHoldingRanged && CurrentWeapon != null &&
+                   !string.IsNullOrEmpty(CurrentWeapon.weaponName) &&
+                   CurrentWeapon.weaponName.IndexOf("Flamethrower", System.StringComparison.OrdinalIgnoreCase) >= 0);
+
+            bool canKeepFiring = holdingFlamethrower && !_isReloading && (_health == null || !_health.IsDead) && !IsDowned;
+
+            if (_flamethrowerVfxTimer > 0f)
+            {
+                _flamethrowerVfxTimer -= Time.deltaTime;
+            }
+
+            FlamethrowerConeVfx coneVfx = ResolveFlamethrowerConeVfx();
+            if (coneVfx != null)
+            {
+                bool shouldEmit = canKeepFiring && _flamethrowerVfxTimer > 0f;
+                coneVfx.SetFiring(shouldEmit);
+            }
+        }
+
+        private void CancelLegendaryRmbCharge()
+        {
+            _isChargingRmbSkill = false;
+            _rmbChargeTimer = 0f;
+            _rmbChargeWeaponName = string.Empty;
+        }
+
+        private void UpdateLegendaryRightClickSkill()
+        {
+            if (Mouse.current == null)
+            {
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            bool rmbHeld = Mouse.current.rightButton.isPressed;
+            bool rmbDown = Mouse.current.rightButton.wasPressedThisFrame;
+
+            if (!rmbHeld)
+            {
+                _rmbSkillFiredThisHold = false;
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            if (_rmbSkillFiredThisHold) return;
+
+            if (_isReloading || (_health != null && _health.IsDead) || IsDowned)
+            {
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            // 1. กรณีถืออาวุธประชิด (Melee) ที่มีสกิลคลิกขวา Legendary (Knife Hook / Bat Boomerang / Katana RipperCombo)
+            if (IsHoldingMelee)
+            {
+                string meleeName = CurrentMeleeWeaponName;
+                if (string.IsNullOrEmpty(meleeName)) return;
+
+                WeaponArtifactModifiers meleeMods = WeaponArtifactManager.GetAggregatedModifiers(meleeName);
+                if (!meleeMods.HasRightClickSkill) return;
+
+                if (!rmbDown) return;
+
+                if (_rmbSkillCooldownTimer > 0f)
+                {
+                    if (DamageNumberManager.Instance != null)
+                    {
+                        DamageNumberManager.Instance.SpawnDamageNumber(
+                            transform.position + Vector3.up * 2.1f,
+                            0f,
+                            false,
+                            $"SKILL CD {_rmbSkillCooldownTimer:F1}s"
+                        );
+                    }
+                    return;
+                }
+
+                float cd = meleeMods.rightClickCooldown > 0f ? meleeMods.rightClickCooldown : 5.0f;
+                _rmbSkillCooldownTimer = cd;
+                _rmbSkillFiredThisHold = true;
+                ExecuteLegendaryMeleeRightClickSkill(meleeName, meleeMods);
+                return;
+            }
+
+            // 2. กรณีถือปืน (Ranged) ที่มีสกิลคลิกขวา Legendary (เช่น Flamethrower Fireball)
+            if (!IsHoldingRanged || CurrentWeapon == null)
+            {
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            Weapon activeWeapon = CurrentWeapon;
+            WeaponArtifactModifiers mods = WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName);
+            if (!mods.HasRightClickSkill)
+            {
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            if (_rmbSkillCooldownTimer > 0f)
+            {
+                if (rmbDown && DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        transform.position + Vector3.up * 2.1f,
+                        0f,
+                        false,
+                        $"SKILL CD {_rmbSkillCooldownTimer:F1}s"
+                    );
+                }
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            int requiredAmmo = Mathf.Max(0, mods.rightClickAmmoCost);
+            string ammoType = !string.IsNullOrEmpty(activeWeapon.ammoType) ? activeWeapon.ammoType : "Gas Canister";
+            int totalAvailableAmmo = Mathf.Max(0, activeWeapon.currentMagazine) + GetAmmoReserveCount(ammoType);
+
+            if (requiredAmmo > 0 && totalAvailableAmmo < requiredAmmo)
+            {
+                if (rmbDown && DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        transform.position + Vector3.up * 2.1f,
+                        0f,
+                        false,
+                        $"NEED {requiredAmmo} {ammoType.ToUpperInvariant()}!"
+                    );
+                }
+                CancelLegendaryRmbCharge();
+                return;
+            }
+
+            float targetCharge = Mathf.Max(0f, mods.rightClickChargeDuration);
+            if (targetCharge <= 0.05f)
+            {
+                if (rmbDown)
+                {
+                    _rmbSkillCooldownTimer = mods.rightClickCooldown > 0f ? mods.rightClickCooldown : 5.0f;
+                    ExecuteLegendaryRightClickSkill(activeWeapon, mods, ammoType, requiredAmmo);
+                    _rmbSkillFiredThisHold = true;
+                }
+                return;
+            }
+
+            if (!_isChargingRmbSkill || !string.Equals(_rmbChargeWeaponName, activeWeapon.weaponName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                _isChargingRmbSkill = true;
+                _rmbChargeTimer = 0f;
+                _rmbChargeTargetDuration = targetCharge;
+                _rmbChargeWeaponName = activeWeapon.weaponName;
+            }
+
+            _rmbChargeTimer += Time.deltaTime;
+            if (_rmbChargeTimer >= _rmbChargeTargetDuration)
+            {
+                _rmbSkillCooldownTimer = mods.rightClickCooldown > 0f ? mods.rightClickCooldown : 5.0f;
+                ExecuteLegendaryRightClickSkill(activeWeapon, mods, ammoType, requiredAmmo);
+                _rmbSkillFiredThisHold = true;
+                CancelLegendaryRmbCharge();
+            }
+        }
+
+        private float ComputeCurrentMeleeSkillBaseDamage(string wName, WeaponArtifactModifiers meleeMods, out float activeRadius, out float activeKnockback, out float activeStagger)
+        {
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseMeleeDamage > 0) ? activeCharacterData.baseMeleeDamage : 10f;
+            float itemDamage = 0f;
+            MeleeWeapon curMelee = CurrentMeleeWeapon;
+            activeRadius = curMelee != null ? curMelee.attackRadius : meleeRadius;
+            activeKnockback = curMelee != null ? curMelee.knockbackForce : 10f;
+            activeStagger = curMelee != null ? curMelee.staggerDuration : 0.4f;
+
+            ItemData activeMelee = (ItemDatabase.Instance != null && !string.IsNullOrEmpty(wName))
+                ? ItemDatabase.Instance.GetItemByName(wName)
+                : null;
+            if (activeMelee != null)
+            {
+                itemDamage = activeMelee.damage;
+                if (activeMelee.attackRadius > 0f) activeRadius = activeMelee.attackRadius;
+                if (activeMelee.knockbackForce > 0f) activeKnockback = activeMelee.knockbackForce;
+                if (activeMelee.staggerDuration > 0f) activeStagger = activeMelee.staggerDuration;
+            }
+
+            activeRadius += meleeMods.bonusRange;
+            activeKnockback += meleeMods.bonusKnockback;
+            activeStagger += meleeMods.bonusStagger;
+            return (basePlayerDamage + itemDamage + meleeMods.bonusDamage) * (1f + meleeMods.damageMultiplier);
+        }
+
+        private static bool IsBossEnemyTarget(Component target)
+        {
+            if (target == null) return false;
+            LootDropper ld = target.GetComponentInParent<LootDropper>();
+            if (ld != null && ld.IsBoss) return true;
+            ZombieAI zai = target.GetComponentInParent<ZombieAI>();
+            if (zai != null && zai.IsBossUnit) return true;
+            string n = target.transform.root != null ? target.transform.root.name : target.name;
+            return n.IndexOf("Leader", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   n.IndexOf("Boss", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void ExecuteLegendaryMeleeRightClickSkill(string weaponName, WeaponArtifactModifiers mods)
+        {
+            if (_isSitting) SetSitting(false);
+            ShowMeleeWeaponVisual();
+            TriggerCombatState();
+
+            Vector3 dir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection.normalized : transform.forward;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+            dir.Normalize();
+
+            string skillId = mods.rightClickSkillId ?? string.Empty;
+            if (skillId.Equals("Knife_Hook", System.StringComparison.OrdinalIgnoreCase))
+            {
+                StartCoroutine(ExecuteKnifeHookRoutine(weaponName, mods, dir));
+            }
+            else if (skillId.Equals("Bat_Boomerang", System.StringComparison.OrdinalIgnoreCase))
+            {
+                StartCoroutine(ExecuteBatBoomerangRoutine(weaponName, mods, dir));
+            }
+            else if (skillId.Equals("Katana_RipperCombo", System.StringComparison.OrdinalIgnoreCase))
+            {
+                StartCoroutine(ExecuteKatanaRipperComboRoutine(weaponName, mods, dir));
+            }
+        }
+
+        /// <summary>
+        /// Legend Knife — Knife Hook (CD 5 วิ): ขว้างมีดติดเชือกใส่ศัตรูข้างหน้าแล้วดึงพุ่งกลับมาหาเรา (ยกเว้นบอส)
+        /// </summary>
+        private System.Collections.IEnumerator ExecuteKnifeHookRoutine(string weaponName, WeaponArtifactModifiers mods, Vector3 dir)
+        {
+            float baseDmg = ComputeCurrentMeleeSkillBaseDamage(weaponName, mods, out _, out _, out float activeStagger);
+            float skillDmg = mods.rightClickUseFlatDamage ? Mathf.Max(1f, mods.rightClickDamage) : baseDmg * Mathf.Max(0.5f, mods.rightClickDamage);
+            float maxRange = mods.rightClickRange > 1f ? mods.rightClickRange : 10f;
+
+            PlayMeleeSlashAnim("Slash3", 0.32f);
+
+            Vector3 startPos = transform.position + Vector3.up * 0.65f + dir * 0.6f;
+            NotifyNetworkMelee(startPos, dir, weaponName, 101, skillDmg, maxRange);
+
+            GameObject knifeVis = CreateHookKnifeVisual(startPos, dir);
+            LineRenderer rope = CreateHookRopeVisual(startPos);
+
+            Transform hookedEnemy = null;
+            BaseEnemyAI hookedAi = null;
+            bool hitBossImmune = false;
+
+            float speed = 28f;
+            float traveled = 0f;
+            Vector3 currentPos = startPos;
+
+            // 1. ขาพุ่งออกไปข้างหน้า
+            while (traveled < maxRange && hookedEnemy == null && !hitBossImmune)
+            {
+                float step = speed * Time.deltaTime;
+                traveled += step;
+                currentPos += dir * step;
+
+                if (knifeVis != null)
+                {
+                    knifeVis.transform.position = currentPos;
+                    knifeVis.transform.Rotate(Vector3.forward * 1080f * Time.deltaTime, Space.Self);
+                }
+                UpdateHookRope(rope, transform.position + Vector3.up * 0.65f, currentPos);
+
+                Collider[] hits = Physics.OverlapSphere(currentPos, 0.85f);
+                for (int i = 0; i < hits.Length; i++)
+                {
+                    Collider col = hits[i];
+                    if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
+                    if (col.CompareTag("Player")) continue;
+
+                    IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
+                    if (dmgTarget == null || dmgTarget.IsDead) continue;
+
+                    BuildingObject building = col.GetComponentInParent<BuildingObject>();
+                    if (building != null && !building.CanBeDamagedByPlayer) continue;
+
+                    DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
+                    dmgTarget.TakeDamage(res.FinalDamage, currentPos, res.IsCritical);
+                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(mods.lifestealOnHit);
+                    }
+
+                    if (IsBossEnemyTarget(col))
+                    {
+                        hitBossImmune = true;
+                        if (DamageNumberManager.Instance != null)
+                        {
+                            DamageNumberManager.Instance.SpawnDamageNumber(col.transform.position + Vector3.up * 2.0f, 0f, false, "BOSS IMMUNE");
+                        }
+                    }
+                    else
+                    {
+                        hookedAi = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                        hookedEnemy = hookedAi != null ? hookedAi.transform : col.transform;
+                        if (hookedAi != null)
+                        {
+                            hookedAi.ApplyMeleeKnockback(-dir, 2f, Mathf.Max(0.65f, activeStagger));
+                        }
+                    }
+                    break;
+                }
+
+                yield return null;
+            }
+
+            // 2. ขาดึงกลับเข้าหาผู้เล่น (ดึงศัตรูธรรมดาพุ่งกลับมาหาเราด้วย!)
+            float pullDuration = 0.26f;
+            float elapsed = 0f;
+            Vector3 returnStart = currentPos;
+            Vector3 enemyStart = hookedEnemy != null ? hookedEnemy.position : currentPos;
+
+            while (elapsed < pullDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / pullDuration);
+                Vector3 handPos = transform.position + Vector3.up * 0.65f;
+                Vector3 pullDest = transform.position + dir * 1.35f;
+
+                Vector3 knifePos = Vector3.Lerp(returnStart, handPos, t);
+                if (knifeVis != null) knifeVis.transform.position = knifePos;
+                UpdateHookRope(rope, handPos, knifePos);
+
+                if (hookedEnemy != null && (hookedAi == null || (hookedAi.GetComponent<Health>() == null || !hookedAi.GetComponent<Health>().IsDead)))
+                {
+                    Vector3 targetPos = new Vector3(
+                        Mathf.Lerp(enemyStart.x, pullDest.x, t),
+                        enemyStart.y,
+                        Mathf.Lerp(enemyStart.z, pullDest.z, t)
+                    );
+                    Rigidbody enemyRb = hookedEnemy.GetComponent<Rigidbody>();
+                    if (enemyRb != null && !enemyRb.isKinematic)
+                    {
+                        enemyRb.MovePosition(targetPos);
+                    }
+                    else
+                    {
+                        hookedEnemy.position = targetPos;
+                    }
+                }
+                yield return null;
+            }
+
+            if (knifeVis != null) Destroy(knifeVis);
+            if (rope != null) Destroy(rope.gameObject);
+        }
+
+        /// <summary>
+        /// Legend Baseball Bat — Bat Boomerang (CD 5 วิ): ขว้างไม้เบสบอลหมุนวนเป็นวงกลมข้างหน้า (ระยะตี x 2.5)
+        /// </summary>
+        private System.Collections.IEnumerator ExecuteBatBoomerangRoutine(string weaponName, WeaponArtifactModifiers mods, Vector3 dir)
+        {
+            float baseDmg = ComputeCurrentMeleeSkillBaseDamage(weaponName, mods, out float activeRadius, out float activeKnockback, out float activeStagger);
+            float skillDmg = mods.rightClickUseFlatDamage ? Mathf.Max(1f, mods.rightClickDamage) : baseDmg * Mathf.Max(0.5f, mods.rightClickDamage);
+            float rangeMult = mods.rightClickRange > 0.5f ? mods.rightClickRange : 2.5f;
+            float circleDiameter = Mathf.Max(2.5f, activeRadius * rangeMult);
+            float orbitRadius = circleDiameter * 0.5f;
+
+            PlayMeleeSlashAnim("Slash2", 0.35f);
+
+            Vector3 origin = transform.position + Vector3.up * 0.65f;
+            NotifyNetworkMelee(origin, dir, weaponName, 102, skillDmg, circleDiameter);
+
+            Vector3 rightDir = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 circleCenter = origin + dir * orbitRadius;
+
+            GameObject batVis = CreateBoomerangBatVisual(origin, dir);
+            var hitSet = new System.Collections.Generic.HashSet<IDamageable>();
+
+            float duration = 0.72f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                // มุมเริ่มจากฝั่งผู้เล่น (PI) หมุนกวาดเต็มวงกลม 360° ด้านหน้าผู้เล่นแล้ววนกลับเข้ามือ
+                float angle = Mathf.PI + (t * Mathf.PI * 2f);
+                Vector3 curOrigin = transform.position + Vector3.up * 0.65f;
+                Vector3 dynamicCenter = Vector3.Lerp(circleCenter, curOrigin + dir * orbitRadius, 0.35f);
+                Vector3 pos = dynamicCenter + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
+                pos.y = origin.y;
+
+                if (batVis != null)
+                {
+                    batVis.transform.position = pos;
+                    batVis.transform.Rotate(Vector3.up * 1600f * Time.deltaTime, Space.World);
+                }
+
+                Collider[] cols = Physics.OverlapSphere(pos, 1.15f);
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    Collider col = cols[i];
+                    if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
+                    if (col.CompareTag("Player")) continue;
+
+                    IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
+                    if (dmgTarget == null || dmgTarget.IsDead || hitSet.Contains(dmgTarget)) continue;
+
+                    BuildingObject building = col.GetComponentInParent<BuildingObject>();
+                    if (building != null && !building.CanBeDamagedByPlayer) continue;
+
+                    hitSet.Add(dmgTarget);
+                    DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
+                    dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
+                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(mods.lifestealOnHit);
+                    }
+
+                    BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                    if (enemy != null)
+                    {
+                        Vector3 pushDir = (enemy.transform.position - pos);
+                        pushDir.y = 0f;
+                        if (pushDir.sqrMagnitude < 0.01f) pushDir = dir;
+                        enemy.ApplyMeleeKnockback(pushDir.normalized, Mathf.Max(10f, activeKnockback * 0.6f), Mathf.Max(0.55f, activeStagger));
+                    }
+                }
+
+                yield return null;
+            }
+
+            if (batVis != null) Destroy(batVis);
+        }
+
+        /// <summary>
+        /// Legend Katana — RipperCombo (CD 5 วิ): ฟันคาตานะต่อเนื่องเป็นชุด 3 Hit สุดรุนแรง
+        /// </summary>
+        private System.Collections.IEnumerator ExecuteKatanaRipperComboRoutine(string weaponName, WeaponArtifactModifiers mods, Vector3 dir)
+        {
+            float baseDmg = ComputeCurrentMeleeSkillBaseDamage(weaponName, mods, out float activeRadius, out float activeKnockback, out float activeStagger);
+            float perHitMult = mods.rightClickDamage > 0.1f ? mods.rightClickDamage : 1.25f;
+
+            for (int step = 1; step <= 3; step++)
+            {
+                if (_health != null && _health.IsDead) yield break;
+
+                Vector3 curDir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection.normalized : dir;
+                curDir.y = 0f;
+                if (curDir.sqrMagnitude < 0.001f) curDir = dir;
+                curDir.Normalize();
+
+                bool isFinisher = (step == 3);
+                float hitRadius = activeRadius * (isFinisher ? 1.35f : 1.05f);
+                float hitDmgBase = baseDmg * perHitMult * (isFinisher ? 1.45f : 1.0f);
+                Vector3 attackPoint = transform.position + curDir * (isFinisher ? 1.05f : 0.85f);
+
+                PlayMeleeSlashAnim("Slash" + step, 0.20f);
+                NotifyNetworkMelee(attackPoint, curDir, weaponName, step, hitDmgBase, hitRadius);
+
+                if (ObjectPoolManager.Instance != null)
+                {
+                    GameObject slashVfx = ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", attackPoint, Quaternion.LookRotation(curDir));
+                    if (slashVfx != null)
+                    {
+                        PooledParticle pp = slashVfx.GetComponent<PooledParticle>();
+                        if (pp != null)
+                        {
+                            pp.SetPoolKey("SwordSlash");
+                            pp.ApplyScaleMultiplier(hitRadius * (isFinisher ? 1.25f : 0.95f));
+                        }
+                        else
+                        {
+                            slashVfx.transform.localScale = Vector3.one * (hitRadius * (isFinisher ? 1.25f : 0.95f));
+                        }
+                    }
+                }
+
+                Collider[] hitCols = Physics.OverlapSphere(attackPoint, hitRadius);
+                for (int i = 0; i < hitCols.Length; i++)
+                {
+                    Collider col = hitCols[i];
+                    if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
+                    if (col.CompareTag("Player")) continue;
+
+                    IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
+                    if (dmgTarget == null || dmgTarget.IsDead) continue;
+
+                    BuildingObject building = col.GetComponentInParent<BuildingObject>();
+                    if (building != null && !building.CanBeDamagedByPlayer) continue;
+
+                    DamageResult res = DamageCalculator.CalculateMeleeDamage(hitDmgBase, gameObject, weaponName);
+                    dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
+                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(mods.lifestealOnHit);
+                    }
+
+                    BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                    if (enemy != null)
+                    {
+                        Vector3 push = (enemy.transform.position - transform.position);
+                        push.y = 0f;
+                        if (push.sqrMagnitude < 0.01f) push = curDir;
+                        enemy.ApplyMeleeKnockback(push.normalized, isFinisher ? activeKnockback * 1.4f : activeKnockback * 0.6f, activeStagger);
+                    }
+                }
+
+                CameraFollow.TriggerShake(isFinisher ? 0.11f : 0.05f, isFinisher ? 0.22f : 0.09f);
+
+                if (step < 3)
+                {
+                    yield return new WaitForSeconds(0.14f);
+                }
+            }
+        }
+
+        private void PlayMeleeSlashAnim(string slashState, float lockDuration)
+        {
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator == null) return;
+
+            int stateHash = Animator.StringToHash(slashState);
+            if (!_animator.HasState(0, stateHash)) slashState = "Slash1";
+
+            if (_animator.layerCount > 1)
+            {
+                _animator.SetLayerWeight(1, 0f);
+                _animator.Play("UpperBody_Empty", 1, 0f);
+            }
+            _meleeAnimTimer = lockDuration;
+            _animator.Play(slashState, 0, 0f);
+        }
+
+        private static GameObject CreateHookKnifeVisual(Vector3 pos, Vector3 dir)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "KnifeHook_Visual";
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(dir);
+            go.transform.localScale = new Vector3(0.14f, 0.08f, 0.72f);
+            Collider c = go.GetComponent<Collider>();
+            if (c != null) Destroy(c);
+            Renderer r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                if (s != null)
+                {
+                    Material m = new Material(s);
+                    m.color = new Color(0.88f, 0.94f, 1f, 1f);
+                    if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", new Color(0.88f, 0.94f, 1f, 1f));
+                    r.sharedMaterial = m;
+                }
+            }
+            return go;
+        }
+
+        private static LineRenderer CreateHookRopeVisual(Vector3 startPos)
+        {
+            GameObject ropeGo = new GameObject("KnifeHook_Rope");
+            LineRenderer lr = ropeGo.AddComponent<LineRenderer>();
+            lr.positionCount = 2;
+            lr.startWidth = 0.06f;
+            lr.endWidth = 0.04f;
+            Shader s = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
+            if (s != null) lr.material = new Material(s);
+            lr.startColor = new Color(0.95f, 0.85f, 0.35f, 1f);
+            lr.endColor = new Color(1f, 1f, 1f, 0.9f);
+            lr.SetPosition(0, startPos);
+            lr.SetPosition(1, startPos);
+            return lr;
+        }
+
+        private static void UpdateHookRope(LineRenderer lr, Vector3 p0, Vector3 p1)
+        {
+            if (lr == null) return;
+            lr.SetPosition(0, p0);
+            lr.SetPosition(1, p1);
+        }
+
+        private static GameObject CreateBoomerangBatVisual(Vector3 pos, Vector3 dir)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.name = "BatBoomerang_Visual";
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
+            go.transform.localScale = new Vector3(0.22f, 0.65f, 0.22f);
+            Collider c = go.GetComponent<Collider>();
+            if (c != null) Destroy(c);
+            Renderer r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                if (s != null)
+                {
+                    Material m = new Material(s);
+                    m.color = new Color(0.92f, 0.68f, 0.25f, 1f);
+                    if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", new Color(0.92f, 0.68f, 0.25f, 1f));
+                    r.sharedMaterial = m;
+                }
+            }
+            TrailRenderer tr = go.AddComponent<TrailRenderer>();
+            tr.time = 0.22f;
+            tr.startWidth = 0.32f;
+            tr.endWidth = 0f;
+            Shader ts = Shader.Find("Sprites/Default");
+            if (ts != null) tr.material = new Material(ts);
+            tr.startColor = new Color(1f, 0.85f, 0.3f, 0.85f);
+            tr.endColor = new Color(1f, 0.5f, 0.1f, 0f);
+            return go;
+        }
+
+        // --- Network Visual Replay & Host Authoritative Pull Helpers ---
+
+        public void SpawnRemoteVisualKnifeHook(Vector3 origin, Vector3 dir, float maxRange)
+        {
+            StartCoroutine(RemoteVisualKnifeHookRoutine(origin, dir, maxRange > 1f ? maxRange : 10f));
+        }
+
+        private System.Collections.IEnumerator RemoteVisualKnifeHookRoutine(Vector3 origin, Vector3 dir, float maxRange)
+        {
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+            dir.Normalize();
+
+            GameObject knifeVis = CreateHookKnifeVisual(origin, dir);
+            LineRenderer rope = CreateHookRopeVisual(origin);
+
+            float elapsed = 0f;
+            float halfDur = Mathf.Clamp(maxRange / 28f, 0.15f, 0.35f);
+            Vector3 farPos = origin + dir * Mathf.Min(maxRange, 7.5f);
+
+            while (elapsed < halfDur * 2f)
+            {
+                elapsed += Time.deltaTime;
+                Vector3 handPos = transform.position + Vector3.up * 0.65f;
+                Vector3 pos = elapsed < halfDur
+                    ? Vector3.Lerp(handPos, farPos, elapsed / halfDur)
+                    : Vector3.Lerp(farPos, handPos, (elapsed - halfDur) / halfDur);
+
+                if (knifeVis != null)
+                {
+                    knifeVis.transform.position = pos;
+                    knifeVis.transform.Rotate(Vector3.forward * 1080f * Time.deltaTime, Space.Self);
+                }
+                UpdateHookRope(rope, handPos, pos);
+                yield return null;
+            }
+
+            if (knifeVis != null) Destroy(knifeVis);
+            if (rope != null) Destroy(rope.gameObject);
+        }
+
+        public void SpawnRemoteVisualBatBoomerang(Vector3 origin, Vector3 dir, float circleDiameter)
+        {
+            StartCoroutine(RemoteVisualBatBoomerangRoutine(origin, dir, circleDiameter > 1f ? circleDiameter : 5f));
+        }
+
+        private System.Collections.IEnumerator RemoteVisualBatBoomerangRoutine(Vector3 origin, Vector3 dir, float circleDiameter)
+        {
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+            dir.Normalize();
+
+            float orbitRadius = circleDiameter * 0.5f;
+            Vector3 rightDir = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 center = origin + dir * orbitRadius;
+            GameObject batVis = CreateBoomerangBatVisual(origin, dir);
+
+            float duration = 0.72f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float angle = Mathf.PI + (t * Mathf.PI * 2f);
+                Vector3 pos = center + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
+                pos.y = origin.y;
+                if (batVis != null)
+                {
+                    batVis.transform.position = pos;
+                    batVis.transform.Rotate(Vector3.up * 1600f * Time.deltaTime, Space.World);
+                }
+                yield return null;
+            }
+
+            if (batVis != null) Destroy(batVis);
+        }
+
+        public static void ExecuteHostAuthoritativeKnifeHookPull(Vector3 attackerOrigin, Vector3 dir, float maxRange)
+        {
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) return;
+            dir.Normalize();
+            float range = maxRange > 1f ? maxRange : 10f;
+
+            RaycastHit[] hits = Physics.SphereCastAll(attackerOrigin, 0.9f, dir, range);
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider col = hits[i].collider;
+                if (col == null || col.CompareTag("Player")) continue;
+                BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                if (enemy == null) continue;
+                Health h = enemy.GetComponent<Health>();
+                if (h != null && h.IsDead) continue;
+                if (IsBossEnemyTarget(enemy)) return; // ยกเว้นบอส!
+
+                Vector3 pullDest = attackerOrigin + dir * 1.35f;
+                pullDest.y = enemy.transform.position.y;
+                enemy.ApplyMeleeKnockback(-dir, 2f, 0.65f);
+                Rigidbody rb = enemy.GetComponent<Rigidbody>();
+                if (rb != null && !rb.isKinematic) rb.MovePosition(pullDest);
+                else enemy.transform.position = pullDest;
+                return;
+            }
+        }
+
+        private void ExecuteLegendaryRightClickSkill(Weapon activeWeapon, WeaponArtifactModifiers mods, string ammoType, int ammoCost)
+        {
+            if (activeWeapon == null) return;
+
+            // หักกระสุน 10 นัด (หักจากแม็กก่อน ถ้าไม่พอค่อยดึงจากกระสุนสำรองในกระเป๋า)
+            int fromMag = Mathf.Min(Mathf.Max(0, activeWeapon.currentMagazine), ammoCost);
+            activeWeapon.currentMagazine -= fromMag;
+            int remCost = ammoCost - fromMag;
+            if (remCost > 0)
+            {
+                ConsumeAmmo(ammoType, remCost);
+            }
+            OnAmmoChanged?.Invoke();
+
+            // คำนวณดาเมจลูกบอลเพลิง (ค่าเริ่มต้น 8.5x ดาเมจปืน หรือค่าตรง 8.5 หากตั้ง rightClickUseFlatDamage = true)
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0) ? activeCharacterData.baseRangedDamage : 10f;
+            float itemDamage = 0f;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData wItem = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                if (wItem != null) itemDamage = wItem.damage;
+            }
+            float normalWeaponDmg = (basePlayerDamage + itemDamage + mods.bonusDamage) * (1f + mods.damageMultiplier);
+            float fireballDamage = mods.rightClickUseFlatDamage
+                ? Mathf.Max(1f, mods.rightClickDamage)
+                : Mathf.Max(1f, normalWeaponDmg * Mathf.Max(0.1f, mods.rightClickDamage));
+
+            float skillRange = mods.rightClickRange > 0.1f ? mods.rightClickRange : 20f;
+            float speed = fireballSpeed > 1f ? fireballSpeed : 25f;
+            float lifetime = skillRange / speed; // เส้นตรงยาว 20 เมตร!
+
+            Vector3 dir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection.normalized : transform.forward;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+            dir.Normalize();
+
+            Vector3 spawnPos = transform.position + dir * 1.05f + Vector3.up * 0.55f;
+            GameObject fireballObj = null;
+
+            if (ObjectPoolManager.Instance != null)
+            {
+                fireballObj = ObjectPoolManager.Instance.SpawnFromPool(fireballPoolKey, spawnPos, Quaternion.LookRotation(dir));
+            }
+            if (fireballObj == null)
+            {
+                GameObject fallbackPrefab = AddressableManager.LoadAsset<GameObject>("Prefabs/Item/FlamethrowerFireballPrefabs");
+                if (fallbackPrefab != null)
+                {
+                    fireballObj = Instantiate(fallbackPrefab, spawnPos, Quaternion.LookRotation(dir));
+                }
+            }
+
+            if (fireballObj != null)
+            {
+                if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
+                Collider fbCol = fireballObj.GetComponent<Collider>();
+                if (fbCol != null && _playerCollider != null)
+                {
+                    Physics.IgnoreCollision(fbCol, _playerCollider, true);
+                }
+
+                Projectile proj = fireballObj.GetComponent<Projectile>();
+                if (proj != null)
+                {
+                    proj.PoolKey = fireballPoolKey;
+                    proj.SetStats(fireballDamage, lifetime, true, activeWeapon.weaponName, skillRange, "");
+                    proj.SetSpeed(speed);
+                    proj.SetArtifactImpactModifiers(mods.bonusKnockback + 4f, mods.bonusStagger + 0.35f, mods.lifestealOnHit, mods.projectileScaleBonus);
+                    proj.Setup(dir, spawnPos + dir * skillRange, gameObject, "");
+                }
+            }
+
+            CameraFollow.TriggerShake(0.16f, 0.32f);
+            TriggerMuzzleFlashLight();
+            AlertEnemiesToGunshot();
+            NotifyNetworkShoot(spawnPos, dir, spawnPos + dir * skillRange, activeWeapon.weaponName, fireballDamage, lifetime, false, 1, 0f, true, "FlamethrowerFireball");
+            Debug.Log($"[LegendarySkill] Fired {mods.rightClickSkillId}! Damage={fireballDamage:F1}, Range={skillRange:F0}m, Cost={ammoCost} {ammoType}");
+        }
+
+        private void OnGUI()
+        {
+            if (IsRemotePlayer || !_isChargingRmbSkill || _rmbChargeTargetDuration <= 0.01f) return;
+
+            Camera cam = Camera.main;
+            if (cam == null) return;
+
+            Vector3 screenPos = cam.WorldToScreenPoint(transform.position + Vector3.up * 2.25f);
+            if (screenPos.z <= 0f) return;
+
+            float progress = Mathf.Clamp01(_rmbChargeTimer / _rmbChargeTargetDuration);
+            float barW = 110f;
+            float barH = 12f;
+            float x = screenPos.x - barW * 0.5f;
+            float y = Screen.height - screenPos.y - barH * 0.5f;
+
+            Color prevColor = GUI.color;
+            GUI.color = new Color(0.08f, 0.05f, 0.05f, 0.85f);
+            GUI.DrawTexture(new Rect(x - 2f, y - 2f, barW + 4f, barH + 4f), Texture2D.whiteTexture);
+
+            GUI.color = Color.Lerp(new Color(1f, 0.55f, 0.1f, 1f), new Color(1f, 0.2f, 0.05f, 1f), progress);
+            GUI.DrawTexture(new Rect(x, y, barW * progress, barH), Texture2D.whiteTexture);
+
+            GUI.color = Color.white;
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
+            GUI.Label(new Rect(x - 25f, y - 18f, barW + 50f, 16f), $"FIREBALL {_rmbChargeTimer:F1}/{_rmbChargeTargetDuration:F1}s", labelStyle);
+            GUI.color = prevColor;
         }
 
         /// <summary>
@@ -3346,7 +4261,7 @@ namespace TheLastEmpire
             if (clean == "rifle ammo") return "Medium Ammo";
             if (clean.Contains("sniper")) return "Medium Ammo";
             if (clean == "heavy ammo") return "Fuel Ammo";
-            if (clean == "fuel ammo") return "Heavy Ammo";
+            if (clean == "gas canister" || clean == "gas" || clean == "fuel ammo") return "Gas Canister";
             if (clean == "shotgun ammo") return "Ammo";
             if (clean == "ammo") return "Shotgun Ammo";
             if (clean == "bolts" || clean == "bolt") return "Bolts";
@@ -3957,10 +4872,10 @@ namespace TheLastEmpire
                     damage = 10f,
                     range = 1.8f,
                     canPierce = true,
-                    spreadAngle = 20f,
-                    pelletsPerShot = 2,
+                    spreadAngle = 22f,
+                    pelletsPerShot = 3,
                     isAutomatic = true,
-                    ammoType = "Heavy Ammo",
+                    ammoType = "Gas Canister",
                     vfxPoolKey = "PistolFlash"
                 };
                 flamethrower.Initialize(100);

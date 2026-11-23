@@ -35,7 +35,7 @@ namespace TheLastEmpire
         [UnityEngine.Serialization.FormerlySerializedAs("closeButton")]
         [SerializeField] private Button backButton;
 
-        [Header("Category Buttons (แถบหมวดหมู่ฝั่งซ้าย 7 หมวด)")]
+        [Header("Category Buttons (แถบหมวดหมู่ฝั่งซ้าย 8 หมวด)")]
         [SerializeField] private Button buildingTabButton;
         [SerializeField] private Button utilityTabButton;
         [SerializeField] private Button defenseTabButton;
@@ -43,6 +43,7 @@ namespace TheLastEmpire
         [SerializeField] private Button consumablesTabButton;
         [SerializeField] private Button toolsTabButton;
         [SerializeField] private Button specialTabButton;
+        [SerializeField] private Button artifactTabButton;
 
         [Header("Category Tab Sprites & Colors (สลับรูปและสีข้อความตอนเลือกหมวดหมู่)")]
         [Tooltip("Sprite ตอนที่ปุ่มหมวดหมู่ถูกเลือก (เช่น กรอบสีเหลืองตามรูป)")]
@@ -260,6 +261,24 @@ namespace TheLastEmpire
             if (specialTabButton != null)
                 specialTabButton.onClick.AddListener(() => SelectCategory(CraftingCategory.Special));
 
+            if (artifactTabButton == null)
+            {
+                Transform catRoot = craftPanel != null ? craftPanel.transform : transform;
+                Button[] catBtns = catRoot.GetComponentsInChildren<Button>(true);
+                for (int i = 0; i < catBtns.Length; i++)
+                {
+                    if (catBtns[i] == null) continue;
+                    TMP_Text t = catBtns[i].GetComponentInChildren<TMP_Text>(true);
+                    if (t != null && t.text != null && t.text.Trim().Equals("Artifact", StringComparison.OrdinalIgnoreCase))
+                    {
+                        artifactTabButton = catBtns[i];
+                        break;
+                    }
+                }
+            }
+            if (artifactTabButton != null)
+                artifactTabButton.onClick.AddListener(() => SelectCategory(CraftingCategory.Artifact));
+
             if (prevPageButton != null)
                 prevPageButton.onClick.AddListener(PrevPage);
             if (nextPageButton != null)
@@ -277,7 +296,8 @@ namespace TheLastEmpire
             {
                 if (btn == prevPageButton || btn == nextPageButton || btn == buildingTabButton ||
                     btn == utilityTabButton || btn == defenseTabButton || btn == weaponsTabButton ||
-                    btn == consumablesTabButton || btn == toolsTabButton || btn == specialTabButton) continue;
+                    btn == consumablesTabButton || btn == toolsTabButton || btn == specialTabButton ||
+                    btn == artifactTabButton) continue;
 
                 string btnName = btn.gameObject.name.ToLowerInvariant();
                 TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>(true);
@@ -377,7 +397,15 @@ namespace TheLastEmpire
         {
             if (_isOpen)
             {
-                RefreshActiveThumbnailsState();
+                if (_currentCategory == CraftingCategory.Artifact)
+                {
+                    RebuildFilteredList();
+                    RefreshUI();
+                }
+                else
+                {
+                    RefreshActiveThumbnailsState();
+                }
             }
         }
 
@@ -528,6 +556,22 @@ namespace TheLastEmpire
         public void SelectConsumablesTab() => SelectCategory(CraftingCategory.Consumables);
         public void SelectToolsTab() => SelectCategory(CraftingCategory.Tools);
         public void SelectSpecialTab() => SelectCategory(CraftingCategory.Special);
+        public void SelectArtifactTab() => SelectCategory(CraftingCategory.Artifact);
+
+        /// <summary>
+        /// รีเฟรชรายการสูตรคราฟต์จาก CraftingDatabase ทันที (เช่น เมื่อเปิด/ปิด Cheat Unlock Legendary Artifact Craft)
+        /// </summary>
+        public void RefreshRecipesFromDatabase()
+        {
+            _currentPage = 0;
+            _selectedRecipe = null;
+            _selectedThumbnail = null;
+            RebuildFilteredList();
+            if (_isOpen)
+            {
+                RefreshUI();
+            }
+        }
 
         public void OnSearchValueChanged(string searchText)
         {
@@ -602,6 +646,7 @@ namespace TheLastEmpire
             UpdateTabVisual(consumablesTabButton, _currentCategory == CraftingCategory.Consumables);
             UpdateTabVisual(toolsTabButton, _currentCategory == CraftingCategory.Tools);
             UpdateTabVisual(specialTabButton, _currentCategory == CraftingCategory.Special);
+            UpdateTabVisual(artifactTabButton, _currentCategory == CraftingCategory.Artifact);
         }
 
         private void UpdateTabVisual(Button tabButton, bool isSelected)
@@ -642,6 +687,24 @@ namespace TheLastEmpire
             }
         }
 
+        private HashSet<string> CollectOwnedWeaponNames()
+        {
+            var owned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            FindPlayerInventory();
+            if (_playerInventory == null || _playerInventory.Slots == null) return owned;
+
+            for (int i = 0; i < _playerInventory.Slots.Count; i++)
+            {
+                InventorySlot slot = _playerInventory.Slots[i];
+                if (slot == null || slot.quantity <= 0 || string.IsNullOrWhiteSpace(slot.itemName)) continue;
+                if (WeaponArtifactManager.IsWeaponItem(slot.itemName))
+                {
+                    owned.Add(slot.itemName.Trim());
+                }
+            }
+            return owned;
+        }
+
         private void RebuildFilteredList()
         {
             _filteredRecipes.Clear();
@@ -652,7 +715,37 @@ namespace TheLastEmpire
             if (craftingDatabase == null) return;
 
             List<CraftingRecipe> matched = craftingDatabase.SearchRecipes(_currentSearchQuery, _currentCategory);
-            _filteredRecipes.AddRange(matched);
+            if (_currentCategory == CraftingCategory.Artifact)
+            {
+                // แสดงเฉพาะ Artifact ที่ใส่ได้จริงกับอาวุธที่ผู้เล่นมีอยู่ในกระเป๋าตอนนี้ (ตรงกับหน้าแต่งอาวุธ [U] 100%)
+                HashSet<string> ownedWeapons = CollectOwnedWeaponNames();
+                if (ownedWeapons.Count == 0) return;
+
+                for (int i = 0; i < matched.Count; i++)
+                {
+                    CraftingRecipe rec = matched[i];
+                    if (rec == null) continue;
+                    string artName = rec.ResolvedResultName;
+                    bool usable = false;
+                    foreach (string wep in ownedWeapons)
+                    {
+                        if (WeaponArtifactManager.IsArtifactCompatibleWithWeapon(artName, wep))
+                        {
+                            usable = true;
+                            break;
+                        }
+                    }
+
+                    if (usable)
+                    {
+                        _filteredRecipes.Add(rec);
+                    }
+                }
+            }
+            else
+            {
+                _filteredRecipes.AddRange(matched);
+            }
         }
 
         public void RefreshUI()
@@ -962,9 +1055,21 @@ namespace TheLastEmpire
             string resultName = recipe.ResolvedResultName;
             int resultAmount = Mathf.Max(1, recipe.resultAmount);
             bool craftAdded = false;
+            string actualAwardedName = resultName;
+
+            bool isMysteryArtifactCraft = TryGetRandomArtifactCraftRarity(resultName, out ArtifactRarity craftedArtifactRarity);
+            if (isMysteryArtifactCraft)
+            {
+                ItemData rolledArt = WeaponArtifactManager.RollRandomArtifactByRarity(craftedArtifactRarity);
+                if (rolledArt != null && !string.IsNullOrEmpty(rolledArt.itemName))
+                {
+                    actualAwardedName = rolledArt.itemName;
+                    resultAmount = 1;
+                }
+            }
 
             bool prevSuppress = _playerInventory.SuppressNotificationEvents;
-            _playerInventory.SuppressNotificationEvents = true;
+            _playerInventory.SuppressNotificationEvents = !isMysteryArtifactCraft;
             try
             {
                 if (recipe.resultItem != null && recipe.resultItem.type == ItemType.Money)
@@ -974,12 +1079,13 @@ namespace TheLastEmpire
                 }
                 else
                 {
-                    craftAdded = _playerInventory.AddItem(resultName, resultAmount);
+                    craftAdded = _playerInventory.AddItem(actualAwardedName, resultAmount);
                 }
 
                 // Safety rollback: หาก AddItem ล้มเหลวให้คืนวัตถุดิบที่หักไปแล้วทั้งหมด
                 if (!craftAdded && deductedIngredients.Count > 0)
                 {
+                    _playerInventory.SuppressNotificationEvents = true;
                     for (int i = 0; i < deductedIngredients.Count; i++)
                     {
                         _playerInventory.AddItem(deductedIngredients[i].itemName, deductedIngredients[i].amount);
@@ -998,13 +1104,27 @@ namespace TheLastEmpire
                 return false;
             }
 
+            if (isMysteryArtifactCraft)
+            {
+                PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                if (localPlayer != null && DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        localPlayer.transform.position + Vector3.up * 2.1f,
+                        0f,
+                        craftedArtifactRarity != ArtifactRarity.Common,
+                        $"[{craftedArtifactRarity}] {actualAwardedName}!"
+                    );
+                }
+            }
+
             if (isFree)
             {
-                Debug.Log($"[CraftController] [FreeCraft] Crafted '{resultName}' x{resultAmount} (ฟรี ไม่เสียวัตถุดิบ)!");
+                Debug.Log($"[CraftController] [FreeCraft] Crafted '{actualAwardedName}' x{resultAmount} (ฟรี ไม่เสียวัตถุดิบ)!");
             }
             else
             {
-                Debug.Log($"[CraftController] Crafted '{resultName}' x{resultAmount}!");
+                Debug.Log($"[CraftController] Crafted '{actualAwardedName}' x{resultAmount}!");
             }
             OnRecipeCrafted?.Invoke(recipe);
 
@@ -1015,6 +1135,24 @@ namespace TheLastEmpire
                 descriptionPanel.DisplayRecipe(descriptionPanel.CurrentRecipe);
             }
             return true;
+        }
+
+        private static bool TryGetRandomArtifactCraftRarity(string resultName, out ArtifactRarity rarity)
+        {
+            rarity = ArtifactRarity.Common;
+            if (string.IsNullOrWhiteSpace(resultName)) return false;
+            string clean = resultName.Trim().ToLowerInvariant();
+            if (clean == "random common artifact" || clean == "common artifact")
+            {
+                rarity = ArtifactRarity.Common;
+                return true;
+            }
+            if (clean == "random rare artifact" || clean == "rare artifact")
+            {
+                rarity = ArtifactRarity.Rare;
+                return true;
+            }
+            return false;
         }
     }
 }

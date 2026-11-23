@@ -206,16 +206,28 @@ namespace TheLastEmpire
                 moneyAmount = Random.Range(minRandomCash, maxRandomCash + 1);
 
                 // 2. Roll items
+                bool rolledAmmoBox = false;
                 foreach (RandomLootEntry entry in possibleLoot)
                 {
                     if (string.IsNullOrEmpty(entry.itemName)) continue;
 
                     if (Random.value <= entry.dropProbability)
                     {
+                        string itemName = entry.itemName;
                         int qty = Random.Range(entry.minQuantity, entry.maxQuantity + 1);
+
+                        // กล่องกระสุนในรถ/กล่องเก็บของ: สุ่มดรอปเป็นกล่องสุ่ม "Ammo" 1-3 กล่องเท่านั้น (เก็บเข้าตัวแล้วสุ่มชนิดกระสุน 30% ของแม็ก)
+                        if (PlayerInventory.IsAmmoDropItem(itemName))
+                        {
+                            if (rolledAmmoBox) continue;
+                            rolledAmmoBox = true;
+                            itemName = "Ammo";
+                            qty = Random.Range(1, 4); // 1 - 3 กล่องแบบสุ่ม
+                        }
+
                         if (qty > 0)
                         {
-                            itemsInside.Add(new LootSlot(entry.itemName, qty));
+                            itemsInside.Add(new LootSlot(itemName, qty));
                         }
                     }
                 }

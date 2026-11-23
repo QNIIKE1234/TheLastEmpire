@@ -28,7 +28,16 @@ namespace TheLastEmpire
         public float ammoSaveChance;
         public int bonusBurstShots;
         public float projectileScaleBonus;
+        public string rightClickSkillId;
+        public float rightClickCooldown;
+        public float rightClickChargeDuration;
+        public int rightClickAmmoCost;
+        public float rightClickDamage;
+        public float rightClickRange;
+        public bool rightClickUseFlatDamage;
         public int equippedCount;
+
+        public bool HasRightClickSkill => !string.IsNullOrEmpty(rightClickSkillId);
 
         public bool HasAnyEffect =>
             equippedCount > 0 ||
@@ -37,6 +46,7 @@ namespace TheLastEmpire
             bonusPellets != 0 ||
             bonusBurstShots > 0 ||
             Mathf.Abs(projectileScaleBonus) > 0.001f ||
+            HasRightClickSkill ||
             Mathf.Abs(fireRateMultiplier) > 0.001f ||
             bonusMagazineSize != 0 ||
             Mathf.Abs(reloadSpeedMultiplier) > 0.001f ||
@@ -422,6 +432,16 @@ namespace TheLastEmpire
                 mods.ammoSaveChance = Mathf.Clamp(mods.ammoSaveChance + cfg.ammoSaveChance, 0f, 0.85f);
                 mods.bonusBurstShots += Mathf.Max(0, cfg.bonusBurstShots);
                 mods.projectileScaleBonus += Mathf.Max(0f, cfg.projectileScaleBonus);
+                if (!string.IsNullOrWhiteSpace(cfg.rightClickSkillId))
+                {
+                    mods.rightClickSkillId = cfg.rightClickSkillId.Trim();
+                    mods.rightClickCooldown = cfg.rightClickCooldown > 0f ? cfg.rightClickCooldown : 5.0f;
+                    mods.rightClickChargeDuration = Mathf.Max(0f, cfg.rightClickChargeDuration);
+                    mods.rightClickAmmoCost = Mathf.Max(0, cfg.rightClickAmmoCost);
+                    mods.rightClickDamage = cfg.rightClickDamage > 0f ? cfg.rightClickDamage : 1.0f;
+                    mods.rightClickRange = cfg.rightClickRange > 0f ? cfg.rightClickRange : 10f;
+                    mods.rightClickUseFlatDamage = cfg.rightClickUseFlatDamage;
+                }
                 if (cfg.grantPierce) mods.grantPierce = true;
                 if (cfg.grantAutomatic) mods.grantAutomatic = true;
             }
@@ -534,12 +554,61 @@ namespace TheLastEmpire
                 if (cfg.ammoSaveChance > 0f) parts.Add($"SAVE {(cfg.ammoSaveChance * 100f):F0}%");
                 if (cfg.bonusBurstShots > 0) parts.Add($"BURST x{1 + cfg.bonusBurstShots}");
                 if (cfg.projectileScaleBonus > 0.01f) parts.Add($"SIZE x{(1f + cfg.projectileScaleBonus):F1}");
+                if (!string.IsNullOrWhiteSpace(cfg.rightClickSkillId)) parts.Add($"RMB Skill ({cfg.rightClickChargeDuration:F1}s, {cfg.rightClickAmmoCost} Ammo)");
                 if (cfg.grantPierce) parts.Add("Pierce");
                 if (cfg.grantAutomatic) parts.Add("Auto");
             }
 
             if (parts.Count > 0) return string.Join(", ", parts);
             return !string.IsNullOrWhiteSpace(artData.description) ? artData.description : "Artifact";
+        }
+
+        /// <summary>
+        /// สุ่ม Weapon Artifact 1 ชิ้นจาก ItemDatabase ตามระดับความหายากที่กำหนด (Common / Rare / Legendary)
+        /// </summary>
+        public static ItemData RollRandomArtifactByRarity(ArtifactRarity targetRarity)
+        {
+            if (ItemDatabase.Instance == null || ItemDatabase.Instance.allItems == null) return null;
+
+            List<ItemData> pool = new List<ItemData>();
+            for (int i = 0; i < ItemDatabase.Instance.allItems.Count; i++)
+            {
+                ItemData item = ItemDatabase.Instance.allItems[i];
+                if (item == null || item.type != ItemType.Artifact || item.artifactConfig == null) continue;
+                if (item.artifactConfig.rarity == targetRarity)
+                {
+                    pool.Add(item);
+                }
+            }
+
+            if (pool.Count == 0) return null;
+            return pool[UnityEngine.Random.Range(0, pool.Count)];
+        }
+
+        /// <summary>
+        /// สุ่มดรอป Artifact จากศัตรูที่ตาย:
+        /// - บอส (isBoss = true): โอกาสดรอป 50% -> ภายใน 50% แบ่งเป็น Common 50%, Rare 30%, Legendary 20%
+        /// - มอนทั่วไป (isBoss = false): โอกาสดรอป 5% -> ภายใน 5% แบ่งเป็น Common 80%, Rare 20% (ไม่ดรอป Legendary)
+        /// </summary>
+        public static ItemData RollEnemyDropArtifact(bool isBoss)
+        {
+            float dropChance = isBoss ? 0.50f : 0.05f;
+            if (UnityEngine.Random.value > dropChance) return null;
+
+            float rarityRoll = UnityEngine.Random.value;
+            ArtifactRarity rolledRarity;
+            if (isBoss)
+            {
+                if (rarityRoll < 0.50f) rolledRarity = ArtifactRarity.Common;
+                else if (rarityRoll < 0.80f) rolledRarity = ArtifactRarity.Rare;
+                else rolledRarity = ArtifactRarity.Legendary;
+            }
+            else
+            {
+                rolledRarity = (rarityRoll < 0.80f) ? ArtifactRarity.Common : ArtifactRarity.Rare;
+            }
+
+            return RollRandomArtifactByRarity(rolledRarity);
         }
     }
 }

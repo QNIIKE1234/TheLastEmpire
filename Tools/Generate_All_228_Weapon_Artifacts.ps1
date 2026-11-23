@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$ProjectRoot = "d:\Unity Game Project\Eruption\TheLastEmpire\TheLastEmpire"
 )
 
@@ -43,29 +43,30 @@ NativeFormatImporter:
     [System.IO.File]::WriteAllText($metaPath, $meta, (New-Object System.Text.UTF8Encoding($false)))
 }
 
-# Icon pool from existing sprite sheets in the project (all verified valid fileID + guid pairs)
+# Unified placeholder icon: Yellow Lightning Bolt from exec-6293331f-d5b2-46e2-828e-653a4dc7fd37.png
+$LightningBoltIcon = "{fileID: -1755011708, guid: bcd2e74f786231949af299fce984e7ef, type: 3}"
 $Icons = @{
-    bolt     = "{fileID: 21300048, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Hydraulic Piston Bolt
-    chip     = "{fileID: 21300049, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Basic Logic Chip
-    oil      = "{fileID: 21300050, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Synthetic Machine Oil
-    cap      = "{fileID: 21300051, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # High-Capacity Capacitor
-    titanium = "{fileID: 21300052, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Reinforced Titanium Plate
-    neural   = "{fileID: 21300053, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Advanced Neural Processor
-    fusion   = "{fileID: 21300054, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Miniature Fusion Reactor
-    servo    = "{fileID: 21300055, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Military Overdrive Servo
-    chitin   = "{fileID: 21300056, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Chitin Carapace Shard
-    stinger  = "{fileID: 21300060, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Prismatic Stinger
-    crystal  = "{fileID: 21300064, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Overlord Xenocrystal Core
-    grav     = "{fileID: 21300065, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Gravitational Bio-Organ
-    nails    = "{fileID: 21300070, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Box of Nails
-    tape     = "{fileID: 21300071, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Duct Tape
-    pipe     = "{fileID: 21300072, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Scrap Steel Pipe
-    powder   = "{fileID: 21300074, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Gunpowder Mix
-    spring   = "{fileID: 21300087, guid: f2056d7bac6c5924185ef5ba29212f07, type: 3}" # Spring Steel Coil
-    heart    = "{fileID: 21300044, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Pulsing Heart (Lifesteal)
-    skull    = "{fileID: 21300045, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Titan Skull Crest
-    fang     = "{fileID: 21300039, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Fang
-    claw     = "{fileID: 21300038, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}" # Claw
+    bolt     = $LightningBoltIcon
+    chip     = $LightningBoltIcon
+    oil      = $LightningBoltIcon
+    cap      = $LightningBoltIcon
+    titanium = $LightningBoltIcon
+    neural   = $LightningBoltIcon
+    fusion   = $LightningBoltIcon
+    servo    = $LightningBoltIcon
+    chitin   = $LightningBoltIcon
+    stinger  = $LightningBoltIcon
+    crystal  = $LightningBoltIcon
+    grav     = $LightningBoltIcon
+    nails    = $LightningBoltIcon
+    tape     = $LightningBoltIcon
+    pipe     = $LightningBoltIcon
+    powder   = $LightningBoltIcon
+    spring   = $LightningBoltIcon
+    heart    = $LightningBoltIcon
+    skull    = $LightningBoltIcon
+    fang     = $LightningBoltIcon
+    claw     = $LightningBoltIcon
 }
 
 # Rarity colors (Common=0, Rare=1, Epic=2, Legendary=3)
@@ -84,7 +85,9 @@ function Art(
     [double]$rate = 0, [int]$mag = 0, [double]$reload = 0, [double]$range = 0,
     [int]$pierce = 0, [int]$auto = 0, [double]$crit = 0, [double]$critDmg = 0,
     [double]$kb = 0, [double]$stag = 0, [double]$leech = 0, [double]$save = 0,
-    [int]$burst = 0, [double]$scale = 0
+    [int]$burst = 0, [double]$scale = 0,
+    [string]$rmbSkill = "", [double]$rmbCd = 5.0, [double]$rmbCharge = 0, [int]$rmbAmmo = 0,
+    [double]$rmbDmg = 0, [double]$rmbRange = 0, [int]$rmbFlat = 0
 ) {
     return [ordered]@{
         name = $name; rarity = $rarity; icon = $Icons[$iconKey]; desc = $desc; short = $short
@@ -92,6 +95,8 @@ function Art(
         rate = $rate; mag = $mag; reload = $reload; range = $range
         pierce = $pierce; auto = $auto; crit = $crit; critDmg = $critDmg
         kb = $kb; stag = $stag; leech = $leech; save = $save; burst = $burst; scale = $scale
+        rmbSkill = $rmbSkill; rmbCd = $rmbCd; rmbCharge = $rmbCharge; rmbAmmo = $rmbAmmo
+        rmbDmg = $rmbDmg; rmbRange = $rmbRange; rmbFlat = $rmbFlat
     }
 }
 
@@ -380,6 +385,34 @@ $UniversalArtifacts = @(
     }
 )
 
+# Extra Weapon-Specific Artifacts appended after ART230 (keeps all existing ART001..ART230 GUIDs 100% stable!)
+$ExtraWeaponArtifacts = @(
+    [ordered]@{
+        weapon = "Flamethrower"
+        folder = "08_Flamethrower"
+        localIdx = 13
+        artifact = (Art "Inferno Fireball Core" 3 "fusion" "สกิลคลิกขวา (CD 5 วิ): ชาร์จ 2 วิ ใช้แก๊ส 10 หน่วย ยิงบอลเพลิงพุ่งตรง 20m ดาเมจ 8.5x ทะลุทุกตัว!" "RMB (5s CD): 2s Charge Fireball (10 Gas, 8.5x, 20m)" -rmbSkill "Flamethrower_Fireball" -rmbCd 5.0 -rmbCharge 2.0 -rmbAmmo 10 -rmbDmg 8.5 -rmbRange 20.0 -rmbFlat 0)
+    }
+    [ordered]@{
+        weapon = "Knife"
+        folder = "10_Knife"
+        localIdx = 13
+        artifact = (Art "Knife Hook" 3 "stinger" "สกิลคลิกขวา (CD 5 วิ): ขว้างมีดติดเชือกใส่ศัตรูข้างหน้าแล้วดึงพุ่งกลับมาหาเรา! (ยกเว้นบอส)" "RMB (5s CD): Knife Hook & Pull (No Boss)" -rmbSkill "Knife_Hook" -rmbCd 5.0 -rmbCharge 0 -rmbAmmo 0 -rmbDmg 1.5 -rmbRange 10.0 -rmbFlat 0)
+    }
+    [ordered]@{
+        weapon = "Baseball Bat"
+        folder = "11_BaseballBat"
+        localIdx = 13
+        artifact = (Art "Bat Boomerang" 3 "servo" "สกิลคลิกขวา (CD 5 วิ): ขว้างไม้เบสบอลหมุนวนเป็นวงกลมข้างหน้า (ระยะตี x2.5) ฟาดกระแทกศัตรูทุกตัว!" "RMB (5s CD): Circular Bat Boomerang (Range x2.5)" -rmbSkill "Bat_Boomerang" -rmbCd 5.0 -rmbCharge 0 -rmbAmmo 0 -rmbDmg 1.4 -rmbRange 2.5 -rmbFlat 0)
+    }
+    [ordered]@{
+        weapon = "Katana"
+        folder = "14_Katana"
+        localIdx = 13
+        artifact = (Art "RipperCombo" 3 "crystal" "สกิลคลิกขวา (CD 5 วิ): ฟันคาตานะต่อเนื่องเป็นชุด 3 Hit สุดรุนแรง!" "RMB (5s CD): 3-Hit RipperCombo" -rmbSkill "Katana_RipperCombo" -rmbCd 5.0 -rmbCharge 0 -rmbAmmo 0 -rmbDmg 1.25 -rmbRange 1.2 -rmbFlat 0)
+    }
+)
+
 $artifactsRoot = Join-Path $ProjectRoot "Assets\Resources_Addressable\Database\ItemData\Artifacts"
 if (-not (Test-Path $artifactsRoot)) { New-Item -ItemType Directory -Path $artifactsRoot -Force | Out-Null }
 Write-FolderMeta $artifactsRoot "ArtifactsRoot"
@@ -398,6 +431,7 @@ foreach ($w in $Weapons) {
 
 $totalSpecific = 0
 foreach ($w in $Weapons) { $totalSpecific += $w.list.Count }
+$totalSpecific += $ExtraWeaponArtifacts.Count
 $grandTotal = $totalSpecific + $UniversalArtifacts.Count
 
 [void]$catalogMd.AppendLine("# รายการ Artifact แต่งอาวุธทั้งหมด (Weapon Artifacts Master List)")
@@ -419,13 +453,14 @@ $wIdx = 0
 $totalC = 0; $totalR = 0; $totalL = 0
 foreach ($w in $Weapons) {
     $wIdx++
-    $cnt = $w.list.Count
-    $cCnt = ($w.list | Where-Object { $_.rarity -eq 0 }).Count
-    $rCnt = ($w.list | Where-Object { $_.rarity -eq 1 }).Count
-    $lCnt = ($w.list | Where-Object { $_.rarity -eq 3 }).Count
+    $extraForW = @($ExtraWeaponArtifacts | Where-Object { $_.weapon -eq $w.weapon })
+    $cnt = $w.list.Count + $extraForW.Count
+    $cCnt = @($w.list | Where-Object { $_.rarity -eq 0 }).Count + @($extraForW | Where-Object { $_.artifact.rarity -eq 0 }).Count
+    $rCnt = @($w.list | Where-Object { $_.rarity -eq 1 }).Count + @($extraForW | Where-Object { $_.artifact.rarity -eq 1 }).Count
+    $lCnt = @($w.list | Where-Object { $_.rarity -eq 3 }).Count + @($extraForW | Where-Object { $_.artifact.rarity -eq 3 }).Count
     $totalC += $cCnt; $totalR += $rCnt; $totalL += $lCnt
     $extraNote = if ($w.category -eq "Ranged") { " (+$($UniversalArtifacts.Count) Universal)" } else { "" }
-    [void]$catalogMd.AppendLine("| $wIdx | **$($w.weapon)** | $($w.category) | **$cnt / 12**$extraNote | $cCnt Common / $rCnt Rare / $lCnt Legendary | ``Assets/Resources_Addressable/Database/ItemData/Artifacts/$($w.folder)`` |")
+    [void]$catalogMd.AppendLine("| $wIdx | **$($w.weapon)** | $($w.category) | **$cnt**$extraNote | $cCnt Common / $rCnt Rare / $lCnt Legendary | ``Assets/Resources_Addressable/Database/ItemData/Artifacts/$($w.folder)`` |")
 }
 $uR = @($UniversalArtifacts | Where-Object { $_.artifact.rarity -eq 1 }).Count
 $totalR += $uR
@@ -516,6 +551,13 @@ $compatLines
     ammoSaveChance: $($a.save)
     bonusBurstShots: $($a.burst)
     projectileScaleBonus: $($a.scale)
+    rightClickSkillId: "$($a.rmbSkill)"
+    rightClickCooldown: $($a.rmbCd)
+    rightClickChargeDuration: $($a.rmbCharge)
+    rightClickAmmoCost: $($a.rmbAmmo)
+    rightClickDamage: $($a.rmbDmg)
+    rightClickRange: $($a.rmbRange)
+    rightClickUseFlatDamage: $($a.rmbFlat)
     shortEffectSummary: "$safeShort"
 "@
     [System.IO.File]::WriteAllText($assetPath, $yaml, (New-Object System.Text.UTF8Encoding($false)))
@@ -571,6 +613,31 @@ foreach ($u in $UniversalArtifacts) {
     [void]$catalogMd.AppendLine("| $uIdx | ``$assetName`` | $($a.name) | $rName | $($u.scope) | $($a.desc) (``$($a.short)``) |")
 }
 [void]$catalogMd.AppendLine("")
+
+# Generate Extra Weapon-Specific Legendary Skill Artifacts (appended after ART230)
+if ($ExtraWeaponArtifacts.Count -gt 0) {
+    [void]$catalogMd.AppendLine("### 21. Extra Weapon-Specific Legendary Active Skill Artifacts")
+    [void]$catalogMd.AppendLine("| # | Asset ID | อาวุธ | ชื่อ Artifact | ระดับ | ความสามารถจริงในเกม |")
+    [void]$catalogMd.AppendLine("|---|---|---|---|---|---|")
+    $eIdx = 0
+    foreach ($ex in $ExtraWeaponArtifacts) {
+        $globalIndex++
+        $eIdx++
+        $exDir = Join-Path $artifactsRoot $ex.folder
+        if (-not (Test-Path $exDir)) { New-Item -ItemType Directory -Path $exDir -Force | Out-Null }
+        Write-FolderMeta $exDir $ex.folder
+
+        $a = $ex.artifact
+        $slug = ($a.name -replace '[^A-Za-z0-9]', '')
+        $weaponSlug = ($ex.weapon -replace '[^A-Za-z0-9]', '')
+        $assetName = ("ART{0:D3}_{1}_{2:D2}_{3}" -f $globalIndex, $weaponSlug, $ex.localIdx, $slug)
+        Write-ArtifactAsset $exDir $assetName $a @($ex.weapon)
+
+        $rName = $RarityNames[$a.rarity]
+        [void]$catalogMd.AppendLine("| $eIdx | ``$assetName`` | $($ex.weapon) | $($a.name) | $rName | $($a.desc) (``$($a.short)``) |")
+    }
+    [void]$catalogMd.AppendLine("")
+}
 
 # Register all 228 Artifact GUIDs into ItemDatabase.asset (avoiding duplicates)
 $dbPath = Join-Path $ProjectRoot "Assets\Resources_Addressable\Database\ItemDatabase.asset"

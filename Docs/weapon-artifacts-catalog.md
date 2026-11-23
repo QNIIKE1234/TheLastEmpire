@@ -1,7 +1,7 @@
 # รายการ Artifact แต่งอาวุธทั้งหมด (Weapon Artifacts Master List)
 
 **อัปเดตล่าสุด**: 24 พฤศจิกายน 2026  
-**สถานะ**: สร้าง ItemData Asset จริง + ลงทะเบียนใน ItemDatabase.asset ครบทั้งหมด **230 Artifacts** แล้ว (19 อาวุธ × 12 ชิ้นเฉพาะตัว = 228 + 2 ชิ้น Universal ปืนทุกกระบอก, ไม่รวมระบบธาตุ พิษ/ไฟ/น้ำแข็ง/ช็อต)
+**สถานะ**: สร้าง ItemData Asset จริง + ลงทะเบียนใน ItemDatabase.asset ครบทั้งหมด **234 Artifacts** แล้ว (19 อาวุธ × 12 ชิ้นเฉพาะตัว = 232 + 2 ชิ้น Universal ปืนทุกกระบอก, ไม่รวมระบบธาตุ พิษ/ไฟ/น้ำแข็ง/ช็อต)
 
 ## กติกาการติดตั้ง Artifact ต่ออาวุธ 1 ชิ้น (สูงสุด 4 ช่อง A1–A4)
 - **Common**: ใส่ได้ **0–4 ใบ**
@@ -12,27 +12,27 @@
 
 | # | อาวุธ (Weapon) | หมวดหมู่ | จำนวนที่มีแล้ว | สัดส่วน (C / R / L) | โฟลเดอร์ Asset |
 |---|---|---|---|---|---|
-| 1 | **Pistol** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/01_Pistol` |
-| 2 | **Revolver** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/02_Revolver` |
-| 3 | **SMG** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/03_SMG` |
-| 4 | **Shotgun** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/04_Shotgun` |
-| 5 | **Rifle** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/05_Rifle` |
-| 6 | **Sniper Rifle** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/06_SniperRifle` |
-| 7 | **Crossbow** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/07_Crossbow` |
-| 8 | **Flamethrower** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/08_Flamethrower` |
-| 9 | **Rocket Launcher** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/09_RocketLauncher` |
-| 10 | **Knife** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/10_Knife` |
-| 11 | **Baseball Bat** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/11_BaseballBat` |
-| 12 | **Machete** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/12_Machete` |
-| 13 | **Fire Axe** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/13_FireAxe` |
-| 14 | **Katana** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/14_Katana` |
-| 15 | **Sledgehammer** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/15_Sledgehammer` |
-| 16 | **Survival Spear** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/16_SurvivalSpear` |
-| 17 | **Stun Baton** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/17_StunBaton` |
-| 18 | **Chainsaw** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/18_Chainsaw` |
-| 19 | **Grenade** | Throwing | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/19_Grenade` |
+| 1 | **Pistol** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/01_Pistol` |
+| 2 | **Revolver** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/02_Revolver` |
+| 3 | **SMG** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/03_SMG` |
+| 4 | **Shotgun** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/04_Shotgun` |
+| 5 | **Rifle** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/05_Rifle` |
+| 6 | **Sniper Rifle** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/06_SniperRifle` |
+| 7 | **Crossbow** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/07_Crossbow` |
+| 8 | **Flamethrower** | Ranged | **13** (+2 Universal) | 4 Common / 6 Rare / 3 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/08_Flamethrower` |
+| 9 | **Rocket Launcher** | Ranged | **12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/09_RocketLauncher` |
+| 10 | **Knife** | Melee | **13** | 4 Common / 6 Rare / 3 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/10_Knife` |
+| 11 | **Baseball Bat** | Melee | **13** | 4 Common / 6 Rare / 3 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/11_BaseballBat` |
+| 12 | **Machete** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/12_Machete` |
+| 13 | **Fire Axe** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/13_FireAxe` |
+| 14 | **Katana** | Melee | **13** | 4 Common / 6 Rare / 3 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/14_Katana` |
+| 15 | **Sledgehammer** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/15_Sledgehammer` |
+| 16 | **Survival Spear** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/16_SurvivalSpear` |
+| 17 | **Stun Baton** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/17_StunBaton` |
+| 18 | **Chainsaw** | Melee | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/18_Chainsaw` |
+| 19 | **Grenade** | Throwing | **12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/19_Grenade` |
 | + | **Universal Ranged (ปืนทุกชนิด)** | Ranged (All 9) | **2** | 0 Common / 2 Rare / 0 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/00_Universal` |
-| | **รวมทั้งหมด** | | **230 Artifacts** | **76 Common / 116 Rare / 38 Legendary** | |
+| | **รวมทั้งหมด** | | **234 Artifacts** | **76 Common / 116 Rare / 42 Legendary** | |
 
 ---
 
@@ -345,4 +345,12 @@
 |---|---|---|---|---|---|
 | 1 | `ART229_Universal_01_DoubleTapTrigger` | Double-Tap Trigger | Rare | ปืนทุกชนิด (All 9 Ranged Weapons) | กดยิง 1 ที ยิงซ้ำออก 2 ทีติดกัน! (ใส่ได้กับปืนทุกชนิด) (`Burst +1 (1 Click = 2 Shots)`) |
 | 2 | `ART230_Universal_02_HeavyCaliberShell` | Heavy Caliber Shell | Rare | ปืนทุกชนิด (All 9 Ranged Weapons) | ขยายขนาดกระสุนและ Hitbox ใหญ่ขึ้นเป็น 2.5 เท่า ยิงศัตรูตัวเล็กโดนง่ายมาก! (ใส่ได้กับปืนทุกชนิด) (`Size x2.5 (Huge Hitbox)`) |
+
+### 21. Extra Weapon-Specific Legendary Active Skill Artifacts
+| # | Asset ID | อาวุธ | ชื่อ Artifact | ระดับ | ความสามารถจริงในเกม |
+|---|---|---|---|---|---|
+| 1 | `ART231_Flamethrower_13_InfernoFireballCore` | Flamethrower | Inferno Fireball Core | Legendary | สกิลคลิกขวา (CD 5 วิ): ชาร์จ 2 วิ ใช้แก๊ส 10 หน่วย ยิงบอลเพลิงพุ่งตรง 20m ดาเมจ 8.5x ทะลุทุกตัว! (`RMB (5s CD): 2s Charge Fireball (10 Gas, 8.5x, 20m)`) |
+| 2 | `ART232_Knife_13_KnifeHook` | Knife | Knife Hook | Legendary | สกิลคลิกขวา (CD 5 วิ): ขว้างมีดติดเชือกใส่ศัตรูข้างหน้าแล้วดึงพุ่งกลับมาหาเรา! (ยกเว้นบอส) (`RMB (5s CD): Knife Hook & Pull (No Boss)`) |
+| 3 | `ART233_BaseballBat_13_BatBoomerang` | Baseball Bat | Bat Boomerang | Legendary | สกิลคลิกขวา (CD 5 วิ): ขว้างไม้เบสบอลหมุนวนเป็นวงกลมข้างหน้า (ระยะตี x2.5) ฟาดกระแทกศัตรูทุกตัว! (`RMB (5s CD): Circular Bat Boomerang (Range x2.5)`) |
+| 4 | `ART234_Katana_13_RipperCombo` | Katana | RipperCombo | Legendary | สกิลคลิกขวา (CD 5 วิ): ฟันคาตานะต่อเนื่องเป็นชุด 3 Hit สุดรุนแรง! (`RMB (5s CD): 3-Hit RipperCombo`) |
 

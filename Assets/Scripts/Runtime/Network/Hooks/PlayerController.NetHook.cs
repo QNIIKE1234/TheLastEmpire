@@ -292,6 +292,7 @@ namespace TheLastEmpire
         private void UpdateRemotePlayerVisuals()
         {
             UpdateMuzzleFlashLight();
+            UpdateFlamethrowerConeVfx();
 
             if (IsSimulatedCoopBot)
             {

@@ -460,6 +460,87 @@ namespace TheLastEmpire
             Destroy(gameObject);
         }
 
+        /// <summary>
+        /// โหมด Visual-only สำหรับ Co-op: เมื่อเพื่อนร่วมทีมเก็บไอเทมชิ้นนี้
+        /// ล็อคสถานะ IsCollected และปิด Collider ทันที (ป้องกันเก็บซ้ำ) แล้วค่อยดูดหมุนย่อขนาดบินเข้าตัวเพื่อนให้เห็นเหมือนตอนเก็บเอง
+        /// </summary>
+        public void CollectWithVisualFlyTo(Transform targetPlayerTransform)
+        {
+            if (_isCollected) return;
+            _isCollected = true;
+
+            if (targetPlayerTransform == null || !gameObject.activeInHierarchy)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _isPopping = false;
+            _isMagnetizing = false;
+            StopAllCoroutines();
+            CaptureInitialScale();
+
+            if (promptText != null)
+            {
+                promptText.gameObject.SetActive(false);
+            }
+
+            Collider[] cols = GetComponentsInChildren<Collider>();
+            for (int i = 0; i < cols.Length; i++)
+            {
+                if (cols[i] != null) cols[i].enabled = false;
+            }
+
+            StartCoroutine(FlyToRemotePlayerAndDestroyRoutine(targetPlayerTransform));
+        }
+
+        private System.Collections.IEnumerator FlyToRemotePlayerAndDestroyRoutine(Transform targetTransform)
+        {
+            Vector3 initialTarget = targetTransform != null ? targetTransform.position + Vector3.up * 0.7f : transform.position;
+            float startDist = Mathf.Max(0.5f, Vector3.Distance(transform.position, initialTarget));
+            float speed = Mathf.Max(initialMagnetSpeed * 1.4f, 10f);
+            float maxFlySpeed = Mathf.Max(maxMagnetSpeed * 1.25f, 28f);
+            float flyAccel = Mathf.Max(magnetAcceleration * 1.5f, 45f);
+            float elapsed = 0f;
+            const float maxFlySeconds = 0.65f;
+
+            while (elapsed < maxFlySeconds)
+            {
+                if (targetTransform == null || !targetTransform.gameObject.activeInHierarchy)
+                {
+                    break;
+                }
+
+                elapsed += Time.deltaTime;
+                Vector3 targetPos = targetTransform.position + Vector3.up * 0.7f;
+
+                speed = Mathf.Min(maxFlySpeed, speed + flyAccel * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+
+                float remainingDist = Vector3.Distance(transform.position, targetPos);
+                float progress = Mathf.Clamp01(remainingDist / startDist);
+                float scaleMultiplier = Mathf.Lerp(minScaleRatio, 1f, progress);
+                if (_initialScale != Vector3.zero)
+                {
+                    transform.localScale = _initialScale * scaleMultiplier;
+                }
+
+                if (spinSpeed != 0f)
+                {
+                    transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+                }
+
+                if (remainingDist <= collectRadius || progress <= 0.06f)
+                {
+                    break;
+                }
+
+                yield return null;
+            }
+
+            Destroy(gameObject);
+        }
+
         public void SetItemDetails(string name, int qty)
         {
             itemName = name;

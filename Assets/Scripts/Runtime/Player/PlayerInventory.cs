@@ -187,22 +187,130 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// แปลงชื่อไอเทมทั่วไป เช่น "Ammo" ให้เป็นชนิดกระสุนที่ตรงกับอาวุธของผู้เล่น
+        /// ตรวจสอบว่าชื่อไอเทมนี้คือกล่องกระสุนสุ่ม ("Ammo") หรือไม่
+        /// </summary>
+        public static bool IsMysteryAmmoBox(string itemName)
+        {
+            return !string.IsNullOrWhiteSpace(itemName) &&
+                   string.Equals(itemName.Trim(), "Ammo", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// ตรวจสอบว่าไอเทมนี้เป็นหมวดกระสุนหรือไม่ (ใช้แปลงของดรอปจากมอน/รถให้เป็นกล่องสุ่ม "Ammo" 1-3 กล่อง)
+        /// </summary>
+        public static bool IsAmmoDropItem(string itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName)) return false;
+            string clean = itemName.Trim().ToLowerInvariant();
+            if (clean == "ammo" || clean == "bolts" || clean == "bolt" || clean == "gas canister" || clean == "gas" || clean == "fuel ammo" || clean.EndsWith(" ammo"))
+            {
+                return true;
+            }
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData data = ItemDatabase.Instance.GetItemByName(itemName);
+                if (data != null && data.type == ItemType.Ammo) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// คำนวณจำนวนกระสุนที่ได้รับต่อกล่องสุ่ม 1 กล่อง:
+        /// - Crossbow (พิเศษ): สุ่ม 1 - 5 ดอก (Bolts)
+        /// - ปืนอื่นๆ: 30% ของแม็กกาซีนแบบปัดเศษมาตรฐาน (< .5 ปัดลง, >= .5 ปัดขึ้น, ขั้นต่ำ 1 นัด)
+        ///   เช่น Shotgun แม็ก 7 -> 2.1 -> 2 นัด, SMG แม็ก 35 -> 10.5 -> 11 นัด, Flamethrower แม็ก 50 -> 15 ถังแก๊ส
+        /// </summary>
+        public static int CalculateAmmoBoxRounds(int magazineSize, string weaponName = null)
+        {
+            if (!string.IsNullOrEmpty(weaponName) &&
+                weaponName.IndexOf("Crossbow", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return UnityEngine.Random.Range(1, 6); // Crossbow พิเศษ: สุ่ม 1 - 5 ดอก
+            }
+
+            int safeMag = Mathf.Max(1, magazineSize);
+            int rounded = (safeMag * 30 + 50) / 100;
+            return Mathf.Max(1, rounded);
+        }
+
+        /// <summary>
+        /// แปลงชื่อ ammoType ของปืนแต่ละชนิดให้เป็นชื่อไอเทมกระสุนจริงใน ItemDatabase ที่รีโหลดใช้งานได้ทันที
+        /// </summary>
+        public static string ResolveCanonicalAmmoItemName(string rawAmmoType)
+        {
+            if (string.IsNullOrWhiteSpace(rawAmmoType)) return "Pistol Ammo";
+            string clean = rawAmmoType.Trim().ToLowerInvariant();
+            if (clean == "light ammo" || clean == "pistol ammo") return "Pistol Ammo";
+            if (clean == "shotgun ammo") return "Shotgun Ammo";
+            if (clean == "medium ammo" || clean == "rifle ammo" || clean.Contains("sniper")) return "Rifle Ammo";
+            if (clean == "gas canister" || clean == "gas" || clean == "fuel ammo" || clean.Contains("flamethrower")) return "Gas Canister";
+            if (clean == "heavy ammo") return "Heavy Ammo";
+            if (clean == "bolts" || clean == "bolt") return "Bolts";
+            return rawAmmoType.Trim();
+        }
+
+        private struct AmmoBoxWeaponCandidate
+        {
+            public string weaponName;
+            public string ammoItemName;
+            public int magazineSize;
+        }
+
+        private static List<AmmoBoxWeaponCandidate> GetAmmoBoxWeaponCandidates()
+        {
+            var candidates = new List<AmmoBoxWeaponCandidate>();
+            if (ItemDatabase.Instance != null && ItemDatabase.Instance.allItems != null)
+            {
+                for (int i = 0; i < ItemDatabase.Instance.allItems.Count; i++)
+                {
+                    ItemData item = ItemDatabase.Instance.allItems[i];
+                    if (item == null || item.type != ItemType.RangedWeapon || item.weaponConfig == null) continue;
+                    string ammoItem = ResolveCanonicalAmmoItemName(item.weaponConfig.ammoType);
+                    int mag = Mathf.Max(1, item.weaponConfig.magazineSize);
+                    candidates.Add(new AmmoBoxWeaponCandidate
+                    {
+                        weaponName = item.itemName,
+                        ammoItemName = ammoItem,
+                        magazineSize = mag
+                    });
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Pistol", ammoItemName = "Pistol Ammo", magazineSize = 12 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Revolver", ammoItemName = "Pistol Ammo", magazineSize = 6 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "SMG", ammoItemName = "Pistol Ammo", magazineSize = 35 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Shotgun", ammoItemName = "Shotgun Ammo", magazineSize = 7 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Rifle", ammoItemName = "Rifle Ammo", magazineSize = 30 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Sniper Rifle", ammoItemName = "Rifle Ammo", magazineSize = 5 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Crossbow", ammoItemName = "Bolts", magazineSize = 1 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Flamethrower", ammoItemName = "Gas Canister", magazineSize = 50 });
+                candidates.Add(new AmmoBoxWeaponCandidate { weaponName = "Rocket Launcher", ammoItemName = "Heavy Ammo", magazineSize = 1 });
+            }
+
+            return candidates;
+        }
+
+        private bool CanFitAnyRealAmmoInFullBag()
+        {
+            var candidates = GetAmmoBoxWeaponCandidates();
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (CanAddItemDirect(candidates[i].ammoItemName, 1))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// แปลงชื่อไอเทมทั่วไป (สำหรับกล่องกระสุน "Ammo" จะถูกเปิดสุ่มตอน AddItem แทน)
         /// </summary>
         public string ResolveItemName(string itemName)
         {
             if (string.IsNullOrEmpty(itemName)) return string.Empty;
-            if (string.Equals(itemName, "Ammo", System.StringComparison.OrdinalIgnoreCase))
-            {
-                PlayerController player = GetComponent<PlayerController>();
-                if (player != null && player.CurrentWeapon != null)
-                {
-                    string lowerName = (player.CurrentWeapon.weaponName ?? "").ToLower().Trim();
-                    if (lowerName.Contains("rifl")) return "Rifle Ammo";
-                    else if (lowerName.Contains("shot")) return "Shotgun Ammo";
-                }
-                return "Pistol Ammo";
-            }
             return itemName.Trim();
         }
 
@@ -215,7 +323,17 @@ namespace TheLastEmpire
         public bool CanAddItem(string itemName, int quantity = 1)
         {
             if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
-            string resolved = ResolveItemName(itemName);
+            if (IsMysteryAmmoBox(itemName))
+            {
+                // ถ้ามีช่องว่างอย่างน้อย 1 ช่อง หรือมีกองกระสุนจริงเดิมที่ยังเติมได้ -> เก็บกล่องสุ่มกระสุนได้
+                return slots.Count < maxSlots || CanFitAnyRealAmmoInFullBag();
+            }
+            return CanAddItemDirect(ResolveItemName(itemName), quantity);
+        }
+
+        private bool CanAddItemDirect(string resolved, int quantity)
+        {
+            if (string.IsNullOrEmpty(resolved) || quantity <= 0) return false;
             int maxStack = GetMaxStackSize(resolved);
 
             if (maxStack <= 1)
@@ -247,14 +365,90 @@ namespace TheLastEmpire
 
         public bool CanAddItem(string itemName) => CanAddItem(itemName, 1);
 
+        private bool OpenMysteryAmmoBoxes(int boxCount)
+        {
+            if (boxCount <= 0) return false;
+            var allCandidates = GetAmmoBoxWeaponCandidates();
+            if (allCandidates.Count == 0) return false;
+
+            var grantedTotals = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
+            int boxesOpened = 0;
+
+            for (int b = 0; b < boxCount; b++)
+            {
+                // กรณีช่องว่างยังเหลือสุ่มจากปืนทุกชนิดได้เต็มที่; ถ้ากระเป๋าเต็มแล้วให้สุ่มเฉพาะชนิดกระสุนที่มีกองเดิมและยังเติมได้
+                List<AmmoBoxWeaponCandidate> pool = allCandidates;
+                if (slots.Count >= maxSlots)
+                {
+                    var fittable = new List<AmmoBoxWeaponCandidate>();
+                    for (int i = 0; i < allCandidates.Count; i++)
+                    {
+                        int roundsCheck = CalculateAmmoBoxRounds(allCandidates[i].magazineSize, allCandidates[i].weaponName);
+                        if (CanAddItemDirect(allCandidates[i].ammoItemName, Mathf.Min(1, roundsCheck)))
+                        {
+                            fittable.Add(allCandidates[i]);
+                        }
+                    }
+                    if (fittable.Count == 0) break;
+                    pool = fittable;
+                }
+
+                AmmoBoxWeaponCandidate chosen = pool[UnityEngine.Random.Range(0, pool.Count)];
+                int rounds = CalculateAmmoBoxRounds(chosen.magazineSize, chosen.weaponName);
+
+                if (CanAddItemDirect(chosen.ammoItemName, rounds))
+                {
+                    // เก็บทันทีเพื่อให้คำนวณช่องว่างในกล่องถัดไปได้แม่นยำ (ปิดแจ้งเตือนชั่วคราวแล้วค่อยยิงสรุปรวมทีเดียว)
+                    bool prevSup = SuppressNotificationEvents;
+                    SuppressNotificationEvents = true;
+                    bool added = AddItemDirect(chosen.ammoItemName, rounds, fireEvents: false);
+                    SuppressNotificationEvents = prevSup;
+
+                    if (added)
+                    {
+                        boxesOpened++;
+                        if (grantedTotals.ContainsKey(chosen.ammoItemName))
+                            grantedTotals[chosen.ammoItemName] += rounds;
+                        else
+                            grantedTotals[chosen.ammoItemName] = rounds;
+
+                        Debug.Log($"[AmmoBox] Box #{b + 1}/{boxCount} -> Rolled {chosen.weaponName} (Mag {chosen.magazineSize}, 30% = {chosen.magazineSize * 0.30f:F1}) -> +{rounds} {chosen.ammoItemName}");
+                    }
+                }
+            }
+
+            if (boxesOpened <= 0) return false;
+
+            SyncItemsFlatList();
+            foreach (var kv in grantedTotals)
+            {
+                OnItemCollected?.Invoke(kv.Key);
+                if (!_isInitializingStartingLoadout && !SuppressNotificationEvents)
+                {
+                    OnItemAdded?.Invoke(kv.Key, kv.Value);
+                }
+            }
+            OnInventoryChanged?.Invoke();
+            return true;
+        }
+
         public bool AddItem(string itemName, int quantity = 1)
         {
             if (string.IsNullOrEmpty(itemName) || quantity <= 0) return false;
 
-            string resolved = ResolveItemName(itemName);
+            if (IsMysteryAmmoBox(itemName))
+            {
+                return OpenMysteryAmmoBoxes(quantity);
+            }
+
+            return AddItemDirect(ResolveItemName(itemName), quantity, fireEvents: true);
+        }
+
+        private bool AddItemDirect(string resolved, int quantity, bool fireEvents)
+        {
             int maxStack = GetMaxStackSize(resolved);
 
-            if (!CanAddItem(resolved, quantity))
+            if (!CanAddItemDirect(resolved, quantity))
             {
                 Debug.LogWarning($"[PlayerInventory] Cannot collect '{resolved}' x{quantity}: Inventory is full ({UsedSlots}/{maxSlots} slots used)!");
                 return false;
@@ -290,14 +484,17 @@ namespace TheLastEmpire
                 remaining -= toAdd;
             }
 
-            SyncItemsFlatList();
-            Debug.Log($"[PlayerInventory] Picked up item: {resolved} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
-            OnItemCollected?.Invoke(resolved);
-            if (!_isInitializingStartingLoadout && !SuppressNotificationEvents)
+            if (fireEvents)
             {
-                OnItemAdded?.Invoke(resolved, quantity);
+                SyncItemsFlatList();
+                Debug.Log($"[PlayerInventory] Picked up item: {resolved} x{quantity}! Slots used: {UsedSlots}/{maxSlots}");
+                OnItemCollected?.Invoke(resolved);
+                if (!_isInitializingStartingLoadout && !SuppressNotificationEvents)
+                {
+                    OnItemAdded?.Invoke(resolved, quantity);
+                }
+                OnInventoryChanged?.Invoke();
             }
-            OnInventoryChanged?.Invoke();
             return true;
         }
 

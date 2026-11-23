@@ -31,6 +31,17 @@ namespace TheLastEmpire
         private string _toastMessage = "";
         private float _toastTimer = 0f;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void AutoInitialize()
+        {
+            if (Instance == null)
+            {
+                GameObject go = new GameObject("[BossSpawner_RuntimeDebugger]");
+                DontDestroyOnLoad(go);
+                go.AddComponent<BossSpawnerRuntime>();
+            }
+        }
+
         private void Awake()
         {
             if (Instance == null)
@@ -46,7 +57,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            // ปิดคีย์ลัดเสกของ/เร่งเวลา/ข้ามวัน/ฆ่ามอนทั้งหมด (F1, T, N, K) เพื่อไม่ให้กระทบการเล่นจริงและระบบ Online
+            // เปิดเฉพาะ F1 สำหรับเปิดเมนูเสกบอส (คงปิดคีย์ลัด T, N, K ไว้ตามเดิม)
+            if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
+            {
+                _showDebugGui = !_showDebugGui;
+            }
+
             if (_toastTimer > 0f)
             {
                 _toastTimer -= Time.unscaledDeltaTime;
@@ -181,7 +197,7 @@ namespace TheLastEmpire
 
         private Vector3 GetPositionInFrontOfPlayer(float distance)
         {
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            PlayerController player = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? Object.FindFirstObjectByType<PlayerController>();
             if (player != null)
             {
                 Vector3 forward = player.transform.forward;
@@ -743,6 +759,19 @@ namespace TheLastEmpire
                 : "🛒 โหมด Free Shop (Is Free): ปิด [OFF] (ราคาปกติ)");
         }
 
+        private void ToggleUnlockLegendaryArtifactCraft()
+        {
+            bool next = !CraftingDatabase.UnlockLegendaryArtifactCraft;
+            CraftingDatabase.UnlockLegendaryArtifactCraft = next;
+            if (CraftController.Instance != null)
+            {
+                CraftController.Instance.RefreshRecipesFromDatabase();
+            }
+            ShowToast(next
+                ? "★ Unlock Legend Artifact Craft: เปิด [ON] (โชว์ Legend Artifact ทุกชิ้นในหน้าคราฟต์)"
+                : "★ Unlock Legend Artifact Craft: ปิด [OFF] (คราฟต์ได้เฉพาะ Common / Rare)");
+        }
+
         private void DrawCraftCheatTab()
         {
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
@@ -784,6 +813,24 @@ namespace TheLastEmpire
             GUILayout.Label(isFreeShop
                 ? "• ซื้อสินค้าจาก NPC ทุกร้านฟรี ($0) ทันที"
                 : "• โหมดปกติ: ซื้อสินค้าตามราคาปกติของ NPC", EditorStylesMini());
+
+            GUILayout.Space(10);
+
+            // 3. Unlock Legendary Artifact Craft Toggle
+            bool isUnlockLegend = CraftingDatabase.UnlockLegendaryArtifactCraft;
+            GUI.backgroundColor = isUnlockLegend ? new Color(1f, 0.72f, 0.1f) : new Color(0.85f, 0.3f, 0.3f);
+            string legendBtnText = isUnlockLegend
+                ? "★ Unlock Legend Artifact Craft: [เปิด / ON]"
+                : "Unlock Legend Artifact Craft: [ปิด / OFF]";
+            if (GUILayout.Button(legendBtnText, GUILayout.Height(40)))
+            {
+                ToggleUnlockLegendaryArtifactCraft();
+            }
+
+            GUI.backgroundColor = Color.white;
+            GUILayout.Label(isUnlockLegend
+                ? "• โชว์และคราฟต์ Legend Artifact ทุกชิ้นในแท็บ Artifact (ขึ้นหน้าแรก)"
+                : "• โหมดปกติ: คราฟต์ได้เฉพาะ Common / Rare (Legend ดรอปจากบอส)", EditorStylesMini());
 
             GUILayout.Space(14);
             GUI.backgroundColor = new Color(1f, 0.8f, 0.2f);

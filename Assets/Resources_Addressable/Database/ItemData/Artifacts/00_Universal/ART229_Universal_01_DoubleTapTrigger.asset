@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "Double-Tap Trigger"
   description: "กดยิง 1 ที ยิงซ้ำออก 2 ทีติดกัน! (ใส่ได้กับปืนทุกชนิด)"
-  icon: {fileID: 21300055, guid: 87705a9622bd7a74390009e00f6674f6, type: 3}
+  icon: {fileID: -1755011708, guid: bcd2e74f786231949af299fce984e7ef, type: 3}
   type: 10
   restorationValue: 0
   sanityRestorationValue: 0
@@ -71,4 +71,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 1
     projectileScaleBonus: 0
+    rightClickSkillId: ""
+    rightClickCooldown: 5
+    rightClickChargeDuration: 0
+    rightClickAmmoCost: 0
+    rightClickDamage: 0
+    rightClickRange: 0
+    rightClickUseFlatDamage: 0
     shortEffectSummary: "Burst +1 (1 Click = 2 Shots)"

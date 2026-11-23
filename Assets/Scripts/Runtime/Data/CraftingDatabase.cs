@@ -15,7 +15,8 @@ namespace TheLastEmpire
         Weapons,
         Consumables,
         Tools,
-        Special
+        Special,
+        Artifact
     }
 
     /// <summary>
@@ -226,10 +227,166 @@ namespace TheLastEmpire
         [Header("All Crafting Recipes")]
         public List<CraftingRecipe> recipes = new List<CraftingRecipe>();
 
+        [NonSerialized]
+        private List<CraftingRecipe> _runtimeArtifactRecipes;
+
+        [NonSerialized]
+        private bool _cachedArtifactRecipesIncludedLegendary = false;
+
         /// <summary>
         /// โหมด Free Craft: เมื่อเปิดเป็น true จะสามารถคราฟต์ได้ทุกสูตรโดยไม่ต้องมีวัตถุดิบ และไม่หักของออกจากกระเป๋า
         /// </summary>
         public static bool IsFreeCraft { get; set; } = false;
+
+        /// <summary>
+        /// โหมด Cheat: เมื่อเปิดเป็น true จะปลดล็อกให้โชว์และคราฟต์ Artifact ระดับ Legendary ทั้งหมดในแท็บ Artifact
+        /// </summary>
+        public static bool UnlockLegendaryArtifactCraft { get; set; } = false;
+
+        /// <summary>
+        /// สร้างรายการสูตรคราฟต์สำหรับ Artifact ทั้งหมดจาก ItemDatabase อัตโนมัติ
+        /// - รวมทุกชิ้นของทุกอาวุธ + ชิ้นที่ใช้ร่วมกัน (Universal/Shared) แสดงแค่ 1 รายการไม่ซ้ำ
+        /// - โหมดปกติแสดงเฉพาะ Common และ Rare (Legendary ดรอปจากบอสเท่านั้น)
+        /// - เมื่อเปิด Cheat UnlockLegendaryArtifactCraft จะปลดล็อกแสดง Legendary ทุกชิ้นขึ้นหน้าแรกทันที
+        /// </summary>
+        private List<CraftingRecipe> GetRuntimeArtifactRecipes()
+        {
+            bool includeLegendary = UnlockLegendaryArtifactCraft;
+            if (_runtimeArtifactRecipes != null &&
+                _runtimeArtifactRecipes.Count > 0 &&
+                _cachedArtifactRecipesIncludedLegendary == includeLegendary)
+            {
+                return _runtimeArtifactRecipes;
+            }
+
+            _cachedArtifactRecipesIncludedLegendary = includeLegendary;
+            _runtimeArtifactRecipes = new List<CraftingRecipe>();
+            if (ItemDatabase.Instance == null || ItemDatabase.Instance.allItems == null)
+            {
+                return _runtimeArtifactRecipes;
+            }
+
+            // ดึง ItemData วัตถุดิบจริงเพื่อให้แสดงไอคอนวัตถุดิบใน UI คราฟต์ได้ทันที
+            ItemData scrapPlate = ItemDatabase.Instance.GetItemByName("Scrap Metal Plate");
+            ItemData logicChip = ItemDatabase.Instance.GetItemByName("Basic Logic Chip");
+            ItemData charcoal = ItemDatabase.Instance.GetItemByName("Charcoal Lump");
+            ItemData titaniumPlate = ItemDatabase.Instance.GetItemByName("Reinforced Titanium Plate");
+            ItemData capacitor = ItemDatabase.Instance.GetItemByName("High-Capacity Capacitor");
+            ItemData chitinShard = ItemDatabase.Instance.GetItemByName("Chitin Carapace Shard");
+
+            var seenArtifactNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var artifactItems = new List<ItemData>();
+
+            for (int i = 0; i < ItemDatabase.Instance.allItems.Count; i++)
+            {
+                ItemData item = ItemDatabase.Instance.allItems[i];
+                if (item == null || item.type != ItemType.Artifact || item.artifactConfig == null) continue;
+                if (string.IsNullOrWhiteSpace(item.itemName)) continue;
+
+                // โหมดปกติ: คราฟต์ได้เฉพาะ Common และ Rare (Legendary ดรอปจากบอสเท่านั้น เว้นแต่เปิด Cheat)
+                if (!includeLegendary && item.artifactConfig.rarity == ArtifactRarity.Legendary) continue;
+
+                // ชิ้นที่ใช้ร่วมกันหรือชื่อเดียวกันแสดงคราฟต์แค่ 1 รายการเดียว
+                if (!seenArtifactNames.Add(item.itemName.Trim())) continue;
+
+                artifactItems.Add(item);
+            }
+
+            // เรียงลำดับ: หากเปิด Cheat ปลดล็อก Legendary ให้เอา Legendary ขึ้นหน้าแรกก่อน จากนั้น Common -> Rare
+            artifactItems.Sort((a, b) =>
+            {
+                if (includeLegendary)
+                {
+                    bool aLeg = a.artifactConfig.rarity == ArtifactRarity.Legendary;
+                    bool bLeg = b.artifactConfig.rarity == ArtifactRarity.Legendary;
+                    if (aLeg != bLeg) return aLeg ? -1 : 1;
+                }
+
+                int rCmp = ((int)a.artifactConfig.rarity).CompareTo((int)b.artifactConfig.rarity);
+                if (rCmp != 0) return rCmp;
+
+                bool aShared = a.artifactConfig.compatibleWeaponNames == null || a.artifactConfig.compatibleWeaponNames.Count != 1;
+                bool bShared = b.artifactConfig.compatibleWeaponNames == null || b.artifactConfig.compatibleWeaponNames.Count != 1;
+                if (aShared != bShared) return aShared ? -1 : 1;
+
+                string aWep = aShared ? "" : (a.artifactConfig.compatibleWeaponNames[0] ?? "");
+                string bWep = bShared ? "" : (b.artifactConfig.compatibleWeaponNames[0] ?? "");
+                int wCmp = string.Compare(aWep, bWep, StringComparison.OrdinalIgnoreCase);
+                if (wCmp != 0) return wCmp;
+
+                return string.Compare(a.itemName, b.itemName, StringComparison.OrdinalIgnoreCase);
+            });
+
+            for (int i = 0; i < artifactItems.Count; i++)
+            {
+                ItemData item = artifactItems[i];
+                ArtifactModConfig cfg = item.artifactConfig;
+                bool isLegendary = cfg.rarity == ArtifactRarity.Legendary;
+                bool isRare = cfg.rarity == ArtifactRarity.Rare;
+                string rarityTag = isLegendary ? "Legendary" : (isRare ? "Rare" : "Common");
+
+                string weaponTag;
+                string weaponFullLabel;
+                if (cfg.compatibleWeaponNames == null || cfg.compatibleWeaponNames.Count == 0)
+                {
+                    weaponTag = "Shared";
+                    weaponFullLabel = "ทุกอาวุธ (Shared)";
+                }
+                else if (cfg.compatibleWeaponNames.Count == 1)
+                {
+                    weaponTag = cfg.compatibleWeaponNames[0];
+                    weaponFullLabel = cfg.compatibleWeaponNames[0];
+                }
+                else
+                {
+                    weaponTag = "All Guns";
+                    weaponFullLabel = $"ใช้ร่วมกัน ({string.Join(", ", cfg.compatibleWeaponNames)})";
+                }
+
+                string shortSummary = WeaponArtifactManager.BuildSingleArtifactSummary(item);
+                string desc = $"[{rarityTag}] อาวุธที่ใส่ได้: {weaponFullLabel}\n{item.description}";
+                if (!string.IsNullOrWhiteSpace(shortSummary))
+                {
+                    desc += $"\n({shortSummary})";
+                }
+
+                var recipe = new CraftingRecipe
+                {
+                    recipeId = $"CRAFT_ART_{(i + 1):D3}",
+                    recipeName = $"[{rarityTag}][{weaponTag}] {item.itemName}",
+                    category = CraftingCategory.Artifact,
+                    resultItem = item,
+                    resultItemName = item.itemName,
+                    resultAmount = 1,
+                    icon = item.icon,
+                    description = desc,
+                    ingredients = isLegendary
+                        ? new List<CraftingIngredient>
+                        {
+                            new CraftingIngredient(titaniumPlate, "Reinforced Titanium Plate", 5),
+                            new CraftingIngredient(capacitor, "High-Capacity Capacitor", 5),
+                            new CraftingIngredient(chitinShard, "Chitin Carapace Shard", 5)
+                        }
+                        : isRare
+                            ? new List<CraftingIngredient>
+                            {
+                                new CraftingIngredient(titaniumPlate, "Reinforced Titanium Plate", 2),
+                                new CraftingIngredient(capacitor, "High-Capacity Capacitor", 2),
+                                new CraftingIngredient(chitinShard, "Chitin Carapace Shard", 2)
+                            }
+                            : new List<CraftingIngredient>
+                            {
+                                new CraftingIngredient(scrapPlate, "Scrap Metal Plate", 3),
+                                new CraftingIngredient(logicChip, "Basic Logic Chip", 1),
+                                new CraftingIngredient(charcoal, "Charcoal Lump", 2)
+                            }
+                };
+
+                _runtimeArtifactRecipes.Add(recipe);
+            }
+
+            return _runtimeArtifactRecipes;
+        }
 
         private void OnValidate()
         {
@@ -245,8 +402,12 @@ namespace TheLastEmpire
         /// </summary>
         public CraftingRecipe GetRecipeById(string id)
         {
-            if (recipes == null || string.IsNullOrEmpty(id)) return null;
-            return recipes.Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(id)) return null;
+            CraftingRecipe found = recipes != null
+                ? recipes.Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase))
+                : null;
+            if (found != null) return found;
+            return GetRuntimeArtifactRecipes().Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -254,25 +415,36 @@ namespace TheLastEmpire
         /// </summary>
         public CraftingRecipe GetRecipeByName(string name)
         {
-            if (recipes == null || string.IsNullOrEmpty(name)) return null;
-            return recipes.Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)));
+            if (string.IsNullOrEmpty(name)) return null;
+            CraftingRecipe found = recipes != null
+                ? recipes.Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)))
+                : null;
+            if (found != null) return found;
+            return GetRuntimeArtifactRecipes().Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)));
         }
 
         /// <summary>
-        /// ดึงรายการสูตรคราฟต์ตามหมวดหมู่ (เช่น Building, Utility, Defense, Weapons, Consumables, Tools, Special)
+        /// ดึงรายการสูตรคราฟต์ตามหมวดหมู่ (เช่น Building, Utility, Defense, Weapons, Consumables, Tools, Special, Artifact)
         /// </summary>
         public List<CraftingRecipe> GetRecipesByCategory(CraftingCategory category)
         {
             List<CraftingRecipe> result = new List<CraftingRecipe>();
-            if (recipes == null) return result;
-
-            foreach (CraftingRecipe recipe in recipes)
+            if (recipes != null)
             {
-                if (recipe != null && recipe.category == category)
+                foreach (CraftingRecipe recipe in recipes)
                 {
-                    result.Add(recipe);
+                    if (recipe != null && recipe.category == category)
+                    {
+                        result.Add(recipe);
+                    }
                 }
             }
+
+            if (category == CraftingCategory.Artifact)
+            {
+                result.AddRange(GetRuntimeArtifactRecipes());
+            }
+
             return result;
         }
 
@@ -282,22 +454,33 @@ namespace TheLastEmpire
         public List<CraftingRecipe> SearchRecipes(string searchQuery, CraftingCategory? categoryFilter = null)
         {
             List<CraftingRecipe> result = new List<CraftingRecipe>();
-            if (recipes == null) return result;
-
             string query = string.IsNullOrWhiteSpace(searchQuery) ? string.Empty : searchQuery.Trim();
 
-            foreach (CraftingRecipe recipe in recipes)
+            void AppendMatching(List<CraftingRecipe> source)
             {
-                if (recipe == null) continue;
-                if (categoryFilter.HasValue && recipe.category != categoryFilter.Value) continue;
-
-                if (string.IsNullOrEmpty(query) ||
-                    (!string.IsNullOrEmpty(recipe.recipeName) && recipe.recipeName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (!string.IsNullOrEmpty(recipe.ResolvedResultName) && recipe.ResolvedResultName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+                if (source == null) return;
+                for (int i = 0; i < source.Count; i++)
                 {
-                    result.Add(recipe);
+                    CraftingRecipe recipe = source[i];
+                    if (recipe == null) continue;
+                    if (categoryFilter.HasValue && recipe.category != categoryFilter.Value) continue;
+
+                    if (string.IsNullOrEmpty(query) ||
+                        (!string.IsNullOrEmpty(recipe.recipeName) && recipe.recipeName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(recipe.ResolvedResultName) && recipe.ResolvedResultName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(recipe.description) && recipe.description.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        result.Add(recipe);
+                    }
                 }
             }
+
+            AppendMatching(recipes);
+            if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Artifact)
+            {
+                AppendMatching(GetRuntimeArtifactRecipes());
+            }
+
             return result;
         }
 
