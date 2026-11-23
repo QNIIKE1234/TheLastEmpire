@@ -2341,7 +2341,7 @@ namespace TheLastEmpire
 
                         string visualId = ResolveProjectileVisualId(activeWeapon);
                         proj.SetStats(finalDamage, weaponRange, effectivePierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
-                        proj.SetArtifactImpactModifiers(artifactMods.bonusKnockback, artifactMods.bonusStagger, artifactMods.lifestealOnHit);
+                        proj.SetArtifactImpactModifiers(artifactMods.bonusKnockback, artifactMods.bonusStagger, artifactMods.lifestealOnHit, artifactMods.projectileScaleBonus);
 
                         if (isRocketLauncher)
                         {

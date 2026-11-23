@@ -63,6 +63,8 @@ namespace TheLastEmpire
         public float ammoSaveChance = 0f;
         [Tooltip("ยิงซ้ำอัตโนมัติหลังกดยิง 1 ครั้ง เช่น 1 = กดยิง 1 ทีออก 2 ที (Echo Burst)")]
         public int bonusBurstShots = 0;
+        [Tooltip("เพิ่มขนาดกระสุนและ Hitbox เช่น 1.5 = ขนาดใหญ่ขึ้นเป็น 2.5 เท่า (1 + 1.5)")]
+        public float projectileScaleBonus = 0f;
 
         [Header("Display")]
         [Tooltip("ข้อความสรุปสั้นๆ (เว้นว่างให้สร้างอัตโนมัติจากค่าสถานะด้านบน)")]

@@ -27,6 +27,7 @@ namespace TheLastEmpire
         public float lifestealOnHit;
         public float ammoSaveChance;
         public int bonusBurstShots;
+        public float projectileScaleBonus;
         public int equippedCount;
 
         public bool HasAnyEffect =>
@@ -35,6 +36,7 @@ namespace TheLastEmpire
             Mathf.Abs(damageMultiplier) > 0.001f ||
             bonusPellets != 0 ||
             bonusBurstShots > 0 ||
+            Mathf.Abs(projectileScaleBonus) > 0.001f ||
             Mathf.Abs(fireRateMultiplier) > 0.001f ||
             bonusMagazineSize != 0 ||
             Mathf.Abs(reloadSpeedMultiplier) > 0.001f ||
@@ -419,6 +421,7 @@ namespace TheLastEmpire
                 mods.lifestealOnHit += cfg.lifestealOnHit;
                 mods.ammoSaveChance = Mathf.Clamp(mods.ammoSaveChance + cfg.ammoSaveChance, 0f, 0.85f);
                 mods.bonusBurstShots += Mathf.Max(0, cfg.bonusBurstShots);
+                mods.projectileScaleBonus += Mathf.Max(0f, cfg.projectileScaleBonus);
                 if (cfg.grantPierce) mods.grantPierce = true;
                 if (cfg.grantAutomatic) mods.grantAutomatic = true;
             }
@@ -458,6 +461,7 @@ namespace TheLastEmpire
                     sb.Append(isAuto ? " | Full Auto" : " | Semi Auto");
                     if (pellets > 1) sb.Append($" | Shots x{pellets}");
                     if (mods.bonusBurstShots > 0) sb.Append($" | Burst x{1 + mods.bonusBurstShots}");
+                    if (mods.projectileScaleBonus > 0.01f) sb.Append($" | Size x{(1f + mods.projectileScaleBonus):F1}");
                     if (mag > 0) sb.Append($" | Mag {mag}");
                     if (canPierce) sb.Append(" | Pierce");
                 }
@@ -529,6 +533,7 @@ namespace TheLastEmpire
                 if (cfg.lifestealOnHit > 0f) parts.Add($"LEECH +{cfg.lifestealOnHit:F1}HP");
                 if (cfg.ammoSaveChance > 0f) parts.Add($"SAVE {(cfg.ammoSaveChance * 100f):F0}%");
                 if (cfg.bonusBurstShots > 0) parts.Add($"BURST x{1 + cfg.bonusBurstShots}");
+                if (cfg.projectileScaleBonus > 0.01f) parts.Add($"SIZE x{(1f + cfg.projectileScaleBonus):F1}");
                 if (cfg.grantPierce) parts.Add("Pierce");
                 if (cfg.grantAutomatic) parts.Add("Auto");
             }

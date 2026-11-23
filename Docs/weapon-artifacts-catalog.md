@@ -1,7 +1,7 @@
 # รายการ Artifact แต่งอาวุธทั้งหมด (Weapon Artifacts Master List)
 
 **อัปเดตล่าสุด**: 24 พฤศจิกายน 2026  
-**สถานะ**: สร้าง ItemData Asset จริง + ลงทะเบียนใน ItemDatabase.asset ครบทั้งหมด **229 Artifacts** แล้ว (19 อาวุธ × 12 ชิ้นเฉพาะตัว = 228 + 1 ชิ้น Universal ปืนทุกกระบอก, ไม่รวมระบบธาตุ พิษ/ไฟ/น้ำแข็ง/ช็อต)
+**สถานะ**: สร้าง ItemData Asset จริง + ลงทะเบียนใน ItemDatabase.asset ครบทั้งหมด **230 Artifacts** แล้ว (19 อาวุธ × 12 ชิ้นเฉพาะตัว = 228 + 2 ชิ้น Universal ปืนทุกกระบอก, ไม่รวมระบบธาตุ พิษ/ไฟ/น้ำแข็ง/ช็อต)
 
 ## กติกาการติดตั้ง Artifact ต่ออาวุธ 1 ชิ้น (สูงสุด 4 ช่อง A1–A4)
 - **Common**: ใส่ได้ **0–4 ใบ**
@@ -12,15 +12,15 @@
 
 | # | อาวุธ (Weapon) | หมวดหมู่ | จำนวนที่มีแล้ว | สัดส่วน (C / R / L) | โฟลเดอร์ Asset |
 |---|---|---|---|---|---|
-| 1 | **Pistol** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/01_Pistol` |
-| 2 | **Revolver** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/02_Revolver` |
-| 3 | **SMG** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/03_SMG` |
-| 4 | **Shotgun** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/04_Shotgun` |
-| 5 | **Rifle** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/05_Rifle` |
-| 6 | **Sniper Rifle** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/06_SniperRifle` |
-| 7 | **Crossbow** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/07_Crossbow` |
-| 8 | **Flamethrower** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/08_Flamethrower` |
-| 9 | **Rocket Launcher** | Ranged | **12 / 12** (+1 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/09_RocketLauncher` |
+| 1 | **Pistol** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/01_Pistol` |
+| 2 | **Revolver** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/02_Revolver` |
+| 3 | **SMG** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/03_SMG` |
+| 4 | **Shotgun** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/04_Shotgun` |
+| 5 | **Rifle** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/05_Rifle` |
+| 6 | **Sniper Rifle** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/06_SniperRifle` |
+| 7 | **Crossbow** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/07_Crossbow` |
+| 8 | **Flamethrower** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/08_Flamethrower` |
+| 9 | **Rocket Launcher** | Ranged | **12 / 12** (+2 Universal) | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/09_RocketLauncher` |
 | 10 | **Knife** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/10_Knife` |
 | 11 | **Baseball Bat** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/11_BaseballBat` |
 | 12 | **Machete** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/12_Machete` |
@@ -31,8 +31,8 @@
 | 17 | **Stun Baton** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/17_StunBaton` |
 | 18 | **Chainsaw** | Melee | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/18_Chainsaw` |
 | 19 | **Grenade** | Throwing | **12 / 12** | 4 Common / 6 Rare / 2 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/19_Grenade` |
-| + | **Universal Ranged (ปืนทุกชนิด)** | Ranged (All 9) | **1** | 0 Common / 1 Rare / 0 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/00_Universal` |
-| | **รวมทั้งหมด** | | **229 Artifacts** | **76 Common / 115 Rare / 38 Legendary** | |
+| + | **Universal Ranged (ปืนทุกชนิด)** | Ranged (All 9) | **2** | 0 Common / 2 Rare / 0 Legendary | `Assets/Resources_Addressable/Database/ItemData/Artifacts/00_Universal` |
+| | **รวมทั้งหมด** | | **230 Artifacts** | **76 Common / 116 Rare / 38 Legendary** | |
 
 ---
 
@@ -344,4 +344,5 @@
 | # | Asset ID | ชื่อ Artifact | ระดับ | อาวุธที่ใส่ได้ | ความสามารถจริงในเกม |
 |---|---|---|---|---|---|
 | 1 | `ART229_Universal_01_DoubleTapTrigger` | Double-Tap Trigger | Rare | ปืนทุกชนิด (All 9 Ranged Weapons) | กดยิง 1 ที ยิงซ้ำออก 2 ทีติดกัน! (ใส่ได้กับปืนทุกชนิด) (`Burst +1 (1 Click = 2 Shots)`) |
+| 2 | `ART230_Universal_02_HeavyCaliberShell` | Heavy Caliber Shell | Rare | ปืนทุกชนิด (All 9 Ranged Weapons) | ขยายขนาดกระสุนและ Hitbox ใหญ่ขึ้นเป็น 2.5 เท่า ยิงศัตรูตัวเล็กโดนง่ายมาก! (ใส่ได้กับปืนทุกชนิด) (`Size x2.5 (Huge Hitbox)`) |
 

@@ -84,14 +84,14 @@ function Art(
     [double]$rate = 0, [int]$mag = 0, [double]$reload = 0, [double]$range = 0,
     [int]$pierce = 0, [int]$auto = 0, [double]$crit = 0, [double]$critDmg = 0,
     [double]$kb = 0, [double]$stag = 0, [double]$leech = 0, [double]$save = 0,
-    [int]$burst = 0
+    [int]$burst = 0, [double]$scale = 0
 ) {
     return [ordered]@{
         name = $name; rarity = $rarity; icon = $Icons[$iconKey]; desc = $desc; short = $short
         dmg = $dmg; dmgPct = $dmgPct; pellets = $pellets; spread = $spread
         rate = $rate; mag = $mag; reload = $reload; range = $range
         pierce = $pierce; auto = $auto; crit = $crit; critDmg = $critDmg
-        kb = $kb; stag = $stag; leech = $leech; save = $save; burst = $burst
+        kb = $kb; stag = $stag; leech = $leech; save = $save; burst = $burst; scale = $scale
     }
 }
 
@@ -372,6 +372,12 @@ $UniversalArtifacts = @(
         weapons = @("Pistol", "Revolver", "SMG", "Shotgun", "Rifle", "Sniper Rifle", "Crossbow", "Flamethrower", "Rocket Launcher")
         artifact = (Art "Double-Tap Trigger" 1 "servo" "กดยิง 1 ที ยิงซ้ำออก 2 ทีติดกัน! (ใส่ได้กับปืนทุกชนิด)" "Burst +1 (1 Click = 2 Shots)" -burst 1)
     }
+    [ordered]@{
+        folder = "00_Universal"
+        scope = "ปืนทุกชนิด (All 9 Ranged Weapons)"
+        weapons = @("Pistol", "Revolver", "SMG", "Shotgun", "Rifle", "Sniper Rifle", "Crossbow", "Flamethrower", "Rocket Launcher")
+        artifact = (Art "Heavy Caliber Shell" 1 "grav" "ขยายขนาดกระสุนและ Hitbox ใหญ่ขึ้นเป็น 2.5 เท่า ยิงศัตรูตัวเล็กโดนง่ายมาก! (ใส่ได้กับปืนทุกชนิด)" "Size x2.5 (Huge Hitbox)" -scale 1.5)
+    }
 )
 
 $artifactsRoot = Join-Path $ProjectRoot "Assets\Resources_Addressable\Database\ItemData\Artifacts"
@@ -418,7 +424,7 @@ foreach ($w in $Weapons) {
     $rCnt = ($w.list | Where-Object { $_.rarity -eq 1 }).Count
     $lCnt = ($w.list | Where-Object { $_.rarity -eq 3 }).Count
     $totalC += $cCnt; $totalR += $rCnt; $totalL += $lCnt
-    $extraNote = if ($w.category -eq "Ranged") { " (+1 Universal)" } else { "" }
+    $extraNote = if ($w.category -eq "Ranged") { " (+$($UniversalArtifacts.Count) Universal)" } else { "" }
     [void]$catalogMd.AppendLine("| $wIdx | **$($w.weapon)** | $($w.category) | **$cnt / 12**$extraNote | $cCnt Common / $rCnt Rare / $lCnt Legendary | ``Assets/Resources_Addressable/Database/ItemData/Artifacts/$($w.folder)`` |")
 }
 $uR = @($UniversalArtifacts | Where-Object { $_.artifact.rarity -eq 1 }).Count
@@ -509,6 +515,7 @@ $compatLines
     lifestealOnHit: $($a.leech)
     ammoSaveChance: $($a.save)
     bonusBurstShots: $($a.burst)
+    projectileScaleBonus: $($a.scale)
     shortEffectSummary: "$safeShort"
 "@
     [System.IO.File]::WriteAllText($assetPath, $yaml, (New-Object System.Text.UTF8Encoding($false)))

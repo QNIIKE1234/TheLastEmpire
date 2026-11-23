@@ -94,6 +94,8 @@ namespace TheLastEmpire
         private float _bonusKnockback = 0f;
         private float _bonusStagger = 0f;
         private float _lifestealOnHit = 0f;
+        private Vector3 _baseLocalScale = Vector3.one;
+        private bool _hasBaseLocalScale = false;
         private System.Collections.Generic.List<IDamageable> _hitTargets = new System.Collections.Generic.List<IDamageable>();
 
         public string PoolKey
@@ -251,6 +253,8 @@ namespace TheLastEmpire
 
         private void Awake()
         {
+            _baseLocalScale = transform.localScale;
+            _hasBaseLocalScale = true;
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = false;
             
@@ -269,6 +273,12 @@ namespace TheLastEmpire
 
         private void ResetDynamicOverrides()
         {
+            if (!_hasBaseLocalScale)
+            {
+                _baseLocalScale = transform.localScale;
+                _hasBaseLocalScale = true;
+            }
+            transform.localScale = _baseLocalScale;
             _activeDamage = damage;
             _activeLifetime = lifetime;
             _activeSpeed = speed;
@@ -291,11 +301,24 @@ namespace TheLastEmpire
             }
         }
 
-        public void SetArtifactImpactModifiers(float bonusKnockback, float bonusStagger, float lifestealOnHit)
+        public void SetArtifactImpactModifiers(float bonusKnockback, float bonusStagger, float lifestealOnHit, float projectileScaleBonus = 0f)
         {
             _bonusKnockback = Mathf.Max(0f, bonusKnockback);
             _bonusStagger = Mathf.Max(0f, bonusStagger);
             _lifestealOnHit = Mathf.Max(0f, lifestealOnHit);
+
+            if (!_hasBaseLocalScale)
+            {
+                _baseLocalScale = transform.localScale;
+                _hasBaseLocalScale = true;
+            }
+
+            float scaleMult = 1f + Mathf.Max(0f, projectileScaleBonus);
+            transform.localScale = _baseLocalScale * scaleMult;
+            if (_trail != null && scaleMult > 1.01f)
+            {
+                _trail.startWidth = trailStartWidth * (1f + (scaleMult - 1f) * 0.6f);
+            }
         }
 
         /// <summary>
