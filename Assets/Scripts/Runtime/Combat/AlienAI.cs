@@ -30,6 +30,7 @@ namespace TheLastEmpire
         [Header("Alien Spitter Settings")]
         [SerializeField] private float spitCooldown = 3.5f;
         [SerializeField] private float spitRange = 8f;
+        [SerializeField] private float spitProjectileSpeed = 50f;
         private float _spitCooldownTimer = 0f;
 
         [Header("Leader Settings")]
@@ -424,7 +425,10 @@ namespace TheLastEmpire
                 col.isTrigger = true;
 
                 Projectile proj = spit.AddComponent<Projectile>();
-                proj.SetSpeed(50f);
+                float pistolSpeed = Projectile.ResolvePistolProjectileSpeed(spitProjectileSpeed);
+                proj.SetSpeed(pistolSpeed);
+                Rigidbody spitRb = spit.GetComponent<Rigidbody>();
+                if (spitRb != null) spitRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 proj.Setup(dir, playerTransform.position, gameObject);
             }
 

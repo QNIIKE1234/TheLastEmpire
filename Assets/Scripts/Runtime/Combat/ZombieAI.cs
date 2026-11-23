@@ -162,9 +162,10 @@ namespace TheLastEmpire
         private SpriteRenderer _boomerDecalRenderer;
 
         public bool IsBossUnit => (zombieType == ZombieType.Leader || (TryGetComponent<LootDropper>(out var ld) && ld.IsBoss));
-        // ZombieTank inherits former ZombieLeader's heavy boss combat kit (Charge + Ground Stomp + Rage) WITHOUT minion spawning!
+        // ZombieTank inherits former ZombieLeader's heavy combat kit (Charge + Ground Stomp) WITHOUT minion spawning or Rage Mode!
         public bool HasHeavyBossKit => IsBossUnit || zombieType == ZombieType.Tank;
-        public bool IsRageMode => HasHeavyBossKit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
+        // Rage Mode ใช้เฉพาะบอสเท่านั้น (ไม่รวม ZombieTank)
+        public bool IsRageMode => IsBossUnit && health != null && !health.IsDead && health.MaxHealth > 0f && ((health.CurrentHealth / health.MaxHealth) <= rageHealthThreshold);
 
         // ซอมบี้ระดับบอสและ Tank เปิดใช้งานระบบเดินอ้อมสิ่งกีดขวางอัจฉริยะ
         public override bool UseSmartObstacleAvoidance => useSmartObstacleAvoidance || HasHeavyBossKit;
@@ -292,8 +293,8 @@ namespace TheLastEmpire
         {
             if (health != null && health.IsDead) return;
 
-            // Check Boss / Tank Rage Mode (HP <= 30%)
-            if (HasHeavyBossKit)
+            // Check Boss Rage Mode (HP <= 30% — Boss only, not ZombieTank)
+            if (IsBossUnit)
             {
                 CheckRageModeState();
                 if (_rageRoarTimer > 0f)
@@ -623,7 +624,7 @@ namespace TheLastEmpire
                         return;
                     }
                 }
-                // ZombieTank inherits former Boss behaviors (Ground Stomp AOE + Charge Rush + Rage) EXCEPT Minion Spawning!
+                // ZombieTank inherits former Boss behaviors (Ground Stomp AOE + Charge Rush) EXCEPT Minion Spawning & Rage Mode!
                 else if (zombieType == ZombieType.Tank)
                 {
                     bool hasLineOfSight = HasLineOfSightToPlayer();
@@ -1712,7 +1713,10 @@ namespace TheLastEmpire
                     col.isTrigger = true;
 
                     Projectile proj = acid.AddComponent<Projectile>();
-                    proj.SetSpeed(acidProjectileSpeed);
+                    float pistolSpeed = Projectile.ResolvePistolProjectileSpeed(acidProjectileSpeed);
+                    proj.SetSpeed(pistolSpeed);
+                    Rigidbody acidRb = acid.GetComponent<Rigidbody>();
+                    if (acidRb != null) acidRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                     proj.Setup(dir, spawnPos + dir * 12f, gameObject);
                 }
             }

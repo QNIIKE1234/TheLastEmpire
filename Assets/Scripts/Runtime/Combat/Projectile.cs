@@ -106,6 +106,23 @@ namespace TheLastEmpire
 
         public float Speed => _activeSpeed > 0f ? _activeSpeed : speed;
 
+        /// <summary>
+        /// ดึงความเร็วกระสุนจริงของปืนพก (Pistol -> BulletPrefabs) เพื่อให้ Spitter ใช้ความเร็วเท่าปืนพกเสมอ
+        /// </summary>
+        public static float ResolvePistolProjectileSpeed(float fallbackSpeed = 50f)
+        {
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData pistol = ItemDatabase.Instance.GetItemByName("Pistol");
+                if (pistol != null && pistol.weaponConfig != null && pistol.weaponConfig.projectilePrefab != null)
+                {
+                    float s = pistol.weaponConfig.projectilePrefab.Speed;
+                    if (s > 0.1f) return s;
+                }
+            }
+            return fallbackSpeed;
+        }
+
         public void SetSpeed(float newSpeed)
         {
             if (newSpeed > 0.1f)
