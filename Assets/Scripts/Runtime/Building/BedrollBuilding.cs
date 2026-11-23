@@ -110,7 +110,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.2f,
                         0f,
                         false,
-                        "นอนได้เฉพาะตอนกลางคืน"
+                        "Can only sleep at night"
                     );
                 }
                 return;

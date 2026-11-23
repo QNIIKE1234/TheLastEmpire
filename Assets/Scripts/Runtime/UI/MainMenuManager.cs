@@ -1214,13 +1214,13 @@ namespace TheLastEmpire
             vLayout.childForceExpandWidth = true;
 
             // Add instruction rows
-            AddControlRow(contentObj.transform, "W, A, S, D", "Movement // บังคับทิศทางเดิน");
-            AddControlRow(contentObj.transform, "Mouse Aim + Left Click", "Aim & Shoot / Attack // เล็งและยิง/โจมตี");
-            AddControlRow(contentObj.transform, "1 - 9 / Mouse Scroll", "Quick Select Ranged Weapons // สลับปืน");
-            AddControlRow(contentObj.transform, "X Key", "Cycle Melee Weapons // สลับอาวุธประชิด (Katana, Axe, Hammer)");
-            AddControlRow(contentObj.transform, "R Key", "Reload Weapon Magazine // บรรจุกระสุน");
-            AddControlRow(contentObj.transform, "I / ESC Key", "Inventory & Pause // เปิดกระเป๋าเป้ / หยุดเกม");
-            AddControlRow(contentObj.transform, "Screen Edge Portals", "Warp to Adjacent Biomes // เดินเข้าประตูเพื่อข้ามโซน");
+            AddControlRow(contentObj.transform, "W, A, S, D", "Movement");
+            AddControlRow(contentObj.transform, "Mouse Aim + Left Click", "Aim & Shoot / Attack");
+            AddControlRow(contentObj.transform, "1 - 9 / Mouse Scroll", "Quick Select Ranged Weapons");
+            AddControlRow(contentObj.transform, "X Key", "Cycle Melee Weapons (Katana, Axe, Hammer)");
+            AddControlRow(contentObj.transform, "R Key", "Reload Weapon Magazine");
+            AddControlRow(contentObj.transform, "I / ESC Key", "Inventory & Pause");
+            AddControlRow(contentObj.transform, "Screen Edge Portals", "Warp to Adjacent Biomes");
             AddControlRow(contentObj.transform, "Day / Night Cycle", "Day = 30s | Night = High Alien & Zombie aggro!");
 
             // Close Button
@@ -1239,7 +1239,7 @@ namespace TheLastEmpire
             GameObject closeTextObj = new GameObject("Label");
             closeTextObj.transform.SetParent(closeBtnObj.transform, false);
             TMP_Text closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
-            closeText.text = "CLOSE // ปิด";
+            closeText.text = "CLOSE";
             closeText.fontSize = 20;
             closeText.fontStyle = FontStyles.Bold;
             closeText.color = Color.white;
@@ -1381,26 +1381,26 @@ namespace TheLastEmpire
 
             // Volume Slider Rows
             float savedMasterVol = PlayerPrefs.GetFloat("MasterVolume", 1.0f);
-            CreateVolumeSliderRow(contentObj.transform, "Master Audio Volume // ระดับเสียงหลัก", savedMasterVol, (val) =>
+            CreateVolumeSliderRow(contentObj.transform, "Master Audio Volume", savedMasterVol, (val) =>
             {
                 AudioListener.volume = val;
                 PlayerPrefs.SetFloat("MasterVolume", val);
             });
 
             float savedBgmVol = PlayerPrefs.GetFloat("BGMVolume", 0.85f);
-            CreateVolumeSliderRow(contentObj.transform, "BGM Music Volume // เสียงดนตรีประกอบ", savedBgmVol, (val) =>
+            CreateVolumeSliderRow(contentObj.transform, "BGM Music Volume", savedBgmVol, (val) =>
             {
                 PlayerPrefs.SetFloat("BGMVolume", val);
             });
 
             float savedSfxVol = PlayerPrefs.GetFloat("SFXVolume", 1.0f);
-            CreateVolumeSliderRow(contentObj.transform, "SFX Sound Volume // เสียงเอฟเฟกต์อาวุธ", savedSfxVol, (val) =>
+            CreateVolumeSliderRow(contentObj.transform, "SFX Sound Volume", savedSfxVol, (val) =>
             {
                 PlayerPrefs.SetFloat("SFXVolume", val);
             });
 
             // Fullscreen Toggle Row
-            CreateToggleRow(contentObj.transform, "Fullscreen Mode // โหมดเต็มจอ", Screen.fullScreen, (isFs) =>
+            CreateToggleRow(contentObj.transform, "Fullscreen Mode", Screen.fullScreen, (isFs) =>
             {
                 Screen.fullScreen = isFs;
                 PlayerPrefs.SetInt("Fullscreen", isFs ? 1 : 0);
@@ -1422,7 +1422,7 @@ namespace TheLastEmpire
             GameObject closeTextObj = new GameObject("Label");
             closeTextObj.transform.SetParent(closeBtnObj.transform, false);
             TMP_Text closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
-            closeText.text = "SAVE & BACK // บันทึกและย้อนกลับ";
+            closeText.text = "SAVE & BACK";
             closeText.fontSize = 18;
             closeText.fontStyle = FontStyles.Bold;
             closeText.color = Color.white;

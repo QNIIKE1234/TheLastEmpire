@@ -503,7 +503,7 @@ namespace TheLastEmpire
             text.color = new Color(0.9f, 0.9f, 0.95f, 1f);
             text.richText = true;
             text.text =
-                "<b><color=#F59E0B>SURVIVAL CONTROLS REFERENCE // ปุ่มควบคุม</color></b>\n" +
+                "<b><color=#F59E0B>SURVIVAL CONTROLS REFERENCE</color></b>\n" +
                 "<color=#60A5FA>Move:</color> [W, A, S, D]        <color=#60A5FA>Aim / Shoot:</color> [Mouse Aim / Left Click]\n" +
                 "<color=#60A5FA>Dash / Dodge:</color> [Spacebar]   <color=#60A5FA>Signature Skill:</color> [Left Shift]\n" +
                 "<color=#60A5FA>Interact / Talk:</color> [E]       <color=#60A5FA>Reload Weapon:</color> [R]\n" +

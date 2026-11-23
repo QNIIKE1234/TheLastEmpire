@@ -135,7 +135,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.8f,
                         0f,
                         false,
-                        $"กำลังกลั่นน้ำ... {(ProductionProgress * 100f):F0}%"
+                        $"Purifying water... {(ProductionProgress * 100f):F0}%"
                     );
                 }
             }
@@ -223,7 +223,7 @@ namespace TheLastEmpire
                             noticePos,
                             0f,
                             false,
-                            "+น้ำสะอาด (Water Bottle) x1"
+                            "+Water Bottle x1"
                         );
                     }
                 }
@@ -243,7 +243,7 @@ namespace TheLastEmpire
                             transform.position + Vector3.up * 1.8f,
                             0f,
                             false,
-                            $"น้ำสะอาดพร้อมเก็บ ({currentStoredWater}/{maxStoredWater})"
+                            $"Clean Water Ready ({currentStoredWater}/{maxStoredWater})"
                         );
                     }
                 }
@@ -299,7 +299,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.8f,
                         0f,
                         false,
-                        "+น้ำสะอาด (Water Bottle) x1"
+                        "+Water Bottle x1"
                     );
                 }
                 Debug.Log($"[WaterPurifier] Collected 1 bottle. Remaining: {currentStoredWater}/{maxStoredWater}");
@@ -312,7 +312,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.8f,
                         0f,
                         false,
-                        "กระเป๋าเต็ม! เคลียร์ช่องก่อนเก็บน้ำ"
+                        "Inventory Full! Clear space first"
                     );
                 }
                 Debug.LogWarning("[WaterPurifier] Inventory full! Cannot collect water.");
@@ -341,7 +341,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.8f,
                         0f,
                         false,
-                        $"+น้ำสะอาด (Water Bottle) x{toCollect}"
+                        $"+Water Bottle x{toCollect}"
                     );
                 }
                 Debug.Log($"[WaterPurifier] Player collected {toCollect} bottles of clean water.");
@@ -354,7 +354,7 @@ namespace TheLastEmpire
                         transform.position + Vector3.up * 1.8f,
                         0f,
                         false,
-                        "กระเป๋าเต็ม! เคลียร์ช่องก่อนเก็บน้ำ"
+                        "Inventory Full! Clear space first"
                     );
                 }
                 Debug.LogWarning("[WaterPurifier] Inventory full! Cannot collect water.");

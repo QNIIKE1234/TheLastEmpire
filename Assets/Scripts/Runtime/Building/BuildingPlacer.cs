@@ -743,7 +743,7 @@ namespace TheLastEmpire
             style.normal.textColor = Color.white;
             style.alignment = TextAnchor.MiddleCenter;
 
-            string text = $"[R] หมุนโมเดล ({_currentRotationY:0}°)  |  [LMB] วาง  |  [ESC / RMB] ยกเลิก";
+            string text = $"[R] Rotate ({_currentRotationY:0}°)  |  [LMB] Place  |  [ESC / RMB] Cancel";
             float w = 460f;
             float h = 36f;
             float x = (Screen.width - w) * 0.5f;

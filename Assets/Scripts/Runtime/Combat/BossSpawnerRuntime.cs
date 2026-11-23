@@ -84,7 +84,7 @@ namespace TheLastEmpire
                 _ => 1.0f
             };
             Time.timeScale = next;
-            ShowToast($"เร่งความเร็วเกมเป็น {next:F0}x [กด T]");
+            ShowToast($"Game Speed: {next:F0}x [T]");
         }
 
         private void SkipToNextPhase()
@@ -92,11 +92,11 @@ namespace TheLastEmpire
             if (DayNightManager.Instance != null)
             {
                 DayNightManager.Instance.AdvancePhase();
-                ShowToast($"ข้ามช่วงเวลาเป็น {DayNightManager.Instance.CurrentPhase} (วันที่ {DayNightManager.Instance.DayCount}) [กด N]");
+                ShowToast($"Phase: {DayNightManager.Instance.CurrentPhase} (Day {DayNightManager.Instance.DayCount}) [N]");
             }
             else
             {
-                ShowToast("ไม่พบ DayNightManager ในฉาก");
+                ShowToast("DayNightManager not found in scene");
             }
         }
 
@@ -105,7 +105,7 @@ namespace TheLastEmpire
             if (NightDarknessController.Instance != null)
             {
                 NightDarknessController.Instance.ToggleTorchLight();
-                ShowToast($"ไฟฉาย: {(NightDarknessController.Instance.HasTorchLight ? "ON" : "OFF")} [กด L หรือ F]");
+                ShowToast($"Flashlight: {(NightDarknessController.Instance.HasTorchLight ? "ON" : "OFF")} [L/F]");
             }
         }
 
@@ -130,7 +130,7 @@ namespace TheLastEmpire
                 SpawnEnemy(EnemySpawnType.BossLeader, spawnPos, bossHealthMultiplier, bossScaleMultiplier);
             }
 
-            ShowToast($"BOSS RUSH! เสก Boss {count} ตัวล้อมรอบผู้เล่น!");
+            ShowToast($"BOSS RUSH! Spawned {count} Bosses around player!");
         }
 
         public GameObject SpawnEnemy(EnemySpawnType type, Vector3 position, float hpMultiplier = 1f, float scaleMultiplier = 1f)
@@ -184,7 +184,7 @@ namespace TheLastEmpire
                 }
 
                 string typeName = type == EnemySpawnType.BossLeader ? "Boss (ZombieLeader)" : type.ToString();
-                ShowToast($"เสก {typeName} สำเร็จที่ ({position.x:F1}, {position.z:F1})");
+                ShowToast($"Spawned {typeName} at ({position.x:F1}, {position.z:F1})");
                 Debug.Log($"<color=#FFD700>[BossSpawner]</color> Spawned {type} at {position} (HP x{hpMultiplier}, Scale x{scaleMultiplier})");
             }
             else
@@ -255,7 +255,7 @@ namespace TheLastEmpire
                 }
             }
 
-            ShowToast($"กำจัด Boss ไปแล้ว {count} ตัว!");
+            ShowToast($"Killed {count} Bosses!");
         }
 
         public void KillAllEnemies()
@@ -274,7 +274,7 @@ namespace TheLastEmpire
                 }
             }
 
-            ShowToast($"กำจัดศัตรูทั้งหมดในฉากแล้ว ({count} ตัว)");
+            ShowToast($"Cleared all enemies in stage ({count})");
         }
 
         #endregion
@@ -313,7 +313,7 @@ namespace TheLastEmpire
             float toggleX = Screen.width - 160f;
             float toggleY = 10f;
             GUI.backgroundColor = _showDebugGui ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.7f, 0.3f);
-            if (GUI.Button(new Rect(toggleX, toggleY, 150f, 32f), _showDebugGui ? "[-] ปิด Debug [F1]" : "[+] Cheat Menu [F1]"))
+            if (GUI.Button(new Rect(toggleX, toggleY, 150f, 32f), _showDebugGui ? "[-] Close Debug [F1]" : "[+] Cheat Menu [F1]"))
             {
                 _showDebugGui = !_showDebugGui;
             }
@@ -367,38 +367,38 @@ namespace TheLastEmpire
             GUILayout.Label("STAGE EVENT CHEATS", titleStyle);
 
             bool isQueued = RandomStageEventManager.Instance != null && RandomStageEventManager.Instance.IsFleeingEventQueued;
-            GUILayout.Label($"สถานะคิวด่านถัดไป: {(isQueued ? "<color=#00FF66>คิว Maya แล้ว</color>" : "ไม่มีคิว")}", EditorStylesBold());
+            GUILayout.Label($"Next Stage Queue: {(isQueued ? "<color=#00FF66>Maya Queued</color>" : "None")}", EditorStylesBold());
 
             GUILayout.Space(8);
 
             GUI.backgroundColor = new Color(1f, 0.45f, 0.1f);
-            if (GUILayout.Button("🏃 เสก Maya วิ่งหนีทันที [Shift+F9]", GUILayout.Height(38)))
+            if (GUILayout.Button("Spawn Fleeing Maya Now [Shift+F9]", GUILayout.Height(38)))
             {
                 if (RandomStageEventManager.Instance != null)
                 {
                     RandomStageEventManager.Instance.ForceTriggerFleeingSurvivor();
-                    ShowToast("เสก Maya (Scout) วิ่งหนีตายตัดผ่านห้องทันที!");
+                    ShowToast("Spawned fleeing Maya (Scout)!");
                 }
             }
 
             GUILayout.Space(6);
 
             GUI.backgroundColor = new Color(0.2f, 0.7f, 0.9f);
-            if (GUILayout.Button("⏩ คิวด่านถัดไป: Maya วิ่งหนี [F9]", GUILayout.Height(34)))
+            if (GUILayout.Button("Queue Next Stage: Fleeing Maya [F9]", GUILayout.Height(34)))
             {
                 if (RandomStageEventManager.Instance != null)
                 {
                     RandomStageEventManager.Instance.QueueNextStageFleeingSurvivor();
-                    ShowToast("คิวด่านถัดไป: Maya วิ่งหนีฝูงมอนสเตอร์!");
+                    ShowToast("Queued fleeing Maya for next stage!");
                 }
             }
 
             GUILayout.Space(10);
             GUI.backgroundColor = Color.white;
-            GUILayout.Label("คำอธิบาย:", EditorStylesBold());
-            GUILayout.Label("• กดเสกทันที: Maya จะเกิดที่ประตูฝั่งตรงข้าม และวิ่งตรงเข้าหาตัว Player ที่ความเร็ว 5.0 m/s ผ่านตัวเราออกไปทางประตูที่เราเข้ามา", EditorStylesMini());
-            GUILayout.Label("• Collider ของ Maya ปรับเป็น Trigger ทั้งหมด วิ่งทะลุตึกและสิ่งกีดขวางได้ 100% ไม่ติดแน่นอน", EditorStylesMini());
-            GUILayout.Label("• แก้ไขบัคการย้ายแมพไป-กลับ: เคลียร์ Coroutine และ Runner ข้ามห้องอัตโนมัติ ไม่ค้างหรือรวนแน่นอน", EditorStylesMini());
+            GUILayout.Label("Notes:", EditorStylesBold());
+            GUILayout.Label("• Instant Spawn: Maya spawns at opposite gate and sprints through at 5.0 m/s.", EditorStylesMini());
+            GUILayout.Label("• Maya uses trigger colliders to pass smoothly through obstacles.", EditorStylesMini());
+            GUILayout.Label("• Stage transitions clean up runners automatically.", EditorStylesMini());
         }
 
         private void DrawBossSpawnerTab()
@@ -415,48 +415,48 @@ namespace TheLastEmpire
             // Stats Info
             int bossCount = CountActiveBosses();
             int enemyCount = CountActiveEnemies();
-            GUILayout.Label($"ศัตรูในฉาก: {enemyCount} | Boss: {bossCount}", EditorStylesMini());
+            GUILayout.Label($"Enemies: {enemyCount} | Bosses: {bossCount}", EditorStylesMini());
 
             GUILayout.Space(8);
 
             // Quick Spawns
             GUI.backgroundColor = new Color(0.9f, 0.6f, 0.1f);
-            if (GUILayout.Button("เสก Boss (เดี่ยว)", GUILayout.Height(34)))
+            if (GUILayout.Button("Spawn Boss (Single)", GUILayout.Height(34)))
             {
                 SpawnBossInFrontOfPlayer(bossHealthMultiplier, bossScaleMultiplier);
             }
 
             GUI.backgroundColor = new Color(0.85f, 0.35f, 0.1f);
-            if (GUILayout.Button("เสก Boss Rush (3 ตัว)", GUILayout.Height(28)))
+            if (GUILayout.Button("Spawn Boss Rush (x3)", GUILayout.Height(28)))
             {
                 SpawnBossRush(3);
             }
 
             GUILayout.Space(6);
             GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
-            if (GUILayout.Button("เสก Boomer (ตัวระเบิด)"))
+            if (GUILayout.Button("Spawn Boomer"))
             {
                 SpawnEnemy(EnemySpawnType.Boomer, GetPositionInFrontOfPlayer(defaultSpawnDistance));
             }
 
-            if (GUILayout.Button("เสก Dog (หมาพุ่งกัด)"))
+            if (GUILayout.Button("Spawn Dog"))
             {
                 SpawnEnemy(EnemySpawnType.Dog, GetPositionInFrontOfPlayer(defaultSpawnDistance));
             }
 
-            if (GUILayout.Button("เสก Runner (วิ่งไว)"))
+            if (GUILayout.Button("Spawn Runner"))
             {
                 SpawnEnemy(EnemySpawnType.Runner, GetPositionInFrontOfPlayer(defaultSpawnDistance));
             }
 
-            if (GUILayout.Button("เสก Normal (ซอมบี้ทั่วไป)"))
+            if (GUILayout.Button("Spawn Normal Zombie"))
             {
                 SpawnEnemy(EnemySpawnType.Normal, GetPositionInFrontOfPlayer(defaultSpawnDistance));
             }
 
             GUILayout.Space(6);
             GUI.backgroundColor = new Color(1f, 0.2f, 0.1f);
-            if (GUILayout.Button("บังคับเข้า Rage Mode (ลดเลือดเหลือ 25%)", GUILayout.Height(26)))
+            if (GUILayout.Button("Force Boss Rage Mode (25% HP)", GUILayout.Height(26)))
             {
                 TriggerRageOnAllBosses();
             }
@@ -465,23 +465,23 @@ namespace TheLastEmpire
 
             // Modifiers
             GUI.backgroundColor = Color.white;
-            GUILayout.Label($"คูณเลือด Boss: {bossHealthMultiplier:F1}x", EditorStylesBold());
+            GUILayout.Label($"Boss HP Multiplier: {bossHealthMultiplier:F1}x", EditorStylesBold());
             bossHealthMultiplier = GUILayout.HorizontalSlider(bossHealthMultiplier, 0.5f, 5.0f);
 
-            GUILayout.Label($"คูณขนาดตัว Boss: {bossScaleMultiplier:F1}x", EditorStylesBold());
+            GUILayout.Label($"Boss Scale Multiplier: {bossScaleMultiplier:F1}x", EditorStylesBold());
             bossScaleMultiplier = GUILayout.HorizontalSlider(bossScaleMultiplier, 0.8f, 2.5f);
 
             GUILayout.Space(8);
 
             // Kill Buttons
             GUI.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
-            if (GUILayout.Button("ฆ่า Boss ทั้งหมด [กด K]", GUILayout.Height(26)))
+            if (GUILayout.Button("Kill All Bosses [K]", GUILayout.Height(26)))
             {
                 KillAllBosses();
             }
 
             GUI.backgroundColor = new Color(0.6f, 0.1f, 0.1f);
-            if (GUILayout.Button("ล้างศัตรูทั้งหมดในฉาก", GUILayout.Height(26)))
+            if (GUILayout.Button("Kill All Enemies in Stage", GUILayout.Height(26)))
             {
                 KillAllEnemies();
             }
@@ -518,25 +518,25 @@ namespace TheLastEmpire
                 };
                 badgeStyle.normal.textColor = phaseColor;
 
-                GUILayout.Box($"PHASE: {dm.CurrentPhase.ToString().ToUpper()} | วันที่: {dm.DayCount}\nเหลืออีก: {dm.RemainingPhaseTime:F0}s / {dm.CurrentPhaseDuration:F0}s ({dm.PhaseProgress * 100f:F0}%)", badgeStyle);
+                GUILayout.Box($"PHASE: {dm.CurrentPhase.ToString().ToUpper()} | Day: {dm.DayCount}\nRemaining: {dm.RemainingPhaseTime:F0}s / {dm.CurrentPhaseDuration:F0}s ({dm.PhaseProgress * 100f:F0}%)", badgeStyle);
             }
             else
             {
-                GUILayout.Label("ไม่พบ DayNightManager ในฉาก", EditorStylesMini());
+                GUILayout.Label("DayNightManager not found", EditorStylesMini());
             }
 
             GUILayout.Space(6);
 
             // 2. Global Game TimeScale Multipliers
             GUI.backgroundColor = Color.white;
-            GUILayout.Label($"ความเร็วทั้งเกม (TimeScale): {Time.timeScale:F1}x [กด T]", EditorStylesBold());
+            GUILayout.Label($"Game Speed (TimeScale): {Time.timeScale:F1}x [T]", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("0x (หยุด)")) { Time.timeScale = 0f; ShowToast("หยุดเวลาชั่วคราว (Pause)"); }
-                if (GUILayout.Button("1x")) { Time.timeScale = 1f; ShowToast("ความเร็วปกติ 1x"); }
-                if (GUILayout.Button("2x")) { Time.timeScale = 2f; ShowToast("เร่งความเร็ว 2x"); }
-                if (GUILayout.Button("5x")) { Time.timeScale = 5f; ShowToast("เร่งความเร็ว 5x"); }
-                if (GUILayout.Button("10x")) { Time.timeScale = 10f; ShowToast("เร่งความเร็วสูงสุด 10x"); }
+                if (GUILayout.Button("0x (Pause)")) { Time.timeScale = 0f; ShowToast("Paused (0x)"); }
+                if (GUILayout.Button("1x")) { Time.timeScale = 1f; ShowToast("Normal Speed (1x)"); }
+                if (GUILayout.Button("2x")) { Time.timeScale = 2f; ShowToast("Speed 2x"); }
+                if (GUILayout.Button("5x")) { Time.timeScale = 5f; ShowToast("Speed 5x"); }
+                if (GUILayout.Button("10x")) { Time.timeScale = 10f; ShowToast("Max Speed 10x"); }
             }
             GUILayout.EndHorizontal();
 
@@ -549,51 +549,51 @@ namespace TheLastEmpire
             GUILayout.Space(6);
 
             // 3. Fast-Forward Time (+Seconds)
-            GUILayout.Label("เร่งเวลานาฬิกา Day-Night (+วินาที)", EditorStylesBold());
+            GUILayout.Label("Fast-Forward Day/Night Clock", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("+5s")) { DayNightManager.Instance?.FastForward(5f); ShowToast("+5 วินาที"); }
-                if (GUILayout.Button("+15s")) { DayNightManager.Instance?.FastForward(15f); ShowToast("+15 วินาที"); }
-                if (GUILayout.Button("+30s")) { DayNightManager.Instance?.FastForward(30f); ShowToast("+30 วินาที"); }
-                if (GUILayout.Button("+60s")) { DayNightManager.Instance?.FastForward(60f); ShowToast("+60 วินาที"); }
+                if (GUILayout.Button("+5s")) { DayNightManager.Instance?.FastForward(5f); ShowToast("+5s"); }
+                if (GUILayout.Button("+15s")) { DayNightManager.Instance?.FastForward(15f); ShowToast("+15s"); }
+                if (GUILayout.Button("+30s")) { DayNightManager.Instance?.FastForward(30f); ShowToast("+30s"); }
+                if (GUILayout.Button("+60s")) { DayNightManager.Instance?.FastForward(60f); ShowToast("+60s"); }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
 
             // 4. Instant Phase Jump Buttons
-            GUILayout.Label("เปลี่ยนช่วงเวลาทันที [กด N]", EditorStylesBold());
+            GUILayout.Label("Set Phase Immediately [N]", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
                 GUI.backgroundColor = new Color(1f, 0.85f, 0.2f);
-                if (GUILayout.Button("DAY (กลางวัน)", GUILayout.Height(30)))
+                if (GUILayout.Button("DAY", GUILayout.Height(30)))
                 {
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Day, true);
-                    ShowToast("สลับเป็นช่วง กลางวัน (Day)");
+                    ShowToast("Switched to DAY");
                 }
 
                 GUI.backgroundColor = new Color(1f, 0.55f, 0.2f);
-                if (GUILayout.Button("DUSK (เย็น)", GUILayout.Height(30)))
+                if (GUILayout.Button("DUSK", GUILayout.Height(30)))
                 {
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Dusk, true);
-                    ShowToast("สลับเป็นช่วง พลบค่ำ (Dusk) - แสงอาทิตย์อัสดง & ละอองทอง");
+                    ShowToast("Switched to DUSK");
                 }
 
                 GUI.backgroundColor = new Color(0.2f, 0.5f, 0.9f);
-                if (GUILayout.Button("NIGHT (กลางคืน)", GUILayout.Height(30)))
+                if (GUILayout.Button("NIGHT", GUILayout.Height(30)))
                 {
                     if (NightDarknessController.Instance != null)
                     {
                         NightDarknessController.Instance.DisableDarknessOverlay = false;
                     }
                     DayNightManager.Instance?.SetPhase(DayNightManager.TimePhase.Night, true);
-                    ShowToast("สลับเป็นช่วง กลางคืน (Night) - แสงเก่า: พื้นมืด & ไฟฉาย ON");
+                    ShowToast("Switched to NIGHT");
                 }
             }
             GUILayout.EndHorizontal();
 
             GUI.backgroundColor = new Color(0.2f, 0.7f, 0.4f);
-            if (GUILayout.Button("ข้ามไปช่วงถัดไป (Next Phase) [กด N]", GUILayout.Height(28)))
+            if (GUILayout.Button("Next Phase [N]", GUILayout.Height(28)))
             {
                 SkipToNextPhase();
             }
@@ -602,36 +602,36 @@ namespace TheLastEmpire
 
             // 5. Day Navigation Controls
             GUI.backgroundColor = Color.white;
-            GUILayout.Label("ควบคุมวันที่ (Day Count)", EditorStylesBold());
+            GUILayout.Label("Day Count Controls", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("◀ วันก่อนหน้า")) { DayNightManager.Instance?.AddDays(-1); ShowToast($"วันที่ {DayNightManager.Instance?.DayCount}"); }
-                if (GUILayout.Button("วันถัดไป ▶")) { DayNightManager.Instance?.AddDays(1); ShowToast($"วันที่ {DayNightManager.Instance?.DayCount}"); }
-                if (GUILayout.Button("รีเซ็ตเป็นวันที่ 1")) { DayNightManager.Instance?.ResetDayCount(); ShowToast("รีเซ็ตเป็นวันที่ 1"); }
+                if (GUILayout.Button("< Prev Day")) { DayNightManager.Instance?.AddDays(-1); ShowToast($"Day {DayNightManager.Instance?.DayCount}"); }
+                if (GUILayout.Button("Next Day >")) { DayNightManager.Instance?.AddDays(1); ShowToast($"Day {DayNightManager.Instance?.DayCount}"); }
+                if (GUILayout.Button("Reset Day 1")) { DayNightManager.Instance?.ResetDayCount(); ShowToast("Reset to Day 1"); }
             }
             GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
 
             // 6. Light & Darkness Cheats
-            GUILayout.Label("ไฟฉาย & แสงสว่าง", EditorStylesBold());
+            GUILayout.Label("Flashlight & Darkness", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
                 bool lightOn = NightDarknessController.Instance != null && NightDarknessController.Instance.HasTorchLight;
                 GUI.backgroundColor = lightOn ? new Color(0.2f, 0.8f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
-                if (GUILayout.Button($"ไฟฉาย: {(lightOn ? "เปิด [ON]" : "ปิด [OFF]")} [L/F]"))
+                if (GUILayout.Button($"Flashlight: {(lightOn ? "ON" : "OFF")} [L/F]"))
                 {
                     TogglePlayerLight();
                 }
 
                 bool darkDisabled = NightDarknessController.Instance != null && NightDarknessController.Instance.DisableDarknessOverlay;
                 GUI.backgroundColor = darkDisabled ? new Color(0.9f, 0.3f, 0.3f) : new Color(0.2f, 0.8f, 0.3f);
-                if (GUILayout.Button($"Darkness Mask: {(darkDisabled ? "ซ่อนอยู่ [คลิกเพื่อเปิด]" : "เปิดใช้งาน [ON]")}"))
+                if (GUILayout.Button($"Darkness Mask: {(darkDisabled ? "OFF" : "ON")}"))
                 {
                     if (NightDarknessController.Instance != null)
                     {
                         NightDarknessController.Instance.DisableDarknessOverlay = !NightDarknessController.Instance.DisableDarknessOverlay;
-                        ShowToast($"Darkness Mask: {(NightDarknessController.Instance.DisableDarknessOverlay ? "ซ่อนความมืด" : "เปิดความมืด 90%")}");
+                        ShowToast($"Darkness Mask: {(NightDarknessController.Instance.DisableDarknessOverlay ? "OFF" : "ON")}");
                     }
                 }
             }
@@ -642,7 +642,7 @@ namespace TheLastEmpire
                 var ctrl = NightDarknessController.Instance;
                 GUILayout.Space(4);
                 GUI.backgroundColor = Color.white;
-                GUILayout.Label($"ระดับความมืด (Darkness): {ctrl.maxDarkness * 100f:F0}%", EditorStylesBold());
+                GUILayout.Label($"Darkness Level: {ctrl.maxDarkness * 100f:F0}%", EditorStylesBold());
                 float newDark = GUILayout.HorizontalSlider(ctrl.maxDarkness, 0.4f, 0.98f);
                 if (Mathf.Abs(newDark - ctrl.maxDarkness) > 0.01f)
                 {
@@ -651,19 +651,19 @@ namespace TheLastEmpire
             }
 
             GUILayout.Space(6);
-            GUILayout.Label("บรรยากาศ & หมอกแสง (Fog & God Rays)", EditorStylesBold());
+            GUILayout.Label("Atmosphere (Fog & God Rays)", EditorStylesBold());
             GUILayout.BeginHorizontal();
             {
                 bool fogOn = RenderSettings.fog;
                 GUI.backgroundColor = fogOn ? new Color(0.2f, 0.8f, 0.4f) : new Color(0.6f, 0.6f, 0.6f);
-                if (GUILayout.Button($"หมอกบรรยากาศ (Fog): {(fogOn ? "เปิด [ON]" : "ปิด [OFF]")}"))
+                if (GUILayout.Button($"Fog: {(fogOn ? "ON" : "OFF")}"))
                 {
                     RenderSettings.fog = !RenderSettings.fog;
-                    ShowToast($"หมอกบรรยากาศ: {(RenderSettings.fog ? "เปิด" : "ปิด")}");
+                    ShowToast($"Fog: {(RenderSettings.fog ? "ON" : "OFF")}");
                 }
 
                 GUI.backgroundColor = new Color(0.9f, 0.7f, 0.2f);
-                if (GUILayout.Button("รีเซ็ตบรรยากาศ PM 2.5"))
+                if (GUILayout.Button("Reset Atmosphere"))
                 {
                     if (AtmosphericLightingController.Instance != null)
                     {
@@ -671,7 +671,7 @@ namespace TheLastEmpire
                         AtmosphericLightingController.Instance.DestroyLegacyGodRayContainers();
                         AtmosphericLightingController.Instance.SetupDustMotes();
                     }
-                    ShowToast("รีเซ็ตบรรยากาศหมอกควัน Bangkok PM 2.5 สำเร็จ");
+                    ShowToast("Reset atmosphere lighting & dust motes");
                 }
             }
             GUILayout.EndHorizontal();
@@ -689,7 +689,7 @@ namespace TheLastEmpire
                     count++;
                 }
             }
-            ShowToast(count > 0 ? $"สั่ง Boss {count} ตัวเข้าสู่ Rage Mode สำเร็จ!" : "ไม่พบบอสในฉาก");
+            ShowToast(count > 0 ? $"Triggered Rage Mode on {count} Bosses!" : "No Boss found in stage");
         }
 
         private int CountActiveBosses()
@@ -747,7 +747,7 @@ namespace TheLastEmpire
                 CraftingDatabase.IsFreeCraft = !CraftingDatabase.IsFreeCraft;
             }
             bool isFree = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
-            ShowToast(isFree ? "🔨 โหมด Free Craft: เปิด [ON] (คราฟต์ฟรี ไม่ต้องมีวัตถุดิบ)" : "🔨 โหมด Free Craft: ปิด [OFF] (ใช้วัตถุดิบตามปกติ)");
+            ShowToast(isFree ? "Free Craft: ON (No materials required)" : "Free Craft: OFF (Normal materials)");
         }
 
         private void ToggleFreeShopMode()
@@ -755,8 +755,8 @@ namespace TheLastEmpire
             bool next = !ShopUI.GlobalFreeShop;
             ShopUI.SetGlobalFreeShop(next);
             ShowToast(next
-                ? "🛒 โหมด Free Shop (Is Free): เปิด [ON] (ซื้อของทุกร้าน $0)"
-                : "🛒 โหมด Free Shop (Is Free): ปิด [OFF] (ราคาปกติ)");
+                ? "Free Shop ($0): ON"
+                : "Free Shop: OFF (Normal prices)");
         }
 
         private void ToggleUnlockLegendaryArtifactCraft()
@@ -768,8 +768,8 @@ namespace TheLastEmpire
                 CraftController.Instance.RefreshRecipesFromDatabase();
             }
             ShowToast(next
-                ? "★ Unlock Legend Artifact Craft: เปิด [ON] (โชว์ Legend Artifact ทุกชิ้นในหน้าคราฟต์)"
-                : "★ Unlock Legend Artifact Craft: ปิด [OFF] (คราฟต์ได้เฉพาะ Common / Rare)");
+                ? "Unlock Legend Artifact Craft: ON"
+                : "Unlock Legend Artifact Craft: OFF");
         }
 
         private void DrawCraftCheatTab()
@@ -781,13 +781,13 @@ namespace TheLastEmpire
                 alignment = TextAnchor.MiddleCenter
             };
             titleStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUILayout.Label("🔨 โหมดฟรี: คราฟต์ & ร้านค้า", titleStyle);
+            GUILayout.Label("CRAFT & SHOP CHEATS", titleStyle);
             GUILayout.Space(8);
 
-            // 1. Free Craft Toggle (ย้ายจาก F8 มาอยู่ใน F1)
+            // 1. Free Craft Toggle
             bool isFreeCraft = (CraftController.Instance != null && CraftController.Instance.FreeCraftMode) || CraftingDatabase.IsFreeCraft;
             GUI.backgroundColor = isFreeCraft ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
-            string craftBtnText = isFreeCraft ? "★ Free Craft (คราฟต์ฟรี): [เปิด / ON]" : "Free Craft (คราฟต์ฟรี): [ปิด / OFF]";
+            string craftBtnText = isFreeCraft ? "Free Craft: [ON]" : "Free Craft: [OFF]";
             if (GUILayout.Button(craftBtnText, GUILayout.Height(40)))
             {
                 ToggleFreeCraftMode();
@@ -795,15 +795,15 @@ namespace TheLastEmpire
 
             GUI.backgroundColor = Color.white;
             GUILayout.Label(isFreeCraft
-                ? "• คราฟต์ได้ทุกสูตรทันที ไม่ต้องใช้วัตถุดิบและไม่หักของ"
-                : "• โหมดปกติ: ต้องใช้วัตถุดิบตามสูตรคราฟต์", EditorStylesMini());
+                ? "• Craft any recipe immediately without materials"
+                : "• Normal mode: requires recipe materials", EditorStylesMini());
 
             GUILayout.Space(10);
 
             // 2. Free Shop (Is Free) Toggle
             bool isFreeShop = ShopUI.GlobalFreeShop;
             GUI.backgroundColor = isFreeShop ? new Color(0.2f, 0.9f, 0.3f) : new Color(0.85f, 0.3f, 0.3f);
-            string shopBtnText = isFreeShop ? "★ Free Shop (Is Free $0): [เปิด / ON]" : "Free Shop (Is Free $0): [ปิด / OFF]";
+            string shopBtnText = isFreeShop ? "Free Shop ($0): [ON]" : "Free Shop ($0): [OFF]";
             if (GUILayout.Button(shopBtnText, GUILayout.Height(40)))
             {
                 ToggleFreeShopMode();
@@ -811,8 +811,8 @@ namespace TheLastEmpire
 
             GUI.backgroundColor = Color.white;
             GUILayout.Label(isFreeShop
-                ? "• ซื้อสินค้าจาก NPC ทุกร้านฟรี ($0) ทันที"
-                : "• โหมดปกติ: ซื้อสินค้าตามราคาปกติของ NPC", EditorStylesMini());
+                ? "• Buy any item from NPC shops for $0"
+                : "• Normal mode: standard NPC prices", EditorStylesMini());
 
             GUILayout.Space(10);
 
@@ -820,8 +820,8 @@ namespace TheLastEmpire
             bool isUnlockLegend = CraftingDatabase.UnlockLegendaryArtifactCraft;
             GUI.backgroundColor = isUnlockLegend ? new Color(1f, 0.72f, 0.1f) : new Color(0.85f, 0.3f, 0.3f);
             string legendBtnText = isUnlockLegend
-                ? "★ Unlock Legend Artifact Craft: [เปิด / ON]"
-                : "Unlock Legend Artifact Craft: [ปิด / OFF]";
+                ? "Unlock Legend Artifact Craft: [ON]"
+                : "Unlock Legend Artifact Craft: [OFF]";
             if (GUILayout.Button(legendBtnText, GUILayout.Height(40)))
             {
                 ToggleUnlockLegendaryArtifactCraft();
@@ -829,12 +829,12 @@ namespace TheLastEmpire
 
             GUI.backgroundColor = Color.white;
             GUILayout.Label(isUnlockLegend
-                ? "• โชว์และคราฟต์ Legend Artifact ทุกชิ้นในแท็บ Artifact (ขึ้นหน้าแรก)"
-                : "• โหมดปกติ: คราฟต์ได้เฉพาะ Common / Rare (Legend ดรอปจากบอส)", EditorStylesMini());
+                ? "• Shows all Legendary Artifacts at top of Artifact tab"
+                : "• Normal mode: Common & Rare only (Legend drops from Boss)", EditorStylesMini());
 
             GUILayout.Space(14);
             GUI.backgroundColor = new Color(1f, 0.8f, 0.2f);
-            if (GUILayout.Button("เปิด/ปิด หน้าต่างคราฟต์ [C]", GUILayout.Height(32)))
+            if (GUILayout.Button("Toggle Craft Menu [C]", GUILayout.Height(32)))
             {
                 if (CraftController.Instance != null)
                 {

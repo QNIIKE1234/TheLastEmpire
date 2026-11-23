@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ITEM0002_Ammo
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: Ammo
-  description: "กล่องกระสุนสุ่ม — เก็บแล้วสุ่มรับกระสุนปืนชนิดใดก็ได้ 30% ของแม็กกาซีนต่อกล่อง"
+  description: "Mystery ammo box. Grants random weapon ammo equal to 30% of magazine size (or 1-5 Crossbow Bolts)."
   icon: {fileID: 21300002, guid: 1a0d3e65f356b4c45a47efb79d0d6895, type: 3}
   type: 1
   restorationValue: 0
