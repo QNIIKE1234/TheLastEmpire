@@ -46,7 +46,7 @@ namespace TheLastEmpire
             }
         }
 
-        private static Material GetOrCreateFlameMaterial()
+        public static Material GetOrCreateFlameMaterial()
         {
             if (_sharedFlameMaterial != null) return _sharedFlameMaterial;
 

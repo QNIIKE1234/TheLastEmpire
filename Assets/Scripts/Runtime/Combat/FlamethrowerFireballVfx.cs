@@ -19,6 +19,24 @@ namespace TheLastEmpire
         private Transform _coreSphere;
         private bool _configured = false;
 
+        private static Material _sharedCoreMaterial;
+
+        private static Material GetOrCreateCoreMaterial()
+        {
+            if (_sharedCoreMaterial != null) return _sharedCoreMaterial;
+            Shader s = Shader.Find("Universal Render Pipeline/Unlit");
+            if (s == null) s = Shader.Find("Sprites/Default");
+            if (s == null) s = Shader.Find("Unlit/Color");
+            if (s != null)
+            {
+                _sharedCoreMaterial = new Material(s);
+                Color coreColor = new Color(1f, 0.62f, 0.10f, 1f);
+                _sharedCoreMaterial.color = coreColor;
+                if (_sharedCoreMaterial.HasProperty("_BaseColor")) _sharedCoreMaterial.SetColor("_BaseColor", coreColor);
+            }
+            return _sharedCoreMaterial;
+        }
+
         private void Awake()
         {
             EnsureConfigured();
@@ -60,20 +78,17 @@ namespace TheLastEmpire
                     else DestroyImmediate(col);
                 }
 
-                Renderer r = sphere.GetComponent<Renderer>();
+                _coreSphere = sphere.transform;
+            }
+
+            if (_coreSphere != null)
+            {
+                Renderer r = _coreSphere.GetComponent<Renderer>();
                 if (r != null)
                 {
-                    Shader s = Shader.Find("Universal Render Pipeline/Unlit");
-                    if (s == null) s = Shader.Find("Unlit/Color");
-                    if (s != null)
-                    {
-                        Material mat = new Material(s);
-                        mat.color = new Color(1f, 0.55f, 0.08f, 1f);
-                        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", new Color(1f, 0.55f, 0.08f, 1f));
-                        r.sharedMaterial = mat;
-                    }
+                    Material coreMat = GetOrCreateCoreMaterial();
+                    if (coreMat != null) r.sharedMaterial = coreMat;
                 }
-                _coreSphere = sphere.transform;
             }
 
             _trailPs = GetComponent<ParticleSystem>();
@@ -126,6 +141,26 @@ namespace TheLastEmpire
             sc.AddKey(0f, 1.0f);
             sc.AddKey(1f, 0.15f);
             sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, sc);
+
+            // ตั้ง Material เปลวไฟทรงกลมฟุ้ง (Sprites/Default) เพื่อไม่ให้ Particle เป็นสีชมพู (Missing Material) ใน URP
+            ParticleSystemRenderer psRenderer = GetComponent<ParticleSystemRenderer>();
+            if (psRenderer != null)
+            {
+                psRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                psRenderer.sortingOrder = 14;
+                Material flameMat = FlamethrowerConeVfx.GetOrCreateFlameMaterial();
+                if (flameMat != null)
+                {
+                    psRenderer.sharedMaterial = flameMat;
+                }
+            }
+
+            TrailRenderer tr = GetComponent<TrailRenderer>();
+            if (tr != null && tr.sharedMaterial == null)
+            {
+                Shader trailShader = Shader.Find("Sprites/Default");
+                if (trailShader != null) tr.sharedMaterial = new Material(trailShader);
+            }
 
             _fireLight = GetComponentInChildren<Light>(true);
             if (_fireLight == null)
