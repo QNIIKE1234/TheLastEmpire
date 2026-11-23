@@ -17,9 +17,19 @@ namespace TheLastEmpire
         Artifact
     }
 
+    public enum ArtifactRarity
+    {
+        Common,
+        Rare,
+        Epic,
+        Legendary
+    }
+
     [System.Serializable]
     public class ArtifactModConfig
     {
+        [Header("Classification")]
+        public ArtifactRarity rarity = ArtifactRarity.Common;
         [Tooltip("รายชื่ออาวุธที่ใส่ Artifact ชิ้นนี้ได้ (เว้นว่าง = ใส่ได้กับทุกอาวุธ) เช่น Sniper Rifle, Shotgun")]
         public System.Collections.Generic.List<string> compatibleWeaponNames = new System.Collections.Generic.List<string>();
 
@@ -31,7 +41,7 @@ namespace TheLastEmpire
         public int bonusPelletsPerShot = 0;
         [Tooltip("มุมกระจายเพิ่มเมื่อยิงหลายลูกพร้อมกัน (องศา)")]
         public float extraSpreadAngle = 0f;
-        [Tooltip("ความเร็วการยิงเพิ่ม เช่น 0.20 = ยิงไวขึ้น 20%")]
+        [Tooltip("ความเร็วการยิง/ฟันเพิ่ม เช่น 0.20 = ไวขึ้น 20%")]
         public float fireRateMultiplier = 0f;
         public int bonusMagazineSize = 0;
         [Tooltip("ความเร็วรีโหลดเพิ่ม เช่น 0.25 = รีโหลดไวขึ้น 25%")]
@@ -39,6 +49,20 @@ namespace TheLastEmpire
         public float bonusRange = 0f;
         public bool grantPierce = false;
         public bool grantAutomatic = false;
+
+        [Header("Advanced Combat Modifiers")]
+        [Tooltip("เพิ่มโอกาสคริติคอล เช่น 0.20 = +20%")]
+        public float bonusCritChance = 0f;
+        [Tooltip("เพิ่มตัวคูณคริติคอล เช่น 0.50 = +0.5x")]
+        public float bonusCritMultiplier = 0f;
+        public float bonusKnockback = 0f;
+        public float bonusStagger = 0f;
+        [Tooltip("ดูดเลือดคืนเมื่อโจมตีโดน (HP ต่อครั้ง)")]
+        public float lifestealOnHit = 0f;
+        [Tooltip("โอกาสไม่เสียกระสุนเมื่อยิง (0.0 - 0.85)")]
+        public float ammoSaveChance = 0f;
+        [Tooltip("ยิงซ้ำอัตโนมัติหลังกดยิง 1 ครั้ง เช่น 1 = กดยิง 1 ทีออก 2 ที (Echo Burst)")]
+        public int bonusBurstShots = 0;
 
         [Header("Display")]
         [Tooltip("ข้อความสรุปสั้นๆ (เว้นว่างให้สร้างอัตโนมัติจากค่าสถานะด้านบน)")]

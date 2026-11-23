@@ -20,6 +20,13 @@ namespace TheLastEmpire
         public float bonusRange;
         public bool grantPierce;
         public bool grantAutomatic;
+        public float bonusCritChance;
+        public float bonusCritMultiplier;
+        public float bonusKnockback;
+        public float bonusStagger;
+        public float lifestealOnHit;
+        public float ammoSaveChance;
+        public int bonusBurstShots;
         public int equippedCount;
 
         public bool HasAnyEffect =>
@@ -27,10 +34,15 @@ namespace TheLastEmpire
             Mathf.Abs(bonusDamage) > 0.001f ||
             Mathf.Abs(damageMultiplier) > 0.001f ||
             bonusPellets != 0 ||
+            bonusBurstShots > 0 ||
             Mathf.Abs(fireRateMultiplier) > 0.001f ||
             bonusMagazineSize != 0 ||
             Mathf.Abs(reloadSpeedMultiplier) > 0.001f ||
             Mathf.Abs(bonusRange) > 0.001f ||
+            Mathf.Abs(bonusCritChance) > 0.001f ||
+            Mathf.Abs(bonusCritMultiplier) > 0.001f ||
+            Mathf.Abs(lifestealOnHit) > 0.001f ||
+            Mathf.Abs(ammoSaveChance) > 0.001f ||
             grantPierce ||
             grantAutomatic;
     }
@@ -42,11 +54,93 @@ namespace TheLastEmpire
     public static class WeaponArtifactManager
     {
         public const int MaxArtifactSlots = 4;
+        public const int MaxCommonPerWeapon = 4;    // Common ใส่ได้ 0-4 ใบ
+        public const int MaxRarePerWeapon = 2;      // Rare ใส่ได้สูงสุด 2 ใบ (1-2 ใบ)
+        public const int MaxLegendaryPerWeapon = 1; // Legendary ใส่ได้ 1 ใบเท่านั้น
 
         // key: normalized weaponName (lowercase trimmed) -> string[4] (ชื่อไอเทม Artifact ในแต่ละช่อง)
         private static readonly Dictionary<string, string[]> _equippedByWeapon = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
 
         public static event Action<string> OnWeaponArtifactsChanged;
+
+        public static int GetMaxEquipCountForRarity(ArtifactRarity rarity)
+        {
+            switch (rarity)
+            {
+                case ArtifactRarity.Common:
+                    return MaxCommonPerWeapon;
+                case ArtifactRarity.Rare:
+                    return MaxRarePerWeapon;
+                case ArtifactRarity.Epic:
+                    return MaxRarePerWeapon;
+                case ArtifactRarity.Legendary:
+                    return MaxLegendaryPerWeapon;
+                default:
+                    return MaxArtifactSlots;
+            }
+        }
+
+        public static ArtifactRarity GetArtifactRarity(string artifactItemName)
+        {
+            if (string.IsNullOrWhiteSpace(artifactItemName) || ItemDatabase.Instance == null)
+            {
+                return ArtifactRarity.Common;
+            }
+
+            ItemData data = ItemDatabase.Instance.GetItemByName(artifactItemName);
+            if (data == null || data.artifactConfig == null)
+            {
+                return ArtifactRarity.Common;
+            }
+
+            return data.artifactConfig.rarity;
+        }
+
+        public static int CountEquippedByRarity(string weaponName, ArtifactRarity rarity, int ignoreSlotIndex = -1)
+        {
+            string[] slots = GetEquippedSlots(weaponName);
+            int count = 0;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (i == ignoreSlotIndex) continue;
+                if (string.IsNullOrEmpty(slots[i])) continue;
+                if (GetArtifactRarity(slots[i]) == rarity) count++;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// ตรวจสอบเงื่อนไขจำนวนสูงสุดตามระดับความหายากต่อ 1 อาวุธ:
+        /// Common สูงสุด 4 ใบ, Rare สูงสุด 2 ใบ, Legendary สูงสุด 1 ใบเท่านั้น
+        /// (หากเป็นการลากวางทับช่องที่มี Artifact เดิมอยู่ จะไม่นับช่องที่กำลังจะถูกแทนที่)
+        /// </summary>
+        public static bool CanEquipRarityLimit(string weaponName, string artifactItemName, int targetSlotIndex, out string failReason)
+        {
+            failReason = string.Empty;
+            ArtifactRarity rarity = GetArtifactRarity(artifactItemName);
+            int maxAllowed = GetMaxEquipCountForRarity(rarity);
+            int ignoreSlot = (targetSlotIndex >= 0 && targetSlotIndex < MaxArtifactSlots) ? targetSlotIndex : -1;
+            int currentCount = CountEquippedByRarity(weaponName, rarity, ignoreSlot);
+
+            if (currentCount >= maxAllowed)
+            {
+                if (rarity == ArtifactRarity.Legendary)
+                {
+                    failReason = "LEGENDARY MAX 1!";
+                }
+                else if (rarity == ArtifactRarity.Rare)
+                {
+                    failReason = "RARE MAX 2!";
+                }
+                else
+                {
+                    failReason = $"{rarity.ToString().ToUpperInvariant()} MAX {maxAllowed}!";
+                }
+                return false;
+            }
+
+            return true;
+        }
 
         private static string NormalizeWeaponKey(string weaponName)
         {
@@ -185,6 +279,12 @@ namespace TheLastEmpire
                 }
             }
 
+            // ตรวจสอบข้อจำกัดระดับความหายากต่ออาวุธ (Common 0-4, Rare สูงสุด 2, Legendary สูงสุด 1)
+            if (!CanEquipRarityLimit(weaponName, artifactItemName, targetSlot, out failReason))
+            {
+                return false;
+            }
+
             string existing = slots[targetSlot];
 
             // หัก Artifact ใหม่ออกจากกระเป๋าก่อน (เผื่อการหักจะเปิดช่องว่างสำหรับรับอันเก่ากลับเข้ากระเป๋า)
@@ -312,6 +412,13 @@ namespace TheLastEmpire
                 mods.bonusMagazineSize += cfg.bonusMagazineSize;
                 mods.reloadSpeedMultiplier += cfg.reloadSpeedMultiplier;
                 mods.bonusRange += cfg.bonusRange;
+                mods.bonusCritChance += cfg.bonusCritChance;
+                mods.bonusCritMultiplier += cfg.bonusCritMultiplier;
+                mods.bonusKnockback += cfg.bonusKnockback;
+                mods.bonusStagger += cfg.bonusStagger;
+                mods.lifestealOnHit += cfg.lifestealOnHit;
+                mods.ammoSaveChance = Mathf.Clamp(mods.ammoSaveChance + cfg.ammoSaveChance, 0f, 0.85f);
+                mods.bonusBurstShots += Mathf.Max(0, cfg.bonusBurstShots);
                 if (cfg.grantPierce) mods.grantPierce = true;
                 if (cfg.grantAutomatic) mods.grantAutomatic = true;
             }
@@ -350,6 +457,7 @@ namespace TheLastEmpire
 
                     sb.Append(isAuto ? " | Full Auto" : " | Semi Auto");
                     if (pellets > 1) sb.Append($" | Shots x{pellets}");
+                    if (mods.bonusBurstShots > 0) sb.Append($" | Burst x{1 + mods.bonusBurstShots}");
                     if (mag > 0) sb.Append($" | Mag {mag}");
                     if (canPierce) sb.Append(" | Pierce");
                 }
@@ -365,6 +473,12 @@ namespace TheLastEmpire
                 }
             }
 
+            // โควตาระดับความหายากต่ออาวุธ (Common 0-4, Rare 0-2, Legendary 0-1)
+            int commonCnt = CountEquippedByRarity(weaponName, ArtifactRarity.Common);
+            int rareCnt = CountEquippedByRarity(weaponName, ArtifactRarity.Rare);
+            int legendCnt = CountEquippedByRarity(weaponName, ArtifactRarity.Legendary);
+            sb.Append($"\nLimit: Common {commonCnt}/{MaxCommonPerWeapon} | Rare {rareCnt}/{MaxRarePerWeapon} | Legendary {legendCnt}/{MaxLegendaryPerWeapon}");
+
             // รายชื่อ Artifact ที่ใส่อยู่
             string[] slots = GetEquippedSlots(weaponName);
             List<string> activeEffects = new List<string>();
@@ -372,8 +486,9 @@ namespace TheLastEmpire
             {
                 if (string.IsNullOrEmpty(slots[i])) continue;
                 ItemData art = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(slots[i]) : null;
+                ArtifactRarity rarity = GetArtifactRarity(slots[i]);
                 string summary = art != null ? BuildSingleArtifactSummary(art) : slots[i];
-                activeEffects.Add($"[A{i + 1}] {slots[i]}: {summary}");
+                activeEffects.Add($"[A{i + 1}][{rarity}] {slots[i]}: {summary}");
             }
 
             if (activeEffects.Count > 0)
@@ -409,6 +524,11 @@ namespace TheLastEmpire
                 if (cfg.bonusMagazineSize != 0) parts.Add($"MAG +{cfg.bonusMagazineSize}");
                 if (cfg.reloadSpeedMultiplier != 0f) parts.Add($"RLD +{(cfg.reloadSpeedMultiplier * 100f):F0}%");
                 if (cfg.bonusRange != 0f) parts.Add($"RNG +{cfg.bonusRange:F1}");
+                if (cfg.bonusCritChance != 0f) parts.Add($"CRIT +{(cfg.bonusCritChance * 100f):F0}%");
+                if (cfg.bonusCritMultiplier != 0f) parts.Add($"CDMG +{(cfg.bonusCritMultiplier * 100f):F0}%");
+                if (cfg.lifestealOnHit > 0f) parts.Add($"LEECH +{cfg.lifestealOnHit:F1}HP");
+                if (cfg.ammoSaveChance > 0f) parts.Add($"SAVE {(cfg.ammoSaveChance * 100f):F0}%");
+                if (cfg.bonusBurstShots > 0) parts.Add($"BURST x{1 + cfg.bonusBurstShots}");
                 if (cfg.grantPierce) parts.Add("Pierce");
                 if (cfg.grantAutomatic) parts.Add("Auto");
             }

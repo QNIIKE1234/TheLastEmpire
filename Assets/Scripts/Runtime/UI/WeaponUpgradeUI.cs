@@ -555,8 +555,22 @@ namespace TheLastEmpire
                     InventorySlot artSlot = displayList[dataIdx];
                     string artName = artSlot.itemName;
                     Sprite icon = ResolveItemIcon(artName);
-                    bool canEquip = !string.IsNullOrEmpty(currentWeapon) &&
-                                    WeaponArtifactManager.GetFirstEmptySlotIndex(currentWeapon) >= 0;
+                    int firstEmpty = !string.IsNullOrEmpty(currentWeapon)
+                        ? WeaponArtifactManager.GetFirstEmptySlotIndex(currentWeapon)
+                        : -1;
+                    bool rarityAllowed = !string.IsNullOrEmpty(currentWeapon) &&
+                        WeaponArtifactManager.CanEquipRarityLimit(currentWeapon, artName, firstEmpty, out string rarityLimitReason);
+
+                    string btnLabel = "EQUIP";
+                    if (firstEmpty < 0)
+                    {
+                        btnLabel = "FULL";
+                    }
+                    else if (!rarityAllowed)
+                    {
+                        ArtifactRarity r = WeaponArtifactManager.GetArtifactRarity(artName);
+                        btnLabel = r == ArtifactRarity.Legendary ? "MAX 1" : (r == ArtifactRarity.Rare ? "MAX 2" : "LIMIT");
+                    }
 
                     _slotArtifactMap[uiSlot] = artName;
                     uiSlot.gameObject.SetActive(true);
@@ -565,8 +579,8 @@ namespace TheLastEmpire
                         quantity: artSlot.quantity,
                         icon: icon,
                         isEquipped: false,
-                        onClickUse: canEquip ? (_) => EquipArtifactToSelectedWeapon(artName) : null,
-                        customButtonText: "EQUIP"
+                        onClickUse: !string.IsNullOrEmpty(currentWeapon) ? (_) => EquipArtifactToSelectedWeapon(artName) : null,
+                        customButtonText: btnLabel
                     );
                 }
                 else
@@ -740,15 +754,34 @@ namespace TheLastEmpire
             if (!_isOpen || sourceSlot == null || string.IsNullOrEmpty(SelectedWeaponName)) return false;
             if (!IsArtifactListSlot(sourceSlot)) return false;
 
+            _slotArtifactMap.TryGetValue(sourceSlot, out string draggedArtifact);
+
             int hoverAttachIdx = FindAttachSlotUnderPointer(screenPos, uiCam);
             if (hoverAttachIdx >= 0)
             {
+                if (!string.IsNullOrEmpty(draggedArtifact) &&
+                    !WeaponArtifactManager.CanEquipRarityLimit(SelectedWeaponName, draggedArtifact, hoverAttachIdx, out string limitMsg))
+                {
+                    badgeText = limitMsg;
+                    badgeColor = new Color(1f, 0.32f, 0.32f, 1f);
+                    return true;
+                }
+
                 badgeText = $"EQUIP -> A{hoverAttachIdx + 1}";
                 badgeColor = new Color(0.82f, 0.45f, 1f, 1f);
                 return true;
             }
             if (upgradePanelRect != null && RectTransformUtility.RectangleContainsScreenPoint(upgradePanelRect, screenPos, uiCam))
             {
+                int firstEmpty = WeaponArtifactManager.GetFirstEmptySlotIndex(SelectedWeaponName);
+                if (!string.IsNullOrEmpty(draggedArtifact) &&
+                    !WeaponArtifactManager.CanEquipRarityLimit(SelectedWeaponName, draggedArtifact, firstEmpty, out string limitMsg))
+                {
+                    badgeText = limitMsg;
+                    badgeColor = new Color(1f, 0.32f, 0.32f, 1f);
+                    return true;
+                }
+
                 badgeText = "EQUIP ARTIFACT";
                 badgeColor = new Color(0.82f, 0.45f, 1f, 1f);
                 return true;

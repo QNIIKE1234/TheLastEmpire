@@ -99,7 +99,7 @@ namespace TheLastEmpire
                 }
             }
 
-            // Weapon specific crit / headshot modifiers
+            // Weapon specific crit / headshot modifiers + equipped Artifact crit bonuses
             if (!string.IsNullOrEmpty(weaponName))
             {
                 bool isSniper = weaponName.IndexOf("Sniper", System.StringComparison.OrdinalIgnoreCase) >= 0;
@@ -112,6 +112,10 @@ namespace TheLastEmpire
                     critChance = Mathf.Max(critChance, 0.80f);
                     critMultiplier = Mathf.Max(critMultiplier, 2.0f);
                 }
+
+                WeaponArtifactModifiers artMods = WeaponArtifactManager.GetAggregatedModifiers(weaponName);
+                if (artMods.bonusCritChance != 0f) critChance += artMods.bonusCritChance;
+                if (artMods.bonusCritMultiplier != 0f) critMultiplier += artMods.bonusCritMultiplier;
             }
 
             bool isCrit = guaranteedCrit || (Random.value < critChance);
@@ -150,6 +154,13 @@ namespace TheLastEmpire
             if (isKatana)
             {
                 critMultiplier = 2.0f; // Katana deals 2.0x on crit
+            }
+
+            if (!string.IsNullOrEmpty(weaponName))
+            {
+                WeaponArtifactModifiers artMods = WeaponArtifactManager.GetAggregatedModifiers(weaponName);
+                if (artMods.bonusCritChance != 0f) critChance += artMods.bonusCritChance;
+                if (artMods.bonusCritMultiplier != 0f) critMultiplier += artMods.bonusCritMultiplier;
             }
 
             if (attacker != null)
@@ -197,7 +208,8 @@ namespace TheLastEmpire
             float baseDamage,
             float distanceFromCenter,
             float explosionRadius,
-            GameObject attacker = null)
+            GameObject attacker = null,
+            string weaponName = "")
         {
             if (attacker != null)
             {
@@ -226,11 +238,20 @@ namespace TheLastEmpire
             result.Variance = variance;
             float damageAfterVariance = Mathf.Max(1f, damageAfterFalloff + variance);
 
-            bool isCrit = Random.value < BASE_CRIT_CHANCE;
-            result.IsCritical = isCrit;
-            result.CritMultiplier = isCrit ? BASE_CRIT_MULTIPLIER : 1.0f;
+            float critChance = BASE_CRIT_CHANCE;
+            float critMultiplier = BASE_CRIT_MULTIPLIER;
+            if (!string.IsNullOrEmpty(weaponName))
+            {
+                WeaponArtifactModifiers artMods = WeaponArtifactManager.GetAggregatedModifiers(weaponName);
+                if (artMods.bonusCritChance != 0f) critChance += artMods.bonusCritChance;
+                if (artMods.bonusCritMultiplier != 0f) critMultiplier += artMods.bonusCritMultiplier;
+            }
 
-            float finalDamage = isCrit ? (damageAfterVariance * BASE_CRIT_MULTIPLIER) : damageAfterVariance;
+            bool isCrit = Random.value < critChance;
+            result.IsCritical = isCrit;
+            result.CritMultiplier = isCrit ? critMultiplier : 1.0f;
+
+            float finalDamage = isCrit ? (damageAfterVariance * critMultiplier) : damageAfterVariance;
             result.FinalDamage = Mathf.Max(1f, Mathf.Round(finalDamage));
 
             return result;

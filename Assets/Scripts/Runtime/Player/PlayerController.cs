@@ -2083,7 +2083,7 @@ namespace TheLastEmpire
             OnAmmoChanged?.Invoke();
         }
 
-        private void ShootWeapon()
+        private void ShootWeapon(bool isEchoBurst = false)
         {
             if (_isSitting) SetSitting(false);
             ShowRangedWeaponVisual();
@@ -2094,43 +2094,50 @@ namespace TheLastEmpire
             if (activeWeapon == null) return; // ถ้าไม่ใส่ปืน ห้ามยิง
             int magCount = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
 
-            if (magCount <= 0)
+            if (!isEchoBurst && magCount <= 0)
             {
                 TryStartReload();
                 return;
             }
 
-            // Decrement ammo
-            if (activeWeapon != null)
-            {
-                activeWeapon.currentMagazine--;
-            }
-            else
-            {
-                _currentMagazine--;
-            }
-            OnAmmoChanged?.Invoke();
-
             WeaponArtifactModifiers artifactMods = activeWeapon != null
                 ? WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName)
                 : default;
 
-            // Set cooldown
-            float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
-            if (artifactMods.fireRateMultiplier > 0f)
+            if (!isEchoBurst)
             {
-                rate /= (1f + artifactMods.fireRateMultiplier);
+                // Decrement ammo (Artifact ammoSaveChance มีโอกาสไม่เสียกระสุน)
+                bool savedAmmo = artifactMods.ammoSaveChance > 0f && Random.value < artifactMods.ammoSaveChance;
+                if (!savedAmmo)
+                {
+                    if (activeWeapon != null)
+                    {
+                        activeWeapon.currentMagazine--;
+                    }
+                    else
+                    {
+                        _currentMagazine--;
+                    }
+                }
+                OnAmmoChanged?.Invoke();
+
+                // Set cooldown
+                float rate = activeWeapon != null ? activeWeapon.fireRate : fireRate;
+                if (artifactMods.fireRateMultiplier > 0f)
+                {
+                    rate /= (1f + artifactMods.fireRateMultiplier);
+                }
+                if (_activeShiftAbility != null && _activeShiftAbility.IsActive && _activeShiftAbility is AdrenalineRushAbility)
+                {
+                    float atkBonus = activeCharacterData != null ? activeCharacterData.adrenalineAttackSpeedBonus : 0.30f;
+                    rate /= (1f + atkBonus);
+                }
+                if (activeCharacterData != null && activeCharacterData.rebelFrenzyAttackSpeedBonus > 0f && _health != null && (_health.CurrentHealth / _health.MaxHealth <= activeCharacterData.rebelFrenzyHpThreshold))
+                {
+                    rate /= (1f + activeCharacterData.rebelFrenzyAttackSpeedBonus);
+                }
+                _fireCooldownTimer = rate;
             }
-            if (_activeShiftAbility != null && _activeShiftAbility.IsActive && _activeShiftAbility is AdrenalineRushAbility)
-            {
-                float atkBonus = activeCharacterData != null ? activeCharacterData.adrenalineAttackSpeedBonus : 0.30f;
-                rate /= (1f + atkBonus);
-            }
-            if (activeCharacterData != null && activeCharacterData.rebelFrenzyAttackSpeedBonus > 0f && _health != null && (_health.CurrentHealth / _health.MaxHealth <= activeCharacterData.rebelFrenzyHpThreshold))
-            {
-                rate /= (1f + activeCharacterData.rebelFrenzyAttackSpeedBonus);
-            }
-            _fireCooldownTimer = rate;
 
             // Alert nearby enemies to the gunshot noise
             AlertEnemiesToGunshot();
@@ -2334,6 +2341,7 @@ namespace TheLastEmpire
 
                         string visualId = ResolveProjectileVisualId(activeWeapon);
                         proj.SetStats(finalDamage, weaponRange, effectivePierce, activeWeapon.weaponName, effectiveFalloffDist, visualId);
+                        proj.SetArtifactImpactModifiers(artifactMods.bonusKnockback, artifactMods.bonusStagger, artifactMods.lifestealOnHit);
 
                         if (isRocketLauncher)
                         {
@@ -2362,9 +2370,20 @@ namespace TheLastEmpire
                         Debug.Log($"[ShootWeapon] Fired {activeWeapon.weaponName}! Visual ID: {visualId} | Total Damage: {finalDamage} (Base: {basePlayerDamage} + Weapon: {itemDamage}) | Lifetime: {weaponRange:F2}s | Speed: {proj.Speed} m/s");
                     }
                     
-                    // Pass the aim target point for Arced trajectories
+                    // Pass the aim target point for Arced trajectories (fan out landing points for multi-throw Grenade artifacts)
                     string arcVisualId = activeWeapon != null ? ResolveProjectileVisualId(activeWeapon) : "";
-                    proj.Setup(bulletDir, _aimTargetPoint, gameObject, arcVisualId);
+                    Vector3 shotTargetPoint = _aimTargetPoint;
+                    if (proj.Trajectory == TrajectoryMode.Arced && pellets > 1)
+                    {
+                        float throwDist = Vector3.Distance(new Vector3(spawnPos.x, 0f, spawnPos.z), new Vector3(_aimTargetPoint.x, 0f, _aimTargetPoint.z));
+                        Vector3 flatDir = new Vector3(bulletDir.x, 0f, bulletDir.z);
+                        if (flatDir.sqrMagnitude > 0.001f)
+                        {
+                            flatDir.Normalize();
+                            shotTargetPoint = new Vector3(spawnPos.x + flatDir.x * throwDist, _aimTargetPoint.y, spawnPos.z + flatDir.z * throwDist);
+                        }
+                    }
+                    proj.Setup(bulletDir, shotTargetPoint, gameObject, arcVisualId);
 
                     if (i == 0 && activeWeapon != null)
                     {
@@ -2383,6 +2402,26 @@ namespace TheLastEmpire
                         NotifyNetworkShoot(spawnPos, _aimDirection, _aimTargetPoint, activeWeapon.weaponName, netDmg, netRange, isRocket, pellets, spread, netPierce, arcVisualId);
                     }
                 }
+            }
+
+            // Double-Tap / Echo Burst Artifact: กดยิง 1 ที ยิงซ้ำตามอัตโนมัติ (เช่น Double-Tap Trigger -> ออก 2 ที)
+            if (!isEchoBurst && artifactMods.bonusBurstShots > 0 && activeWeapon != null)
+            {
+                StartCoroutine(FireEchoBurstRoutine(activeWeapon.weaponName, artifactMods.bonusBurstShots, 0.085f));
+            }
+        }
+
+        private System.Collections.IEnumerator FireEchoBurstRoutine(string expectedWeaponName, int extraShots, float delaySeconds)
+        {
+            for (int b = 0; b < extraShots; b++)
+            {
+                yield return new WaitForSeconds(delaySeconds);
+                if (!gameObject.activeInHierarchy || !enabled) yield break;
+                if (_health != null && _health.IsDead) yield break;
+                if (_isReloading) yield break;
+                Weapon cur = CurrentWeapon;
+                if (cur == null || !string.Equals(cur.weaponName, expectedWeaponName, System.StringComparison.OrdinalIgnoreCase)) yield break;
+                ShootWeapon(isEchoBurst: true);
             }
         }
 
@@ -2543,6 +2582,8 @@ namespace TheLastEmpire
                 ? WeaponArtifactManager.GetAggregatedModifiers(wName)
                 : default;
             activeRadius += meleeArtMods.bonusRange;
+            activeKnockback += meleeArtMods.bonusKnockback;
+            activeStagger += meleeArtMods.bonusStagger;
             if (meleeArtMods.fireRateMultiplier > 0f)
             {
                 activeRate /= (1f + meleeArtMods.fireRateMultiplier);
@@ -2666,6 +2707,10 @@ namespace TheLastEmpire
                     bool wasDeadBefore = damageable.IsDead;
                     damageable.TakeDamage(hitDmg, col.transform.position, meleeDmgResult.IsCritical);
                     targetsHit++;
+                    if (meleeArtMods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(meleeArtMods.lifestealOnHit);
+                    }
                     if (!wasDeadBefore && damageable.IsDead && activeCharacterData != null && activeCharacterData.rebelMeleeKillHungerRestore > 0f)
                     {
                         RestoreHunger(activeCharacterData.rebelMeleeKillHungerRestore);
@@ -2684,8 +2729,8 @@ namespace TheLastEmpire
                         pushDir = _aimDirection;
                     }
 
-                    float finalStagger = isSledgehammer ? 0.8f : (isStunBaton ? 0.6f : activeStagger);
-                    float finalKnockback = isSledgehammer ? 20f : activeKnockback;
+                    float finalStagger = (isSledgehammer ? 0.8f + meleeArtMods.bonusStagger : (isStunBaton ? 0.6f + meleeArtMods.bonusStagger : activeStagger));
+                    float finalKnockback = isSledgehammer ? (20f + meleeArtMods.bonusKnockback) : activeKnockback;
                     enemy.ApplyMeleeKnockback(pushDir, finalKnockback, finalStagger);
 
                     // Stun Baton: 30% chance to chain shock surrounding enemies

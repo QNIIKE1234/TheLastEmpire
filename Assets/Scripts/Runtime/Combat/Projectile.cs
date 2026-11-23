@@ -91,6 +91,9 @@ namespace TheLastEmpire
         private bool _canPierce = false;
         private string _weaponName = "";
         private float _maxFalloffDistance = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
+        private float _bonusKnockback = 0f;
+        private float _bonusStagger = 0f;
+        private float _lifestealOnHit = 0f;
         private System.Collections.Generic.List<IDamageable> _hitTargets = new System.Collections.Generic.List<IDamageable>();
 
         public string PoolKey
@@ -272,6 +275,9 @@ namespace TheLastEmpire
             _activeIsExplosive = isExplosive;
             _activeExplosionRadius = explosionRadius;
             _activeExplosionVfxPoolKey = explosionVfxPoolKey;
+            _bonusKnockback = 0f;
+            _bonusStagger = 0f;
+            _lifestealOnHit = 0f;
             if (_trail != null)
             {
                 _trail.startWidth = trailStartWidth;
@@ -283,6 +289,13 @@ namespace TheLastEmpire
                 bulletLight.range = lightRange;
                 bulletLight.intensity = lightIntensity;
             }
+        }
+
+        public void SetArtifactImpactModifiers(float bonusKnockback, float bonusStagger, float lifestealOnHit)
+        {
+            _bonusKnockback = Mathf.Max(0f, bonusKnockback);
+            _bonusStagger = Mathf.Max(0f, bonusStagger);
+            _lifestealOnHit = Mathf.Max(0f, lifestealOnHit);
         }
 
         /// <summary>
@@ -716,6 +729,28 @@ namespace TheLastEmpire
                     );
 
                     damageable.TakeDamage(dmgResult.FinalDamage, exactHitPoint, dmgResult.IsCritical);
+
+                    if (_bonusKnockback > 0.01f || _bonusStagger > 0.01f)
+                    {
+                        BaseEnemyAI hitEnemy = collision.GetComponent<BaseEnemyAI>();
+                        if (hitEnemy != null)
+                        {
+                            Vector3 pushDir = transform.forward;
+                            pushDir.y = 0f;
+                            if (pushDir.sqrMagnitude < 0.01f) pushDir = (hitEnemy.transform.position - transform.position);
+                            pushDir.y = 0f;
+                            hitEnemy.ApplyMeleeKnockback(pushDir.normalized, _bonusKnockback, _bonusStagger);
+                        }
+                    }
+
+                    if (_lifestealOnHit > 0.01f && _owner != null)
+                    {
+                        Health ownerHealth = _owner.GetComponent<Health>();
+                        if (ownerHealth != null && !ownerHealth.IsDead)
+                        {
+                            ownerHealth.Heal(_lifestealOnHit);
+                        }
+                    }
                 }
 
                 if (!_canPierce)
@@ -787,8 +822,30 @@ namespace TheLastEmpire
                     }
 
                     float distFromCenter = Vector3.Distance(transform.position, target.transform.position);
-                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, activeRadius, _owner);
+                    DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, activeRadius, _owner, _weaponName);
                     damageable.TakeDamage(dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);
+
+                    if (_bonusKnockback > 0.01f || _bonusStagger > 0.01f)
+                    {
+                        BaseEnemyAI hitEnemy = target.GetComponent<BaseEnemyAI>();
+                        if (hitEnemy != null)
+                        {
+                            Vector3 pushDir = (hitEnemy.transform.position - transform.position);
+                            pushDir.y = 0f;
+                            if (pushDir.sqrMagnitude < 0.01f) pushDir = transform.forward;
+                            pushDir.y = 0f;
+                            hitEnemy.ApplyMeleeKnockback(pushDir.normalized, _bonusKnockback, _bonusStagger);
+                        }
+                    }
+
+                    if (_lifestealOnHit > 0.01f && _owner != null)
+                    {
+                        Health ownerHealth = _owner.GetComponent<Health>();
+                        if (ownerHealth != null && !ownerHealth.IsDead)
+                        {
+                            ownerHealth.Heal(_lifestealOnHit);
+                        }
+                    }
                 }
             }
         }
