@@ -325,35 +325,29 @@ namespace TheLastEmpire
                 bool isRare = cfg.rarity == ArtifactRarity.Rare;
                 string rarityTag = isLegendary ? "Legendary" : (isRare ? "Rare" : "Common");
 
-                string weaponTag;
-                string weaponFullLabel;
+                string weaponLabel;
                 if (cfg.compatibleWeaponNames == null || cfg.compatibleWeaponNames.Count == 0)
                 {
-                    weaponTag = "Shared";
-                    weaponFullLabel = "ทุกอาวุธ (Shared)";
+                    weaponLabel = "All Weapons";
                 }
                 else if (cfg.compatibleWeaponNames.Count == 1)
                 {
-                    weaponTag = cfg.compatibleWeaponNames[0];
-                    weaponFullLabel = cfg.compatibleWeaponNames[0];
+                    weaponLabel = cfg.compatibleWeaponNames[0];
                 }
                 else
                 {
-                    weaponTag = "All Guns";
-                    weaponFullLabel = $"ใช้ร่วมกัน ({string.Join(", ", cfg.compatibleWeaponNames)})";
+                    weaponLabel = "All Guns";
                 }
 
-                string shortSummary = WeaponArtifactManager.BuildSingleArtifactSummary(item);
-                string desc = $"[{rarityTag}] อาวุธที่ใส่ได้: {weaponFullLabel}\n{item.description}";
-                if (!string.IsNullOrWhiteSpace(shortSummary))
-                {
-                    desc += $"\n({shortSummary})";
-                }
+                string effectBody = !string.IsNullOrWhiteSpace(item.description)
+                    ? item.description.Trim()
+                    : WeaponArtifactManager.BuildSingleArtifactSummary(item);
+                string desc = $"{rarityTag} Artifact\nWeapon: {weaponLabel}\n{effectBody}";
 
                 var recipe = new CraftingRecipe
                 {
                     recipeId = $"CRAFT_ART_{(i + 1):D3}",
-                    recipeName = $"[{rarityTag}][{weaponTag}] {item.itemName}",
+                    recipeName = item.itemName,
                     category = CraftingCategory.Artifact,
                     resultItem = item,
                     resultItemName = item.itemName,
