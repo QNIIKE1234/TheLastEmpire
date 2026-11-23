@@ -375,29 +375,12 @@ namespace TheLastEmpire.Network
 
         private void UpdateHostDayNightTimeSync()
         {
-            if (DayNightManager.Instance == null) return;
-
-            _timeSyncTimer -= Time.unscaledDeltaTime;
-            if (_timeSyncTimer <= 0f)
-            {
-                _timeSyncTimer = 2.0f;
-                byte phase = (byte)DayNightManager.Instance.CurrentPhase;
-                float timer = DayNightManager.Instance.PhaseTimer;
-                int dayCount = DayNightManager.Instance.DayCount;
-
-                EmpireNetworkManager.Instance.SendPacket(NetPacketType.DayNightTimeSync, w =>
-                {
-                    w.Write(phase);
-                    w.Write(timer);
-                    w.Write(dayCount);
-                });
-            }
+            // การซิงค์เวลา Day/Night ย้ายไปจัดการครบชุดใน DayNightManager.BroadcastTimeSyncFromHost() แล้ว
         }
 
         public void ApplyHostTimeSync(byte phase, float timer, int dayCount)
         {
-            // DayNightManager ซิงค์เวลาจากเครื่อง Host
-            if (DayNightManager.Instance == null) return;
+            DayNightManager.HandleIncomingTimeSync(dayCount, phase, timer, 1.0f, false);
         }
     }
 }

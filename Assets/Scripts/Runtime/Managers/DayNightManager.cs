@@ -94,6 +94,120 @@ namespace TheLastEmpire
         private float _currentDuskAlpha = 0f;
         private Color _currentAmbientTint = Color.white;
 
+        // Online Co-op Time Sync State
+        private float _networkSyncSendTimer = 0f;
+        private const float NetworkTimeSyncInterval = 2.0f;
+        private bool _isApplyingNetworkTimeSync = false;
+
+        private struct PendingNetworkTimeData
+        {
+            public bool hasData;
+            public int dayCount;
+            public TimePhase phase;
+            public float phaseTimer;
+            public float speedMultiplier;
+            public bool snapVisuals;
+        }
+        private static PendingNetworkTimeData _pendingNetworkTime;
+
+        public static void ClearPendingNetworkTimeSync()
+        {
+            _pendingNetworkTime = default;
+        }
+
+        public static void HandleIncomingTimeSync(int dayCount, byte phaseByte, float phaseTimer, float speedMultiplier, bool snapVisuals)
+        {
+            TimePhase phase = System.Enum.IsDefined(typeof(TimePhase), (int)phaseByte)
+                ? (TimePhase)phaseByte
+                : TimePhase.Day;
+
+            if (Instance != null)
+            {
+                Instance.ApplyNetworkSyncedTime(dayCount, phase, phaseTimer, speedMultiplier, snapVisuals);
+            }
+            else
+            {
+                _pendingNetworkTime = new PendingNetworkTimeData
+                {
+                    hasData = true,
+                    dayCount = Mathf.Max(1, dayCount),
+                    phase = phase,
+                    phaseTimer = Mathf.Max(0f, phaseTimer),
+                    speedMultiplier = Mathf.Max(0.1f, speedMultiplier),
+                    snapVisuals = snapVisuals
+                };
+            }
+        }
+
+        public void BroadcastTimeSyncFromHost(ulong? targetClientId = null, bool snapVisuals = false)
+        {
+            if (!TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost ||
+                TheLastEmpire.Network.EmpireNetworkManager.Instance == null)
+            {
+                return;
+            }
+
+            int day = DayCount;
+            byte phaseByte = (byte)_currentPhase;
+            float timer = _phaseTimer;
+            float speed = cycleSpeedMultiplier;
+
+            TheLastEmpire.Network.EmpireNetworkManager.Instance.SendPacket(
+                TheLastEmpire.Network.NetPacketType.DayNightTimeSync,
+                w =>
+                {
+                    w.Write(day);
+                    w.Write(phaseByte);
+                    w.Write(timer);
+                    w.Write(speed);
+                    w.Write(snapVisuals);
+                },
+                targetClientId ?? ulong.MaxValue
+            );
+        }
+
+        public void ApplyNetworkSyncedTime(int syncedDayCount, TimePhase syncedPhase, float syncedPhaseTimer, float syncedSpeedMultiplier, bool snapVisuals)
+        {
+            _isApplyingNetworkTimeSync = true;
+            try
+            {
+                int safeDay = Mathf.Max(1, syncedDayCount);
+                float safeSpeed = Mathf.Max(0.1f, syncedSpeedMultiplier);
+                bool dayChanged = DayCount != safeDay;
+                bool phaseChanged = _currentPhase != syncedPhase;
+
+                DayCount = safeDay;
+                cycleSpeedMultiplier = safeSpeed;
+
+                if (phaseChanged)
+                {
+                    SetPhase(syncedPhase, snapVisuals);
+                }
+
+                float phaseDur = GetCurrentPhaseDuration();
+                float clampedTimer = Mathf.Clamp(syncedPhaseTimer, 0f, Mathf.Max(0f, phaseDur - 0.02f));
+                float drift = Mathf.Abs(_phaseTimer - clampedTimer);
+
+                if (phaseChanged || dayChanged || snapVisuals || drift > 0.35f)
+                {
+                    _phaseTimer = clampedTimer;
+                }
+
+                if (snapVisuals)
+                {
+                    UpdateFades();
+                    if (TimeHUDController.Instance != null)
+                    {
+                        TimeHUDController.Instance.SnapToCurrentPhase();
+                    }
+                }
+            }
+            finally
+            {
+                _isApplyingNetworkTimeSync = false;
+            }
+        }
+
         public TimePhase CurrentPhase => _currentPhase;
         public bool IsNight => _isNight;
         public bool IsDusk => _currentPhase == TimePhase.Dusk;
@@ -197,7 +311,17 @@ namespace TheLastEmpire
             {
                 NightDarknessController.Instance.DisableDarknessOverlay = false;
             }
-            ResetDayCount();
+
+            if (_pendingNetworkTime.hasData && TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+            {
+                var pending = _pendingNetworkTime;
+                _pendingNetworkTime = default;
+                ApplyNetworkSyncedTime(pending.dayCount, pending.phase, pending.phaseTimer, pending.speedMultiplier, true);
+            }
+            else
+            {
+                ResetDayCount();
+            }
             EnsureTimeHUDController();
         }
 
@@ -263,10 +387,31 @@ namespace TheLastEmpire
             // Update UI
             UpdateUIText(currentDuration);
 
-            // Phase transition check
+            // โหมด Online Client: รอ Host เป็นคนสั่งเปลี่ยนช่วงเวลา/วันเพื่อไม่ให้เวลาเหลื่อมกัน
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+            {
+                if (_phaseTimer >= currentDuration)
+                {
+                    _phaseTimer = Mathf.Max(0f, currentDuration - 0.05f);
+                }
+                return;
+            }
+
+            // Phase transition check (Singleplayer & Host)
             if (_phaseTimer >= currentDuration)
             {
                 AdvancePhase();
+            }
+
+            // โหมด Online Host: ส่งซิงค์เวลาให้ Client ทุกเครื่องเป็นระยะ (ทุก 2 วินาที)
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost)
+            {
+                _networkSyncSendTimer += Time.unscaledDeltaTime;
+                if (_networkSyncSendTimer >= NetworkTimeSyncInterval)
+                {
+                    _networkSyncSendTimer = 0f;
+                    BroadcastTimeSyncFromHost();
+                }
             }
         }
 
@@ -618,6 +763,12 @@ namespace TheLastEmpire
                 OnTimePhaseChanged?.Invoke(_isNight);
             }
             OnPhaseChanged?.Invoke(_currentPhase);
+
+            if (!_isApplyingNetworkTimeSync && TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost)
+            {
+                _networkSyncSendTimer = 0f;
+                BroadcastTimeSyncFromHost(null, snapVisuals);
+            }
 
             Debug.Log($"[DayNightManager] Phase changed to {_currentPhase}. Day: {DayCount}");
         }

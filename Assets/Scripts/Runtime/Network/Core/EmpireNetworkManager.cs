@@ -569,6 +569,7 @@ namespace TheLastEmpire.Network
             RemoveAllRemotePlayers();
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
             NetworkLootManager.Instance?.ClearMatchLootCache();
+            DayNightManager.ClearPendingNetworkTimeSync();
             CloseUdpSocket();
 
             _clientEndpoints.Clear();
@@ -733,6 +734,7 @@ namespace TheLastEmpire.Network
             // สุ่ม WorldSeed กลาง 1 ค่าแล้วส่งให้ทุกเครื่องก่อนโหลดเข้าด่าน เพื่อให้แมพ 128x128 และห้องศัตรูตรงกัน 100%
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
             NetworkLootManager.Instance?.ClearMatchLootCache();
+            DayNightManager.ClearPendingNetworkTimeSync();
             int matchWorldSeed = UnityEngine.Random.Range(1000, 99999);
             PendingMatchWorldSeed = matchWorldSeed;
 
@@ -1063,6 +1065,7 @@ namespace TheLastEmpire.Network
                         BroadcastLobbyRosterFromHost();
                         OnLobbyRosterChanged?.Invoke();
                         NetworkBuildingSyncManager.Instance?.SendAllPlacedBuildingsToClient(senderId);
+                        DayNightManager.Instance?.BroadcastTimeSyncFromHost(senderId, snapVisuals: true);
                         OnPeerConnected?.Invoke(senderId);
                     }
                     break;
@@ -1237,6 +1240,21 @@ namespace TheLastEmpire.Network
                     }
                     break;
 
+                case NetPacketType.DayNightTimeSync:
+                    {
+                        int syncedDay = reader.ReadInt32();
+                        byte syncedPhase = reader.ReadByte();
+                        float syncedPhaseTimer = reader.ReadSingle();
+                        float syncedSpeed = reader.ReadSingle();
+                        bool snapVisuals = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
+
+                        if (!_isHost)
+                        {
+                            DayNightManager.HandleIncomingTimeSync(syncedDay, syncedPhase, syncedPhaseTimer, syncedSpeed, snapVisuals);
+                        }
+                    }
+                    break;
+
                 case NetPacketType.StageTransitionRequest:
                     if (_isHost)
                     {
@@ -1267,16 +1285,6 @@ namespace TheLastEmpire.Network
                         StageTransitionNetPayload stPayload = default;
                         stPayload.NetworkSerialize(serializer);
                         NetworkStageSyncManager.Instance?.StartStageGameplayClientRpc(stPayload);
-                    }
-                    break;
-
-                case NetPacketType.DayNightTimeSync:
-                    if (!_isHost)
-                    {
-                        byte phase = reader.ReadByte();
-                        float timer = reader.ReadSingle();
-                        int dayCount = reader.ReadInt32();
-                        NetworkStageSyncManager.Instance?.ApplyHostTimeSync(phase, timer, dayCount);
                     }
                     break;
 

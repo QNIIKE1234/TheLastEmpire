@@ -100,47 +100,7 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            bool triggerF9 = false;
-            bool triggerShiftF9 = false;
-
-#if ENABLE_INPUT_SYSTEM
-            if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.f9Key.wasPressedThisFrame)
-            {
-                if (UnityEngine.InputSystem.Keyboard.current.shiftKey.isPressed)
-                {
-                    triggerShiftF9 = true;
-                }
-                else
-                {
-                    triggerF9 = true;
-                }
-            }
-#endif
-            try
-            {
-                if (Input.GetKeyDown(KeyCode.F9))
-                {
-                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                    {
-                        triggerShiftF9 = true;
-                    }
-                    else
-                    {
-                        triggerF9 = true;
-                    }
-                }
-            }
-            catch {}
-
-            if (triggerShiftF9)
-            {
-                Debug.Log("<color=#FF5500>[RandomStageEventManager]</color> [Shift+F9] Pressed: Triggering Maya Fleeing Event IMMEDIATELY in current room!");
-                ForceTriggerFleeingSurvivor();
-            }
-            else if (triggerF9)
-            {
-                QueueNextStageFleeingSurvivor();
-            }
+            // ปิดคีย์ลัดดีบัก F9 / Shift+F9 สำหรับเสก Event ออกแล้ว
         }
 
         public void QueueNextStageFleeingSurvivor()

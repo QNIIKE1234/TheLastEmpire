@@ -31,17 +31,6 @@ namespace TheLastEmpire
         private string _toastMessage = "";
         private float _toastTimer = 0f;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void AutoInitialize()
-        {
-            if (Instance == null)
-            {
-                GameObject go = new GameObject("[BossSpawner_RuntimeDebugger]");
-                DontDestroyOnLoad(go);
-                go.AddComponent<BossSpawnerRuntime>();
-            }
-        }
-
         private void Awake()
         {
             if (Instance == null)
@@ -57,39 +46,7 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (Keyboard.current == null) return;
-
-            // F1: Toggle In-Game Debug UI
-            if (Keyboard.current.f1Key.wasPressedThisFrame)
-            {
-                _showDebugGui = !_showDebugGui;
-            }
-
-            // T key: Cycle Game Speed (TimeScale)
-            if (Keyboard.current.tKey.wasPressedThisFrame)
-            {
-                CycleTimeScale();
-            }
-
-            // N key: Next Day/Night Phase
-            if (Keyboard.current.nKey.wasPressedThisFrame)
-            {
-                SkipToNextPhase();
-            }
-
-            // L key: Toggle Flashlight / Torch
-            if (Keyboard.current.lKey.wasPressedThisFrame)
-            {
-                TogglePlayerLight();
-            }
-
-            // K key (or Ctrl + K): Kill all bosses/enemies
-            if (Keyboard.current.kKey.wasPressedThisFrame)
-            {
-                KillAllBosses();
-            }
-
-            // Toast message countdown
+            // ปิดคีย์ลัดเสกของ/เร่งเวลา/ข้ามวัน/ฆ่ามอนทั้งหมด (F1, T, N, K) เพื่อไม่ให้กระทบการเล่นจริงและระบบ Online
             if (_toastTimer > 0f)
             {
                 _toastTimer -= Time.unscaledDeltaTime;

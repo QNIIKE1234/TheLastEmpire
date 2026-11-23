@@ -212,14 +212,6 @@ namespace TheLastEmpire
 
             if (Keyboard.current == null) return;
 
-            // Free Craft ถูกย้ายไปควบคุมผ่านเมนู Cheat [F1] (รองรับคีย์เสริมเฉพาะกรณีตั้งค่าใน Inspector)
-            if (toggleFreeCraftKey != Key.None && toggleFreeCraftKey != Key.F8 &&
-                Keyboard.current[toggleFreeCraftKey] != null &&
-                Keyboard.current[toggleFreeCraftKey].wasPressedThisFrame)
-            {
-                ToggleFreeCraft();
-            }
-
             if (!enableShortcutKey) return;
 
             // ไม่กดเปิดทับถ้าผู้เล่นกำลังพิมพ์ในช่อง Search อยู่
