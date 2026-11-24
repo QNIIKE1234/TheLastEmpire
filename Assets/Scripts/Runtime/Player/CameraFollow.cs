@@ -37,9 +37,41 @@ namespace TheLastEmpire
         private bool _isTargetOverridden = false;
         private float _originalSmoothTime = 0.15f;
 
+        private bool _isInteriorMode = false;
+        private Vector3 _interiorCenter = Vector3.zero;
+        private float _interiorHalfWidth = 6f;
+        private float _interiorHalfDepth = 5f;
+
         private void Awake()
         {
             _instance = this;
+        }
+
+        /// <summary>
+        /// Switches camera framing between exterior world bounds and centered black-void building interiors.
+        /// </summary>
+        public void SetInteriorMode(bool active, Vector3 roomCenter, float roomHalfWidth, float roomHalfDepth)
+        {
+            _isInteriorMode = active;
+            _interiorCenter = roomCenter;
+            _interiorHalfWidth = Mathf.Max(2f, roomHalfWidth);
+            _interiorHalfDepth = Mathf.Max(2f, roomHalfDepth);
+        }
+
+        /// <summary>
+        /// Snaps camera immediately to its desired position (used during black-fade room transitions).
+        /// </summary>
+        public void SnapToTargetImmediate()
+        {
+            if (target == null && autoFindPlayer)
+            {
+                FindPlayerTarget();
+            }
+            if (target == null) return;
+
+            Vector3 desired = ComputeDesiredPosition();
+            transform.position = desired;
+            _velocity = Vector3.zero;
         }
 
         /// <summary>
@@ -134,28 +166,34 @@ namespace TheLastEmpire
             }
         }
 
-        private void LateUpdate()
+        private Vector3 ComputeDesiredPosition()
         {
-            if (target == null)
-            {
-                if (autoFindPlayer)
-                {
-                    FindPlayerTarget();
-                }
-                return;
-            }
-
-            // Calculate desired position based on player movement
             Vector3 targetPos = target.position;
             Vector3 desiredPosition = transform.position;
 
             if (followX) desiredPosition.x = targetPos.x + offset.x;
             if (followY) desiredPosition.y = targetPos.y + offset.y;
             else desiredPosition.y = transform.position.y; // Keep current camera Y
-            
+
             if (followZ) desiredPosition.z = targetPos.z + offset.z;
 
-            // Apply clamping if enabled to prevent showing the void outside the room
+            // Inside a building interior: center softly around the room so the pitch-black void frames the walls
+            if (_isInteriorMode)
+            {
+                float maxPanX = Mathf.Max(0f, _interiorHalfWidth - 3.0f);
+                float maxPanZ = Mathf.Max(0f, _interiorHalfDepth - 2.4f);
+                if (followX)
+                {
+                    desiredPosition.x = Mathf.Clamp(desiredPosition.x, _interiorCenter.x + offset.x - maxPanX, _interiorCenter.x + offset.x + maxPanX);
+                }
+                if (followZ)
+                {
+                    desiredPosition.z = Mathf.Clamp(desiredPosition.z, _interiorCenter.z + offset.z - maxPanZ, _interiorCenter.z + offset.z + maxPanZ);
+                }
+                return desiredPosition;
+            }
+
+            // Apply clamping if enabled to prevent showing the void outside the exterior stage
             if (clampToLimits)
             {
                 if (boundsRenderer == null)
@@ -208,6 +246,22 @@ namespace TheLastEmpire
                     }
                 }
             }
+
+            return desiredPosition;
+        }
+
+        private void LateUpdate()
+        {
+            if (target == null)
+            {
+                if (autoFindPlayer)
+                {
+                    FindPlayerTarget();
+                }
+                return;
+            }
+
+            Vector3 desiredPosition = ComputeDesiredPosition();
 
             // Smoothly interpolate to target position
             transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _velocity, smoothTime);

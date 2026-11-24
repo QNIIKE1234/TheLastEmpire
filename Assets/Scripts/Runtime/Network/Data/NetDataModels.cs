@@ -66,6 +66,7 @@ namespace TheLastEmpire.Network
         public string characterId;
         public int stageX;
         public int stageY;
+        public int interiorId;
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 aimDirection;
@@ -90,6 +91,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref characterId);
             serializer.SerializeValue(ref stageX);
             serializer.SerializeValue(ref stageY);
+            serializer.SerializeValue(ref interiorId);
             serializer.SerializeValue(ref position);
             serializer.SerializeValue(ref velocity);
             serializer.SerializeValue(ref aimDirection);
@@ -117,6 +119,7 @@ namespace TheLastEmpire.Network
         public ulong shooterClientId;
         public int stageX;
         public int stageY;
+        public int interiorId;
         public Vector3 spawnPosition;
         public Vector3 aimDirection;
         public Vector3 aimTargetPoint;
@@ -135,6 +138,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref shooterClientId);
             serializer.SerializeValue(ref stageX);
             serializer.SerializeValue(ref stageY);
+            serializer.SerializeValue(ref interiorId);
             serializer.SerializeValue(ref spawnPosition);
             serializer.SerializeValue(ref aimDirection);
             serializer.SerializeValue(ref aimTargetPoint);
@@ -159,6 +163,7 @@ namespace TheLastEmpire.Network
         public ulong attackerClientId;
         public int stageX;
         public int stageY;
+        public int interiorId;
         public Vector3 attackOrigin;
         public Vector3 aimDirection;
         public string weaponName;
@@ -171,6 +176,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref attackerClientId);
             serializer.SerializeValue(ref stageX);
             serializer.SerializeValue(ref stageY);
+            serializer.SerializeValue(ref interiorId);
             serializer.SerializeValue(ref attackOrigin);
             serializer.SerializeValue(ref aimDirection);
             serializer.SerializeValue(ref weaponName);

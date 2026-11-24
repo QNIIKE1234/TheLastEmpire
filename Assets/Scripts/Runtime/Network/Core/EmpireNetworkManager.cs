@@ -1332,13 +1332,14 @@ namespace TheLastEmpire.Network
                         int dropId = reader.ReadInt32();
                         int dropStageX = reader.ReadInt32();
                         int dropStageY = reader.ReadInt32();
+                        int dropInteriorId = reader.ReadInt32();
                         string itemName = reader.ReadString();
                         int qty = reader.ReadInt32();
                         bool isMoney = reader.ReadBoolean();
                         int moneyAmt = reader.ReadInt32();
                         Vector3 dropPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                         bool requireManualPickup = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
-                        NetworkLootManager.Instance?.HandleHostLootSpawnOnClient(dropId, dropStageX, dropStageY, itemName, qty, isMoney, moneyAmt, dropPos, requireManualPickup);
+                        NetworkLootManager.Instance?.HandleHostLootSpawnOnClient(dropId, dropStageX, dropStageY, dropInteriorId, itemName, qty, isMoney, moneyAmt, dropPos, requireManualPickup);
                     }
                     break;
 
@@ -1347,10 +1348,11 @@ namespace TheLastEmpire.Network
                     {
                         int dropStageX = reader.ReadInt32();
                         int dropStageY = reader.ReadInt32();
+                        int dropInteriorId = reader.ReadInt32();
                         string itemName = reader.ReadString();
                         int qty = reader.ReadInt32();
                         Vector3 dropPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                        NetworkLootManager.Instance?.HandleClientDropItemRequestOnHost(dropStageX, dropStageY, itemName, qty, dropPos);
+                        NetworkLootManager.Instance?.HandleClientDropItemRequestOnHost(dropStageX, dropStageY, dropInteriorId, itemName, qty, dropPos);
                     }
                     break;
 

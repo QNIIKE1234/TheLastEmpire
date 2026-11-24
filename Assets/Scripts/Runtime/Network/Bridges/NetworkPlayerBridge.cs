@@ -47,8 +47,10 @@ namespace TheLastEmpire.Network
 
             int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int curInteriorId = BuildingInteriorManager.CurrentInteriorId;
             _player.NetworkStageX = curStageX;
             _player.NetworkStageY = curStageY;
+            _player.NetworkInteriorId = curInteriorId;
 
             PlayerStateNetPayload payload = new PlayerStateNetPayload
             {
@@ -58,6 +60,7 @@ namespace TheLastEmpire.Network
                 characterId = _player.ActiveCharacterData != null ? _player.ActiveCharacterData.characterId : "VANGUARD",
                 stageX = curStageX,
                 stageY = curStageY,
+                interiorId = curInteriorId,
                 position = _player.transform.position,
                 velocity = _rb != null ? _rb.linearVelocity : new Vector3(_player.MoveInput.x, 0f, _player.MoveInput.y),
                 aimDirection = _player.AimDirection,
@@ -103,12 +106,14 @@ namespace TheLastEmpire.Network
 
             int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int curInteriorId = BuildingInteriorManager.CurrentInteriorId;
 
             ProjectileFireNetPayload payload = new ProjectileFireNetPayload
             {
                 shooterClientId = EmpireNetworkManager.Instance.LocalClientId,
                 stageX = curStageX,
                 stageY = curStageY,
+                interiorId = curInteriorId,
                 spawnPosition = spawnPos,
                 aimDirection = aimDir,
                 aimTargetPoint = targetPoint,
@@ -158,10 +163,11 @@ namespace TheLastEmpire.Network
                 return;
             }
 
-            // หากคนยิงอยู่คนละช่องพิกัด (Stage X, Y) กับเรา ไม่ต้องเสกกระสุนของเขาในช่องของเรา
+            // หากคนยิงอยู่คนละช่องพิกัด (Stage X, Y) หรือคนละบ้าน (InteriorId) กับเรา ไม่ต้องเสกกระสุนของเขาในช่องของเรา
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            if (payload.stageX != myStageX || payload.stageY != myStageY)
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (payload.stageX != myStageX || payload.stageY != myStageY || payload.interiorId != myInteriorId)
             {
                 return;
             }
@@ -251,12 +257,14 @@ namespace TheLastEmpire.Network
 
             int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int curInteriorId = BuildingInteriorManager.CurrentInteriorId;
 
             MeleeAttackNetPayload payload = new MeleeAttackNetPayload
             {
                 attackerClientId = EmpireNetworkManager.Instance.LocalClientId,
                 stageX = curStageX,
                 stageY = curStageY,
+                interiorId = curInteriorId,
                 attackOrigin = attackOrigin,
                 aimDirection = aimDir,
                 weaponName = weaponName ?? "Knife",
@@ -285,7 +293,8 @@ namespace TheLastEmpire.Network
 
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            bool isSameStage = payload.stageX == myStageX && payload.stageY == myStageY;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            bool isSameStage = payload.stageX == myStageX && payload.stageY == myStageY && payload.interiorId == myInteriorId;
 
             if (isHost && payload.attackerClientId != EmpireNetworkManager.Instance.LocalClientId)
             {

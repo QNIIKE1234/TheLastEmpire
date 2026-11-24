@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caa3419ae7e62394581015d2655e9411, type: 3}
+  m_Name: BUILD0025_MetalLockerCabinet
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.BuildingData
+  buildingId: BUILD0025_MetalLockerCabinet
+  buildingName: Metal Supply Cabinet
+  category: 1
+  icon: {fileID: 0}
+  description: Heavy industrial steel locker cabinet with generous storage capacity (30 slots).
+  prefab: {fileID: 6200002501, guid: d4f000254a2b4c819d01a0b0c0d00025, type: 3}
+  ghostPrefab: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  footprintSize: {x: 1.35, y: 2.05, z: 0.75}
+  buildRange: 6.5
+  snapToGrid: 0
+  gridSize: 1
+  maxHealth: 250
+  damageResistance: 0
+  storageSlots: 30
+  ingredients: []

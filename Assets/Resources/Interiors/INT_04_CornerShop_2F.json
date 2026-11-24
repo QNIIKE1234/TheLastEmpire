@@ -1,0 +1,220 @@
+{
+    "templateId":  "INT_04_CornerShop_2F",
+    "displayName":  "Corner Shop",
+    "theme":  "CornerShop",
+    "floorCount":  2,
+    "matchingBuildingKeywords":  [
+                                     "CornerShop",
+                                     "Corner_Shop",
+                                     "Shop",
+                                     "Diner",
+                                     "Market"
+                                 ],
+    "ambushChance":  0.55,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Storefront \u0026 Counter",
+                       "width":  16.5,
+                       "depth":  11.5,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#BDBDB3",
+                       "wallColorHex":  "#C4C9C0",
+                       "trimColorHex":  "#2B323A",
+                       "accentColorHex":  "#3288C4",
+                       "exitDoorX":  -1.5,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  6.4,
+                       "stairsUpZ":  3.8,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0046_KitchenCounterSink",
+                                           "x":  -5.8,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Checkout Counter"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0039_VintageRefrigerator",
+                                           "x":  -2.6,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Beverage Cooler"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0043_TallBookshelf",
+                                           "x":  0.6,
+                                           "y":  0,
+                                           "z":  4.1,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Storefront Shelf A"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0043_TallBookshelf",
+                                           "x":  3.2,
+                                           "y":  0,
+                                           "z":  4.1,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Storefront Shelf B"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  -6.2,
+                                           "y":  0,
+                                           "z":  -0.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0036_PlanterBox_Tomato",
+                                           "x":  6,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0038_PlanterBox_Strawberry",
+                                           "x":  3.8,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0053_TrashBinBarrel",
+                                           "x":  -6.2,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Shop Trash Bin"
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.2,
+                                                    "z":  1.6,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3.4,
+                                                    "z":  0.8,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Owner\u0027s Flat",
+                       "width":  15,
+                       "depth":  10.5,
+                       "wallHeight":  2.9,
+                       "floorColorHex":  "#6A5440",
+                       "wallColorHex":  "#C2BAAC",
+                       "trimColorHex":  "#2D2520",
+                       "accentColorHex":  "#4785A6",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  5.8,
+                       "stairsDownZ":  3.4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -5.8,
+                                           "y":  0,
+                                           "z":  3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Stockroom Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0024_WoodenWardrobe",
+                                           "x":  -3.4,
+                                           "y":  0,
+                                           "z":  3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Owner Wardrobe"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0033_CookingPotStove",
+                                           "x":  -5.8,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  4.6,
+                                           "y":  0,
+                                           "z":  -2.6,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0029_ComfyArmchair",
+                                           "x":  -1.4,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  2.2,
+                                                    "z":  -1.2,
+                                                    "preferredEnemy":  "ZombieCrawler"
+                                                }
+                                            ]
+                   }
+               ]
+}

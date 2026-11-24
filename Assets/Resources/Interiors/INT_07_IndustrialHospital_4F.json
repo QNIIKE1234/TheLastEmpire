@@ -1,0 +1,361 @@
+{
+    "templateId":  "INT_07_IndustrialHospital_4F",
+    "displayName":  "Industrial Hospital",
+    "theme":  "Clinic",
+    "floorCount":  4,
+    "matchingBuildingKeywords":  [
+                                     "Hospital",
+                                     "Apoc_Building_04"
+                                 ],
+    "ambushChance":  0.72,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Emergency Room",
+                       "width":  19,
+                       "depth":  13,
+                       "wallHeight":  3.3,
+                       "floorColorHex":  "#B6C9C6",
+                       "wallColorHex":  "#CFDCD9",
+                       "trimColorHex":  "#385459",
+                       "accentColorHex":  "#D63137",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  7.4,
+                       "stairsUpZ":  4.4,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0047_FirstAidStation",
+                                           "x":  -7.2,
+                                           "y":  0,
+                                           "z":  4.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0040_MedicalWallCabinet",
+                                           "x":  -4.6,
+                                           "y":  0,
+                                           "z":  4.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "ER Trauma Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0039_VintageRefrigerator",
+                                           "x":  -2,
+                                           "y":  0,
+                                           "z":  4.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Blood Coldbox"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0041_LeatherSofa",
+                                           "x":  -7.2,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  4.2,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0052_PottedIndoorFern",
+                                           "x":  7.2,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4.2,
+                                                    "z":  -0.5,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3.6,
+                                                    "z":  1.8,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  0.6,
+                                                    "z":  2.8,
+                                                    "preferredEnemy":  "ZombieCrawler"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Patient Wing",
+                       "width":  18,
+                       "depth":  12.5,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#AEC2C0",
+                       "wallColorHex":  "#C9D6D4",
+                       "trimColorHex":  "#334C52",
+                       "accentColorHex":  "#C92E34",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  -7,
+                       "stairsUpZ":  4.2,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  7,
+                       "stairsDownZ":  4.2,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  -6.8,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  6.6,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0040_MedicalWallCabinet",
+                                           "x":  -2,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Ward Med Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  1.6,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Nurse Supply Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  3.8,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  0,
+                                                    "z":  -2.2,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  3,
+                       "floorName":  "3rd Floor - Surgery \u0026 Lab",
+                       "width":  17.5,
+                       "depth":  12,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#A6BCBA",
+                       "wallColorHex":  "#C4D3D1",
+                       "trimColorHex":  "#2D454A",
+                       "accentColorHex":  "#CC333B",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  6.8,
+                       "stairsUpZ":  4,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  -6.8,
+                       "stairsDownZ":  4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0027_ElectronicsCraftDesk",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0040_MedicalWallCabinet",
+                                           "x":  -6.4,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Anesthesia Vault"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0047_FirstAidStation",
+                                           "x":  6.2,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  -3.2,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.4,
+                                                    "z":  0.8,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  3.2,
+                                                    "z":  -0.6,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  4,
+                       "floorName":  "4th Floor - Quarantine Greenhouse",
+                       "width":  16,
+                       "depth":  11,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#9BB2B2",
+                       "wallColorHex":  "#BCCBC9",
+                       "trimColorHex":  "#283D42",
+                       "accentColorHex":  "#DE353B",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  6,
+                       "stairsDownZ":  3.6,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0040_MedicalWallCabinet",
+                                           "x":  -6,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Serum Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0034_PlanterBox_Lime",
+                                           "x":  -6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0036_PlanterBox_Tomato",
+                                           "x":  -3.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0037_PlanterBox_Carrot",
+                                           "x":  -1.2,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0038_PlanterBox_Strawberry",
+                                           "x":  1.2,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0035_PlanterBox_Potato",
+                                           "x":  3.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.8,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  2,
+                                                    "z":  1.8,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   }
+               ]
+}

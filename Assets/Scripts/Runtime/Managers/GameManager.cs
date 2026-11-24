@@ -190,6 +190,9 @@ namespace TheLastEmpire
 
         private void SpawnLocalStageContent(StageData stage)
         {
+            // Exit any active building interior cleanly before swapping stages
+            BuildingInteriorManager.Instance?.ExitCurrentBuilding(immediate: true);
+
             // Stop any running stage event (Maya runner, chaser/ambush spawn coroutines) from the previous room
             // BEFORE saving/clearing, so nothing leaks into the new room (including shop rooms).
             RandomStageEventManager.Instance?.CleanupActiveEvent();

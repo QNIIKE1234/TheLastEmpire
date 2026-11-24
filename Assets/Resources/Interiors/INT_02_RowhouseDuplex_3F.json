@@ -1,0 +1,311 @@
+{
+    "templateId":  "INT_02_RowhouseDuplex_3F",
+    "displayName":  "Brick Rowhouse",
+    "theme":  "House",
+    "floorCount":  3,
+    "matchingBuildingKeywords":  [
+                                     "Apoc_House_01",
+                                     "Apoc_House_02",
+                                     "Rowhouse",
+                                     "Duplex"
+                                 ],
+    "ambushChance":  0.6,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Entry \u0026 Kitchen",
+                       "width":  14.5,
+                       "depth":  11.5,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#5A4232",
+                       "wallColorHex":  "#B89D8A",
+                       "trimColorHex":  "#2E2019",
+                       "accentColorHex":  "#8A3B2F",
+                       "exitDoorX":  -1.5,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  5.2,
+                       "stairsUpZ":  3.8,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0024_WoodenWardrobe",
+                                           "x":  -5.6,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Coat Wardrobe"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0039_VintageRefrigerator",
+                                           "x":  -3.4,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Kitchen Fridge"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0033_CookingPotStove",
+                                           "x":  -1.2,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0044_WoodenDiningTable",
+                                           "x":  -4.6,
+                                           "y":  0,
+                                           "z":  -0.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0028_WoodenDiningChair",
+                                           "x":  -3.2,
+                                           "y":  0,
+                                           "z":  -0.8,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0049_WoodBurningStove",
+                                           "x":  5.2,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0053_TrashBinBarrel",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Kitchen Bin"
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -2,
+                                                    "z":  1.8,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3,
+                                                    "z":  1,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Family Lounge",
+                       "width":  14.5,
+                       "depth":  11.5,
+                       "wallHeight":  2.9,
+                       "floorColorHex":  "#6A4E38",
+                       "wallColorHex":  "#C4B4A2",
+                       "trimColorHex":  "#32241C",
+                       "accentColorHex":  "#426E54",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  -5.2,
+                       "stairsUpZ":  3.8,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  5.2,
+                       "stairsDownZ":  3.8,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0051_WovenAreaRug",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -0.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0041_LeatherSofa",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  1.4,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0045_LowCoffeeTable",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -0.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  5.2,
+                                           "y":  0,
+                                           "z":  -2.6,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0043_TallBookshelf",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Family Bookshelf"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0035_PlanterBox_Potato",
+                                           "x":  -5.2,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  -2.6,
+                                           "y":  0,
+                                           "z":  -3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -2.6,
+                                                    "z":  -0.6,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  2.4,
+                                                    "z":  1.6,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  3,
+                       "floorName":  "3rd Floor - Rooftop Loft",
+                       "width":  13.5,
+                       "depth":  10.5,
+                       "wallHeight":  2.8,
+                       "floorColorHex":  "#4D3B2C",
+                       "wallColorHex":  "#A6998A",
+                       "trimColorHex":  "#261E18",
+                       "accentColorHex":  "#A87C32",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  -4.8,
+                       "stairsDownZ":  3.4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  4.6,
+                                           "y":  0,
+                                           "z":  2.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  2.8,
+                                           "y":  0,
+                                           "z":  3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0026_CarpentryCraftTable",
+                                           "x":  4.2,
+                                           "y":  0,
+                                           "z":  -3,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -0.4,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Loft Supply Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0036_PlanterBox_Tomato",
+                                           "x":  -4.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0037_PlanterBox_Carrot",
+                                           "x":  -2.4,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  1.4,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  3.2,
+                                                    "z":  -0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   }
+               ]
+}

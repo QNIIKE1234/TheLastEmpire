@@ -1,0 +1,209 @@
+{
+    "templateId":  "INT_10_SurvivorSafehouse_2F",
+    "displayName":  "Survivor Safehouse",
+    "theme":  "Warehouse",
+    "floorCount":  2,
+    "matchingBuildingKeywords":  [
+                                     "Tin_Shack",
+                                     "Apoc_House_03",
+                                     "Watchtower",
+                                     "Bunker"
+                                 ],
+    "ambushChance":  0.25,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Fortified Forge \u0026 Kitchen",
+                       "width":  15,
+                       "depth":  11,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#544C44",
+                       "wallColorHex":  "#6E675F",
+                       "trimColorHex":  "#2B2825",
+                       "accentColorHex":  "#D9822B",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  5.6,
+                       "stairsUpZ":  3.6,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0026_CarpentryCraftTable",
+                                           "x":  -5.4,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -5.6,
+                                           "y":  0,
+                                           "z":  -0.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Scrap Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0033_CookingPotStove",
+                                           "x":  -1.6,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0049_WoodBurningStove",
+                                           "x":  1.6,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  5.4,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0029_ComfyArmchair",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0034_PlanterBox_Lime",
+                                           "x":  -5.4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.6,
+                                                    "z":  1.6,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Watchloft \u0026 Indoor Farm",
+                       "width":  14,
+                       "depth":  10,
+                       "wallHeight":  2.9,
+                       "floorColorHex":  "#4A433B",
+                       "wallColorHex":  "#666058",
+                       "trimColorHex":  "#24211E",
+                       "accentColorHex":  "#529E6B",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  5.2,
+                       "stairsDownZ":  3.2,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  -4.8,
+                                           "y":  0,
+                                           "z":  2.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  -2.6,
+                                           "y":  0,
+                                           "z":  3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0048_WeaponDisplayRack",
+                                           "x":  0.4,
+                                           "y":  0,
+                                           "z":  3.5,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Safehouse Armory"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0035_PlanterBox_Potato",
+                                           "x":  -4.8,
+                                           "y":  0,
+                                           "z":  -3,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0036_PlanterBox_Tomato",
+                                           "x":  -2.4,
+                                           "y":  0,
+                                           "z":  -3,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0037_PlanterBox_Carrot",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -3,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0038_PlanterBox_Strawberry",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  -3,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -2.4,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   }
+               ]
+}

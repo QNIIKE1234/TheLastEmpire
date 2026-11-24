@@ -25,6 +25,7 @@ namespace TheLastEmpire
         public string NetworkPlayerName { get; set; } = "PLAYER-1";
         public int NetworkStageX { get; set; } = 64;
         public int NetworkStageY { get; set; } = 64;
+        public int NetworkInteriorId { get; set; } = 0;
 
         public bool HasOverheadNameLabel => ResolveOverheadNameText() != null;
 
@@ -87,7 +88,8 @@ namespace TheLastEmpire
                 if (!IsRemotePlayer || IsSimulatedCoopBot) return true;
                 int localX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
                 int localY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-                return NetworkStageX == localX && NetworkStageY == localY;
+                int localInterior = BuildingInteriorManager.CurrentInteriorId;
+                return NetworkStageX == localX && NetworkStageY == localY && NetworkInteriorId == localInterior;
             }
         }
 
@@ -227,6 +229,7 @@ namespace TheLastEmpire
             PartySlotIndex = state.slotIndex;
             NetworkStageX = state.stageX;
             NetworkStageY = state.stageY;
+            NetworkInteriorId = state.interiorId;
             RefreshStageVisibility();
 
             _networkTargetPosition = state.position;

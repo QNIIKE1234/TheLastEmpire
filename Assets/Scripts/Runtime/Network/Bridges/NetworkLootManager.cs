@@ -18,6 +18,7 @@ namespace TheLastEmpire.Network
         {
             public int stageX;
             public int stageY;
+            public int interiorId;
             public float posX;
             public float posZ;
             public int remainingMoney;
@@ -38,14 +39,15 @@ namespace TheLastEmpire.Network
             _syncedContainerStates.Clear();
             _nextHostDropId = 1000;
             WeaponArtifactManager.ClearAll();
+            BuildingInteriorManager.Instance?.ClearMatchCache();
         }
 
-        private static string BuildContainerKey(int stageX, int stageY, float posX, float posZ)
+        private static string BuildContainerKey(int stageX, int stageY, int interiorId, float posX, float posZ)
         {
-            return $"{stageX}_{stageY}_{Mathf.RoundToInt(posX * 2f)}_{Mathf.RoundToInt(posZ * 2f)}";
+            return $"{stageX}_{stageY}_{interiorId}_{Mathf.RoundToInt(posX * 2f)}_{Mathf.RoundToInt(posZ * 2f)}";
         }
 
-        private static void ResolveContainerStageCoords(LootContainer container, out int stageX, out int stageY)
+        private static void ResolveContainerStageCoords(LootContainer container, out int stageX, out int stageY, out int interiorId)
         {
             if (container != null)
             {
@@ -54,11 +56,13 @@ namespace TheLastEmpire.Network
                 {
                     stageX = bObj.StageX;
                     stageY = bObj.StageY;
+                    interiorId = 0;
                     return;
                 }
             }
             stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            interiorId = BuildingInteriorManager.CurrentInteriorId;
         }
 
         /// <summary>
@@ -68,10 +72,10 @@ namespace TheLastEmpire.Network
         public void ApplyCachedStateToContainer(LootContainer container)
         {
             if (container == null || !EmpireNetworkManager.IsOnline) return;
-            ResolveContainerStageCoords(container, out int stageX, out int stageY);
+            ResolveContainerStageCoords(container, out int stageX, out int stageY, out int interiorId);
             Vector3 pos = container.transform.position;
 
-            string exactKey = BuildContainerKey(stageX, stageY, pos.x, pos.z);
+            string exactKey = BuildContainerKey(stageX, stageY, interiorId, pos.x, pos.z);
             if (_syncedContainerStates.TryGetValue(exactKey, out SyncedContainerState state))
             {
                 ApplyStateToContainerObject(container, state);
@@ -82,7 +86,7 @@ namespace TheLastEmpire.Network
             foreach (var kvp in _syncedContainerStates)
             {
                 var s = kvp.Value;
-                if (s.stageX != stageX || s.stageY != stageY) continue;
+                if (s.stageX != stageX || s.stageY != stageY || s.interiorId != interiorId) continue;
                 float dx = pos.x - s.posX;
                 float dz = pos.z - s.posZ;
                 if (dx * dx + dz * dz <= 0.36f)
@@ -110,6 +114,7 @@ namespace TheLastEmpire.Network
                 {
                     w.Write(s.stageX);
                     w.Write(s.stageY);
+                    w.Write(s.interiorId);
                     w.Write(s.posX);
                     w.Write(s.posZ);
                     w.Write(s.remainingMoney);
@@ -179,6 +184,7 @@ namespace TheLastEmpire.Network
 
             int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int interiorId = BuildingInteriorManager.CurrentInteriorId;
             Vector3 spawnPos = item.InitialSpawnPosition != Vector3.zero ? item.InitialSpawnPosition : item.transform.position;
             string iName = item.ItemName ?? "";
             int qty = item.Quantity;
@@ -191,6 +197,7 @@ namespace TheLastEmpire.Network
                 w.Write(dropId);
                 w.Write(stageX);
                 w.Write(stageY);
+                w.Write(interiorId);
                 w.Write(iName);
                 w.Write(qty);
                 w.Write(isMoney);
@@ -208,11 +215,13 @@ namespace TheLastEmpire.Network
 
             int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int interiorId = BuildingInteriorManager.CurrentInteriorId;
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.ClientDropItemRequest, w =>
             {
                 w.Write(stageX);
                 w.Write(stageY);
+                w.Write(interiorId);
                 w.Write(itemName ?? "");
                 w.Write(quantity);
                 w.Write(dropPos.x);
@@ -221,13 +230,14 @@ namespace TheLastEmpire.Network
             });
         }
 
-        public void HandleClientDropItemRequestOnHost(int dropStageX, int dropStageY, string itemName, int quantity, Vector3 dropPos)
+        public void HandleClientDropItemRequestOnHost(int dropStageX, int dropStageY, int dropInteriorId, string itemName, int quantity, Vector3 dropPos)
         {
             if (!EmpireNetworkManager.IsOnlineHost || GameManager.Instance == null) return;
 
             int hostStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int hostStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            if (dropStageX != hostStageX || dropStageY != hostStageY) return;
+            int hostInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (dropStageX != hostStageX || dropStageY != hostStageY || dropInteriorId != hostInteriorId) return;
 
             // สร้างไอเทมบนเครื่อง Host (ซึ่ง CollectibleItem.Start() จะกระจาย LootSpawnBroadcast กลับไปให้ทุกเครื่องอัตโนมัติ)
             InventoryUI.SpawnManualPickupDropLocally(itemName, quantity, dropPos);
@@ -243,6 +253,7 @@ namespace TheLastEmpire.Network
 
             int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int interiorId = BuildingInteriorManager.CurrentInteriorId;
 
             CollectibleItem[] all = Object.FindObjectsByType<CollectibleItem>(FindObjectsSortMode.None);
             for (int i = 0; i < all.Length; i++)
@@ -266,6 +277,7 @@ namespace TheLastEmpire.Network
                     w.Write(dropId);
                     w.Write(stageX);
                     w.Write(stageY);
+                    w.Write(interiorId);
                     w.Write(iName);
                     w.Write(qty);
                     w.Write(isMoney);
@@ -278,14 +290,15 @@ namespace TheLastEmpire.Network
             }
         }
 
-        public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos, bool requireManualPickup = false)
+        public void HandleHostLootSpawnOnClient(int dropId, int stageX, int stageY, int interiorId, string itemName, int qty, bool isMoney, int moneyAmt, Vector3 spawnPos, bool requireManualPickup = false)
         {
             if (!EmpireNetworkManager.IsOnlineClient || GameManager.Instance == null) return;
             if (_claimedDropIds.Contains(dropId)) return;
 
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            if (stageX != myStageX || stageY != myStageY) return;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (stageX != myStageX || stageY != myStageY || interiorId != myInteriorId) return;
 
             if (_trackedItemsById.TryGetValue(dropId, out CollectibleItem existing) && existing != null)
             {
@@ -339,7 +352,7 @@ namespace TheLastEmpire.Network
         {
             if (container == null || !EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
 
-            ResolveContainerStageCoords(container, out int stageX, out int stageY);
+            ResolveContainerStageCoords(container, out int stageX, out int stageY, out int interiorId);
             Vector3 pos = container.transform.position;
             int money = container.moneyAmount;
             var items = container.itemsInside;
@@ -348,10 +361,11 @@ namespace TheLastEmpire.Network
             // บันทึกสถานะล่าสุดของรถ/กล่องลง Cache กลางด้วย เผื่อผู้เล่นคนอื่นเดินเข้ามาช่องนี้ทีหลัง
             List<LootSlot> snapshot = new List<LootSlot>(itemCount);
             for (int i = 0; i < itemCount; i++) snapshot.Add(items[i]);
-            _syncedContainerStates[BuildContainerKey(stageX, stageY, pos.x, pos.z)] = new SyncedContainerState
+            _syncedContainerStates[BuildContainerKey(stageX, stageY, interiorId, pos.x, pos.z)] = new SyncedContainerState
             {
                 stageX = stageX,
                 stageY = stageY,
+                interiorId = interiorId,
                 posX = pos.x,
                 posZ = pos.z,
                 remainingMoney = money,
@@ -362,6 +376,7 @@ namespace TheLastEmpire.Network
             {
                 w.Write(stageX);
                 w.Write(stageY);
+                w.Write(interiorId);
                 w.Write(pos.x);
                 w.Write(pos.z);
                 w.Write(money);
@@ -378,6 +393,7 @@ namespace TheLastEmpire.Network
         {
             int stageX = reader.ReadInt32();
             int stageY = reader.ReadInt32();
+            int interiorId = reader.ReadInt32();
             float posX = reader.ReadSingle();
             float posZ = reader.ReadSingle();
             int remainingMoney = reader.ReadInt32();
@@ -390,12 +406,12 @@ namespace TheLastEmpire.Network
                 syncedItems.Add(new LootSlot(iName, qty));
             }
 
-            // บันทึกสถานะรถ/กล่องที่เพื่อนเพิ่งเก็บไปเก็บไว้ใน Cache ทันที (แม้ตอนนี้เราจะอยู่คนละช่องพิกัดกับเพื่อน!)
-            // พอเราเดินตามเข้าไปในช่อง (stageX, stageY) นั้นทีหลัง รถ/กล่องใบนั้นจะว่างตามที่เพื่อนเก็บไปทันที
-            _syncedContainerStates[BuildContainerKey(stageX, stageY, posX, posZ)] = new SyncedContainerState
+            // บันทึกสถานะรถ/กล่องที่เพื่อนเพิ่งเก็บไปเก็บไว้ใน Cache ทันที (แม้ตอนนี้เราจะอยู่คนละช่องพิกัด/คนละบ้านกับเพื่อน!)
+            _syncedContainerStates[BuildContainerKey(stageX, stageY, interiorId, posX, posZ)] = new SyncedContainerState
             {
                 stageX = stageX,
                 stageY = stageY,
+                interiorId = interiorId,
                 posX = posX,
                 posZ = posZ,
                 remainingMoney = remainingMoney,
@@ -409,6 +425,7 @@ namespace TheLastEmpire.Network
                 {
                     w.Write(stageX);
                     w.Write(stageY);
+                    w.Write(interiorId);
                     w.Write(posX);
                     w.Write(posZ);
                     w.Write(remainingMoney);
@@ -421,10 +438,9 @@ namespace TheLastEmpire.Network
                 });
             }
 
-            // 1. อัปเดตสิ่งปลูกสร้างหีบเก็บของ (StorageCrateBuilding) ที่อยู่ใน BuildingManager ด้วย
-            // แม้จะอยู่คนละช่องพิกัด (GameObject ถูก SetActive(false) อยู่) เพื่อไม่ให้ของค้างเป็นข้อมูลเก่าตอนเดินกลับฐาน
+            // 1. อัปเดตสิ่งปลูกสร้างหีบเก็บของ (StorageCrateBuilding) ที่อยู่ใน BuildingManager ด้วย (เฉพาะภายนอก interiorId == 0)
             bool updatedAnyBuildingCrate = false;
-            if (BuildingManager.Instance != null && BuildingManager.Instance.ActiveBuildings != null)
+            if (interiorId == 0 && BuildingManager.Instance != null && BuildingManager.Instance.ActiveBuildings != null)
             {
                 var buildings = BuildingManager.Instance.ActiveBuildings;
                 for (int i = 0; i < buildings.Count; i++)
@@ -449,7 +465,8 @@ namespace TheLastEmpire.Network
 
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            if (stageX != myStageX || stageY != myStageY) return;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (stageX != myStageX || stageY != myStageY || interiorId != myInteriorId) return;
 
             if (!updatedAnyBuildingCrate)
             {

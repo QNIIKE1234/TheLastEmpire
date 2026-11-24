@@ -71,9 +71,11 @@ namespace TheLastEmpire
         [SerializeField] private Vector3 nightDawnpinAngle = new Vector3(30f, 80f, 0f);
 
         [Header("Visual Feedback (Camera Background Tint)")]
-        [SerializeField] private Color dayCameraColor = new Color(0.12f, 0.13f, 0.15f, 1f);
-        [SerializeField] private Color duskCameraColor = new Color(0.14f, 0.11f, 0.13f, 1f);
-        [SerializeField] private Color nightCameraColor = new Color(0.02f, 0.03f, 0.05f, 1f);
+        [Tooltip("When enabled, keeps the void beyond the edge of the world pure pitch black (#000000) instead of tinting indigo/blue.")]
+        [SerializeField] private bool keepWorldEdgePureBlack = true;
+        [SerializeField] private Color dayCameraColor = Color.black;
+        [SerializeField] private Color duskCameraColor = Color.black;
+        [SerializeField] private Color nightCameraColor = Color.black;
 
         [Header("Ground Plane Ambient Tint (WorldSpaceGroundShader)")]
         [SerializeField] private Color dayGroundTint = Color.white;
@@ -377,11 +379,21 @@ namespace TheLastEmpire
             // Smooth transition for screen darkness, sun dimming, and ambient tint
             UpdateFades();
 
-            // Smoothly shift camera background
+            // Keep camera background pure pitch black at the edge of the world (and inside building interiors)
             if (Camera.main != null)
             {
-                Color targetCameraColor = GetTargetCameraColor();
-                Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, targetCameraColor, Time.deltaTime * 2f);
+                if (keepWorldEdgePureBlack || BuildingInteriorManager.IsInsideInterior)
+                {
+                    if (Camera.main.clearFlags != CameraClearFlags.SolidColor)
+                        Camera.main.clearFlags = CameraClearFlags.SolidColor;
+                    if (Camera.main.backgroundColor != Color.black)
+                        Camera.main.backgroundColor = Color.black;
+                }
+                else
+                {
+                    Color targetCameraColor = GetTargetCameraColor();
+                    Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, targetCameraColor, Time.deltaTime * 2f);
+                }
             }
 
             // Update UI
@@ -749,7 +761,15 @@ namespace TheLastEmpire
 
                 if (Camera.main != null)
                 {
-                    Camera.main.backgroundColor = GetTargetCameraColor();
+                    if (keepWorldEdgePureBlack || BuildingInteriorManager.IsInsideInterior)
+                    {
+                        Camera.main.clearFlags = CameraClearFlags.SolidColor;
+                        Camera.main.backgroundColor = Color.black;
+                    }
+                    else
+                    {
+                        Camera.main.backgroundColor = GetTargetCameraColor();
+                    }
                 }
 
                 if (TimeHUDController.Instance != null)

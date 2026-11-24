@@ -1,0 +1,286 @@
+{
+    "templateId":  "INT_09_StorageDepot_3F",
+    "displayName":  "Storage Depot",
+    "theme":  "Warehouse",
+    "floorCount":  3,
+    "matchingBuildingKeywords":  [
+                                     "Warehouse",
+                                     "Depot",
+                                     "Hangar",
+                                     "Apoc_Building_07"
+                                 ],
+    "ambushChance":  0.65,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Loading Bay",
+                       "width":  19.5,
+                       "depth":  13,
+                       "wallHeight":  3.4,
+                       "floorColorHex":  "#5C5E61",
+                       "wallColorHex":  "#73706B",
+                       "trimColorHex":  "#33312E",
+                       "accentColorHex":  "#E09E24",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  7.6,
+                       "stairsUpZ":  4.4,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -7.4,
+                                           "y":  0,
+                                           "z":  4.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Cargo Locker A"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -5.4,
+                                           "y":  0,
+                                           "z":  4.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Cargo Locker B"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0026_CarpentryCraftTable",
+                                           "x":  0.4,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0048_WeaponDisplayRack",
+                                           "x":  -7.4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Surplus Weapon Rack"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0049_WoodBurningStove",
+                                           "x":  5.4,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0053_TrashBinBarrel",
+                                           "x":  7.4,
+                                           "y":  0,
+                                           "z":  -1,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Scrap Drum"
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4.6,
+                                                    "z":  0.6,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3.8,
+                                                    "z":  1.6,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  0.2,
+                                                    "z":  -0.4,
+                                                    "preferredEnemy":  "ZombieCrawler"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Workshop \u0026 Hydroponics",
+                       "width":  18,
+                       "depth":  12,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#525457",
+                       "wallColorHex":  "#6B6863",
+                       "trimColorHex":  "#2E2C29",
+                       "accentColorHex":  "#D99220",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  -7,
+                       "stairsUpZ":  4,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  7,
+                       "stairsDownZ":  4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0027_ElectronicsCraftDesk",
+                                           "x":  -2.2,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0035_PlanterBox_Potato",
+                                           "x":  -6.4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0036_PlanterBox_Tomato",
+                                           "x":  -4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0037_PlanterBox_Carrot",
+                                           "x":  -1.6,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  3.4,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Parts Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4.2,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  3.8,
+                                                    "z":  -0.6,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  3,
+                       "floorName":  "3rd Floor - Control Room \u0026 Armory",
+                       "width":  16,
+                       "depth":  11,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#474A4D",
+                       "wallColorHex":  "#63605B",
+                       "trimColorHex":  "#262523",
+                       "accentColorHex":  "#E3A122",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  -6,
+                       "stairsDownZ":  3.6,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0048_WeaponDisplayRack",
+                                           "x":  5.6,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Armory Weapon Rack"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  5.6,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Ammo Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0047_FirstAidStation",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  -5,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  -1.4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  3.4,
+                                                    "z":  0,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  -1.6,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   }
+               ]
+}

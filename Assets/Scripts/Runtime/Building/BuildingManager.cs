@@ -141,7 +141,7 @@ namespace TheLastEmpire
         public BuildingData GetBuildingDataByName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
-            if (allBuildings == null || allBuildings.Count < 15)
+            if (allBuildings == null || allBuildings.Count < 45)
             {
                 LoadDefaultBuildingDataIfEmpty();
             }
@@ -166,7 +166,7 @@ namespace TheLastEmpire
         public BuildingData GetBuildingDataForRecipe(CraftingRecipe recipe)
         {
             if (recipe == null) return null;
-            if (allBuildings == null || allBuildings.Count < 15)
+            if (allBuildings == null || allBuildings.Count < 45)
             {
                 LoadDefaultBuildingDataIfEmpty();
             }
@@ -308,7 +308,7 @@ namespace TheLastEmpire
                 }
             }
 #endif
-            if (allBuildings.Count < 15)
+            if (allBuildings.Count < 45)
             {
                 IList<BuildingData> addrList = AddressableManager.LoadAssetsByLabel<BuildingData>("BuildingData");
                 if (addrList != null && addrList.Count > 0)
@@ -323,7 +323,7 @@ namespace TheLastEmpire
                 }
             }
 
-            if (allBuildings.Count < 15)
+            if (allBuildings.Count < 45)
             {
                 BuildingData[] loaded = Resources.LoadAll<BuildingData>("");
                 if (loaded != null && loaded.Length > 0)

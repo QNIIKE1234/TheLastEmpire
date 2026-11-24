@@ -1,0 +1,375 @@
+{
+    "templateId":  "INT_08_OfficeTower_4F",
+    "displayName":  "Office Tower",
+    "theme":  "CornerShop",
+    "floorCount":  4,
+    "matchingBuildingKeywords":  [
+                                     "Office",
+                                     "Signal_Tower",
+                                     "Apoc_Building_02",
+                                     "Apoc_Building_03",
+                                     "SearsTower",
+                                     "ClockTower"
+                                 ],
+    "ambushChance":  0.65,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Security Lobby",
+                       "width":  17.5,
+                       "depth":  12,
+                       "wallHeight":  3.3,
+                       "floorColorHex":  "#969CA3",
+                       "wallColorHex":  "#BCC2C7",
+                       "trimColorHex":  "#283038",
+                       "accentColorHex":  "#337AB7",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  6.8,
+                       "stairsUpZ":  4,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0027_ElectronicsCraftDesk",
+                                           "x":  -6.2,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -2.8,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Security Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0039_VintageRefrigerator",
+                                           "x":  4.2,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Breakroom Fridge"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0041_LeatherSofa",
+                                           "x":  -6.4,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0052_PottedIndoorFern",
+                                           "x":  1,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0053_TrashBinBarrel",
+                                           "x":  6.6,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Lobby Bin"
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.6,
+                                                    "z":  -0.8,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3.6,
+                                                    "z":  1.2,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Cubicle Floor",
+                       "width":  17,
+                       "depth":  12,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#8A9299",
+                       "wallColorHex":  "#B5BDC2",
+                       "trimColorHex":  "#262D36",
+                       "accentColorHex":  "#3B88B8",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  -6.6,
+                       "stairsUpZ":  4,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  6.6,
+                       "stairsDownZ":  4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0044_WoodenDiningTable",
+                                           "x":  -4.8,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0028_WoodenDiningChair",
+                                           "x":  -4.8,
+                                           "y":  0,
+                                           "z":  -4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0043_TallBookshelf",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Archive Shelf"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  3,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Supply Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  5.8,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0050_WallMountedTV",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.8,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  3.8,
+                                                    "z":  0.6,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  3,
+                       "floorName":  "3rd Floor - Tech \u0026 Comms Floor",
+                       "width":  16.5,
+                       "depth":  11.5,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#6E757D",
+                       "wallColorHex":  "#9EA6AD",
+                       "trimColorHex":  "#22272E",
+                       "accentColorHex":  "#D48A28",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  6.4,
+                       "stairsUpZ":  3.8,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  -6.4,
+                       "stairsDownZ":  3.8,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0027_ElectronicsCraftDesk",
+                                           "x":  -5.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  -2,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  2.2,
+                                           "y":  0,
+                                           "z":  4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Hardware Locker"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0048_WeaponDisplayRack",
+                                           "x":  5.8,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Guard Rack"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  0.2,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -2.8,
+                                                    "z":  0.8,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  3.4,
+                                                    "z":  -0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  4,
+                       "floorName":  "4th Floor - Executive Suite",
+                       "width":  15.5,
+                       "depth":  11,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#5C4C42",
+                       "wallColorHex":  "#B8AEA4",
+                       "trimColorHex":  "#29221E",
+                       "accentColorHex":  "#C49533",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  5.8,
+                       "stairsDownZ":  3.6,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0051_WovenAreaRug",
+                                           "x":  -1,
+                                           "y":  0,
+                                           "z":  0,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0024_WoodenWardrobe",
+                                           "x":  -5.8,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Executive Cabinet"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0043_TallBookshelf",
+                                           "x":  -3,
+                                           "y":  0,
+                                           "z":  3.9,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "CEO Bookshelf"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0029_ComfyArmchair",
+                                           "x":  -5.4,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  45,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0045_LowCoffeeTable",
+                                           "x":  -3.2,
+                                           "y":  0,
+                                           "z":  -2.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  4.6,
+                                           "y":  0,
+                                           "z":  -2.6,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.4,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  2,
+                                                    "z":  1.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   }
+               ]
+}

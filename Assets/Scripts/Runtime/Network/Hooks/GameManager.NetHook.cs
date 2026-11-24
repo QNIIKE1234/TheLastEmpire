@@ -41,7 +41,8 @@ namespace TheLastEmpire
             if (hostAvatar != null && WorldMapManager.Instance != null)
             {
                 return hostAvatar.NetworkStageX == WorldMapManager.Instance.CurrentPlayerX &&
-                       hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY;
+                       hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY &&
+                       hostAvatar.NetworkInteriorId == BuildingInteriorManager.CurrentInteriorId;
             }
 
             return true;

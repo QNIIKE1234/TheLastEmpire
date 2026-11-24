@@ -1,0 +1,408 @@
+{
+    "templateId":  "INT_05_AbandonedHotel_4F",
+    "displayName":  "Shattered Hotel",
+    "theme":  "House",
+    "floorCount":  4,
+    "matchingBuildingKeywords":  [
+                                     "Hotel",
+                                     "Residential_Ruin",
+                                     "Apoc_Building_01",
+                                     "Apoc_Building_05"
+                                 ],
+    "ambushChance":  0.7,
+    "floors":  [
+                   {
+                       "floorIndex":  1,
+                       "floorName":  "1st Floor - Reception Lobby",
+                       "width":  18,
+                       "depth":  12.5,
+                       "wallHeight":  3.3,
+                       "floorColorHex":  "#5E463B",
+                       "wallColorHex":  "#BEB4A6",
+                       "trimColorHex":  "#2D2420",
+                       "accentColorHex":  "#993232",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  7,
+                       "stairsUpZ":  4.2,
+                       "hasStairsDown":  false,
+                       "stairsDownX":  0,
+                       "stairsDownZ":  0,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0051_WovenAreaRug",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0,
+                                           "rotY":  0,
+                                           "scale":  1.1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0046_KitchenCounterSink",
+                                           "x":  -6.4,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Front Desk"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0041_LeatherSofa",
+                                           "x":  -6.6,
+                                           "y":  0,
+                                           "z":  -2.8,
+                                           "rotY":  90,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0029_ComfyArmchair",
+                                           "x":  4.2,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  -3.2,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  0.4,
+                                           "y":  0,
+                                           "z":  4.4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0052_PottedIndoorFern",
+                                           "x":  6.8,
+                                           "y":  0,
+                                           "z":  -4,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4,
+                                                    "z":  0.8,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  3.8,
+                                                    "z":  1.2,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  0.5,
+                                                    "z":  2.8,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  2,
+                       "floorName":  "2nd Floor - Guest Suites",
+                       "width":  17.5,
+                       "depth":  12,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#6B4E3C",
+                       "wallColorHex":  "#C4B9A8",
+                       "trimColorHex":  "#31251E",
+                       "accentColorHex":  "#486D80",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  -6.8,
+                       "stairsUpZ":  4,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  6.8,
+                       "stairsDownZ":  4,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  -6.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0030_WoodenSingleBed",
+                                           "x":  6.4,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0024_WoodenWardrobe",
+                                           "x":  -1.8,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Room 201 Wardrobe"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0024_WoodenWardrobe",
+                                           "x":  1.8,
+                                           "y":  0,
+                                           "z":  4.2,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Room 204 Wardrobe"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0050_WallMountedTV",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -4.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0032_DeskLamp",
+                                           "x":  -4.4,
+                                           "y":  0,
+                                           "z":  -3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -4,
+                                                    "z":  -0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  0.2,
+                                                    "z":  1.8,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                },
+                                                {
+                                                    "x":  4.4,
+                                                    "z":  0.6,
+                                                    "preferredEnemy":  "ZombieCrawler"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  3,
+                       "floorName":  "3rd Floor - Survivor Camp Wing",
+                       "width":  17,
+                       "depth":  11.5,
+                       "wallHeight":  3,
+                       "floorColorHex":  "#554236",
+                       "wallColorHex":  "#ADA395",
+                       "trimColorHex":  "#28211C",
+                       "accentColorHex":  "#A36B2C",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  true,
+                       "stairsUpX":  6.6,
+                       "stairsUpZ":  3.8,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  -6.6,
+                       "stairsDownZ":  3.8,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0049_WoodBurningStove",
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0033_CookingPotStove",
+                                           "x":  2.4,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0026_CarpentryCraftTable",
+                                           "x":  -6,
+                                           "y":  0,
+                                           "z":  -3.4,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0035_PlanterBox_Potato",
+                                           "x":  -2,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0037_PlanterBox_Carrot",
+                                           "x":  0.6,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  3.4,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Survivor Locker"
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.2,
+                                                    "z":  1.2,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  3,
+                                                    "z":  0.4,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                }
+                                            ]
+                   },
+                   {
+                       "floorIndex":  4,
+                       "floorName":  "4th Floor - Penthouse Vault",
+                       "width":  15.5,
+                       "depth":  11,
+                       "wallHeight":  3.1,
+                       "floorColorHex":  "#473429",
+                       "wallColorHex":  "#B5A896",
+                       "trimColorHex":  "#241B15",
+                       "accentColorHex":  "#C49A3B",
+                       "exitDoorX":  0,
+                       "hasStairsUp":  false,
+                       "stairsUpX":  0,
+                       "stairsUpZ":  0,
+                       "hasStairsDown":  true,
+                       "stairsDownX":  5.8,
+                       "stairsDownZ":  3.6,
+                       "objects":  [
+                                       {
+                                           "buildingId":  "BUILD0048_WeaponDisplayRack",
+                                           "x":  -5.8,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "VIP Armory Rack"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0025_MetalLockerCabinet",
+                                           "x":  -3.2,
+                                           "y":  0,
+                                           "z":  3.8,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  true,
+                                           "containerName":  "Penthouse Vault"
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0027_ElectronicsCraftDesk",
+                                           "x":  -5.2,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0041_LeatherSofa",
+                                           "x":  2.6,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  180,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0042_StandingFloorLamp",
+                                           "x":  0.2,
+                                           "y":  0,
+                                           "z":  3.6,
+                                           "rotY":  0,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       },
+                                       {
+                                           "buildingId":  "BUILD0031_AnalogRadio",
+                                           "x":  5.4,
+                                           "y":  0,
+                                           "z":  -3.2,
+                                           "rotY":  270,
+                                           "scale":  1,
+                                           "isLootable":  false,
+                                           "containerName":  ""
+                                       }
+                                   ],
+                       "enemySpawnPoints":  [
+                                                {
+                                                    "x":  -3.6,
+                                                    "z":  0.2,
+                                                    "preferredEnemy":  "ZombieSpitter"
+                                                },
+                                                {
+                                                    "x":  1.6,
+                                                    "z":  2,
+                                                    "preferredEnemy":  "ZombieRunner"
+                                                },
+                                                {
+                                                    "x":  2.4,
+                                                    "z":  -1.4,
+                                                    "preferredEnemy":  "ZombieNormal"
+                                                }
+                                            ]
+                   }
+               ]
+}

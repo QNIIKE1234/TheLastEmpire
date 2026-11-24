@@ -449,6 +449,17 @@ namespace TheLastEmpire
 
         private void SyncWithDayNightCycle()
         {
+            // Keep building interiors crisp and fog-free so the surrounding void stays pure pitch black
+            if (BuildingInteriorManager.IsInsideInterior)
+            {
+                if (RenderSettings.fog) RenderSettings.fog = false;
+                if (_groundMistObject != null && _groundMistObject.activeSelf) _groundMistObject.SetActive(false);
+                if (_dustParticleSystem != null && _dustParticleSystem.gameObject.activeSelf) _dustParticleSystem.gameObject.SetActive(false);
+                return;
+            }
+            if (_groundMistObject != null && !_groundMistObject.activeSelf && enableGroundMist) _groundMistObject.SetActive(true);
+            if (_dustParticleSystem != null && !_dustParticleSystem.gameObject.activeSelf && enableDustMotes) _dustParticleSystem.gameObject.SetActive(true);
+
             var dn = DayNightManager.Instance;
             if (dn == null) return;
 

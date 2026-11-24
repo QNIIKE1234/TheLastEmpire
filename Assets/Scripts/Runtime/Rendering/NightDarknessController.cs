@@ -114,6 +114,8 @@ namespace TheLastEmpire
         [Header("Debug Controls")]
         [SerializeField] private bool disableDarknessOverlay = false;
 
+        public bool InteriorOverrideActive { get; set; } = false;
+
         public bool DisableDarknessOverlay
         {
             get => disableDarknessOverlay;
@@ -122,7 +124,7 @@ namespace TheLastEmpire
                 disableDarknessOverlay = value;
                 if (_overlayCanvasObj != null)
                 {
-                    _overlayCanvasObj.SetActive(!disableDarknessOverlay);
+                    _overlayCanvasObj.SetActive(!disableDarknessOverlay && !InteriorOverrideActive);
                 }
             }
         }
@@ -132,10 +134,10 @@ namespace TheLastEmpire
             HandleInput();
             UpdatePlayerScreenPosition();
 
-            // Keep Daytime 100% clean of 2D canvas overdraw; activate canvas dynamically when night is present
+            // Keep Daytime and Building Interiors 100% clean of 2D darkness overdraw
             if (_overlayCanvasObj != null)
             {
-                if (!disableDarknessOverlay)
+                if (!disableDarknessOverlay && !InteriorOverrideActive)
                 {
                     bool shouldBeActive = (DayNightManager.Instance != null)
                         ? (DayNightManager.Instance.IsNight || DayNightManager.Instance.CurrentDarknessAlpha > 0.005f)

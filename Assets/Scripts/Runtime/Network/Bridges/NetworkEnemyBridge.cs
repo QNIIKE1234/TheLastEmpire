@@ -133,11 +133,13 @@ namespace TheLastEmpire.Network
 
             int hostStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int hostStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int hostInteriorId = BuildingInteriorManager.CurrentInteriorId;
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.EnemyBatchSync, w =>
             {
                 w.Write(hostStageX);
                 w.Write(hostStageY);
+                w.Write(hostInteriorId);
                 w.Write(batch.Count);
                 var serializer = new BufferSerializer<BinaryBufferReaderWriter>(BinaryBufferReaderWriter.CreateWriter(w));
                 for (int i = 0; i < batch.Count; i++)
@@ -152,12 +154,14 @@ namespace TheLastEmpire.Network
         {
             int hostStageX = reader.ReadInt32();
             int hostStageY = reader.ReadInt32();
+            int hostInteriorId = reader.ReadInt32();
             int count = reader.ReadInt32();
             var serializer = new BufferSerializer<BinaryBufferReaderWriter>(BinaryBufferReaderWriter.CreateReader(reader));
 
             int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
-            if (hostStageX != myStageX || hostStageY != myStageY)
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (hostStageX != myStageX || hostStageY != myStageY || hostInteriorId != myInteriorId)
             {
                 // หากเราอยู่คนละช่องพิกัด (Stage X, Y) กับ Host ให้ข้ามข้อมูลศัตรูของช่อง Host
                 for (int i = 0; i < count; i++)

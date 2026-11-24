@@ -74,6 +74,7 @@ namespace TheLastEmpire
 #endif
 
         private GameObject _currentEnvContainer;
+        public GameObject CurrentEnvContainer => _currentEnvContainer;
 
         private struct GridCell
         {
@@ -181,6 +182,7 @@ namespace TheLastEmpire
             {
                 GenerateEnvironmentFromTemplate(template, stage);
                 EnsurePortalsClear(playerPos);
+                AttachEnterableBuildingDoors(stage);
                 if (generateBackgroundScenery)
                 {
                     GenerateSurroundingBackgroundScenery(stage, config);
@@ -314,6 +316,7 @@ namespace TheLastEmpire
                 }
 
                 EnsurePortalsClear(playerPos);
+                AttachEnterableBuildingDoors(stage);
                 if (generateBackgroundScenery)
                 {
                     GenerateSurroundingBackgroundScenery(stage, config);
@@ -591,6 +594,9 @@ namespace TheLastEmpire
 
             // Final safety pass: ensure no spawned building/obstacle physically overlaps any active portal or the player
             EnsurePortalsClear(playerPos);
+
+            // Attach interactive enterable doorways to a deterministic subset of spawned buildings/houses
+            AttachEnterableBuildingDoors(stage);
 
             if (generateBackgroundScenery)
             {
@@ -2648,6 +2654,266 @@ namespace TheLastEmpire
                 if (Application.isPlaying) Destroy(go);
                 else DestroyImmediate(go);
             }
+        }
+
+        /// <summary>
+        /// Deterministically selects 1-2 spawned buildings/houses in the current stage and attaches
+        /// a glowing [E] BuildingEntrance doorway on a clear accessible wall face.
+        /// Each selected house receives a unique deterministic interiorSeed so no two interiors repeat.
+        /// </summary>
+        private void AttachEnterableBuildingDoors(StageData stage)
+        {
+            if (_currentEnvContainer == null || stage == null || !Application.isPlaying) return;
+
+            Physics.SyncTransforms();
+
+            List<(Transform target, Bounds bounds)> candidates = new List<(Transform, Bounds)>();
+            int childCount = _currentEnvContainer.transform.childCount;
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = _currentEnvContainer.transform.GetChild(i);
+                if (child == null || !child.gameObject.activeInHierarchy) continue;
+
+                string cname = child.name;
+                if (cname.Equals("BackgroundScenery", System.StringComparison.OrdinalIgnoreCase) ||
+                    cname.StartsWith("BuildingEntrance_", System.StringComparison.OrdinalIgnoreCase) ||
+                    cname.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("RoadTile", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    continue;
+                }
+
+                if (!TryComputeObjectWorldBounds(child, out Bounds b)) continue;
+
+                bool nameLooksLikeBuilding =
+                    cname.IndexOf("Building", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("House", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Shop", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Warehouse", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Hangar", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Cottage", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Chalet", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Clinic", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    cname.IndexOf("Townhouse", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                bool sizeLooksLikeBuilding =
+                    b.size.x >= 3.2f && b.size.z >= 3.2f && b.size.y >= 2.1f &&
+                    cname.IndexOf("Tree", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                    cname.IndexOf("Rock", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                    cname.IndexOf("Car", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                    cname.IndexOf("Truck", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                    cname.IndexOf("Bus", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                    cname.IndexOf("Vehicle", System.StringComparison.OrdinalIgnoreCase) < 0;
+
+                if (!nameLooksLikeBuilding && !sizeLooksLikeBuilding) continue;
+
+                candidates.Add((child, b));
+            }
+
+            if (candidates.Count == 0) return;
+
+            // Deterministic shuffle using stageSeed so Host and Co-op Clients always select identical enterable houses
+            System.Random rng = new System.Random(stage.stageSeed ^ 0x51A7E29);
+            for (int i = candidates.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(0, i + 1);
+                var tmp = candidates[i];
+                candidates[i] = candidates[j];
+                candidates[j] = tmp;
+            }
+
+            // First lock all pre-baked BuildingDoorWarpTrigger children on spawned buildings;
+            // only the 1-2 deterministically selected enterable buildings will be unlocked below!
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                BuildingDoorWarpTrigger[] baked = candidates[i].target.GetComponentsInChildren<BuildingDoorWarpTrigger>(true);
+                for (int k = 0; k < baked.Length; k++)
+                {
+                    if (baked[k] != null) baked[k].SetLockedInStage();
+                }
+            }
+
+            // Pick a subset of buildings so some are enterable and some remain boarded up (1 when 1-2 houses, 1-2 when 3+)
+            int desiredCount = candidates.Count <= 2 ? 1 : (rng.NextDouble() < 0.70 ? 2 : 1);
+            int attachedCount = 0;
+
+            float maxPlayableX = gridWidth * 0.46f;
+            float maxPlayableZ = gridHeight * 0.44f;
+
+            // Prefer South (-Z, camera-facing front), then West/East sides, then North (+Z)
+            Vector3[] faceNormals = { Vector3.back, Vector3.left, Vector3.right, Vector3.forward };
+
+            for (int i = 0; i < candidates.Count && attachedCount < desiredCount; i++)
+            {
+                Transform bldg = candidates[i].target;
+                Bounds b = candidates[i].bounds;
+
+                // 1. Prefer pre-placed real doorway BuildingDoorWarpTrigger on the prefab (1.5u trigger collider at real door!)
+                BuildingDoorWarpTrigger prefabDoor = bldg.GetComponentInChildren<BuildingDoorWarpTrigger>(true);
+                if (prefabDoor != null)
+                {
+                    Vector3 doorWorldPos = prefabDoor.transform.position;
+                    bool inBounds = Mathf.Abs(doorWorldPos.x) <= maxPlayableX && Mathf.Abs(doorWorldPos.z) <= maxPlayableZ;
+                    if (inBounds)
+                    {
+                        Vector3 checkPoint = prefabDoor.ExteriorReturnPosition + Vector3.up * 0.25f;
+                        Collider[] hits = Physics.OverlapSphere(checkPoint, 0.48f, ~0, QueryTriggerInteraction.Ignore);
+                        bool blocked = false;
+                        for (int h = 0; h < hits.Length; h++)
+                        {
+                            Collider col = hits[h];
+                            if (col == null) continue;
+                            if (col.transform.IsChildOf(bldg) || col.transform == bldg) continue;
+                            string colName = col.gameObject.name.ToLowerInvariant();
+                            if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("street") || colName.Contains("road"))
+                                continue;
+                            if (col.GetComponentInParent<PlayerController>() != null) continue;
+                            blocked = true;
+                            break;
+                        }
+
+                        if (!blocked)
+                        {
+                            attachedCount++;
+                            int bId = attachedCount;
+                            int seed = BuildingInteriorManager.ComputeInteriorSeed(stage.stageSeed, stage.x, stage.y, bId, bldg.name);
+                            prefabDoor.UnlockForStage(bId, stage.x, stage.y, seed, bldg.name, b.size.y);
+                            continue;
+                        }
+                    }
+                }
+
+                // 2. Fallback for buildings without a pre-placed BuildingDoorWarpTrigger: auto-place on a clear face
+                bool foundClearFace = false;
+                Vector3 chosenDoorPos = Vector3.zero;
+                Vector3 chosenNormal = Vector3.back;
+
+                for (int f = 0; f < faceNormals.Length; f++)
+                {
+                    Vector3 n = faceNormals[f];
+                    float extentAlongN = Mathf.Abs(n.x) > 0.5f ? b.extents.x : b.extents.z;
+                    Vector3 doorPos = new Vector3(
+                        b.center.x + n.x * (extentAlongN + 0.48f),
+                        0f,
+                        b.center.z + n.z * (extentAlongN + 0.48f));
+
+                    if (Mathf.Abs(doorPos.x) > maxPlayableX || Mathf.Abs(doorPos.z) > maxPlayableZ)
+                        continue;
+
+                    // Verify doorway & return step aren't blocked by another solid obstacle
+                    Vector3 standPoint = doorPos + n * 0.65f + Vector3.up * 0.65f;
+                    Collider[] hits = Physics.OverlapSphere(standPoint, 0.52f, ~0, QueryTriggerInteraction.Ignore);
+                    bool blocked = false;
+                    for (int h = 0; h < hits.Length; h++)
+                    {
+                        Collider col = hits[h];
+                        if (col == null) continue;
+                        if (col.transform.IsChildOf(bldg) || col.transform == bldg) continue;
+                        string colName = col.gameObject.name.ToLowerInvariant();
+                        if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("street") || colName.Contains("road"))
+                            continue;
+                        if (col.GetComponentInParent<PlayerController>() != null) continue;
+                        blocked = true;
+                        break;
+                    }
+
+                    if (!blocked)
+                    {
+                        foundClearFace = true;
+                        chosenDoorPos = doorPos;
+                        chosenNormal = n;
+                        break;
+                    }
+                }
+
+                if (!foundClearFace) continue;
+
+                attachedCount++;
+                int buildingId = attachedCount;
+                int interiorSeed = BuildingInteriorManager.ComputeInteriorSeed(stage.stageSeed, stage.x, stage.y, buildingId, bldg.name);
+                InteriorTemplateData matchedTemplate = InteriorTemplateLibrary.SelectTemplateForBuilding(bldg.name, b.size.y, interiorSeed);
+                InteriorTheme theme = matchedTemplate != null
+                    ? matchedTemplate.GetThemeEnum()
+                    : BuildingEntrance.InferThemeFromPrefabName(bldg.name, interiorSeed);
+                string displayName = matchedTemplate != null && !string.IsNullOrWhiteSpace(matchedTemplate.displayName)
+                    ? matchedTemplate.displayName
+                    : GetUniqueBuildingDisplayName(theme, interiorSeed);
+                int floorCount = matchedTemplate != null ? matchedTemplate.floorCount : 2;
+
+                GameObject doorObj = new GameObject($"BuildingEntrance_{buildingId}_{theme}");
+                doorObj.transform.SetParent(_currentEnvContainer.transform, false);
+                doorObj.transform.position = chosenDoorPos;
+
+                BuildingEntrance entrance = doorObj.AddComponent<BuildingEntrance>();
+                entrance.Configure(buildingId, stage.x, stage.y, interiorSeed, theme, displayName, chosenNormal, bldg.name, b.size.y, floorCount);
+            }
+        }
+
+        private static bool TryComputeObjectWorldBounds(Transform root, out Bounds worldBounds)
+        {
+            worldBounds = new Bounds();
+            bool hasBounds = false;
+
+            Collider[] cols = root.GetComponentsInChildren<Collider>();
+            for (int i = 0; i < cols.Length; i++)
+            {
+                Collider c = cols[i];
+                if (c == null || c.isTrigger || !c.enabled) continue;
+                if (c.bounds.size.sqrMagnitude < 0.0001f) continue;
+                if (!hasBounds) { worldBounds = c.bounds; hasBounds = true; }
+                else worldBounds.Encapsulate(c.bounds);
+            }
+
+            if (!hasBounds)
+            {
+                Renderer[] rends = root.GetComponentsInChildren<Renderer>();
+                for (int i = 0; i < rends.Length; i++)
+                {
+                    Renderer r = rends[i];
+                    if (r == null || r is ParticleSystemRenderer || !r.enabled) continue;
+                    if (r.bounds.size.sqrMagnitude < 0.0001f) continue;
+                    if (!hasBounds) { worldBounds = r.bounds; hasBounds = true; }
+                    else worldBounds.Encapsulate(r.bounds);
+                }
+            }
+
+            return hasBounds;
+        }
+
+        private static string GetUniqueBuildingDisplayName(InteriorTheme theme, int seed)
+        {
+            int idx = Mathf.Abs(seed) % 4;
+            return theme switch
+            {
+                InteriorTheme.CornerShop => idx switch
+                {
+                    0 => "Corner Shop",
+                    1 => "Mini Mart",
+                    2 => "Supply Store",
+                    _ => "General Store"
+                },
+                InteriorTheme.Clinic => idx switch
+                {
+                    0 => "Field Clinic",
+                    1 => "Old Pharmacy",
+                    2 => "Medical Room",
+                    _ => "Outpost Clinic"
+                },
+                InteriorTheme.Warehouse => idx switch
+                {
+                    0 => "Warehouse",
+                    1 => "Storage Depot",
+                    2 => "Cargo Shed",
+                    _ => "Workshop"
+                },
+                _ => idx switch
+                {
+                    0 => "Abandoned House",
+                    1 => "Suburban Home",
+                    2 => "Old Cottage",
+                    _ => "Townhouse"
+                }
+            };
         }
 
         /// <summary>
