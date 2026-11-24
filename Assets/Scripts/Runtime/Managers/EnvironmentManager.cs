@@ -91,6 +91,181 @@ namespace TheLastEmpire
             public Vector3 center;
         }
 
+        // =====================================================
+        //  Environment Building / Prop / Road Object Pool
+        // =====================================================
+        private const int MaxPooledPerPrefabKey = 48;
+        private const int MaxPooledRoadPrimitives = 640;
+
+        private GameObject _envPoolRoot;
+        private readonly Dictionary<long, Stack<GameObject>> _prefabPool = new Dictionary<long, Stack<GameObject>>();
+        private readonly List<(long key, GameObject go)> _activePooledPrefabs = new List<(long, GameObject)>();
+        private readonly Dictionary<PrimitiveType, Stack<GameObject>> _roadPartPool = new Dictionary<PrimitiveType, Stack<GameObject>>();
+        private readonly List<(PrimitiveType type, GameObject go)> _activeRoadParts = new List<(PrimitiveType, GameObject)>();
+
+        private void EnsureEnvPoolRoot()
+        {
+            if (_envPoolRoot == null)
+            {
+                _envPoolRoot = new GameObject("[EnvironmentObjectPool]");
+                _envPoolRoot.transform.SetParent(transform, false);
+                _envPoolRoot.SetActive(false);
+            }
+        }
+
+        private GameObject SpawnEnvPrefab(
+            GameObject prefab,
+            Vector3 worldPos,
+            Quaternion worldRot,
+            Transform parent,
+            bool isBackground = false,
+            Vector3? scaleOverride = null)
+        {
+            if (prefab == null) return null;
+
+            if (!Application.isPlaying)
+            {
+                GameObject editObj = Instantiate(prefab, worldPos, worldRot, parent);
+                editObj.name = isBackground ? $"BG_{prefab.name}" : prefab.name;
+                if (scaleOverride.HasValue) editObj.transform.localScale = scaleOverride.Value;
+                if (isBackground) DisableCollidersOnBackgroundObject(editObj);
+                return editObj;
+            }
+
+            EnsureEnvPoolRoot();
+            long key = ((long)prefab.GetInstanceID() << 1) | (isBackground ? 1L : 0L);
+
+            GameObject obj = null;
+            if (_prefabPool.TryGetValue(key, out Stack<GameObject> stack))
+            {
+                while (stack.Count > 0 && obj == null)
+                {
+                    obj = stack.Pop();
+                }
+            }
+
+            if (obj == null)
+            {
+                obj = Instantiate(prefab, worldPos, worldRot, parent);
+                if (isBackground) DisableCollidersOnBackgroundObject(obj);
+            }
+            else
+            {
+                Transform t = obj.transform;
+                t.SetParent(parent, false);
+                t.SetPositionAndRotation(worldPos, worldRot);
+                obj.SetActive(true);
+                if (!isBackground)
+                {
+                    // Re-roll fresh stage-seeded loot on recycled vehicles/crates (Start() only runs on first Instantiate)
+                    LootContainer[] containers = obj.GetComponentsInChildren<LootContainer>(true);
+                    for (int ci = 0; ci < containers.Length; ci++)
+                    {
+                        if (containers[ci] != null) containers[ci].ReinitializeForStage();
+                    }
+                }
+            }
+
+            obj.name = isBackground ? $"BG_{prefab.name}" : prefab.name;
+            obj.transform.localScale = scaleOverride ?? prefab.transform.localScale;
+            _activePooledPrefabs.Add((key, obj));
+            return obj;
+        }
+
+        private void ReturnSinglePooledPrefab(GameObject target)
+        {
+            if (target == null) return;
+            if (!Application.isPlaying)
+            {
+                DestroyImmediate(target);
+                return;
+            }
+
+            for (int i = _activePooledPrefabs.Count - 1; i >= 0; i--)
+            {
+                if (_activePooledPrefabs[i].go == target)
+                {
+                    long key = _activePooledPrefabs[i].key;
+                    _activePooledPrefabs.RemoveAt(i);
+                    RecyclePrefabInstance(key, target);
+                    return;
+                }
+            }
+
+            Destroy(target);
+        }
+
+        private void RecyclePrefabInstance(long key, GameObject go)
+        {
+            if (go == null) return;
+            EnsureEnvPoolRoot();
+
+            // Reset runtime state cleanly before returning to pool
+            BuildingDoorWarpTrigger[] doors = go.GetComponentsInChildren<BuildingDoorWarpTrigger>(true);
+            for (int d = 0; d < doors.Length; d++)
+            {
+                if (doors[d] != null) doors[d].SetLockedInStage();
+            }
+
+            Health[] healths = go.GetComponentsInChildren<Health>(true);
+            for (int h = 0; h < healths.Length; h++)
+            {
+                if (healths[h] != null && healths[h].IsDead) healths[h].ResetHealth();
+            }
+
+            if (!_prefabPool.TryGetValue(key, out Stack<GameObject> stack))
+            {
+                stack = new Stack<GameObject>();
+                _prefabPool[key] = stack;
+            }
+
+            if (stack.Count >= MaxPooledPerPrefabKey)
+            {
+                Destroy(go);
+                return;
+            }
+
+            go.SetActive(false);
+            go.transform.SetParent(_envPoolRoot.transform, false);
+            stack.Push(go);
+        }
+
+        private void ReleaseAllPooledEnvironmentObjects()
+        {
+            if (!Application.isPlaying) return;
+            EnsureEnvPoolRoot();
+
+            for (int i = _activePooledPrefabs.Count - 1; i >= 0; i--)
+            {
+                var entry = _activePooledPrefabs[i];
+                if (entry.go != null)
+                {
+                    RecyclePrefabInstance(entry.key, entry.go);
+                }
+            }
+            _activePooledPrefabs.Clear();
+
+            for (int i = _activeRoadParts.Count - 1; i >= 0; i--)
+            {
+                var entry = _activeRoadParts[i];
+                if (entry.go == null) continue;
+                if (!_roadPartPool.TryGetValue(entry.type, out Stack<GameObject> stack))
+                {
+                    stack = new Stack<GameObject>();
+                    _roadPartPool[entry.type] = stack;
+                }
+                if (stack.Count >= MaxPooledRoadPrimitives)
+                {
+                    Destroy(entry.go);
+                    continue;
+                }
+                entry.go.SetActive(false);
+                entry.go.transform.SetParent(_envPoolRoot.transform, false);
+                stack.Push(entry.go);
+            }
+            _activeRoadParts.Clear();
+        }
+
         private void Awake()
         {
             if (Instance == null)
@@ -165,8 +340,9 @@ namespace TheLastEmpire
             float startX = -totalWidth * 0.5f + gridCenterOffset.x;
             float startY = -totalHeight * 0.5f + gridCenterOffset.y;
 
-            // 2. Clean up old stage environment props safely in both Play and Edit modes
+            // 2. Clean up old stage environment props safely (return pooled buildings/props/roads first -> zero GC spikes!)
             var activePathSegments = GetActivePathSegments(stage);
+            ReleaseAllPooledEnvironmentObjects();
             if (_currentEnvContainer != null)
             {
                 if (Application.isPlaying) Destroy(_currentEnvContainer);
@@ -312,8 +488,7 @@ namespace TheLastEmpire
 
                             float spawnY = prefab.transform.position.y + prefabSpawnOffsetHeight;
                             Vector3 worldPos = new Vector3(centerX, spawnY, centerZ);
-                            GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                            obj.name = prefab.name;
+                            SpawnEnvPrefab(prefab, worldPos, rotation, _currentEnvContainer.transform);
                         }
                         else if (useProceduralFallbacks)
                         {
@@ -436,8 +611,7 @@ namespace TheLastEmpire
                     ReserveGridFootprint(occupiedGrid, anchor.x, anchor.y, footprint.x, footprint.y, rows, cols);
                     placedWorldRects.Add(placedRect);
 
-                    GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                    obj.name = prefab.name;
+                    SpawnEnvPrefab(prefab, worldPos, rotation, _currentEnvContainer.transform);
                 }
                 else
                 {
@@ -480,8 +654,7 @@ namespace TheLastEmpire
                             ReserveGridFootprint(occupiedGrid, sAnchor.x, sAnchor.y, sFoot.x, sFoot.y, rows, cols);
                             placedWorldRects.Add(sRect);
 
-                            GameObject obj = Instantiate(smallerPrefab, sPos, sRot, _currentEnvContainer.transform);
-                            obj.name = smallerPrefab.name;
+                            SpawnEnvPrefab(smallerPrefab, sPos, sRot, _currentEnvContainer.transform);
                         }
                     }
                 }
@@ -502,8 +675,7 @@ namespace TheLastEmpire
                         ReserveGridFootprint(occupiedGrid, anchor.x, anchor.y, footprint.x, footprint.y, rows, cols);
                         placedWorldRects.Add(placedRect);
 
-                        GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                        obj.name = prefab.name;
+                        SpawnEnvPrefab(prefab, worldPos, rotation, _currentEnvContainer.transform);
                     }
                 }
                 else if (useProceduralFallbacks)
@@ -554,8 +726,7 @@ namespace TheLastEmpire
                         ReserveGridFootprint(occupiedGrid, anchor.x, anchor.y, footprint.x, footprint.y, rows, cols);
                         placedWorldRects.Add(placedRect);
 
-                        GameObject obj = Instantiate(prefab, worldPos, rotation, _currentEnvContainer.transform);
-                        obj.name = prefab.name;
+                        SpawnEnvPrefab(prefab, worldPos, rotation, _currentEnvContainer.transform);
                         spawnedDecorCount++;
                     }
                 }
@@ -1720,8 +1891,7 @@ namespace TheLastEmpire
                         float spawnY = Mathf.Max(0.01f, streetPrefab.transform.position.y);
                         Vector3 worldPos = new Vector3(x, spawnY, z);
                         Quaternion streetRot = (isVerticalOnly ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity) * streetPrefab.transform.rotation;
-                        GameObject tile = Instantiate(streetPrefab, worldPos, streetRot, _currentEnvContainer.transform);
-                        tile.name = streetPrefab.name;
+                        GameObject tile = SpawnEnvPrefab(streetPrefab, worldPos, streetRot, _currentEnvContainer.transform);
 
                         // Scale X/Z so the tile fills the grid cell seamlessly without gaps between adjacent road tiles
                         Vector2 unrotatedSize = GetPrefabWorldSize(streetPrefab, streetPrefab.transform.rotation);
@@ -1988,23 +2158,57 @@ namespace TheLastEmpire
 
         private GameObject CreateRoadPart(Transform parent, string name, PrimitiveType type, Vector3 localPos, Vector3 localScale, Material mat, Quaternion? localRot = null)
         {
-            GameObject go = GameObject.CreatePrimitive(type);
-            go.name = name;
-            go.transform.SetParent(parent, false);
-            go.transform.localPosition = localPos;
-            if (localRot.HasValue) go.transform.localRotation = localRot.Value;
-            go.transform.localScale = localScale;
-            Collider col = go.GetComponent<Collider>();
-            if (col != null)
+            GameObject go = null;
+            bool recycled = false;
+
+            if (Application.isPlaying)
             {
-                if (Application.isPlaying) Destroy(col);
-                else DestroyImmediate(col);
+                EnsureEnvPoolRoot();
+                if (_roadPartPool.TryGetValue(type, out Stack<GameObject> stack))
+                {
+                    while (stack.Count > 0 && go == null)
+                    {
+                        go = stack.Pop();
+                    }
+                }
             }
+
+            if (go != null)
+            {
+                recycled = true;
+                go.transform.SetParent(parent, false);
+                go.SetActive(true);
+            }
+            else
+            {
+                go = GameObject.CreatePrimitive(type);
+                go.transform.SetParent(parent, false);
+                Collider col = go.GetComponent<Collider>();
+                if (col != null)
+                {
+                    if (Application.isPlaying) Destroy(col);
+                    else DestroyImmediate(col);
+                }
+            }
+
+            go.name = name;
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = localRot ?? Quaternion.identity;
+            go.transform.localScale = localScale;
+
             Renderer r = go.GetComponent<Renderer>();
             if (r != null)
             {
                 r.sharedMaterial = mat;
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                if (!recycled)
+                {
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+            }
+
+            if (Application.isPlaying)
+            {
+                _activeRoadParts.Add((type, go));
             }
             return go;
         }
@@ -2976,12 +3180,8 @@ namespace TheLastEmpire
                         {
                             continue;
                         }
-                        GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
-                        spawned.name = prefab.name;
-                        if (obj.scale != Vector3.one || prefab.transform.localScale == Vector3.one)
-                        {
-                            spawned.transform.localScale = obj.scale;
-                        }
+                        Vector3? scaleOvr = (obj.scale != Vector3.one || prefab.transform.localScale == Vector3.one) ? obj.scale : (Vector3?)null;
+                        SpawnEnvPrefab(prefab, obj.position, rot, _currentEnvContainer.transform, isBackground: false, scaleOverride: scaleOvr);
                     }
                     else
                     {
@@ -3023,9 +3223,7 @@ namespace TheLastEmpire
                                 continue;
                             }
                         }
-                        GameObject spawned = Instantiate(prefab, obj.position, rot, _currentEnvContainer.transform);
-                        spawned.name = prefab.name;
-                        spawned.transform.localScale = obj.scale;
+                        SpawnEnvPrefab(prefab, obj.position, rot, _currentEnvContainer.transform, isBackground: false, scaleOverride: obj.scale);
                     }
                 }
             }
@@ -3149,8 +3347,7 @@ namespace TheLastEmpire
             foreach (GameObject go in toRemove)
             {
                 if (go == null) continue;
-                if (Application.isPlaying) Destroy(go);
-                else DestroyImmediate(go);
+                ReturnSinglePooledPrefab(go);
             }
         }
 
@@ -3492,9 +3689,7 @@ namespace TheLastEmpire
                             Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) * bPrefab.transform.rotation;
                             float spawnY = bPrefab.transform.position.y + prefabSpawnOffsetHeight;
                             Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
-                            GameObject obj = Instantiate(bPrefab, worldPos, rot, bgContainer.transform);
-                            obj.name = $"BG_{bPrefab.name}";
-                            DisableCollidersOnBackgroundObject(obj);
+                            SpawnEnvPrefab(bPrefab, worldPos, rot, bgContainer.transform, isBackground: true);
                         }
                         else if (useProceduralFallbacks)
                         {
@@ -3515,9 +3710,7 @@ namespace TheLastEmpire
                             Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 360f), 0f) * pPrefab.transform.rotation;
                             float spawnY = pPrefab.transform.position.y + prefabSpawnOffsetHeight;
                             Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
-                            GameObject obj = Instantiate(pPrefab, worldPos, rot, bgContainer.transform);
-                            obj.name = $"BG_{pPrefab.name}";
-                            DisableCollidersOnBackgroundObject(obj);
+                            SpawnEnvPrefab(pPrefab, worldPos, rot, bgContainer.transform, isBackground: true);
                         }
                         else if (useProceduralFallbacks)
                         {
@@ -3554,9 +3747,7 @@ namespace TheLastEmpire
                             Quaternion rot = Quaternion.Euler(0f, Random.Range(0, 4) * 90f, 0f) * bPrefab.transform.rotation;
                             float spawnY = bPrefab.transform.position.y + prefabSpawnOffsetHeight;
                             Vector3 worldPos = new Vector3(spawnPos.x, spawnY, spawnPos.z);
-                            GameObject obj = Instantiate(bPrefab, worldPos, rot, bgContainer.transform);
-                            obj.name = $"BG_{bPrefab.name}";
-                            DisableCollidersOnBackgroundObject(obj);
+                            SpawnEnvPrefab(bPrefab, worldPos, rot, bgContainer.transform, isBackground: true);
                         }
                     }
                 }

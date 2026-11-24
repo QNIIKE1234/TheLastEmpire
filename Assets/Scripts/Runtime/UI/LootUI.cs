@@ -236,7 +236,7 @@ namespace TheLastEmpire
                                                 ?? PlayerController.Instance;
                     if (localPlayer != null)
                     {
-                        float dist = Vector3.Distance(localPlayer.transform.position, _currentContainer.transform.position);
+                        float dist = _currentContainer.GetDistanceToPoint(localPlayer.transform.position);
                         float maxRadius = (_currentContainer.interactionRadius > 0f ? _currentContainer.interactionRadius : 2.5f) + 1.5f;
                         if (dist > maxRadius)
                         {

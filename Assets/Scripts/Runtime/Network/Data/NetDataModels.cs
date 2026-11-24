@@ -78,6 +78,7 @@ namespace TheLastEmpire.Network
         public string activeWeaponName;
         public bool isSprinting;
         public bool isSitting;
+        public bool isSleeping;
         public bool isDashing;
         public bool isShiftActive;
         public byte shiftType;
@@ -103,6 +104,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref activeWeaponName);
             serializer.SerializeValue(ref isSprinting);
             serializer.SerializeValue(ref isSitting);
+            serializer.SerializeValue(ref isSleeping);
             serializer.SerializeValue(ref isDashing);
             serializer.SerializeValue(ref isShiftActive);
             serializer.SerializeValue(ref shiftType);

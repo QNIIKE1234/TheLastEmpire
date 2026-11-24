@@ -254,6 +254,10 @@ namespace TheLastEmpire
             {
                 SetSitting(state.isSitting);
             }
+            if (_isSleeping != state.isSleeping)
+            {
+                SetSleeping(state.isSleeping);
+            }
 
             if (!string.IsNullOrEmpty(state.characterId))
             {

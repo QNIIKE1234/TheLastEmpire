@@ -325,6 +325,8 @@ namespace TheLastEmpire
 
         private bool _isSitting = false;
         public bool IsSitting => _isSitting;
+        private bool _isSleeping = false;
+        public bool IsSleeping => _isSleeping;
 
         private float _dashCooldownTimer = 0f;
         private float _fireCooldownTimer = 0f;
@@ -1390,6 +1392,19 @@ namespace TheLastEmpire
             {
                 SetSitting(false);
             }
+            if (_isSleeping && moveMagnitude > 0.1f)
+            {
+                SetSleeping(false);
+            }
+            if (_isSleeping)
+            {
+                _animator.SetFloat("Speed", 0f);
+                _animator.SetBool("IsRunning", false);
+                _animator.SetBool("IsSitting", false);
+                _animator.SetBool("HasGun", false);
+                if (_animator.layerCount > 1) _animator.SetLayerWeight(1, 0f);
+                return;
+            }
             _animator.SetFloat("Speed", moveMagnitude);
             _animator.SetBool("IsRunning", _isSprinting && moveMagnitude > 0.1f);
             _animator.SetBool("IsSitting", _isSitting);
@@ -1435,6 +1450,7 @@ namespace TheLastEmpire
 
         public void SetSitting(bool sit)
         {
+            if (sit && _isSleeping) SetSleeping(false);
             if (_isSitting == sit) return;
             _isSitting = sit;
 
@@ -1468,6 +1484,66 @@ namespace TheLastEmpire
                 if (_animator != null)
                 {
                     _animator.SetBool("IsSitting", false);
+                }
+                if (CurrentWeapon != null)
+                {
+                    ShowRangedWeaponVisual();
+                }
+                else if (CurrentMeleeWeapon != null)
+                {
+                    ShowMeleeWeaponVisual();
+                }
+            }
+        }
+
+        public void SetSleeping(bool sleep)
+        {
+            if (sleep && _isSitting) SetSitting(false);
+            if (_isSleeping == sleep) return;
+            _isSleeping = sleep;
+
+            if (_animator == null)
+                _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+
+            if (_isSleeping)
+            {
+                _moveInput = Vector2.zero;
+                _isSprinting = false;
+                _shootAnimLayerTimer = 0f;
+                _meleeAnimTimer = 0f;
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.angularVelocity = Vector3.zero;
+                }
+                if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                if (rangeWeapon != null) rangeWeapon.SetActive(false);
+                if (_animator != null)
+                {
+                    _animator.SetBool("IsSitting", false);
+                    _animator.SetFloat("Speed", 0f);
+                    _animator.SetBool("IsRunning", false);
+                    if (_animator.layerCount > 1)
+                    {
+                        _animator.SetLayerWeight(1, 0f);
+                        _animator.Play("UpperBody_Empty", 1, 0f);
+                    }
+                    int sleepHash = Animator.StringToHash("Sleep");
+                    if (_animator.HasState(0, sleepHash))
+                    {
+                        _animator.CrossFadeInFixedTime(sleepHash, 0.18f, 0);
+                    }
+                    else
+                    {
+                        _animator.CrossFadeInFixedTime("Sit", 0.18f, 0);
+                    }
+                }
+            }
+            else
+            {
+                if (_animator != null)
+                {
+                    _animator.CrossFadeInFixedTime("Idle", 0.15f, 0);
                 }
                 if (CurrentWeapon != null)
                 {
@@ -1763,8 +1839,8 @@ namespace TheLastEmpire
                 if (direction.sqrMagnitude > 0.01f)
                 {
                     _aimDirection = direction;
-                    // Rotate the player to face aiming direction (unless sitting)
-                    if (!_isSitting)
+                    // Rotate the player to face aiming direction (unless sitting or sleeping)
+                    if (!_isSitting && !_isSleeping)
                     {
                         transform.forward = _aimDirection;
                     }
@@ -2111,6 +2187,7 @@ namespace TheLastEmpire
         private void ShootWeapon(bool isEchoBurst = false)
         {
             if (_isSitting) SetSitting(false);
+            if (_isSleeping) SetSleeping(false);
             ShowRangedWeaponVisual();
             TriggerCombatState();
             if (_isReloading) return;
@@ -2726,6 +2803,7 @@ namespace TheLastEmpire
         private void ExecuteLegendaryMeleeRightClickSkill(string weaponName, WeaponArtifactModifiers mods)
         {
             if (_isSitting) SetSitting(false);
+            if (_isSleeping) SetSleeping(false);
             ShowMeleeWeaponVisual();
             TriggerCombatState();
 
@@ -3488,6 +3566,7 @@ namespace TheLastEmpire
         private void MeleeAttack()
         {
             if (_isSitting) SetSitting(false);
+            if (_isSleeping) SetSleeping(false);
             ShowMeleeWeaponVisual();
             TriggerCombatState();
             MeleeWeapon activeMelee = CurrentMeleeWeapon;
@@ -3728,6 +3807,7 @@ namespace TheLastEmpire
         private void StartDash()
         {
             if (_isSitting) SetSitting(false);
+            if (_isSleeping) SetSleeping(false);
 
             // Dash towards movement input, or aim direction if standing still
             Vector3 desiredDir = _moveInput.sqrMagnitude > 0.01f ? new Vector3(_moveInput.x, 0f, _moveInput.y).normalized : _aimDirection;
@@ -5551,7 +5631,7 @@ namespace TheLastEmpire
             foreach (LootContainer container in containers)
             {
                 if (container == null) continue;
-                float dist = Vector3.Distance(transform.position, container.transform.position);
+                float dist = container.GetDistanceToPoint(transform.position);
                 float radius = container.interactionRadius > 0f ? container.interactionRadius : 2.5f;
                 if (dist <= radius && dist < minContainerDist)
                 {

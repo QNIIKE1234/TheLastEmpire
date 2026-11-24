@@ -107,6 +107,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3923765099216016236}
   - component: {fileID: 8503098412886710737}
+  - component: {fileID: 8377073064214474104}
   m_Layer: 0
   m_Name: Vehicle_Taxi_NYC
   m_TagString: Untagged
@@ -151,3 +152,41 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.1920002, y: 1.82, z: 4.3599997}
   m_Center: {x: 0, y: 0.91, z: 0}
+--- !u!114 &8377073064214474104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4474912985076039693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af777102ae71a2e4dbed7edf029699f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.LootContainer
+  containerName: NYC Taxi
+  maxStorageSlots: 24
+  moneyAmount: 0
+  itemsInside: []
+  randomizeLoot: 1
+  minRandomCash: 25
+  maxRandomCash: 320
+  possibleLoot:
+  - itemName: Bread
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.25
+  - itemName: Water Bottle
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.25
+  - itemName: Potion
+    minQuantity: 1
+    maxQuantity: 2
+    dropProbability: 0.15
+  - itemName: Ammo
+    minQuantity: 1
+    maxQuantity: 15
+    dropProbability: 0.15
+  isSearched: 0
+  interactionRadius: 2.2

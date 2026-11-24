@@ -72,6 +72,31 @@ namespace TheLastEmpire
         [Header("Interaction Radius")]
         public float interactionRadius = 2.0f;
 
+        private Collider _cachedCollider;
+
+        /// <summary>
+        /// Measures distance from a world point to the closest edge of this container's collider
+        /// (falls back to transform.position). Ensures large vehicles (Police SUV/Sedan, Fire Truck, Bus)
+        /// are lootable cleanly from hood, side doors, and rear trunk alike!
+        /// </summary>
+        public float GetDistanceToPoint(Vector3 worldPoint)
+        {
+            if (_cachedCollider == null)
+            {
+                _cachedCollider = GetComponent<Collider>() ?? GetComponentInChildren<Collider>();
+            }
+
+            if (_cachedCollider != null && _cachedCollider.enabled)
+            {
+                Vector3 closest = _cachedCollider.ClosestPoint(worldPoint);
+                Vector2 a = new Vector2(worldPoint.x, worldPoint.z);
+                Vector2 b = new Vector2(closest.x, closest.z);
+                return Vector2.Distance(a, b);
+            }
+
+            return Vector3.Distance(worldPoint, transform.position);
+        }
+
         public int UsedSlots => itemsInside != null ? itemsInside.Count : 0;
 
         /// <summary>
@@ -178,6 +203,16 @@ namespace TheLastEmpire
 
         private void Start()
         {
+            ReinitializeForStage();
+        }
+
+        /// <summary>
+        /// Resets search status and deterministically rolls fresh stage-seeded loot (used on Start and when
+        /// EnvironmentManager recycles a pooled vehicle/container into a new stage).
+        /// </summary>
+        public void ReinitializeForStage()
+        {
+            isSearched = false;
             if (randomizeLoot)
             {
                 // Clear any manual editor items to prevent duplication
