@@ -266,20 +266,8 @@ namespace TheLastEmpire
 
             if (_health != null && state.maxHealth > 0f)
             {
-                if (Mathf.Abs(_health.MaxHealth - state.maxHealth) > 0.5f)
-                {
-                    _health.SetMaxHealth(state.maxHealth, false);
-                }
-                if (_health.IsDead && state.currentHealth > 0f)
-                {
-                    _health.ResetHealth();
-                }
-                float diff = state.currentHealth - _health.CurrentHealth;
-                if (Mathf.Abs(diff) > 0.5f)
-                {
-                    if (diff > 0f) _health.Heal(diff);
-                    else _health.TakeDamage(-diff, transform.position, false);
-                }
+                // Update remote avatar HP cleanly without triggering duplicate damage numbers / VFX on friendly fire
+                _health.SetHealthFromNetwork(state.currentHealth, state.maxHealth);
             }
 
             if (!string.IsNullOrEmpty(state.activeWeaponName))
@@ -341,7 +329,17 @@ namespace TheLastEmpire
 
             if (_rb != null)
             {
-                _rb.linearVelocity = Vector3.zero;
+                // Make remote player kinematic while sitting/sleeping on furniture so PhysX gravity/bed colliders never push them off
+                bool onFurniture = _isSitting || _isSleeping;
+                if (_rb.isKinematic != onFurniture)
+                {
+                    _rb.isKinematic = onFurniture;
+                    _rb.useGravity = !onFurniture;
+                }
+                if (!_rb.isKinematic)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                }
             }
         }
 

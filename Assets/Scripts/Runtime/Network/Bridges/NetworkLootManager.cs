@@ -56,7 +56,7 @@ namespace TheLastEmpire.Network
                 {
                     stageX = bObj.StageX;
                     stageY = bObj.StageY;
-                    interiorId = 0;
+                    interiorId = bObj.InteriorId;
                     return;
                 }
             }
