@@ -1,7 +1,26 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
 **วันที่บันทึกล่าสุด**: 25 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: สไลซ์ & ผูกไอคอน Weapon Artifact ครบ 234 ชิ้น, อัปเกรดถนนยางมะตอยขอบฟุตบาทจมลง + Environment Object Pool, ฝังมุมหมุน Vertex 180° เฟอร์นิเจอร์ 30 ชิ้น + ปรับ JSON 10 หลัง, ระบบนอนเตียง `[E]` ฟื้น `+1 HP/s` + แก้นั่ง/นอนไม่จม, NPC ยืนโพสเท่ๆ & หันคุย + Toon Outline ศัตรู/บอส, Friendly Fire 20% Co-op, Backpack Expansion สูงสุด 70 ช่อง, เพิ่ม Loot รถรุ่นใหม่ 4 คัน + วัดระยะจากขอบรถ, และซิงค์ Multiplayer Co-op ครบทุกจุด)  
+**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: ปิดยิงทะลุเริ่มต้นของ `Sniper Rifle` ให้ต้องใส่ Artifact `grantPierce`, ทำให้นั่งม้านั่งสวนสาธารณะ `Prop_Bench` ได้พร้อมรองรับเลื่อนซ้าย/กลาง/ขวาและปิดบนพร็อพฉากหลัง, และปิด `CanvasColider` / Legacy UI Portal เก่าไม่ให้วงกลมสีเหลืองโผล่ทะลุหลังกำแพงห้อง)  
+
+---
+
+## 34. ปิดยิงทะลุเริ่มต้นของ Sniper Rifle + นั่งม้านั่ง Prop_Bench + ปิด Legacy CanvasColider หลังกำแพง Interior
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - สมดุล Sniper Rifle (ต้องใส่ Artifact `grantPierce`):
+    - [`ITEM0023_SniperRifle.asset`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Database/ItemData/ITEM0023_SniperRifle.asset), [`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs)
+  - นั่งม้านั่งสวนสาธารณะ (`Prop_Bench`) & ปิด Interactive บนพร็อพฉากหลัง:
+    - [`Prop_Bench.prefab`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Prefabs/Environment/Building/Prop_Bench.prefab), [`FurnitureChairInteractable.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/Furniture/FurnitureChairInteractable.cs), [`EnvironmentManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs)
+  - ปิด Legacy UI Portal (`CanvasColider`):
+    - [`Gameplay_3D.unity`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scenes/Gameplay_3D.unity), [`TransitionPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/TransitionPortal.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **ปิดยิงทะลุเริ่มต้นของ `Sniper Rifle` (`9cce300`)**:
+     - เปลี่ยน `canPierce: 1` → `0` ใน `ITEM0023_SniperRifle.asset` (พร้อมปรับคำอธิบาย) และเปลี่ยน `canPierce = false` ใน `PlayerController.cs` เพื่อให้ `Sniper Rifle` ยิงทะลุได้เฉพาะตอนใส่ Artifact สาย Pierce (`Railgun Piercer`, `Anti-Materiel Round`, `Triple-Line Rail`, `One-Shot Sovereign`) เท่านั้น
+  2. **ทำให้นั่งม้านั่ง `Prop_Bench` ได้อย่างถูกต้อง (`9cce300`)**:
+     - เพิ่มพารามิเตอร์ `facePositiveZ`, `seatHeightOffset`, และ `seatSlideHalfWidth` ใน `FurnitureChairInteractable.cs` และติดลง `Prop_Bench.prefab` (`Park Bench`, หันหน้าออกด้านหน้าม้านั่ง `+Z` ไม่หันเข้าพนักพิง, นั่งได้ทั้งฝั่งซ้าย/กลาง/ขวา `±0.48m` ให้เพื่อน Co-op นั่งข้างกันได้, ฟื้น Sanity `+2.5/s`)
+     - อัปเดต `EnvironmentManager.DisableCollidersOnBackgroundObject()` ให้ปิด `FurnitureChairInteractable` และ `LootContainer` บนพร็อพฉากหลัง (`BackgroundScenery`) อัตโนมัติ
+  3. **ซ่อน/ปิด `CanvasColider` (Legacy UI Portal เก่า) ไม่ให้วงกลมเหลืองโผล่หลังกำแพง (`46cefee`)**:
+     - ปิด `CanvasColider` (`m_IsActive: 0`) ใน `Gameplay_3D.unity` และเพิ่มโค้ดปิด `CanvasColider` / Legacy UI `TransitionPortal` อัตโนมัติใน `TransitionPortal.Start()` เพื่อไม่ให้วงกลมเหลือง `Knob` โผล่ทะลุพื้นหลังสีดำเวลาเข้า Interior
 
 ---
 
