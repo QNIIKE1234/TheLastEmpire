@@ -1444,14 +1444,14 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Fallback: load directly from Resources/Prefabs/Furniture or Addressables building prefabs
+            // 2. Fallback: load directly from Addressables (Prefabs/Furniture or Building) or Resources
             if (prefab == null)
             {
-                prefab = Resources.Load<GameObject>($"Prefabs/Furniture/{buildingId}")
-                      ?? AddressableManager.LoadAsset<GameObject>($"Prefabs/Furniture/{buildingId}")
+                prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Furniture/{buildingId}")
                       ?? AddressableManager.LoadAsset<GameObject>($"Prefabs/Building/{buildingId}")
                       ?? AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/Building/{buildingId}")
-                      ?? AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/{buildingId}");
+                      ?? AddressableManager.LoadAsset<GameObject>($"Prefabs/Environment/{buildingId}")
+                      ?? Resources.Load<GameObject>($"Prefabs/Furniture/{buildingId}");
             }
 
             GameObject instance;

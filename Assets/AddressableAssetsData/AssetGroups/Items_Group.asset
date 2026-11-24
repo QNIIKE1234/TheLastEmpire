@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -35,6 +35,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e9a39ff27e36a7646a81e435a4c2ff9f
     m_Address: Prefabs/Item/ThrowingWeaponPrefabs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Item
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b2c3d4e5f60718293a4b5c6d7e8f0003
+    m_Address: Prefabs/Item/FlamethrowerFireballPrefabs
     m_ReadOnly: 0
     m_SerializedLabels:
     - Item
