@@ -19,6 +19,8 @@ namespace TheLastEmpire
         private BuildingObject _buildingObject;
         private PlayerController _seatedPlayer;
         private readonly List<(Collider playerCol, Collider chairCol)> _ignoredCollisionPairs = new List<(Collider, Collider)>();
+        private bool _savedUseGravity = true;
+        private float _savedStandingY = 0.7f;
         private float _restoreCollisionTimer = 0f;
 
         public Transform InteractionTransform => transform;
@@ -42,13 +44,22 @@ namespace TheLastEmpire
 
         private void OnDisable()
         {
+            if (_seatedPlayer != null)
+            {
+                RestoreGravity(_seatedPlayer);
+                _seatedPlayer = null;
+            }
             RestoreIgnoredCollisions();
-            _seatedPlayer = null;
             BuildingInteractionRegistry.Unregister(this);
         }
 
         private void OnDestroy()
         {
+            if (_seatedPlayer != null)
+            {
+                RestoreGravity(_seatedPlayer);
+                _seatedPlayer = null;
+            }
             RestoreIgnoredCollisions();
         }
 
@@ -67,8 +78,13 @@ namespace TheLastEmpire
 
             if (!_seatedPlayer.IsSitting || Vector3.Distance(_seatedPlayer.transform.position, transform.position) > 2.2f)
             {
-                // Player stood up via movement input -> nudge slightly clear of chair & re-enable collision shortly
+                // Player stood up via movement input -> restore floor height & gravity cleanly
+                PlayerController stood = _seatedPlayer;
                 _seatedPlayer = null;
+                RestoreGravity(stood);
+                Vector3 pos = stood.transform.position;
+                pos.y = _savedStandingY;
+                stood.transform.position = pos;
                 _restoreCollisionTimer = 0.35f;
                 return;
             }
@@ -108,14 +124,16 @@ namespace TheLastEmpire
             // 1. Ignore collision between player and this chair FIRST so PhysX depenetration NEVER launches player into the sky!
             IgnoreCollisionsWithPlayer(pc);
 
-            // 2. Position player cleanly on the seat at ground level facing outward (-transform.forward = front of FBX chair/sofa!)
+            // 2. Preserve real player standing height (PlayerPrefabs root is ~0.70m above floor) + lift gently onto the cushion
+            _savedStandingY = pc.transform.position.y;
             Vector3 seatPos = transform.TransformPoint(new Vector3(seatLocalOffset.x, 0f, -Mathf.Abs(seatLocalOffset.z)));
-            float groundY = Mathf.Clamp(pc.transform.position.y, 0.02f, 0.12f);
-            Vector3 targetPos = new Vector3(seatPos.x, groundY, seatPos.z);
+            Vector3 targetPos = new Vector3(seatPos.x, _savedStandingY + 0.16f, seatPos.z);
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();
             if (rb != null)
             {
+                _savedUseGravity = rb.useGravity;
+                rb.useGravity = false;
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
                 rb.position = targetPos;
@@ -136,11 +154,11 @@ namespace TheLastEmpire
         {
             pc.SetSitting(false);
             _seatedPlayer = null;
+            RestoreGravity(pc);
 
-            // Step smoothly onto the front edge (-Z) of the chair before restoring collider contact
+            // Step smoothly onto the front edge (-Z) of the chair at original standing height
             Vector3 standPos = transform.TransformPoint(new Vector3(0f, 0f, -0.95f));
-            float groundY = Mathf.Clamp(pc.transform.position.y, 0.02f, 0.12f);
-            Vector3 targetPos = new Vector3(standPos.x, groundY, standPos.z);
+            Vector3 targetPos = new Vector3(standPos.x, _savedStandingY, standPos.z);
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();
             if (rb != null)
@@ -153,6 +171,13 @@ namespace TheLastEmpire
             Physics.SyncTransforms();
 
             _restoreCollisionTimer = 0.25f;
+        }
+
+        private void RestoreGravity(PlayerController pc)
+        {
+            if (pc == null) return;
+            Rigidbody rb = pc.GetComponent<Rigidbody>();
+            if (rb != null) rb.useGravity = _savedUseGravity;
         }
 
         private void IgnoreCollisionsWithPlayer(PlayerController pc)

@@ -27,6 +27,7 @@ namespace TheLastEmpire
         private PlayerController _sleepingPlayer;
         private readonly List<(Collider playerCol, Collider bedCol)> _ignoredCollisionPairs = new List<(Collider, Collider)>();
         private bool _savedUseGravity = true;
+        private float _savedStandingY = 0.7f;
         private float _restoreCollisionTimer = 0f;
         private float _hpRegenAccum = 0f;
 
@@ -194,11 +195,15 @@ namespace TheLastEmpire
             // 1. Ignore collision with bed colliders FIRST so PhysX never launches player upward
             IgnoreCollisionsWithPlayer(pc);
 
-            // 2. Place player centered on top of the mattress, head resting on the pillow (+Z of bed), feet toward footboard (-Z)
+            // 2. Capture player's real standing root Y (PlayerPrefabs root sits ~0.70m above floor because CapsuleCollider bottom is -0.70m!)
+            _savedStandingY = pc.transform.position.y;
+
+            // 3. Place player cleanly ON TOP of the mattress/duvet with head resting on the pillow (+Z of bed), feet toward footboard (-Z)
             bool raisedBed = IsRaisedWoodenBed();
-            float mattressY = raisedBed ? 0.56f : 0.12f;
-            float zOffset = raisedBed ? -0.05f : 0.0f;
-            Vector3 liePos = transform.TransformPoint(new Vector3(0f, mattressY, zOffset));
+            float liftAboveFloor = raisedBed ? 0.64f : 0.08f;
+            float zOffset = raisedBed ? 0.14f : 0.0f;
+            Vector3 bedXZ = transform.TransformPoint(new Vector3(0f, 0f, zOffset));
+            Vector3 liePos = new Vector3(bedXZ.x, _savedStandingY + liftAboveFloor, bedXZ.z);
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();
             if (rb != null)
@@ -211,8 +216,8 @@ namespace TheLastEmpire
             }
             pc.transform.position = liePos;
 
-            // Sleep animation lays character back along -transform.forward (head) & +transform.forward (feet).
-            // Bed pillow is at +bed.forward -> face player toward -bed.forward so head rests right on the pillow!
+            // Sleep animation lays character back with HEAD toward -player.forward and FEET toward +player.forward.
+            // Baked bed FBX has pillow at +bed.forward and footboard at -bed.forward -> face player toward -bed.forward!
             Vector3 feetDir = -transform.forward;
             feetDir.y = 0f;
             if (feetDir.sqrMagnitude > 0.01f) pc.transform.forward = feetDir.normalized;
@@ -247,10 +252,10 @@ namespace TheLastEmpire
             if (pc == null) return;
             RestoreGravityForPlayer(pc);
 
-            // Step smoothly beside the bed on the floor so player never drops inside the bed collider
+            // Step smoothly beside the bed at the player's original floor standing height
             Vector3 sideOffset = IsRaisedWoodenBed() ? new Vector3(-1.15f, 0f, 0f) : new Vector3(0f, 0f, -0.85f);
             Vector3 standPos = transform.TransformPoint(sideOffset);
-            standPos.y = 0.06f;
+            standPos.y = _savedStandingY;
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();
             if (rb != null)
