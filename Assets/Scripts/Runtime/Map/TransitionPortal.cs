@@ -127,8 +127,16 @@ namespace TheLastEmpire
         {
             if (!IsWorldPortal(this))
             {
-                // UI / Canvas element with legacy TransitionPortal - disable component to prevent interference
+                // UI / Canvas element with legacy 2D TransitionPortal (CanvasColider) - hide & disable so yellow Knob circles never bleed behind interiors
                 enabled = false;
+                if (transform.parent != null && string.Equals(transform.parent.name, "CanvasColider", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    transform.parent.gameObject.SetActive(false);
+                }
+                else
+                {
+                    gameObject.SetActive(false);
+                }
                 return;
             }
 
