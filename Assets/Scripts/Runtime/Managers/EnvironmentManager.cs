@@ -3764,6 +3764,16 @@ namespace TheLastEmpire
             {
                 if (col != null) col.enabled = false;
             }
+            FurnitureChairInteractable[] chairs = obj.GetComponentsInChildren<FurnitureChairInteractable>(true);
+            for (int i = 0; i < chairs.Length; i++)
+            {
+                if (chairs[i] != null) chairs[i].enabled = false;
+            }
+            LootContainer[] loots = obj.GetComponentsInChildren<LootContainer>(true);
+            for (int i = 0; i < loots.Length; i++)
+            {
+                if (loots[i] != null) loots[i].enabled = false;
+            }
         }
 
         private GameObject ResolveTemplatePrefab(string prefabName, string resourcePath)

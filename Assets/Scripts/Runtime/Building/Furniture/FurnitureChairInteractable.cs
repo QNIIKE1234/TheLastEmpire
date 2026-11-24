@@ -15,12 +15,18 @@ namespace TheLastEmpire
         [SerializeField] private float interactionDistance = 2.3f;
         [SerializeField] private float sanityRegenPerSecond = 2.5f;
         [SerializeField] private Vector3 seatLocalOffset = new Vector3(0f, 0.05f, 0.14f);
+        [Tooltip("True for props whose front faces local +Z (e.g. Prop_Bench); false for interior furniture facing -Z.")]
+        [SerializeField] private bool facePositiveZ = false;
+        [SerializeField] private float seatHeightOffset = 0.16f;
+        [Tooltip("Allow sliding along local X on wide seats like benches/sofas (0 = centered).")]
+        [SerializeField] private float seatSlideHalfWidth = 0f;
 
         private BuildingObject _buildingObject;
         private PlayerController _seatedPlayer;
         private readonly List<(Collider playerCol, Collider chairCol)> _ignoredCollisionPairs = new List<(Collider, Collider)>();
         private bool _savedUseGravity = true;
         private float _savedStandingY = 0.7f;
+        private float _seatedLocalX = 0f;
         private float _restoreCollisionTimer = 0f;
 
         public Transform InteractionTransform => transform;
@@ -124,10 +130,19 @@ namespace TheLastEmpire
             // 1. Ignore collision between player and this chair FIRST so PhysX depenetration NEVER launches player into the sky!
             IgnoreCollisionsWithPlayer(pc);
 
-            // 2. Preserve real player standing height (PlayerPrefabs root is ~0.70m above floor) + lift gently onto the cushion
+            // 2. Preserve real player standing height (PlayerPrefabs root is ~0.70m above floor) + lift gently onto the seat
             _savedStandingY = pc.transform.position.y;
-            Vector3 seatPos = transform.TransformPoint(new Vector3(seatLocalOffset.x, 0f, -Mathf.Abs(seatLocalOffset.z)));
-            Vector3 targetPos = new Vector3(seatPos.x, _savedStandingY + 0.16f, seatPos.z);
+            float forwardSign = facePositiveZ ? 1f : -1f;
+            float localX = seatLocalOffset.x;
+            if (seatSlideHalfWidth > 0.01f)
+            {
+                Vector3 localPlayer = transform.InverseTransformPoint(pc.transform.position);
+                localX = Mathf.Clamp(localPlayer.x, -seatSlideHalfWidth, seatSlideHalfWidth);
+            }
+            _seatedLocalX = localX;
+
+            Vector3 seatPos = transform.TransformPoint(new Vector3(localX, 0f, forwardSign * Mathf.Abs(seatLocalOffset.z)));
+            Vector3 targetPos = new Vector3(seatPos.x, _savedStandingY + seatHeightOffset, seatPos.z);
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();
             if (rb != null)
@@ -140,7 +155,7 @@ namespace TheLastEmpire
             }
             pc.transform.position = targetPos;
 
-            Vector3 fwd = -transform.forward;
+            Vector3 fwd = transform.forward * forwardSign;
             fwd.y = 0f;
             if (fwd.sqrMagnitude > 0.01f) pc.transform.forward = fwd.normalized;
 
@@ -156,8 +171,9 @@ namespace TheLastEmpire
             _seatedPlayer = null;
             RestoreGravity(pc);
 
-            // Step smoothly onto the front edge (-Z) of the chair at original standing height
-            Vector3 standPos = transform.TransformPoint(new Vector3(0f, 0f, -0.95f));
+            // Step smoothly onto the front edge of the chair/bench at original standing height
+            float forwardSign = facePositiveZ ? 1f : -1f;
+            Vector3 standPos = transform.TransformPoint(new Vector3(_seatedLocalX, 0f, forwardSign * 0.95f));
             Vector3 targetPos = new Vector3(standPos.x, _savedStandingY, standPos.z);
 
             Rigidbody rb = pc.GetComponent<Rigidbody>();

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2116852411826933020}
   - component: {fileID: 641975865640415788}
   - component: {fileID: 1781165822705414535}
+  - component: {fileID: 8492710364512098341}
   m_Layer: 0
   m_Name: Prop_Bench
   m_TagString: Untagged
@@ -77,6 +78,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.82, y: 1.1929867, z: 0.66363466}
   m_Center: {x: 0, y: 0.59649336, z: -0.021817327}
+--- !u!114 &8492710364512098341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702908010715139338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9a100024d2e4c81b002a1b2c3d40002, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.FurnitureChairInteractable
+  chairDisplayName: Park Bench
+  interactionDistance: 2.4
+  sanityRegenPerSecond: 2.5
+  seatLocalOffset: {x: 0, y: 0.05, z: 0.06}
+  facePositiveZ: 1
+  seatHeightOffset: 0.2
+  seatSlideHalfWidth: 0.48
 --- !u!1 &6570013470419534346
 GameObject:
   m_ObjectHideFlags: 0

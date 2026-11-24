@@ -4945,7 +4945,7 @@ namespace TheLastEmpire
                     reloadDuration = 2.2f,
                     damage = 110f,
                     range = 6.0f,
-                    canPierce = true,
+                    canPierce = false,
                     spreadAngle = 0f,
                     pelletsPerShot = 1,
                     isAutomatic = false,
