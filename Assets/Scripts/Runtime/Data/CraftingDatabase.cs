@@ -389,10 +389,29 @@ namespace TheLastEmpire
         /// Guarantees all 30 Furniture recipes (BUILD0024..BUILD0053) appear in the Utility tab even if
         /// Unity loaded an older cached Addressable CraftingDatabase asset. Deduplicates by recipeId/name.
         /// </summary>
+        private bool _furnitureIconsResolved = false;
+
         private List<CraftingRecipe> GetRuntimeFurnitureRecipes()
         {
             if (_runtimeFurnitureRecipes != null)
             {
+                // Lazy-refresh icons once BuildingManager finishes loading BuildingData assets
+                if (!_furnitureIconsResolved && BuildingManager.Instance != null)
+                {
+                    int resolved = 0;
+                    for (int i = 0; i < _runtimeFurnitureRecipes.Count; i++)
+                    {
+                        CraftingRecipe r = _runtimeFurnitureRecipes[i];
+                        if (r == null) continue;
+                        BuildingData bData = BuildingManager.Instance.GetBuildingDataByName(r.recipeName);
+                        if (bData != null && bData.icon != null)
+                        {
+                            r.icon = bData.icon;
+                            resolved++;
+                        }
+                    }
+                    if (resolved > 0) _furnitureIconsResolved = true;
+                }
                 return _runtimeFurnitureRecipes;
             }
 
@@ -420,9 +439,20 @@ namespace TheLastEmpire
             ItemData GetItem(string n) => ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(n) : null;
             CraftingIngredient Ing(string n, int amt) => new CraftingIngredient(GetItem(n), n, amt);
 
-            void AddFurn(string cid, string rName, Sprite ic, string desc, params CraftingIngredient[] ings)
+            int initialResolved = 0;
+            void AddFurn(string cid, string rName, Sprite fallbackIc, string desc, params CraftingIngredient[] ings)
             {
                 if (existingIds.Contains(cid) || existingNames.Contains(rName)) return;
+                Sprite realIcon = fallbackIc;
+                if (BuildingManager.Instance != null)
+                {
+                    BuildingData bData = BuildingManager.Instance.GetBuildingDataByName(rName);
+                    if (bData != null && bData.icon != null)
+                    {
+                        realIcon = bData.icon;
+                        initialResolved++;
+                    }
+                }
                 _runtimeFurnitureRecipes.Add(new CraftingRecipe
                 {
                     recipeId = cid,
@@ -431,7 +461,7 @@ namespace TheLastEmpire
                     resultItem = null,
                     resultItemName = rName,
                     resultAmount = 1,
-                    icon = ic,
+                    icon = realIcon,
                     description = desc,
                     ingredients = new List<CraftingIngredient>(ings)
                 });
@@ -468,6 +498,7 @@ namespace TheLastEmpire
             AddFurn("CRAFT0105", "Potted Fern",            iconUtil,  "Decorative terracotta pot with indoor fern.", Ing("Rough Stone", 3), Ing("Plant Fiber", 5));
             AddFurn("CRAFT0106", "Office Trash Bin",       iconCrate, "Metal trash bin for discarded items (18 slots).", Ing("Scrap Metal Plate", 3), Ing("Box of Nails", 2));
 
+            if (initialResolved > 0) _furnitureIconsResolved = true;
             return _runtimeFurnitureRecipes;
         }
 

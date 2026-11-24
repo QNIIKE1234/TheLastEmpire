@@ -37,10 +37,13 @@ namespace TheLastEmpire
     }
 
     /// <summary>
-    /// Builds rich, stylized multi-part 3D furniture models at runtime for all 30 furniture types.
+    /// Builds stylized multi-part 3D furniture models matching the official 30-piece icon set.
+    /// Runs in both Edit Mode (live preview in Scene/Prefab view) and Play Mode, and supports baking
+    /// persistent VisualRoot meshes into prefabs for Project window 3D thumbnails.
     /// Convention: Front face of every furniture piece points toward local -Z (directly toward the
     /// top-down camera when placed along the back +Z wall at rotY = 0!).
     /// </summary>
+    [ExecuteAlways]
     public class FurnitureVisualBuilder : MonoBehaviour
     {
         [SerializeField] private FurnitureKind furnitureKind = FurnitureKind.WoodenWardrobe;
@@ -55,456 +58,719 @@ namespace TheLastEmpire
 
         private void Awake()
         {
+            if (Application.isPlaying)
+            {
+                BuildIfNeeded();
+            }
+        }
+
+        private void OnEnable()
+        {
             BuildIfNeeded();
+        }
+
+        private void OnDisable()
+        {
+            // Clean up temporary non-saved Edit Mode preview when closing Prefab Mode / disabling
+            if (!Application.isPlaying)
+            {
+                Transform existing = transform.Find("VisualRoot");
+                if (existing != null && (existing.gameObject.hideFlags & HideFlags.DontSaveInEditor) != 0)
+                {
+                    DestroyImmediate(existing.gameObject);
+                    _built = false;
+                }
+            }
         }
 
         public void BuildIfNeeded()
         {
-            if (_built) return;
-            if (transform.Find("VisualRoot") != null)
+            Transform existing = transform.Find("VisualRoot");
+            if (existing != null)
             {
                 _built = true;
                 return;
             }
+            if (_built && Application.isPlaying) return;
+
+            bool isEditorPreview = !Application.isPlaying;
+            BuildVisualInternal(isEditorPreview, null);
+        }
+
+        /// <summary>
+        /// Used by Editor bake tool to permanently save VisualRoot meshes + .mat assets into furniture prefabs.
+        /// </summary>
+        public void BuildPersistentForBake(System.Func<string, Color, float, Color?, Material> materialResolver)
+        {
+            Transform existing = transform.Find("VisualRoot");
+            while (existing != null)
+            {
+                if (Application.isPlaying) Destroy(existing.gameObject);
+                else DestroyImmediate(existing.gameObject);
+                existing = transform.Find("VisualRoot");
+            }
+            _built = false;
+            BuildVisualInternal(false, materialResolver);
+        }
+
+        private void BuildVisualInternal(bool markAsEditorPreview, System.Func<string, Color, float, Color?, Material> materialResolver)
+        {
             _built = true;
 
             GameObject root = new GameObject("VisualRoot");
             root.transform.SetParent(transform, false);
+            if (markAsEditorPreview)
+            {
+                root.hideFlags = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
+            }
 
             Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
 
-            // Rich stylized PBR material palette
-            Material darkWood   = MakeMat(shader, new Color(0.28f, 0.18f, 0.11f), 0.28f);
-            Material midWood    = MakeMat(shader, new Color(0.48f, 0.32f, 0.19f), 0.26f);
-            Material lightWood  = MakeMat(shader, new Color(0.68f, 0.52f, 0.34f), 0.22f);
-            Material steel      = MakeMat(shader, new Color(0.45f, 0.50f, 0.54f), 0.62f);
-            Material darkMetal  = MakeMat(shader, new Color(0.18f, 0.20f, 0.23f), 0.52f);
-            Material chrome     = MakeMat(shader, new Color(0.84f, 0.88f, 0.90f), 0.82f);
-            Material whiteEnamel= MakeMat(shader, new Color(0.90f, 0.93f, 0.92f), 0.50f);
-            Material mintRetro  = MakeMat(shader, new Color(0.76f, 0.89f, 0.85f), 0.55f);
-            Material brass      = MakeMat(shader, new Color(0.86f, 0.68f, 0.26f), 0.74f);
-            Material fabricRed  = MakeMat(shader, new Color(0.66f, 0.24f, 0.22f), 0.10f);
-            Material fabricBlue = MakeMat(shader, new Color(0.24f, 0.44f, 0.58f), 0.12f);
-            Material fabricGold = MakeMat(shader, new Color(0.78f, 0.62f, 0.26f), 0.12f);
-            Material fabricGreen= MakeMat(shader, new Color(0.25f, 0.48f, 0.34f), 0.12f);
-            Material leather    = MakeMat(shader, new Color(0.42f, 0.22f, 0.13f), 0.38f);
-            Material leatherLit = MakeMat(shader, new Color(0.54f, 0.30f, 0.18f), 0.34f);
-            Material cushion    = MakeMat(shader, new Color(0.92f, 0.89f, 0.82f), 0.08f);
-            Material redCross   = MakeMat(shader, new Color(0.88f, 0.16f, 0.18f), 0.25f);
-            Material glassBlue  = MakeMat(shader, new Color(0.58f, 0.80f, 0.88f), 0.80f);
-            Material soil       = MakeMat(shader, new Color(0.22f, 0.14f, 0.09f), 0.05f);
-            Material leafDark   = MakeMat(shader, new Color(0.18f, 0.48f, 0.20f), 0.15f);
-            Material leafBright = MakeMat(shader, new Color(0.30f, 0.66f, 0.26f), 0.18f);
-            Material terracotta = MakeMat(shader, new Color(0.72f, 0.36f, 0.22f), 0.18f);
-            Material warmGlow   = MakeMat(shader, new Color(1.0f, 0.88f, 0.56f), 0.2f, new Color(1.0f, 0.76f, 0.32f) * 1.45f);
-            Material emberGlow  = MakeMat(shader, new Color(1.0f, 0.42f, 0.12f), 0.2f, new Color(1.0f, 0.38f, 0.08f) * 1.85f);
-            Material crtGlow    = MakeMat(shader, new Color(0.42f, 0.74f, 0.92f), 0.6f, new Color(0.22f, 0.50f, 0.72f) * 1.15f);
-            Material dialGlow   = MakeMat(shader, new Color(0.36f, 0.96f, 0.58f), 0.4f, new Color(0.20f, 0.85f, 0.45f) * 1.25f);
+            Material GetMat(string key, Color color, float smoothness, Color? emission = null)
+            {
+                if (materialResolver != null)
+                {
+                    return materialResolver(key, color, smoothness, emission);
+                }
+                return MakeMat(shader, color, smoothness, emission);
+            }
+
+            // Stylized vibrant palette matching the official 30-icon sheet
+            Material honeyWood    = GetMat("HoneyWood",    new Color(0.82f, 0.56f, 0.22f), 0.28f);
+            Material warmOak      = GetMat("WarmOak",      new Color(0.68f, 0.43f, 0.16f), 0.26f);
+            Material darkWood     = GetMat("DarkWood",     new Color(0.36f, 0.21f, 0.10f), 0.24f);
+            Material caramelWood  = GetMat("CaramelWood",  new Color(0.56f, 0.31f, 0.13f), 0.30f);
+
+            Material lockerSteel  = GetMat("LockerSteel",  new Color(0.60f, 0.65f, 0.70f), 0.58f);
+            Material silverMetal  = GetMat("SilverMetal",  new Color(0.76f, 0.80f, 0.84f), 0.72f);
+            Material darkIron     = GetMat("DarkIron",     new Color(0.22f, 0.24f, 0.27f), 0.50f);
+            Material chrome       = GetMat("Chrome",       new Color(0.88f, 0.91f, 0.94f), 0.84f);
+            Material oliveMetal   = GetMat("OliveMetal",   new Color(0.47f, 0.50f, 0.41f), 0.46f);
+
+            Material goldYellow   = GetMat("GoldYellow",   new Color(0.98f, 0.78f, 0.14f), 0.65f);
+            Material lampYellow   = GetMat("LampYellow",   new Color(1.00f, 0.84f, 0.22f), 0.35f, new Color(0.95f, 0.72f, 0.12f) * 0.55f);
+            Material bulbGlow     = GetMat("BulbGlow",     new Color(1.00f, 0.96f, 0.74f), 0.20f, new Color(1.00f, 0.88f, 0.40f) * 1.90f);
+
+            Material plushRed     = GetMat("PlushRed",     new Color(0.86f, 0.16f, 0.16f), 0.20f);
+            Material deepRed      = GetMat("DeepRed",      new Color(0.68f, 0.11f, 0.12f), 0.18f);
+            Material redCross     = GetMat("RedCross",     new Color(0.92f, 0.14f, 0.15f), 0.28f);
+
+            Material skyBlue      = GetMat("SkyBlue",      new Color(0.24f, 0.66f, 0.98f), 0.22f);
+            Material deepBlue     = GetMat("DeepBlue",     new Color(0.16f, 0.44f, 0.82f), 0.22f);
+            Material tvBlueGlow   = GetMat("TvBlueGlow",   new Color(0.20f, 0.64f, 0.98f), 0.72f, new Color(0.16f, 0.56f, 0.94f) * 1.15f);
+            Material gasBlueFlame = GetMat("GasBlueFlame", new Color(0.26f, 0.78f, 1.00f), 0.30f, new Color(0.16f, 0.66f, 1.00f) * 2.10f);
+            Material fireGlow     = GetMat("FireGlow",     new Color(1.00f, 0.54f, 0.12f), 0.20f, new Color(1.00f, 0.42f, 0.08f) * 2.10f);
+            Material fireCore     = GetMat("FireCore",     new Color(1.00f, 0.88f, 0.24f), 0.20f, new Color(1.00f, 0.82f, 0.18f) * 1.90f);
+
+            Material mintFridge   = GetMat("MintFridge",   new Color(0.62f, 0.90f, 0.76f), 0.64f);
+            Material warmWhite    = GetMat("WarmWhite",    new Color(0.95f, 0.94f, 0.90f), 0.42f);
+            Material crispWhite   = GetMat("CrispWhite",   new Color(0.97f, 0.98f, 0.99f), 0.35f);
+            Material bandageTan   = GetMat("BandageTan",   new Color(0.90f, 0.72f, 0.44f), 0.16f);
+
+            Material leatherBrown = GetMat("LeatherBrown", new Color(0.62f, 0.34f, 0.16f), 0.40f);
+            Material leatherDark  = GetMat("LeatherDark",  new Color(0.42f, 0.22f, 0.10f), 0.36f);
+
+            Material pcbGreen     = GetMat("PcbGreen",     new Color(0.22f, 0.76f, 0.36f), 0.42f);
+            Material ledGreen     = GetMat("LedGreen",     new Color(0.32f, 0.98f, 0.44f), 0.30f, new Color(0.20f, 0.90f, 0.36f) * 1.40f);
+            Material bookPurple   = GetMat("BookPurple",   new Color(0.56f, 0.26f, 0.72f), 0.20f);
+            Material bookGreen    = GetMat("BookGreen",    new Color(0.24f, 0.68f, 0.32f), 0.20f);
+
+            Material soil         = GetMat("Soil",         new Color(0.28f, 0.17f, 0.10f), 0.06f);
+            Material leafDark     = GetMat("LeafDark",     new Color(0.18f, 0.56f, 0.20f), 0.18f);
+            Material leafBright   = GetMat("LeafBright",   new Color(0.44f, 0.80f, 0.22f), 0.22f);
+            Material terracotta   = GetMat("Terracotta",   new Color(0.82f, 0.38f, 0.18f), 0.22f);
 
             Transform t = root.transform;
 
             switch (furnitureKind)
             {
+                // 1. Wooden Wardrobe — warm golden-oak, arched stepped cornice, twin doors + 2 yellow knobs
                 case FurnitureKind.WoodenWardrobe:
-                    // Feet + plinth
-                    Box(t, "Plinth", new Vector3(0f, 0.09f, 0f), new Vector3(1.36f, 0.14f, 0.74f), darkWood);
-                    Box(t, "Body", new Vector3(0f, 1.06f, 0.02f), new Vector3(1.34f, 1.82f, 0.70f), darkWood);
-                    // Twin recessed paneled doors facing -Z
-                    Box(t, "DoorL", new Vector3(-0.32f, 1.08f, -0.34f), new Vector3(0.58f, 1.68f, 0.06f), midWood);
-                    Box(t, "DoorR", new Vector3(0.32f, 1.08f, -0.34f), new Vector3(0.58f, 1.68f, 0.06f), midWood);
-                    Box(t, "PanelL_Top", new Vector3(-0.32f, 1.44f, -0.37f), new Vector3(0.44f, 0.62f, 0.03f), lightWood);
-                    Box(t, "PanelR_Top", new Vector3(0.32f, 1.44f, -0.37f), new Vector3(0.44f, 0.62f, 0.03f), lightWood);
-                    Box(t, "PanelL_Bot", new Vector3(-0.32f, 0.68f, -0.37f), new Vector3(0.44f, 0.62f, 0.03f), lightWood);
-                    Box(t, "PanelR_Bot", new Vector3(0.32f, 0.68f, -0.37f), new Vector3(0.44f, 0.62f, 0.03f), lightWood);
-                    // Brass handles + bottom drawer + carved crown molding
-                    Cyl(t, "HandleL", new Vector3(-0.08f, 1.08f, -0.39f), new Vector3(0.05f, 0.14f, 0.05f), brass);
-                    Cyl(t, "HandleR", new Vector3(0.08f, 1.08f, -0.39f), new Vector3(0.05f, 0.14f, 0.05f), brass);
-                    Box(t, "CrownTrim", new Vector3(0f, 2.00f, 0f), new Vector3(1.48f, 0.11f, 0.84f), darkWood);
-                    Box(t, "CrownCap", new Vector3(0f, 2.08f, 0f), new Vector3(1.38f, 0.06f, 0.76f), midWood);
+                    // Short rounded feet + base plinth
+                    Legs(t, 1.18f, 0.60f, 0.12f, 0.12f, warmOak);
+                    Box(t, "BasePlinth", new Vector3(0f, 0.14f, 0f), new Vector3(1.36f, 0.12f, 0.74f), honeyWood);
+                    Box(t, "MainBody", new Vector3(0f, 1.02f, 0.02f), new Vector3(1.30f, 1.66f, 0.68f), warmOak);
+                    // Twin wooden doors with inset frames facing -Z
+                    Box(t, "DoorL", new Vector3(-0.31f, 1.02f, -0.34f), new Vector3(0.57f, 1.54f, 0.06f), honeyWood);
+                    Box(t, "DoorR", new Vector3(0.31f, 1.02f, -0.34f), new Vector3(0.57f, 1.54f, 0.06f), honeyWood);
+                    Box(t, "DoorPanelL", new Vector3(-0.31f, 1.02f, -0.37f), new Vector3(0.42f, 1.32f, 0.025f), warmOak);
+                    Box(t, "DoorPanelR", new Vector3(0.31f, 1.02f, -0.37f), new Vector3(0.42f, 1.32f, 0.025f), warmOak);
+                    // Center seam + two round yellow-gold knobs
+                    Box(t, "CenterSeam", new Vector3(0f, 1.02f, -0.36f), new Vector3(0.03f, 1.54f, 0.04f), darkWood);
+                    Sphere(t, "KnobL", new Vector3(-0.09f, 0.98f, -0.41f), new Vector3(0.11f, 0.11f, 0.09f), goldYellow);
+                    Sphere(t, "KnobR", new Vector3(0.09f, 0.98f, -0.41f), new Vector3(0.11f, 0.11f, 0.09f), goldYellow);
+                    // Signature arched stepped crown top
+                    Box(t, "CrownBase", new Vector3(0f, 1.89f, 0f), new Vector3(1.40f, 0.10f, 0.78f), honeyWood);
+                    Box(t, "CrownArchMid", new Vector3(0f, 1.98f, 0f), new Vector3(1.06f, 0.10f, 0.74f), honeyWood);
+                    Box(t, "CrownArchTop", new Vector3(0f, 2.05f, 0f), new Vector3(0.68f, 0.08f, 0.70f), honeyWood);
                     break;
 
+                // 2. Metal Locker Cabinet — cool silver-grey locker, 3 top vent slits, right hinges, yellow padlock on left
                 case FurnitureKind.MetalLockerCabinet:
-                    Box(t, "Base", new Vector3(0f, 0.07f, 0f), new Vector3(1.34f, 0.14f, 0.72f), darkMetal);
-                    Box(t, "Body", new Vector3(0f, 1.08f, 0.02f), new Vector3(1.30f, 1.88f, 0.68f), steel);
-                    Box(t, "DoorL", new Vector3(-0.31f, 1.08f, -0.33f), new Vector3(0.56f, 1.76f, 0.05f), darkMetal);
-                    Box(t, "DoorR", new Vector3(0.31f, 1.08f, -0.33f), new Vector3(0.56f, 1.76f, 0.05f), darkMetal);
-                    // Louvered vent slots (3 per door) + chrome padlock latch + hazard badge
+                    Legs(t, 0.86f, 0.56f, 0.10f, 0.10f, darkIron);
+                    Box(t, "LockerBody", new Vector3(0f, 1.04f, 0.02f), new Vector3(1.02f, 1.84f, 0.70f), lockerSteel);
+                    Box(t, "LockerTopCap", new Vector3(0f, 1.98f, 0.02f), new Vector3(0.96f, 0.08f, 0.66f), silverMetal);
+                    Box(t, "LockerDoor", new Vector3(0f, 1.04f, -0.34f), new Vector3(0.88f, 1.70f, 0.05f), silverMetal);
+                    // 3 crisp horizontal air vent slits near top
                     for (int v = 0; v < 3; v++)
                     {
-                        float vy = 1.62f + v * 0.09f;
-                        Box(t, $"VentL_{v}", new Vector3(-0.31f, vy, -0.36f), new Vector3(0.38f, 0.035f, 0.03f), steel);
-                        Box(t, $"VentR_{v}", new Vector3(0.31f, vy, -0.36f), new Vector3(0.38f, 0.035f, 0.03f), steel);
+                        Box(t, $"Vent_{v}", new Vector3(0.02f, 1.68f - v * 0.12f, -0.37f), new Vector3(0.46f, 0.045f, 0.025f), darkIron);
                     }
-                    Box(t, "LatchL", new Vector3(-0.08f, 1.06f, -0.38f), new Vector3(0.06f, 0.22f, 0.06f), chrome);
-                    Box(t, "LatchR", new Vector3(0.08f, 1.06f, -0.38f), new Vector3(0.06f, 0.22f, 0.06f), chrome);
-                    Box(t, "Padlock", new Vector3(0f, 1.02f, -0.41f), new Vector3(0.11f, 0.13f, 0.05f), brass);
-                    Box(t, "TopLip", new Vector3(0f, 2.04f, 0f), new Vector3(1.38f, 0.07f, 0.76f), darkMetal);
-                    Box(t, "StripeBadge", new Vector3(0f, 1.94f, -0.36f), new Vector3(0.86f, 0.06f, 0.02f), fabricGold);
+                    // Right-edge hinges
+                    Box(t, "HingeTop", new Vector3(0.46f, 1.54f, -0.36f), new Vector3(0.08f, 0.16f, 0.06f), darkIron);
+                    Box(t, "HingeBot", new Vector3(0.46f, 0.56f, -0.36f), new Vector3(0.08f, 0.16f, 0.06f), darkIron);
+                    // Prominent yellow padlock + silver U-shackle on left latch
+                    Box(t, "HaspPlate", new Vector3(-0.30f, 1.12f, -0.38f), new Vector3(0.10f, 0.18f, 0.05f), darkIron);
+                    Cyl(t, "ShackleL", new Vector3(-0.35f, 1.04f, -0.43f), new Vector3(0.04f, 0.09f, 0.04f), chrome);
+                    Cyl(t, "ShackleR", new Vector3(-0.25f, 1.04f, -0.43f), new Vector3(0.04f, 0.09f, 0.04f), chrome);
+                    Box(t, "ShackleTop", new Vector3(-0.30f, 1.12f, -0.43f), new Vector3(0.14f, 0.04f, 0.04f), chrome);
+                    Box(t, "PadlockBody", new Vector3(-0.30f, 0.89f, -0.43f), new Vector3(0.24f, 0.24f, 0.10f), goldYellow);
+                    Box(t, "PadlockKeyhole", new Vector3(-0.30f, 0.88f, -0.49f), new Vector3(0.04f, 0.09f, 0.02f), darkIron);
                     break;
 
+                // 3. Carpentry Craft Table — thick honey-oak workbench with lower beam, yellow claw hammer & hand saw
                 case FurnitureKind.CarpentryCraftTable:
-                    // Planked butcher-block tabletop
-                    Box(t, "TopBase", new Vector3(0f, 0.82f, 0f), new Vector3(1.92f, 0.12f, 0.94f), midWood);
-                    Box(t, "TopTrim", new Vector3(0f, 0.89f, 0f), new Vector3(1.86f, 0.04f, 0.86f), lightWood);
-                    Box(t, "LowerShelf", new Vector3(0f, 0.26f, 0f), new Vector3(1.66f, 0.07f, 0.72f), darkWood);
-                    Box(t, "StackedWood1", new Vector3(-0.35f, 0.35f, 0f), new Vector3(0.74f, 0.11f, 0.36f), lightWood);
-                    Box(t, "StackedWood2", new Vector3(0.40f, 0.34f, 0.04f), new Vector3(0.54f, 0.09f, 0.42f), midWood);
-                    Legs(t, 1.72f, 0.76f, 0.80f, 0.11f, darkWood);
-                    // Front bench vise + toolbox + mallet on tabletop
-                    Box(t, "ViseBody", new Vector3(-0.74f, 0.82f, -0.50f), new Vector3(0.32f, 0.18f, 0.16f), darkMetal);
-                    Cyl(t, "ViseScrew", new Vector3(-0.74f, 0.82f, -0.60f), new Vector3(0.06f, 0.16f, 0.06f), chrome, new Vector3(0f, 0f, 90f));
-                    Box(t, "ToolBox", new Vector3(0.52f, 1.00f, 0.16f), new Vector3(0.56f, 0.20f, 0.30f), fabricRed);
-                    Box(t, "ToolBoxHandle", new Vector3(0.52f, 1.13f, 0.16f), new Vector3(0.28f, 0.05f, 0.05f), chrome);
-                    Box(t, "MalletHandle", new Vector3(-0.18f, 0.94f, -0.10f), new Vector3(0.36f, 0.05f, 0.05f), darkWood, new Vector3(0f, 25f, 0f));
-                    Box(t, "MalletHead", new Vector3(-0.04f, 0.96f, -0.04f), new Vector3(0.11f, 0.11f, 0.18f), steel, new Vector3(0f, 25f, 0f));
+                    Legs(t, 1.34f, 0.72f, 0.84f, 0.12f, warmOak);
+                    Box(t, "LowerShelf", new Vector3(0f, 0.26f, 0f), new Vector3(1.30f, 0.08f, 0.56f), warmOak);
+                    Box(t, "TableApron", new Vector3(0f, 0.76f, 0f), new Vector3(1.36f, 0.12f, 0.74f), warmOak);
+                    Box(t, "BenchTop", new Vector3(0f, 0.89f, 0f), new Vector3(1.56f, 0.14f, 0.90f), honeyWood);
+                    // Yellow-handled claw hammer on left
+                    Box(t, "HammerHandle", new Vector3(-0.36f, 1.00f, -0.06f), new Vector3(0.46f, 0.06f, 0.07f), goldYellow, new Vector3(0f, -24f, 0f));
+                    Box(t, "HammerHead", new Vector3(-0.16f, 1.03f, 0.04f), new Vector3(0.11f, 0.10f, 0.28f), silverMetal, new Vector3(0f, -24f, 0f));
+                    Box(t, "HammerClaw", new Vector3(-0.12f, 1.03f, -0.08f), new Vector3(0.08f, 0.08f, 0.10f), darkIron, new Vector3(0f, -24f, 0f));
+                    // Silver hand saw with wooden handle angled across right
+                    Box(t, "SawBlade", new Vector3(0.24f, 0.99f, -0.08f), new Vector3(0.64f, 0.03f, 0.18f), silverMetal, new Vector3(0f, 22f, 0f));
+                    Box(t, "SawTeeth", new Vector3(0.26f, 0.985f, -0.17f), new Vector3(0.62f, 0.025f, 0.03f), darkIron, new Vector3(0f, 22f, 0f));
+                    Box(t, "SawHandle", new Vector3(0.58f, 1.02f, 0.06f), new Vector3(0.20f, 0.08f, 0.20f), warmOak, new Vector3(0f, 22f, 0f));
+                    Box(t, "SawHandleHole", new Vector3(0.59f, 1.025f, 0.06f), new Vector3(0.09f, 0.09f, 0.09f), darkWood, new Vector3(0f, 22f, 0f));
                     break;
 
+                // 4. Electronics Craft Desk — wood desk with 2 right drawers, green PCB mat, blue CRT monitor, cables, soldering iron
                 case FurnitureKind.ElectronicsCraftDesk:
-                    Box(t, "DeskTop", new Vector3(0f, 0.80f, 0f), new Vector3(1.90f, 0.10f, 0.92f), darkMetal);
-                    Box(t, "RubberMat", new Vector3(0.10f, 0.86f, -0.06f), new Vector3(1.10f, 0.02f, 0.62f), fabricGreen);
-                    Box(t, "PegBoard", new Vector3(0f, 1.34f, 0.42f), new Vector3(1.86f, 0.98f, 0.08f), steel);
-                    Box(t, "PegTopShelf", new Vector3(0f, 1.78f, 0.28f), new Vector3(1.80f, 0.06f, 0.28f), darkMetal);
-                    Legs(t, 1.74f, 0.76f, 0.78f, 0.09f, steel);
-                    // Glowing oscilloscope monitor + keyboard + soldering box facing -Z
-                    Box(t, "MonitorStand", new Vector3(-0.42f, 0.90f, 0.12f), new Vector3(0.22f, 0.12f, 0.18f), darkMetal);
-                    Box(t, "MonitorCase", new Vector3(-0.42f, 1.16f, 0.14f), new Vector3(0.64f, 0.44f, 0.24f), darkMetal);
-                    Box(t, "MonitorScreen", new Vector3(-0.42f, 1.16f, 0.01f), new Vector3(0.54f, 0.34f, 0.03f), dialGlow);
-                    Box(t, "Keyboard", new Vector3(-0.36f, 0.88f, -0.22f), new Vector3(0.54f, 0.04f, 0.20f), chrome);
-                    Box(t, "SolderStation", new Vector3(0.54f, 0.96f, 0.10f), new Vector3(0.42f, 0.22f, 0.30f), fabricBlue);
-                    Box(t, "WorkLampBar", new Vector3(0f, 1.74f, 0.18f), new Vector3(1.10f, 0.05f, 0.08f), warmGlow);
+                    // Left legs + right 2-drawer cabinet pedestal
+                    Box(t, "LegFL", new Vector3(-0.68f, 0.42f, -0.34f), new Vector3(0.10f, 0.84f, 0.10f), warmOak);
+                    Box(t, "LegBL", new Vector3(-0.68f, 0.42f, 0.34f), new Vector3(0.10f, 0.84f, 0.10f), warmOak);
+                    Box(t, "DrawerUnit", new Vector3(0.46f, 0.42f, 0f), new Vector3(0.52f, 0.82f, 0.78f), warmOak);
+                    Box(t, "DrawerTop", new Vector3(0.46f, 0.62f, -0.40f), new Vector3(0.44f, 0.26f, 0.04f), honeyWood);
+                    Box(t, "DrawerBot", new Vector3(0.46f, 0.26f, -0.40f), new Vector3(0.44f, 0.26f, 0.04f), honeyWood);
+                    Box(t, "PullTop", new Vector3(0.46f, 0.62f, -0.43f), new Vector3(0.16f, 0.04f, 0.03f), darkWood);
+                    Box(t, "PullBot", new Vector3(0.46f, 0.26f, -0.43f), new Vector3(0.16f, 0.04f, 0.03f), darkWood);
+                    Box(t, "DeskTop", new Vector3(0f, 0.87f, 0f), new Vector3(1.62f, 0.10f, 0.88f), honeyWood);
+                    // Bright green PCB work mat
+                    Box(t, "PcbMat", new Vector3(-0.08f, 0.93f, -0.10f), new Vector3(0.68f, 0.025f, 0.42f), pcbGreen);
+                    Box(t, "PcbChip", new Vector3(-0.08f, 0.95f, -0.10f), new Vector3(0.14f, 0.03f, 0.14f), darkIron);
+                    // Chunky grey retro monitor with bright blue screen
+                    Box(t, "MonitorStand", new Vector3(-0.24f, 0.97f, 0.18f), new Vector3(0.24f, 0.10f, 0.20f), darkIron);
+                    Box(t, "MonitorCase", new Vector3(-0.24f, 1.24f, 0.20f), new Vector3(0.58f, 0.46f, 0.24f), lockerSteel);
+                    Box(t, "MonitorScreen", new Vector3(-0.24f, 1.25f, 0.07f), new Vector3(0.48f, 0.36f, 0.03f), tvBlueGlow);
+                    // Red & dark coiled cables hanging on left edge
+                    Cyl(t, "CableRed1", new Vector3(-0.56f, 0.74f, -0.34f), new Vector3(0.06f, 0.18f, 0.06f), plushRed, new Vector3(14f, 0f, 18f));
+                    Cyl(t, "CableDark", new Vector3(-0.48f, 0.78f, -0.36f), new Vector3(0.05f, 0.15f, 0.05f), darkIron, new Vector3(10f, 0f, -15f));
+                    // Mini grey oscilloscope box with green LEDs
+                    Box(t, "ScopeBox", new Vector3(0.24f, 1.04f, 0.18f), new Vector3(0.24f, 0.24f, 0.22f), silverMetal);
+                    Sphere(t, "Led1", new Vector3(0.19f, 1.09f, 0.06f), new Vector3(0.05f, 0.05f, 0.04f), ledGreen);
+                    Sphere(t, "Led2", new Vector3(0.28f, 1.09f, 0.06f), new Vector3(0.05f, 0.05f, 0.04f), ledGreen);
+                    // Yellow soldering iron in silver stand on right
+                    Box(t, "SolderBase", new Vector3(0.54f, 0.95f, -0.02f), new Vector3(0.18f, 0.06f, 0.18f), silverMetal);
+                    Cyl(t, "SolderHandle", new Vector3(0.58f, 1.12f, -0.02f), new Vector3(0.06f, 0.16f, 0.06f), goldYellow, new Vector3(0f, 0f, -24f));
+                    Cyl(t, "SolderTip", new Vector3(0.51f, 0.99f, -0.02f), new Vector3(0.025f, 0.09f, 0.025f), chrome, new Vector3(0f, 0f, -24f));
                     break;
 
+                // 5. Wooden Dining Chair — bright golden-oak, sturdy legs, twin horizontal back slats
                 case FurnitureKind.WoodenDiningChair:
-                    Box(t, "SeatFrame", new Vector3(0f, 0.46f, 0f), new Vector3(0.62f, 0.07f, 0.60f), darkWood);
-                    Box(t, "SeatCushion", new Vector3(0f, 0.52f, -0.02f), new Vector3(0.54f, 0.06f, 0.52f), fabricRed);
-                    // Backrest at +Z so sitter faces -Z (toward camera!)
-                    Box(t, "PostL", new Vector3(-0.26f, 0.82f, 0.25f), new Vector3(0.07f, 0.74f, 0.07f), darkWood);
-                    Box(t, "PostR", new Vector3(0.26f, 0.82f, 0.25f), new Vector3(0.07f, 0.74f, 0.07f), darkWood);
-                    Box(t, "TopRail", new Vector3(0f, 1.14f, 0.25f), new Vector3(0.58f, 0.11f, 0.07f), midWood);
-                    Box(t, "Slat1", new Vector3(-0.11f, 0.82f, 0.25f), new Vector3(0.07f, 0.58f, 0.04f), lightWood);
-                    Box(t, "Slat2", new Vector3(0.11f, 0.82f, 0.25f), new Vector3(0.07f, 0.58f, 0.04f), lightWood);
-                    Legs(t, 0.50f, 0.48f, 0.46f, 0.065f, darkWood);
+                    Legs(t, 0.54f, 0.52f, 0.48f, 0.08f, warmOak);
+                    Box(t, "Seat", new Vector3(0f, 0.51f, 0f), new Vector3(0.68f, 0.09f, 0.64f), honeyWood);
+                    // Twin tall rear posts + 2 wide horizontal back slats (+Z back, sits facing -Z)
+                    Box(t, "PostL", new Vector3(-0.27f, 0.88f, 0.26f), new Vector3(0.085f, 0.74f, 0.085f), warmOak);
+                    Box(t, "PostR", new Vector3(0.27f, 0.88f, 0.26f), new Vector3(0.085f, 0.74f, 0.085f), warmOak);
+                    Box(t, "BackSlatTop", new Vector3(0f, 1.12f, 0.26f), new Vector3(0.54f, 0.18f, 0.06f), honeyWood);
+                    Box(t, "BackSlatMid", new Vector3(0f, 0.84f, 0.26f), new Vector3(0.54f, 0.16f, 0.06f), honeyWood);
                     break;
 
+                // 6. Comfy Armchair — ALL vibrant crimson-red tufted armchair with rolled armrests & arched backrest
                 case FurnitureKind.ComfyArmchair:
-                    Legs(t, 0.82f, 0.72f, 0.14f, 0.08f, darkWood);
-                    Box(t, "BaseFrame", new Vector3(0f, 0.28f, -0.02f), new Vector3(0.98f, 0.26f, 0.88f), fabricRed);
-                    Box(t, "SeatCushion", new Vector3(0f, 0.47f, -0.06f), new Vector3(0.72f, 0.18f, 0.70f), cushion);
-                    Box(t, "BackRest", new Vector3(0f, 0.74f, 0.34f), new Vector3(0.96f, 0.72f, 0.24f), fabricRed);
-                    Box(t, "BackPillow", new Vector3(0f, 0.76f, 0.20f), new Vector3(0.66f, 0.44f, 0.14f), cushion);
-                    Box(t, "ArmL", new Vector3(-0.44f, 0.54f, 0f), new Vector3(0.20f, 0.44f, 0.86f), fabricRed);
-                    Box(t, "ArmR", new Vector3(0.44f, 0.54f, 0f), new Vector3(0.20f, 0.44f, 0.86f), fabricRed);
-                    Cyl(t, "RollL", new Vector3(-0.44f, 0.76f, 0f), new Vector3(0.20f, 0.43f, 0.20f), leather, new Vector3(90f, 0f, 0f));
-                    Cyl(t, "RollR", new Vector3(0.44f, 0.76f, 0f), new Vector3(0.20f, 0.43f, 0.20f), leather, new Vector3(90f, 0f, 0f));
+                    Legs(t, 0.84f, 0.74f, 0.12f, 0.09f, darkWood);
+                    Box(t, "BasePlinth", new Vector3(0f, 0.24f, -0.02f), new Vector3(1.02f, 0.24f, 0.92f), deepRed);
+                    Box(t, "SeatCushion", new Vector3(0f, 0.44f, -0.08f), new Vector3(0.74f, 0.20f, 0.72f), plushRed);
+                    // Rounded high crimson backrest with 2 dark-red diamond tufts
+                    Box(t, "BackRestMain", new Vector3(0f, 0.78f, 0.32f), new Vector3(0.92f, 0.72f, 0.26f), plushRed);
+                    Box(t, "BackRestCrown", new Vector3(0f, 1.16f, 0.32f), new Vector3(0.72f, 0.14f, 0.24f), plushRed);
+                    Sphere(t, "TuftL", new Vector3(-0.18f, 0.86f, 0.18f), new Vector3(0.08f, 0.08f, 0.05f), deepRed);
+                    Sphere(t, "TuftR", new Vector3(0.18f, 0.86f, 0.18f), new Vector3(0.08f, 0.08f, 0.05f), deepRed);
+                    // Thick rolled crimson armrests
+                    Box(t, "ArmL", new Vector3(-0.46f, 0.50f, -0.02f), new Vector3(0.24f, 0.42f, 0.88f), plushRed);
+                    Box(t, "ArmR", new Vector3(0.46f, 0.50f, -0.02f), new Vector3(0.24f, 0.42f, 0.88f), plushRed);
+                    Cyl(t, "ArmRollL", new Vector3(-0.48f, 0.71f, -0.02f), new Vector3(0.26f, 0.44f, 0.26f), plushRed, new Vector3(90f, 0f, 0f));
+                    Cyl(t, "ArmRollR", new Vector3(0.48f, 0.71f, -0.02f), new Vector3(0.26f, 0.44f, 0.26f), plushRed, new Vector3(90f, 0f, 0f));
                     break;
 
+                // 7. Wooden Single Bed — honey-oak 4-post bed, white mattress & pillow, vibrant sky-blue cuffed blanket
                 case FurnitureKind.WoodenSingleBed:
-                    Legs(t, 1.32f, 1.98f, 0.20f, 0.10f, darkWood);
-                    Box(t, "BedFrame", new Vector3(0f, 0.30f, 0f), new Vector3(1.38f, 0.22f, 2.08f), midWood);
-                    Box(t, "Mattress", new Vector3(0f, 0.49f, 0f), new Vector3(1.26f, 0.22f, 1.94f), cushion);
-                    // Cozy duvet blanket + folded top cuff + two fluffy pillows (headboard at +Z!)
-                    Box(t, "Duvet", new Vector3(0f, 0.56f, -0.26f), new Vector3(1.30f, 0.16f, 1.34f), fabricBlue);
-                    Box(t, "DuvetFold", new Vector3(0f, 0.62f, 0.32f), new Vector3(1.31f, 0.10f, 0.24f), cushion);
-                    Box(t, "DuvetAccent", new Vector3(0f, 0.65f, -0.68f), new Vector3(1.31f, 0.04f, 0.22f), fabricGold);
-                    Box(t, "PillowL", new Vector3(-0.32f, 0.66f, 0.68f), new Vector3(0.52f, 0.16f, 0.36f), cushion, new Vector3(-12f, 4f, 0f));
-                    Box(t, "PillowR", new Vector3(0.32f, 0.66f, 0.68f), new Vector3(0.52f, 0.16f, 0.36f), cushion, new Vector3(-12f, -4f, 0f));
-                    Box(t, "Headboard", new Vector3(0f, 0.72f, 1.00f), new Vector3(1.42f, 1.06f, 0.12f), darkWood);
-                    Box(t, "HeadPanel", new Vector3(0f, 0.82f, 0.95f), new Vector3(1.22f, 0.58f, 0.05f), lightWood);
-                    Box(t, "Footboard", new Vector3(0f, 0.48f, -1.00f), new Vector3(1.42f, 0.60f, 0.12f), darkWood);
+                    // 4 chunky corner posts with rounded finials
+                    Box(t, "PostBL", new Vector3(-0.68f, 0.54f, 0.98f), new Vector3(0.13f, 1.08f, 0.13f), warmOak);
+                    Box(t, "PostBR", new Vector3(0.68f, 0.54f, 0.98f), new Vector3(0.13f, 1.08f, 0.13f), warmOak);
+                    Sphere(t, "FinialBL", new Vector3(-0.68f, 1.11f, 0.98f), new Vector3(0.15f, 0.13f, 0.15f), honeyWood);
+                    Sphere(t, "FinialBR", new Vector3(0.68f, 1.11f, 0.98f), new Vector3(0.15f, 0.13f, 0.15f), honeyWood);
+                    Box(t, "PostFL", new Vector3(-0.68f, 0.40f, -0.98f), new Vector3(0.13f, 0.80f, 0.13f), warmOak);
+                    Box(t, "PostFR", new Vector3(0.68f, 0.40f, -0.98f), new Vector3(0.13f, 0.80f, 0.13f), warmOak);
+                    Sphere(t, "FinialFL", new Vector3(-0.68f, 0.83f, -0.98f), new Vector3(0.15f, 0.13f, 0.15f), honeyWood);
+                    Sphere(t, "FinialFR", new Vector3(0.68f, 0.83f, -0.98f), new Vector3(0.15f, 0.13f, 0.15f), honeyWood);
+                    // Headboard, footboard & side rails
+                    Box(t, "Headboard", new Vector3(0f, 0.68f, 0.98f), new Vector3(1.26f, 0.66f, 0.09f), honeyWood);
+                    Box(t, "Footboard", new Vector3(0f, 0.44f, -0.98f), new Vector3(1.26f, 0.46f, 0.09f), honeyWood);
+                    Box(t, "BedRail", new Vector3(0f, 0.28f, 0f), new Vector3(1.34f, 0.22f, 1.92f), honeyWood);
+                    // White mattress + fluffy white pillow + sky-blue blanket with deeper blue cuff
+                    Box(t, "Mattress", new Vector3(0f, 0.48f, 0f), new Vector3(1.24f, 0.22f, 1.88f), crispWhite);
+                    Box(t, "Pillow", new Vector3(0f, 0.65f, 0.62f), new Vector3(0.84f, 0.18f, 0.44f), crispWhite);
+                    Box(t, "BlanketBody", new Vector3(0f, 0.54f, -0.34f), new Vector3(1.28f, 0.18f, 1.24f), skyBlue);
+                    Box(t, "BlanketCuff", new Vector3(0f, 0.61f, 0.18f), new Vector3(1.30f, 0.14f, 0.26f), deepBlue);
                     break;
 
+                // 8. Analog Radio — rounded retro mahogany radio, cream face, 4 left grille louvers, round right dial w/ red needle, yellow-tip antenna
                 case FurnitureKind.AnalogRadio:
-                    // Vintage console table + detailed mid-century analog FM radio facing -Z
-                    Box(t, "StandTop", new Vector3(0f, 0.68f, 0f), new Vector3(0.84f, 0.08f, 0.56f), midWood);
-                    Box(t, "StandShelf", new Vector3(0f, 0.24f, 0f), new Vector3(0.72f, 0.06f, 0.44f), darkWood);
-                    Legs(t, 0.70f, 0.44f, 0.66f, 0.07f, darkWood);
-                    Box(t, "RadioCase", new Vector3(0f, 0.94f, 0f), new Vector3(0.68f, 0.40f, 0.36f), midWood);
-                    Box(t, "RadioTrim", new Vector3(0f, 0.94f, -0.17f), new Vector3(0.64f, 0.35f, 0.04f), darkWood);
-                    // Woven speaker grille with brass slats
-                    Box(t, "SpeakerCloth", new Vector3(-0.15f, 0.94f, -0.19f), new Vector3(0.28f, 0.26f, 0.02f), fabricGold);
-                    for (int g = -1; g <= 1; g++)
-                        Box(t, $"GrillBar_{g}", new Vector3(-0.15f, 0.94f + g * 0.07f, -0.205f), new Vector3(0.28f, 0.018f, 0.015f), darkWood);
-                    // Illuminated FM dial + red needle + dual brass knobs + tilted telescoping antenna
-                    Box(t, "DialWindow", new Vector3(0.16f, 1.00f, -0.195f), new Vector3(0.24f, 0.11f, 0.02f), dialGlow);
-                    Box(t, "DialNeedle", new Vector3(0.18f, 1.00f, -0.21f), new Vector3(0.02f, 0.10f, 0.015f), redCross);
-                    Cyl(t, "KnobL", new Vector3(0.10f, 0.84f, -0.20f), new Vector3(0.075f, 0.04f, 0.075f), brass, new Vector3(90f, 0f, 0f));
-                    Cyl(t, "KnobR", new Vector3(0.22f, 0.84f, -0.20f), new Vector3(0.075f, 0.04f, 0.075f), brass, new Vector3(90f, 0f, 0f));
-                    Cyl(t, "Antenna", new Vector3(0.26f, 1.38f, 0.08f), new Vector3(0.024f, 0.34f, 0.024f), chrome, new Vector3(0f, 0f, -14f));
-                    Sphere(t, "AntennaTip", new Vector3(0.34f, 1.70f, 0.08f), new Vector3(0.055f, 0.055f, 0.055f), chrome);
+                    Box(t, "Cabinet", new Vector3(0f, 0.34f, 0f), new Vector3(1.06f, 0.62f, 0.44f), caramelWood);
+                    Box(t, "TopArch", new Vector3(0f, 0.67f, 0f), new Vector3(0.96f, 0.08f, 0.40f), honeyWood);
+                    Box(t, "FrontFace", new Vector3(0f, 0.34f, -0.22f), new Vector3(0.92f, 0.48f, 0.04f), warmWhite);
+                    // 4 horizontal dark speaker louvers on left
+                    for (int g = 0; g < 4; g++)
+                    {
+                        Box(t, $"Louver_{g}", new Vector3(-0.18f, 0.48f - g * 0.095f, -0.25f), new Vector3(0.42f, 0.042f, 0.025f), darkWood);
+                    }
+                    // Circular analog dial with red needle on right
+                    Cyl(t, "DialRim", new Vector3(0.24f, 0.41f, -0.245f), new Vector3(0.28f, 0.02f, 0.28f), darkWood, new Vector3(90f, 0f, 0f));
+                    Cyl(t, "DialFace", new Vector3(0.24f, 0.41f, -0.255f), new Vector3(0.23f, 0.02f, 0.23f), crispWhite, new Vector3(90f, 0f, 0f));
+                    Box(t, "DialNeedle", new Vector3(0.27f, 0.44f, -0.27f), new Vector3(0.025f, 0.11f, 0.015f), redCross, new Vector3(0f, 0f, -32f));
+                    // 3 small knobs underneath dial
+                    for (int k = 0; k < 3; k++)
+                    {
+                        Cyl(t, $"Knob_{k}", new Vector3(0.14f + k * 0.10f, 0.19f, -0.255f), new Vector3(0.07f, 0.04f, 0.07f), honeyWood, new Vector3(90f, 0f, 0f));
+                    }
+                    // Long tilted silver antenna with bright yellow tip
+                    Cyl(t, "AntennaRod", new Vector3(0.10f, 0.90f, 0.08f), new Vector3(0.03f, 0.46f, 0.03f), chrome, new Vector3(0f, 0f, -54f));
+                    Sphere(t, "AntennaTip", new Vector3(0.46f, 1.15f, 0.08f), new Vector3(0.10f, 0.10f, 0.10f), goldYellow);
                     break;
 
+                // 9. Desk Lamp — bright golden-yellow articulated swing-arm desk lamp with glowing bulb
                 case FurnitureKind.DeskLamp:
-                    // Bedside table with drawer + brass desk lamp with warm glowing shade
-                    Box(t, "Nightstand", new Vector3(0f, 0.38f, 0f), new Vector3(0.68f, 0.68f, 0.60f), darkWood);
-                    Box(t, "TopBoard", new Vector3(0f, 0.74f, 0f), new Vector3(0.74f, 0.06f, 0.66f), midWood);
-                    Box(t, "Drawer", new Vector3(0f, 0.52f, -0.30f), new Vector3(0.56f, 0.22f, 0.04f), lightWood);
-                    Sphere(t, "DrawerKnob", new Vector3(0f, 0.52f, -0.34f), new Vector3(0.06f, 0.06f, 0.06f), brass);
-                    Cyl(t, "LampBase", new Vector3(0f, 0.80f, 0f), new Vector3(0.28f, 0.04f, 0.28f), brass);
-                    Cyl(t, "LampStem", new Vector3(0f, 1.00f, 0f), new Vector3(0.06f, 0.20f, 0.06f), brass);
-                    Cyl(t, "LampShadeOuter", new Vector3(0f, 1.24f, 0f), new Vector3(0.44f, 0.17f, 0.44f), warmGlow);
-                    Cyl(t, "LampTopRim", new Vector3(0f, 1.41f, 0f), new Vector3(0.30f, 0.025f, 0.30f), brass);
+                    Cyl(t, "BaseDisc", new Vector3(0f, 0.06f, 0f), new Vector3(0.48f, 0.06f, 0.48f), goldYellow);
+                    Sphere(t, "BaseDome", new Vector3(0f, 0.12f, 0f), new Vector3(0.26f, 0.14f, 0.26f), goldYellow);
+                    // Lower angled arm -> elbow joint -> upper angled arm
+                    Cyl(t, "ArmLower", new Vector3(-0.14f, 0.34f, 0.06f), new Vector3(0.07f, 0.24f, 0.07f), goldYellow, new Vector3(-12f, 0f, 34f));
+                    Sphere(t, "ElbowJoint", new Vector3(-0.26f, 0.54f, 0.10f), new Vector3(0.13f, 0.13f, 0.13f), goldYellow);
+                    Cyl(t, "ArmUpper", new Vector3(-0.08f, 0.72f, 0.02f), new Vector3(0.07f, 0.22f, 0.07f), goldYellow, new Vector3(16f, 0f, -44f));
+                    // Tilted yellow bell lampshade + glowing bulb pointing down-front (-Z)
+                    Cyl(t, "ShadeCap", new Vector3(0.08f, 0.84f, -0.06f), new Vector3(0.22f, 0.09f, 0.22f), goldYellow, new Vector3(24f, 0f, -34f));
+                    Cyl(t, "ShadeBell", new Vector3(0.18f, 0.71f, -0.14f), new Vector3(0.46f, 0.16f, 0.46f), lampYellow, new Vector3(24f, 0f, -34f));
+                    Sphere(t, "GlowBulb", new Vector3(0.23f, 0.62f, -0.18f), new Vector3(0.24f, 0.22f, 0.24f), bulbGlow);
                     break;
 
+                // 10. Cooking Pot Stove — compact silver gas burner, glowing BLUE gas flame, silver pot w/ handles & domed lid
                 case FurnitureKind.CookingPotStove:
-                    Box(t, "StoveCabinet", new Vector3(0f, 0.42f, 0f), new Vector3(0.96f, 0.84f, 0.82f), darkMetal);
-                    Box(t, "OvenDoor", new Vector3(0f, 0.38f, -0.42f), new Vector3(0.78f, 0.54f, 0.04f), steel);
-                    Box(t, "OvenWindow", new Vector3(0f, 0.42f, -0.45f), new Vector3(0.54f, 0.28f, 0.02f), darkMetal);
-                    Box(t, "OvenHandle", new Vector3(0f, 0.60f, -0.47f), new Vector3(0.58f, 0.04f, 0.05f), chrome);
-                    Box(t, "CookTop", new Vector3(0f, 0.86f, 0f), new Vector3(0.98f, 0.06f, 0.84f), steel);
-                    Cyl(t, "BurnerGlow", new Vector3(0f, 0.90f, 0f), new Vector3(0.52f, 0.02f, 0.52f), emberGlow);
-                    // Heavy cast-iron cooking pot + brass lid knob + wooden ladle
-                    Cyl(t, "PotBody", new Vector3(0f, 1.10f, 0f), new Vector3(0.56f, 0.20f, 0.56f), darkMetal);
-                    Cyl(t, "PotRim", new Vector3(0f, 1.29f, 0f), new Vector3(0.60f, 0.03f, 0.60f), steel);
-                    Cyl(t, "PotLid", new Vector3(0.06f, 1.33f, 0.04f), new Vector3(0.54f, 0.035f, 0.54f), steel);
-                    Sphere(t, "LidKnob", new Vector3(0.06f, 1.39f, 0.04f), new Vector3(0.09f, 0.09f, 0.09f), brass);
-                    Box(t, "HandleL", new Vector3(-0.34f, 1.18f, 0f), new Vector3(0.12f, 0.05f, 0.14f), brass);
-                    Box(t, "HandleR", new Vector3(0.34f, 1.18f, 0f), new Vector3(0.12f, 0.05f, 0.14f), brass);
+                    // Compact silver single-burner stove base
+                    Box(t, "StoveBase", new Vector3(0f, 0.22f, 0f), new Vector3(0.98f, 0.36f, 0.86f), silverMetal);
+                    Box(t, "StoveTopPlate", new Vector3(0f, 0.42f, 0f), new Vector3(0.92f, 0.06f, 0.80f), lockerSteel);
+                    // Front circular dial knob
+                    Cyl(t, "ControlKnob", new Vector3(0f, 0.22f, -0.45f), new Vector3(0.18f, 0.04f, 0.18f), darkIron, new Vector3(90f, 0f, 0f));
+                    Box(t, "ControlKnobBar", new Vector3(0f, 0.22f, -0.49f), new Vector3(0.04f, 0.12f, 0.02f), chrome);
+                    // Black burner grate + bright glowing BLUE gas flame ring
+                    Box(t, "GrateX", new Vector3(0f, 0.48f, 0f), new Vector3(0.72f, 0.06f, 0.08f), darkIron);
+                    Box(t, "GrateZ", new Vector3(0f, 0.48f, 0f), new Vector3(0.08f, 0.06f, 0.72f), darkIron);
+                    Cyl(t, "BlueFlameRing", new Vector3(0f, 0.51f, 0f), new Vector3(0.46f, 0.04f, 0.46f), gasBlueFlame);
+                    // Polished silver cooking pot + side handles + domed lid
+                    Cyl(t, "PotBody", new Vector3(0f, 0.74f, 0f), new Vector3(0.64f, 0.22f, 0.64f), silverMetal);
+                    Cyl(t, "PotRim", new Vector3(0f, 0.96f, 0f), new Vector3(0.68f, 0.03f, 0.68f), chrome);
+                    Sphere(t, "PotLidDome", new Vector3(0f, 0.99f, 0f), new Vector3(0.62f, 0.16f, 0.62f), silverMetal);
+                    Cyl(t, "LidHandle", new Vector3(0f, 1.09f, 0f), new Vector3(0.16f, 0.05f, 0.16f), darkIron);
+                    Box(t, "PotHandleL", new Vector3(-0.37f, 0.84f, 0f), new Vector3(0.14f, 0.07f, 0.14f), chrome);
+                    Box(t, "PotHandleR", new Vector3(0.37f, 0.84f, 0f), new Vector3(0.14f, 0.07f, 0.14f), chrome);
                     break;
 
+                // 11–15. Five Square Wooden Crop Planter Boxes (Lime, Potato, Tomato, Carrot, Strawberry)
                 case FurnitureKind.PlanterBoxLime:
                 case FurnitureKind.PlanterBoxPotato:
                 case FurnitureKind.PlanterBoxTomato:
                 case FurnitureKind.PlanterBoxCarrot:
                 case FurnitureKind.PlanterBoxStrawberry:
-                    BuildSquarePlanterVisual(t, shader, midWood, darkWood, darkMetal, soil, leafDark, leafBright);
+                    BuildSquarePlanterVisual(t, shader, honeyWood, warmOak, soil, leafDark, leafBright, crispWhite, goldYellow, materialResolver);
                     break;
 
+                // 16. Vintage Refrigerator — rounded pastel mint-green 1950s fridge with horizontal chrome handles on left
                 case FurnitureKind.VintageRefrigerator:
-                    // Retro mint-cream fridge facing -Z with upper freezer, chrome handles & silver badge
-                    Box(t, "FridgeBase", new Vector3(0f, 0.07f, 0f), new Vector3(0.94f, 0.14f, 0.84f), darkMetal);
-                    Box(t, "FridgeBody", new Vector3(0f, 1.00f, 0.02f), new Vector3(0.96f, 1.80f, 0.84f), mintRetro);
-                    Box(t, "FreezerDoor", new Vector3(0f, 1.56f, -0.42f), new Vector3(0.92f, 0.62f, 0.06f), whiteEnamel);
-                    Box(t, "MainDoor", new Vector3(0f, 0.68f, -0.42f), new Vector3(0.92f, 1.08f, 0.06f), whiteEnamel);
-                    Box(t, "HandleFreezer", new Vector3(0.32f, 1.48f, -0.47f), new Vector3(0.06f, 0.30f, 0.06f), chrome);
-                    Box(t, "HandleMain", new Vector3(0.32f, 0.94f, -0.47f), new Vector3(0.06f, 0.44f, 0.06f), chrome);
-                    Box(t, "BrandBadge", new Vector3(-0.18f, 1.72f, -0.46f), new Vector3(0.28f, 0.06f, 0.02f), chrome);
-                    Box(t, "TopCap", new Vector3(0f, 1.92f, 0f), new Vector3(0.92f, 0.06f, 0.80f), mintRetro);
+                    Legs(t, 0.78f, 0.66f, 0.10f, 0.10f, darkIron);
+                    // Rounded mint body + top rounded cap
+                    Box(t, "FridgeBody", new Vector3(0f, 0.96f, 0.02f), new Vector3(1.04f, 1.70f, 0.86f), mintFridge);
+                    Box(t, "FridgeTopDome", new Vector3(0f, 1.84f, 0.02f), new Vector3(0.94f, 0.12f, 0.78f), mintFridge);
+                    // Upper freezer door + lower fridge door + crisp dividing seam
+                    Box(t, "FreezerDoor", new Vector3(0f, 1.44f, -0.43f), new Vector3(0.96f, 0.62f, 0.07f), mintFridge);
+                    Box(t, "MainDoor", new Vector3(0f, 0.60f, -0.43f), new Vector3(0.96f, 0.96f, 0.07f), mintFridge);
+                    Box(t, "DoorSeam", new Vector3(0f, 1.11f, -0.44f), new Vector3(1.02f, 0.04f, 0.07f), darkIron);
+                    // Signature chunky horizontal white/chrome curved handles on left
+                    Box(t, "HandleUpper", new Vector3(-0.28f, 1.32f, -0.50f), new Vector3(0.28f, 0.09f, 0.07f), chrome);
+                    Box(t, "HandleLower", new Vector3(-0.28f, 0.88f, -0.50f), new Vector3(0.28f, 0.09f, 0.07f), chrome);
                     break;
 
+                // 17. Medical Wall Cabinet — warm white rounded cabinet with bold red cross, left handle & right hinges
                 case FurnitureKind.MedicalWallCabinet:
-                    // Clean enameled clinic cabinet facing -Z with glass display shelf, medicine bottles & crisp Red Cross!
-                    Legs(t, 1.06f, 0.56f, 0.14f, 0.07f, chrome);
-                    Box(t, "CabBody", new Vector3(0f, 0.98f, 0.02f), new Vector3(1.18f, 1.74f, 0.62f), whiteEnamel);
-                    Box(t, "UpperGlassFrame", new Vector3(0f, 1.38f, -0.30f), new Vector3(1.02f, 0.72f, 0.04f), steel);
-                    Box(t, "UpperGlass", new Vector3(0f, 1.38f, -0.325f), new Vector3(0.90f, 0.60f, 0.02f), glassBlue);
-                    // Prominent raised Red Cross on lower white door facing -Z
-                    Box(t, "LowerDoor", new Vector3(0f, 0.56f, -0.30f), new Vector3(1.06f, 0.78f, 0.04f), whiteEnamel);
-                    Box(t, "CrossH", new Vector3(0f, 0.58f, -0.34f), new Vector3(0.42f, 0.12f, 0.04f), redCross);
-                    Box(t, "CrossV", new Vector3(0f, 0.58f, -0.34f), new Vector3(0.12f, 0.42f, 0.04f), redCross);
-                    Box(t, "TopAccent", new Vector3(0f, 1.87f, 0f), new Vector3(1.22f, 0.06f, 0.66f), redCross);
+                    Box(t, "CabBody", new Vector3(0f, 1.24f, 0.08f), new Vector3(0.98f, 1.06f, 0.42f), warmWhite);
+                    Box(t, "CabDoor", new Vector3(0f, 1.24f, -0.14f), new Vector3(0.88f, 0.94f, 0.05f), crispWhite);
+                    // Bold centered red medical cross
+                    Box(t, "CrossV", new Vector3(0f, 1.24f, -0.18f), new Vector3(0.14f, 0.46f, 0.03f), redCross);
+                    Box(t, "CrossH", new Vector3(0f, 1.24f, -0.18f), new Vector3(0.46f, 0.14f, 0.03f), redCross);
+                    // Left handle + right hinges
+                    Box(t, "DoorHandle", new Vector3(-0.34f, 1.24f, -0.19f), new Vector3(0.05f, 0.22f, 0.06f), lockerSteel);
+                    Box(t, "HingeTop", new Vector3(0.46f, 1.54f, -0.15f), new Vector3(0.06f, 0.14f, 0.05f), lockerSteel);
+                    Box(t, "HingeBot", new Vector3(0.46f, 0.94f, -0.15f), new Vector3(0.06f, 0.14f, 0.05f), lockerSteel);
                     break;
 
+                // 18. Leather Sofa — caramel-brown 2-seater leather couch with twin seat/back cushions & rolled arms
                 case FurnitureKind.LeatherSofa:
-                    Legs(t, 1.90f, 0.72f, 0.12f, 0.08f, darkWood);
-                    Box(t, "SeatBase", new Vector3(0f, 0.28f, -0.02f), new Vector3(2.06f, 0.26f, 0.88f), leather);
-                    Box(t, "CushionL", new Vector3(-0.48f, 0.47f, -0.06f), new Vector3(0.86f, 0.18f, 0.72f), leatherLit);
-                    Box(t, "CushionR", new Vector3(0.48f, 0.47f, -0.06f), new Vector3(0.86f, 0.18f, 0.72f), leatherLit);
-                    Box(t, "BackRest", new Vector3(0f, 0.74f, 0.34f), new Vector3(2.04f, 0.70f, 0.24f), leather);
-                    Box(t, "ThrowPillowL", new Vector3(-0.68f, 0.66f, 0.14f), new Vector3(0.34f, 0.30f, 0.14f), fabricGold, new Vector3(-16f, 18f, 8f));
-                    Box(t, "ThrowPillowR", new Vector3(0.68f, 0.66f, 0.14f), new Vector3(0.34f, 0.30f, 0.14f), fabricRed, new Vector3(-16f, -18f, -8f));
-                    Box(t, "ArmL", new Vector3(-0.96f, 0.52f, 0f), new Vector3(0.20f, 0.46f, 0.86f), leather);
-                    Box(t, "ArmR", new Vector3(0.96f, 0.52f, 0f), new Vector3(0.20f, 0.46f, 0.86f), leather);
+                    Legs(t, 1.88f, 0.74f, 0.12f, 0.09f, darkWood);
+                    Box(t, "SofaBase", new Vector3(0f, 0.24f, -0.02f), new Vector3(2.04f, 0.22f, 0.88f), leatherDark);
+                    // Twin plump caramel seat cushions
+                    Box(t, "SeatL", new Vector3(-0.44f, 0.44f, -0.06f), new Vector3(0.84f, 0.20f, 0.72f), leatherBrown);
+                    Box(t, "SeatR", new Vector3(0.44f, 0.44f, -0.06f), new Vector3(0.84f, 0.20f, 0.72f), leatherBrown);
+                    // Twin tall rounded leather backrest cushions
+                    Box(t, "BackL", new Vector3(-0.44f, 0.80f, 0.30f), new Vector3(0.84f, 0.62f, 0.26f), leatherBrown);
+                    Box(t, "BackR", new Vector3(0.44f, 0.80f, 0.30f), new Vector3(0.84f, 0.62f, 0.26f), leatherBrown);
+                    Box(t, "BackDivider", new Vector3(0f, 0.78f, 0.28f), new Vector3(0.04f, 0.58f, 0.28f), leatherDark);
+                    // Rolled armrests
+                    Box(t, "ArmL", new Vector3(-0.96f, 0.48f, -0.02f), new Vector3(0.24f, 0.42f, 0.86f), leatherBrown);
+                    Box(t, "ArmR", new Vector3(0.96f, 0.48f, -0.02f), new Vector3(0.24f, 0.42f, 0.86f), leatherBrown);
+                    Cyl(t, "ArmRollL", new Vector3(-0.98f, 0.69f, -0.02f), new Vector3(0.26f, 0.43f, 0.26f), leatherBrown, new Vector3(90f, 0f, 0f));
+                    Cyl(t, "ArmRollR", new Vector3(0.98f, 0.69f, -0.02f), new Vector3(0.26f, 0.43f, 0.26f), leatherBrown, new Vector3(90f, 0f, 0f));
                     break;
 
+                // 19. Standing Floor Lamp — slender silver pole, round base, bright yellow tapered shade + hanging pull-chain
                 case FurnitureKind.StandingFloorLamp:
-                    Cyl(t, "Base", new Vector3(0f, 0.05f, 0f), new Vector3(0.48f, 0.05f, 0.48f), darkMetal);
-                    Cyl(t, "BaseCollar", new Vector3(0f, 0.12f, 0f), new Vector3(0.22f, 0.06f, 0.22f), brass);
-                    Cyl(t, "Pole", new Vector3(0f, 0.94f, 0f), new Vector3(0.07f, 0.84f, 0.07f), brass);
-                    Cyl(t, "ShadeBody", new Vector3(0f, 1.84f, 0f), new Vector3(0.58f, 0.24f, 0.58f), warmGlow);
-                    Cyl(t, "ShadeTrimTop", new Vector3(0f, 2.08f, 0f), new Vector3(0.44f, 0.025f, 0.44f), brass);
-                    Cyl(t, "ShadeTrimBot", new Vector3(0f, 1.60f, 0f), new Vector3(0.60f, 0.025f, 0.60f), brass);
+                    Cyl(t, "BaseFoot", new Vector3(0f, 0.05f, 0f), new Vector3(0.56f, 0.05f, 0.56f), silverMetal);
+                    Cyl(t, "BaseCollar", new Vector3(0f, 0.12f, 0f), new Vector3(0.26f, 0.06f, 0.26f), lockerSteel);
+                    Cyl(t, "Stem", new Vector3(0f, 0.78f, 0f), new Vector3(0.085f, 0.68f, 0.085f), silverMetal);
+                    // Tapered yellow lampshade (stacked concentric cylinders for classic trapezoid silhouette)
+                    Cyl(t, "ShadeLower", new Vector3(0f, 1.54f, 0f), new Vector3(0.76f, 0.16f, 0.76f), lampYellow);
+                    Cyl(t, "ShadeUpper", new Vector3(0f, 1.76f, 0f), new Vector3(0.56f, 0.14f, 0.56f), lampYellow);
+                    Cyl(t, "ShadeRim", new Vector3(0f, 1.90f, 0f), new Vector3(0.46f, 0.03f, 0.46f), goldYellow);
+                    Sphere(t, "GlowBulb", new Vector3(0f, 1.44f, 0f), new Vector3(0.22f, 0.20f, 0.22f), bulbGlow);
+                    // Cute yellow hanging pull-chain with ball tassel
+                    Cyl(t, "PullChain", new Vector3(0.18f, 1.24f, -0.10f), new Vector3(0.02f, 0.18f, 0.02f), goldYellow);
+                    Sphere(t, "PullBall", new Vector3(0.18f, 1.06f, -0.10f), new Vector3(0.09f, 0.09f, 0.09f), goldYellow);
                     break;
 
+                // 20. Tall Bookshelf — honey-oak 3-tier bookcase packed with colorful books across all 3 shelves
                 case FurnitureKind.TallBookshelf:
-                    // Open-front bookcase facing -Z with packed multi-color book rows!
-                    Box(t, "BackPanel", new Vector3(0f, 1.00f, 0.26f), new Vector3(1.50f, 2.00f, 0.08f), darkWood);
-                    Box(t, "SideL", new Vector3(-0.72f, 1.00f, 0f), new Vector3(0.10f, 2.00f, 0.58f), darkWood);
-                    Box(t, "SideR", new Vector3(0.72f, 1.00f, 0f), new Vector3(0.10f, 2.00f, 0.58f), darkWood);
-                    Box(t, "TopCrown", new Vector3(0f, 2.02f, 0f), new Vector3(1.58f, 0.08f, 0.64f), darkWood);
-                    Material[] bookMats = { fabricRed, fabricBlue, fabricGold, fabricGreen, cushion, leatherLit };
-                    for (int s = 0; s < 4; s++)
+                    Box(t, "BackPanel", new Vector3(0f, 1.04f, 0.24f), new Vector3(1.36f, 2.02f, 0.06f), darkWood);
+                    Box(t, "SideL", new Vector3(-0.65f, 1.04f, 0f), new Vector3(0.10f, 2.04f, 0.56f), warmOak);
+                    Box(t, "SideR", new Vector3(0.65f, 1.04f, 0f), new Vector3(0.10f, 2.04f, 0.56f), warmOak);
+                    Box(t, "TopCornice", new Vector3(0f, 2.08f, 0f), new Vector3(1.46f, 0.12f, 0.62f), honeyWood);
+                    Box(t, "BottomBase", new Vector3(0f, 0.08f, 0f), new Vector3(1.44f, 0.14f, 0.62f), honeyWood);
+                    Material[] bookPalette = { plushRed, skyBlue, goldYellow, bookGreen, bookPurple, deepBlue, plushRed };
+                    for (int s = 0; s < 3; s++)
                     {
-                        float sy = 0.18f + s * 0.46f;
-                        Box(t, $"Shelf_{s}", new Vector3(0f, sy, 0f), new Vector3(1.40f, 0.06f, 0.54f), midWood);
-                        for (int b = 0; b < 6; b++)
+                        float sy = 0.20f + s * 0.62f;
+                        if (s > 0) Box(t, $"Shelf_{s}", new Vector3(0f, sy - 0.04f, -0.02f), new Vector3(1.24f, 0.07f, 0.50f), honeyWood);
+                        for (int b = 0; b < 7; b++)
                         {
-                            float bx = -0.52f + b * 0.20f;
-                            float bh = 0.24f + ((s * 3 + b * 5) % 4) * 0.035f;
-                            float tilt = (b == 5 && s % 2 == 0) ? 16f : 0f;
-                            Box(t, $"Book_{s}_{b}", new Vector3(bx, sy + 0.03f + bh * 0.5f, -0.02f),
-                                new Vector3(0.14f, bh, 0.34f), bookMats[(s + b) % bookMats.Length], new Vector3(0f, 0f, tilt));
+                            float bx = -0.49f + b * 0.162f;
+                            float bh = 0.42f + ((b + s) % 3) * 0.045f;
+                            Box(t, $"Book_{s}_{b}", new Vector3(bx, sy + bh * 0.5f, -0.05f), new Vector3(0.135f, bh, 0.36f), bookPalette[(b + s * 2) % bookPalette.Length]);
                         }
                     }
                     break;
 
+                // 21. Wooden Dining Table — warm golden-oak rectangular table with apron and 4 chunky legs
                 case FurnitureKind.WoodenDiningTable:
-                    Box(t, "TableTop", new Vector3(0f, 0.80f, 0f), new Vector3(1.86f, 0.10f, 1.16f), midWood);
-                    Box(t, "TableRunner", new Vector3(0f, 0.86f, 0f), new Vector3(1.88f, 0.02f, 0.38f), fabricRed);
-                    Box(t, "Apron", new Vector3(0f, 0.70f, 0f), new Vector3(1.62f, 0.12f, 0.92f), darkWood);
-                    Legs(t, 1.62f, 0.92f, 0.76f, 0.10f, darkWood);
+                    Legs(t, 1.54f, 0.88f, 0.78f, 0.12f, warmOak);
+                    Box(t, "TableApron", new Vector3(0f, 0.72f, 0f), new Vector3(1.56f, 0.12f, 0.90f), warmOak);
+                    Box(t, "TableTop", new Vector3(0f, 0.84f, 0f), new Vector3(1.78f, 0.12f, 1.12f), honeyWood);
                     break;
 
+                // 22. Low Coffee Table — compact golden-oak coffee table with lower shelf + white coffee mug
                 case FurnitureKind.LowCoffeeTable:
-                    Box(t, "TableTop", new Vector3(0f, 0.44f, 0f), new Vector3(1.32f, 0.08f, 0.84f), lightWood);
-                    Box(t, "LowerTray", new Vector3(0f, 0.18f, 0f), new Vector3(1.12f, 0.05f, 0.66f), midWood);
-                    Legs(t, 1.12f, 0.66f, 0.42f, 0.075f, darkWood);
-                    Box(t, "BookProp", new Vector3(-0.26f, 0.50f, 0.04f), new Vector3(0.32f, 0.05f, 0.24f), fabricBlue, new Vector3(0f, 18f, 0f));
-                    Cyl(t, "MugProp", new Vector3(0.30f, 0.54f, -0.08f), new Vector3(0.12f, 0.07f, 0.12f), cushion);
+                    Legs(t, 1.18f, 0.62f, 0.46f, 0.10f, warmOak);
+                    Box(t, "LowerShelf", new Vector3(0f, 0.18f, 0f), new Vector3(1.16f, 0.07f, 0.54f), warmOak);
+                    Box(t, "TableTop", new Vector3(0f, 0.50f, 0f), new Vector3(1.36f, 0.10f, 0.78f), honeyWood);
+                    // White ceramic coffee mug with dark coffee & side handle
+                    Cyl(t, "MugBody", new Vector3(0.28f, 0.67f, -0.06f), new Vector3(0.20f, 0.12f, 0.20f), crispWhite);
+                    Cyl(t, "MugCoffee", new Vector3(0.28f, 0.785f, -0.06f), new Vector3(0.16f, 0.015f, 0.16f), darkWood);
+                    Box(t, "MugHandle", new Vector3(0.41f, 0.67f, -0.06f), new Vector3(0.08f, 0.12f, 0.04f), crispWhite);
                     break;
 
+                // 23. Kitchen Counter Sink — honey-oak 2-door cabinet + yellow knobs + grey counter + left sink + gooseneck chrome faucet
                 case FurnitureKind.KitchenCounterSink:
-                    Box(t, "CounterBody", new Vector3(0f, 0.46f, 0.02f), new Vector3(1.74f, 0.90f, 0.80f), midWood);
-                    Box(t, "CabDoorL", new Vector3(-0.44f, 0.46f, -0.39f), new Vector3(0.76f, 0.74f, 0.04f), lightWood);
-                    Box(t, "CabDoorR", new Vector3(0.44f, 0.46f, -0.39f), new Vector3(0.76f, 0.74f, 0.04f), lightWood);
-                    Box(t, "KnobL", new Vector3(-0.14f, 0.58f, -0.43f), new Vector3(0.05f, 0.14f, 0.04f), brass);
-                    Box(t, "KnobR", new Vector3(0.14f, 0.58f, -0.43f), new Vector3(0.05f, 0.14f, 0.04f), brass);
-                    Box(t, "CounterTop", new Vector3(0f, 0.94f, 0f), new Vector3(1.80f, 0.08f, 0.88f), cushion);
-                    Box(t, "SinkRim", new Vector3(0.30f, 0.99f, 0f), new Vector3(0.62f, 0.03f, 0.50f), chrome);
-                    Box(t, "SinkWater", new Vector3(0.30f, 1.00f, 0f), new Vector3(0.50f, 0.02f, 0.38f), glassBlue);
-                    Cyl(t, "FaucetPost", new Vector3(0.30f, 1.14f, 0.28f), new Vector3(0.06f, 0.16f, 0.06f), chrome);
-                    Box(t, "FaucetSpout", new Vector3(0.30f, 1.26f, 0.18f), new Vector3(0.05f, 0.05f, 0.22f), chrome);
+                    Box(t, "CabinetBase", new Vector3(0f, 0.42f, 0.02f), new Vector3(1.44f, 0.80f, 0.78f), warmOak);
+                    Box(t, "DoorL", new Vector3(-0.34f, 0.42f, -0.38f), new Vector3(0.62f, 0.66f, 0.05f), honeyWood);
+                    Box(t, "DoorR", new Vector3(0.34f, 0.42f, -0.38f), new Vector3(0.62f, 0.66f, 0.05f), honeyWood);
+                    Sphere(t, "KnobL", new Vector3(-0.09f, 0.44f, -0.43f), new Vector3(0.09f, 0.09f, 0.07f), goldYellow);
+                    Sphere(t, "KnobR", new Vector3(0.09f, 0.44f, -0.43f), new Vector3(0.09f, 0.09f, 0.07f), goldYellow);
+                    // Silver-grey countertop + recessed sink basin on left
+                    Box(t, "CounterTop", new Vector3(0f, 0.87f, 0f), new Vector3(1.56f, 0.11f, 0.88f), silverMetal);
+                    Box(t, "SinkBasin", new Vector3(-0.24f, 0.91f, -0.02f), new Vector3(0.66f, 0.06f, 0.50f), lockerSteel);
+                    Box(t, "SinkInner", new Vector3(-0.24f, 0.935f, -0.02f), new Vector3(0.56f, 0.03f, 0.40f), darkIron);
+                    // Curved gooseneck chrome faucet + twin tap knobs on right/rear
+                    Cyl(t, "FaucetBase", new Vector3(0.32f, 0.97f, 0.12f), new Vector3(0.12f, 0.06f, 0.12f), chrome);
+                    Cyl(t, "FaucetNeck", new Vector3(0.32f, 1.18f, 0.12f), new Vector3(0.07f, 0.22f, 0.07f), chrome);
+                    Box(t, "FaucetArch", new Vector3(0.18f, 1.38f, 0.12f), new Vector3(0.30f, 0.07f, 0.07f), chrome);
+                    Cyl(t, "FaucetSpout", new Vector3(0.05f, 1.30f, 0.12f), new Vector3(0.065f, 0.09f, 0.065f), chrome);
+                    Sphere(t, "TapKnobL", new Vector3(0.18f, 0.99f, 0.22f), new Vector3(0.09f, 0.07f, 0.09f), chrome);
+                    Sphere(t, "TapKnobR", new Vector3(0.46f, 0.99f, 0.22f), new Vector3(0.09f, 0.07f, 0.09f), chrome);
                     break;
 
+                // 24. First Aid Station — bright red carry medkit box, white front panel with red cross, top handle, bandage roll & band-aids peeking out
                 case FurnitureKind.FirstAidStation:
-                    Box(t, "StandBase", new Vector3(0f, 0.56f, 0f), new Vector3(0.92f, 1.12f, 0.62f), whiteEnamel);
-                    Box(t, "FrontStripe", new Vector3(0f, 0.82f, -0.32f), new Vector3(0.92f, 0.12f, 0.03f), redCross);
-                    Box(t, "FrontCrossH", new Vector3(0f, 0.44f, -0.32f), new Vector3(0.34f, 0.10f, 0.03f), redCross);
-                    Box(t, "FrontCrossV", new Vector3(0f, 0.44f, -0.32f), new Vector3(0.10f, 0.34f, 0.03f), redCross);
-                    Box(t, "KitBox", new Vector3(-0.08f, 1.24f, 0f), new Vector3(0.58f, 0.24f, 0.42f), whiteEnamel);
-                    Box(t, "TopCrossH", new Vector3(-0.08f, 1.37f, 0f), new Vector3(0.28f, 0.03f, 0.09f), redCross);
-                    Box(t, "TopCrossV", new Vector3(-0.08f, 1.37f, 0f), new Vector3(0.09f, 0.03f, 0.28f), redCross);
-                    Cyl(t, "MedBottle", new Vector3(0.32f, 1.22f, -0.06f), new Vector3(0.11f, 0.11f, 0.11f), dialGlow);
+                    // Red kit shell + white front face with red cross
+                    Box(t, "KitBaseRed", new Vector3(0f, 0.42f, 0.04f), new Vector3(1.12f, 0.72f, 0.64f), plushRed);
+                    Box(t, "KitBackLid", new Vector3(0f, 0.94f, 0.26f), new Vector3(1.10f, 0.42f, 0.18f), plushRed);
+                    Box(t, "KitHandleTop", new Vector3(0f, 1.24f, 0.26f), new Vector3(0.44f, 0.08f, 0.08f), plushRed);
+                    Box(t, "KitHandleL", new Vector3(-0.18f, 1.18f, 0.26f), new Vector3(0.08f, 0.12f, 0.08f), plushRed);
+                    Box(t, "KitHandleR", new Vector3(0.18f, 1.18f, 0.26f), new Vector3(0.08f, 0.12f, 0.08f), plushRed);
+                    Box(t, "FrontWhiteBand", new Vector3(0f, 0.42f, -0.29f), new Vector3(1.00f, 0.46f, 0.05f), crispWhite);
+                    Box(t, "CrossV", new Vector3(0f, 0.42f, -0.33f), new Vector3(0.11f, 0.34f, 0.03f), redCross);
+                    Box(t, "CrossH", new Vector3(0f, 0.42f, -0.33f), new Vector3(0.34f, 0.11f, 0.03f), redCross);
+                    // Rolled white gauze bandage + 2 tan adhesive bandages peeking out the open top
+                    Cyl(t, "GauzeRoll", new Vector3(-0.22f, 0.84f, -0.02f), new Vector3(0.34f, 0.24f, 0.34f), warmWhite);
+                    Cyl(t, "GauzeCore", new Vector3(-0.22f, 0.85f, -0.02f), new Vector3(0.14f, 0.25f, 0.14f), bandageTan);
+                    Box(t, "BandAid1", new Vector3(0.16f, 0.88f, 0.02f), new Vector3(0.16f, 0.38f, 0.08f), bandageTan, new Vector3(0f, 0f, -14f));
+                    Box(t, "BandAid2", new Vector3(0.34f, 0.84f, -0.04f), new Vector3(0.16f, 0.36f, 0.08f), bandageTan, new Vector3(0f, 0f, -24f));
                     break;
 
+                // 25. Weapon Display Rack — rustic slatted golden-oak wall board with 2 vertical bars, brown rifle + silver tactical axe
                 case FurnitureKind.WeaponDisplayRack:
-                    Box(t, "RackBase", new Vector3(0f, 0.16f, 0f), new Vector3(1.58f, 0.32f, 0.64f), darkMetal);
-                    Box(t, "BackBoard", new Vector3(0f, 1.06f, 0.24f), new Vector3(1.52f, 1.66f, 0.10f), darkWood);
-                    Box(t, "FrameBorder", new Vector3(0f, 1.88f, 0.22f), new Vector3(1.58f, 0.08f, 0.16f), steel);
-                    // Mounted 3D Rifle & Shotgun silhouettes facing -Z
-                    Box(t, "RifleStock", new Vector3(-0.34f, 1.44f, 0.14f), new Vector3(0.36f, 0.12f, 0.08f), midWood);
-                    Box(t, "RifleBody", new Vector3(0.06f, 1.46f, 0.14f), new Vector3(0.52f, 0.11f, 0.08f), darkMetal);
-                    Cyl(t, "RifleBarrel", new Vector3(0.46f, 1.48f, 0.14f), new Vector3(0.045f, 0.26f, 0.045f), steel, new Vector3(0f, 0f, 90f));
-                    Box(t, "ShotgunStock", new Vector3(-0.32f, 0.96f, 0.14f), new Vector3(0.34f, 0.11f, 0.08f), darkWood);
-                    Box(t, "ShotgunBody", new Vector3(0.16f, 0.98f, 0.14f), new Vector3(0.68f, 0.09f, 0.08f), steel);
+                    // Vertical wall rail posts + horizontal slatted wooden planks
+                    Box(t, "RailL", new Vector3(-0.56f, 1.18f, 0.14f), new Vector3(0.14f, 1.24f, 0.10f), warmOak);
+                    Box(t, "RailR", new Vector3(0.56f, 1.18f, 0.14f), new Vector3(0.14f, 1.24f, 0.10f), warmOak);
+                    Box(t, "PlankTop", new Vector3(0f, 1.48f, 0.10f), new Vector3(1.56f, 0.30f, 0.07f), honeyWood);
+                    Box(t, "PlankMid", new Vector3(0f, 1.16f, 0.10f), new Vector3(1.56f, 0.30f, 0.07f), warmOak);
+                    Box(t, "PlankBot", new Vector3(0f, 0.84f, 0.10f), new Vector3(1.56f, 0.30f, 0.07f), honeyWood);
+                    // Classic hunting/combat rifle across upper pegs
+                    Box(t, "RifleStock", new Vector3(-0.40f, 1.38f, 0.01f), new Vector3(0.54f, 0.14f, 0.09f), caramelWood, new Vector3(0f, 0f, 10f));
+                    Box(t, "RifleReceiver", new Vector3(-0.02f, 1.44f, 0.01f), new Vector3(0.38f, 0.12f, 0.09f), darkIron);
+                    Cyl(t, "RifleBarrel", new Vector3(0.36f, 1.46f, 0.01f), new Vector3(0.06f, 0.36f, 0.06f), darkIron, new Vector3(0f, 0f, 90f));
+                    // Wooden-handled silver axe across lower pegs
+                    Box(t, "AxeHandle", new Vector3(-0.08f, 0.94f, 0.01f), new Vector3(0.68f, 0.09f, 0.07f), goldYellow, new Vector3(0f, 0f, 12f));
+                    Box(t, "AxeHead", new Vector3(0.28f, 0.92f, 0.00f), new Vector3(0.26f, 0.32f, 0.08f), silverMetal, new Vector3(0f, 0f, 12f));
+                    Box(t, "AxeEdge", new Vector3(0.30f, 0.77f, 0.00f), new Vector3(0.28f, 0.05f, 0.085f), chrome, new Vector3(0f, 0f, 12f));
                     break;
 
+                // 26. Wood Burning Stove — chunky dark cast-iron stove, chimney pipe, arched fire door w/ glowing flames & logs
                 case FurnitureKind.WoodBurningStove:
-                    Box(t, "HearthPad", new Vector3(0f, 0.04f, 0f), new Vector3(1.02f, 0.08f, 0.96f), steel);
-                    Cyl(t, "StoveCore", new Vector3(0f, 0.62f, 0f), new Vector3(0.84f, 0.54f, 0.84f), darkMetal);
-                    Cyl(t, "StoveTop", new Vector3(0f, 1.18f, 0f), new Vector3(0.90f, 0.05f, 0.90f), steel);
-                    Cyl(t, "Chimney", new Vector3(0f, 1.66f, 0.12f), new Vector3(0.24f, 0.52f, 0.24f), darkMetal);
-                    // Glowing fire grate facing -Z
-                    Box(t, "FireDoorFrame", new Vector3(0f, 0.58f, -0.40f), new Vector3(0.46f, 0.38f, 0.08f), steel);
-                    Box(t, "FireEmbers", new Vector3(0f, 0.58f, -0.43f), new Vector3(0.36f, 0.28f, 0.04f), emberGlow);
-                    Box(t, "GrateBar1", new Vector3(-0.08f, 0.58f, -0.455f), new Vector3(0.025f, 0.28f, 0.02f), darkMetal);
-                    Box(t, "GrateBar2", new Vector3(0.08f, 0.58f, -0.455f), new Vector3(0.025f, 0.28f, 0.02f), darkMetal);
+                    Legs(t, 0.86f, 0.70f, 0.18f, 0.11f, darkIron);
+                    Box(t, "BaseRim", new Vector3(0f, 0.22f, 0f), new Vector3(1.12f, 0.10f, 0.92f), lockerSteel);
+                    Box(t, "StoveBody", new Vector3(0f, 0.66f, 0f), new Vector3(1.02f, 0.80f, 0.84f), darkIron);
+                    Box(t, "TopLip", new Vector3(0f, 1.09f, 0f), new Vector3(1.14f, 0.10f, 0.94f), lockerSteel);
+                    // Short cylindrical chimney pipe + collar on top
+                    Cyl(t, "FlueCollar", new Vector3(0f, 1.18f, 0.04f), new Vector3(0.34f, 0.05f, 0.34f), lockerSteel);
+                    Cyl(t, "ChimneyPipe", new Vector3(0f, 1.46f, 0.04f), new Vector3(0.26f, 0.28f, 0.26f), darkIron);
+                    Cyl(t, "ChimneyRim", new Vector3(0f, 1.74f, 0.04f), new Vector3(0.30f, 0.03f, 0.30f), lockerSteel);
+                    // Arched glowing firebox window facing -Z with logs & flames
+                    Box(t, "DoorFrame", new Vector3(0f, 0.64f, -0.43f), new Vector3(0.76f, 0.60f, 0.05f), lockerSteel);
+                    Box(t, "FireboxBack", new Vector3(0f, 0.62f, -0.45f), new Vector3(0.62f, 0.48f, 0.03f), darkWood);
+                    Box(t, "FireOuter", new Vector3(0f, 0.64f, -0.47f), new Vector3(0.46f, 0.34f, 0.03f), fireGlow);
+                    Box(t, "FireInner", new Vector3(0f, 0.58f, -0.48f), new Vector3(0.28f, 0.22f, 0.03f), fireCore);
+                    Box(t, "Log1", new Vector3(-0.10f, 0.44f, -0.49f), new Vector3(0.26f, 0.08f, 0.06f), warmOak, new Vector3(0f, 0f, 12f));
+                    Box(t, "Log2", new Vector3(0.10f, 0.44f, -0.49f), new Vector3(0.26f, 0.08f, 0.06f), warmOak, new Vector3(0f, 0f, -12f));
+                    Sphere(t, "DoorLatch", new Vector3(0.42f, 0.64f, -0.47f), new Vector3(0.08f, 0.08f, 0.06f), goldYellow);
                     break;
 
+                // 27. Wall Mounted TV — sleek charcoal flat-screen TV with glossy sky-blue glowing screen
                 case FurnitureKind.WallMountedTV:
-                    // Console cabinet + Retro CRT Television with glowing screen & rabbit-ear antennas facing -Z
-                    Box(t, "TVStand", new Vector3(0f, 0.34f, 0f), new Vector3(1.26f, 0.68f, 0.62f), darkWood);
-                    Box(t, "StandShelf", new Vector3(0f, 0.32f, -0.30f), new Vector3(1.12f, 0.04f, 0.04f), midWood);
-                    Box(t, "TVBody", new Vector3(0f, 1.04f, 0.02f), new Vector3(0.96f, 0.72f, 0.58f), darkMetal);
-                    Box(t, "TVBezel", new Vector3(-0.08f, 1.04f, -0.28f), new Vector3(0.72f, 0.58f, 0.04f), steel);
-                    Box(t, "TVScreen", new Vector3(-0.08f, 1.04f, -0.305f), new Vector3(0.64f, 0.50f, 0.02f), crtGlow);
-                    Cyl(t, "Dial1", new Vector3(0.36f, 1.18f, -0.28f), new Vector3(0.08f, 0.04f, 0.08f), brass, new Vector3(90f, 0f, 0f));
-                    Cyl(t, "Dial2", new Vector3(0.36f, 1.04f, -0.28f), new Vector3(0.08f, 0.04f, 0.08f), brass, new Vector3(90f, 0f, 0f));
-                    Cyl(t, "AntL", new Vector3(-0.12f, 1.56f, 0.08f), new Vector3(0.025f, 0.26f, 0.025f), chrome, new Vector3(0f, 0f, 28f));
-                    Cyl(t, "AntR", new Vector3(0.12f, 1.56f, 0.08f), new Vector3(0.025f, 0.26f, 0.025f), chrome, new Vector3(0f, 0f, -28f));
+                    Box(t, "WallMount", new Vector3(0f, 1.24f, 0.14f), new Vector3(0.64f, 0.38f, 0.12f), darkIron);
+                    Box(t, "TvFrame", new Vector3(0f, 1.24f, 0.04f), new Vector3(1.56f, 0.96f, 0.11f), darkIron);
+                    Box(t, "TvInnerBezel", new Vector3(0f, 1.24f, -0.015f), new Vector3(1.44f, 0.84f, 0.03f), lockerSteel);
+                    Box(t, "TvScreen", new Vector3(0f, 1.24f, -0.032f), new Vector3(1.38f, 0.78f, 0.02f), tvBlueGlow);
+                    Box(t, "TvStandNub", new Vector3(0f, 0.72f, 0.04f), new Vector3(0.22f, 0.08f, 0.10f), darkIron);
                     break;
 
+                // 28. Woven Area Rug — vibrant crimson-red rug with golden border, stepped diamond center & chunky golden fringes
                 case FurnitureKind.WovenAreaRug:
-                    Box(t, "RugOuter", new Vector3(0f, 0.018f, 0f), new Vector3(3.10f, 0.025f, 2.15f), fabricRed);
-                    Box(t, "RugBorder", new Vector3(0f, 0.028f, 0f), new Vector3(2.68f, 0.018f, 1.76f), fabricGold);
-                    Box(t, "RugInner", new Vector3(0f, 0.036f, 0f), new Vector3(2.36f, 0.016f, 1.46f), cushion);
-                    Box(t, "RugCenter", new Vector3(0f, 0.044f, 0f), new Vector3(1.42f, 0.014f, 0.86f), fabricBlue);
-                    break;
-
-                case FurnitureKind.PottedIndoorFern:
-                    Cyl(t, "PotBody", new Vector3(0f, 0.24f, 0f), new Vector3(0.50f, 0.24f, 0.50f), terracotta);
-                    Cyl(t, "PotRim", new Vector3(0f, 0.48f, 0f), new Vector3(0.58f, 0.05f, 0.58f), terracotta);
-                    Cyl(t, "Soil", new Vector3(0f, 0.49f, 0f), new Vector3(0.46f, 0.03f, 0.46f), soil);
-                    // Fanning fern fronds at 6 directions
-                    for (int f = 0; f < 6; f++)
+                    Box(t, "RugRedBase", new Vector3(0f, 0.02f, 0f), new Vector3(2.84f, 0.035f, 2.04f), plushRed);
+                    // Golden inner border strips
+                    Box(t, "BorderN", new Vector3(0f, 0.038f, 0.80f), new Vector3(2.44f, 0.015f, 0.12f), goldYellow);
+                    Box(t, "BorderS", new Vector3(0f, 0.038f, -0.80f), new Vector3(2.44f, 0.015f, 0.12f), goldYellow);
+                    Box(t, "BorderW", new Vector3(-1.16f, 0.038f, 0f), new Vector3(0.12f, 0.015f, 1.72f), goldYellow);
+                    Box(t, "BorderE", new Vector3(1.16f, 0.038f, 0f), new Vector3(0.12f, 0.015f, 1.72f), goldYellow);
+                    // Stepped diamond medallion in center
+                    Box(t, "DiamondOuter", new Vector3(0f, 0.042f, 0f), new Vector3(0.86f, 0.015f, 0.86f), goldYellow, new Vector3(0f, 45f, 0f));
+                    Box(t, "DiamondMid", new Vector3(0f, 0.046f, 0f), new Vector3(0.54f, 0.015f, 0.54f), plushRed, new Vector3(0f, 45f, 0f));
+                    Box(t, "DiamondCore", new Vector3(0f, 0.050f, 0f), new Vector3(0.24f, 0.015f, 0.24f), goldYellow, new Vector3(0f, 45f, 0f));
+                    // Chunky golden tassels along left (-X) and right (+X) ends
+                    for (int f = 0; f < 7; f++)
                     {
-                        float ang = f * 60f;
-                        Box(t, $"Frond_{f}", new Vector3(Mathf.Sin(ang * Mathf.Deg2Rad) * 0.22f, 0.78f, Mathf.Cos(ang * Mathf.Deg2Rad) * 0.22f),
-                            new Vector3(0.22f, 0.54f, 0.14f), f % 2 == 0 ? leafBright : leafDark, new Vector3(28f, ang, 0f));
+                        float fz = -0.84f + f * 0.28f;
+                        Box(t, $"FringeL_{f}", new Vector3(-1.54f, 0.02f, fz), new Vector3(0.24f, 0.025f, 0.12f), goldYellow);
+                        Box(t, $"FringeR_{f}", new Vector3(1.54f, 0.02f, fz), new Vector3(0.24f, 0.025f, 0.12f), goldYellow);
                     }
-                    Box(t, "CrownFern", new Vector3(0f, 0.96f, 0f), new Vector3(0.32f, 0.34f, 0.32f), leafBright, new Vector3(0f, 45f, 0f));
                     break;
 
+                // 29. Potted Indoor Fern — terracotta clay pot with wide rim + lush radial arching lime/emerald fronds
+                case FurnitureKind.PottedIndoorFern:
+                    Cyl(t, "PotBase", new Vector3(0f, 0.22f, 0f), new Vector3(0.46f, 0.22f, 0.46f), terracotta);
+                    Cyl(t, "PotRim", new Vector3(0f, 0.46f, 0f), new Vector3(0.56f, 0.06f, 0.56f), terracotta);
+                    Cyl(t, "PotSoil", new Vector3(0f, 0.49f, 0f), new Vector3(0.48f, 0.02f, 0.48f), soil);
+                    // Lush multi-layer radial arching fern fronds
+                    for (int i = 0; i < 10; i++)
+                    {
+                        float ang = i * 36f;
+                        float rad = ang * Mathf.Deg2Rad;
+                        Vector3 posOuter = new Vector3(Mathf.Sin(rad) * 0.34f, 0.66f, Mathf.Cos(rad) * 0.34f);
+                        Box(t, $"FrondOuter_{i}", posOuter, new Vector3(0.16f, 0.05f, 0.52f), (i % 2 == 0) ? leafBright : leafDark, new Vector3(26f, ang, 0f));
+                    }
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float ang = i * 60f + 18f;
+                        float rad = ang * Mathf.Deg2Rad;
+                        Vector3 posInner = new Vector3(Mathf.Sin(rad) * 0.18f, 0.84f, Mathf.Cos(rad) * 0.18f);
+                        Box(t, $"FrondInner_{i}", posInner, new Vector3(0.14f, 0.05f, 0.40f), leafBright, new Vector3(-28f, ang, 0f));
+                    }
+                    break;
+
+                // 30. Trash Bin Barrel — ribbed olive-grey metal barrel with bands, handles & slightly tilted lid
                 case FurnitureKind.TrashBinBarrel:
-                    Cyl(t, "BinBody", new Vector3(0f, 0.36f, 0f), new Vector3(0.54f, 0.36f, 0.54f), steel);
-                    Cyl(t, "BinBand1", new Vector3(0f, 0.24f, 0f), new Vector3(0.57f, 0.03f, 0.57f), darkMetal);
-                    Cyl(t, "BinBand2", new Vector3(0f, 0.52f, 0f), new Vector3(0.57f, 0.03f, 0.57f), darkMetal);
-                    Cyl(t, "BinRim", new Vector3(0f, 0.74f, 0f), new Vector3(0.59f, 0.035f, 0.59f), darkMetal);
-                    Cyl(t, "BinInner", new Vector3(0f, 0.73f, 0f), new Vector3(0.48f, 0.02f, 0.48f), soil);
+                    Cyl(t, "BinBody", new Vector3(0f, 0.38f, 0f), new Vector3(0.56f, 0.38f, 0.56f), oliveMetal);
+                    Cyl(t, "BinBand1", new Vector3(0f, 0.24f, 0f), new Vector3(0.60f, 0.03f, 0.60f), darkIron);
+                    Cyl(t, "BinBand2", new Vector3(0f, 0.54f, 0f), new Vector3(0.60f, 0.03f, 0.60f), darkIron);
+                    Cyl(t, "BinRim", new Vector3(0f, 0.77f, 0f), new Vector3(0.62f, 0.035f, 0.62f), darkIron);
+                    Box(t, "HandleL", new Vector3(-0.31f, 0.56f, 0f), new Vector3(0.08f, 0.06f, 0.16f), darkIron);
+                    Box(t, "HandleR", new Vector3(0.31f, 0.56f, 0f), new Vector3(0.08f, 0.06f, 0.16f), darkIron);
+                    // Slightly tilted corrugated lid + top loop handle
+                    Cyl(t, "BinLid", new Vector3(0.04f, 0.83f, 0f), new Vector3(0.64f, 0.045f, 0.64f), oliveMetal, new Vector3(0f, 0f, -10f));
+                    Box(t, "LidHandle", new Vector3(0.06f, 0.90f, 0f), new Vector3(0.18f, 0.05f, 0.05f), darkIron, new Vector3(0f, 0f, -10f));
                     break;
             }
         }
 
-        private void BuildSquarePlanterVisual(Transform t, Shader shader, Material wood, Material trim, Material metal, Material soil, Material leafDark, Material leafBright)
+        private void BuildSquarePlanterVisual(
+            Transform t,
+            Shader shader,
+            Material honeyWood,
+            Material warmOak,
+            Material soil,
+            Material leafDark,
+            Material leafBright,
+            Material crispWhite,
+            Material goldYellow,
+            System.Func<string, Color, float, Color?, Material> materialResolver)
         {
-            // Corner-bracketed timber raised planter bed (1.26 x 1.26)
-            Box(t, "PlanterBox", new Vector3(0f, 0.24f, 0f), new Vector3(1.24f, 0.46f, 1.24f), wood);
-            Box(t, "RimN", new Vector3(0f, 0.49f, 0.57f), new Vector3(1.32f, 0.08f, 0.12f), trim);
-            Box(t, "RimS", new Vector3(0f, 0.49f, -0.57f), new Vector3(1.32f, 0.08f, 0.12f), trim);
-            Box(t, "RimE", new Vector3(0.57f, 0.49f, 0f), new Vector3(0.12f, 0.08f, 1.10f), trim);
-            Box(t, "RimW", new Vector3(-0.57f, 0.49f, 0f), new Vector3(0.12f, 0.08f, 1.10f), trim);
-            // 4 steel corner posts
-            float c = 0.60f;
-            Box(t, "CornerFL", new Vector3(-c, 0.24f, -c), new Vector3(0.10f, 0.50f, 0.10f), metal);
-            Box(t, "CornerFR", new Vector3(c, 0.24f, -c), new Vector3(0.10f, 0.50f, 0.10f), metal);
-            Box(t, "CornerBL", new Vector3(-c, 0.24f, c), new Vector3(0.10f, 0.50f, 0.10f), metal);
-            Box(t, "CornerBR", new Vector3(c, 0.24f, c), new Vector3(0.10f, 0.50f, 0.10f), metal);
-            Box(t, "SoilBed", new Vector3(0f, 0.46f, 0f), new Vector3(1.06f, 0.06f, 1.06f), soil);
-
-            GameObject foliageRoot = new GameObject("CropFoliageRoot");
-            foliageRoot.transform.SetParent(t, false);
-            foliageRoot.transform.localPosition = new Vector3(0f, 0.50f, 0f);
-
-            Vector3[] offsets =
+            Material ResolveCropMat(string key, Color color, float smoothness, Color? emission = null)
             {
-                new Vector3(-0.27f, 0.16f, -0.27f),
-                new Vector3(0.27f, 0.16f, -0.27f),
-                new Vector3(-0.27f, 0.16f, 0.27f),
-                new Vector3(0.27f, 0.16f, 0.27f)
-            };
-            for (int i = 0; i < offsets.Length; i++)
-            {
-                Box(foliageRoot.transform, $"LeafBase_{i}", offsets[i], new Vector3(0.38f, 0.24f, 0.38f), leafDark, new Vector3(0f, i * 22f, 0f));
-                Box(foliageRoot.transform, $"LeafTop_{i}", offsets[i] + new Vector3(0f, 0.14f, 0f), new Vector3(0.28f, 0.20f, 0.28f), leafBright, new Vector3(0f, 45f + i * 18f, 0f));
+                return materialResolver != null
+                    ? materialResolver(key, color, smoothness, emission)
+                    : MakeMat(shader, color, smoothness, emission);
             }
 
-            Color fruitColor = furnitureKind switch
-            {
-                FurnitureKind.PlanterBoxLime => new Color(0.54f, 0.94f, 0.22f),
-                FurnitureKind.PlanterBoxPotato => new Color(0.84f, 0.65f, 0.36f),
-                FurnitureKind.PlanterBoxTomato => new Color(0.96f, 0.18f, 0.16f),
-                FurnitureKind.PlanterBoxCarrot => new Color(0.98f, 0.50f, 0.10f),
-                _ => new Color(0.96f, 0.16f, 0.36f) // Strawberry
-            };
-            Material fruitMat = MakeMat(shader, fruitColor, 0.38f, fruitColor * 0.28f);
+            // Warm slatted wooden crate matching the 5 planter icons
+            Box(t, "PlanterBox", new Vector3(0f, 0.22f, 0f), new Vector3(1.20f, 0.42f, 1.20f), honeyWood);
+            // Slatted wood seam groove around middle
+            Box(t, "SlatGroove", new Vector3(0f, 0.22f, 0f), new Vector3(1.22f, 0.03f, 1.22f), warmOak);
+            // 4 wooden corner posts + top lip
+            float c = 0.58f;
+            Box(t, "CornerFL", new Vector3(-c, 0.23f, -c), new Vector3(0.12f, 0.46f, 0.12f), warmOak);
+            Box(t, "CornerFR", new Vector3(c, 0.23f, -c), new Vector3(0.12f, 0.46f, 0.12f), warmOak);
+            Box(t, "CornerBL", new Vector3(-c, 0.23f, c), new Vector3(0.12f, 0.46f, 0.12f), warmOak);
+            Box(t, "CornerBR", new Vector3(c, 0.23f, c), new Vector3(0.12f, 0.46f, 0.12f), warmOak);
+            Box(t, "RimN", new Vector3(0f, 0.45f, 0.56f), new Vector3(1.28f, 0.08f, 0.11f), warmOak);
+            Box(t, "RimS", new Vector3(0f, 0.45f, -0.56f), new Vector3(1.28f, 0.08f, 0.11f), warmOak);
+            Box(t, "RimE", new Vector3(0.56f, 0.45f, 0f), new Vector3(0.11f, 0.08f, 1.08f), warmOak);
+            Box(t, "RimW", new Vector3(-0.56f, 0.45f, 0f), new Vector3(0.11f, 0.08f, 1.08f), warmOak);
+            Box(t, "SoilBed", new Vector3(0f, 0.43f, 0f), new Vector3(1.06f, 0.06f, 1.06f), soil);
+
+            // Preserve CropFoliageRoot & CropFruitRoot names for CropPlanterFurniture growth stages!
+            GameObject foliageRoot = new GameObject("CropFoliageRoot");
+            foliageRoot.transform.SetParent(t, false);
+            foliageRoot.transform.localPosition = new Vector3(0f, 0.46f, 0f);
 
             GameObject fruitRoot = new GameObject("CropFruitRoot");
             fruitRoot.transform.SetParent(t, false);
-            fruitRoot.transform.localPosition = new Vector3(0f, 0.50f, 0f);
+            fruitRoot.transform.localPosition = new Vector3(0f, 0.46f, 0f);
 
-            Vector3 fruitScale = furnitureKind switch
+            switch (furnitureKind)
             {
-                FurnitureKind.PlanterBoxLime => new Vector3(0.18f, 0.22f, 0.18f),
-                FurnitureKind.PlanterBoxPotato => new Vector3(0.24f, 0.16f, 0.19f),
-                FurnitureKind.PlanterBoxCarrot => new Vector3(0.14f, 0.26f, 0.14f),
-                FurnitureKind.PlanterBoxStrawberry => new Vector3(0.16f, 0.20f, 0.16f),
-                _ => new Vector3(0.21f, 0.20f, 0.21f)
-            };
+                case FurnitureKind.PlanterBoxLime:
+                {
+                    Material limeMat = ResolveCropMat("Crop_Lime", new Color(0.56f, 0.92f, 0.18f), 0.40f, new Color(0.28f, 0.50f, 0.08f) * 0.30f);
+                    // Lush citrus bush + plump oval green limes
+                    Cyl(foliageRoot.transform, "MainStem", new Vector3(0f, 0.18f, 0f), new Vector3(0.08f, 0.20f, 0.08f), warmOak);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float a = i * 60f * Mathf.Deg2Rad;
+                        Box(foliageRoot.transform, $"Leaf_{i}", new Vector3(Mathf.Sin(a) * 0.28f, 0.34f + (i % 2) * 0.08f, Mathf.Cos(a) * 0.28f), new Vector3(0.26f, 0.07f, 0.36f), (i % 2 == 0) ? leafDark : leafBright, new Vector3(18f, i * 60f, 0f));
+                    }
+                    Sphere(fruitRoot.transform, "Lime_1", new Vector3(-0.22f, 0.28f, -0.18f), new Vector3(0.24f, 0.20f, 0.20f), limeMat);
+                    Sphere(fruitRoot.transform, "Lime_2", new Vector3(0.22f, 0.30f, 0.10f), new Vector3(0.24f, 0.20f, 0.20f), limeMat);
+                    Sphere(fruitRoot.transform, "Lime_3", new Vector3(0.04f, 0.42f, -0.10f), new Vector3(0.22f, 0.18f, 0.18f), limeMat);
+                    Sphere(fruitRoot.transform, "Lime_4", new Vector3(-0.14f, 0.24f, 0.22f), new Vector3(0.22f, 0.19f, 0.19f), limeMat);
+                    break;
+                }
 
-            for (int i = 0; i < offsets.Length; i++)
-            {
-                Vector3 fp = offsets[i] + new Vector3(0f, 0.22f, 0f);
-                Sphere(fruitRoot.transform, $"FruitA_{i}", fp, fruitScale, fruitMat);
-                Sphere(fruitRoot.transform, $"FruitB_{i}", fp + new Vector3(0.10f, -0.05f, -0.08f), fruitScale * 0.78f, fruitMat);
+                case FurnitureKind.PlanterBoxPotato:
+                {
+                    Material potatoMat = ResolveCropMat("Crop_Potato", new Color(0.86f, 0.66f, 0.34f), 0.22f);
+                    // Bushy green stems + cute white blossoms w/ yellow centers + golden potatoes resting on soil
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float a = i * 60f * Mathf.Deg2Rad;
+                        Box(foliageRoot.transform, $"Leaf_{i}", new Vector3(Mathf.Sin(a) * 0.26f, 0.24f, Mathf.Cos(a) * 0.26f), new Vector3(0.28f, 0.10f, 0.30f), (i % 2 == 0) ? leafBright : leafDark, new Vector3(14f, i * 60f, 0f));
+                    }
+                    Sphere(foliageRoot.transform, "Flower1", new Vector3(-0.14f, 0.44f, 0.06f), new Vector3(0.16f, 0.07f, 0.16f), crispWhite);
+                    Sphere(foliageRoot.transform, "Flower1Core", new Vector3(-0.14f, 0.47f, 0.06f), new Vector3(0.07f, 0.06f, 0.07f), goldYellow);
+                    Sphere(foliageRoot.transform, "Flower2", new Vector3(0.16f, 0.46f, -0.04f), new Vector3(0.16f, 0.07f, 0.16f), crispWhite);
+                    Sphere(foliageRoot.transform, "Flower2Core", new Vector3(0.16f, 0.49f, -0.04f), new Vector3(0.07f, 0.06f, 0.07f), goldYellow);
+                    Sphere(fruitRoot.transform, "Potato_1", new Vector3(-0.22f, 0.08f, -0.22f), new Vector3(0.28f, 0.18f, 0.22f), potatoMat);
+                    Sphere(fruitRoot.transform, "Potato_2", new Vector3(0.20f, 0.08f, -0.18f), new Vector3(0.30f, 0.18f, 0.22f), potatoMat);
+                    Sphere(fruitRoot.transform, "Potato_3", new Vector3(0.02f, 0.08f, 0.22f), new Vector3(0.26f, 0.17f, 0.20f), potatoMat);
+                    break;
+                }
+
+                case FurnitureKind.PlanterBoxTomato:
+                {
+                    Material tomatoMat = ResolveCropMat("Crop_Tomato", new Color(0.95f, 0.16f, 0.14f), 0.48f, new Color(0.55f, 0.08f, 0.06f) * 0.25f);
+                    // Lush tomato vine + big glossy bright-red tomatoes
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float a = i * 60f * Mathf.Deg2Rad;
+                        Box(foliageRoot.transform, $"Leaf_{i}", new Vector3(Mathf.Sin(a) * 0.28f, 0.34f + (i % 2) * 0.08f, Mathf.Cos(a) * 0.28f), new Vector3(0.28f, 0.08f, 0.32f), (i % 2 == 0) ? leafDark : leafBright, new Vector3(12f, i * 60f, 0f));
+                    }
+                    Sphere(fruitRoot.transform, "Tomato_1", new Vector3(-0.24f, 0.22f, -0.18f), new Vector3(0.26f, 0.23f, 0.26f), tomatoMat);
+                    Sphere(fruitRoot.transform, "Tomato_2", new Vector3(0.22f, 0.28f, -0.16f), new Vector3(0.26f, 0.23f, 0.26f), tomatoMat);
+                    Sphere(fruitRoot.transform, "Tomato_3", new Vector3(0.04f, 0.40f, 0.06f), new Vector3(0.24f, 0.22f, 0.24f), tomatoMat);
+                    Sphere(fruitRoot.transform, "Tomato_4", new Vector3(-0.14f, 0.22f, 0.22f), new Vector3(0.24f, 0.22f, 0.24f), tomatoMat);
+                    break;
+                }
+
+                case FurnitureKind.PlanterBoxCarrot:
+                {
+                    Material carrotMat = ResolveCropMat("Crop_Carrot", new Color(0.98f, 0.48f, 0.08f), 0.32f, new Color(0.55f, 0.24f, 0.04f) * 0.20f);
+                    // 3 plump bright-orange carrots sticking out of soil + tall feathery green leafy tops
+                    Vector3[] cPos = { new Vector3(-0.26f, 0f, -0.14f), new Vector3(0.04f, 0f, 0.16f), new Vector3(0.26f, 0f, -0.14f) };
+                    for (int i = 0; i < cPos.Length; i++)
+                    {
+                        Vector3 p = cPos[i];
+                        Cyl(fruitRoot.transform, $"CarrotBody_{i}", p + new Vector3(0f, 0.12f, 0f), new Vector3(0.20f, 0.13f, 0.20f), carrotMat);
+                        Sphere(fruitRoot.transform, $"CarrotTop_{i}", p + new Vector3(0f, 0.22f, 0f), new Vector3(0.21f, 0.12f, 0.21f), carrotMat);
+                        // Feathery green carrot tops
+                        Box(foliageRoot.transform, $"CarrotLeafA_{i}", p + new Vector3(-0.04f, 0.42f, 0f), new Vector3(0.10f, 0.34f, 0.10f), leafBright, new Vector3(0f, 20f, 16f));
+                        Box(foliageRoot.transform, $"CarrotLeafB_{i}", p + new Vector3(0.05f, 0.44f, 0.02f), new Vector3(0.10f, 0.36f, 0.10f), leafDark, new Vector3(12f, -15f, -18f));
+                    }
+                    break;
+                }
+
+                default: // PlanterBoxStrawberry
+                {
+                    Material berryMat = ResolveCropMat("Crop_Strawberry", new Color(0.96f, 0.14f, 0.26f), 0.42f, new Color(0.55f, 0.06f, 0.14f) * 0.25f);
+                    // Dark green strawberry leaves + white/yellow flowers + plump red strawberries
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float a = i * 60f * Mathf.Deg2Rad;
+                        Box(foliageRoot.transform, $"Leaf_{i}", new Vector3(Mathf.Sin(a) * 0.28f, 0.26f, Mathf.Cos(a) * 0.28f), new Vector3(0.28f, 0.08f, 0.32f), (i % 2 == 0) ? leafDark : leafBright, new Vector3(16f, i * 60f, 0f));
+                    }
+                    Sphere(foliageRoot.transform, "Flower1", new Vector3(-0.08f, 0.40f, 0.04f), new Vector3(0.16f, 0.07f, 0.16f), crispWhite);
+                    Sphere(foliageRoot.transform, "Flower1Core", new Vector3(-0.08f, 0.43f, 0.04f), new Vector3(0.07f, 0.06f, 0.07f), goldYellow);
+                    Sphere(foliageRoot.transform, "Flower2", new Vector3(0.14f, 0.38f, 0.10f), new Vector3(0.15f, 0.07f, 0.15f), crispWhite);
+                    Sphere(foliageRoot.transform, "Flower2Core", new Vector3(0.14f, 0.41f, 0.10f), new Vector3(0.06f, 0.06f, 0.06f), goldYellow);
+                    Sphere(fruitRoot.transform, "Berry_1", new Vector3(-0.24f, 0.18f, -0.22f), new Vector3(0.20f, 0.25f, 0.20f), berryMat);
+                    Sphere(fruitRoot.transform, "Berry_2", new Vector3(0.22f, 0.18f, -0.20f), new Vector3(0.20f, 0.25f, 0.20f), berryMat);
+                    Sphere(fruitRoot.transform, "Berry_3", new Vector3(0.02f, 0.22f, -0.28f), new Vector3(0.18f, 0.22f, 0.18f), berryMat);
+                    Sphere(fruitRoot.transform, "Berry_4", new Vector3(-0.12f, 0.18f, 0.24f), new Vector3(0.19f, 0.23f, 0.19f), berryMat);
+                    break;
+                }
             }
         }
 
@@ -532,6 +798,13 @@ namespace TheLastEmpire
             Box(p, "LegBR", new Vector3(hx, h * 0.5f, -hz), new Vector3(thick, h, thick), mat);
         }
 
+        private static void SafeDestroyCollider(Collider c)
+        {
+            if (c == null) return;
+            if (Application.isPlaying) Destroy(c);
+            else DestroyImmediate(c);
+        }
+
         private static void Box(Transform p, string name, Vector3 pos, Vector3 scale, Material mat, Vector3? euler = null)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -540,8 +813,7 @@ namespace TheLastEmpire
             go.transform.localPosition = pos;
             if (euler.HasValue) go.transform.localRotation = Quaternion.Euler(euler.Value);
             go.transform.localScale = scale;
-            Collider c = go.GetComponent<Collider>();
-            if (c != null) Destroy(c);
+            SafeDestroyCollider(go.GetComponent<Collider>());
             Renderer r = go.GetComponent<Renderer>();
             if (r != null && mat != null) r.sharedMaterial = mat;
         }
@@ -554,8 +826,7 @@ namespace TheLastEmpire
             go.transform.localPosition = pos;
             if (euler.HasValue) go.transform.localRotation = Quaternion.Euler(euler.Value);
             go.transform.localScale = scale;
-            Collider c = go.GetComponent<Collider>();
-            if (c != null) Destroy(c);
+            SafeDestroyCollider(go.GetComponent<Collider>());
             Renderer r = go.GetComponent<Renderer>();
             if (r != null && mat != null) r.sharedMaterial = mat;
         }
@@ -567,8 +838,7 @@ namespace TheLastEmpire
             go.transform.SetParent(p, false);
             go.transform.localPosition = pos;
             go.transform.localScale = scale;
-            Collider c = go.GetComponent<Collider>();
-            if (c != null) Destroy(c);
+            SafeDestroyCollider(go.GetComponent<Collider>());
             Renderer r = go.GetComponent<Renderer>();
             if (r != null && mat != null) r.sharedMaterial = mat;
         }

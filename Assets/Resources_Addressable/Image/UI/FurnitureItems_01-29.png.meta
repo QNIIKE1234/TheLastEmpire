@@ -1,0 +1,797 @@
+﻿fileFormatVersion: 2
+guid: 6ad4c1c130e30b444a9e86aff5de6f3b
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BUILD0024_WoodenWardrobe
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 901
+        width: 163
+        height: 175
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32d78241fa2e7a740af88fa3f6ad1087
+      internalID: 500387367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0025_MetalLockerCabinet
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 901
+        width: 169
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04979f6af0d5da4479187ef94e0bfa87
+      internalID: -348401184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0026_CarpentryCraftTable
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 901
+        width: 182
+        height: 168
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5c671bdab7cdb247a64d8c7081f0198
+      internalID: 1955660544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0027_ElectronicsCraftDesk
+      rect:
+        serializedVersion: 2
+        x: 708
+        y: 903
+        width: 176
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c14a560bddd12ea4588bdbf5ab1c5285
+      internalID: 71197986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0028_WoodenDiningChair
+      rect:
+        serializedVersion: 2
+        x: 930
+        y: 903
+        width: 173
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ddfe46100b979c84b9b36b33bca88f29
+      internalID: -211525027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0029_ComfyArmchair
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 895
+        width: 183
+        height: 181
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e7f537690c4a75468c370038733896b
+      internalID: 49027044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0030_WoodenSingleBed
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 683
+        width: 170
+        height: 173
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ef89ca95cf627a45b409921bc057193
+      internalID: -678946584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0031_AnalogRadio
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 683
+        width: 183
+        height: 165
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c77eaddda2d6c342a7cc3270073d50e
+      internalID: 2060865490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0032_DeskLamp
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 687
+        width: 157
+        height: 163
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0ab537845656e774c91119d5dac53b69
+      internalID: 100047828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0033_CookingPotStove
+      rect:
+        serializedVersion: 2
+        x: 710
+        y: 684
+        width: 170
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1ebda74e251e5b439e96ba5764926e4
+      internalID: 1292823295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0034_PlanterBox_Lime
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 684
+        width: 175
+        height: 180
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 94fc5c2a503ad29409b8f43a2d778375
+      internalID: -458426702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0035_PlanterBox_Potato
+      rect:
+        serializedVersion: 2
+        x: 1157
+        y: 685
+        width: 165
+        height: 179
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 53ca9317a30ea8a4ba6df612dc082efc
+      internalID: 145767321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0036_PlanterBox_Tomato
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 478
+        width: 165
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 071b57dba4be6b94d9a0e4f5121caa72
+      internalID: 1329634242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0037_PlanterBox_Carrot
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 475
+        width: 172
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1869dd0ce18fd8b4e9064aecc5b13207
+      internalID: 1335249673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0038_PlanterBox_Strawberry
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 477
+        width: 182
+        height: 172
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f214dfe5097113e47a8392c1b09b8502
+      internalID: -515481285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0039_VintageRefrigerator
+      rect:
+        serializedVersion: 2
+        x: 702
+        y: 470
+        width: 174
+        height: 173
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 124d9d2b6061044479b0a44a145ed206
+      internalID: -1522937959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0040_MedicalWallCabinet
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 478
+        width: 186
+        height: 166
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c1e3aec6b0954134abe0127212d57b4b
+      internalID: -327636052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0041_LeatherSofa
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 475
+        width: 186
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 321514ee10dd8b74bbe0c8245d6172fb
+      internalID: 73898212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0042_StandingFloorLamp
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 264
+        width: 161
+        height: 166
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54d105a391de1014e9170e0cabf901c1
+      internalID: -1652690988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0043_TallBookshelf
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 271
+        width: 182
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ee17be3822151847a516bf188580369
+      internalID: 1704984994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0044_WoodenDiningTable
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 274
+        width: 179
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5a24e100b724f9f4eacc96a00559455a
+      internalID: 992991260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0045_LowCoffeeTable
+      rect:
+        serializedVersion: 2
+        x: 709
+        y: 268
+        width: 177
+        height: 145
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 000ef63ce823850479d835127b4022b7
+      internalID: 1582533658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0046_KitchenCounterSink
+      rect:
+        serializedVersion: 2
+        x: 917
+        y: 259
+        width: 196
+        height: 163
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9eea49c7a20601c4b84a0b0f4d189264
+      internalID: 420270284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0047_FirstAidStation
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 254
+        width: 179
+        height: 172
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e3af0dc1ff46a541ac5e7ebdbb124bb
+      internalID: -1464855363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0048_WeaponDisplayRack
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 51
+        width: 188
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cba5bcac9092c2a40aac7df3e2413859
+      internalID: 315758787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0049_WoodBurningStove
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 56
+        width: 173
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa92a94640532e44daeb73bd2648890d
+      internalID: -2137181691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0050_WallMountedTV
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 57
+        width: 178
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed150b7a6e91c9a4d8250fc6804ddce1
+      internalID: -865620415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0051_WovenAreaRug
+      rect:
+        serializedVersion: 2
+        x: 708
+        y: 58
+        width: 180
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc88d44896f3aa345a5e409fed75229f
+      internalID: 465895002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BUILD0052_PottedIndoorFern
+      rect:
+        serializedVersion: 2
+        x: 933
+        y: 52
+        width: 177
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9658d6bb1e0d264ead92acd9ecb74e6
+      internalID: 725590024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: a8366f818f695a244b981ad74f9d10c6
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      BUILD0024_WoodenWardrobe: 500387367
+      BUILD0025_MetalLockerCabinet: -348401184
+      BUILD0034_PlanterBox_Lime: -458426702
+      BUILD0035_PlanterBox_Potato: 145767321
+      BUILD0036_PlanterBox_Tomato: 1329634242
+      BUILD0037_PlanterBox_Carrot: 1335249673
+      BUILD0038_PlanterBox_Strawberry: -515481285
+      BUILD0039_VintageRefrigerator: -1522937959
+      BUILD0040_MedicalWallCabinet: -327636052
+      BUILD0041_LeatherSofa: 73898212
+      BUILD0042_StandingFloorLamp: -1652690988
+      BUILD0043_TallBookshelf: 1704984994
+      BUILD0026_CarpentryCraftTable: 1955660544
+      BUILD0044_WoodenDiningTable: 992991260
+      BUILD0045_LowCoffeeTable: 1582533658
+      BUILD0046_KitchenCounterSink: 420270284
+      BUILD0047_FirstAidStation: -1464855363
+      BUILD0048_WeaponDisplayRack: 315758787
+      BUILD0049_WoodBurningStove: -2137181691
+      BUILD0050_WallMountedTV: -865620415
+      BUILD0051_WovenAreaRug: 465895002
+      BUILD0052_PottedIndoorFern: 725590024
+      BUILD0027_ElectronicsCraftDesk: 71197986
+      BUILD0028_WoodenDiningChair: -211525027
+      BUILD0029_ComfyArmchair: 49027044
+      BUILD0030_WoodenSingleBed: -678946584
+      BUILD0031_AnalogRadio: 2060865490
+      BUILD0032_DeskLamp: 100047828
+      BUILD0033_CookingPotStove: 1292823295
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

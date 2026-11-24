@@ -135,6 +135,9 @@ namespace TheLastEmpire
 
             CacheAnimator();
 
+            // Apply crisp cartoon ink silhouette outline to NPC characters
+            CharacterToonOutline.AttachOrRefresh(gameObject);
+
             // เริ่มต้นให้นั่งถ้าเปิดใช้งาน canSit
             if (canSit)
             {

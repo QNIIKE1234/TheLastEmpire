@@ -675,6 +675,9 @@ namespace TheLastEmpire
         {
             if (activeModel == null) return;
 
+            // Apply crisp cartoon ink silhouette outline to the active player character model
+            CharacterToonOutline.AttachOrRefresh(activeModel);
+
             Animator modelAnim = activeModel.GetComponentInChildren<Animator>(true);
             if (modelAnim != null)
             {

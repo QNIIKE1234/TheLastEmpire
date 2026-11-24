@@ -59,9 +59,22 @@ namespace TheLastEmpire
             Transform vis = transform.Find("VisualRoot");
             if (vis != null)
             {
-                _foliageRoot = vis.Find("CropFoliageRoot");
-                _fruitRoot = vis.Find("CropFruitRoot");
+                _foliageRoot = FindChildRecursive(vis, "CropFoliageRoot");
+                _fruitRoot = FindChildRecursive(vis, "CropFruitRoot");
             }
+        }
+
+        private static Transform FindChildRecursive(Transform root, string targetName)
+        {
+            if (root == null) return null;
+            Transform direct = root.Find(targetName);
+            if (direct != null) return direct;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindChildRecursive(root.GetChild(i), targetName);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private void Update()

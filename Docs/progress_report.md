@@ -1,7 +1,34 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
-**วันที่บันทึกล่าสุด**: 24 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: แก้บั๊กตัวลอยตอนนั่งเก้าอี้/ขึ้นบันได, เพิ่มสูตรคราฟต์เฟอร์นิเจอร์ใหม่ 30 ชิ้นลงแท็บ Utility, อัปเกรดโมเดลบันได/หน้าต่าง 3 บาน/เฟอร์นิเจอร์ 30 ชิ้น, ลบประตูปลอมบนน้ำพุ/พร็อพ และเปิดให้ใช้เฉพาะ DoorWarpTrigger ที่จัดตำแหน่งจริงบน Prefab ตึก/บ้าน)  
+**วันที่บันทึกล่าสุด**: 25 พฤศจิกายน 2026  
+**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: ลงทะเบียน Addressables ครบ 689 entries, ปั้นโมเดล Low-Poly FBX เฟอร์นิเจอร์ 30 ชิ้นธีม Survivor Craft จาก Blender พร้อม Bake 3D Thumbnails ลง Prefab, ตั้งชื่อและผูกไอคอน FurnitureItems_01-29 & BUILDING1TO22 ครบชุด, สร้าง 12 แอนิเมชัน Chibi Sleep/Talk/10 ท่าโพสเท่ๆ แตกเป็น .anim + Animator, และเพิ่มระบบ URP Smooth-Normal Toon Character Outline ให้ Player & NPC)  
+
+---
+
+## 32. ลงทะเบียน Addressables ครบชุด + โมเดล Low-Poly FBX เฟอร์นิเจอร์ 30 ชิ้น (ธีม Survivor Craft) + ผูกไอคอน 52 ชิ้น + 12 แอนิเมชัน Chibi (Sleep/Talk/10 Poses) + ระบบ Toon Ink Character Outline
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - Low-Poly 30 Furniture FBX & Auto-Bake Thumbnails:
+    - [`Tools/Create_LowPoly_Furniture_30.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_LowPoly_Furniture_30.py) → `Assets/GeneratedModels/Furniture/BUILD0024..0053.fbx` (30 โมเดล)
+    - [`FurniturePrefabBakeTool.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/FurniturePrefabBakeTool.cs), [`FurnitureVisualBuilder.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/Furniture/FurnitureVisualBuilder.cs), [`CropPlanterFurniture.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/Furniture/CropPlanterFurniture.cs)
+    - อัปเดต 30 Prefabs ใน `Assets/Resources_Addressable/Prefabs/Furniture/` ให้แสดง Low-Poly FBX 3D จริงพร้อม Thumbnail
+  - ไอคอนเฟอร์นิเจอร์ & สิ่งปลูกสร้าง + Addressables:
+    - [`FurnitureItems_01-29.png`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Image/UI/FurnitureItems_01-29.png), [`BUILDING1TO22.png`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Image/UI/BUILDING1TO22.png), [`Images_Group.asset`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/AddressableAssetsData/AssetGroups/Images_Group.asset)
+    - [`CraftingDatabase.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CraftingDatabase.cs) & `BUILD0001`–`BUILD0052.asset`
+  - แอนิเมชัน Chibi 12 ท่าใหม่ (Sleep / Talk / 10 Cool Character Poses):
+    - [`Tools/Create_Chibi_Sleep_Talk_Poses.py`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Tools/Create_Chibi_Sleep_Talk_Poses.py) → `Assets/GeneratedModels/Chibi_Sleep_Talk_Poses.fbx`
+    - [`ChibiExtraAnimationSetupTool.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/ChibiExtraAnimationSetupTool.cs) → แตก 12 `.anim` (`Chibi_Base_Rig_Sleep`, `Talk`, `Pose_01..10`) ลง `Assets/Resources_Addressable/Image/Animation/` + เพิ่ม State ใน [`Chibi_Player_Controller.controller`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Resources_Addressable/Image/Animation/Chibi_Player_Controller.controller)
+  - ระบบเส้นตัดขอบการ์ตูนตัวละคร (URP Toon Ink Outline):
+    - [`CharacterToonOutline.shader`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Shaders/CharacterToonOutline.shader), [`CharacterToonOutline.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Rendering/CharacterToonOutline.cs), [`CharacterOutlineSetupTool.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Editor/CharacterOutlineSetupTool.cs)
+    - ผูกอัตโนมัติใน [`PlayerController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Player/PlayerController.cs) & [`NPCController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Combat/NPCController.cs)
+- **รายละเอียดการพัฒนา**:
+  1. **ปั้นโมเดล Low-Poly FBX เฟอร์นิเจอร์ 30 ชิ้นจาก Blender 5.3.0 (ธีม Survivor Craft)**:
+     - ปั้นด้วย `bmesh` แบบ Flat-Shaded + Bevel + มุมเหล็กดาม/เหล็กตีดำ + พาเลตสีไม้ซีดาร์หม่นเข้าชุดกับ `01_Wooden_Floor`–`23_Wooden_Lantern_Post` พร้อมแยกชิ้น `CropFoliageRoot`/`CropFruitRoot` ใน FBX กระถางทั้ง 5 ชนิด และอัปเดต `FurniturePrefabBakeTool` (`[InitializeOnLoad]`) ให้ใส่ FBX ลง Prefab ทั้ง 30 ชิ้นอัตโนมัติ
+  2. **ตั้งชื่อ Sprite ย่อย & ผูกไอคอนครบทั้ง 52 `BuildingData` + Crafting UI**:
+     - ตั้งชื่อย่อย 29 Sprite ใน `FurnitureItems_01-29.png.meta` (`BUILD0024`–`BUILD0052`), ผูกไอคอนลง `BUILD0001`–`BUILD0023` จาก `BUILDING1TO22.png` และ `BUILD0024`–`BUILD0052` จาก `FurnitureItems_01-29.png`, ลงทะเบียนใน `Images_Group.asset`, และแก้ `CraftingDatabase.cs` ให้แท็บ `Utility` ดึงไอคอนจริงจาก `BuildingData.icon` อัตโนมัติ
+  3. **สร้าง 12 แอนิเมชัน Chibi ใหม่บนกระดูกกลาง `Chibi_Base_Rig`**:
+     - ท่านอน (`Sleep`), ท่ายืนคุย (`Talk`), และท่าโพสเท่ๆ ประจำตัวละคร 10 ท่า (`Pose_01_AssassinKnife` – `Pose_10_BlueOperative`) แตกเป็น `.anim` แบบ Loop และผูก State ลง `Chibi_Player_Controller.controller` อัตโนมัติ
+  4. **ระบบเส้นตัดขอบการ์ตูน URP (`CharacterToonOutline`)**:
+     - ใช้ Smooth Averaged Normals เขียนตรงเข้า `NORMAL` ของเชลล์แยกต่างหาก ทำให้ `SkinnedMeshRenderer` ขยับตามกระดูกทุกท่าโดยไม่มีเส้นแตก + ชดเชยความหนาตามระยะกล้องให้คมชัดทั้งซูมใกล้และ Top-Down (`COMPILE_EXIT:0 ERR_COUNT:0`)
 
 ---
 
