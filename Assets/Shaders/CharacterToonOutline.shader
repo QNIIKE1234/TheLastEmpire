@@ -3,11 +3,11 @@ Shader "TheLastEmpire/CharacterToonOutline"
     Properties
     {
         _OutlineColor ("Outline Color", Color) = (0.04, 0.03, 0.05, 1.0)
-        _OutlineWidth ("Outline Width (World)", Range(0.001, 0.08)) = 0.016
-        _ScreenSpaceScale ("Screen Space Compensation", Range(0.0, 0.015)) = 0.0028
-        _MinWorldWidth ("Min World Width", Range(0.001, 0.05)) = 0.009
-        _MaxWorldWidth ("Max World Width", Range(0.005, 0.12)) = 0.045
-        _ZBias ("Depth Bias", Range(0.0, 0.01)) = 0.0008
+        _OutlineWidth ("Outline Width (World)", Range(0.001, 0.06)) = 0.010
+        _ScreenSpaceScale ("Screen Space Compensation", Range(0.0, 0.012)) = 0.0016
+        _MinWorldWidth ("Min World Width", Range(0.001, 0.04)) = 0.006
+        _MaxWorldWidth ("Max World Width", Range(0.005, 0.08)) = 0.026
+        _ZBias ("Depth Bias", Range(0.0, 0.01)) = 0.0006
     }
 
     SubShader

@@ -15,7 +15,7 @@ namespace TheLastEmpire.EditorTools
         private const string ShaderName  = "TheLastEmpire/CharacterToonOutline";
         private const string MatDir      = "Assets/Resources/Materials";
         private const string MatPath     = "Assets/Resources/Materials/CharacterToonOutline.mat";
-        private const string AutoMatKey  = "TLE_ToonOutlineMat_Ensured_v1";
+        private const string AutoMatKey  = "TLE_ToonOutlineMat_Ensured_v2";
 
         static CharacterOutlineSetupTool()
         {
@@ -40,16 +40,17 @@ namespace TheLastEmpire.EditorTools
             {
                 mat = new Material(shader);
                 mat.name = "CharacterToonOutline";
-                mat.SetColor("_OutlineColor", new Color(0.04f, 0.03f, 0.05f, 1f));
-                mat.SetFloat("_OutlineWidth", 0.015f);
-                mat.SetFloat("_ScreenSpaceScale", 0.0026f);
-                mat.SetFloat("_MinWorldWidth", 0.009f);
-                mat.SetFloat("_MaxWorldWidth", 0.042f);
-                mat.SetFloat("_ZBias", 0.0008f);
                 AssetDatabase.CreateAsset(mat, MatPath);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
             }
+            mat.SetColor("_OutlineColor", new Color(0.04f, 0.03f, 0.05f, 1f));
+            mat.SetFloat("_OutlineWidth", 0.010f);
+            mat.SetFloat("_ScreenSpaceScale", 0.0016f);
+            mat.SetFloat("_MinWorldWidth", 0.006f);
+            mat.SetFloat("_MaxWorldWidth", 0.026f);
+            mat.SetFloat("_ZBias", 0.0006f);
+            EditorUtility.SetDirty(mat);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             SessionState.SetBool(AutoMatKey, true);
         }

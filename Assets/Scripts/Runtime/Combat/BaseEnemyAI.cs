@@ -328,6 +328,9 @@ namespace TheLastEmpire
             health.onDeath.AddListener(HandleDeath);
             health.onDamageTaken.AddListener(OnDamageTaken);
 
+            // Apply crisp cartoon ink silhouette outline to all Enemies (Zombies, Aliens, Robots, Bosses)
+            CharacterToonOutline.AttachOrRefresh(gameObject);
+
             if (nameText != null)
             {
                 nameText.text = enemyName;

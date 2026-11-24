@@ -12,7 +12,7 @@ namespace TheLastEmpire.EditorTools
         private const string FurnitureFolder = "Assets/Resources_Addressable/Prefabs/Furniture";
         private const string FbxFolder       = "Assets/GeneratedModels/Furniture";
         private const string MaterialFolder  = "Assets/Resources_Addressable/Prefabs/Furniture/Materials";
-        private const string AutoAppliedKey  = "TLE_FurnitureLowPolyFBX_Applied_v2";
+        private const string AutoAppliedKey  = "TLE_FurnitureLowPolyFBX_Applied_v3";
 
         static FurniturePrefabBakeTool()
         {
@@ -143,8 +143,9 @@ namespace TheLastEmpire.EditorTools
                         GameObject visInstance = (GameObject)PrefabUtility.InstantiatePrefab(fbxAsset, root.transform);
                         visInstance.name = "VisualRoot";
                         visInstance.transform.localPosition = Vector3.zero;
-                        visInstance.transform.localRotation = Quaternion.identity;
-                        visInstance.transform.localScale = Vector3.one;
+                        // Preserve FBX native upright rotation & scale (Blender Z-up -> Unity Y-up -90° X!)
+                        visInstance.transform.localRotation = fbxAsset.transform.localRotation;
+                        visInstance.transform.localScale = fbxAsset.transform.localScale;
 
                         Collider[] childCols = visInstance.GetComponentsInChildren<Collider>(true);
                         for (int c = 0; c < childCols.Length; c++)

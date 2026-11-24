@@ -17,15 +17,15 @@ namespace TheLastEmpire
 
         [Header("Ink Outline Style")]
         [SerializeField] private Color outlineColor = new Color(0.04f, 0.03f, 0.05f, 1f);
-        [SerializeField, Range(0.002f, 0.06f)] private float outlineWidth = 0.015f;
-        [SerializeField, Range(0.0f, 0.012f)] private float screenSpaceScale = 0.0026f;
-        [SerializeField, Range(0.002f, 0.04f)] private float minWorldWidth = 0.009f;
-        [SerializeField, Range(0.01f, 0.10f)] private float maxWorldWidth = 0.042f;
-        [SerializeField, Range(0.0f, 0.006f)] private float depthBias = 0.0008f;
+        [SerializeField, Range(0.002f, 0.06f)] private float outlineWidth = 0.010f;
+        [SerializeField, Range(0.0f, 0.012f)] private float screenSpaceScale = 0.0016f;
+        [SerializeField, Range(0.002f, 0.04f)] private float minWorldWidth = 0.006f;
+        [SerializeField, Range(0.01f, 0.08f)] private float maxWorldWidth = 0.026f;
+        [SerializeField, Range(0.0f, 0.006f)] private float depthBias = 0.0006f;
 
         [Header("Scope")]
-        [Tooltip("Also outline static MeshRenderers attached to character (accessories/hats). Automatically skips VFX/UI/weapons.")]
-        [SerializeField] private bool includeStaticAccessories = true;
+        [Tooltip("Only outline static MeshRenderers if enabled (off by default to prevent outlining hidden collider capsules/aura meshes).")]
+        [SerializeField] private bool includeStaticAccessories = false;
 
         private const string ShellPrefix = "_ToonOutlineShell_";
 
@@ -39,7 +39,7 @@ namespace TheLastEmpire
         /// <summary>
         /// Convenience helper to attach or refresh the cartoon outline on any spawned/swapped character model.
         /// </summary>
-        public static CharacterToonOutline AttachOrRefresh(GameObject targetRoot, float width = 0.015f)
+        public static CharacterToonOutline AttachOrRefresh(GameObject targetRoot, float width = 0.010f)
         {
             if (targetRoot == null || !GlobalEnabled) return null;
             CharacterToonOutline comp = targetRoot.GetComponent<CharacterToonOutline>();
@@ -188,14 +188,50 @@ namespace TheLastEmpire
         private bool ShouldSkipRenderer(Renderer r)
         {
             if (r == null) return true;
+            // CRITICAL: Never outline disabled or inactive renderers (e.g. hidden placeholder capsules/spheres on Player/NPC roots!)
+            if (!r.enabled || !r.gameObject.activeInHierarchy) return true;
             // Never outline particles, trails, canvases, shadow quads, or weapon FX
             if (r is ParticleSystemRenderer || r is TrailRenderer || r is LineRenderer) return true;
+
+            // Skip transparent / overlay / particle materials
+            Material[] mats = r.sharedMaterials;
+            if (mats == null || mats.Length == 0) return true;
+            bool hasOpaqueMat = false;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                Material m = mats[i];
+                if (m == null) continue;
+                if (m.renderQueue < 2900)
+                {
+                    hasOpaqueMat = true;
+                    break;
+                }
+            }
+            if (!hasOpaqueMat) return true;
+
+            // Skip Unity primitive placeholder meshes (Capsule/Sphere/Cube/Quad/Plane) on character roots
+            Mesh msh = null;
+            if (r is SkinnedMeshRenderer smr) msh = smr.sharedMesh;
+            else if (r is MeshRenderer)
+            {
+                MeshFilter mf = r.GetComponent<MeshFilter>();
+                if (mf != null) msh = mf.sharedMesh;
+            }
+            if (msh != null)
+            {
+                string mn = msh.name;
+                if (mn == "Capsule" || mn == "Sphere" || mn == "Cube" || mn == "Cylinder" || mn == "Quad" || mn == "Plane")
+                {
+                    return true;
+                }
+            }
 
             string n = r.gameObject.name.ToLowerInvariant();
             if (n.Contains("shadow") || n.Contains("vfx") || n.Contains("effect") || n.Contains("muzzle") ||
                 n.Contains("flash") || n.Contains("trail") || n.Contains("flame") || n.Contains("glow") ||
                 n.Contains("ring") || n.Contains("marker") || n.Contains("indicator") || n.Contains("beam") ||
-                n.Contains("canvas") || n.Contains("text"))
+                n.Contains("canvas") || n.Contains("text") || n.Contains("collider") || n.Contains("trigger") ||
+                n.Contains("range") || n.Contains("aura") || n.Contains("capsule"))
             {
                 return true;
             }
