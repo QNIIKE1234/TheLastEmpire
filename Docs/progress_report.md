@@ -1,7 +1,33 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire)
 
 **วันที่บันทึกล่าสุด**: 24 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: ระบบเข้าตึก/เข้าบ้านหลายชั้น 2–4 ชั้นจาก JSON 10 แพทเทิร์น, 1.5u DoorWarpTrigger บน 23 Prefab, กำแพงหน้าต่าง 3 บานซิงค์แสงกลางวัน-กลางคืน, ช่องประตู 3 ทิศ + บันไดวาร์ประหว่างชั้น, เฟอร์นิเจอร์ใหม่ 30 ชิ้น + พืชกินได้ 5 ชนิด, ระบบบันทึกบ้านที่เคลียร์/ลูทแล้วลง JSON ถาวร, ล็อกขอบโลกสีดำสนิท และ Co-op แยกชั้นอัตโนมัติ)  
+**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: แก้บั๊กตัวลอยตอนนั่งเก้าอี้/ขึ้นบันได, เพิ่มสูตรคราฟต์เฟอร์นิเจอร์ใหม่ 30 ชิ้นลงแท็บ Utility, อัปเกรดโมเดลบันได/หน้าต่าง 3 บาน/เฟอร์นิเจอร์ 30 ชิ้น, ลบประตูปลอมบนน้ำพุ/พร็อพ และเปิดให้ใช้เฉพาะ DoorWarpTrigger ที่จัดตำแหน่งจริงบน Prefab ตึก/บ้าน)  
+
+---
+
+## 31. แก้บั๊กฟิสิกส์นั่งเก้าอี้ & บันไดลอย + เพิ่มสูตรคราฟต์เฟอร์นิเจอร์ 30 ชิ้นลงแท็บ Utility + อัปเกรดโมเดลบันได/หน้าต่าง/เฟอร์นิเจอร์ + ปรับระบบ DoorWarpTrigger เฉพาะ Prefab จริง
+- **สคริปต์ & แอสเซ็ตที่เกี่ยวข้อง**:
+  - ฟิสิกส์นั่งเก้าอี้, วาร์ปบันได, และโมเดล 3D:
+    - [`FurnitureChairInteractable.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/Furniture/FurnitureChairInteractable.cs), [`FurnitureVisualBuilder.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Building/Furniture/FurnitureVisualBuilder.cs)
+    - [`BuildingInteriorManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/BuildingInteriorManager.cs), [`BuildingStairsPortal.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/BuildingStairsPortal.cs), [`InteriorWindowDayNightController.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/InteriorWindowDayNightController.cs)
+  - สูตรคราฟต์เฟอร์นิเจอร์ 30 ชิ้น & ไอคอน:
+    - [`CraftingDatabase.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Data/CraftingDatabase.cs), 30 ไฟล์ `BUILD0024`–`BUILD0053.asset` ใน `Assets/Resources_Addressable/Database/Buildings/`
+  - ระบบประตูเข้าบ้านเฉพาะ `BuildingDoorWarpTrigger` & ปรับตำแหน่ง Prefab:
+    - [`BuildingDoorWarpTrigger.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Map/BuildingDoorWarpTrigger.cs), [`EnvironmentManager.cs`](file:///d:/Unity%20Game%20Project/Eruption/TheLastEmpire/TheLastEmpire/Assets/Scripts/Runtime/Managers/EnvironmentManager.cs)
+    - ปรับตำแหน่ง/จัดระเบียบ `DoorWarpTrigger` บน Prefab บ้านและตึก 20 หลังใน `Assets/Resources_Addressable/Prefabs/Environment/Building/`
+- **รายละเอียดการพัฒนา**:
+  1. **แก้บั๊กตัวละครดีดลอยขึ้นฟ้าตอนนั่งเก้าอี้ & ขึ้น-ลงบันได**:
+     - `FurnitureChairInteractable`: ปิดชนชั่วคราวด้วย `Physics.IgnoreCollision` ระหว่างผู้เล่นกับเก้าอี้ขณะนั่ง วางตัวแนบพื้น (`y ~ 0.05`) รีเซ็ตความเร็ว `Rigidbody` หันหน้าออกทาง `-transform.forward` และขยับตัวออกด้านหน้าตอนลุกก่อนคืนการชน
+     - `BuildingInteriorManager`: เพิ่ม `ResolveClearGroundSpawn` เช็กจุดลงพื้นโล่ง วางผู้เล่นแนบพื้น (`y = 0.05`) อัปเดต `rb.position` ตรงๆ และเว้นระยะกันเฟอร์นิเจอร์ทึบในรัศมี `2.65m` รอบประตูออกและบันไดทุกช่อง
+  2. **เพิ่มสูตรคราฟต์เฟอร์นิเจอร์ 30 ชิ้นเข้าแท็บ `Utility` + ผูกไอคอนครบชุด**:
+     - เพิ่ม `GetRuntimeFurnitureRecipes()` ใน `CraftingDatabase.cs` (รองรับ Deduplicate) พร้อมผูกไอคอนให้ `BUILD0024`–`BUILD0053.asset` ครบทุกชิ้น ให้มองเห็นและคราฟต์ได้ทันทีในหน้า Crafting แท็บ `Utility`
+  3. **อัปเกรดโมเดลบันได, หน้าต่าง 3 บาน & เฟอร์นิเจอร์ 30 ชิ้น**:
+     - `BuildingStairsPortal`: แก้ทิศทางขั้นบันไดให้ไต่ขึ้นเข้าช่องกำแพงอย่างถูกต้อง พร้อมเพิ่มเป็น 7 ขั้นไม้มีจมูกบันไดและราวกันตกเสาโปร่ง
+     - `InteriorWindowDayNightController`: เปลี่ยนกรอบหน้าต่างจากแผ่นทึบ (ที่เคยบังกระจก) เป็นกรอบ 4 ด้านแบบโปร่ง ให้เห็นสีท้องฟ้ากลางวัน/เย็น/กลางคืนผ่านหน้าต่างชัดเจน
+     - `FurnitureVisualBuilder`: หมุนด้านหน้าเฟอร์นิเจอร์ทั้ง 30 ชิ้นหันเข้าหากล้อง (`-Z`) และอัปเกรดรายละเอียดรูปทรง 3D เพิ่มเติมครบทุกชิ้น
+  4. **ตัดระบบเดาขนาด/เสกประตูปลอมทิ้ง 100% + ปรับปรุง `BuildingDoorWarpTrigger`**:
+     - ลบ `sizeLooksLikeBuilding` และการเสก `BuildingEntrance` อัตโนมัติออกจาก `EnvironmentManager` (แก้ปัญหาน้ำพุ/ร้านร่มมีประตูเข้าโผล่) ให้ปลดล็อกเฉพาะ Prefab ที่มี `BuildingDoorWarpTrigger` แปะอยู่จริงเท่านั้น พร้อมตัวเลือก `unlockAllEnterableBuildings = true` และละเว้นคอลไลเดอร์พื้น/ฟุตบาทแผ่นบาง (`IsWalkableGroundCollider`)
+     - ปรับสี Gizmo ตอน Play Mode ให้แยกชัดเจน (**เขียว/ฟ้า = เข้าได้**, **เส้นขอบแดงจาง = ถูกล็อก/ถูกขวาง**), เพิ่ม `Start()` auto-unlock สำหรับบ้านที่วางเองใน Scene และอัปเดตตำแหน่ง `DoorWarpTrigger` บน Prefab บ้าน/ตึกที่ปรับแก้ใหม่ทั้งหมด (`COMPILE_EXIT:0 ERR_COUNT:0`)
 
 ---
 

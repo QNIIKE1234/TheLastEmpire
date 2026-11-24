@@ -115,6 +115,15 @@ namespace TheLastEmpire
             }
         }
 
+        private void Start()
+        {
+            // Fallback for buildings placed manually in a scene where EnvironmentManager did not configure them
+            if (!_wasConfiguredByManager)
+            {
+                AutoConfigureStandalone();
+            }
+        }
+
         private void OnDisable()
         {
             _localPlayerInTrigger = false;
@@ -323,7 +332,7 @@ namespace TheLastEmpire
                 Vector3 sample = new Vector3(pPos.x, _triggerCollider.bounds.center.y, pPos.z);
                 Vector3 closest = _triggerCollider.ClosestPoint(sample);
                 float sqrDist = (sample - closest).sqrMagnitude;
-                _localPlayerInTrigger = sqrDist <= 0.12f; // Player is touching / inside the 1.5u trigger collider
+                _localPlayerInTrigger = sqrDist <= 0.25f; // Player is touching / inside the 1.5u trigger collider
             }
         }
 
@@ -350,6 +359,16 @@ namespace TheLastEmpire
 
             Matrix4x4 prevMatrix = Gizmos.matrix;
             Gizmos.matrix = transform.localToWorldMatrix;
+
+            bool isLockedAtRuntime = Application.isPlaying && !_isUnlockedInStage && !alwaysEnterable;
+            if (isLockedAtRuntime)
+            {
+                // Dim red wireframe only when locked/blocked at runtime so Scene View clearly distinguishes open vs locked doors
+                Gizmos.color = new Color(0.95f, 0.25f, 0.25f, 0.45f);
+                Gizmos.DrawWireCube(box.center, box.size);
+                Gizmos.matrix = prevMatrix;
+                return;
+            }
 
             Gizmos.color = new Color(0.20f, 0.95f, 0.65f, 0.25f);
             Gizmos.DrawCube(box.center, box.size);

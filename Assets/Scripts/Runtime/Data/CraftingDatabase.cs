@@ -231,6 +231,9 @@ namespace TheLastEmpire
         private List<CraftingRecipe> _runtimeArtifactRecipes;
 
         [NonSerialized]
+        private List<CraftingRecipe> _runtimeFurnitureRecipes;
+
+        [NonSerialized]
         private bool _cachedArtifactRecipesIncludedLegendary = false;
 
         /// <summary>
@@ -382,6 +385,92 @@ namespace TheLastEmpire
             return _runtimeArtifactRecipes;
         }
 
+        /// <summary>
+        /// Guarantees all 30 Furniture recipes (BUILD0024..BUILD0053) appear in the Utility tab even if
+        /// Unity loaded an older cached Addressable CraftingDatabase asset. Deduplicates by recipeId/name.
+        /// </summary>
+        private List<CraftingRecipe> GetRuntimeFurnitureRecipes()
+        {
+            if (_runtimeFurnitureRecipes != null)
+            {
+                return _runtimeFurnitureRecipes;
+            }
+
+            _runtimeFurnitureRecipes = new List<CraftingRecipe>();
+            var existingIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (recipes != null)
+            {
+                for (int i = 0; i < recipes.Count; i++)
+                {
+                    if (recipes[i] == null) continue;
+                    if (!string.IsNullOrEmpty(recipes[i].recipeId)) existingIds.Add(recipes[i].recipeId);
+                    if (!string.IsNullOrEmpty(recipes[i].recipeName)) existingNames.Add(recipes[i].recipeName);
+                }
+            }
+
+            // Pick clean fallback icons from existing Utility recipes in this database
+            Sprite iconCrate = recipes?.Find(r => r != null && r.recipeId == "CRAFT0011")?.icon;
+            Sprite iconBench = recipes?.Find(r => r != null && r.recipeId == "CRAFT0010")?.icon ?? iconCrate;
+            Sprite iconBed   = recipes?.Find(r => r != null && r.recipeId == "CRAFT0013")?.icon ?? iconCrate;
+            Sprite iconLamp  = recipes?.Find(r => r != null && r.recipeId == "CRAFT0014")?.icon ?? iconCrate;
+            Sprite iconPot   = recipes?.Find(r => r != null && r.recipeId == "CRAFT0009")?.icon ?? iconCrate;
+            Sprite iconUtil  = recipes?.Find(r => r != null && r.recipeId == "CRAFT0012")?.icon ?? iconCrate;
+
+            ItemData GetItem(string n) => ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(n) : null;
+            CraftingIngredient Ing(string n, int amt) => new CraftingIngredient(GetItem(n), n, amt);
+
+            void AddFurn(string cid, string rName, Sprite ic, string desc, params CraftingIngredient[] ings)
+            {
+                if (existingIds.Contains(cid) || existingNames.Contains(rName)) return;
+                _runtimeFurnitureRecipes.Add(new CraftingRecipe
+                {
+                    recipeId = cid,
+                    recipeName = rName,
+                    category = CraftingCategory.Utility,
+                    resultItem = null,
+                    resultItemName = rName,
+                    resultAmount = 1,
+                    icon = ic,
+                    description = desc,
+                    ingredients = new List<CraftingIngredient>(ings)
+                });
+            }
+
+            AddFurn("CRAFT0077", "Wooden Wardrobe",        iconCrate, "Tall double-door wooden wardrobe for storing gear (24 slots).", Ing("Wood Log", 8), Ing("Box of Nails", 4), Ing("Industrial Glue", 2));
+            AddFurn("CRAFT0078", "Metal Supply Cabinet",   iconCrate, "Heavy industrial steel locker cabinet (30 slots).", Ing("Scrap Metal Plate", 6), Ing("Scrap Steel Pipe", 3), Ing("Box of Nails", 4));
+            AddFurn("CRAFT0079", "Carpentry Craft Table",  iconBench, "Sturdy wooden carpentry table. Press [E] to craft.", Ing("Wood Log", 8), Ing("Scrap Metal Plate", 3), Ing("Box of Nails", 4), Ing("Duct Tape", 2));
+            AddFurn("CRAFT0080", "Engineer Craft Desk",    iconBench, "Technical craft desk with monitor. Press [E] to craft.", Ing("Scrap Metal Plate", 5), Ing("Basic Logic Chip", 2), Ing("Copper Wire Spool", 3), Ing("Scrap Steel Pipe", 2));
+            AddFurn("CRAFT0081", "Wooden Chair",           iconBed,   "Simple wooden chair. Press [E] to sit and restore Sanity.", Ing("Wood Log", 4), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0082", "Lounge Armchair",        iconBed,   "Plush lounge armchair. Press [E] to relax and restore Sanity.", Ing("Wood Log", 5), Ing("Torn Infected Cloth", 4), Ing("Scrap Leather", 3), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0083", "Wooden Bed",             iconBed,   "Full wooden bed. Press [E] to set Respawn, [Z] to sleep at night.", Ing("Wood Log", 8), Ing("Torn Infected Cloth", 6), Ing("Scrap Leather", 4), Ing("Plant Fiber", 6));
+            AddFurn("CRAFT0084", "Analog Radio",           iconLamp,  "Retro analog FM radio. Press [E] Power, [Z] switch 3 music stations.", Ing("Wood Log", 3), Ing("Copper Wire Spool", 3), Ing("Basic Logic Chip", 1), Ing("Scrap Metal Plate", 2));
+            AddFurn("CRAFT0085", "Table Desk Lamp",        iconLamp,  "Warm bedside desk lamp. Press [E] to toggle ON/OFF.", Ing("Wood Log", 3), Ing("Clean Glass Bottle", 2), Ing("Copper Wire Spool", 2));
+            AddFurn("CRAFT0086", "Cooking Pot",            iconPot,   "Cast-iron cooking pot on a stove burner.", Ing("Scrap Metal Plate", 5), Ing("Scrap Steel Pipe", 2), Ing("Charcoal Lump", 3));
+            AddFurn("CRAFT0087", "Lime Planter Box",       iconUtil,  "Square planter box growing Fresh Limes. Press [E] to harvest.", Ing("Wood Log", 6), Ing("Plant Fiber", 6), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0088", "Potato Planter Box",     iconUtil,  "Square planter box growing Potatoes. Press [E] to harvest.", Ing("Wood Log", 6), Ing("Plant Fiber", 6), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0089", "Tomato Planter Box",     iconUtil,  "Square planter box growing Ripe Tomatoes. Press [E] to harvest.", Ing("Wood Log", 6), Ing("Plant Fiber", 6), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0090", "Carrot Planter Box",     iconUtil,  "Square planter box growing Sweet Carrots. Press [E] to harvest.", Ing("Wood Log", 6), Ing("Plant Fiber", 6), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0091", "Strawberry Planter Box", iconUtil,  "Square planter box growing Strawberries. Press [E] to harvest.", Ing("Wood Log", 6), Ing("Plant Fiber", 6), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0092", "Refrigerator",           iconCrate, "Vintage kitchen refrigerator (24 slots).", Ing("Scrap Metal Plate", 6), Ing("Copper Wire Spool", 2), Ing("Scrap Steel Pipe", 2));
+            AddFurn("CRAFT0093", "Medical Cabinet",        iconCrate, "Clinical medical supply cabinet (18 slots).", Ing("Scrap Metal Plate", 4), Ing("Clean Glass Bottle", 2), Ing("Duct Tape", 2));
+            AddFurn("CRAFT0094", "Leather Sofa",           iconBed,   "Wide leather sofa. Press [E] to sit and recover Sanity.", Ing("Wood Log", 6), Ing("Scrap Leather", 6), Ing("Torn Infected Cloth", 4), Ing("Box of Nails", 3));
+            AddFurn("CRAFT0095", "Standing Floor Lamp",    iconLamp,  "Tall brass floor lamp. Press [E] to toggle ON/OFF.", Ing("Scrap Steel Pipe", 3), Ing("Clean Glass Bottle", 2), Ing("Copper Wire Spool", 2));
+            AddFurn("CRAFT0096", "Tall Bookshelf",         iconCrate, "Wooden bookshelf with hidden storage (18 slots).", Ing("Wood Log", 7), Ing("Box of Nails", 3), Ing("Industrial Glue", 2));
+            AddFurn("CRAFT0097", "Wooden Dining Table",    iconBench, "Classic wooden dining table.", Ing("Wood Log", 6), Ing("Box of Nails", 3));
+            AddFurn("CRAFT0098", "Coffee Table",           iconBench, "Low wooden living-room coffee table.", Ing("Wood Log", 4), Ing("Box of Nails", 2));
+            AddFurn("CRAFT0099", "Kitchen Counter",        iconCrate, "Kitchen counter with sink and storage (18 slots).", Ing("Wood Log", 6), Ing("Scrap Metal Plate", 3), Ing("Scrap Steel Pipe", 2));
+            AddFurn("CRAFT0100", "First Aid Station",      iconUtil,  "Emergency medical station. Press [E] to heal +25 HP.", Ing("Scrap Metal Plate", 4), Ing("Torn Infected Cloth", 5), Ing("Duct Tape", 3));
+            AddFurn("CRAFT0101", "Weapon Rack",            iconCrate, "Armory rack for storing weapons and ammo (24 slots).", Ing("Wood Log", 5), Ing("Scrap Metal Plate", 5), Ing("Scrap Steel Pipe", 2));
+            AddFurn("CRAFT0102", "Heater Stove",           iconPot,   "Cast-iron wood-burning stove. Press [E] to toggle.", Ing("Scrap Metal Plate", 5), Ing("Rough Stone", 4), Ing("Charcoal Lump", 4));
+            AddFurn("CRAFT0103", "Retro CRT TV",           iconLamp,  "Old CRT television on stand. Press [E] to toggle.", Ing("Scrap Metal Plate", 4), Ing("Clean Glass Bottle", 3), Ing("Basic Logic Chip", 2), Ing("Copper Wire Spool", 2));
+            AddFurn("CRAFT0104", "Woven Area Rug",         iconBed,   "Decorative woven floor rug.", Ing("Torn Infected Cloth", 6), Ing("Plant Fiber", 6), Ing("Sturdy Rope", 2));
+            AddFurn("CRAFT0105", "Potted Fern",            iconUtil,  "Decorative terracotta pot with indoor fern.", Ing("Rough Stone", 3), Ing("Plant Fiber", 5));
+            AddFurn("CRAFT0106", "Office Trash Bin",       iconCrate, "Metal trash bin for discarded items (18 slots).", Ing("Scrap Metal Plate", 3), Ing("Box of Nails", 2));
+
+            return _runtimeFurnitureRecipes;
+        }
+
         private void OnValidate()
         {
             if (recipes == null) return;
@@ -401,6 +490,8 @@ namespace TheLastEmpire
                 ? recipes.Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase))
                 : null;
             if (found != null) return found;
+            found = GetRuntimeFurnitureRecipes().Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase));
+            if (found != null) return found;
             return GetRuntimeArtifactRecipes().Find(r => r != null && string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -413,6 +504,8 @@ namespace TheLastEmpire
             CraftingRecipe found = recipes != null
                 ? recipes.Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)))
                 : null;
+            if (found != null) return found;
+            found = GetRuntimeFurnitureRecipes().Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)));
             if (found != null) return found;
             return GetRuntimeArtifactRecipes().Find(r => r != null && (string.Equals(r.recipeName, name, StringComparison.OrdinalIgnoreCase) || string.Equals(r.ResolvedResultName, name, StringComparison.OrdinalIgnoreCase)));
         }
@@ -432,6 +525,11 @@ namespace TheLastEmpire
                         result.Add(recipe);
                     }
                 }
+            }
+
+            if (category == CraftingCategory.Utility)
+            {
+                result.AddRange(GetRuntimeFurnitureRecipes());
             }
 
             if (category == CraftingCategory.Artifact)
@@ -470,6 +568,10 @@ namespace TheLastEmpire
             }
 
             AppendMatching(recipes);
+            if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Utility)
+            {
+                AppendMatching(GetRuntimeFurnitureRecipes());
+            }
             if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Artifact)
             {
                 AppendMatching(GetRuntimeArtifactRecipes());

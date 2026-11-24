@@ -56,6 +56,10 @@ namespace TheLastEmpire
         [SerializeField, Range(1, 10)] private int buildingsPerCorner = 5;
         [SerializeField, Range(0, 12)] private int propsPerCorner = 5;
 
+        [Header("Enterable Buildings")]
+        [Tooltip("If true, every playable building with a clear doorway in the stage can be entered. If false, only 1-2 random buildings per stage are unlocked.")]
+        [SerializeField] private bool unlockAllEnterableBuildings = true;
+
         [System.Serializable]
         public struct GridRow
         {
@@ -2657,9 +2661,9 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// Deterministically selects 1-2 spawned buildings/houses in the current stage and attaches
-        /// a glowing [E] BuildingEntrance doorway on a clear accessible wall face.
-        /// Each selected house receives a unique deterministic interiorSeed so no two interiors repeat.
+        /// <summary>
+        /// Configures ONLY buildings that explicitly have a BuildingDoorWarpTrigger component placed on them.
+        /// Never guesses buildings by size and never auto-spawns fake door frames on props/fountains/stalls.
         /// </summary>
         private void AttachEnterableBuildingDoors(StageData stage)
         {
@@ -2667,52 +2671,53 @@ namespace TheLastEmpire
 
             Physics.SyncTransforms();
 
-            List<(Transform target, Bounds bounds)> candidates = new List<(Transform, Bounds)>();
+            // Lock any DoorWarpTriggers placed on non-playable BackgroundScenery outside the main stage
+            Transform bgScenery = _currentEnvContainer.transform.Find("BackgroundScenery");
+            if (bgScenery != null)
+            {
+                BuildingDoorWarpTrigger[] bgDoors = bgScenery.GetComponentsInChildren<BuildingDoorWarpTrigger>(true);
+                for (int k = 0; k < bgDoors.Length; k++)
+                {
+                    if (bgDoors[k] != null) bgDoors[k].SetLockedInStage();
+                }
+            }
+
+            // Collect ONLY direct spawned buildings that explicitly carry a BuildingDoorWarpTrigger
+            List<(Transform target, BuildingDoorWarpTrigger door, Bounds bounds)> candidates =
+                new List<(Transform, BuildingDoorWarpTrigger, Bounds)>();
+
             int childCount = _currentEnvContainer.transform.childCount;
             for (int i = 0; i < childCount; i++)
             {
                 Transform child = _currentEnvContainer.transform.GetChild(i);
                 if (child == null || !child.gameObject.activeInHierarchy) continue;
+                if (child.name.Equals("BackgroundScenery", System.StringComparison.OrdinalIgnoreCase)) continue;
 
-                string cname = child.name;
-                if (cname.Equals("BackgroundScenery", System.StringComparison.OrdinalIgnoreCase) ||
-                    cname.StartsWith("BuildingEntrance_", System.StringComparison.OrdinalIgnoreCase) ||
-                    cname.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("RoadTile", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                BuildingDoorWarpTrigger[] doors = child.GetComponentsInChildren<BuildingDoorWarpTrigger>(true);
+                if (doors == null || doors.Length == 0) continue;
+
+                // Lock all first; eligible ones are unlocked deterministically below
+                for (int k = 0; k < doors.Length; k++)
                 {
-                    continue;
+                    if (doors[k] != null) doors[k].SetLockedInStage();
                 }
 
-                if (!TryComputeObjectWorldBounds(child, out Bounds b)) continue;
+                Bounds b = TryComputeObjectWorldBounds(child, out Bounds computed)
+                    ? computed
+                    : new Bounds(child.position, new Vector3(4f, 5f, 4f));
 
-                bool nameLooksLikeBuilding =
-                    cname.IndexOf("Building", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("House", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Shop", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Warehouse", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Hangar", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Cottage", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Chalet", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Clinic", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    cname.IndexOf("Townhouse", System.StringComparison.OrdinalIgnoreCase) >= 0;
-
-                bool sizeLooksLikeBuilding =
-                    b.size.x >= 3.2f && b.size.z >= 3.2f && b.size.y >= 2.1f &&
-                    cname.IndexOf("Tree", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                    cname.IndexOf("Rock", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                    cname.IndexOf("Car", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                    cname.IndexOf("Truck", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                    cname.IndexOf("Bus", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                    cname.IndexOf("Vehicle", System.StringComparison.OrdinalIgnoreCase) < 0;
-
-                if (!nameLooksLikeBuilding && !sizeLooksLikeBuilding) continue;
-
-                candidates.Add((child, b));
+                for (int k = 0; k < doors.Length; k++)
+                {
+                    if (doors[k] != null)
+                    {
+                        candidates.Add((child, doors[k], b));
+                    }
+                }
             }
 
             if (candidates.Count == 0) return;
 
-            // Deterministic shuffle using stageSeed so Host and Co-op Clients always select identical enterable houses
+            // Deterministic shuffle using stageSeed so Host and Co-op Clients always assign identical IDs & seeds
             System.Random rng = new System.Random(stage.stageSeed ^ 0x51A7E29);
             for (int i = candidates.Count - 1; i > 0; i--)
             {
@@ -2722,131 +2727,66 @@ namespace TheLastEmpire
                 candidates[j] = tmp;
             }
 
-            // First lock all pre-baked BuildingDoorWarpTrigger children on spawned buildings;
-            // only the 1-2 deterministically selected enterable buildings will be unlocked below!
-            for (int i = 0; i < candidates.Count; i++)
-            {
-                BuildingDoorWarpTrigger[] baked = candidates[i].target.GetComponentsInChildren<BuildingDoorWarpTrigger>(true);
-                for (int k = 0; k < baked.Length; k++)
-                {
-                    if (baked[k] != null) baked[k].SetLockedInStage();
-                }
-            }
-
-            // Pick a subset of buildings so some are enterable and some remain boarded up (1 when 1-2 houses, 1-2 when 3+)
-            int desiredCount = candidates.Count <= 2 ? 1 : (rng.NextDouble() < 0.70 ? 2 : 1);
+            int desiredCount = unlockAllEnterableBuildings
+                ? candidates.Count
+                : (candidates.Count <= 2 ? 1 : (rng.NextDouble() < 0.70 ? 2 : 1));
             int attachedCount = 0;
 
-            float maxPlayableX = gridWidth * 0.46f;
-            float maxPlayableZ = gridHeight * 0.44f;
-
-            // Prefer South (-Z, camera-facing front), then West/East sides, then North (+Z)
-            Vector3[] faceNormals = { Vector3.back, Vector3.left, Vector3.right, Vector3.forward };
+            float maxPlayableX = gridWidth * 0.50f;
+            float maxPlayableZ = gridHeight * 0.49f;
 
             for (int i = 0; i < candidates.Count && attachedCount < desiredCount; i++)
             {
                 Transform bldg = candidates[i].target;
+                BuildingDoorWarpTrigger prefabDoor = candidates[i].door;
                 Bounds b = candidates[i].bounds;
+                if (prefabDoor == null) continue;
 
-                // 1. Prefer pre-placed real doorway BuildingDoorWarpTrigger on the prefab (1.5u trigger collider at real door!)
-                BuildingDoorWarpTrigger prefabDoor = bldg.GetComponentInChildren<BuildingDoorWarpTrigger>(true);
-                if (prefabDoor != null)
+                Vector3 doorWorldPos = prefabDoor.transform.position;
+                bool inBounds = Mathf.Abs(doorWorldPos.x) <= maxPlayableX && Mathf.Abs(doorWorldPos.z) <= maxPlayableZ;
+                if (!inBounds && !prefabDoor.AlwaysEnterable) continue;
+
+                Vector3 checkPoint = prefabDoor.ExteriorReturnPosition + Vector3.up * 0.35f;
+                Collider[] hits = Physics.OverlapSphere(checkPoint, 0.42f, ~0, QueryTriggerInteraction.Ignore);
+                bool blocked = false;
+                for (int h = 0; h < hits.Length; h++)
                 {
-                    Vector3 doorWorldPos = prefabDoor.transform.position;
-                    bool inBounds = Mathf.Abs(doorWorldPos.x) <= maxPlayableX && Mathf.Abs(doorWorldPos.z) <= maxPlayableZ;
-                    if (inBounds)
-                    {
-                        Vector3 checkPoint = prefabDoor.ExteriorReturnPosition + Vector3.up * 0.25f;
-                        Collider[] hits = Physics.OverlapSphere(checkPoint, 0.48f, ~0, QueryTriggerInteraction.Ignore);
-                        bool blocked = false;
-                        for (int h = 0; h < hits.Length; h++)
-                        {
-                            Collider col = hits[h];
-                            if (col == null) continue;
-                            if (col.transform.IsChildOf(bldg) || col.transform == bldg) continue;
-                            string colName = col.gameObject.name.ToLowerInvariant();
-                            if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("street") || colName.Contains("road"))
-                                continue;
-                            if (col.GetComponentInParent<PlayerController>() != null) continue;
-                            blocked = true;
-                            break;
-                        }
-
-                        if (!blocked)
-                        {
-                            attachedCount++;
-                            int bId = attachedCount;
-                            int seed = BuildingInteriorManager.ComputeInteriorSeed(stage.stageSeed, stage.x, stage.y, bId, bldg.name);
-                            prefabDoor.UnlockForStage(bId, stage.x, stage.y, seed, bldg.name, b.size.y);
-                            continue;
-                        }
-                    }
+                    Collider col = hits[h];
+                    if (col == null) continue;
+                    if (col.transform.IsChildOf(bldg) || col.transform == bldg) continue;
+                    if (IsWalkableGroundCollider(col)) continue;
+                    if (col.GetComponentInParent<PlayerController>() != null) continue;
+                    blocked = true;
+                    break;
                 }
 
-                // 2. Fallback for buildings without a pre-placed BuildingDoorWarpTrigger: auto-place on a clear face
-                bool foundClearFace = false;
-                Vector3 chosenDoorPos = Vector3.zero;
-                Vector3 chosenNormal = Vector3.back;
-
-                for (int f = 0; f < faceNormals.Length; f++)
-                {
-                    Vector3 n = faceNormals[f];
-                    float extentAlongN = Mathf.Abs(n.x) > 0.5f ? b.extents.x : b.extents.z;
-                    Vector3 doorPos = new Vector3(
-                        b.center.x + n.x * (extentAlongN + 0.48f),
-                        0f,
-                        b.center.z + n.z * (extentAlongN + 0.48f));
-
-                    if (Mathf.Abs(doorPos.x) > maxPlayableX || Mathf.Abs(doorPos.z) > maxPlayableZ)
-                        continue;
-
-                    // Verify doorway & return step aren't blocked by another solid obstacle
-                    Vector3 standPoint = doorPos + n * 0.65f + Vector3.up * 0.65f;
-                    Collider[] hits = Physics.OverlapSphere(standPoint, 0.52f, ~0, QueryTriggerInteraction.Ignore);
-                    bool blocked = false;
-                    for (int h = 0; h < hits.Length; h++)
-                    {
-                        Collider col = hits[h];
-                        if (col == null) continue;
-                        if (col.transform.IsChildOf(bldg) || col.transform == bldg) continue;
-                        string colName = col.gameObject.name.ToLowerInvariant();
-                        if (colName.Contains("ground") || colName.Contains("floor") || colName.Contains("street") || colName.Contains("road"))
-                            continue;
-                        if (col.GetComponentInParent<PlayerController>() != null) continue;
-                        blocked = true;
-                        break;
-                    }
-
-                    if (!blocked)
-                    {
-                        foundClearFace = true;
-                        chosenDoorPos = doorPos;
-                        chosenNormal = n;
-                        break;
-                    }
-                }
-
-                if (!foundClearFace) continue;
+                if (blocked && !prefabDoor.AlwaysEnterable) continue;
 
                 attachedCount++;
-                int buildingId = attachedCount;
-                int interiorSeed = BuildingInteriorManager.ComputeInteriorSeed(stage.stageSeed, stage.x, stage.y, buildingId, bldg.name);
-                InteriorTemplateData matchedTemplate = InteriorTemplateLibrary.SelectTemplateForBuilding(bldg.name, b.size.y, interiorSeed);
-                InteriorTheme theme = matchedTemplate != null
-                    ? matchedTemplate.GetThemeEnum()
-                    : BuildingEntrance.InferThemeFromPrefabName(bldg.name, interiorSeed);
-                string displayName = matchedTemplate != null && !string.IsNullOrWhiteSpace(matchedTemplate.displayName)
-                    ? matchedTemplate.displayName
-                    : GetUniqueBuildingDisplayName(theme, interiorSeed);
-                int floorCount = matchedTemplate != null ? matchedTemplate.floorCount : 2;
-
-                GameObject doorObj = new GameObject($"BuildingEntrance_{buildingId}_{theme}");
-                doorObj.transform.SetParent(_currentEnvContainer.transform, false);
-                doorObj.transform.position = chosenDoorPos;
-
-                BuildingEntrance entrance = doorObj.AddComponent<BuildingEntrance>();
-                entrance.Configure(buildingId, stage.x, stage.y, interiorSeed, theme, displayName, chosenNormal, bldg.name, b.size.y, floorCount);
+                int bId = attachedCount;
+                int seed = BuildingInteriorManager.ComputeInteriorSeed(stage.stageSeed, stage.x, stage.y, bId, bldg.name);
+                prefabDoor.UnlockForStage(bId, stage.x, stage.y, seed, bldg.name, b.size.y);
             }
+        }
+
+        private static bool IsWalkableGroundCollider(Collider col)
+        {
+            if (col == null) return true;
+            if (col.bounds.size.y <= 0.35f && col.bounds.max.y <= 0.30f) return true; // Thin flat floor/sidewalk/tile slab
+            string colName = col.gameObject.name.ToLowerInvariant();
+            return colName.Contains("ground") ||
+                   colName.Contains("floor") ||
+                   colName.Contains("street") ||
+                   colName.Contains("road") ||
+                   colName.Contains("sidewalk") ||
+                   colName.Contains("pavement") ||
+                   colName.Contains("asphalt") ||
+                   colName.Contains("curb") ||
+                   colName.Contains("terrain") ||
+                   colName.Contains("plane") ||
+                   colName.Contains("tile") ||
+                   colName.Contains("grass") ||
+                   colName.Contains("dirt");
         }
 
         private static bool TryComputeObjectWorldBounds(Transform root, out Bounds worldBounds)

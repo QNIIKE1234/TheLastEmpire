@@ -1051,19 +1051,83 @@ namespace TheLastEmpire
         private static void TeleportPlayerSafely(PlayerController player, Vector3 targetPos, Vector3 forwardDir)
         {
             if (player == null) return;
+            if (player.IsSitting) player.SetSitting(false);
+
+            Physics.SyncTransforms();
+            Vector3 clearPos = ResolveClearGroundSpawn(targetPos, player);
+
             Rigidbody rb = player.GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+                rb.position = clearPos;
             }
-            player.transform.position = new Vector3(targetPos.x, 0.5f, targetPos.z);
+            player.transform.position = clearPos;
+
             Vector3 flatFwd = new Vector3(forwardDir.x, 0f, forwardDir.z);
             if (flatFwd.sqrMagnitude > 0.001f)
             {
                 player.transform.forward = flatFwd.normalized;
             }
             Physics.SyncTransforms();
+        }
+
+        /// <summary>
+        /// Ensures the teleport target sits flush on the floor (y = 0.05) and never overlaps any solid
+        /// furniture/wall collider so Unity PhysX never launches the player upward on arrival!
+        /// </summary>
+        private static Vector3 ResolveClearGroundSpawn(Vector3 desiredPos, PlayerController player)
+        {
+            const float groundY = 0.05f;
+            Vector3 basePos = new Vector3(desiredPos.x, groundY, desiredPos.z);
+            if (!IsPositionBlockedBySolidObstacle(basePos, player))
+            {
+                return basePos;
+            }
+
+            // Step progressively toward room center (0, 0, 0) and around small spiral offsets until completely clear
+            Vector2 toCenter = new Vector2(-basePos.x, -basePos.z);
+            if (toCenter.sqrMagnitude < 0.01f) toCenter = Vector2.up;
+            toCenter.Normalize();
+            Vector2 perp = new Vector2(-toCenter.y, toCenter.x);
+
+            float[] forwardSteps = { 0.8f, 1.5f, 2.2f, 3.0f, 3.8f };
+            float[] sideSteps = { 0f, -0.9f, 0.9f, -1.7f, 1.7f };
+
+            for (int fi = 0; fi < forwardSteps.Length; fi++)
+            {
+                for (int si = 0; si < sideSteps.Length; si++)
+                {
+                    Vector2 offset = toCenter * forwardSteps[fi] + perp * sideSteps[si];
+                    Vector3 cand = new Vector3(basePos.x + offset.x, groundY, basePos.z + offset.y);
+                    if (!IsPositionBlockedBySolidObstacle(cand, player))
+                    {
+                        return cand;
+                    }
+                }
+            }
+
+            return new Vector3(0f, groundY, 0f);
+        }
+
+        private static bool IsPositionBlockedBySolidObstacle(Vector3 pos, PlayerController player)
+        {
+            Collider[] hits = Physics.OverlapSphere(new Vector3(pos.x, 0.65f, pos.z), 0.42f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider col = hits[i];
+                if (col == null) continue;
+                if (player != null && (col.transform == player.transform || col.transform.IsChildOf(player.transform))) continue;
+
+                string n = col.gameObject.name.ToLowerInvariant();
+                if (n.Contains("ground") || n.Contains("floor") || n.Contains("rug") || n.Contains("street") || n.Contains("road"))
+                    continue;
+                if (col.GetComponentInParent<BaseEnemyAI>() != null) continue;
+
+                return true;
+            }
+            return false;
         }
 
         private static void RefreshAllRemotePlayersVisibility()
@@ -1309,6 +1373,13 @@ namespace TheLastEmpire
             BuildWallDetails(_interiorRoot.transform, theme, roomWidth, roomDepth, wallHeight, litShader, accentMat, trimMat, rng);
 
             // 5. Spawn Existing Building Prefabs defined in JSON floor.objects[]
+            //    Skip any solid furniture that would block an active Exit Doorway, Stairs Up, Stairs Down, or Player Spawn!
+            List<Vector2> protectedDoorZones = new List<Vector2>();
+            if (exitSlot >= 0) protectedDoorZones.Add(new Vector2(exitPos.x, exitPos.z));
+            if (stairsUpSlot >= 0) protectedDoorZones.Add(new Vector2(stairsUpPos.x, stairsUpPos.z));
+            if (stairsDownSlot >= 0) protectedDoorZones.Add(new Vector2(stairsDownPos.x, stairsDownPos.z));
+            protectedDoorZones.Add(new Vector2(playerSpawnPos.x, playerSpawnPos.z));
+
             if (floor.objects != null)
             {
                 for (int i = 0; i < floor.objects.Count; i++)
@@ -1318,6 +1389,24 @@ namespace TheLastEmpire
 
                     float ox = Mathf.Clamp(objData.x * mirrorSign, -halfW + 0.7f, halfW - 0.7f);
                     float oz = Mathf.Clamp(objData.z, -halfD + 0.7f, halfD - 0.7f);
+
+                    // Flat walkable rugs never block doors; solid furniture must stay clear of all active doors/stairs!
+                    bool isWalkableRug = objData.buildingId.IndexOf("Rug", StringComparison.OrdinalIgnoreCase) >= 0;
+                    if (!isWalkableRug)
+                    {
+                        bool blocksDoorOrStairs = false;
+                        Vector2 objXZ = new Vector2(ox, oz);
+                        for (int z = 0; z < protectedDoorZones.Count; z++)
+                        {
+                            if ((objXZ - protectedDoorZones[z]).sqrMagnitude < 2.65f * 2.65f)
+                            {
+                                blocksDoorOrStairs = true;
+                                break;
+                            }
+                        }
+                        if (blocksDoorOrStairs) continue;
+                    }
+
                     float rotY = _currentMirrorX ? (360f - objData.rotY) % 360f : objData.rotY;
                     float scl = objData.scale > 0.05f ? objData.scale : 1f;
 

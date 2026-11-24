@@ -32,17 +32,20 @@ namespace TheLastEmpire
             {
                 float wx = winXs[i];
 
-                // 1. Outer window frame + sill + middle mullion bar
-                CreateBox(parent, $"BackWinFrame_{i}", new Vector3(wx, winY, halfD - 0.01f), new Vector3(winW + 0.22f, winH + 0.20f, 0.14f), trimMat);
-                CreateBox(parent, $"BackWinSill_{i}", new Vector3(wx, winY - winH * 0.5f - 0.08f, halfD - 0.10f), new Vector3(winW + 0.32f, 0.10f, 0.24f), trimMat);
-                CreateBox(parent, $"BackWinMullionV_{i}", new Vector3(wx, winY, halfD - 0.07f), new Vector3(0.08f, winH, 0.08f), trimMat);
-                CreateBox(parent, $"BackWinMullionH_{i}", new Vector3(wx, winY, halfD - 0.07f), new Vector3(winW, 0.07f, 0.08f), trimMat);
+                // 1. Hollow 4-bar outer window frame (so the live glowing sky glass is NEVER occluded by a solid backing cube!)
+                float frameThick = 0.12f;
+                CreateBox(parent, $"BackWinTop_{i}", new Vector3(wx, winY + winH * 0.5f + frameThick * 0.5f, halfD - 0.04f), new Vector3(winW + frameThick * 2f, frameThick, 0.14f), trimMat);
+                CreateBox(parent, $"BackWinBot_{i}", new Vector3(wx, winY - winH * 0.5f - frameThick * 0.5f, halfD - 0.08f), new Vector3(winW + frameThick * 2.6f, frameThick, 0.22f), trimMat);
+                CreateBox(parent, $"BackWinLeft_{i}", new Vector3(wx - winW * 0.5f - frameThick * 0.5f, winY, halfD - 0.04f), new Vector3(frameThick, winH, 0.14f), trimMat);
+                CreateBox(parent, $"BackWinRight_{i}", new Vector3(wx + winW * 0.5f + frameThick * 0.5f, winY, halfD - 0.04f), new Vector3(frameThick, winH, 0.14f), trimMat);
+                CreateBox(parent, $"BackWinMullionV_{i}", new Vector3(wx, winY, halfD - 0.09f), new Vector3(0.07f, winH, 0.05f), trimMat);
+                CreateBox(parent, $"BackWinMullionH_{i}", new Vector3(wx, winY, halfD - 0.09f), new Vector3(winW, 0.06f, 0.05f), trimMat);
 
-                // 2. Live sky-tinted emissive glass pane (shows Dawn / Day / Dusk / Night outside!)
+                // 2. Live sky-tinted emissive glass pane (clearly visible in front of back wall!)
                 Material glassMat = new Material(litShader ?? Shader.Find("Standard"));
                 glassMat.EnableKeyword("_EMISSION");
                 _glassMaterials.Add(glassMat);
-                CreateBox(parent, $"BackWinGlass_{i}", new Vector3(wx, winY, halfD - 0.05f), new Vector3(winW, winH, 0.05f), glassMat);
+                CreateBox(parent, $"BackWinGlass_{i}", new Vector3(wx, winY, halfD - 0.05f), new Vector3(winW, winH, 0.04f), glassMat);
 
                 // 3. Soft light pool projected onto the interior floor directly beneath the window
                 Material beamMat = CreateTransparentBeamMaterial(transparentShader);
