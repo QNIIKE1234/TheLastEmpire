@@ -267,6 +267,8 @@ class LowPolyBuilder:
 
     def build_object(self, parent=None):
         mesh = bpy.data.meshes.new(self.name + "_Mesh")
+        # Bake 180-deg Z rotation directly into vertices so Unity rotY=0 always faces -Z (camera)
+        bmesh.ops.rotate(self.bm, cent=(0.0, 0.0, 0.0), matrix=Matrix.Rotation(math.pi, 3, "Z"), verts=self.bm.verts)
         bmesh.ops.recalc_face_normals(self.bm, faces=self.bm.faces)
         self.bm.to_mesh(mesh)
         self.bm.free()
@@ -855,8 +857,8 @@ def export_all_and_render_sheet():
 
     print(f"EXPORTED_LOWPOLY_FBX: {exported}/30 -> {OUT_DIR}")
 
-    # 2. Render clean isometric 6x5 preview contact sheet using Blender EEVEE
-    bpy.ops.object.camera_add(location=(0.0, -20.0, 15.5))
+    # 2. Render clean isometric 6x5 preview contact sheet using Blender EEVEE (camera on +Y viewing baked fronts)
+    bpy.ops.object.camera_add(location=(0.0, 20.0, 15.5))
     cam = bpy.context.object
     cam.data.type = "ORTHO"
     cam.data.ortho_scale = 20.5
