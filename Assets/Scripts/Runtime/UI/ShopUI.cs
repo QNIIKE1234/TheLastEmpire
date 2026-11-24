@@ -91,6 +91,19 @@ namespace TheLastEmpire
         /// - โหมด Free Shop (_isFree หรือ GlobalFreeShop): ปลดล็อกอาวุธทุกชิ้นในเกม (ปืน + อาวุธประชิด + ระเบิด)
         ///   และกระสุนจริงทุกชนิดขึ้นหน้าแรกให้ซื้อฟรี $0 พร้อมสินค้าเดิมของร้านทั้งหมดแบบไม่ซ้ำ
         /// </summary>
+        public const string BackpackExpansionItemName = "Backpack Expansion";
+        public const int BackpackExpansionSlotBonus = 7;
+        public const int BackpackExpansionDefaultPrice = 1500;
+
+        public static bool IsBackpackExpansionItem(ItemData data)
+        {
+            if (data == null) return false;
+            if (string.Equals(data.itemName, BackpackExpansionItemName, StringComparison.OrdinalIgnoreCase))
+                return true;
+            return !string.IsNullOrEmpty(data.name) &&
+                   data.name.IndexOf("BackpackExpansion", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private List<ShopItemConfig> GetEffectiveBuyItems()
         {
             if (!IsEffectiveFree)
@@ -452,12 +465,22 @@ namespace TheLastEmpire
                         }
 
                         int displayPrice = IsEffectiveFree ? 0 : item.price;
-                        bool canAfford   = _playerInventory != null && _playerInventory.CanAfford(displayPrice);
+                        bool isBagUpgrade = IsBackpackExpansionItem(item.item);
+                        bool bagAtMax = isBagUpgrade && _playerInventory != null && !_playerInventory.CanExpandSlots;
+                        bool canAfford = !bagAtMax && _playerInventory != null && _playerInventory.CanAfford(displayPrice);
 
-                        // ชื่อ + จำนวนที่จะได้รับ เช่น Ammo x30
-                        string displayName = item.item.defaultQuantity > 1 
-                            ? $"{item.item.itemName} <color=#90A4AE>x{item.item.defaultQuantity}</color>" 
-                            : item.item.itemName;
+                        string displayName;
+                        if (isBagUpgrade)
+                        {
+                            int curMax = _playerInventory != null ? _playerInventory.MaxSlots : 27;
+                            displayName = $"{item.item.itemName} <color=#38BDF8>(+{BackpackExpansionSlotBonus} Slots | {curMax}/{PlayerInventory.HardMaxSlots})</color>";
+                        }
+                        else
+                        {
+                            displayName = item.item.defaultQuantity > 1
+                                ? $"{item.item.itemName} <color=#90A4AE>x{item.item.defaultQuantity}</color>"
+                                : item.item.itemName;
+                        }
 
                         slot.SetData(
                             itemName:   displayName,
@@ -465,8 +488,8 @@ namespace TheLastEmpire
                             icon:       item.item.icon,
                             isEquipped: false,
                             onClickUse: canAfford ? (name) => BuyItem(item.item.itemName) : (Action<string>)null,
-                            customButtonText: "Buy",
-                            customQuantityText: $"<color=yellow>${displayPrice}</color>"
+                            customButtonText: bagAtMax ? "MAX" : "Buy",
+                            customQuantityText: bagAtMax ? $"<color=#90A4AE>MAX ({PlayerInventory.HardMaxSlots}/{PlayerInventory.HardMaxSlots})</color>" : $"<color=yellow>${displayPrice}</color>"
                         );
                     }
                     else // Sell Mode
@@ -518,6 +541,48 @@ namespace TheLastEmpire
             if (item.item == null) return;
 
             int price = IsEffectiveFree ? 0 : item.price;
+
+            // Special instant upgrade item: Backpack Expansion (+7 slots, hard cap 70, works even when bag is full!)
+            if (IsBackpackExpansionItem(item.item))
+            {
+                if (!_playerInventory.CanExpandSlots)
+                {
+                    Debug.Log($"[ShopUI] Backpack already at maximum capacity ({_playerInventory.MaxSlots}/{PlayerInventory.HardMaxSlots})!");
+                    RefreshUI();
+                    return;
+                }
+
+                if (!_playerInventory.CanAfford(price))
+                {
+                    Debug.LogWarning($"[ShopUI] Not enough money to buy {item.item.itemName} (${price})!");
+                    return;
+                }
+
+                if (!_playerInventory.SpendMoney(price)) return;
+
+                int added = _playerInventory.ExpandSlots(BackpackExpansionSlotBonus);
+                if (added <= 0)
+                {
+                    if (price > 0) _playerInventory.AddMoney(price);
+                    RefreshUI();
+                    return;
+                }
+
+                PlayerController localPlayer = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                if (DamageNumberManager.Instance != null && localPlayer != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(
+                        localPlayer.transform.position + Vector3.up * 2.1f,
+                        0f,
+                        false,
+                        $"+{added} BAG SLOTS ({_playerInventory.MaxSlots}/{PlayerInventory.HardMaxSlots})"
+                    );
+                }
+
+                Debug.Log($"[ShopUI] Bought {item.item.itemName} for ${price} -> Bag Capacity: {_playerInventory.MaxSlots}/{PlayerInventory.HardMaxSlots}");
+                RefreshUI();
+                return;
+            }
 
             if (!_playerInventory.CanAfford(price))
             {

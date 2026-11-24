@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: 9bffef55cac9c6b489cbeceda2d786f8
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART001_Pistol_01_HeavyHollowPoint
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 909
+        width: 154
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 920908e91285a04133444eff39952235
+      internalID: -385349230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART002_Pistol_02_HairTrigger
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 901
+        width: 165
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16ad557ce2e7f195e9902864fda03088
+      internalID: 2085989654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART003_Pistol_03_ExtendedPistolMag
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 901
+        width: 107
+        height: 163
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de07f706e973cb5d7f186584ec2c8cdf
+      internalID: 116852702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART004_Pistol_04_QuickReleaseLoader
+      rect:
+        serializedVersion: 2
+        x: 718
+        y: 916
+        width: 155
+        height: 135
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 322dc38c5b23dcb525f85ce6e0d3ba2d
+      internalID: -1933365966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART005_Pistol_05_TwinChamber
+      rect:
+        serializedVersion: 2
+        x: 939
+        y: 916
+        width: 163
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eae76d57cebf5de56d6a9958a825e8b3
+      internalID: 1466820586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART006_Pistol_06_AutoSearMod
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 917
+        width: 165
+        height: 145
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96b8e7b28dc83ebe0d1a0a602c1a6823
+      internalID: -1293436778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART007_Pistol_07_TungstenTip
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 693
+        width: 161
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ee22fd1b91e0bfa58bf853cd6217c88
+      internalID: -785391074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART008_Pistol_08_LaserSightCore
+      rect:
+        serializedVersion: 2
+        x: 280
+        y: 688
+        width: 143
+        height: 145
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d41d340404eaeb72be3b5b0d5c526a6
+      internalID: 1087586637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART009_Pistol_09_HeavyMagnumSlide
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 689
+        width: 156
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b263ddfa0ddc663c48ad013b739c269
+      internalID: -549640613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART010_Pistol_10_TacticalRecycler
+      rect:
+        serializedVersion: 2
+        x: 728
+        y: 687
+        width: 132
+        height: 153
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f11000ded1040ae4a8c8fe2bd7458467
+      internalID: -570421007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART011_Pistol_11_AkimboPhantom
+      rect:
+        serializedVersion: 2
+        x: 958
+        y: 687
+        width: 125
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e31b1efe53156a870ee7d4b4a081906b
+      internalID: -31581213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART012_Pistol_12_DeadshotAce
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 687
+        width: 162
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cf98280cf40fc0ed9647eaceeaf93a9
+      internalID: -2138900212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART013_Revolver_01_MagnumPowder
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 493
+        width: 163
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 475b5d6ed64c9459e79c8cb6349e1df7
+      internalID: 1851611975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART014_Revolver_02_FanTheHammer
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 505
+        width: 171
+        height: 91
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78d183470794e8c8993efaa12a0df2fb
+      internalID: 1199821176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART015_Revolver_03_SpeedloaderDrum
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 478
+        width: 157
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82f3c86f5bb5f025ff5696b7bc7bc87f
+      internalID: 1875440514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART016_Revolver_04_EightShotCylinder
+      rect:
+        serializedVersion: 2
+        x: 717
+        y: 478
+        width: 160
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c578d4a761c94a3b89c272d1e9ae895
+      internalID: 1250776972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART017_Revolver_05_ArmorPiercingSlug
+      rect:
+        serializedVersion: 2
+        x: 959
+        y: 468
+        width: 124
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ea93a876bbe357e4a50db436ef297c5
+      internalID: -2026198754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART018_Revolver_06_TwinBarrelSplit
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 476
+        width: 164
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 811d0bb222664db5d701f2b18657d7b5
+      internalID: -1307894399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART019_Revolver_07_HeavyImpactRound
+      rect:
+        serializedVersion: 2
+        x: 43
+        y: 276
+        width: 168
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2bbf0c710585bd1f180687f556b26a82
+      internalID: 1896660779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART020_Revolver_08_DeadeyeScope
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 262
+        width: 151
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fc9a3c4f977c45d4f31e3b362eb4414b
+      internalID: 1329371900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART021_Revolver_09_CowboyRapidFan
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 266
+        width: 150
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af9fdb43e441cd9da28d080ea7955d2f
+      internalID: 1138466735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART022_Revolver_10_LuckyChamber
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 270
+        width: 157
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49c70e3bfe25f3b78ba621e58f29e593
+      internalID: 990824265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART023_Revolver_11_SixShooterOverkill
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 279
+        width: 177
+        height: 126
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 321736089bbc812998ef92d0244002c5
+      internalID: 137762610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART024_Revolver_12_GunslingerLegend
+      rect:
+        serializedVersion: 2
+        x: 1165
+        y: 270
+        width: 165
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4f785fb1fabfe81e1e6c8981de56a99
+      internalID: -75106396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART025_SMG_01_HighVelocityRounds
+      rect:
+        serializedVersion: 2
+        x: 43
+        y: 52
+        width: 162
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 623eec7a3a18f1b4262c9c48224dbf66
+      internalID: 2062302818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART026_SMG_02_OverclockedBolt
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 50
+        width: 161
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab6fae5e948712ba3c52c9f4e26ee607
+      internalID: 1588490155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART027_SMG_03_DrumMagazine
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 65
+        width: 180
+        height: 124
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86dcc671c78c920e003ef34aa42df705
+      internalID: 1908857990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART028_SMG_04_TacticalForegrip
+      rect:
+        serializedVersion: 2
+        x: 733
+        y: 45
+        width: 124
+        height: 163
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56d16d7f3d67559d78e2d8998e28e35d
+      internalID: 2137903446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART029_SMG_05_TwinNozzleSMG
+      rect:
+        serializedVersion: 2
+        x: 937
+        y: 46
+        width: 163
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb3d50632ec5a4b048ab3a6966031f33
+      internalID: 1666203067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART030_SMG_06_FMJPenetrator
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 52
+        width: 162
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ac1e896e74367278aca3952b2cc23ba
+      internalID: -1763131078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: a0d471422221e3025def0ce60b4fdd3e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART001_Pistol_01_HeavyHollowPoint: -385349230
+      ART002_Pistol_02_HairTrigger: 2085989654
+      ART003_Pistol_03_ExtendedPistolMag: 116852702
+      ART004_Pistol_04_QuickReleaseLoader: -1933365966
+      ART005_Pistol_05_TwinChamber: 1466820586
+      ART006_Pistol_06_AutoSearMod: -1293436778
+      ART007_Pistol_07_TungstenTip: -785391074
+      ART008_Pistol_08_LaserSightCore: 1087586637
+      ART009_Pistol_09_HeavyMagnumSlide: -549640613
+      ART010_Pistol_10_TacticalRecycler: -570421007
+      ART011_Pistol_11_AkimboPhantom: -31581213
+      ART012_Pistol_12_DeadshotAce: -2138900212
+      ART013_Revolver_01_MagnumPowder: 1851611975
+      ART014_Revolver_02_FanTheHammer: 1199821176
+      ART015_Revolver_03_SpeedloaderDrum: 1875440514
+      ART016_Revolver_04_EightShotCylinder: 1250776972
+      ART017_Revolver_05_ArmorPiercingSlug: -2026198754
+      ART018_Revolver_06_TwinBarrelSplit: -1307894399
+      ART019_Revolver_07_HeavyImpactRound: 1896660779
+      ART020_Revolver_08_DeadeyeScope: 1329371900
+      ART021_Revolver_09_CowboyRapidFan: 1138466735
+      ART022_Revolver_10_LuckyChamber: 990824265
+      ART023_Revolver_11_SixShooterOverkill: 137762610
+      ART024_Revolver_12_GunslingerLegend: -75106396
+      ART025_SMG_01_HighVelocityRounds: 2062302818
+      ART026_SMG_02_OverclockedBolt: 1588490155
+      ART027_SMG_03_DrumMagazine: 1908857990
+      ART028_SMG_04_TacticalForegrip: 2137903446
+      ART029_SMG_05_TwinNozzleSMG: 1666203067
+      ART030_SMG_06_FMJPenetrator: -1763131078
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

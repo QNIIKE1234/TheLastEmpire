@@ -119,16 +119,22 @@ namespace TheLastEmpire
 
         public void OnInteract()
         {
-            SetPower(!_isPlaying);
+            SetPower(!_isPlaying, broadcastToNetwork: true);
         }
 
         public void OnSecondaryInteract()
         {
             _stationIndex = (_stationIndex + 1) % StationNames.Length;
-            SetPower(true);
+            SetPower(true, broadcastToNetwork: true);
         }
 
-        private void SetPower(bool on)
+        public void ApplyNetworkState(bool isPlaying, int stationIndex)
+        {
+            _stationIndex = Mathf.Abs(stationIndex) % StationNames.Length;
+            SetPower(isPlaying, broadcastToNetwork: false);
+        }
+
+        private void SetPower(bool on, bool broadcastToNetwork = false)
         {
             _isPlaying = on;
             if (_dialLight != null) _dialLight.enabled = _isPlaying;
@@ -147,6 +153,15 @@ namespace TheLastEmpire
             {
                 if (_audioSource != null) _audioSource.Stop();
                 ShowFeedback("RADIO OFF");
+            }
+
+            if (broadcastToNetwork)
+            {
+                int packed = (_stationIndex << 1) | (_isPlaying ? 1 : 0);
+                NetworkBuildingSyncManager.NotifyLocalFurnitureStateChanged(
+                    _buildingObject,
+                    FurnitureStateSyncType.RadioState,
+                    packed);
             }
         }
 

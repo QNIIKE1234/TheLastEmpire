@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: 086acabb158b93945bf61fe306bfbe6a
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART121_BaseballBat_01_BarbedWireWrap
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 886
+        width: 161
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 836607ff28278e6044ad07c233a1b68f
+      internalID: -16292221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART122_BaseballBat_02_CorkedCore
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 908
+        width: 177
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f5168f65170a896a3fa8c4461122e24b
+      internalID: 1703876341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART123_BaseballBat_03_LongSluggerShaft
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 910
+        width: 204
+        height: 133
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00e2d014828266752b9e6f38e2e5680a
+      internalID: 349233664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART124_BaseballBat_04_WeightedTip
+      rect:
+        serializedVersion: 2
+        x: 707
+        y: 896
+        width: 173
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d2f27e6ca63b5a2761e89e54f765dfc
+      internalID: -433639539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART125_BaseballBat_05_SteelStuds
+      rect:
+        serializedVersion: 2
+        x: 931
+        y: 916
+        width: 169
+        height: 127
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f04c96a3939cfd287c1189ad4f98c00d
+      internalID: -1550430992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART126_BaseballBat_06_ConcussionSwing
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 916
+        width: 164
+        height: 135
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d1ee33401cbf849199ab84b81784c49
+      internalID: 887299725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART127_BaseballBat_07_WideCleaveArc
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 700
+        width: 190
+        height: 133
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df1ce137a7c9c0682e55395369052595
+      internalID: 937499871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART128_BaseballBat_08_SawbladeStuds
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 664
+        width: 186
+        height: 191
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aee740b63e61b12c5f9f0c6afd9f43d3
+      internalID: -1237260370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART129_BaseballBat_09_HomeRunImpact
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 673
+        width: 180
+        height: 172
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9583d3570d43fb4e237c37da1e717c10
+      internalID: 1473479573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART130_BaseballBat_10_BrawlersGrit
+      rect:
+        serializedVersion: 2
+        x: 688
+        y: 699
+        width: 211
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ace9978b2b2b363853464a17252e3af
+      internalID: 2023345690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART131_BaseballBat_11_GrandSlamCore
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 686
+        width: 181
+        height: 146
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a96256906175148589ee65bd205f7ea9
+      internalID: -1873386839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART132_BaseballBat_12_BattersFury
+      rect:
+        serializedVersion: 2
+        x: 1122
+        y: 685
+        width: 227
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1e913e3c8f4251f1ccb155e05bc67198
+      internalID: 1010733342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART133_Machete_01_CarbonSteelBlade
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 487
+        width: 188
+        height: 133
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63519674c5e286dd6c82ab14b6f36e6b
+      internalID: 1956008291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART134_Machete_02_BalancedHilt
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 499
+        width: 201
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd53a743ebbcb39f326ee38008038a8e
+      internalID: 1135039437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART135_Machete_03_JungleReach
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 492
+        width: 197
+        height: 125
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f8bc0958c40e8e540f4b159476ac725
+      internalID: -1782543505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART136_Machete_04_HeavyCleaverSpine
+      rect:
+        serializedVersion: 2
+        x: 688
+        y: 488
+        width: 206
+        height: 133
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3083e00e65f2b8cb066d9eff83f14882
+      internalID: 249594672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART137_Machete_05_ButchersRhythm
+      rect:
+        serializedVersion: 2
+        x: 895
+        y: 481
+        width: 229
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80a0261304d0418ebcfad6f108102da3
+      internalID: 321298560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART138_Machete_06_GoreCleave
+      rect:
+        serializedVersion: 2
+        x: 1131
+        y: 491
+        width: 222
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9d9562d41754c34b3211ff272eaf0beb
+      internalID: -731736675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART139_Machete_07_KeenRazorEdge
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 261
+        width: 162
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49225e9618966cf7b3d92f9b24641cac
+      internalID: -1772215735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART140_Machete_08_HeavyChopWeight
+      rect:
+        serializedVersion: 2
+        x: 259
+        y: 274
+        width: 186
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c202dc5d9d5dd124172c057ad9e733ac
+      internalID: 1574699714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART141_Machete_09_BloodFrenzy
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 252
+        width: 181
+        height: 184
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 94e8f5933a11ed41e733d5ea17a30e37
+      internalID: -1812600684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART142_Machete_10_TemperedSawBack
+      rect:
+        serializedVersion: 2
+        x: 688
+        y: 290
+        width: 199
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2d5a38ec8865d6f2deaecc5af79ad7a
+      internalID: -1901865534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART143_Machete_11_ExecutionersArc
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 260
+        width: 229
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92dc9cb198336c2a5336660246293224
+      internalID: -1315119982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART144_Machete_12_EndlessCarnage
+      rect:
+        serializedVersion: 2
+        x: 1137
+        y: 243
+        width: 207
+        height: 202
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9dc3de6c26a57371af40887afe6453ba
+      internalID: 1826538397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART145_FireAxe_01_ForgedAxeHead
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 54
+        width: 172
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 296fb2086b536afa7b4b89f2e2de33a9
+      internalID: 145911593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART146_FireAxe_02_FiberglassHandle
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 70
+        width: 197
+        height: 116
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ecb8d6304f81cbd425e07d85e9866a7
+      internalID: 1670237006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART147_FireAxe_03_LongHaftReach
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 73
+        width: 206
+        height: 112
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 493122882a0409618f87ff970f33358f
+      internalID: -2011025079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART148_FireAxe_04_ArmorSplitter
+      rect:
+        serializedVersion: 2
+        x: 688
+        y: 57
+        width: 202
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 094e2aa69845f77c50173902529d035a
+      internalID: -1507176951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART149_FireAxe_05_SkullCracker
+      rect:
+        serializedVersion: 2
+        x: 916
+        y: 57
+        width: 191
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5824bcf9871a0406ad289e879aa8788f
+      internalID: -105110440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART150_FireAxe_06_CleavingSweep
+      rect:
+        serializedVersion: 2
+        x: 1116
+        y: 57
+        width: 227
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 530de727f73f29da74e062c6f1d95c53
+      internalID: 669453651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: ac2884a372bcde8c247b572a499ad288
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART121_BaseballBat_01_BarbedWireWrap: -16292221
+      ART122_BaseballBat_02_CorkedCore: 1703876341
+      ART123_BaseballBat_03_LongSluggerShaft: 349233664
+      ART124_BaseballBat_04_WeightedTip: -433639539
+      ART125_BaseballBat_05_SteelStuds: -1550430992
+      ART126_BaseballBat_06_ConcussionSwing: 887299725
+      ART127_BaseballBat_07_WideCleaveArc: 937499871
+      ART128_BaseballBat_08_SawbladeStuds: -1237260370
+      ART129_BaseballBat_09_HomeRunImpact: 1473479573
+      ART130_BaseballBat_10_BrawlersGrit: 2023345690
+      ART131_BaseballBat_11_GrandSlamCore: -1873386839
+      ART132_BaseballBat_12_BattersFury: 1010733342
+      ART133_Machete_01_CarbonSteelBlade: 1956008291
+      ART134_Machete_02_BalancedHilt: 1135039437
+      ART135_Machete_03_JungleReach: -1782543505
+      ART136_Machete_04_HeavyCleaverSpine: 249594672
+      ART137_Machete_05_ButchersRhythm: 321298560
+      ART138_Machete_06_GoreCleave: -731736675
+      ART139_Machete_07_KeenRazorEdge: -1772215735
+      ART140_Machete_08_HeavyChopWeight: 1574699714
+      ART141_Machete_09_BloodFrenzy: -1812600684
+      ART142_Machete_10_TemperedSawBack: -1901865534
+      ART143_Machete_11_ExecutionersArc: -1315119982
+      ART144_Machete_12_EndlessCarnage: 1826538397
+      ART145_FireAxe_01_ForgedAxeHead: 145911593
+      ART146_FireAxe_02_FiberglassHandle: 1670237006
+      ART147_FireAxe_03_LongHaftReach: -2011025079
+      ART148_FireAxe_04_ArmorSplitter: -1507176951
+      ART149_FireAxe_05_SkullCracker: -105110440
+      ART150_FireAxe_06_CleavingSweep: 669453651
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

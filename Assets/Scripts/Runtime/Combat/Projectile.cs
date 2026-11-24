@@ -757,7 +757,19 @@ namespace TheLastEmpire
             if (_owner != null)
             {
                 if (collision.gameObject == _owner || collision.transform.IsChildOf(_owner.transform) || collision.transform.root == _owner.transform.root) return;
-                if (_owner.CompareTag("Player") && collision.CompareTag("Player")) return;
+                if (_owner.CompareTag("Player") && collision.CompareTag("Player"))
+                {
+                    // Allow bullets to hit co-op teammates for 20% friendly fire damage (skip if solo/disabled/downed)
+                    PlayerController hitAlly = collision.GetComponent<PlayerController>() ?? collision.GetComponentInParent<PlayerController>();
+                    if (hitAlly == null ||
+                        !TheLastEmpire.Network.EmpireNetworkManager.IsMultiplayer ||
+                        !TheLastEmpire.Network.NetworkPlayerBridge.FriendlyFireEnabled ||
+                        hitAlly.IsDowned ||
+                        (hitAlly.PlayerHealth != null && hitAlly.PlayerHealth.IsDead))
+                    {
+                        return;
+                    }
+                }
             }
             else if (collision.CompareTag("Player"))
             {
@@ -810,6 +822,17 @@ namespace TheLastEmpire
                         _weaponName,
                         _maxFalloffDistance
                     );
+
+                    // Multiplayer Friendly Fire: hitting a teammate deals 20% damage synced to their client (no lifesteal)
+                    if (TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(
+                            _owner, collision.gameObject, dmgResult.FinalDamage, exactHitPoint, dmgResult.IsCritical))
+                    {
+                        if (!_canPierce)
+                        {
+                            DeactivateProjectile();
+                        }
+                        return;
+                    }
 
                     damageable.TakeDamage(dmgResult.FinalDamage, exactHitPoint, dmgResult.IsCritical);
 
@@ -890,11 +913,12 @@ namespace TheLastEmpire
 
             // AOE Damage
             Collider[] targets = Physics.OverlapSphere(transform.position, activeRadius);
+            var hitPlayers = new System.Collections.Generic.HashSet<PlayerController>();
             foreach (var target in targets)
             {
-                if (_owner != null && target.gameObject == _owner) continue; // No friendly fire to owner
+                if (_owner != null && (target.gameObject == _owner || target.transform.root == _owner.transform.root)) continue; // No friendly fire to owner
                 
-                // Deal damage to enemies and obstacles
+                // Deal damage to enemies, teammates (20% friendly fire), and obstacles
                 IDamageable damageable = target.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
@@ -906,6 +930,18 @@ namespace TheLastEmpire
 
                     float distFromCenter = Vector3.Distance(transform.position, target.transform.position);
                     DamageResult dmgResult = DamageCalculator.CalculateExplosionDamage(_activeDamage, distFromCenter, activeRadius, _owner, _weaponName);
+
+                    PlayerController hitAlly = target.GetComponent<PlayerController>() ?? target.GetComponentInParent<PlayerController>();
+                    if (hitAlly != null && _owner != null && _owner.CompareTag("Player"))
+                    {
+                        if (hitPlayers.Add(hitAlly))
+                        {
+                            TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(
+                                _owner, target.gameObject, dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);
+                        }
+                        continue;
+                    }
+
                     damageable.TakeDamage(dmgResult.FinalDamage, target.transform.position, dmgResult.IsCritical);
 
                     if (_bonusKnockback > 0.01f || _bonusStagger > 0.01f)

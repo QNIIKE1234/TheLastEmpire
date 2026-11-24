@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: 9435d776a19bd1e49976407963b50df3
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART181_SurvivalSpear_01_ForgedSpearhead
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 880
+        width: 146
+        height: 189
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e38fe11688fee6bf720073783e60d135
+      internalID: 383881187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART182_SurvivalSpear_02_RapidThrustGrip
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 908
+        width: 176
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e8c265f079dee62a8a8dc0afd6d70c9
+      internalID: 1596361822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART183_SurvivalSpear_03_PikeExtension
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 909
+        width: 180
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a20dc37f1339022034768f5be573525
+      internalID: 937173098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART184_SurvivalSpear_04_BarbedHookTip
+      rect:
+        serializedVersion: 2
+        x: 712
+        y: 899
+        width: 169
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 67626b60437be46d6e9a09f0d9cc88a9
+      internalID: 1617650279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART185_SurvivalSpear_05_SkewerThrust
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 900
+        width: 200
+        height: 153
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df0d7c334b14de643f861a70c4a2c3d3
+      internalID: 863768031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART186_SurvivalSpear_06_HalberdSideBlade
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 897
+        width: 177
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2dd09e37d87fe98b3cb195cfb537a22b
+      internalID: 933154861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART187_SurvivalSpear_07_PhalanxBrace
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 689
+        width: 191
+        height: 163
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 53020b0eecd1554bf4f9de296fa8e21d
+      internalID: 235602515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART188_SurvivalSpear_08_WhirlwindThrust
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 668
+        width: 158
+        height: 182
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3cefb01e0d973f642d2ca0e3e8cb1a50
+      internalID: 514912060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART189_SurvivalSpear_09_DragonSlayerTip
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 687
+        width: 157
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92869a70d03f7e4599738957358bf7a9
+      internalID: 1889175186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART190_SurvivalSpear_10_ValkyrieSiphon
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 691
+        width: 204
+        height: 152
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5882ad7b2fe64b12947c542bd5f73489
+      internalID: 2074968664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART191_SurvivalSpear_11_LonginusReach
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 691
+        width: 164
+        height: 143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fdda10475b499fe0ddaae1f813631e8d
+      internalID: 1192286973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART192_SurvivalSpear_12_SpartanBarrage
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 678
+        width: 178
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1e2437bb36e07cd13a2139909e538133
+      internalID: -1154014178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART193_StunBaton_01_HeavyCoreRod
+      rect:
+        serializedVersion: 2
+        x: 61
+        y: 471
+        width: 131
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0aa6a3fdb5b76e656a57accd23d42c37
+      internalID: -39606774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART194_StunBaton_02_RapidBatonDrill
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 467
+        width: 175
+        height: 186
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3a576bd23268048b0f1176b3c56a255
+      internalID: -1116297789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART195_StunBaton_03_TelescopicRod
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 450
+        width: 134
+        height: 221
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a52b268702baf83e083139bd2f11861
+      internalID: 1756516874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART196_StunBaton_04_ImpactCapacitor
+      rect:
+        serializedVersion: 2
+        x: 733
+        y: 472
+        width: 126
+        height: 172
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3d33605137898c7716c05d9db235ebb
+      internalID: 87479235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART197_StunBaton_05_RiotSweeper
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 470
+        width: 172
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6480a5202d333320f14caa0b57bf215a
+      internalID: 547717220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART198_StunBaton_06_KineticSurge
+      rect:
+        serializedVersion: 2
+        x: 1180
+        y: 464
+        width: 136
+        height: 183
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 697b16cd5438783caf7eeedd772a36a4
+      internalID: -854164631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART199_StunBaton_07_PrecisionStrikeTip
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 271
+        width: 175
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85ff94bacaa97247755ebdf6e16559ab
+      internalID: -1164640379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART200_StunBaton_08_LockdownBaton
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 262
+        width: 158
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fe5bfee4cc3cf868e31b196d544ce5c
+      internalID: -289413761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART201_StunBaton_09_EnforcerCombo
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 280
+        width: 206
+        height: 124
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 799f3a3facb377e29df384336fa951e3
+      internalID: 1060806521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART202_StunBaton_10_TacticalRecovery
+      rect:
+        serializedVersion: 2
+        x: 709
+        y: 262
+        width: 179
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f996a29f883ee73760df4faba657092
+      internalID: 694851967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART203_StunBaton_11_RiotMasterCore
+      rect:
+        serializedVersion: 2
+        x: 927
+        y: 267
+        width: 201
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e41f1cdb77fd694b35bbdcb51ba762a0
+      internalID: -618913820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART204_StunBaton_12_HyperPulseOverdrive
+      rect:
+        serializedVersion: 2
+        x: 1145
+        y: 262
+        width: 204
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be1fd596a1945a3afabf008c73757fca
+      internalID: -1764417602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART205_Chainsaw_01_DiamondTipChain
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 44
+        width: 186
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c37963a0667b86e07b0a414c7078aa4f
+      internalID: -1604093501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART206_Chainsaw_02_HighRPMCarburetor
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 46
+        width: 181
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 43ccbd452f9821dd477efafca2a11d2b
+      internalID: 1170066499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART207_Chainsaw_03_LongGuideBar
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 77
+        width: 208
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b735fe9192729f99b68c40ee7a7953d
+      internalID: -379620565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART208_Chainsaw_04_HeavyFlywheel
+      rect:
+        serializedVersion: 2
+        x: 706
+        y: 37
+        width: 181
+        height: 178
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ec28958d257dceafc136d25daea84b6
+      internalID: 1485423246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART209_Chainsaw_05_RipSawTeeth
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 80
+        width: 198
+        height: 92
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6e2fd84af4a7c9a2ad3f6626b6a33d36
+      internalID: 1255681902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART210_Chainsaw_06_TurboExhaust
+      rect:
+        serializedVersion: 2
+        x: 1159
+        y: 56
+        width: 184
+        height: 134
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e68bcd9881941fdcc542fd82a337201
+      internalID: -641963890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: f1529596a1c5cfedfe73d336ae4f128e
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART181_SurvivalSpear_01_ForgedSpearhead: 383881187
+      ART182_SurvivalSpear_02_RapidThrustGrip: 1596361822
+      ART183_SurvivalSpear_03_PikeExtension: 937173098
+      ART184_SurvivalSpear_04_BarbedHookTip: 1617650279
+      ART185_SurvivalSpear_05_SkewerThrust: 863768031
+      ART186_SurvivalSpear_06_HalberdSideBlade: 933154861
+      ART187_SurvivalSpear_07_PhalanxBrace: 235602515
+      ART188_SurvivalSpear_08_WhirlwindThrust: 514912060
+      ART189_SurvivalSpear_09_DragonSlayerTip: 1889175186
+      ART190_SurvivalSpear_10_ValkyrieSiphon: 2074968664
+      ART191_SurvivalSpear_11_LonginusReach: 1192286973
+      ART192_SurvivalSpear_12_SpartanBarrage: -1154014178
+      ART193_StunBaton_01_HeavyCoreRod: -39606774
+      ART194_StunBaton_02_RapidBatonDrill: -1116297789
+      ART195_StunBaton_03_TelescopicRod: 1756516874
+      ART196_StunBaton_04_ImpactCapacitor: 87479235
+      ART197_StunBaton_05_RiotSweeper: 547717220
+      ART198_StunBaton_06_KineticSurge: -854164631
+      ART199_StunBaton_07_PrecisionStrikeTip: -1164640379
+      ART200_StunBaton_08_LockdownBaton: -289413761
+      ART201_StunBaton_09_EnforcerCombo: 1060806521
+      ART202_StunBaton_10_TacticalRecovery: 694851967
+      ART203_StunBaton_11_RiotMasterCore: -618913820
+      ART204_StunBaton_12_HyperPulseOverdrive: -1764417602
+      ART205_Chainsaw_01_DiamondTipChain: -1604093501
+      ART206_Chainsaw_02_HighRPMCarburetor: 1170066499
+      ART207_Chainsaw_03_LongGuideBar: -379620565
+      ART208_Chainsaw_04_HeavyFlywheel: 1485423246
+      ART209_Chainsaw_05_RipSawTeeth: 1255681902
+      ART210_Chainsaw_06_TurboExhaust: -641963890
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

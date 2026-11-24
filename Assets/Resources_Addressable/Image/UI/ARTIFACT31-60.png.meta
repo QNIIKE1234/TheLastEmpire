@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: fe343ae1546f15444b3a2233a7e77d00
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART031_SMG_07_ExtendedCarbineKit
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 894
+        width: 142
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4887b8890e341da448c6d87342a3b9b5
+      internalID: -1984395448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART032_SMG_08_ReflexCritOptic
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 897
+        width: 153
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 691c5bb211e1a59961475a539e67d398
+      internalID: -1302651799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART033_SMG_09_BulletHoseCore
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 905
+        width: 163
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f2bbeb616a279f24f4f2eb203ae49c6
+      internalID: -1229050977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART034_SMG_10_HollowShredder
+      rect:
+        serializedVersion: 2
+        x: 721
+        y: 904
+        width: 152
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64fafb8ab251de69bc5953dc181a898d
+      internalID: -1963197852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART035_SMG_11_EndlessSpray
+      rect:
+        serializedVersion: 2
+        x: 943
+        y: 905
+        width: 151
+        height: 145
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4fa2ebfafb5bb4899383400683cf348
+      internalID: -1087440172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART036_SMG_12_StormSweeper
+      rect:
+        serializedVersion: 2
+        x: 1159
+        y: 894
+        width: 160
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3715aa7f22e33cfb6f692b6288cfbe5d
+      internalID: 2141852983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART037_Shotgun_01_HeavyBuckshot
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 692
+        width: 185
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49ca1397fb61190fc036e4c92245b0fc
+      internalID: -1760310711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART038_Shotgun_02_PumpAssist
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 693
+        width: 157
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0cbdbd9c4e560e7db0e59e23d15d9d2
+      internalID: -639906896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART039_Shotgun_03_TubeExtension
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 692
+        width: 166
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 35cd30bff5ed73ac1c733d0d43bb107d
+      internalID: -1087320779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART040_Shotgun_04_ShellCarrier
+      rect:
+        serializedVersion: 2
+        x: 712
+        y: 695
+        width: 167
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c3f4ae3c8010a161aa2347c57c418a9
+      internalID: -481673332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART041_Shotgun_05_ExtraPelletPack
+      rect:
+        serializedVersion: 2
+        x: 942
+        y: 697
+        width: 155
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3f2e931f683a3b64b1245843260c0415
+      internalID: 529739327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART042_Shotgun_06_LongRangeChoke
+      rect:
+        serializedVersion: 2
+        x: 1162
+        y: 691
+        width: 156
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c0d8a7cdb43ce3f20560f254615771e
+      internalID: 2089422124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART043_Shotgun_07_SolidSlugMod
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 481
+        width: 157
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ef338ebc81175df1c86de9654764b2bb
+      internalID: -1131531281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART044_Shotgun_08_AutoShotgunReceiver
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 479
+        width: 161
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb74bda12b17c9a13034d7520d0f9e94
+      internalID: -1581419317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART045_Shotgun_09_RiotBreacher
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 479
+        width: 165
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4606b4e648644306378945ed7ed0a86
+      internalID: 1315660004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART046_Shotgun_10_ShellRecycler
+      rect:
+        serializedVersion: 2
+        x: 716
+        y: 483
+        width: 162
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d2f69ba910565c54c312ba0515a1a45d
+      internalID: -1449396526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART047_Shotgun_11_DoubleBarrelSalvo
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 488
+        width: 164
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47be4fc04a2fab237e619f786c984225
+      internalID: -1068515769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART048_Shotgun_12_DoomsweeperCore
+      rect:
+        serializedVersion: 2
+        x: 1157
+        y: 478
+        width: 163
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77ae808ee6bf42fcedca4b55d319ed12
+      internalID: -1904169353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART049_Rifle_01_MatchGradeBarrel
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 286
+        width: 157
+        height: 135
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c04a5ea6ef957e337d875cf58dc3521c
+      internalID: -1503769920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART050_Rifle_02_GasBlockTuner
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 284
+        width: 174
+        height: 127
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f4c2fa6c19e29607257bad692d2a640c
+      internalID: 1828373236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART051_Rifle_03_DualClampedMag
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 271
+        width: 164
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e878faf4c0e18c4205ab475e2d0b873e
+      internalID: -184911640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART052_Rifle_04_SleightofHandMag
+      rect:
+        serializedVersion: 2
+        x: 716
+        y: 271
+        width: 159
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b965e9a954f5613827c86d0f86e58a9
+      internalID: -1705077173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART053_Rifle_05_DoubleTapChamber
+      rect:
+        serializedVersion: 2
+        x: 942
+        y: 281
+        width: 150
+        height: 143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 710e72520f5b5a10e1c35df3099329d6
+      internalID: 1383206513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART054_Rifle_06_APSteelCore
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 271
+        width: 155
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f37f061c45beeafdc6cc7850b57c24e4
+      internalID: 470188019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART055_Rifle_07_MarksmanOptic
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 86
+        width: 180
+        height: 105
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e887c13363ec534c0a89df0c8d17f7f
+      internalID: 326928542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART056_Rifle_08_HeavyRecoilBuffer
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 62
+        width: 164
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bfcca7e6948eba6de2a9bdb653bfc9bf
+      internalID: -425210689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART057_Rifle_09_RampUpBarrel
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 69
+        width: 152
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59dd5507fbd86aa39f6efc92b4e9bad9
+      internalID: 123067737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART058_Rifle_10_AmmoConserver
+      rect:
+        serializedVersion: 2
+        x: 717
+        y: 68
+        width: 158
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2fcc2665fcda9d20db985cd19125e701
+      internalID: 1697041455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART059_Rifle_11_TriBurstRail
+      rect:
+        serializedVersion: 2
+        x: 937
+        y: 56
+        width: 164
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86baf7031f57e7e51a271828e1cb55f9
+      internalID: 66566790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART060_Rifle_12_TacticalOverdrive
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 58
+        width: 152
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f744dd39230d9aa1cb175d89f00c349d
+      internalID: 970802423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 383df836405d4e571a60d3b9fce7e528
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART031_SMG_07_ExtendedCarbineKit: -1984395448
+      ART032_SMG_08_ReflexCritOptic: -1302651799
+      ART033_SMG_09_BulletHoseCore: -1229050977
+      ART034_SMG_10_HollowShredder: -1963197852
+      ART035_SMG_11_EndlessSpray: -1087440172
+      ART036_SMG_12_StormSweeper: 2141852983
+      ART037_Shotgun_01_HeavyBuckshot: -1760310711
+      ART038_Shotgun_02_PumpAssist: -639906896
+      ART039_Shotgun_03_TubeExtension: -1087320779
+      ART040_Shotgun_04_ShellCarrier: -481673332
+      ART041_Shotgun_05_ExtraPelletPack: 529739327
+      ART042_Shotgun_06_LongRangeChoke: 2089422124
+      ART043_Shotgun_07_SolidSlugMod: -1131531281
+      ART044_Shotgun_08_AutoShotgunReceiver: -1581419317
+      ART045_Shotgun_09_RiotBreacher: 1315660004
+      ART046_Shotgun_10_ShellRecycler: -1449396526
+      ART047_Shotgun_11_DoubleBarrelSalvo: -1068515769
+      ART048_Shotgun_12_DoomsweeperCore: -1904169353
+      ART049_Rifle_01_MatchGradeBarrel: -1503769920
+      ART050_Rifle_02_GasBlockTuner: 1828373236
+      ART051_Rifle_03_DualClampedMag: -184911640
+      ART052_Rifle_04_SleightofHandMag: -1705077173
+      ART053_Rifle_05_DoubleTapChamber: 1383206513
+      ART054_Rifle_06_APSteelCore: 470188019
+      ART055_Rifle_07_MarksmanOptic: 326928542
+      ART056_Rifle_08_HeavyRecoilBuffer: -425210689
+      ART057_Rifle_09_RampUpBarrel: 123067737
+      ART058_Rifle_10_AmmoConserver: 1697041455
+      ART059_Rifle_11_TriBurstRail: 66566790
+      ART060_Rifle_12_TacticalOverdrive: 970802423
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

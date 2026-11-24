@@ -11,6 +11,9 @@ namespace TheLastEmpire.Network
     /// </summary>
     public class NetworkPlayerBridge : NetworkBehaviour
     {
+        public const float FriendlyFireDamageMultiplier = 0.20f; // 20% friendly fire damage in Multiplayer
+        public static bool FriendlyFireEnabled = true;
+
         private PlayerController _player;
         private Rigidbody _rb;
         private float _syncSendTimer = 0f;
@@ -63,7 +66,7 @@ namespace TheLastEmpire.Network
                 interiorId = curInteriorId,
                 position = _player.transform.position,
                 velocity = _rb != null ? _rb.linearVelocity : new Vector3(_player.MoveInput.x, 0f, _player.MoveInput.y),
-                aimDirection = _player.AimDirection,
+                aimDirection = _player.IsSitting ? _player.transform.forward : _player.AimDirection,
                 currentHealth = h != null ? h.CurrentHealth : 100f,
                 maxHealth = h != null ? h.MaxHealth : 100f,
                 heldItemType = (byte)_player.CurrentHeldItemType,
@@ -345,6 +348,131 @@ namespace TheLastEmpire.Network
                     }
                 }
             }
+        }
+
+        // =====================================================
+        //  Multiplayer Friendly Fire (20% Damage Sync)
+        // =====================================================
+
+        /// <summary>
+        /// Checks if `targetObj` is a teammate PlayerController (distinct from `attackerObj`).
+        /// Returns true if `targetObj` IS a player (handled here — caller should NOT also apply 100% TakeDamage).
+        /// Applies 20% damage synced to the teammate's owner machine (or directly to Simulated Co-op Bots).
+        /// </summary>
+        public static bool TryApplyFriendlyFireDamage(
+            GameObject attackerObj,
+            GameObject targetObj,
+            float fullDamage,
+            Vector3 hitPoint,
+            bool isCritical)
+        {
+            if (targetObj == null) return false;
+
+            PlayerController targetPlayer = targetObj.GetComponent<PlayerController>() ?? targetObj.GetComponentInParent<PlayerController>();
+            if (targetPlayer == null) return false;
+
+            PlayerController attackerPlayer = attackerObj != null
+                ? (attackerObj.GetComponent<PlayerController>() ?? attackerObj.GetComponentInParent<PlayerController>())
+                : null;
+            if (attackerPlayer == null) return false; // Enemy hitting player -> let normal 100% damage run
+
+            // Never self-damage
+            if (attackerPlayer == targetPlayer) return true;
+
+            // Only apply in Multiplayer when Friendly Fire is enabled & attacker is our local player (not remote visual replay!)
+            if (!FriendlyFireEnabled || !EmpireNetworkManager.IsMultiplayer) return true;
+            if (attackerPlayer.IsRemotePlayer || fullDamage <= 0.001f) return true;
+
+            // Do not damage already downed or dead teammates
+            if (targetPlayer.IsDowned || (targetPlayer.PlayerHealth != null && targetPlayer.PlayerHealth.IsDead)) return true;
+
+            float ffDamage = Mathf.Max(1f, fullDamage * FriendlyFireDamageMultiplier);
+
+            if (targetPlayer.IsSimulatedCoopBot)
+            {
+                if (targetPlayer.PlayerHealth != null)
+                {
+                    targetPlayer.PlayerHealth.TakeDamage(ffDamage, hitPoint, isCritical);
+                }
+                return true;
+            }
+
+            if (targetPlayer.IsRemotePlayer && EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
+            {
+                // Immediate visual feedback on shooter's screen
+                if (DamageNumberManager.Instance != null)
+                {
+                    DamageNumberManager.Instance.SpawnDamageNumber(hitPoint + Vector3.up * 0.7f, ffDamage, isCritical);
+                }
+
+                int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+                int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+                int interiorId = BuildingInteriorManager.CurrentInteriorId;
+                ulong targetClientId = targetPlayer.NetworkClientId;
+                ulong attackerClientId = EmpireNetworkManager.Instance.LocalClientId;
+
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.FriendlyFireDamage, w =>
+                {
+                    w.Write(targetClientId);
+                    w.Write(attackerClientId);
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(interiorId);
+                    w.Write(ffDamage);
+                    w.Write(hitPoint.x);
+                    w.Write(hitPoint.y);
+                    w.Write(hitPoint.z);
+                    w.Write(isCritical);
+                });
+            }
+
+            return true;
+        }
+
+        public static void HandleIncomingFriendlyFireDamage(
+            ulong targetClientId,
+            ulong attackerClientId,
+            int stageX,
+            int stageY,
+            int interiorId,
+            float damage,
+            Vector3 hitPoint,
+            bool isCritical,
+            bool relayIfHost)
+        {
+            if (EmpireNetworkManager.Instance == null || damage <= 0.001f) return;
+
+            // If Host receives a Client-to-Client friendly fire hit, relay it directly to the target client
+            if (relayIfHost && EmpireNetworkManager.IsOnlineHost && targetClientId != EmpireNetworkManager.Instance.LocalClientId)
+            {
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.FriendlyFireDamage, w =>
+                {
+                    w.Write(targetClientId);
+                    w.Write(attackerClientId);
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(interiorId);
+                    w.Write(damage);
+                    w.Write(hitPoint.x);
+                    w.Write(hitPoint.y);
+                    w.Write(hitPoint.z);
+                    w.Write(isCritical);
+                }, targetClientId);
+                return;
+            }
+
+            if (targetClientId != EmpireNetworkManager.Instance.LocalClientId) return;
+
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (stageX != myStageX || stageY != myStageY || interiorId != myInteriorId) return;
+
+            PlayerController local = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (local == null || local.IsRemotePlayer || local.IsDowned) return;
+            if (local.PlayerHealth == null || local.PlayerHealth.IsDead) return;
+
+            local.PlayerHealth.TakeDamage(damage, hitPoint, isCritical);
         }
     }
 }

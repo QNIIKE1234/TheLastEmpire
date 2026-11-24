@@ -73,8 +73,12 @@ namespace TheLastEmpire
 
         private void FindPlayer()
         {
-            PlayerController pc = Object.FindFirstObjectByType<PlayerController>();
-            if (pc != null)
+            PlayerController pc = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (pc == null)
+            {
+                pc = Object.FindFirstObjectByType<PlayerController>();
+            }
+            if (pc != null && !pc.IsRemotePlayer)
             {
                 _playerController = pc;
             }
@@ -118,8 +122,18 @@ namespace TheLastEmpire
 
             if (DayNightManager.Instance != null)
             {
-                DayNightManager.Instance.AddDays(1);
-                DayNightManager.Instance.SetPhase(DayNightManager.TimePhase.Day, true);
+                if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
+                {
+                    // Request Host to advance everyone to dawn & broadcast DayNightTimeSync
+                    TheLastEmpire.Network.NetworkBuildingSyncManager.NotifyLocalFurnitureStateChanged(
+                        _buildingObject,
+                        TheLastEmpire.Network.FurnitureStateSyncType.BedSleepToDawn);
+                }
+                else
+                {
+                    DayNightManager.Instance.AddDays(1);
+                    DayNightManager.Instance.SetPhase(DayNightManager.TimePhase.Day, true);
+                }
             }
 
             if (_playerController == null)

@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: a959dcaad1dd9054d8cda62b38fe4830
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART061_SniperRifle_01_HighCaliberBolt
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 898
+        width: 180
+        height: 167
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a724cec93bb7441083f25a5a3b5f0c1
+      internalID: -330534390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART062_SniperRifle_02_StraightPullBolt
+      rect:
+        serializedVersion: 2
+        x: 289
+        y: 898
+        width: 137
+        height: 152
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b26ab8aaddcae7e08de8fc016de1f69
+      internalID: -1968495093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART063_SniperRifle_03_ExtendedSniperMag
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 916
+        width: 165
+        height: 127
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d40fcec5d1ae2e1257641d27e57bd937
+      internalID: -976351276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART064_SniperRifle_04_PrecisionLoader
+      rect:
+        serializedVersion: 2
+        x: 715
+        y: 924
+        width: 168
+        height: 109
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32123c96a1a65dba4edd824803c61e06
+      internalID: -1774448078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART065_SniperRifle_05_TwinShotChamber
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 919
+        width: 171
+        height: 117
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b1943b4da068e9139e8fa5f8953788d
+      internalID: -1270670949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART066_SniperRifle_06_RailgunPiercer
+      rect:
+        serializedVersion: 2
+        x: 1157
+        y: 918
+        width: 166
+        height: 120
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82a599ec6464f84be9c991f60cca93df
+      internalID: -325474942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART067_SniperRifle_07_AutoSniperReceiver
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 687
+        width: 139
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da8b493057c5e657bf9a0661000ca33c
+      internalID: 810126298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART068_SniperRifle_08_HeadshotAmplifier
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 675
+        width: 170
+        height: 175
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 484a6861a850f13d1c3e89b8d4da218e
+      internalID: 1634224712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART069_SniperRifle_09_AntiMaterielRound
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 674
+        width: 114
+        height: 172
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e465d87b5bd76ca2c75d0d50478b913d
+      internalID: 2077779428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART070_SniperRifle_10_GhostMagazine
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 677
+        width: 149
+        height: 167
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5beeac4c48c9776a6b5f70350cb684b4
+      internalID: 1286401627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART071_SniperRifle_11_TripleLineRail
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 698
+        width: 192
+        height: 118
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 262fcba28910463f5ac7b5fa71dc3658
+      internalID: -1563742426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART072_SniperRifle_12_OneShotSovereign
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 687
+        width: 136
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b564846fd14d661b75bdeed798c7af23
+      internalID: 1870947509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART073_Crossbow_01_ReinforcedLimb
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 472
+        width: 165
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28fa9c04d898b1e9ecb39818e5e51324
+      internalID: 77396520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART074_Crossbow_02_QuickDrawPulley
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 474
+        width: 164
+        height: 159
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0df87339650cfe87c676152fc175e61
+      internalID: 864542688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART075_Crossbow_03_RepeatingQuiver
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 482
+        width: 177
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ac150756267b039fd4a4afe3770e600
+      internalID: 1968226666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART076_Crossbow_04_AutoWinchCrank
+      rect:
+        serializedVersion: 2
+        x: 710
+        y: 476
+        width: 162
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56972c6afc52f4e883a66e4f117da136
+      internalID: 1781307222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART077_Crossbow_05_SplitBoltFork
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 488
+        width: 170
+        height: 116
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84c124f76545294d2759e9bfe445fbcd
+      internalID: -148586108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART078_Crossbow_06_SkewerBolt
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 482
+        width: 176
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 538fef83bd153461a5fcfa45e96b8fc2
+      internalID: -2081452205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART079_Crossbow_07_RepeaterTrigger
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 276
+        width: 146
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fac70b7f16e4ba21fd4c1062cb0b3912
+      internalID: 2131478522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART080_Crossbow_08_HunterScope
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 258
+        width: 169
+        height: 165
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bbef2ebb688260f96c99668e5d8196c
+      internalID: -336413125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART081_Crossbow_09_TriSpreadBow
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 290
+        width: 167
+        height: 112
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5495932021c21a6ccb91d6a50019473b
+      internalID: 546542932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART082_Crossbow_10_BoltRecycler
+      rect:
+        serializedVersion: 2
+        x: 708
+        y: 277
+        width: 159
+        height: 130
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0f8afa9cf25deeff5b462d67d33bfd6
+      internalID: -1448085296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART083_Crossbow_11_SiegeBallistaCore
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 284
+        width: 184
+        height: 117
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ebd759f697eda89fe13e3b9595773bae
+      internalID: -161884181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART084_Crossbow_12_HuntersVolley
+      rect:
+        serializedVersion: 2
+        x: 1153
+        y: 275
+        width: 172
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 42af54bc87914c322745d5641726d090
+      internalID: -1135300798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART085_Flamethrower_01_HighDensityFuel
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 59
+        width: 131
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7d81e4c047981104a9160622c96581b
+      internalID: 1277090039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART086_Flamethrower_02_HighPressureValve
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 62
+        width: 163
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f9b0a08ba1e30679821bae5d9a1e4aeb
+      internalID: -1952403207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART087_Flamethrower_03_PressurizedTank
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 61
+        width: 162
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e28499ba49b6e8aa69d1a60f91b808d8
+      internalID: -1164344094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART088_Flamethrower_04_QuickSwapCanister
+      rect:
+        serializedVersion: 2
+        x: 697
+        y: 82
+        width: 180
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93471c12d393e9ef92067753ccc8aefe
+      internalID: 303843219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART089_Flamethrower_05_WideConeNozzle
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 60
+        width: 138
+        height: 152
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f695c644b55b341fbe30fac08d655f0d
+      internalID: 1153865206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART090_Flamethrower_06_LongJetNozzle
+      rect:
+        serializedVersion: 2
+        x: 1145
+        y: 80
+        width: 191
+        height: 102
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ead08c95149823f670a640b07761e9a
+      internalID: -922178178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: d3b2a765cc586778e14126a3a8077797
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART061_SniperRifle_01_HighCaliberBolt: -330534390
+      ART062_SniperRifle_02_StraightPullBolt: -1968495093
+      ART063_SniperRifle_03_ExtendedSniperMag: -976351276
+      ART064_SniperRifle_04_PrecisionLoader: -1774448078
+      ART065_SniperRifle_05_TwinShotChamber: -1270670949
+      ART066_SniperRifle_06_RailgunPiercer: -325474942
+      ART067_SniperRifle_07_AutoSniperReceiver: 810126298
+      ART068_SniperRifle_08_HeadshotAmplifier: 1634224712
+      ART069_SniperRifle_09_AntiMaterielRound: 2077779428
+      ART070_SniperRifle_10_GhostMagazine: 1286401627
+      ART071_SniperRifle_11_TripleLineRail: -1563742426
+      ART072_SniperRifle_12_OneShotSovereign: 1870947509
+      ART073_Crossbow_01_ReinforcedLimb: 77396520
+      ART074_Crossbow_02_QuickDrawPulley: 864542688
+      ART075_Crossbow_03_RepeatingQuiver: 1968226666
+      ART076_Crossbow_04_AutoWinchCrank: 1781307222
+      ART077_Crossbow_05_SplitBoltFork: -148586108
+      ART078_Crossbow_06_SkewerBolt: -2081452205
+      ART079_Crossbow_07_RepeaterTrigger: 2131478522
+      ART080_Crossbow_08_HunterScope: -336413125
+      ART081_Crossbow_09_TriSpreadBow: 546542932
+      ART082_Crossbow_10_BoltRecycler: -1448085296
+      ART083_Crossbow_11_SiegeBallistaCore: -161884181
+      ART084_Crossbow_12_HuntersVolley: -1135300798
+      ART085_Flamethrower_01_HighDensityFuel: 1277090039
+      ART086_Flamethrower_02_HighPressureValve: -1952403207
+      ART087_Flamethrower_03_PressurizedTank: -1164344094
+      ART088_Flamethrower_04_QuickSwapCanister: 303843219
+      ART089_Flamethrower_05_WideConeNozzle: 1153865206
+      ART090_Flamethrower_06_LongJetNozzle: -922178178
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

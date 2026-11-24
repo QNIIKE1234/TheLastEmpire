@@ -614,10 +614,11 @@ namespace TheLastEmpire
             }
             buildingComp.Initialize(_activeData);
 
-            // บันทึกพิกัด Stage X, Y ที่วาง เพื่อไม่ให้สิ่งปลูกสร้างตามผู้เล่นไปเมื่อย้ายแมพ
+            // บันทึกพิกัด Stage X, Y และรหัสภายในบ้าน (InteriorId) ที่วาง เพื่อไม่ให้สิ่งปลูกสร้างโผล่ผิดแมพ/ผิดชั้น/นอกบ้าน
             int currentStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 0;
             int currentStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 0;
-            buildingComp.SetStageCoordinates(currentStageX, currentStageY);
+            int currentInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            buildingComp.SetStageCoordinates(currentStageX, currentStageY, currentInteriorId);
 
             if (BuildingManager.Instance != null)
             {

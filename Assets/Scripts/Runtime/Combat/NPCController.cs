@@ -98,8 +98,13 @@ namespace TheLastEmpire
         public Sprite CharacterImage => npcData != null ? npcData.characterImage : null;
         public Sprite NpcIcon => npcData != null ? npcData.npcIcon : null;
 
-        [Header("Sitting Behavior")]
-        [SerializeField] private bool canSit = true;
+        [Header("Sitting & Cool Stand Pose Behavior")]
+        [Tooltip("When true, NPC stands in a cool signature pose instead of sitting on the ground, and switches to Talk when the player approaches.")]
+        [SerializeField] private bool useCoolStandPose = true;
+        [Tooltip("Optional override Animator state name (e.g. Pose_03_TacticalReach, Pose_09_RoninCrossed). Leave empty to auto-match by NPC name.")]
+        [SerializeField] private string coolStandPoseState = "";
+        [SerializeField] private bool playTalkAnimWhenPlayerNear = true;
+        [SerializeField] private bool canSit = false;
         [SerializeField] private float standDetectionRadius = 3.5f;
         [SerializeField] private float sitCooldownDuration = 5.0f; // ดีเลย์ 5 วินาทีก่อนกลับไปนั่ง
 
@@ -111,6 +116,9 @@ namespace TheLastEmpire
 
         private Animator _animator;
         private bool _isSitting = false;
+        private bool _isTalkingPose = false;
+        private string _resolvedCoolPoseState;
+        private Quaternion _initialRotation;
         private float _leaveTimer = 0f;
         private bool _wasPlayerNearby = false;
         private float _nextSpeechAllowedTime = 0f;
@@ -134,12 +142,17 @@ namespace TheLastEmpire
             }
 
             CacheAnimator();
+            _initialRotation = transform.rotation;
+            _resolvedCoolPoseState = ResolveCoolPoseStateName();
 
             // Apply crisp cartoon ink silhouette outline to NPC characters
             CharacterToonOutline.AttachOrRefresh(gameObject);
 
-            // เริ่มต้นให้นั่งถ้าเปิดใช้งาน canSit
-            if (canSit)
+            if (useCoolStandPose)
+            {
+                PlayStandingPose(false, instant: true);
+            }
+            else if (canSit)
             {
                 SetSittingState(true);
             }
@@ -164,14 +177,48 @@ namespace TheLastEmpire
                 if (player != null && !player.IsRemotePlayer) _playerTransform = player.transform;
             }
 
-            if (_playerTransform == null) return;
+            // For cool stand pose & Talk animation, react to the closest visible player (local OR co-op teammate!)
+            PlayerController closestVisible = TheLastEmpire.Network.PlayerRegistry.GetClosestAlivePlayer(transform.position);
+            Transform poseTarget = (closestVisible != null && closestVisible.gameObject.activeInHierarchy)
+                ? closestVisible.transform
+                : _playerTransform;
 
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            bool playerNearby = dist <= standDetectionRadius;
+            if (poseTarget == null) return;
 
-            if (canSit)
+            float poseDist = Vector3.Distance(transform.position, poseTarget.position);
+            bool anyPlayerNearby = poseDist <= standDetectionRadius;
+            float localDist = _playerTransform != null ? Vector3.Distance(transform.position, _playerTransform.position) : float.MaxValue;
+            bool playerNearby = localDist <= standDetectionRadius;
+
+            if (useCoolStandPose)
             {
-                if (playerNearby)
+                if (anyPlayerNearby)
+                {
+                    if (playTalkAnimWhenPlayerNear && !_isTalkingPose)
+                    {
+                        PlayStandingPose(true, instant: false);
+                    }
+                    // Gently turn toward the nearest approaching player while talking
+                    Vector3 toPlayer = poseTarget.position - transform.position;
+                    toPlayer.y = 0f;
+                    if (toPlayer.sqrMagnitude > 0.04f)
+                    {
+                        Quaternion targetRot = Quaternion.LookRotation(toPlayer.normalized);
+                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 5.5f);
+                    }
+                }
+                else
+                {
+                    if (_isTalkingPose)
+                    {
+                        PlayStandingPose(false, instant: false);
+                    }
+                    transform.rotation = Quaternion.Slerp(transform.rotation, _initialRotation, Time.deltaTime * 3.0f);
+                }
+            }
+            else if (canSit)
+            {
+                if (anyPlayerNearby)
                 {
                     _leaveTimer = 0f; // รีเซ็ตตัวนับเวลาตราบใดที่ Player ยังอยู่ใกล้ๆ
                     // ผู้เล่นเข้าใกล้ -> ลุกขึ้นยืน
@@ -252,6 +299,62 @@ namespace TheLastEmpire
             {
                 LootUI.Instance.HideDialogHint(transform);
             }
+        }
+
+        private static readonly string[] DefaultCoolPoses =
+        {
+            "Pose_01_AssassinKnife",
+            "Pose_02_BatShoulder",
+            "Pose_03_TacticalReach",
+            "Pose_04_HeadphonePop",
+            "Pose_05_CyanSassy",
+            "Pose_06_DreadGrab",
+            "Pose_07_CurlyHips",
+            "Pose_08_StrikerScan",
+            "Pose_09_RoninCrossed",
+            "Pose_10_BlueOperative"
+        };
+
+        private string ResolveCoolPoseStateName()
+        {
+            if (!string.IsNullOrWhiteSpace(coolStandPoseState))
+                return coolStandPoseState.Trim();
+
+            string key = (npcName + " " + gameObject.name).ToLowerInvariant();
+            if (key.Contains("zack") || key.Contains("tactical")) return "Pose_03_TacticalReach";
+            if (key.Contains("maya") || key.Contains("punk") || key.Contains("scout")) return "Pose_02_BatShoulder";
+            if (key.Contains("elena") || key.Contains("curly") || key.Contains("medic")) return "Pose_07_CurlyHips";
+            if (key.Contains("otto") || key.Contains("striker") || key.Contains("gunsmith")) return "Pose_08_StrikerScan";
+            if (key.Contains("roy") || key.Contains("ronin") || key.Contains("veteran")) return "Pose_09_RoninCrossed";
+            if (key.Contains("blue") || key.Contains("operative")) return "Pose_10_BlueOperative";
+            if (key.Contains("dread") || key.Contains("brawler")) return "Pose_06_DreadGrab";
+
+            int hash = Mathf.Abs((npcName ?? gameObject.name).GetHashCode());
+            return DefaultCoolPoses[hash % DefaultCoolPoses.Length];
+        }
+
+        private void PlayStandingPose(bool talking, bool instant)
+        {
+            _isSitting = false;
+            _isTalkingPose = talking;
+            if (_animator == null) CacheAnimator();
+            if (_animator == null) return;
+
+            _animator.SetBool(IsSittingHash, false);
+            _animator.SetFloat("Speed", 0f);
+            _animator.SetBool("IsRunning", false);
+
+            string desired = talking ? "Talk" : (!string.IsNullOrEmpty(_resolvedCoolPoseState) ? _resolvedCoolPoseState : "Idle");
+            int hash = Animator.StringToHash(desired);
+            if (!_animator.HasState(0, hash))
+            {
+                desired = "Idle";
+            }
+
+            if (instant)
+                _animator.Play(desired, 0, 0f);
+            else
+                _animator.CrossFadeInFixedTime(desired, 0.24f, 0);
         }
 
         public void SetSittingState(bool sit, bool instant = false)
@@ -470,7 +573,12 @@ namespace TheLastEmpire
                         if (anim.runtimeAnimatorController != null)
                         {
                             _animator = anim;
-                            if (canSit)
+                            _resolvedCoolPoseState = ResolveCoolPoseStateName();
+                            if (useCoolStandPose)
+                            {
+                                PlayStandingPose(false, instant: true);
+                            }
+                            else if (canSit)
                             {
                                 SetSittingState(true);
                             }
@@ -553,6 +661,25 @@ namespace TheLastEmpire
                 {
                     int insertIdx = (breadIdx >= 0) ? breadIdx + 1 : shopItems.Count;
                     shopItems.Insert(insertIdx, new ShopItemConfig { item = waterData, price = 20 });
+                }
+            }
+
+            // Ensure Backpack Expansion (+7 slots, $1500, max 70 slots) is always stocked in merchant shops
+            bool hasBagExpansion = false;
+            for (int i = 0; i < shopItems.Count; i++)
+            {
+                if (ShopUI.IsBackpackExpansionItem(shopItems[i].item))
+                {
+                    hasBagExpansion = true;
+                    break;
+                }
+            }
+            if (!hasBagExpansion && ItemDatabase.Instance != null)
+            {
+                ItemData bagData = ItemDatabase.Instance.GetItemByName(ShopUI.BackpackExpansionItemName);
+                if (bagData != null)
+                {
+                    shopItems.Add(new ShopItemConfig { item = bagData, price = ShopUI.BackpackExpansionDefaultPrice });
                 }
             }
         }

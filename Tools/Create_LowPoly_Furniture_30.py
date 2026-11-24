@@ -839,7 +839,7 @@ def export_all_and_render_sheet():
             use_mesh_modifiers=True,
             mesh_smooth_type="FACE",
             bake_anim=False,
-            axis_forward="-Z",
+            axis_forward="Z",
             axis_up="Y",
             apply_scale_options="FBX_SCALE_ALL",
             path_mode="AUTO",

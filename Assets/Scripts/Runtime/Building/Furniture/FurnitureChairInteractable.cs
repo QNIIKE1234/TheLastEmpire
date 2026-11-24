@@ -24,7 +24,11 @@ namespace TheLastEmpire
         public Transform InteractionTransform => transform;
         public Vector3 PromptWorldOffset => Vector3.up * 1.45f;
         public float InteractionDistance => interactionDistance;
-        public bool CanInteract => isActiveAndEnabled && gameObject.activeInHierarchy && (_buildingObject == null || !_buildingObject.IsDead);
+        public bool CanInteract =>
+            isActiveAndEnabled &&
+            gameObject.activeInHierarchy &&
+            (_buildingObject == null || !_buildingObject.IsDead) &&
+            !(_seatedPlayer != null && _seatedPlayer.IsSitting);
 
         private void Awake()
         {
@@ -104,8 +108,8 @@ namespace TheLastEmpire
             // 1. Ignore collision between player and this chair FIRST so PhysX depenetration NEVER launches player into the sky!
             IgnoreCollisionsWithPlayer(pc);
 
-            // 2. Position player cleanly on the seat at ground level facing outward (-transform.forward = front of chair!)
-            Vector3 seatPos = transform.TransformPoint(new Vector3(seatLocalOffset.x, 0f, -Mathf.Abs(seatLocalOffset.z)));
+            // 2. Position player cleanly on the seat at ground level facing outward (+transform.forward = front of FBX chair/sofa!)
+            Vector3 seatPos = transform.TransformPoint(new Vector3(seatLocalOffset.x, 0f, Mathf.Abs(seatLocalOffset.z)));
             float groundY = Mathf.Clamp(pc.transform.position.y, 0.02f, 0.12f);
             Vector3 targetPos = new Vector3(seatPos.x, groundY, seatPos.z);
 
@@ -118,7 +122,7 @@ namespace TheLastEmpire
             }
             pc.transform.position = targetPos;
 
-            Vector3 fwd = -transform.forward;
+            Vector3 fwd = transform.forward;
             fwd.y = 0f;
             if (fwd.sqrMagnitude > 0.01f) pc.transform.forward = fwd.normalized;
 
@@ -133,8 +137,8 @@ namespace TheLastEmpire
             pc.SetSitting(false);
             _seatedPlayer = null;
 
-            // Step smoothly onto the front edge (-Z) of the chair before restoring collider contact
-            Vector3 standPos = transform.TransformPoint(new Vector3(0f, 0f, -0.95f));
+            // Step smoothly onto the front edge (+Z) of the chair before restoring collider contact
+            Vector3 standPos = transform.TransformPoint(new Vector3(0f, 0f, 0.95f));
             float groundY = Mathf.Clamp(pc.transform.position.y, 0.02f, 0.12f);
             Vector3 targetPos = new Vector3(standPos.x, groundY, standPos.z);
 

@@ -308,7 +308,7 @@ namespace TheLastEmpire
             if (_hasNetworkPose)
             {
                 transform.position = Vector3.Lerp(transform.position, _networkTargetPosition, Time.deltaTime * 16f);
-                if (!_isSitting && _networkTargetAimDir.sqrMagnitude > 0.01f)
+                if (_networkTargetAimDir.sqrMagnitude > 0.01f)
                 {
                     transform.forward = Vector3.Slerp(transform.forward, _networkTargetAimDir, Time.deltaTime * 18f);
                     _aimDirection = transform.forward;

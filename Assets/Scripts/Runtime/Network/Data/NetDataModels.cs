@@ -38,6 +38,7 @@ namespace TheLastEmpire.Network
         public string buildingId;
         public int stageX;
         public int stageY;
+        public int interiorId;
         public Vector3 position;
         public float rotationY;
         public float currentHealth;
@@ -48,6 +49,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref buildingId);
             serializer.SerializeValue(ref stageX);
             serializer.SerializeValue(ref stageY);
+            serializer.SerializeValue(ref interiorId);
             serializer.SerializeValue(ref position);
             serializer.SerializeValue(ref rotationY);
             serializer.SerializeValue(ref currentHealth);

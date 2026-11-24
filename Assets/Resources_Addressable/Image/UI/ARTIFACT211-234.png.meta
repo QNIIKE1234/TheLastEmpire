@@ -1,0 +1,682 @@
+fileFormatVersion: 2
+guid: ffbe1a4f1749a9b41b6b308e246c97ee
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART211_Chainsaw_07_ShredderReach
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 805
+        width: 201
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b5b8285b85cac6e667d1b97dc99a200
+      internalID: -2055054565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART212_Chainsaw_08_PrecisionTeeth
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 793
+        width: 176
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 199cb0817cb3fbd45b0f95f99e3d7955
+      internalID: -2119132135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART213_Chainsaw_09_BloodFueledEngine
+      rect:
+        serializedVersion: 2
+        x: 550
+        y: 798
+        width: 171
+        height: 176
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f40725e725e6ebc23362b3020567e81
+      internalID: 1584545823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART214_Chainsaw_10_ArmorGrinder
+      rect:
+        serializedVersion: 2
+        x: 803
+        y: 798
+        width: 172
+        height: 166
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 21351a77b2949b6856c34aa194b719da
+      internalID: 1998206241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART215_Chainsaw_11_DoomRipper
+      rect:
+        serializedVersion: 2
+        x: 1037
+        y: 823
+        width: 219
+        height: 125
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ecb5c20bc4f8dc2be5678a40bad54efb
+      internalID: 197309932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART216_Chainsaw_12_UnstoppableRampage
+      rect:
+        serializedVersion: 2
+        x: 1313
+        y: 798
+        width: 177
+        height: 165
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e11f2ff8ce6b522f03887ce5ad8722d
+      internalID: -913090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART217_Grenade_01_C4CompoundFill
+      rect:
+        serializedVersion: 2
+        x: 42
+        y: 547
+        width: 190
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf9202c52491d5ea85a745cc5768335a
+      internalID: -989687089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART218_Grenade_02_QuickPullPin
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 539
+        width: 180
+        height: 181
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b7ef48d793de83e274987c0eeb25068
+      internalID: -1913356677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART219_Grenade_03_AeroShellCasing
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 549
+        width: 202
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 616e572b3b2379e140720e747f1be62c
+      internalID: 727150177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART220_Grenade_04_ExtraShrapnel
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 553
+        width: 201
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 748bdc35fc75936894268111749a21c2
+      internalID: 903646068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART221_Grenade_05_TwinTossRig
+      rect:
+        serializedVersion: 2
+        x: 1043
+        y: 560
+        width: 202
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 067244a01f9398fc5d22828e8eb7af5d
+      internalID: -1606127098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART222_Grenade_06_ClusterBomblets
+      rect:
+        serializedVersion: 2
+        x: 1309
+        y: 538
+        width: 176
+        height: 179
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e4c05875ea124a7df06a618033ca715
+      internalID: -2029695842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART223_Grenade_07_ConcussionCharge
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 282
+        width: 191
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc69dd297c62dd37914cf93ff30ba66d
+      internalID: 702376380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART224_Grenade_08_PrecisionFuze
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 294
+        width: 180
+        height: 178
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e51d5730b8fa1ed3768624555f2d013
+      internalID: 1943359822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART225_Grenade_09_RapidGrenadier
+      rect:
+        serializedVersion: 2
+        x: 532
+        y: 299
+        width: 201
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b3dc6a5dad39a1b2ab0343756821075
+      internalID: -1513734757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART226_Grenade_10_HeavyFragCore
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 287
+        width: 202
+        height: 194
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cabfc0a21279701fd98b06d9b9c12484
+      internalID: -1564426294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART227_Grenade_11_TacticalRecycler
+      rect:
+        serializedVersion: 2
+        x: 1037
+        y: 295
+        width: 197
+        height: 166
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9d89add58d5c1e1af2de5fb5f8c3d89
+      internalID: -577054551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART228_Grenade_12_CarpetBombing
+      rect:
+        serializedVersion: 2
+        x: 1285
+        y: 298
+        width: 213
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 42eae40b6b4a53819846073e1c7f423f
+      internalID: 199551554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART229_Universal_01_DoubleTapTrigger
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 59
+        width: 209
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd243d932df97ffa8561ec035b142a91
+      internalID: -1824709379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART230_Universal_02_HeavyCaliberShell
+      rect:
+        serializedVersion: 2
+        x: 277
+        y: 62
+        width: 225
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c4091c2ed225d925fe4c6acdee91398
+      internalID: -1030668164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART231_Flamethrower_13_InfernoFireballCore
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 40
+        width: 192
+        height: 188
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a63b7e309b7900cfcf8a98a5687fe17d
+      internalID: 813579174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART232_Knife_13_KnifeHook
+      rect:
+        serializedVersion: 2
+        x: 791
+        y: 48
+        width: 185
+        height: 177
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 09dc1c5ae2ab12adac3ac93d75aecd89
+      internalID: 1511840777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART233_BaseballBat_13_BatBoomerang
+      rect:
+        serializedVersion: 2
+        x: 1038
+        y: 26
+        width: 197
+        height: 204
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c2591830c6442903ba3615c1e349755
+      internalID: -2087639716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART234_Katana_13_RipperCombo
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 35
+        width: 193
+        height: 191
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49cafc668ec58bdb4445aadb9236e1d6
+      internalID: 1727842889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: e33f8899d69915ebc96ae84ac01a4673
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART211_Chainsaw_07_ShredderReach: -2055054565
+      ART212_Chainsaw_08_PrecisionTeeth: -2119132135
+      ART213_Chainsaw_09_BloodFueledEngine: 1584545823
+      ART214_Chainsaw_10_ArmorGrinder: 1998206241
+      ART215_Chainsaw_11_DoomRipper: 197309932
+      ART216_Chainsaw_12_UnstoppableRampage: -913090
+      ART217_Grenade_01_C4CompoundFill: -989687089
+      ART218_Grenade_02_QuickPullPin: -1913356677
+      ART219_Grenade_03_AeroShellCasing: 727150177
+      ART220_Grenade_04_ExtraShrapnel: 903646068
+      ART221_Grenade_05_TwinTossRig: -1606127098
+      ART222_Grenade_06_ClusterBomblets: -2029695842
+      ART223_Grenade_07_ConcussionCharge: 702376380
+      ART224_Grenade_08_PrecisionFuze: 1943359822
+      ART225_Grenade_09_RapidGrenadier: -1513734757
+      ART226_Grenade_10_HeavyFragCore: -1564426294
+      ART227_Grenade_11_TacticalRecycler: -577054551
+      ART228_Grenade_12_CarpetBombing: 199551554
+      ART229_Universal_01_DoubleTapTrigger: -1824709379
+      ART230_Universal_02_HeavyCaliberShell: -1030668164
+      ART231_Flamethrower_13_InfernoFireballCore: 813579174
+      ART232_Knife_13_KnifeHook: 1511840777
+      ART233_BaseballBat_13_BatBoomerang: -2087639716
+      ART234_Katana_13_RipperCombo: 1727842889
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

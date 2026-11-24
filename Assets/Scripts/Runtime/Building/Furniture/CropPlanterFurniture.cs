@@ -135,7 +135,18 @@ namespace TheLastEmpire
 
             _growthProgress = 0.05f;
             UpdatePlantVisuals();
+            NetworkBuildingSyncManager.NotifyLocalFurnitureStateChanged(
+                _buildingObject,
+                FurnitureStateSyncType.PlanterHarvest,
+                0,
+                _growthProgress);
             SpawnToast($"+{qty} {cropItemName.ToUpperInvariant()}");
+        }
+
+        public void ApplyNetworkGrowthProgress(float progress)
+        {
+            _growthProgress = Mathf.Clamp01(progress);
+            UpdatePlantVisuals();
         }
 
         public void OnSecondaryInteract() { }

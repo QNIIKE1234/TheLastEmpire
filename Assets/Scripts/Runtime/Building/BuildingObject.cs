@@ -23,14 +23,18 @@ namespace TheLastEmpire
         [SerializeField] private int stageX;
         [Tooltip("พิกัด Stage Y ที่สิ่งปลูกสร้างนี้ถูกสร้างขึ้น")]
         [SerializeField] private int stageY;
+        [Tooltip("รหัสห้องภายในบ้าน (0 = ด้านนอก, >0 = ภายในตึก/ชั้น) สำหรับแยกการแสดงผลและซิงค์ Co-op")]
+        [SerializeField] private int interiorId;
 
         public int StageX => stageX;
         public int StageY => stageY;
+        public int InteriorId => interiorId;
 
-        public void SetStageCoordinates(int x, int y)
+        public void SetStageCoordinates(int x, int y, int intId = 0)
         {
             stageX = x;
             stageY = y;
+            interiorId = intId;
         }
 
         [Header("Health Bar Settings")]

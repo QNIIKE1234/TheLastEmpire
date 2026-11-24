@@ -86,8 +86,18 @@ namespace TheLastEmpire
             {
                 pc.PlayerHealth.Heal(healAmount);
                 _cooldownTimer = cooldownSeconds;
+                NetworkBuildingSyncManager.NotifyLocalFurnitureStateChanged(
+                    _buildingObject,
+                    FurnitureStateSyncType.UtilityCooldown,
+                    0,
+                    _cooldownTimer);
                 SpawnToast($"+{Mathf.RoundToInt(healAmount)} HP");
             }
+        }
+
+        public void ApplyNetworkCooldown(float remainingSeconds)
+        {
+            _cooldownTimer = Mathf.Max(0f, remainingSeconds);
         }
 
         public void OnSecondaryInteract() { }

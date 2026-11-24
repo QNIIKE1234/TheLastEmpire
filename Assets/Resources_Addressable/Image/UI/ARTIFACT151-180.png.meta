@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: 10086522fe2b768479c4be8676e4f0fc
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ART151_FireAxe_07_BreachersMomentum
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 904
+        width: 170
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96c715e9115707cae3820c59d4cc3226
+      internalID: -384448618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART152_FireAxe_08_SplittingCritEdge
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 916
+        width: 174
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02d38c7df7428b318c4ce21af0cc4b2f
+      internalID: 2106381058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART153_FireAxe_09_TimberShockwave
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 903
+        width: 178
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ba7dbb25ed81a63d3548682ae02e98c
+      internalID: -1294227637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART154_FireAxe_10_BerserkersHeart
+      rect:
+        serializedVersion: 2
+        x: 717
+        y: 899
+        width: 156
+        height: 167
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 864dace96e7be5f099f19ca550d131bb
+      internalID: -374583930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART155_FireAxe_11_GuillotineStrike
+      rect:
+        serializedVersion: 2
+        x: 929
+        y: 920
+        width: 179
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 875a17700ba3cfc9801a1ec2af36c66a
+      internalID: 1880578695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART156_FireAxe_12_TitanChopper
+      rect:
+        serializedVersion: 2
+        x: 1153
+        y: 916
+        width: 178
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bdc0c0af69472795353d7868f0786a53
+      internalID: -1346322243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART157_Katana_01_TamahaganeFold
+      rect:
+        serializedVersion: 2
+        x: 42
+        y: 708
+        width: 180
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64b860436887cfbda562f0dc91d0d45e
+      internalID: 1130412132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART158_Katana_02_QuickDrawSaya
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 701
+        width: 178
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c25fdfffc59084bd42565f537db449a1
+      internalID: -2138174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART159_Katana_03_OdachiLengthening
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 697
+        width: 189
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b90cb071180b22bcf46f741c5e0c75b1
+      internalID: 1907363001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART160_Katana_04_KeenEdgePolish
+      rect:
+        serializedVersion: 2
+        x: 703
+        y: 697
+        width: 187
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e57fa23a6c8da75ae3f58d98a886d033
+      internalID: 983728101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART161_Katana_05_WindCutterBlade
+      rect:
+        serializedVersion: 2
+        x: 930
+        y: 700
+        width: 179
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dacb34d219d20c33e605f9d0dbd10ba0
+      internalID: -768291878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART162_Katana_06_LightningDraw
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 692
+        width: 179
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5674356d1f7606ffd8774834cd471040
+      internalID: 1832219734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART163_Katana_07_IaijutsuFocus
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 489
+        width: 160
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40b1abee5632dc94420f187dd249e9d6
+      internalID: -290737856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART164_Katana_08_RoninSteelSpine
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 499
+        width: 186
+        height: 135
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97102b8c36c427340ce951d4a470f377
+      internalID: -1943334761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART165_Katana_09_MoonlitIaido
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 489
+        width: 162
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 380069fde5b4916e7e0ee57cf83a371d
+      internalID: -43450312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART166_Katana_10_SoulSiphon
+      rect:
+        serializedVersion: 2
+        x: 714
+        y: 489
+        width: 161
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a86d9d88a1a3c9a09ad7d3518e716819
+      internalID: -2002948696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART167_Katana_11_ThousandCuts
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 491
+        width: 194
+        height: 152
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7919f1f3e340daa4c5a5f26dad0a5acb
+      internalID: -202303111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART168_Katana_12_MuramasaCurse
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 489
+        width: 178
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56aa1419a98bb7524c4b2b4e1a75595b
+      internalID: 420784726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART169_Sledgehammer_01_LeadFilledHead
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 278
+        width: 183
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0813b63f50b2366b525d7760b3a569fb
+      internalID: 1068897032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART170_Sledgehammer_02_AlloyShaft
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 291
+        width: 195
+        height: 129
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca2583f76a9fcf44523cf21c7898feb9
+      internalID: -142400054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART171_Sledgehammer_03_GiantReach
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 303
+        width: 194
+        height: 103
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 41c0be622b5d65fb9c8398c54b86f778
+      internalID: 1656668225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART172_Sledgehammer_04_SeismicImpact
+      rect:
+        serializedVersion: 2
+        x: 706
+        y: 283
+        width: 180
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ddd36494e35047d8730bd3e518c53e3
+      internalID: 1228332429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART173_Sledgehammer_05_ArmorCrusher
+      rect:
+        serializedVersion: 2
+        x: 927
+        y: 283
+        width: 189
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3dcd8698efe959b82d6958a6e8e7d807
+      internalID: -1735996099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART174_Sledgehammer_06_TremorWave
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 272
+        width: 183
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0f10322dd6d400ae54f940082c5499ee
+      internalID: 758255631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART175_Sledgehammer_07_PistonRocketHead
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 80
+        width: 190
+        height: 118
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bdc6b4a33e84910912559fa1583968e
+      internalID: 1248582715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART176_Sledgehammer_08_SkullbreakerCrit
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 78
+        width: 181
+        height: 121
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 03a7d10e8c916b663ac7e6f808cd03e9
+      internalID: 248620803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART177_Sledgehammer_09_MeteorSlam
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 57
+        width: 176
+        height: 164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2bb7336ed113d156899e31833ab6edc2
+      internalID: 1848882987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART178_Sledgehammer_10_JuggernautVigor
+      rect:
+        serializedVersion: 2
+        x: 703
+        y: 57
+        width: 185
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 619e59fe2a8fccd84422ac25c041f72e
+      internalID: -27681183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART179_Sledgehammer_11_EarthquakeCore
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 64
+        width: 170
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f3d2bc6e403e2efebf1a77afc3cbe88
+      internalID: -970244817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ART180_Sledgehammer_12_TitanOverdrive
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 56
+        width: 156
+        height: 171
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b4699dbb50b57c2060214b2868b91d1
+      internalID: -610711989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: c6240685f4b769dfd92d99e5a24b41da
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ART151_FireAxe_07_BreachersMomentum: -384448618
+      ART152_FireAxe_08_SplittingCritEdge: 2106381058
+      ART153_FireAxe_09_TimberShockwave: -1294227637
+      ART154_FireAxe_10_BerserkersHeart: -374583930
+      ART155_FireAxe_11_GuillotineStrike: 1880578695
+      ART156_FireAxe_12_TitanChopper: -1346322243
+      ART157_Katana_01_TamahaganeFold: 1130412132
+      ART158_Katana_02_QuickDrawSaya: -2138174
+      ART159_Katana_03_OdachiLengthening: 1907363001
+      ART160_Katana_04_KeenEdgePolish: 983728101
+      ART161_Katana_05_WindCutterBlade: -768291878
+      ART162_Katana_06_LightningDraw: 1832219734
+      ART163_Katana_07_IaijutsuFocus: -290737856
+      ART164_Katana_08_RoninSteelSpine: -1943334761
+      ART165_Katana_09_MoonlitIaido: -43450312
+      ART166_Katana_10_SoulSiphon: -2002948696
+      ART167_Katana_11_ThousandCuts: -202303111
+      ART168_Katana_12_MuramasaCurse: 420784726
+      ART169_Sledgehammer_01_LeadFilledHead: 1068897032
+      ART170_Sledgehammer_02_AlloyShaft: -142400054
+      ART171_Sledgehammer_03_GiantReach: 1656668225
+      ART172_Sledgehammer_04_SeismicImpact: 1228332429
+      ART173_Sledgehammer_05_ArmorCrusher: -1735996099
+      ART174_Sledgehammer_06_TremorWave: 758255631
+      ART175_Sledgehammer_07_PistonRocketHead: 1248582715
+      ART176_Sledgehammer_08_SkullbreakerCrit: 248620803
+      ART177_Sledgehammer_09_MeteorSlam: 1848882987
+      ART178_Sledgehammer_10_JuggernautVigor: -27681183
+      ART179_Sledgehammer_11_EarthquakeCore: -970244817
+      ART180_Sledgehammer_12_TitanOverdrive: -610711989
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -60,6 +60,10 @@ namespace TheLastEmpire
         [Tooltip("If true, every playable building with a clear doorway in the stage can be entered. If false, only 1-2 random buildings per stage are unlocked.")]
         [SerializeField] private bool unlockAllEnterableBuildings = true;
 
+        [Header("Road Styling")]
+        [Tooltip("Replaces flat legacy Street tiles with textured post-apocalyptic asphalt, concrete curbs, dashed yellow lanes, crosswalks, and drains.")]
+        [SerializeField] private bool useStyledAsphaltRoad = true;
+
         [System.Serializable]
         public struct GridRow
         {
@@ -1682,7 +1686,12 @@ namespace TheLastEmpire
             }
 
             Material fallbackRoadMat = null;
-            const float seamOverlap = 1.01f;
+            const float seamOverlap = 1.015f;
+
+            if (useStyledAsphaltRoad)
+            {
+                EnsureStyledRoadMaterials();
+            }
 
             for (int r = 0; r < rows; r++)
             {
@@ -1698,6 +1707,12 @@ namespace TheLastEmpire
                     bool hasDown = r > 0 && roadMask[r - 1, c];
                     bool hasUp = r < rows - 1 && roadMask[r + 1, c];
                     bool isVerticalOnly = (hasUp || hasDown) && !(hasLeft || hasRight);
+
+                    if (useStyledAsphaltRoad)
+                    {
+                        SpawnStyledAsphaltTile(x, z, cellWidth, cellHeight, seamOverlap, hasLeft, hasRight, hasUp, hasDown, r, c);
+                        continue;
+                    }
 
                     GameObject streetPrefab = GetRandomPrefab(config.streetPrefabs);
                     if (streetPrefab != null)
@@ -1745,6 +1760,435 @@ namespace TheLastEmpire
                             ApplyCardboardTextureToChildren(road);
                         }
                     }
+                }
+            }
+        }
+
+        private static Texture2D s_AsphaltTex;
+        private static Texture2D s_CurbStoneTex;
+        private static Texture2D s_RecessShadowTex;
+        private static Material s_AsphaltMat;
+        private static Material s_CurbMat;
+        private static Material s_CurbRimMat;
+        private static Material s_CurbFaceMat;
+        private static Material s_CurbGutterMat;
+        private static Material s_RecessShadowMat;
+        private static Material s_RecessShadowSoftMat;
+        private static Material s_YellowPaintMat;
+        private static Material s_WhitePaintMat;
+        private static Material s_IronGrateMat;
+
+        private static void EnsureStyledRoadMaterials()
+        {
+            Shader litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (litShader == null) return;
+
+            if (s_AsphaltTex == null)
+            {
+                const int sz = 256;
+                s_AsphaltTex = new Texture2D(sz, sz, TextureFormat.RGBA32, true);
+                s_AsphaltTex.name = "ProceduralWeatheredAsphalt";
+                s_AsphaltTex.wrapMode = TextureWrapMode.Repeat;
+                s_AsphaltTex.filterMode = FilterMode.Bilinear;
+                Color32[] pixels = new Color32[sz * sz];
+
+                for (int y = 0; y < sz; y++)
+                {
+                    // Subtle darker tire-track bands along road width
+                    float v = y / (float)sz;
+                    float trackA = Mathf.Exp(-Mathf.Pow((v - 0.30f) / 0.10f, 2f));
+                    float trackB = Mathf.Exp(-Mathf.Pow((v - 0.70f) / 0.10f, 2f));
+                    float trackDarken = (trackA + trackB) * 0.042f;
+
+                    for (int x = 0; x < sz; x++)
+                    {
+                        float u = x / (float)sz;
+                        // Deterministic hash grain (asphalt aggregate speckles)
+                        uint h = (uint)(x * 374761393 + y * 668265263);
+                        h = (h ^ (h >> 13)) * 1274126177u;
+                        float grain = ((h ^ (h >> 16)) & 255u) / 255f;
+
+                        // Broad weathered blotches via Perlin noise
+                        float blotch = Mathf.PerlinNoise(u * 5.0f + 1.3f, v * 5.0f + 4.7f);
+                        // Hairline asphalt tar-crack pattern
+                        float crackN = Mathf.Abs(Mathf.PerlinNoise(u * 12.0f + 9.2f, v * 12.0f + 2.1f) - 0.5f);
+                        float crack = crackN < 0.014f ? 0.065f : 0f;
+
+                        // Slightly darker & subtly warm-charcoal so road visually sinks below warm stone sidewalk
+                        float baseVal = 0.168f + (blotch - 0.5f) * 0.048f + (grain - 0.5f) * 0.058f - trackDarken - crack;
+                        byte r = (byte)Mathf.Clamp(Mathf.RoundToInt((baseVal * 1.04f) * 255f), 22, 84);
+                        byte g = (byte)Mathf.Clamp(Mathf.RoundToInt((baseVal * 1.00f) * 255f), 21, 80);
+                        byte b = (byte)Mathf.Clamp(Mathf.RoundToInt((baseVal * 0.94f) * 255f), 20, 76);
+                        pixels[y * sz + x] = new Color32(r, g, b, 255);
+                    }
+                }
+                s_AsphaltTex.SetPixels32(pixels);
+                s_AsphaltTex.Apply(true, true);
+            }
+
+            if (s_CurbStoneTex == null)
+            {
+                // Warm sandstone curb-block texture matching cobblestone sidewalk tones
+                const int sz = 128;
+                s_CurbStoneTex = new Texture2D(sz, sz, TextureFormat.RGBA32, true);
+                s_CurbStoneTex.name = "ProceduralSandstoneCurb";
+                s_CurbStoneTex.wrapMode = TextureWrapMode.Repeat;
+                s_CurbStoneTex.filterMode = FilterMode.Bilinear;
+                Color32[] pixels = new Color32[sz * sz];
+                for (int y = 0; y < sz; y++)
+                {
+                    for (int x = 0; x < sz; x++)
+                    {
+                        float u = x / (float)sz;
+                        float v = y / (float)sz;
+                        float n = Mathf.PerlinNoise(u * 8f + 2.1f, v * 8f + 5.3f);
+                        // Curbstone joint lines every 32px along block length
+                        bool isJoint = (x % 32) <= 1;
+                        float shade = (isJoint ? 0.72f : 1.0f) * (0.90f + n * 0.18f);
+                        byte r = (byte)Mathf.Clamp(Mathf.RoundToInt(0.64f * shade * 255f), 70, 210);
+                        byte g = (byte)Mathf.Clamp(Mathf.RoundToInt(0.55f * shade * 255f), 60, 185);
+                        byte b = (byte)Mathf.Clamp(Mathf.RoundToInt(0.44f * shade * 255f), 48, 155);
+                        pixels[y * sz + x] = new Color32(r, g, b, 255);
+                    }
+                }
+                s_CurbStoneTex.SetPixels32(pixels);
+                s_CurbStoneTex.Apply(true, true);
+            }
+
+            if (s_RecessShadowTex == null)
+            {
+                // Smooth vertical alpha gradient: darkest at top (v=1, touching curb wall) -> 0 alpha at bottom (v=0, center road)
+                const int w = 8;
+                const int h = 64;
+                s_RecessShadowTex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                s_RecessShadowTex.name = "ProceduralRoadRecessShadow";
+                s_RecessShadowTex.wrapMode = TextureWrapMode.Clamp;
+                s_RecessShadowTex.filterMode = FilterMode.Bilinear;
+                Color32[] pixels = new Color32[w * h];
+                for (int y = 0; y < h; y++)
+                {
+                    float t = y / (float)(h - 1); // 0 = far edge, 1 = curb contact
+                    // Crisp dark contact crease right at curb + smooth soft ambient drop shadow outward
+                    float soft = Mathf.Pow(t, 2.2f);
+                    float crease = Mathf.Pow(t, 9.0f) * 0.42f;
+                    float alpha = Mathf.Clamp01(soft * 0.56f + crease);
+                    byte a = (byte)Mathf.Clamp(Mathf.RoundToInt(alpha * 255f), 0, 220);
+                    for (int x = 0; x < w; x++)
+                    {
+                        pixels[y * w + x] = new Color32(16, 12, 9, a);
+                    }
+                }
+                s_RecessShadowTex.SetPixels32(pixels);
+                s_RecessShadowTex.Apply(false, true);
+            }
+
+            if (s_AsphaltMat == null)
+            {
+                s_AsphaltMat = new Material(litShader) { name = "Road_WeatheredAsphalt" };
+                s_AsphaltMat.mainTexture = s_AsphaltTex;
+                if (s_AsphaltMat.HasProperty("_BaseMap")) s_AsphaltMat.SetTexture("_BaseMap", s_AsphaltTex);
+                if (s_AsphaltMat.HasProperty("_BaseColor")) s_AsphaltMat.SetColor("_BaseColor", Color.white);
+                if (s_AsphaltMat.HasProperty("_Smoothness")) s_AsphaltMat.SetFloat("_Smoothness", 0.14f);
+            }
+
+            if (s_CurbMat == null)
+            {
+                s_CurbMat = new Material(litShader) { name = "Road_SandstoneCurbTop" };
+                s_CurbMat.mainTexture = s_CurbStoneTex;
+                if (s_CurbMat.HasProperty("_BaseMap")) s_CurbMat.SetTexture("_BaseMap", s_CurbStoneTex);
+                if (s_CurbMat.HasProperty("_BaseColor")) s_CurbMat.SetColor("_BaseColor", Color.white);
+                if (s_CurbMat.HasProperty("_Smoothness")) s_CurbMat.SetFloat("_Smoothness", 0.10f);
+            }
+
+            if (s_CurbRimMat == null)
+            {
+                // Sunlit chamfer highlight along the top inner step lip -> sharpens "elevated sidewalk" illusion
+                s_CurbRimMat = new Material(litShader) { name = "Road_SandstoneCurbRim" };
+                Color c = new Color(0.76f, 0.67f, 0.55f);
+                s_CurbRimMat.color = c;
+                if (s_CurbRimMat.HasProperty("_BaseColor")) s_CurbRimMat.SetColor("_BaseColor", c);
+                if (s_CurbRimMat.HasProperty("_Smoothness")) s_CurbRimMat.SetFloat("_Smoothness", 0.16f);
+            }
+
+            if (s_CurbFaceMat == null)
+            {
+                // Shadowed vertical drop-wall of the elevated sidewalk curb stepping down to the sunken road
+                s_CurbFaceMat = new Material(litShader) { name = "Road_SandstoneCurbDropFace" };
+                Color c = new Color(0.30f, 0.25f, 0.20f);
+                s_CurbFaceMat.color = c;
+                if (s_CurbFaceMat.HasProperty("_BaseColor")) s_CurbFaceMat.SetColor("_BaseColor", c);
+                if (s_CurbFaceMat.HasProperty("_Smoothness")) s_CurbFaceMat.SetFloat("_Smoothness", 0.08f);
+            }
+
+            if (s_CurbGutterMat == null)
+            {
+                s_CurbGutterMat = new Material(litShader) { name = "Road_GutterEdge" };
+                Color c = new Color(0.11f, 0.10f, 0.09f);
+                s_CurbGutterMat.color = c;
+                if (s_CurbGutterMat.HasProperty("_BaseColor")) s_CurbGutterMat.SetColor("_BaseColor", c);
+                if (s_CurbGutterMat.HasProperty("_Smoothness")) s_CurbGutterMat.SetFloat("_Smoothness", 0.08f);
+            }
+
+            if (s_RecessShadowMat == null)
+            {
+                s_RecessShadowMat = CreateTransparentShadowMat("Road_RecessShadowDeep", new Color(1f, 1f, 1f, 0.92f));
+            }
+            if (s_RecessShadowSoftMat == null)
+            {
+                s_RecessShadowSoftMat = CreateTransparentShadowMat("Road_RecessShadowSoft", new Color(1f, 1f, 1f, 0.56f));
+            }
+
+            if (s_YellowPaintMat == null)
+            {
+                s_YellowPaintMat = new Material(litShader) { name = "Road_YellowLanePaint" };
+                Color c = new Color(0.78f, 0.58f, 0.17f);
+                s_YellowPaintMat.color = c;
+                if (s_YellowPaintMat.HasProperty("_BaseColor")) s_YellowPaintMat.SetColor("_BaseColor", c);
+                if (s_YellowPaintMat.HasProperty("_Smoothness")) s_YellowPaintMat.SetFloat("_Smoothness", 0.10f);
+            }
+
+            if (s_WhitePaintMat == null)
+            {
+                s_WhitePaintMat = new Material(litShader) { name = "Road_WhiteStripePaint" };
+                Color c = new Color(0.72f, 0.69f, 0.63f);
+                s_WhitePaintMat.color = c;
+                if (s_WhitePaintMat.HasProperty("_BaseColor")) s_WhitePaintMat.SetColor("_BaseColor", c);
+                if (s_WhitePaintMat.HasProperty("_Smoothness")) s_WhitePaintMat.SetFloat("_Smoothness", 0.10f);
+            }
+
+            if (s_IronGrateMat == null)
+            {
+                s_IronGrateMat = new Material(litShader) { name = "Road_IronManhole" };
+                Color c = new Color(0.20f, 0.21f, 0.22f);
+                s_IronGrateMat.color = c;
+                if (s_IronGrateMat.HasProperty("_BaseColor")) s_IronGrateMat.SetColor("_BaseColor", c);
+                if (s_IronGrateMat.HasProperty("_Metallic")) s_IronGrateMat.SetFloat("_Metallic", 0.60f);
+                if (s_IronGrateMat.HasProperty("_Smoothness")) s_IronGrateMat.SetFloat("_Smoothness", 0.30f);
+            }
+        }
+
+        private static Material CreateTransparentShadowMat(string matName, Color tint)
+        {
+            Shader unlit = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Transparent");
+            Material m = new Material(unlit) { name = matName };
+            m.mainTexture = s_RecessShadowTex;
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", s_RecessShadowTex);
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", tint);
+            if (m.HasProperty("_Color")) m.SetColor("_Color", tint);
+            if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f);
+            if (m.HasProperty("_Blend")) m.SetFloat("_Blend", 0f);
+            if (m.HasProperty("_SrcBlend")) m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (m.HasProperty("_DstBlend")) m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (m.HasProperty("_ZWrite")) m.SetInt("_ZWrite", 0);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.renderQueue = 2950;
+            return m;
+        }
+
+        private GameObject CreateRoadPart(Transform parent, string name, PrimitiveType type, Vector3 localPos, Vector3 localScale, Material mat, Quaternion? localRot = null)
+        {
+            GameObject go = GameObject.CreatePrimitive(type);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            if (localRot.HasValue) go.transform.localRotation = localRot.Value;
+            go.transform.localScale = localScale;
+            Collider col = go.GetComponent<Collider>();
+            if (col != null)
+            {
+                if (Application.isPlaying) Destroy(col);
+                else DestroyImmediate(col);
+            }
+            Renderer r = go.GetComponent<Renderer>();
+            if (r != null)
+            {
+                r.sharedMaterial = mat;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            return go;
+        }
+
+        private void SpawnRecessedCurbEdge(Transform parent, string suffix, Vector3 edgeCenter, float length, float yawDegrees, float faceDepth, float shadowDepth, bool deepShadow)
+        {
+            // Build an elevated sandstone sidewalk step-lip + sunlit chamfer rim + dark vertical drop-face + soft recessed drop-shadow on the asphalt!
+            // In local edge space: +Z points toward sidewalk (outward), -Z points into the road (inward), X runs along the curb length.
+            GameObject edgeRoot = new GameObject($"CurbEdge_{suffix}");
+            edgeRoot.transform.SetParent(parent, false);
+            edgeRoot.transform.localPosition = edgeCenter;
+            edgeRoot.transform.localRotation = Quaternion.Euler(0f, yawDegrees, 0f);
+
+            const float lipW = 0.24f;
+            const float lipH = 0.088f;
+            const float rimW = 0.055f;
+            const float gutterW = 0.09f;
+
+            // 1. Warm sandstone sidewalk curb lip (flush with cobblestone tone, slightly raised visually)
+            CreateRoadPart(edgeRoot.transform, "CurbTop", PrimitiveType.Cube,
+                new Vector3(0f, lipH * 0.48f, -lipW * 0.5f),
+                new Vector3(length, lipH, lipW), s_CurbMat);
+
+            // 2. Crisp sunlit bevel highlight right on the top inner edge of the step
+            CreateRoadPart(edgeRoot.transform, "CurbRim", PrimitiveType.Cube,
+                new Vector3(0f, lipH * 0.92f + 0.004f, -lipW + rimW * 0.5f),
+                new Vector3(length, 0.012f, rimW), s_CurbRimMat);
+
+            // 3. Dark sloped/stepped curb drop-wall visible from top-down camera (creates strong "sidewalk is higher!" read)
+            CreateRoadPart(edgeRoot.transform, "CurbDropFace", PrimitiveType.Cube,
+                new Vector3(0f, lipH * 0.30f, -lipW - faceDepth * 0.5f),
+                new Vector3(length, lipH * 0.54f, faceDepth), s_CurbFaceMat);
+
+            // 4. Deep narrow gutter seam at base of curb wall
+            CreateRoadPart(edgeRoot.transform, "GutterCrease", PrimitiveType.Cube,
+                new Vector3(0f, 0.014f, -lipW - faceDepth - gutterW * 0.5f),
+                new Vector3(length, 0.008f, gutterW), s_CurbGutterMat);
+
+            // 5. Soft alpha-gradient recessed drop shadow fading inward over the asphalt
+            float shadowStartZ = -lipW - faceDepth;
+            Quaternion flatUp = Quaternion.Euler(90f, 0f, 0f);
+            CreateRoadPart(edgeRoot.transform, "RecessShadow", PrimitiveType.Quad,
+                new Vector3(0f, 0.024f, shadowStartZ - shadowDepth * 0.5f),
+                new Vector3(length, shadowDepth, 1f),
+                deepShadow ? s_RecessShadowMat : s_RecessShadowSoftMat,
+                flatUp);
+        }
+
+        private void SpawnStyledAsphaltTile(
+            float x, float z,
+            float cellWidth, float cellHeight,
+            float seamOverlap,
+            bool hasLeft, bool hasRight, bool hasUp, bool hasDown,
+            int row, int col,
+            bool allowCrosswalk = true)
+        {
+            GameObject tileRoot = new GameObject($"StreetAsphalt_{row}_{col}");
+            tileRoot.transform.SetParent(_currentEnvContainer.transform, false);
+            tileRoot.transform.position = new Vector3(x, 0.014f, z);
+
+            float w = cellWidth * seamOverlap;
+            float h = cellHeight * seamOverlap;
+            float hw = cellWidth * 0.5f;
+            float hh = cellHeight * 0.5f;
+
+            // 1. Textured warm-charcoal weathered asphalt slab (sunken visually beneath sandstone curbs)
+            CreateRoadPart(tileRoot.transform, "AsphaltSlab", PrimitiveType.Cube, Vector3.zero, new Vector3(w, 0.022f, h), s_AsphaltMat);
+
+            // 2. Elevated sandstone curb lips + vertical drop-walls + recessed drop-shadows ONLY on edges touching sidewalk
+            // North (+Z) and West (-X) get deeper shadows & wider visible drop-face matching camera/sun angle -> strong sunken-road illusion!
+            const float shoulderInset = 0.62f;
+            float horizShoulderLen = Mathf.Max(0.4f, w - ((!hasLeft ? 0.52f : 0f) + (!hasRight ? 0.52f : 0f)));
+            float horizShoulderOffsetX = ((!hasLeft ? 0.26f : 0f) - (!hasRight ? 0.26f : 0f));
+            float vertShoulderLen = Mathf.Max(0.4f, h - ((!hasUp ? 0.52f : 0f) + (!hasDown ? 0.52f : 0f)));
+            float vertShoulderOffsetZ = ((!hasDown ? 0.26f : 0f) - (!hasUp ? 0.26f : 0f));
+
+            if (!hasUp)
+            {
+                SpawnRecessedCurbEdge(tileRoot.transform, "N", new Vector3(0f, 0f, hh), w, 0f, faceDepth: 0.16f, shadowDepth: 0.88f, deepShadow: true);
+                if (cellHeight > 1.8f)
+                    CreateRoadPart(tileRoot.transform, "Shoulder_N", PrimitiveType.Cube, new Vector3(horizShoulderOffsetX, 0.016f, hh - shoulderInset), new Vector3(horizShoulderLen, 0.005f, 0.08f), s_WhitePaintMat);
+            }
+            if (!hasDown)
+            {
+                SpawnRecessedCurbEdge(tileRoot.transform, "S", new Vector3(0f, 0f, -hh), w, 180f, faceDepth: 0.07f, shadowDepth: 0.44f, deepShadow: false);
+                if (cellHeight > 1.8f)
+                    CreateRoadPart(tileRoot.transform, "Shoulder_S", PrimitiveType.Cube, new Vector3(horizShoulderOffsetX, 0.016f, -hh + shoulderInset), new Vector3(horizShoulderLen, 0.005f, 0.08f), s_WhitePaintMat);
+            }
+            if (!hasLeft)
+            {
+                SpawnRecessedCurbEdge(tileRoot.transform, "W", new Vector3(-hw, 0f, 0f), h, -90f, faceDepth: 0.12f, shadowDepth: 0.72f, deepShadow: true);
+                if (cellWidth > 1.8f)
+                    CreateRoadPart(tileRoot.transform, "Shoulder_W", PrimitiveType.Cube, new Vector3(-hw + shoulderInset, 0.016f, vertShoulderOffsetZ), new Vector3(0.08f, 0.005f, vertShoulderLen), s_WhitePaintMat);
+            }
+            if (!hasRight)
+            {
+                SpawnRecessedCurbEdge(tileRoot.transform, "E", new Vector3(hw, 0f, 0f), h, 90f, faceDepth: 0.10f, shadowDepth: 0.48f, deepShadow: false);
+                if (cellWidth > 1.8f)
+                    CreateRoadPart(tileRoot.transform, "Shoulder_E", PrimitiveType.Cube, new Vector3(hw - shoulderInset, 0.016f, vertShoulderOffsetZ), new Vector3(0.08f, 0.005f, vertShoulderLen), s_WhitePaintMat);
+            }
+
+            bool isSingleHoriz = (hasLeft || hasRight) && !hasUp && !hasDown;
+            bool isSingleVert  = (hasUp || hasDown) && !hasLeft && !hasRight;
+            bool isIsolatedWideHoriz = !hasLeft && !hasRight && !hasUp && !hasDown && cellWidth >= cellHeight;
+            bool isIsolatedTallVert  = !hasLeft && !hasRight && !hasUp && !hasDown && cellHeight > cellWidth;
+            bool isTopOfDoubleHoriz  = (hasLeft || hasRight) && hasDown && !hasUp;
+            bool isLeftOfDoubleVert  = (hasUp || hasDown) && hasRight && !hasLeft;
+            bool isOpenIntersection  = hasLeft && hasRight && hasUp && hasDown;
+
+            // 3. Weathered yellow dashed centerlines (clamped cleanly inside dead-end curbs so dashes never hit end shoulders!)
+            if (isSingleHoriz || isIsolatedWideHoriz)
+            {
+                float usableMinX = -hw + (!hasLeft ? 0.95f : 0.15f);
+                float usableMaxX =  hw - (!hasRight ? 0.95f : 0.15f);
+                int dashCount = Mathf.Max(1, Mathf.RoundToInt((usableMaxX - usableMinX) / 2.2f));
+                float step = (usableMaxX - usableMinX) / dashCount;
+                float dashLen = Mathf.Min(1.35f, step * 0.56f);
+                for (int d = 0; d < dashCount; d++)
+                {
+                    float dx = usableMinX + (d + 0.5f) * step;
+                    CreateRoadPart(tileRoot.transform, $"LaneDash_H_{d}", PrimitiveType.Cube, new Vector3(dx, 0.017f, 0f), new Vector3(dashLen, 0.005f, 0.13f), s_YellowPaintMat);
+                }
+                if ((col + row) % 3 == 1 && cellHeight >= 2.6f)
+                {
+                    CreateRoadPart(tileRoot.transform, "ManholeCover", PrimitiveType.Cylinder, new Vector3(0.15f, 0.015f, -hh * 0.42f), new Vector3(0.64f, 0.010f, 0.64f), s_IronGrateMat);
+                }
+            }
+            else if (isTopOfDoubleHoriz)
+            {
+                float usableMinX = -hw + (!hasLeft ? 0.95f : 0.15f);
+                float usableMaxX =  hw - (!hasRight ? 0.95f : 0.15f);
+                int dashCount = Mathf.Max(1, Mathf.RoundToInt((usableMaxX - usableMinX) / 2.2f));
+                float step = (usableMaxX - usableMinX) / dashCount;
+                float dashLen = Mathf.Min(1.35f, step * 0.56f);
+                for (int d = 0; d < dashCount; d++)
+                {
+                    float dx = usableMinX + (d + 0.5f) * step;
+                    CreateRoadPart(tileRoot.transform, $"CenterDash_H_{d}", PrimitiveType.Cube, new Vector3(dx, 0.017f, -hh), new Vector3(dashLen, 0.005f, 0.15f), s_YellowPaintMat);
+                }
+                if (col % 3 == 1 && cellHeight >= 2.2f)
+                {
+                    CreateRoadPart(tileRoot.transform, "ManholeCover", PrimitiveType.Cylinder, new Vector3(0f, 0.015f, hh * 0.30f), new Vector3(0.64f, 0.010f, 0.64f), s_IronGrateMat);
+                }
+            }
+            else if (isSingleVert || isIsolatedTallVert)
+            {
+                float usableMinZ = -hh + (!hasDown ? 0.95f : 0.15f);
+                float usableMaxZ =  hh - (!hasUp ? 0.95f : 0.15f);
+                int dashCount = Mathf.Max(1, Mathf.RoundToInt((usableMaxZ - usableMinZ) / 2.2f));
+                float step = (usableMaxZ - usableMinZ) / dashCount;
+                float dashLen = Mathf.Min(1.35f, step * 0.56f);
+                for (int d = 0; d < dashCount; d++)
+                {
+                    float dz = usableMinZ + (d + 0.5f) * step;
+                    CreateRoadPart(tileRoot.transform, $"LaneDash_V_{d}", PrimitiveType.Cube, new Vector3(0f, 0.017f, dz), new Vector3(0.13f, 0.005f, dashLen), s_YellowPaintMat);
+                }
+            }
+            else if (isLeftOfDoubleVert)
+            {
+                float usableMinZ = -hh + (!hasDown ? 0.95f : 0.15f);
+                float usableMaxZ =  hh - (!hasUp ? 0.95f : 0.15f);
+                int dashCount = Mathf.Max(1, Mathf.RoundToInt((usableMaxZ - usableMinZ) / 2.2f));
+                float step = (usableMaxZ - usableMinZ) / dashCount;
+                float dashLen = Mathf.Min(1.35f, step * 0.56f);
+                for (int d = 0; d < dashCount; d++)
+                {
+                    float dz = usableMinZ + (d + 0.5f) * step;
+                    CreateRoadPart(tileRoot.transform, $"CenterDash_V_{d}", PrimitiveType.Cube, new Vector3(hw, 0.017f, dz), new Vector3(0.15f, 0.005f, dashLen), s_YellowPaintMat);
+                }
+            }
+            else if (isOpenIntersection && (row + col) % 2 == 0)
+            {
+                CreateRoadPart(tileRoot.transform, "CenterManhole", PrimitiveType.Cylinder, new Vector3(0f, 0.015f, 0f), new Vector3(0.70f, 0.010f, 0.70f), s_IronGrateMat);
+            }
+
+            // Crisp faded crosswalk near stage entry/exit ends on horizontal streets
+            if (allowCrosswalk && (col == 1 || col == gridCols - 2) && (isTopOfDoubleHoriz || isSingleHoriz))
+            {
+                float zOff = isTopOfDoubleHoriz ? -hh * 0.35f : 0f;
+                for (int s = -1; s <= 1; s++)
+                {
+                    CreateRoadPart(tileRoot.transform, $"CrossStripe_{s}", PrimitiveType.Cube,
+                        new Vector3(0f, 0.017f, zOff + s * 0.58f),
+                        new Vector3(0.70f, 0.005f, 0.25f), s_WhitePaintMat);
                 }
             }
         }
@@ -2546,7 +2990,8 @@ namespace TheLastEmpire
                 }
             }
 
-            // 2. Spawn Decorations
+            // 2. Spawn Decorations (upgrade any handcrafted template "Street" tiles to match styled recessed asphalt roads!)
+            List<Rect> templateStreetRects = new List<Rect>();
             if (template.decorations != null)
             {
                 foreach (StagePlacedObject obj in template.decorations)
@@ -2555,7 +3000,20 @@ namespace TheLastEmpire
                     if (prefab != null)
                     {
                         Quaternion rot = ResolveTemplateRotation(prefab, obj.rotation);
-                        bool isStreetTile = prefab.name.IndexOf("Street", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                        bool isStreetTile = prefab.name.Equals("Street", System.StringComparison.OrdinalIgnoreCase);
+                        if (isStreetTile && useStyledAsphaltRoad)
+                        {
+                            // Street.prefab is a unit Cube scaled by obj.scale (or prefab scale)
+                            bool rotated90 = Mathf.Abs(Mathf.DeltaAngle(obj.rotation.y, 90f)) < 45f ||
+                                             Mathf.Abs(Mathf.DeltaAngle(obj.rotation.y, 270f)) < 45f;
+                            float sx = Mathf.Max(0.5f, Mathf.Abs(obj.scale.x));
+                            float sz = Mathf.Max(0.5f, Mathf.Abs(obj.scale.z));
+                            float worldW = rotated90 ? sz : sx;
+                            float worldH = rotated90 ? sx : sz;
+                            templateStreetRects.Add(new Rect(obj.position.x - worldW * 0.5f, obj.position.z - worldH * 0.5f, worldW, worldH));
+                            continue;
+                        }
+
                         if (!isStreetTile)
                         {
                             Vector2 worldSize = GetPrefabWorldSize(prefab, rot);
@@ -2569,6 +3027,42 @@ namespace TheLastEmpire
                         spawned.name = prefab.name;
                         spawned.transform.localScale = obj.scale;
                     }
+                }
+            }
+
+            if (templateStreetRects.Count > 0)
+            {
+                EnsureStyledRoadMaterials();
+                const float tol = 0.65f;
+                for (int i = 0; i < templateStreetRects.Count; i++)
+                {
+                    Rect r = templateStreetRects[i];
+                    bool hasLeft = false, hasRight = false, hasUp = false, hasDown = false;
+                    for (int j = 0; j < templateStreetRects.Count; j++)
+                    {
+                        if (i == j) continue;
+                        Rect o = templateStreetRects[j];
+                        bool overlapZ = (r.yMin < o.yMax - 0.25f) && (r.yMax > o.yMin + 0.25f);
+                        bool overlapX = (r.xMin < o.xMax - 0.25f) && (r.xMax > o.xMin + 0.25f);
+                        if (overlapZ)
+                        {
+                            if (o.xMax >= r.xMin - tol && o.xMin < r.xMin) hasLeft = true;
+                            if (o.xMin <= r.xMax + tol && o.xMax > r.xMax) hasRight = true;
+                        }
+                        if (overlapX)
+                        {
+                            if (o.yMax >= r.yMin - tol && o.yMin < r.yMin) hasDown = true;
+                            if (o.yMin <= r.yMax + tol && o.yMax > r.yMax) hasUp = true;
+                        }
+                    }
+
+                    SpawnStyledAsphaltTile(
+                        r.center.x, r.center.y,
+                        r.width, r.height,
+                        1.01f,
+                        hasLeft, hasRight, hasUp, hasDown,
+                        row: i / 10, col: i % 10,
+                        allowCrosswalk: false);
                 }
             }
         }

@@ -22,6 +22,7 @@ namespace TheLastEmpire.Network
         MeleeAttack = 12,
         DashAction = 13,
         ReviveAction = 14,
+        FriendlyFireDamage = 15,
         StageTransitionRequest = 20,
         StageTransitionBegin = 21,
         StageTransitionReady = 22,
@@ -41,7 +42,8 @@ namespace TheLastEmpire.Network
         BuildingPlaceBroadcast = 51,
         BuildingDestroyBroadcast = 52,
         CrateTransactionRequest = 53,
-        CrateTransactionBroadcast = 54
+        CrateTransactionBroadcast = 54,
+        FurnitureStateSync = 55
     }
 
     [Serializable]
@@ -1240,6 +1242,24 @@ namespace TheLastEmpire.Network
                     }
                     break;
 
+                case NetPacketType.FriendlyFireDamage:
+                    {
+                        ulong targetClientId = reader.ReadUInt64();
+                        ulong attackerClientId = reader.ReadUInt64();
+                        int ffStageX = reader.ReadInt32();
+                        int ffStageY = reader.ReadInt32();
+                        int ffInteriorId = reader.ReadInt32();
+                        float ffDamage = reader.ReadSingle();
+                        Vector3 ffHitPoint = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        bool ffIsCrit = reader.ReadBoolean();
+                        NetworkPlayerBridge.HandleIncomingFriendlyFireDamage(
+                            targetClientId, attackerClientId,
+                            ffStageX, ffStageY, ffInteriorId,
+                            ffDamage, ffHitPoint, ffIsCrit,
+                            relayIfHost: _isHost);
+                    }
+                    break;
+
                 case NetPacketType.DayNightTimeSync:
                     {
                         int syncedDay = reader.ReadInt32();
@@ -1406,7 +1426,8 @@ namespace TheLastEmpire.Network
                         int bStageX = reader.ReadInt32();
                         int bStageY = reader.ReadInt32();
                         Vector3 bPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                        NetworkBuildingSyncManager.Instance?.HandleRemoteBuildingDestroyed(bStageX, bStageY, bPos, relayIfHost: _isHost);
+                        int bInteriorId = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;
+                        NetworkBuildingSyncManager.Instance?.HandleRemoteBuildingDestroyed(bStageX, bStageY, bInteriorId, bPos, relayIfHost: _isHost);
                     }
                     break;
 
@@ -1425,6 +1446,22 @@ namespace TheLastEmpire.Network
                         CrateTransactionNetPayload tx = default;
                         tx.NetworkSerialize(serializer);
                         NetworkBuildingSyncManager.Instance?.ApplyCrateTransactionOnClient(tx);
+                    }
+                    break;
+
+                case NetPacketType.FurnitureStateSync:
+                    {
+                        int fStageX = reader.ReadInt32();
+                        int fStageY = reader.ReadInt32();
+                        int fInteriorId = reader.ReadInt32();
+                        Vector3 fPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        byte stateType = reader.ReadByte();
+                        int intVal = reader.ReadInt32();
+                        float floatVal = reader.ReadSingle();
+                        NetworkBuildingSyncManager.Instance?.HandleRemoteFurnitureState(
+                            fStageX, fStageY, fInteriorId, fPos,
+                            (FurnitureStateSyncType)stateType, intVal, floatVal,
+                            relayIfHost: _isHost);
                     }
                     break;
             }

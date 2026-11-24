@@ -518,7 +518,8 @@ namespace TheLastEmpire
                 CameraFollow.Instance.SnapToTargetImmediate();
             }
 
-            // 8. Refresh remote co-op players visibility so teammates inside same house/floor appear & outside ones hide
+            // 8. Refresh remote co-op players visibility & show buildings/furniture placed on this interior floor
+            BuildingManager.Instance?.RefreshBuildingVisibility(_currentStageX, _currentStageY, CurrentInteriorId);
             RefreshAllRemotePlayersVisibility();
 
             yield return null;
@@ -602,6 +603,7 @@ namespace TheLastEmpire
                 CameraFollow.Instance.SnapToTargetImmediate();
             }
 
+            BuildingManager.Instance?.RefreshBuildingVisibility(_currentStageX, _currentStageY, CurrentInteriorId);
             RefreshAllRemotePlayersVisibility();
 
             yield return null;
@@ -682,7 +684,10 @@ namespace TheLastEmpire
                 CameraFollow.Instance.SnapToTargetImmediate();
             }
 
-            // 9. Refresh remote co-op players visibility
+            // 9. Refresh remote co-op players visibility & exterior buildings (hide interior-placed furniture!)
+            int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : _currentStageX;
+            int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : _currentStageY;
+            BuildingManager.Instance?.RefreshBuildingVisibility(curStageX, curStageY, 0);
             RefreshAllRemotePlayersVisibility();
         }
 

@@ -77,9 +77,15 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// เมื่อผู้เล่นย้ายแมพ / สลับ Stage: กรองแสดงเฉพาะสิ่งปลูกสร้างของ Stage ปัจจุบัน และซ่อนสิ่งปลูกสร้างของ Stage อื่น
+        /// เมื่อผู้เล่นย้ายแมพ / สลับ Stage หรือเข้า-ออกตึก/เปลี่ยนชั้น:
+        /// กรองแสดงเฉพาะสิ่งปลูกสร้างของ Stage และ InteriorId ปัจจุบัน และซ่อนชิ้นที่อยู่คนละที่
         /// </summary>
         public void HandleStageChanged(int stageX, int stageY)
+        {
+            RefreshBuildingVisibility(stageX, stageY, BuildingInteriorManager.CurrentInteriorId);
+        }
+
+        public void RefreshBuildingVisibility(int stageX, int stageY, int interiorId)
         {
             for (int i = _activeBuildings.Count - 1; i >= 0; i--)
             {
@@ -90,10 +96,10 @@ namespace TheLastEmpire
                     continue;
                 }
 
-                bool isCurrentStage = (b.StageX == stageX && b.StageY == stageY);
-                if (b.gameObject.activeSelf != isCurrentStage)
+                bool isCurrentLocation = (b.StageX == stageX && b.StageY == stageY && b.InteriorId == interiorId);
+                if (b.gameObject.activeSelf != isCurrentLocation)
                 {
-                    b.gameObject.SetActive(isCurrentStage);
+                    b.gameObject.SetActive(isCurrentLocation);
                 }
             }
         }
@@ -270,11 +276,12 @@ namespace TheLastEmpire
 
                 if (WorldMapManager.Instance != null)
                 {
-                    bool isCurrentStage = (building.StageX == WorldMapManager.Instance.CurrentPlayerX && 
-                                           building.StageY == WorldMapManager.Instance.CurrentPlayerY);
-                    if (building.gameObject.activeSelf != isCurrentStage)
+                    bool isCurrentLocation = (building.StageX == WorldMapManager.Instance.CurrentPlayerX && 
+                                              building.StageY == WorldMapManager.Instance.CurrentPlayerY &&
+                                              building.InteriorId == BuildingInteriorManager.CurrentInteriorId);
+                    if (building.gameObject.activeSelf != isCurrentLocation)
                     {
-                        building.gameObject.SetActive(isCurrentStage);
+                        building.gameObject.SetActive(isCurrentLocation);
                     }
                 }
             }

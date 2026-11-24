@@ -32,10 +32,15 @@ namespace TheLastEmpire
         [SerializeField] private List<string> items = new List<string>();
         [SerializeField] private List<InventorySlot> slots = new List<InventorySlot>();
 
+        public const int MinSlots = 18;
+        public const int HardMaxSlots = 70;
+
         [Header("Inventory Capacity")]
-        [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 50 ช่อง)")]
-        [Range(18, 50)]
+        [Tooltip("ความจุช่องกระเป๋าเก็บของ (ขั้นต่ำ 18 ช่อง, มากสุด 70 ช่อง)")]
+        [Range(18, 70)]
         [SerializeField] private int maxSlots = 27;
+        private int _baseMaxSlots = 27;
+        private int _bonusPurchasedSlots = 0;
 
         [Header("Starting Loadout")]
         [SerializeField] private PlayerConfigSO playerConfig;
@@ -50,6 +55,7 @@ namespace TheLastEmpire
         public int MaxSlots => maxSlots;
         public int UsedSlots => slots.Count;
         public bool IsInventoryFull => UsedSlots >= maxSlots;
+        public bool CanExpandSlots => maxSlots < HardMaxSlots;
 
         public event System.Action<int> OnMoneyChanged;
         public event System.Action<int> OnMoneyAdded;
@@ -62,6 +68,7 @@ namespace TheLastEmpire
 
         private void Awake()
         {
+            _baseMaxSlots = Mathf.Clamp(maxSlots, MinSlots, HardMaxSlots);
             if (Instance == null)
             {
                 Instance = this;
@@ -110,9 +117,10 @@ namespace TheLastEmpire
                     if (playerConfig != null)
                     {
                         money = playerConfig.startingMoney;
-                        if (playerConfig.maxInventorySlots >= 18)
+                        if (playerConfig.maxInventorySlots >= MinSlots)
                         {
-                            maxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, 18, 50);
+                            _baseMaxSlots = Mathf.Clamp(playerConfig.maxInventorySlots, MinSlots, HardMaxSlots);
+                            maxSlots = Mathf.Clamp(_baseMaxSlots + _bonusPurchasedSlots, MinSlots, HardMaxSlots);
                         }
                     }
 
@@ -169,13 +177,35 @@ namespace TheLastEmpire
         }
 
         /// <summary>
-        /// กำหนดความจุช่องกระเป๋าเก็บของให้ตัวละคร (บังคับอยู่ในช่วง 18 - 30 ช่อง)
+        /// กำหนดความจุช่องกระเป๋าพื้นฐานของตัวละคร (คงช่องโบนัสที่ซื้อจากร้านไว้ด้วย สูงสุด 70 ช่อง)
         /// </summary>
         public void SetMaxSlots(int slots)
         {
-            maxSlots = Mathf.Clamp(slots, 18, 50);
-            Debug.Log($"[PlayerInventory] Max inventory slots configured to: {maxSlots}");
+            _baseMaxSlots = Mathf.Clamp(slots, MinSlots, HardMaxSlots);
+            maxSlots = Mathf.Clamp(_baseMaxSlots + _bonusPurchasedSlots, MinSlots, HardMaxSlots);
+            Debug.Log($"[PlayerInventory] Max inventory slots configured to: {maxSlots} (base {_baseMaxSlots} + bonus {_bonusPurchasedSlots})");
             OnInventoryChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// เพิ่มความจุช่องกระเป๋าถาวร (เช่น ซื้อ Backpack Expansion +7 ช่อง, สูงสุดไม่เกิน 70 ช่อง)
+        /// คืนจำนวนช่องที่เพิ่มได้จริง (0 หากเต็ม 70 ช่องแล้ว)
+        /// </summary>
+        public int ExpandSlots(int extraSlots)
+        {
+            if (extraSlots <= 0 || maxSlots >= HardMaxSlots) return 0;
+
+            int before = maxSlots;
+            _baseMaxSlots = Mathf.Clamp(_baseMaxSlots > 0 ? _baseMaxSlots : before, MinSlots, HardMaxSlots);
+            int target = Mathf.Min(HardMaxSlots, before + extraSlots);
+            int added = target - before;
+            if (added <= 0) return 0;
+
+            _bonusPurchasedSlots += added;
+            maxSlots = target;
+            Debug.Log($"[PlayerInventory] Expanded inventory slots by +{added}! Capacity: {maxSlots}/{HardMaxSlots}");
+            OnInventoryChanged?.Invoke();
+            return added;
         }
 
         /// <summary>

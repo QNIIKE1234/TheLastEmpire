@@ -2793,7 +2793,6 @@ namespace TheLastEmpire
                 {
                     Collider col = hits[i];
                     if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
-                    if (col.CompareTag("Player")) continue;
 
                     IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
                     if (dmgTarget == null || dmgTarget.IsDead) continue;
@@ -2802,6 +2801,11 @@ namespace TheLastEmpire
                     if (building != null && !building.CanBeDamagedByPlayer) continue;
 
                     DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
+                    if (col.CompareTag("Player"))
+                    {
+                        TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(gameObject, col.gameObject, res.FinalDamage, currentPos, res.IsCritical);
+                        break;
+                    }
                     dmgTarget.TakeDamage(res.FinalDamage, currentPos, res.IsCritical);
                     if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
                     {
@@ -2920,7 +2924,6 @@ namespace TheLastEmpire
                 {
                     Collider col = cols[i];
                     if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
-                    if (col.CompareTag("Player")) continue;
 
                     IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
                     if (dmgTarget == null || dmgTarget.IsDead || hitSet.Contains(dmgTarget)) continue;
@@ -2930,6 +2933,11 @@ namespace TheLastEmpire
 
                     hitSet.Add(dmgTarget);
                     DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
+                    if (col.CompareTag("Player"))
+                    {
+                        TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(gameObject, col.gameObject, res.FinalDamage, col.transform.position, res.IsCritical);
+                        continue;
+                    }
                     dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
                     if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
                     {
@@ -3000,7 +3008,6 @@ namespace TheLastEmpire
                 {
                     Collider col = hitCols[i];
                     if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
-                    if (col.CompareTag("Player")) continue;
 
                     IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
                     if (dmgTarget == null || dmgTarget.IsDead) continue;
@@ -3009,6 +3016,11 @@ namespace TheLastEmpire
                     if (building != null && !building.CanBeDamagedByPlayer) continue;
 
                     DamageResult res = DamageCalculator.CalculateMeleeDamage(hitDmgBase, gameObject, weaponName);
+                    if (col.CompareTag("Player"))
+                    {
+                        TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(gameObject, col.gameObject, res.FinalDamage, col.transform.position, res.IsCritical);
+                        continue;
+                    }
                     dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
                     if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
                     {
@@ -3605,10 +3617,11 @@ namespace TheLastEmpire
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
             int targetsHit = 0;
             int maxTargets = isKatana ? 4 : 999; // Katana strikes up to 4 targets in wide cleave
+            var hitTeammates = new System.Collections.Generic.HashSet<PlayerController>();
 
             foreach (var col in hitColliders)
             {
-                if (col.gameObject == gameObject) continue;
+                if (col.gameObject == gameObject || col.transform.root == transform.root) continue;
                 if (targetsHit >= maxTargets) break;
 
                 // 1. Deal damage
@@ -3628,6 +3641,20 @@ namespace TheLastEmpire
                         hitDmg += 15f;
                         Debug.Log("[MeleeAttack] Fire Axe caused bleeding laceration (+15 damage)!");
                     }
+
+                    // Multiplayer Friendly Fire: hitting a teammate deals 20% synced damage (no enemy lifesteal/kill hunger)
+                    PlayerController ally = col.GetComponent<PlayerController>() ?? col.GetComponentInParent<PlayerController>();
+                    if (ally != null && ally != this)
+                    {
+                        if (hitTeammates.Add(ally) &&
+                            TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(
+                                gameObject, col.gameObject, hitDmg, col.transform.position, meleeDmgResult.IsCritical))
+                        {
+                            targetsHit++;
+                        }
+                        continue;
+                    }
+
                     bool wasDeadBefore = damageable.IsDead;
                     damageable.TakeDamage(hitDmg, col.transform.position, meleeDmgResult.IsCritical);
                     targetsHit++;

@@ -86,6 +86,15 @@ namespace TheLastEmpire
         public void OnInteract()
         {
             ApplyLightState(!_isOn);
+            TheLastEmpire.Network.NetworkBuildingSyncManager.NotifyLocalFurnitureStateChanged(
+                _buildingObject,
+                TheLastEmpire.Network.FurnitureStateSyncType.LampToggle,
+                _isOn ? 1 : 0);
+        }
+
+        public void ApplyNetworkState(bool isOn)
+        {
+            ApplyLightState(isOn);
         }
 
         public void OnSecondaryInteract() { }
