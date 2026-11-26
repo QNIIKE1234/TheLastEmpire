@@ -18,6 +18,9 @@ namespace TheLastEmpire.Network
         public int maxPlayers;
         public string sceneName;
         public float lastSeenRealtime;
+        public bool isSteamRelay;
+        public ulong steamLobbyId;
+        public ulong hostSteamId;
     }
 
     /// <summary>
@@ -54,6 +57,70 @@ namespace TheLastEmpire.Network
             room.maxPlayers = maxPlayers;
             room.sceneName = sceneName ?? "Lobby_NetCode";
             room.lastSeenRealtime = Time.realtimeSinceStartup;
+            room.isSteamRelay = false;
+        }
+
+        public static void RegisterDiscoveredSteamRoom(
+            ulong steamLobbyId,
+            ulong hostSteamId,
+            string joinCode,
+            int currentPlayers,
+            int maxPlayers,
+            string sceneName,
+            string roomName = "")
+        {
+            if (steamLobbyId == 0 && hostSteamId == 0) return;
+            string key = $"steam:{(steamLobbyId != 0 ? steamLobbyId : hostSteamId)}";
+            if (!_discoveredRooms.TryGetValue(key, out DiscoveredLanRoom room))
+            {
+                room = new DiscoveredLanRoom();
+                _discoveredRooms[key] = room;
+            }
+            room.roomName = string.IsNullOrWhiteSpace(roomName) ? $"STEAM {joinCode}" : roomName.Trim();
+            room.joinCode = joinCode ?? "";
+            room.hostIp = "STEAM_RELAY";
+            room.hostPort = 0;
+            room.currentPlayers = currentPlayers;
+            room.maxPlayers = maxPlayers;
+            room.sceneName = sceneName ?? "Lobby_NetCode";
+            room.lastSeenRealtime = Time.realtimeSinceStartup;
+            room.isSteamRelay = true;
+            room.steamLobbyId = steamLobbyId;
+            room.hostSteamId = hostSteamId;
+        }
+
+        public static string GetJoinEndpoint(DiscoveredLanRoom room)
+        {
+            if (room == null) return "127.0.0.1:7777";
+            if (room.isSteamRelay)
+            {
+                return room.steamLobbyId != 0
+                    ? $"steamlobby:{room.steamLobbyId}"
+                    : $"steam:{room.hostSteamId}";
+            }
+            return $"{room.hostIp}:{room.hostPort}";
+        }
+
+        public static bool TryFindDiscoveredSteamRoom(string queryOrCode, out DiscoveredLanRoom foundRoom)
+        {
+            foundRoom = null;
+            if (string.IsNullOrWhiteSpace(queryOrCode)) return false;
+
+            string clean = queryOrCode.Trim();
+            var active = GetActiveLanRooms();
+            for (int i = 0; i < active.Count; i++)
+            {
+                DiscoveredLanRoom r = active[i];
+                if (!r.isSteamRelay) continue;
+                if (string.Equals(r.joinCode, clean, StringComparison.OrdinalIgnoreCase) ||
+                    (r.steamLobbyId != 0 && r.steamLobbyId.ToString() == clean) ||
+                    (r.hostSteamId != 0 && r.hostSteamId.ToString() == clean))
+                {
+                    foundRoom = r;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static List<DiscoveredLanRoom> GetActiveLanRooms()
@@ -64,7 +131,8 @@ namespace TheLastEmpire.Network
 
             foreach (var kvp in _discoveredRooms)
             {
-                if (now - kvp.Value.lastSeenRealtime > 4.5f)
+                float ttl = kvp.Value.isSteamRelay ? 12.0f : 4.5f;
+                if (now - kvp.Value.lastSeenRealtime > ttl)
                 {
                     if (expiredKeys == null) expiredKeys = new List<string>();
                     expiredKeys.Add(kvp.Key);
