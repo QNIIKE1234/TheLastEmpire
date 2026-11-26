@@ -149,6 +149,7 @@ namespace TheLastEmpire
         private Vector3 _chargeDirection;
         private LineRenderer _chargePathLineRenderer;
         private SpriteRenderer _chargePathSpriteRenderer;
+        private SpriteRenderer[] _chargeChevronSegments;
 
         // Boss Stomp AOE State
         private float _stompCooldownTimer = 0f;
@@ -337,6 +338,9 @@ namespace TheLastEmpire
                 {
                     transform.position = nextPos;
                 }
+
+                // Show 1st hitbox sprite (UI_Hitbox_Sprites_0) at Boss Leap landing zone!
+                UpdateBossTelegraphVisualAt(_bossLeapTargetPos, bossLeapLandRadius);
 
                 if (t >= 1f)
                 {
@@ -694,6 +698,7 @@ namespace TheLastEmpire
         private void FinishBossLeapSlam()
         {
             _isBossLeaping = false;
+            HideBossTelegraphVisual();
             if (rb != null) rb.linearVelocity = Vector3.zero;
 
             // Landing VFX + Camera Shake + AOE Impact
@@ -1152,15 +1157,18 @@ namespace TheLastEmpire
             _stompCircleRenderer.endColor = new Color(1f, 0.2f, 0.1f, 0.9f);
             circleObj.SetActive(false);
 
-            // 2. Ground Decal Disc (AOE stomp danger zone)
+            // 2. Ground Decal Disc (AOE stomp danger zone — 1st sprite: UI_Hitbox_Sprites_0 Hazard Circle)
             GameObject discObj = new GameObject("BossAOEDisc");
             discObj.transform.SetParent(transform);
             discObj.transform.localPosition = Vector3.zero;
             discObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             _stompSpriteRenderer = discObj.AddComponent<SpriteRenderer>();
-            _stompSpriteRenderer.sprite = stompTelegraphSprite;
-            _stompSpriteRenderer.color = stompTelegraphColor;
+            _stompSpriteRenderer.sprite = stompTelegraphSprite != null ? stompTelegraphSprite : HitboxSpriteLibrary.HazardCircle;
+            _stompSpriteRenderer.color = new Color(1f, 0.14f, 0.08f, 0.85f);
+            _stompSpriteRenderer.sortingOrder = 6;
+            _stompSpriteRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _stompSpriteRenderer.receiveShadows = false;
 
             if (_stompSpriteRenderer.sprite == null)
             {
@@ -1194,7 +1202,7 @@ namespace TheLastEmpire
 
             discObj.SetActive(false);
 
-            // 3. LineRenderer Charge Corridor Box (rectangular outline)
+            // 3. LineRenderer Charge Corridor Box (fallback if sprite sheet missing)
             GameObject chargeLineObj = new GameObject("BossChargePathLine");
             chargeLineObj.transform.SetParent(transform);
             chargeLineObj.transform.localPosition = Vector3.zero;
@@ -1211,7 +1219,18 @@ namespace TheLastEmpire
             _chargePathLineRenderer.endColor = new Color(1f, 0.25f, 0.1f, 0.9f);
             chargeLineObj.SetActive(false);
 
-            // 4. Ground Decal Charge Strip (rectangular danger zone)
+            // 4. Boss Charge Directional Chevrons (Last sprite: UI_Hitbox_Sprites_7 >>>>)
+            _chargeChevronSegments = new SpriteRenderer[4];
+            Sprite chevronSprite = HitboxSpriteLibrary.DirectionalChevrons;
+            for (int i = 0; i < _chargeChevronSegments.Length; i++)
+            {
+                SpriteRenderer seg = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    $"BossChargeChevron_{i}", transform, chevronSprite, HitboxSpriteLibrary.DangerRed, 6);
+                seg.gameObject.SetActive(false);
+                _chargeChevronSegments[i] = seg;
+            }
+
+            // Legacy procedural fallback strip (only used if UI_Hitbox_Sprites_7 fails to load)
             GameObject chargeDiscObj = new GameObject("BossChargePathDecal");
             chargeDiscObj.transform.SetParent(transform);
             chargeDiscObj.transform.localPosition = Vector3.zero;
@@ -1244,12 +1263,37 @@ namespace TheLastEmpire
 
         private void UpdateBossTelegraphVisual(float currentRadius)
         {
-            if (_stompCircleRenderer == null && IsBossUnit)
+            UpdateBossTelegraphVisualAt(transform.position, currentRadius);
+        }
+
+        private void UpdateBossTelegraphVisualAt(Vector3 center, float currentRadius)
+        {
+            if (_stompCircleRenderer == null && HasHeavyBossKit)
             {
                 InitBossIndicators();
             }
 
-            Vector3 center = transform.position;
+            // Ensure 1st sprite (UI_Hitbox_Sprites_0 Hazard Circle) is assigned for Boss Stomp / Ground Slam
+            Sprite hazardSprite = stompTelegraphSprite != null ? stompTelegraphSprite : HitboxSpriteLibrary.HazardCircle;
+            bool usingHitboxSprite = hazardSprite != null && _stompSpriteRenderer != null;
+            if (usingHitboxSprite && _stompSpriteRenderer.sprite != hazardSprite)
+            {
+                _stompSpriteRenderer.sprite = hazardSprite;
+            }
+
+            if (usingHitboxSprite)
+            {
+                // Hide old crude LineRenderer circle when crisp UI_Hitbox_Sprites_0 is active (original color, no spin)
+                if (_stompCircleRenderer != null && _stompCircleRenderer.gameObject.activeSelf)
+                    _stompCircleRenderer.gameObject.SetActive(false);
+
+                if (!_stompSpriteRenderer.gameObject.activeSelf) _stompSpriteRenderer.gameObject.SetActive(true);
+                _stompSpriteRenderer.transform.position = new Vector3(center.x, 0.06f, center.z);
+                _stompSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(_stompSpriteRenderer, currentRadius * 2f);
+                _stompSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                return;
+            }
 
             if (_stompCircleRenderer != null)
             {
@@ -1264,7 +1308,6 @@ namespace TheLastEmpire
                     angle += (360f / segments);
                 }
 
-                // Pulsate line brightness
                 float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 15f);
                 Color c = new Color(1f, 0.15f, 0.1f, pulse);
                 _stompCircleRenderer.startColor = c;
@@ -1276,15 +1319,8 @@ namespace TheLastEmpire
                 if (!_stompSpriteRenderer.gameObject.activeSelf) _stompSpriteRenderer.gameObject.SetActive(true);
                 _stompSpriteRenderer.transform.position = new Vector3(center.x, 0.04f, center.z);
                 _stompSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(_stompSpriteRenderer, currentRadius * 2f);
 
-                float baseWidth = _stompSpriteRenderer.sprite != null ? _stompSpriteRenderer.sprite.bounds.size.x : 1f;
-                if (baseWidth > 0f)
-                {
-                    float scale = (currentRadius * 2f) / baseWidth;
-                    _stompSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                }
-
-                // Pulsate fill opacity
                 float pulseAlpha = Mathf.Lerp(0.3f, 0.6f, Mathf.PingPong(Time.time * 6f, 1f));
                 Color sc = stompTelegraphColor;
                 sc.a = pulseAlpha;
@@ -1294,7 +1330,7 @@ namespace TheLastEmpire
 
         private void UpdateBossChargeTelegraphVisual(Vector3 direction, float distance, float width)
         {
-            if (_chargePathLineRenderer == null && IsBossUnit)
+            if (_chargePathLineRenderer == null && HasHeavyBossKit)
             {
                 InitBossIndicators();
             }
@@ -1305,6 +1341,52 @@ namespace TheLastEmpire
 
             Vector3 origin = transform.position;
             Vector3 forward = direction;
+
+            // Primary: Last sprite (UI_Hitbox_Sprites_7 Directional Chevrons >>>>) arranged cleanly along charge path!
+            Sprite chevronSprite = HitboxSpriteLibrary.DirectionalChevrons;
+            if (chevronSprite != null && _chargeChevronSegments != null && _chargeChevronSegments.Length > 0)
+            {
+                if (_chargePathLineRenderer != null && _chargePathLineRenderer.gameObject.activeSelf)
+                    _chargePathLineRenderer.gameObject.SetActive(false);
+                if (_chargePathSpriteRenderer != null && _chargePathSpriteRenderer.gameObject.activeSelf)
+                    _chargePathSpriteRenderer.gameObject.SetActive(false);
+
+                int segCount = Mathf.Clamp(Mathf.RoundToInt(distance / Mathf.Max(1.8f, width * 1.65f)), 1, _chargeChevronSegments.Length);
+                float segLen = distance / segCount;
+                Quaternion rot = HitboxSpriteLibrary.GetGroundChevronRotation(forward);
+                float baseW = chevronSprite.bounds.size.x;
+                float baseH = chevronSprite.bounds.size.y;
+
+                for (int i = 0; i < _chargeChevronSegments.Length; i++)
+                {
+                    SpriteRenderer seg = _chargeChevronSegments[i];
+                    if (seg == null) continue;
+
+                    if (i >= segCount)
+                    {
+                        if (seg.gameObject.activeSelf) seg.gameObject.SetActive(false);
+                        continue;
+                    }
+
+                    if (seg.sprite != chevronSprite) seg.sprite = chevronSprite;
+                    if (!seg.gameObject.activeSelf) seg.gameObject.SetActive(true);
+
+                    float distAlong = (i + 0.5f) * segLen;
+                    Vector3 pos = origin + forward * distAlong;
+                    seg.transform.position = new Vector3(pos.x, 0.06f, pos.z);
+                    seg.transform.rotation = rot;
+                    if (baseW > 0.001f && baseH > 0.001f)
+                    {
+                        seg.transform.localScale = new Vector3((segLen * 0.94f) / baseW, (width * 0.92f) / baseH, 1f);
+                    }
+
+                    // Original sprite color (no color tint, 25% alpha)
+                    seg.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                }
+                return;
+            }
+
+            // Fallback if sprite sheet unavailable
             Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
             float halfWidth = width * 0.5f;
 
@@ -1327,7 +1409,6 @@ namespace TheLastEmpire
                 _chargePathLineRenderer.SetPosition(2, p2);
                 _chargePathLineRenderer.SetPosition(3, p3);
 
-                // Pulsate line brightness
                 float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 18f);
                 Color c = new Color(1f, 0.25f, 0.1f, pulse);
                 _chargePathLineRenderer.startColor = c;
@@ -1380,6 +1461,16 @@ namespace TheLastEmpire
             {
                 _chargePathSpriteRenderer.gameObject.SetActive(false);
             }
+            if (_chargeChevronSegments != null)
+            {
+                for (int i = 0; i < _chargeChevronSegments.Length; i++)
+                {
+                    if (_chargeChevronSegments[i] != null && _chargeChevronSegments[i].gameObject.activeSelf)
+                    {
+                        _chargeChevronSegments[i].gameObject.SetActive(false);
+                    }
+                }
+            }
         }
 
         #region Boomer Explosion Telegraph
@@ -1388,7 +1479,7 @@ namespace TheLastEmpire
         {
             if (_boomerCircleRenderer != null) return;
 
-            // 1. LineRenderer Warning Ring (AOE explosion boundary)
+            // 1. Fallback LineRenderer Warning Ring (hidden when UI_Hitbox_Sprites_0 is available)
             GameObject circleObj = new GameObject("BoomerExplosionCircle");
             circleObj.transform.SetParent(transform);
             circleObj.transform.localPosition = Vector3.zero;
@@ -1406,41 +1497,52 @@ namespace TheLastEmpire
             _boomerCircleRenderer.endColor = new Color(1f, 0.15f, 0.1f, 0.95f);
             circleObj.SetActive(false);
 
-            // 2. Ground Decal Disc (AOE danger zone)
+            // 2. Ground Decal Disc (UI_Hitbox_Sprites_0 Hazard Circle)
             GameObject discObj = new GameObject("BoomerExplosionDecal");
             discObj.transform.SetParent(transform);
             discObj.transform.localPosition = Vector3.zero;
             discObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             _boomerDecalRenderer = discObj.AddComponent<SpriteRenderer>();
+            _boomerDecalRenderer.sortingOrder = 6;
+            _boomerDecalRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _boomerDecalRenderer.receiveShadows = false;
 
-            // Procedural soft circular texture for the danger decal
-            int size = 64;
-            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            tex.wrapMode = TextureWrapMode.Clamp;
-            Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
-            float radius = size * 0.5f;
-            Color[] colors = new Color[size * size];
-            for (int y = 0; y < size; y++)
+            Sprite hazardSprite = HitboxSpriteLibrary.HazardCircle;
+            if (hazardSprite != null)
             {
-                for (int x = 0; x < size; x++)
+                _boomerDecalRenderer.sprite = hazardSprite;
+                _boomerDecalRenderer.color = HitboxSpriteLibrary.DangerRed;
+            }
+            else
+            {
+                int size = 64;
+                Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                tex.wrapMode = TextureWrapMode.Clamp;
+                Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+                float radius = size * 0.5f;
+                Color[] colors = new Color[size * size];
+                for (int y = 0; y < size; y++)
                 {
-                    float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
-                    if (dist <= 1f)
+                    for (int x = 0; x < size; x++)
                     {
-                        float alpha = Mathf.Clamp01(1f - dist * dist);
-                        colors[y * size + x] = new Color(1f, 0.12f, 0.08f, alpha);
-                    }
-                    else
-                    {
-                        colors[y * size + x] = Color.clear;
+                        float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
+                        if (dist <= 1f)
+                        {
+                            float alpha = Mathf.Clamp01(1f - dist * dist);
+                            colors[y * size + x] = new Color(1f, 0.12f, 0.08f, alpha);
+                        }
+                        else
+                        {
+                            colors[y * size + x] = Color.clear;
+                        }
                     }
                 }
+                tex.SetPixels(colors);
+                tex.Apply();
+                _boomerDecalRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
+                _boomerDecalRenderer.color = new Color(1f, 0.15f, 0.1f, 0.35f);
             }
-            tex.SetPixels(colors);
-            tex.Apply();
-            _boomerDecalRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 64f);
-            _boomerDecalRenderer.color = new Color(1f, 0.15f, 0.1f, 0.35f);
             discObj.SetActive(false);
         }
 
@@ -1452,6 +1554,23 @@ namespace TheLastEmpire
             }
 
             Vector3 center = transform.position;
+            float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
+            Sprite hazardSprite = HitboxSpriteLibrary.HazardCircle;
+            bool usingHitboxSprite = hazardSprite != null && _boomerDecalRenderer != null;
+
+            if (usingHitboxSprite)
+            {
+                if (_boomerDecalRenderer.sprite != hazardSprite) _boomerDecalRenderer.sprite = hazardSprite;
+                if (_boomerCircleRenderer != null && _boomerCircleRenderer.gameObject.activeSelf)
+                    _boomerCircleRenderer.gameObject.SetActive(false);
+
+                if (!_boomerDecalRenderer.gameObject.activeSelf) _boomerDecalRenderer.gameObject.SetActive(true);
+                _boomerDecalRenderer.transform.position = new Vector3(center.x, 0.06f, center.z);
+                _boomerDecalRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(_boomerDecalRenderer, currentRadius * 2f);
+                _boomerDecalRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                return;
+            }
 
             if (_boomerCircleRenderer != null)
             {
@@ -1466,8 +1585,6 @@ namespace TheLastEmpire
                     angle += (360f / segments);
                 }
 
-                // Pulsate line brightness (intensifies as fuse counts down)
-                float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
                 float pulseSpeed = Mathf.Lerp(10f, 30f, fuseProgress);
                 float pulse = 0.7f + 0.3f * Mathf.Sin(Time.time * pulseSpeed);
                 Color c = new Color(1f, 0.15f, 0.1f, pulse);
@@ -1480,16 +1597,8 @@ namespace TheLastEmpire
                 if (!_boomerDecalRenderer.gameObject.activeSelf) _boomerDecalRenderer.gameObject.SetActive(true);
                 _boomerDecalRenderer.transform.position = new Vector3(center.x, 0.04f, center.z);
                 _boomerDecalRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(_boomerDecalRenderer, currentRadius * 2f);
 
-                float baseWidth = _boomerDecalRenderer.sprite != null ? _boomerDecalRenderer.sprite.bounds.size.x : 1f;
-                if (baseWidth > 0f)
-                {
-                    float scale = (currentRadius * 2f) / baseWidth;
-                    _boomerDecalRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                }
-
-                // Decal fill pulses with warning red, alpha increases as detonation nears
-                float fuseProgress = 1f - Mathf.Clamp01(_fuseTimer / Mathf.Max(0.1f, fuseDuration));
                 float pulseAlpha = Mathf.Lerp(0.25f, 0.65f, fuseProgress) + 0.15f * Mathf.PingPong(Time.time * 8f, 1f);
                 _boomerDecalRenderer.color = new Color(1f, 0.12f, 0.08f, Mathf.Clamp01(pulseAlpha));
             }

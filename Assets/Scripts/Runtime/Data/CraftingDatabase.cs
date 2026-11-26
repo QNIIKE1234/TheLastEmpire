@@ -347,10 +347,14 @@ namespace TheLastEmpire
                     : WeaponArtifactManager.BuildSingleArtifactSummary(item);
                 string desc = $"{rarityTag} Artifact\nWeapon: {weaponLabel}\n{effectBody}";
 
+                string displayRecipeName = item.itemName.IndexOf($"({weaponLabel})", StringComparison.OrdinalIgnoreCase) >= 0
+                    ? item.itemName
+                    : $"{item.itemName} ({weaponLabel})";
+
                 var recipe = new CraftingRecipe
                 {
                     recipeId = $"CRAFT_ART_{(i + 1):D3}",
-                    recipeName = item.itemName,
+                    recipeName = displayRecipeName,
                     category = CraftingCategory.Artifact,
                     resultItem = item,
                     resultItemName = item.itemName,

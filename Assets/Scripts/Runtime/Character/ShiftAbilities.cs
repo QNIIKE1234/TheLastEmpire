@@ -404,8 +404,13 @@ namespace TheLastEmpire
         private const float MaxPullDuration = 1.2f;
 
         private Vector3 _hookTargetPoint;
+        private Vector3 _hookLatchWorldPoint;
         private LineRenderer _cableLine;
         private GameObject _hookAnchorVisual;
+        private SpriteRenderer _hookAnchorSprite;
+        private SpriteRenderer _previewTargetBracket;
+        private SpriteRenderer _previewDirectionChevron;
+        private LineRenderer _previewAimLine;
         private float _lastDistanceToTarget = 999f;
         private float _stuckTimer = 0f;
 
@@ -417,25 +422,22 @@ namespace TheLastEmpire
         {
             _player = player;
             CreateCableRenderer();
+            CreatePreviewVisuals();
         }
 
-        public void OnShiftPressed()
+        private bool TryFindGrappleLatch(out Vector3 origin, out Vector3 aimDir, out RaycastHit validHit)
         {
-            if (_player == null || _cooldownTimer > 0f || _isPulling || _player.CurrentHunger <= 0f) return;
-
-            Vector3 origin = _player.transform.position + Vector3.up * 0.7f;
-            Vector3 aimDir = _player.AimDirection;
+            validHit = default;
+            origin = _player.transform.position + Vector3.up * 0.7f;
+            aimDir = _player.AimDirection;
             aimDir.y = 0f;
             if (aimDir.sqrMagnitude < 0.01f) aimDir = _player.transform.forward;
             aimDir.Normalize();
 
             float maxRange = GetGrappleRange();
-
-            // Raycast forward to detect buildings, walls, obstacles, structures
             RaycastHit[] hits = Physics.RaycastAll(origin, aimDir, maxRange, ~0, QueryTriggerInteraction.Ignore);
             System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
-            RaycastHit? validHit = null;
             for (int i = 0; i < hits.Length; i++)
             {
                 var h = hits[i];
@@ -444,20 +446,23 @@ namespace TheLastEmpire
                 if (h.collider.CompareTag("Player")) continue;
                 if (h.collider.isTrigger) continue;
                 if (h.collider.GetComponent<CollectibleItem>() != null) continue;
-
-                // Ignore flat ground plane (normal pointing mostly upward)
                 if (h.normal.y > 0.65f) continue;
-
-                // Ignore enemies so hook passes through them to latch onto buildings behind them
                 if (h.collider.CompareTag("Enemy") || h.collider.GetComponent<BaseEnemyAI>() != null) continue;
 
                 validHit = h;
-                break;
+                return true;
             }
 
-            if (validHit.HasValue)
+            return false;
+        }
+
+        public void OnShiftPressed()
+        {
+            if (_player == null || _cooldownTimer > 0f || _isPulling || _player.CurrentHunger <= 0f) return;
+
+            float maxRange = GetGrappleRange();
+            if (TryFindGrappleLatch(out Vector3 origin, out Vector3 aimDir, out RaycastHit hit))
             {
-                RaycastHit hit = validHit.Value;
                 Vector3 latchPt = hit.point;
 
                 // Position target slightly away from wall along normal so player doesn't clip
@@ -465,6 +470,7 @@ namespace TheLastEmpire
                 standPos.y = _player.transform.position.y; // Keep player level on ground
 
                 _hookTargetPoint = standPos;
+                _hookLatchWorldPoint = latchPt;
                 _lastDistanceToTarget = Vector3.Distance(_player.transform.position, _hookTargetPoint);
                 _stuckTimer = 0f;
                 _isPulling = true;
@@ -473,16 +479,18 @@ namespace TheLastEmpire
 
                 _player.DrainHunger(GetGrappleHungerCost());
 
+                HidePreviewVisuals();
                 ShowCable(origin, latchPt);
                 CreateAnchorVisual(latchPt, hit.normal);
             }
             else
             {
-                // Missed: shoot line forward briefly with short cooldown
+                // Missed: shoot yellow wire forward briefly with short cooldown
                 Vector3 missPt = origin + aimDir * (maxRange * 0.75f);
                 _isExtendingMiss = true;
                 _pullTimer = 0.22f;
                 _cooldownTimer = 0.8f;
+                HidePreviewVisuals();
                 ShowCable(origin, missPt);
             }
         }
@@ -528,6 +536,27 @@ namespace TheLastEmpire
                     _cableLine.SetPosition(0, currentPos + Vector3.up * 0.7f);
                 }
 
+                // Yellow anchor hitbox bracket & directional chevron (no spin, 25% alpha)
+                if (_hookAnchorSprite != null)
+                {
+                    HitboxSpriteLibrary.SetWorldDiameter(_hookAnchorSprite, 1.25f);
+                    _hookAnchorSprite.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    _hookAnchorSprite.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                }
+                if (_previewDirectionChevron != null && _previewDirectionChevron.sprite != null && dist > 1.2f)
+                {
+                    if (!_previewDirectionChevron.gameObject.activeSelf) _previewDirectionChevron.gameObject.SetActive(true);
+                    Vector3 dir = toTarget.normalized;
+                    Vector3 mid = currentPos + dir * Mathf.Min(dist * 0.5f, 2.2f);
+                    _previewDirectionChevron.transform.position = new Vector3(mid.x, 0.12f, mid.z);
+                    _previewDirectionChevron.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(dir);
+                    float bw = _previewDirectionChevron.sprite.bounds.size.x;
+                    float bh = _previewDirectionChevron.sprite.bounds.size.y;
+                    if (bw > 0.001f && bh > 0.001f)
+                        _previewDirectionChevron.transform.localScale = new Vector3(1.5f / bw, 0.75f / bh, 1f);
+                    _previewDirectionChevron.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                }
+
                 // Grant brief invulnerability (I-Frames) during high-speed pull
                 if (_player.PlayerHealth != null)
                 {
@@ -567,6 +596,83 @@ namespace TheLastEmpire
                 {
                     _player.transform.forward = toTarget.normalized;
                 }
+                return;
+            }
+
+            // Live YELLOW Grapple Target Hitbox Preview when ready to hook an obstacle!
+            UpdateGrappleYellowAimPreview();
+        }
+
+        private void UpdateGrappleYellowAimPreview()
+        {
+            if (_player == null || _player.IsRemotePlayer || _player.IsDowned ||
+                (_player.PlayerHealth != null && _player.PlayerHealth.IsDead) ||
+                _cooldownTimer > 0f || _player.CurrentHunger <= 0f ||
+                (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) ||
+                (BuildingPlacer.Instance != null && BuildingPlacer.Instance.ShouldBlockCombat))
+            {
+                HidePreviewVisuals();
+                return;
+            }
+
+            if (_previewTargetBracket == null || _previewDirectionChevron == null || _previewAimLine == null)
+            {
+                CreatePreviewVisuals();
+            }
+
+            if (TryFindGrappleLatch(out Vector3 origin, out Vector3 aimDir, out RaycastHit hit))
+            {
+                Vector3 latchPt = hit.point;
+                Vector3 groundLatch = new Vector3(latchPt.x + hit.normal.x * 0.35f, 0.09f, latchPt.z + hit.normal.z * 0.35f);
+
+                // Yellow target lock-on corner bracket (UI_Hitbox_Sprites_5 — original yellow, no spin, 25% alpha)
+                if (_previewTargetBracket != null)
+                {
+                    if (_previewTargetBracket.sprite == null) _previewTargetBracket.sprite = HitboxSpriteLibrary.CornerLockBrackets;
+                    if (_previewTargetBracket.sprite != null)
+                    {
+                        if (!_previewTargetBracket.gameObject.activeSelf) _previewTargetBracket.gameObject.SetActive(true);
+                        _previewTargetBracket.transform.position = groundLatch;
+                        _previewTargetBracket.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                        HitboxSpriteLibrary.SetWorldDiameter(_previewTargetBracket, 1.2f);
+                        _previewTargetBracket.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                    }
+                }
+
+                // Subtle yellow guide wire from player to latch target
+                if (_previewAimLine != null)
+                {
+                    if (!_previewAimLine.enabled) _previewAimLine.enabled = true;
+                    _previewAimLine.SetPosition(0, new Vector3(origin.x, 0.14f, origin.z));
+                    _previewAimLine.SetPosition(1, new Vector3(latchPt.x, 0.14f, latchPt.z));
+                }
+
+                // Yellow directional chevrons (UI_Hitbox_Sprites_7) along grapple path (original yellow, 25% alpha)
+                if (_previewDirectionChevron != null)
+                {
+                    if (_previewDirectionChevron.sprite == null) _previewDirectionChevron.sprite = HitboxSpriteLibrary.DirectionalChevrons;
+                    float dist = Vector3.Distance(origin, latchPt);
+                    if (_previewDirectionChevron.sprite != null && dist > 1.8f)
+                    {
+                        if (!_previewDirectionChevron.gameObject.activeSelf) _previewDirectionChevron.gameObject.SetActive(true);
+                        Vector3 chevPos = origin + aimDir * Mathf.Min(dist * 0.5f, 2.2f);
+                        _previewDirectionChevron.transform.position = new Vector3(chevPos.x, 0.10f, chevPos.z);
+                        _previewDirectionChevron.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(aimDir);
+                        float bw = _previewDirectionChevron.sprite.bounds.size.x;
+                        float bh = _previewDirectionChevron.sprite.bounds.size.y;
+                        if (bw > 0.001f && bh > 0.001f)
+                            _previewDirectionChevron.transform.localScale = new Vector3(1.25f / bw, 0.62f / bh, 1f);
+                        _previewDirectionChevron.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                    }
+                    else if (_previewDirectionChevron.gameObject.activeSelf)
+                    {
+                        _previewDirectionChevron.gameObject.SetActive(false);
+                    }
+                }
+            }
+            else
+            {
+                HidePreviewVisuals();
             }
         }
 
@@ -574,10 +680,12 @@ namespace TheLastEmpire
         {
             _isPulling = false;
             HideCable();
+            HidePreviewVisuals();
             if (_hookAnchorVisual != null)
             {
                 GameObject.Destroy(_hookAnchorVisual);
                 _hookAnchorVisual = null;
+                _hookAnchorSprite = null;
             }
             if (_player != null)
             {
@@ -589,6 +697,55 @@ namespace TheLastEmpire
             }
         }
 
+        private void CreatePreviewVisuals()
+        {
+            if (_player == null) return;
+
+            if (_previewTargetBracket == null)
+            {
+                _previewTargetBracket = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    "GrappleYellowTargetBracket", null, HitboxSpriteLibrary.CornerLockBrackets, HitboxSpriteLibrary.GrappleYellow, 7);
+                _previewTargetBracket.gameObject.SetActive(false);
+            }
+
+            if (_previewDirectionChevron == null)
+            {
+                _previewDirectionChevron = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    "GrappleYellowChevron", null, HitboxSpriteLibrary.DirectionalChevrons, HitboxSpriteLibrary.GrappleYellow, 6);
+                _previewDirectionChevron.gameObject.SetActive(false);
+            }
+
+            if (_previewAimLine == null)
+            {
+                GameObject lineObj = new GameObject("GrappleYellowAimLine");
+                lineObj.transform.SetParent(_player.transform, false);
+                _previewAimLine = lineObj.AddComponent<LineRenderer>();
+                _previewAimLine.startWidth = 0.035f;
+                _previewAimLine.endWidth = 0.025f;
+                _previewAimLine.useWorldSpace = true;
+                _previewAimLine.loop = false;
+                _previewAimLine.positionCount = 2;
+
+                Material mat = new Material(Shader.Find("Sprites/Default"));
+                Color c = new Color(1f, 0.92f, 0.12f, 0.45f);
+                mat.color = c;
+                _previewAimLine.material = mat;
+                _previewAimLine.startColor = c;
+                _previewAimLine.endColor = new Color(1f, 0.96f, 0.25f, 0.75f);
+                _previewAimLine.enabled = false;
+            }
+        }
+
+        private void HidePreviewVisuals()
+        {
+            if (_previewTargetBracket != null && _previewTargetBracket.gameObject.activeSelf)
+                _previewTargetBracket.gameObject.SetActive(false);
+            if (_previewDirectionChevron != null && _previewDirectionChevron.gameObject.activeSelf)
+                _previewDirectionChevron.gameObject.SetActive(false);
+            if (_previewAimLine != null && _previewAimLine.enabled)
+                _previewAimLine.enabled = false;
+        }
+
         private void CreateCableRenderer()
         {
             if (_cableLine != null || _player == null) return;
@@ -598,8 +755,8 @@ namespace TheLastEmpire
             cableObj.transform.localPosition = Vector3.zero;
 
             _cableLine = cableObj.AddComponent<LineRenderer>();
-            _cableLine.startWidth = 0.06f;
-            _cableLine.endWidth = 0.04f;
+            _cableLine.startWidth = 0.09f;
+            _cableLine.endWidth = 0.06f;
             _cableLine.useWorldSpace = true;
             _cableLine.loop = false;
             _cableLine.positionCount = 2;
@@ -608,11 +765,11 @@ namespace TheLastEmpire
                 ?? Shader.Find("Unlit/Color") 
                 ?? Shader.Find("Sprites/Default"));
 
-            Color wireColor = new Color(0.95f, 0.85f, 0.25f, 0.95f); // High-contrast survival steel/amber wire
+            Color wireColor = new Color(1.0f, 0.92f, 0.12f, 1.0f); // Vivid bright YELLOW grapple wire
             lineMat.color = wireColor;
             _cableLine.material = lineMat;
             _cableLine.startColor = wireColor;
-            _cableLine.endColor = new Color(0.85f, 0.95f, 0.35f, 0.90f);
+            _cableLine.endColor = new Color(1.0f, 0.98f, 0.42f, 0.98f);
             _cableLine.enabled = false;
         }
 
@@ -635,21 +792,38 @@ namespace TheLastEmpire
 
         private void CreateAnchorVisual(Vector3 pos, Vector3 normal)
         {
-            if (_hookAnchorVisual != null) GameObject.Destroy(_hookAnchorVisual);
-
-            _hookAnchorVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _hookAnchorVisual.name = "GrappleHookAnchor";
-            _hookAnchorVisual.transform.position = pos;
-            _hookAnchorVisual.transform.localScale = Vector3.one * 0.28f;
-            GameObject.Destroy(_hookAnchorVisual.GetComponent<Collider>());
-
-            MeshRenderer mr = _hookAnchorVisual.GetComponent<MeshRenderer>();
-            if (mr != null)
+            if (_hookAnchorVisual != null)
             {
-                mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") 
-                    ?? Shader.Find("Unlit/Color") 
-                    ?? Shader.Find("Sprites/Default"));
-                mr.material.color = new Color(1f, 0.85f, 0.2f, 1f);
+                GameObject.Destroy(_hookAnchorVisual);
+                _hookAnchorVisual = null;
+                _hookAnchorSprite = null;
+            }
+
+            Sprite bracketSprite = HitboxSpriteLibrary.CornerLockBrackets;
+            if (bracketSprite != null)
+            {
+                _hookAnchorSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    "GrappleHookAnchorHitbox", null, bracketSprite, HitboxSpriteLibrary.GrappleYellow, 9);
+                _hookAnchorVisual = _hookAnchorSprite.gameObject;
+                _hookAnchorVisual.transform.position = new Vector3(pos.x + normal.x * 0.25f, 0.12f, pos.z + normal.z * 0.25f);
+                HitboxSpriteLibrary.SetWorldDiameter(_hookAnchorSprite, 1.25f);
+            }
+            else
+            {
+                _hookAnchorVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                _hookAnchorVisual.name = "GrappleHookAnchor";
+                _hookAnchorVisual.transform.position = pos;
+                _hookAnchorVisual.transform.localScale = Vector3.one * 0.30f;
+                GameObject.Destroy(_hookAnchorVisual.GetComponent<Collider>());
+
+                MeshRenderer mr = _hookAnchorVisual.GetComponent<MeshRenderer>();
+                if (mr != null)
+                {
+                    mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") 
+                        ?? Shader.Find("Unlit/Color") 
+                        ?? Shader.Find("Sprites/Default"));
+                    mr.material.color = new Color(1f, 0.92f, 0.12f, 1f);
+                }
             }
         }
 
@@ -660,6 +834,21 @@ namespace TheLastEmpire
             {
                 GameObject.Destroy(_cableLine.gameObject);
                 _cableLine = null;
+            }
+            if (_previewTargetBracket != null && _previewTargetBracket.gameObject != null)
+            {
+                GameObject.Destroy(_previewTargetBracket.gameObject);
+                _previewTargetBracket = null;
+            }
+            if (_previewDirectionChevron != null && _previewDirectionChevron.gameObject != null)
+            {
+                GameObject.Destroy(_previewDirectionChevron.gameObject);
+                _previewDirectionChevron = null;
+            }
+            if (_previewAimLine != null && _previewAimLine.gameObject != null)
+            {
+                GameObject.Destroy(_previewAimLine.gameObject);
+                _previewAimLine = null;
             }
         }
     }
@@ -778,18 +967,28 @@ namespace TheLastEmpire
             _dotDamage = dotDamage;
             _slowPercent = slowPercent;
 
-            // Visual ring/decal
-            GameObject vis = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            vis.transform.SetParent(transform, false);
-            vis.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            vis.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
-            Destroy(vis.GetComponent<Collider>());
-
-            MeshRenderer mr = vis.GetComponent<MeshRenderer>();
-            if (mr != null)
+            // Visual hitbox ring/decal (1st sprite: UI_Hitbox_Sprites_0 original sprite color, no spin, 25% alpha)
+            Sprite toxicSprite = HitboxSpriteLibrary.HazardCircle;
+            if (toxicSprite != null)
             {
-                mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color") ?? Shader.Find("Sprites/Default"));
-                mr.material.color = new Color(0.2f, 0.9f, 0.3f, 0.28f); // Toxic green
+                SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    "ToxicHitboxSprite", transform, toxicSprite, HitboxSpriteLibrary.DefaultOriginalColor, 4);
+                HitboxSpriteLibrary.SetWorldDiameter(sr, radius * 2f);
+            }
+            else
+            {
+                GameObject vis = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                vis.transform.SetParent(transform, false);
+                vis.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                vis.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+                Destroy(vis.GetComponent<Collider>());
+
+                MeshRenderer mr = vis.GetComponent<MeshRenderer>();
+                if (mr != null)
+                {
+                    mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color") ?? Shader.Find("Sprites/Default"));
+                    mr.material.color = new Color(0.2f, 0.9f, 0.3f, 0.28f); // Toxic green
+                }
             }
         }
 
@@ -836,6 +1035,7 @@ namespace TheLastEmpire
         private float _cooldownTimer = 0f;
         private float _hitTimer = 0f;
         private LineRenderer _whirlwindRing;
+        private SpriteRenderer _whirlwindHitboxSprite;
         private float _visualRotationAngle = 0f;
 
         public void Initialize(PlayerController player)
@@ -976,7 +1176,24 @@ namespace TheLastEmpire
 
         private void CreateWhirlwindVisual()
         {
-            if (_whirlwindRing == null && _player != null)
+            if (_player == null) return;
+
+            Sprite burstSprite = HitboxSpriteLibrary.HazardCircle;
+            if (burstSprite != null)
+            {
+                if (_whirlwindHitboxSprite == null)
+                {
+                    _whirlwindHitboxSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                        "CycloneWhirlwindHitbox", _player.transform, burstSprite, HitboxSpriteLibrary.DefaultOriginalColor, 6);
+                    _whirlwindHitboxSprite.transform.localPosition = Vector3.up * 0.08f;
+                }
+                _whirlwindHitboxSprite.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                _whirlwindHitboxSprite.gameObject.SetActive(true);
+                if (_whirlwindRing != null) _whirlwindRing.enabled = false;
+                return;
+            }
+
+            if (_whirlwindRing == null)
             {
                 GameObject ringObj = new GameObject("CycloneWhirlwindRing");
                 ringObj.transform.SetParent(_player.transform, false);
@@ -1006,6 +1223,14 @@ namespace TheLastEmpire
 
         private void UpdateWhirlwindVisual(float radius)
         {
+            if (_whirlwindHitboxSprite != null && _whirlwindHitboxSprite.gameObject.activeSelf)
+            {
+                _whirlwindHitboxSprite.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                _whirlwindHitboxSprite.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                HitboxSpriteLibrary.SetWorldDiameter(_whirlwindHitboxSprite, radius * 2f);
+                return;
+            }
+
             if (_whirlwindRing == null) return;
             const int segments = 24;
             _whirlwindRing.positionCount = segments;
@@ -1021,6 +1246,10 @@ namespace TheLastEmpire
         private void EndCyclone()
         {
             _isSpinning = false;
+            if (_whirlwindHitboxSprite != null)
+            {
+                _whirlwindHitboxSprite.gameObject.SetActive(false);
+            }
             if (_whirlwindRing != null)
             {
                 _whirlwindRing.enabled = false;
@@ -1030,6 +1259,11 @@ namespace TheLastEmpire
         public void OnDestroy()
         {
             EndCyclone();
+            if (_whirlwindHitboxSprite != null && _whirlwindHitboxSprite.gameObject != null)
+            {
+                GameObject.Destroy(_whirlwindHitboxSprite.gameObject);
+                _whirlwindHitboxSprite = null;
+            }
             if (_whirlwindRing != null && _whirlwindRing.gameObject != null)
             {
                 GameObject.Destroy(_whirlwindRing.gameObject);
@@ -1186,6 +1420,7 @@ namespace TheLastEmpire
 
         private GameObject _mineVisual;
         private Light _beepingLed;
+        private SpriteRenderer _blastHitboxSprite;
 
         public void Initialize(GameObject owner, float damage, float blastRadius, float stunDuration, float armDelay, float autoDetonateTime)
         {
@@ -1223,6 +1458,16 @@ namespace TheLastEmpire
             _beepingLed.range = 1.5f;
             _beepingLed.color = Color.red;
             _beepingLed.intensity = 2f;
+
+            // Ground blast hitbox ring using 1st sprite: UI_Hitbox_Sprites_0 (original color, no spin, 25% alpha)
+            Sprite blastSp = HitboxSpriteLibrary.HazardCircle;
+            if (blastSp != null)
+            {
+                _blastHitboxSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                    "SatchelBlastHitbox", transform, blastSp, HitboxSpriteLibrary.DefaultOriginalColor, 5);
+                _blastHitboxSprite.transform.localPosition = new Vector3(0f, -0.04f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(_blastHitboxSprite, _blastRadius * 2f);
+            }
         }
 
         private void Update()
@@ -1235,6 +1480,11 @@ namespace TheLastEmpire
             {
                 float freq = _isArmed ? 12f : 4f;
                 _beepingLed.intensity = (Mathf.Sin(_timer * freq) > 0f) ? 2.5f : 0.2f;
+            }
+            if (_blastHitboxSprite != null)
+            {
+                _blastHitboxSprite.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                _blastHitboxSprite.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             }
 
             if (!_isArmed)

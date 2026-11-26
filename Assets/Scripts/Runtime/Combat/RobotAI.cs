@@ -320,10 +320,30 @@ namespace TheLastEmpire
             rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
-            // Flash red warning
+            // Flash red warning + directional chevron hitbox telegraph (UI_Hitbox_Sprites_7)
+            SpriteRenderer dashChevron = null;
+            Vector3 previewDir = playerTransform != null ? (playerTransform.position - transform.position) : transform.forward;
+            previewDir.y = 0f;
+            if (previewDir.sqrMagnitude < 0.01f) previewDir = transform.forward;
+            previewDir.Normalize();
+
+            Sprite chevSp = HitboxSpriteLibrary.DirectionalChevrons;
+            if (chevSp != null)
+            {
+                dashChevron = HitboxSpriteLibrary.CreateGroundSpriteIndicator("BladeDashChevron", transform, chevSp, HitboxSpriteLibrary.DefaultOriginalColor, 6);
+                float dashDist = bladeDashSpeed * bladeDashDuration;
+                dashChevron.transform.position = new Vector3(transform.position.x + previewDir.x * (dashDist * 0.5f), 0.06f, transform.position.z + previewDir.z * (dashDist * 0.5f));
+                dashChevron.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(previewDir);
+                float bw = chevSp.bounds.size.x;
+                float bh = chevSp.bounds.size.y;
+                if (bw > 0.001f && bh > 0.001f)
+                    dashChevron.transform.localScale = new Vector3(dashDist / bw, 1.25f / bh, 1f);
+            }
+
             if (_spriteRenderer != null) _spriteRenderer.color = Color.red;
             yield return new WaitForSeconds(0.3f);
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
+            if (dashChevron != null) Destroy(dashChevron.gameObject);
 
             // Dash forward
             PlayActionAnimation("Attack", bladeDashDuration + 0.25f, 0.05f);
@@ -488,8 +508,17 @@ namespace TheLastEmpire
             rb.linearVelocity = Vector3.zero;
             currentState = AIState.Telegraph;
 
-            // Flash rapid warning
+            // Flash rapid warning + Hazard Circle hitbox (UI_Hitbox_Sprites_0)
             PlayActionAnimation("Explode", 0.75f, 0.05f);
+            SpriteRenderer blastHint = null;
+            Sprite hazardSp = HitboxSpriteLibrary.HazardCircle;
+            if (hazardSp != null)
+            {
+                blastHint = HitboxSpriteLibrary.CreateGroundSpriteIndicator("KamikazeBlastHitbox", transform, hazardSp, HitboxSpriteLibrary.DefaultOriginalColor, 6);
+                blastHint.transform.localPosition = new Vector3(0f, 0.06f, 0f);
+                HitboxSpriteLibrary.SetWorldDiameter(blastHint, kamikazeExplosionRadius * 2f);
+            }
+
             float timer = 0.7f;
             while (timer > 0f)
             {
@@ -498,8 +527,16 @@ namespace TheLastEmpire
                 {
                     _spriteRenderer.color = (Mathf.Repeat(timer * 15f, 1f) > 0.5f) ? Color.red : Color.yellow;
                 }
+                if (blastHint != null)
+                {
+                    blastHint.transform.position = new Vector3(transform.position.x, 0.06f, transform.position.z);
+                    blastHint.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    blastHint.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                }
                 yield return null;
             }
+
+            if (blastHint != null) Destroy(blastHint.gameObject);
 
             // Explode
             if (ObjectPoolManager.Instance != null)

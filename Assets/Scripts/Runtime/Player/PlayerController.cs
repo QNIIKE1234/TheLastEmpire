@@ -1067,6 +1067,16 @@ namespace TheLastEmpire
                 _health.onDeath.RemoveListener(HandlePlayerDeath);
                 _health.onDamageTaken.RemoveListener(HandleDamageTaken);
             }
+
+            _activeShiftAbility?.OnDestroy();
+            if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject != null)
+                Destroy(_throwRangeSpriteRenderer.gameObject);
+            if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject != null)
+                Destroy(_aoeSpriteRenderer.gameObject);
+            if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject != null)
+                Destroy(_sniperReticleSprite.gameObject);
+            if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject != null)
+                Destroy(_sniperChevronSprite.gameObject);
         }
 
         private void HandlePlayerDeath()
@@ -1132,6 +1142,8 @@ namespace TheLastEmpire
             if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             if (_laserSightIndicator != null && _laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(false);
             if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
+            if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject.activeSelf) _sniperReticleSprite.gameObject.SetActive(false);
+            if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf) _sniperChevronSprite.gameObject.SetActive(false);
         }
 
         public bool IsControlLocked { get; private set; } = false;
@@ -1558,26 +1570,39 @@ namespace TheLastEmpire
 
         private void UpdateIndicators()
         {
-            bool isThrowing = CurrentWeapon != null && CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced;
+            if (IsRemotePlayer) return;
+
+            bool isThrowing = _heldItemType == HeldItemType.Ranged &&
+                              CurrentWeapon != null && CurrentWeapon.projectilePrefab != null &&
+                              CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced;
 
             if (isThrowing)
             {
                 float throwRadius = CurrentWeapon.range;
                 float aoeRadius = CurrentWeapon.projectilePrefab.ExplosionRadius;
 
-                // 1. Throw Range Indicator (Around Player)
-                if (throwRangeSprite != null && _throwRangeSpriteRenderer != null)
+                // Ensure new UI_Hitbox_Sprites are bound even on runtime-spawned or older prefabs
+                if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.sprite == null)
+                {
+                    Sprite rangeSp = throwRangeSprite != null ? throwRangeSprite : HitboxSpriteLibrary.DashedCrosshair;
+                    if (rangeSp != null) _throwRangeSpriteRenderer.sprite = rangeSp;
+                }
+                if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.sprite == null)
+                {
+                    Sprite aoeSp = aoeIndicatorSprite != null ? aoeIndicatorSprite : HitboxSpriteLibrary.HazardCircle;
+                    if (aoeSp != null) _aoeSpriteRenderer.sprite = aoeSp;
+                }
+
+                // 1. Throw Range Indicator (Around Player — original sprite color, no spin)
+                if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.sprite != null)
                 {
                     if (!_throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(true);
                     if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
 
                     _throwRangeSpriteRenderer.transform.position = new Vector3(transform.position.x, 0.04f, transform.position.z);
-                    float baseWidth = _throwRangeSpriteRenderer.sprite != null ? _throwRangeSpriteRenderer.sprite.bounds.size.x : 1f;
-                    if (baseWidth > 0f)
-                    {
-                        float scale = (throwRadius * 2f) / baseWidth;
-                        _throwRangeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                    }
+                    _throwRangeSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    _throwRangeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                    HitboxSpriteLibrary.SetWorldDiameter(_throwRangeSpriteRenderer, throwRadius * 2f);
                 }
                 else if (_throwRangeIndicator != null)
                 {
@@ -1586,19 +1611,16 @@ namespace TheLastEmpire
                     DrawCircle(_throwRangeIndicator, transform.position, throwRadius);
                 }
 
-                // 2. AOE Radius Indicator (At Aim Target Point)
-                if (aoeIndicatorSprite != null && _aoeSpriteRenderer != null)
+                // 2. AOE Radius Indicator (At Aim Target Point — UI_Hitbox_Sprites_0 original color, no spin)
+                if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.sprite != null)
                 {
                     if (!_aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(true);
                     if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
 
-                    _aoeSpriteRenderer.transform.position = new Vector3(_aimTargetPoint.x, 0.05f, _aimTargetPoint.z);
-                    float baseWidth = _aoeSpriteRenderer.sprite != null ? _aoeSpriteRenderer.sprite.bounds.size.x : 1f;
-                    if (baseWidth > 0f)
-                    {
-                        float scale = (aoeRadius * 2f) / baseWidth;
-                        _aoeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                    }
+                    _aoeSpriteRenderer.transform.position = new Vector3(_aimTargetPoint.x, 0.06f, _aimTargetPoint.z);
+                    _aoeSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    HitboxSpriteLibrary.SetWorldDiameter(_aoeSpriteRenderer, aoeRadius * 2f);
+                    _aoeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
                 }
                 else if (_aoeIndicator != null)
                 {
@@ -1615,23 +1637,47 @@ namespace TheLastEmpire
                 if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             }
 
-            // 3. Eagle Eye Sniper Laser Sight Indicator
+            // 3. Sniper Aiming & Eagle Eye RED Laser Sight + UI_Hitbox_Sprites_2 Red Crosshair Reticle
             bool isEagleEyeAiming = _activeShiftAbility is EagleEyeAbility eagle && eagle.IsActive;
-            if (isEagleEyeAiming)
+            bool isHoldingSniperRifle = _heldItemType == HeldItemType.Ranged &&
+                                        CurrentWeapon != null &&
+                                        !string.IsNullOrEmpty(CurrentWeapon.weaponName) &&
+                                        CurrentWeapon.weaponName.IndexOf("sniper", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bool showSniperRedAim = isEagleEyeAiming || isHoldingSniperRifle;
+
+            if (showSniperRedAim && !_isSitting && !_isSleeping)
             {
+                Color sniperLaserRed = new Color(1f, 0.08f, 0.06f, isEagleEyeAiming ? 0.98f : 0.85f);
                 if (_laserSightIndicator == null)
                 {
-                    _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
+                    _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", sniperLaserRed, 0.05f);
                 }
-                if (_laserTargetDot == null)
+                if (_sniperReticleSprite == null)
                 {
-                    _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+                    _sniperReticleSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                        "SniperReticleSprite", null, HitboxSpriteLibrary.DashedCrosshair, HitboxSpriteLibrary.SniperRed, 8);
+                    _sniperReticleSprite.gameObject.SetActive(false);
+                }
+                else if (_sniperReticleSprite.sprite == null)
+                {
+                    _sniperReticleSprite.sprite = HitboxSpriteLibrary.DashedCrosshair;
+                }
+
+                if (_sniperChevronSprite == null)
+                {
+                    _sniperChevronSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                        "SniperChevronSprite", null, HitboxSpriteLibrary.DirectionalChevrons, HitboxSpriteLibrary.SniperRed, 7);
+                    _sniperChevronSprite.gameObject.SetActive(false);
+                }
+                else if (_sniperChevronSprite.sprite == null)
+                {
+                    _sniperChevronSprite.sprite = HitboxSpriteLibrary.DirectionalChevrons;
                 }
 
                 if (!_laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(true);
-                if (!_laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(true);
+                if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
 
-                float targetRange = 25f;
+                float targetRange = 26f;
                 if (CurrentWeapon != null)
                 {
                     targetRange = CurrentWeapon.range;
@@ -1648,23 +1694,68 @@ namespace TheLastEmpire
                         targetRange = Mathf.Max(targetRange, CurrentWeapon.range * CurrentWeapon.projectilePrefab.Speed);
                     }
                 }
-                float rangeMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeRangeMultiplier : 2.0f;
-                targetRange *= rangeMult;
-                targetRange = Mathf.Clamp(targetRange, 12f, 45f);
+                if (isEagleEyeAiming)
+                {
+                    float rangeMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeRangeMultiplier : 2.0f;
+                    targetRange *= rangeMult;
+                }
+                targetRange = Mathf.Clamp(targetRange, 14f, 45f);
 
-                Vector3 startPos = transform.position + Vector3.up * 0.15f + _aimDirection * 0.4f;
+                Vector3 startPos = transform.position + Vector3.up * 0.16f + _aimDirection * 0.45f;
                 Vector3 endPos = startPos + _aimDirection * targetRange;
+                bool lockedOnEnemy = false;
 
-                // Check obstacle collisions
                 int layerMask = ~LayerMask.GetMask("Player", "Ignore Raycast");
-                if (Physics.Raycast(startPos + Vector3.up * 0.35f, _aimDirection, out RaycastHit hit, targetRange, layerMask))
+                if (Physics.Raycast(startPos + Vector3.up * 0.35f, _aimDirection, out RaycastHit hit, targetRange, layerMask, QueryTriggerInteraction.Ignore))
                 {
                     endPos = new Vector3(hit.point.x, startPos.y, hit.point.z);
+                    lockedOnEnemy = hit.collider != null && (hit.collider.CompareTag("Enemy") || hit.collider.GetComponentInParent<BaseEnemyAI>() != null);
                 }
 
+                // Bright RED Sniper Laser Line
+                _laserSightIndicator.startWidth = isEagleEyeAiming ? 0.06f : 0.042f;
+                _laserSightIndicator.endWidth = isEagleEyeAiming ? 0.035f : 0.025f;
+                _laserSightIndicator.startColor = sniperLaserRed;
+                _laserSightIndicator.endColor = new Color(1f, 0.06f, 0.06f, lockedOnEnemy ? 0.95f : 0.50f);
+                if (_laserSightIndicator.material != null) _laserSightIndicator.material.color = sniperLaserRed;
                 _laserSightIndicator.SetPosition(0, startPos);
                 _laserSightIndicator.SetPosition(1, endPos);
-                DrawCircle(_laserTargetDot, endPos, 0.22f);
+
+                // Crisp RED Sniper Crosshair Reticle (UI_Hitbox_Sprites_2) at target point (no spin, 25% alpha)
+                if (_sniperReticleSprite.sprite != null)
+                {
+                    if (!_sniperReticleSprite.gameObject.activeSelf) _sniperReticleSprite.gameObject.SetActive(true);
+                    _sniperReticleSprite.transform.position = new Vector3(endPos.x, 0.09f, endPos.z);
+                    _sniperReticleSprite.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    float reticleDiameter = lockedOnEnemy ? 1.35f : (isEagleEyeAiming ? 1.20f : 0.95f);
+                    HitboxSpriteLibrary.SetWorldDiameter(_sniperReticleSprite, reticleDiameter);
+                    _sniperReticleSprite.color = HitboxSpriteLibrary.SniperRed;
+                }
+                else if (_laserTargetDot != null)
+                {
+                    if (!_laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(true);
+                    DrawCircle(_laserTargetDot, endPos, 0.25f);
+                }
+
+                // Red directional chevron indicator ahead of the sniper barrel (25% alpha)
+                if (_sniperChevronSprite.sprite != null && Vector3.Distance(startPos, endPos) > 1.8f)
+                {
+                    if (!_sniperChevronSprite.gameObject.activeSelf) _sniperChevronSprite.gameObject.SetActive(true);
+                    Vector3 chevPos = startPos + _aimDirection * 1.45f;
+                    _sniperChevronSprite.transform.position = new Vector3(chevPos.x, 0.08f, chevPos.z);
+                    _sniperChevronSprite.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(_aimDirection);
+                    float baseW = _sniperChevronSprite.sprite.bounds.size.x;
+                    float baseH = _sniperChevronSprite.sprite.bounds.size.y;
+                    if (baseW > 0.001f && baseH > 0.001f)
+                    {
+                        _sniperChevronSprite.transform.localScale = new Vector3(1.15f / baseW, 0.58f / baseH, 1f);
+                    }
+                    _sniperChevronSprite.color = HitboxSpriteLibrary.SniperRed;
+                }
+                else if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf)
+                {
+                    _sniperChevronSprite.gameObject.SetActive(false);
+                }
             }
             else
             {
@@ -1675,6 +1766,14 @@ namespace TheLastEmpire
                 if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf)
                 {
                     _laserTargetDot.gameObject.SetActive(false);
+                }
+                if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject.activeSelf)
+                {
+                    _sniperReticleSprite.gameObject.SetActive(false);
+                }
+                if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf)
+                {
+                    _sniperChevronSprite.gameObject.SetActive(false);
                 }
             }
         }
@@ -1801,9 +1900,11 @@ namespace TheLastEmpire
         private SpriteRenderer _throwRangeSpriteRenderer;
         private SpriteRenderer _aoeSpriteRenderer;
 
-        // Eagle Eye Laser Sight Aim Indicators
+        // Eagle Eye & Sniper RED Laser Sight Aim Indicators
         private LineRenderer _laserSightIndicator;
         private LineRenderer _laserTargetDot;
+        private SpriteRenderer _sniperReticleSprite;
+        private SpriteRenderer _sniperChevronSprite;
 
         private void UpdateAimDirection()
         {
@@ -5832,23 +5933,36 @@ namespace TheLastEmpire
             _throwRangeIndicator = CreateLineRenderer("ThrowRangeIndicator", Color.white, 0.05f);
             _aoeIndicator = CreateLineRenderer("AOEIndicator", Color.red, 0.05f);
 
-            // Sprite Indicators (flat on ground, facing top-down camera)
+            // Sprite Indicators (flat on ground, facing top-down camera) — defaults to UI_Hitbox_Sprites
+            Sprite resolvedRangeSprite = throwRangeSprite != null ? throwRangeSprite : HitboxSpriteLibrary.DashedCrosshair;
+            Sprite resolvedAoeSprite = aoeIndicatorSprite != null ? aoeIndicatorSprite : HitboxSpriteLibrary.HazardCircle;
+
             GameObject throwRangeObj = new GameObject("ThrowRangeSprite");
             throwRangeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             _throwRangeSpriteRenderer = throwRangeObj.AddComponent<SpriteRenderer>();
-            _throwRangeSpriteRenderer.sprite = throwRangeSprite;
-            _throwRangeSpriteRenderer.color = throwRangeColor;
+            _throwRangeSpriteRenderer.sprite = resolvedRangeSprite;
+            _throwRangeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+            _throwRangeSpriteRenderer.sortingOrder = 4;
             throwRangeObj.SetActive(false);
 
             GameObject aoeObj = new GameObject("AOESprite");
             aoeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             _aoeSpriteRenderer = aoeObj.AddComponent<SpriteRenderer>();
-            _aoeSpriteRenderer.sprite = aoeIndicatorSprite;
-            _aoeSpriteRenderer.color = aoeIndicatorColor;
+            _aoeSpriteRenderer.sprite = resolvedAoeSprite;
+            _aoeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+            _aoeSpriteRenderer.sortingOrder = 6;
             aoeObj.SetActive(false);
 
-            _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
-            _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+            _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.08f, 0.06f, 0.95f), 0.05f);
+            _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.1f, 0.08f, 0.95f), 0.035f);
+
+            _sniperReticleSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                "SniperReticleSprite", null, HitboxSpriteLibrary.DashedCrosshair, HitboxSpriteLibrary.SniperRed, 8);
+            _sniperReticleSprite.gameObject.SetActive(false);
+
+            _sniperChevronSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                "SniperChevronSprite", null, HitboxSpriteLibrary.DirectionalChevrons, HitboxSpriteLibrary.SniperRed, 7);
+            _sniperChevronSprite.gameObject.SetActive(false);
         }
 
         private LineRenderer CreateLaserLineRenderer(string objName, Color color, float width)
