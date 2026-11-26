@@ -1,13 +1,20 @@
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
+#define THELASTEMPIRE_STEAMWORKS
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+#if THELASTEMPIRE_STEAMWORKS
 using Steamworks;
 using Steamworks.Data;
+#endif
 using UnityEngine;
 
 namespace TheLastEmpire.Network
 {
+#if THELASTEMPIRE_STEAMWORKS
     /// <summary>
     /// SteamP2PTransport — Real-time online Co-op transport powered by Facepunch.Steamworks
     /// Steam Datagram Relay (SteamNetworkingSockets) + SteamMatchmaking Lobbies.
@@ -597,4 +604,53 @@ namespace TheLastEmpire.Network
             OnPacketReceived?.Invoke(connection.Id, packet);
         }
     }
+#else
+    /// <summary>
+    /// No-op SteamP2PTransport stub for non-Steam platforms (e.g. WebGL / Mobile) so Addressables & Player builds compile cleanly.
+    /// </summary>
+    public class SteamP2PTransport
+    {
+        public const uint DefaultTestAppId = 480;
+        public const string LobbyGameKey = "tle_game";
+        public const string LobbyGameValue = "JunkCycloneCrisis_Coop_v1";
+        public const string LobbyRoomNameKey = "tle_room";
+        public const string LobbyCodeKey = "tle_code";
+        public const string LobbyHostSteamIdKey = "tle_host_steamid";
+        public const string LobbySceneKey = "tle_scene";
+
+        public bool IsSteamAvailable => false;
+        public bool IsHostRelayActive => false;
+        public bool IsClientRelayActive => false;
+        public bool IsClientRelayConnected => false;
+        public bool HasActiveLobby => false;
+        public ulong LocalSteamId => 0;
+        public string LocalSteamName => "";
+        public int ConnectedSteamPeerCount => 0;
+
+#pragma warning disable CS0067
+        public event Action OnClientConnectedToHost;
+        public event Action OnClientDisconnectedFromHost;
+        public event Action<uint, byte[]> OnPacketReceived;
+#pragma warning restore CS0067
+
+        public SteamP2PTransport(uint appId = DefaultTestAppId) { }
+        public bool TryInitializeSteam() => false;
+        public void Tick() { }
+        public Task<bool> StartHostRelayAsync(string roomName, string joinCode, int maxPlayers, string sceneName) => Task.FromResult(false);
+        public void UpdateHostLobbyMetadata(string roomName, string joinCode, string sceneName) { }
+        public bool ConnectToSteamHost(ulong hostSteamId) => false;
+        public Task<bool> JoinSteamLobbyByIdAsync(ulong lobbyId) => Task.FromResult(false);
+        public Task<bool> FindAndJoinSteamRoomByCodeAsync(string joinCode) => Task.FromResult(false);
+        public Task RefreshSteamLobbiesIntoDiscoveryAsync() => Task.CompletedTask;
+        public bool OpenSteamInviteOverlay() => false;
+        public static bool IsReliablePacket(NetPacketType type) => type != NetPacketType.PlayerStateSync && type != NetPacketType.EnemyBatchSync;
+        public void SendToServer(byte[] bytes, bool reliable) { }
+        public void SendToPeer(uint connectionId, byte[] bytes, bool reliable) { }
+        public void BroadcastToPeers(byte[] bytes, bool reliable, uint excludeConnectionId = 0) { }
+        public void DisconnectPeer(uint connectionId) { }
+        public int GetEstimatedPingMs() => 0;
+        public void CloseSocketsAndLobby() { }
+        public void ShutdownSteamOnQuit() { }
+    }
+#endif
 }

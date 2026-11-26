@@ -298,8 +298,10 @@ namespace TheLastEmpire.Network
             _steamTransport.OnPacketReceived += HandleIncomingSteamPacket;
             _steamTransport.OnClientConnectedToHost += HandleSteamClientConnectedToHost;
             _steamTransport.OnClientDisconnectedFromHost += HandleSteamClientDisconnectedFromHost;
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
             _steamTransport.OnSteamPeerDisconnected += HandleSteamPeerDisconnectedOnHost;
             _steamTransport.OnInviteJoinRequested += HandleSteamInviteJoinRequested;
+#endif
 
             if (_steamTransport.TryInitializeSteam())
             {
@@ -440,8 +442,10 @@ namespace TheLastEmpire.Network
                 _steamTransport.OnPacketReceived -= HandleIncomingSteamPacket;
                 _steamTransport.OnClientConnectedToHost -= HandleSteamClientConnectedToHost;
                 _steamTransport.OnClientDisconnectedFromHost -= HandleSteamClientDisconnectedFromHost;
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
                 _steamTransport.OnSteamPeerDisconnected -= HandleSteamPeerDisconnectedOnHost;
                 _steamTransport.OnInviteJoinRequested -= HandleSteamInviteJoinRequested;
+#endif
                 _steamTransport.CloseSocketsAndLobby();
             }
             if (_lanDiscoverySocket != null)
@@ -785,6 +789,7 @@ namespace TheLastEmpire.Network
             }
         }
 
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
         private async void HandleSteamInviteJoinRequested(Steamworks.Data.Lobby lobby, Steamworks.SteamId friendId)
         {
             DisconnectSession();
@@ -807,6 +812,7 @@ namespace TheLastEmpire.Network
                 MultiplayerLobbyUI.Instance.ShowRoomInfoPanelAfterExternalJoin();
             }
         }
+#endif
 
         private void HandleSteamClientConnectedToHost()
         {
@@ -825,6 +831,7 @@ namespace TheLastEmpire.Network
             }
         }
 
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
         private void HandleSteamPeerDisconnectedOnHost(uint connId, Steamworks.SteamId steamId)
         {
             if (!_isSessionActive || !_isHost) return;
@@ -856,6 +863,7 @@ namespace TheLastEmpire.Network
             OnLobbyRosterChanged?.Invoke();
             OnPeerDisconnected?.Invoke(clientId);
         }
+#endif
 
         public void DisconnectSession()
         {
