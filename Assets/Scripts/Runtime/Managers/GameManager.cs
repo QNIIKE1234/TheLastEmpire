@@ -244,6 +244,9 @@ namespace TheLastEmpire
                     {
                         if (enemy != null)
                         {
+                            // Roaming Alien World Boss persists in RoamingAlienBossManager (never duplicate into stage list)
+                            if (RoamingAlienBossManager.IsBossObject(enemy)) continue;
+
                             Health enemyHealth = enemy.GetComponent<Health>();
                             // If the enemy is alive and active in the scene, preserve it!
                             if (enemyHealth != null && !enemyHealth.IsDead && enemy.activeSelf)
@@ -261,6 +264,13 @@ namespace TheLastEmpire
             foreach (GameObject enemy in _activeEnemies)
             {
                 if (enemy == null) continue;
+
+                if (RoamingAlienBossManager.IsBossObject(enemy))
+                {
+                    RoamingAlienBossManager.Instance?.NotifyBossDespawnedOnStageLeave();
+                    Destroy(enemy);
+                    continue;
+                }
 
                 BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
                 string activePoolKey = ai != null ? ai.PoolKey : "";
@@ -648,6 +658,11 @@ namespace TheLastEmpire
 
             Vector3 spawnPos = FindDistributedSpawnPosition(playerPos);
             SpawnEnemyInstanceAt(prefab, pKey, spawnPos, Quaternion.identity);
+        }
+
+        public Vector3 FindClearBossSpawnPosition(Vector3 playerPos)
+        {
+            return FindDistributedSpawnPosition(playerPos);
         }
 
         public GameObject SpawnEnemyInstanceAt(GameObject prefab, string pKey, Vector3 spawnPos, Quaternion spawnRot)

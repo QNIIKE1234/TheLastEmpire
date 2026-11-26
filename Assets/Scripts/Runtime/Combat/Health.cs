@@ -16,6 +16,7 @@ namespace TheLastEmpire
         public UnityEvent onDeath;
 
         private float _invulnerabilityTimer = 0f;
+        private bool _hasCustomInitialHealth = false;
 
         public float MaxHealth => maxHealth;
         
@@ -40,9 +41,31 @@ namespace TheLastEmpire
             }
         }
 
+        /// <summary>
+        /// Sets both maxHealth and a persistent non-full currentHealth (e.g. Roaming World Boss)
+        /// so Health.Start() will NOT reset CurrentHealth back to maxHealth.
+        /// </summary>
+        public void InitializePersistentHealth(float initialCurrentHealth, float newMaxHealth)
+        {
+            if (newMaxHealth > 0f)
+            {
+                maxHealth = newMaxHealth;
+            }
+            _hasCustomInitialHealth = true;
+            _invulnerabilityTimer = 0f;
+            CurrentHealth = Mathf.Clamp(initialCurrentHealth, 0f, maxHealth);
+        }
+
         private void Start()
         {
-            CurrentHealth = maxHealth;
+            if (!_hasCustomInitialHealth)
+            {
+                CurrentHealth = maxHealth;
+            }
+            else
+            {
+                onHealthChanged?.Invoke(currentHealth);
+            }
         }
 
         private void Update()
@@ -180,6 +203,7 @@ namespace TheLastEmpire
 
         public void ResetHealth()
         {
+            _hasCustomInitialHealth = false;
             CurrentHealth = maxHealth;
             _invulnerabilityTimer = 0f; // Clear any active I-frames on reset
         }

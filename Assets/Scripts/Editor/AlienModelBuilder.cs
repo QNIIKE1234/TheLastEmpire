@@ -23,7 +23,8 @@ namespace TheLastEmpire.Editor
                    assetPath.Contains("Alien_Hook_Rigged") ||
                    assetPath.Contains("Alien_Normal_Rigged") ||
                    assetPath.Contains("Alien_Invisible_Rigged") ||
-                   assetPath.Contains("Alien_Crawler_Rigged");
+                   assetPath.Contains("Alien_Crawler_Rigged") ||
+                   assetPath.Contains("Alien_Leader_Rigged");
         }
 
         private void OnPreprocessModel()
@@ -83,7 +84,8 @@ namespace TheLastEmpire.Editor
                      path.Contains("Alien_Hook_Rigged.fbx") ||
                      path.Contains("Alien_Normal_Rigged.fbx") ||
                      path.Contains("Alien_Invisible_Rigged.fbx") ||
-                     path.Contains("Alien_Crawler_Rigged.fbx")))
+                     path.Contains("Alien_Crawler_Rigged.fbx") ||
+                     path.Contains("Alien_Leader_Rigged.fbx")))
                 {
                     EditorApplication.delayCall += AlienModelBuilder.EnsureAlienModelsBuiltAuto;
                     break;
@@ -162,6 +164,16 @@ namespace TheLastEmpire.Editor
                 legacyChildNamesToRemove = new[] { "Alien_Crawler", "Capsule" },
                 localPosition = new Vector3(0f, -0.85f, 0f),
                 localScale = new Vector3(1.0f, 1.0f, 1.0f)
+            },
+            new AlienSetupSpec
+            {
+                fbxPath = $"{AlienFbxDir}/Alien_Leader_Rigged.fbx",
+                controllerPath = $"{AnimCtrlDir}/Alien_Leader_Controller.controller",
+                prefabPath = $"{CharacterPrefabDir}/AlienLeader.prefab",
+                childRootName = "Alien_Leader_Rigged_Model",
+                legacyChildNamesToRemove = new[] { "Alien_Leader", "Capsule" },
+                localPosition = new Vector3(0f, -1.0f, 0f),
+                localScale = new Vector3(1.15f, 1.15f, 1.15f)
             }
         };
 
@@ -245,6 +257,55 @@ namespace TheLastEmpire.Editor
             {
                 // Translucent glowing cyan-violet glass lightbulb dome so the pulsing brain inside is clearly visible!
                 ConfigureUrpTransparentGlass(mat, new Color(0.32f, 0.88f, 0.98f, 0.28f), new Color(0.16f, 0.55f, 0.90f) * 0.45f);
+                return;
+            }
+
+            if (n.Contains("AlienLeader_"))
+            {
+                if (n.Contains("EyeIrisGlow"))
+                {
+                    SetEmission(mat, new Color(1.0f, 0.14f, 0.58f) * 2.2f, smoothness: 0.92f);
+                }
+                else if (n.Contains("EyeVeinBright"))
+                {
+                    SetEmission(mat, new Color(1.0f, 0.42f, 0.82f) * 3.6f, smoothness: 0.94f);
+                }
+                else if (n.Contains("EyeGlint"))
+                {
+                    SetEmission(mat, new Color(1.0f, 0.96f, 1.0f) * 3.8f, smoothness: 0.98f);
+                }
+                else if (n.Contains("EyeIrisDark"))
+                {
+                    SetEmission(mat, new Color(0.55f, 0.04f, 0.28f) * 0.85f, smoothness: 0.90f);
+                }
+                else if (n.Contains("EyeSclera") || n.Contains("EyePupil"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.95f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else if (n.Contains("TentacleGlow"))
+                {
+                    SetEmission(mat, new Color(0.98f, 0.18f, 0.72f) * 2.4f, smoothness: 0.82f);
+                }
+                else if (n.Contains("ThroatGlow"))
+                {
+                    SetEmission(mat, new Color(0.72f, 0.08f, 0.46f) * 0.95f, smoothness: 0.60f);
+                }
+                else if (n.Contains("TongueWet") || n.Contains("GumDeep"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.65f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else if (n.Contains("TeethIvory"))
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.35f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
+                else
+                {
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.14f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
+                }
                 return;
             }
 
@@ -495,6 +556,12 @@ namespace TheLastEmpire.Editor
                 EnsureExitToIdleTransition(hookState, idleState);
             }
 
+            if (clipsByShortName.ContainsKey("Vomit"))
+            {
+                AnimatorState vomitState = EnsureStateWithMotion(sm, "Vomit", FindClip(clipsByShortName, "Vomit", "Slash1"));
+                EnsureExitToIdleTransition(vomitState, idleState);
+            }
+
             EditorUtility.SetDirty(controller);
             return controller;
         }
@@ -596,6 +663,11 @@ namespace TheLastEmpire.Editor
                 if (fbxAvatar != null) anim.avatar = fbxAvatar;
                 anim.applyRootMotion = false;
                 anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+
+                if (spec.fbxPath.Contains("Alien_Leader_Rigged") && root.GetComponent<AlienBossVisualController>() == null)
+                {
+                    root.AddComponent<AlienBossVisualController>();
+                }
 
                 PrefabUtility.SaveAsPrefabAsset(root, spec.prefabPath);
                 return true;

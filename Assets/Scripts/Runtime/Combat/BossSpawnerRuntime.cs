@@ -432,6 +432,32 @@ namespace TheLastEmpire
                 SpawnBossRush(3);
             }
 
+            // Roaming Alien World Boss controls
+            GUILayout.Space(6);
+            GUI.backgroundColor = Color.white;
+            if (RoamingAlienBossManager.Instance != null)
+            {
+                var ab = RoamingAlienBossManager.Instance;
+                string abStatus = ab.IsDefeated
+                    ? "Alien World Boss: DEFEATED"
+                    : $"Alien Boss @ ({ab.BossStageX},{ab.BossStageY}) | HP: {ab.RemainingHealth:N0}/50,000";
+                GUILayout.Label(abStatus, EditorStylesMini());
+
+                GUI.backgroundColor = new Color(0.72f, 0.25f, 0.95f);
+                if (GUILayout.Button("Warp Alien World Boss Here", GUILayout.Height(28)))
+                {
+                    ab.ForceWarpBossToCurrentStage();
+                    ShowToast($"Alien World Boss warped to current stage ({ab.RemainingHealth:N0} HP)!");
+                }
+
+                GUI.backgroundColor = new Color(0.48f, 0.22f, 0.72f);
+                if (GUILayout.Button("Reset Alien Boss (50k HP + Re-roll Map)", GUILayout.Height(24)))
+                {
+                    ab.ResetAlienBossFull();
+                    ShowToast($"Alien Boss reset @ ({ab.BossStageX},{ab.BossStageY})!");
+                }
+            }
+
             GUILayout.Space(6);
             GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
             if (GUILayout.Button("Spawn Boomer"))

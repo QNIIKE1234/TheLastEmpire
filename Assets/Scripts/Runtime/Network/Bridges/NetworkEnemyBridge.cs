@@ -240,18 +240,36 @@ namespace TheLastEmpire.Network
             if (prefab == null) prefab = GameManager.Instance.DefaultEnemyPrefab;
             if (prefab == null) return null;
 
-            string poolKey = !string.IsNullOrEmpty(state.poolKey) ? state.poolKey : GameManager.Instance.GetPoolKeyForPrefab(prefab);
+            bool isAlienWorldBoss = state.prefabName != null &&
+                                    state.prefabName.IndexOf("AlienLeader", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                    state.maxHealth >= 10000f;
+            string poolKey = isAlienWorldBoss
+                ? ""
+                : (!string.IsNullOrEmpty(state.poolKey) ? state.poolKey : GameManager.Instance.GetPoolKeyForPrefab(prefab));
             Vector3 spawnPos = new Vector3(state.posX, 0.25f, state.posZ);
             Quaternion spawnRot = Quaternion.Euler(0f, state.rotY, 0f);
 
             GameObject obj = GameManager.Instance.SpawnEnemyInstanceAt(prefab, poolKey, spawnPos, spawnRot);
             if (obj == null) return null;
 
+            if (isAlienWorldBoss)
+            {
+                obj.transform.localScale = Vector3.one * RoamingAlienBossManager.BossScale;
+                if (obj.GetComponent<AlienBossVisualController>() == null)
+                {
+                    obj.AddComponent<AlienBossVisualController>();
+                }
+            }
+
             BaseEnemyAI ai = obj.GetComponent<BaseEnemyAI>();
             if (ai != null)
             {
                 ai.IsNetworkPuppet = true;
                 ai.NetworkEnemyId = state.enemyNetId;
+                if (isAlienWorldBoss)
+                {
+                    ai.SetPoolKey("");
+                }
             }
             return ai;
         }

@@ -11,8 +11,13 @@
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "DOTween.dll",
+        "Facepunch.Steamworks.Win64.dll",
+        "Facepunch.Steamworks.Win32.dll",
+        "Facepunch.Steamworks.Posix.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [

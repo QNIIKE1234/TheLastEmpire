@@ -14,6 +14,12 @@ namespace TheLastEmpire
         public List<int> exploredStageIndices;
         public List<int> clearedStageIndices;
 
+        // Persistent Roaming Alien World Boss state (50,000 HP, never resets)
+        public int alienBossStageX = -1;
+        public int alienBossStageY = -1;
+        public float alienBossRemainingHp = 50000f;
+        public bool alienBossDefeated = false;
+
         public SaveData()
         {
             exploredStageIndices = new List<int>();
