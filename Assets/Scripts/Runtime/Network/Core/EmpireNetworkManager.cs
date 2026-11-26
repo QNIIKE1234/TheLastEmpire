@@ -175,7 +175,7 @@ namespace TheLastEmpire.Network
         private float _handshakeRetryTimer = 0f;
         private ulong _localClientId = 0;
         private string _activeJoinCode = "";
-        private string _activeRoomName = "THE LAST EMPIRE";
+        private string _activeRoomName = "JUNK CYCLONE CRISIS";
         private string _activeHostIp = "127.0.0.1";
         private int _activePort = LobbyRelayService.DefaultUdpPort;
         private string _localLobbyCharacterId = ""; // ว่าง = ยังไม่ได้กดปุ่มประแจเลือกตัวละคร (แสดงรูป Default เข็มทิศ)
@@ -188,7 +188,22 @@ namespace TheLastEmpire.Network
         private readonly Dictionary<string, ulong> _endpointToClientId = new Dictionary<string, ulong>();
         private ulong _nextAssignedClientId = 1;
 
-        public int ConnectedPeerCount => _isSessionActive ? (_isHost ? 1 + _clientEndpoints.Count + _simulatedTeammates.Count : Mathf.Max(2, PlayerRegistry.GetTotalPlayerCount())) : 1;
+        // Steam Datagram Relay (SDR) transport & peer maps (runs alongside LAN UDP seamlessly)
+        private SteamP2PTransport _steamTransport;
+        private readonly Dictionary<uint, ulong> _steamConnToClientId = new Dictionary<uint, ulong>();
+        private readonly Dictionary<ulong, uint> _clientIdToSteamConn = new Dictionary<ulong, uint>();
+        private bool _isUsingSteamRelayClient = false;
+        private float _steamDiscoveryTimer = 0f;
+
+        public bool IsSteamAvailable => _steamTransport != null && _steamTransport.IsSteamAvailable;
+        public bool IsSteamRelayActive => _steamTransport != null && (_isHost ? _steamTransport.IsHostRelayActive : _isUsingSteamRelayClient);
+        public bool HasActiveSteamLobby => _steamTransport != null && _steamTransport.HasActiveLobby;
+        public string SteamPlayerName => _steamTransport != null ? _steamTransport.LocalSteamName : "";
+        public int SteamEstimatedPingMs => _steamTransport != null ? _steamTransport.GetEstimatedPingMs() : 0;
+
+        public int ConnectedPeerCount => _isSessionActive
+            ? (_isHost ? 1 + _clientEndpoints.Count + _clientIdToSteamConn.Count + _simulatedTeammates.Count : Mathf.Max(2, PlayerRegistry.GetTotalPlayerCount()))
+            : 1;
 
         private readonly List<PlayerController> _simulatedTeammates = new List<PlayerController>();
         public IReadOnlyList<PlayerController> SimulatedTeammates => _simulatedTeammates;
@@ -271,7 +286,43 @@ namespace TheLastEmpire.Network
         private void Start()
         {
             InitLanDiscoverySocket();
+            InitSteamRelayTransport();
             CheckCommandLineAutoConnect();
+        }
+
+        private void InitSteamRelayTransport()
+        {
+            if (_steamTransport != null) return;
+            _steamTransport = new SteamP2PTransport(SteamP2PTransport.DefaultTestAppId);
+            _steamTransport.OnPacketReceived += HandleIncomingSteamPacket;
+            _steamTransport.OnClientConnectedToHost += HandleSteamClientConnectedToHost;
+            _steamTransport.OnClientDisconnectedFromHost += HandleSteamClientDisconnectedFromHost;
+            _steamTransport.OnSteamPeerDisconnected += HandleSteamPeerDisconnectedOnHost;
+            _steamTransport.OnInviteJoinRequested += HandleSteamInviteJoinRequested;
+
+            if (_steamTransport.TryInitializeSteam())
+            {
+                // Auto-use Steam display name if player has never set a custom name yet
+                if (string.IsNullOrWhiteSpace(PlayerPrefs.GetString(PlayerNamePrefKey, "")) &&
+                    !string.IsNullOrWhiteSpace(_steamTransport.LocalSteamName))
+                {
+                    SetLocalPlayerName(_steamTransport.LocalSteamName);
+                }
+            }
+        }
+
+        public void RequestSteamLobbyRefresh(bool forceImmediate = false)
+        {
+            if (!IsSteamAvailable) return;
+            if (!forceImmediate && _steamDiscoveryTimer > 0f) return;
+            _steamDiscoveryTimer = 3.5f;
+            _ = _steamTransport.RefreshSteamLobbiesIntoDiscoveryAsync();
+        }
+
+        public bool OpenSteamInviteOverlay()
+        {
+            if (_steamTransport == null) return false;
+            return _steamTransport.OpenSteamInviteOverlay();
         }
 
         private void InitLanDiscoverySocket()
@@ -383,6 +434,15 @@ namespace TheLastEmpire.Network
         {
             SceneManager.sceneLoaded -= HandleSceneLoaded;
             CloseUdpSocket();
+            if (_steamTransport != null)
+            {
+                _steamTransport.OnPacketReceived -= HandleIncomingSteamPacket;
+                _steamTransport.OnClientConnectedToHost -= HandleSteamClientConnectedToHost;
+                _steamTransport.OnClientDisconnectedFromHost -= HandleSteamClientDisconnectedFromHost;
+                _steamTransport.OnSteamPeerDisconnected -= HandleSteamPeerDisconnectedOnHost;
+                _steamTransport.OnInviteJoinRequested -= HandleSteamInviteJoinRequested;
+                _steamTransport.CloseSocketsAndLobby();
+            }
             if (_lanDiscoverySocket != null)
             {
                 try { _lanDiscoverySocket.Close(); } catch { }
@@ -394,12 +454,21 @@ namespace TheLastEmpire.Network
             }
         }
 
+        private void OnApplicationQuit()
+        {
+            _steamTransport?.ShutdownSteamOnQuit();
+        }
+
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             EnsureLocalPlayerBridgeAttached();
-            if (_isSessionActive && _isHost && NetworkStageSyncManager.Instance != null)
+            if (_isSessionActive && _isHost)
             {
-                NetworkStageSyncManager.Instance.CaptureHostStageState();
+                _steamTransport?.UpdateHostLobbyMetadata(_activeRoomName, _activeJoinCode, scene.name);
+                if (NetworkStageSyncManager.Instance != null)
+                {
+                    NetworkStageSyncManager.Instance.CaptureHostStageState();
+                }
             }
             if (_isSessionActive && !_isHost && NetworkStageSyncManager.Instance != null)
             {
@@ -413,6 +482,15 @@ namespace TheLastEmpire.Network
             UpdateLanDiscovery();
             PollUdpPackets();
 
+            if (_steamTransport != null)
+            {
+                _steamTransport.Tick();
+                if (_steamDiscoveryTimer > 0f)
+                {
+                    _steamDiscoveryTimer -= Time.unscaledDeltaTime;
+                }
+            }
+
             // หากเป็นเครื่อง Client ที่กำลังรอ HandshakeAccept จาก Host ให้ส่ง HandshakeRequest ซ้ำทุก 1 วินาที
             // เพื่อให้เปิด 2 หน้าต่างในลำดับไหนก็ได้ (จะกด Join ก่อนหรือกด Host ก่อนก็เชื่อมติดทันที)
             if (_isSessionActive && !_isHost && !_isClientHandshakeAccepted)
@@ -421,7 +499,10 @@ namespace TheLastEmpire.Network
                 if (_handshakeRetryTimer <= 0f)
                 {
                     _handshakeRetryTimer = 1.0f;
-                    SendHandshakeRequestToHost();
+                    if (!_isUsingSteamRelayClient || (_steamTransport != null && _steamTransport.IsClientRelayConnected))
+                    {
+                        SendHandshakeRequestToHost();
+                    }
                 }
             }
         }
@@ -515,7 +596,19 @@ namespace TheLastEmpire.Network
             });
             OnLobbyRosterChanged?.Invoke();
 
-            Debug.Log($"<color=#38BDF8>[EmpireNetworkManager]</color> Hosted 1–6P Co-op Room! Join Code: <b>{_activeJoinCode}</b> ({_activeHostIp}:{_activePort})");
+            // เปิด Steam Datagram Relay + Steam Lobby ควบคู่กับ LAN UDP อัตโนมัติ (ถ้าเครื่องเปิด Steam อยู่)
+            // ทำให้เพื่อนข้ามอินเทอร์เน็ต Join ผ่าน Steam Relay ได้ทันทีโดยไม่ต้อง Forward Port
+            if (_steamTransport == null) InitSteamRelayTransport();
+            if (IsSteamAvailable)
+            {
+                _ = _steamTransport.StartHostRelayAsync(
+                    _activeRoomName,
+                    _activeJoinCode,
+                    MaxPlayers,
+                    SceneManager.GetActiveScene().name);
+            }
+
+            Debug.Log($"<color=#38BDF8>[EmpireNetworkManager]</color> Hosted 1–6P Co-op Room! Join Code: <b>{_activeJoinCode}</b> ({_activeHostIp}:{_activePort}) | SteamRelay={(IsSteamAvailable ? "ENABLED" : "OFFLINE")}");
             OnSessionStarted?.Invoke();
             return true;
         }
@@ -523,6 +616,49 @@ namespace TheLastEmpire.Network
         public bool StartClientSession(string joinCodeOrAddress)
         {
             DisconnectSession();
+
+            string trimmedInput = (joinCodeOrAddress ?? "").Trim();
+
+            // 1. Explicit Steam Relay target ("steamlobby:<id>" or "steam:<hostSteamId>")
+            if (trimmedInput.StartsWith("steamlobby:", StringComparison.OrdinalIgnoreCase) &&
+                ulong.TryParse(trimmedInput.Substring("steamlobby:".Length).Trim(), out ulong explicitLobbyId))
+            {
+                return BeginSteamClientJoin(explicitLobbyId, 0, trimmedInput);
+            }
+
+            if (trimmedInput.StartsWith("steam:", StringComparison.OrdinalIgnoreCase) &&
+                ulong.TryParse(trimmedInput.Substring("steam:".Length).Trim(), out ulong explicitHostSteamId))
+            {
+                return BeginSteamClientJoin(0, explicitHostSteamId, trimmedInput);
+            }
+
+            // 2. Match against discovered Steam Relay rooms by 6-char Join Code / Lobby ID
+            if (LobbyRelayService.TryFindDiscoveredSteamRoom(trimmedInput, out DiscoveredLanRoom steamRoom))
+            {
+                return BeginSteamClientJoin(steamRoom.steamLobbyId, steamRoom.hostSteamId, steamRoom.joinCode);
+            }
+
+            // 3. Pure 6-char Join Code (not an IP:Port and not found on LAN) -> search Steam Relay worldwide!
+            bool looksLikeIp = trimmedInput.Contains(".") || trimmedInput.Contains(":");
+            bool foundOnLan = false;
+            if (!looksLikeIp && !string.IsNullOrEmpty(trimmedInput))
+            {
+                var activeRooms = LobbyRelayService.GetActiveLanRooms();
+                for (int i = 0; i < activeRooms.Count; i++)
+                {
+                    if (!activeRooms[i].isSteamRelay &&
+                        string.Equals(activeRooms[i].joinCode, trimmedInput, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundOnLan = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!looksLikeIp && !foundOnLan && trimmedInput.Length == 6 && IsSteamAvailable)
+            {
+                return BeginSteamClientJoinByCode(trimmedInput.ToUpperInvariant());
+            }
 
             if (!LobbyRelayService.TryResolveJoinTarget(joinCodeOrAddress, out string targetIp, out int targetPort))
             {
@@ -545,13 +681,14 @@ namespace TheLastEmpire.Network
             Application.runInBackground = true;
             _isSessionActive = true;
             _isHost = false;
+            _isUsingSteamRelayClient = false;
             _isClientHandshakeAccepted = false;
             _handshakeRetryTimer = 1.0f;
             _localLobbyCharacterId = ""; // เริ่มต้นเข้าห้องยังไม่ได้เลือกตัวละคร ให้แสดงรูป Default ก่อน
             _localClientId = (ulong)UnityEngine.Random.Range(100, 999);
             _activeHostIp = targetIp;
             _activePort = targetPort;
-            _activeJoinCode = joinCodeOrAddress.Trim().ToUpperInvariant();
+            _activeJoinCode = trimmedInput.ToUpperInvariant();
 
             if (NetworkManager.Singleton != null)
             {
@@ -565,6 +702,160 @@ namespace TheLastEmpire.Network
             return true;
         }
 
+        private bool BeginSteamClientJoin(ulong steamLobbyId, ulong hostSteamId, string displayCode)
+        {
+            if (_steamTransport == null) InitSteamRelayTransport();
+            if (!IsSteamAvailable)
+            {
+                Debug.LogWarning("[EmpireNetworkManager] Cannot join Steam Relay room: Steam is not running.");
+                return false;
+            }
+
+            PrepareClientSessionStateForSteam(displayCode);
+            _ = ConnectSteamClientAsync(steamLobbyId, hostSteamId);
+            return true;
+        }
+
+        private bool BeginSteamClientJoinByCode(string sixCharCode)
+        {
+            if (_steamTransport == null) InitSteamRelayTransport();
+            if (!IsSteamAvailable) return false;
+
+            PrepareClientSessionStateForSteam(sixCharCode);
+            _ = ConnectSteamClientByCodeAsync(sixCharCode);
+            return true;
+        }
+
+        private void PrepareClientSessionStateForSteam(string displayCode)
+        {
+            Application.runInBackground = true;
+            _isSessionActive = true;
+            _isHost = false;
+            _isUsingSteamRelayClient = true;
+            _isClientHandshakeAccepted = false;
+            _handshakeRetryTimer = 0.6f;
+            _localLobbyCharacterId = "";
+            _localClientId = (ulong)UnityEngine.Random.Range(100, 999);
+            _activeHostIp = "STEAM_RELAY";
+            _activePort = 0;
+            _activeJoinCode = string.IsNullOrWhiteSpace(displayCode) ? "STEAM" : displayCode.Trim().ToUpperInvariant();
+
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.StartClient();
+            }
+
+            OnSessionStarted?.Invoke();
+        }
+
+        private async System.Threading.Tasks.Task ConnectSteamClientAsync(ulong steamLobbyId, ulong hostSteamId)
+        {
+            bool ok = false;
+            if (steamLobbyId != 0)
+            {
+                ok = await _steamTransport.JoinSteamLobbyByIdAsync(steamLobbyId);
+            }
+            if (!ok && hostSteamId != 0)
+            {
+                ok = _steamTransport.ConnectToSteamHost(hostSteamId);
+            }
+            if (!ok)
+            {
+                Debug.LogWarning("[EmpireNetworkManager] Failed to connect via Steam Relay.");
+                DisconnectSession();
+            }
+        }
+
+        private async System.Threading.Tasks.Task ConnectSteamClientByCodeAsync(string sixCharCode)
+        {
+            bool ok = await _steamTransport.FindAndJoinSteamRoomByCodeAsync(sixCharCode);
+            if (!ok)
+            {
+                Debug.LogWarning($"[EmpireNetworkManager] Steam room code '{sixCharCode}' not found online. Trying LAN fallback...");
+                _isUsingSteamRelayClient = false;
+                if (LobbyRelayService.TryResolveJoinTarget(sixCharCode, out string lanIp, out int lanPort))
+                {
+                    StartClientSession($"{lanIp}:{lanPort}");
+                }
+                else
+                {
+                    DisconnectSession();
+                }
+            }
+        }
+
+        private async void HandleSteamInviteJoinRequested(Steamworks.Data.Lobby lobby, Steamworks.SteamId friendId)
+        {
+            DisconnectSession();
+            string code = lobby.GetData(SteamP2PTransport.LobbyCodeKey);
+            PrepareClientSessionStateForSteam(string.IsNullOrEmpty(code) ? lobby.Id.Value.ToString() : code);
+
+            bool ok = await _steamTransport.JoinSteamLobbyAsync(lobby);
+            if (!ok)
+            {
+                DisconnectSession();
+                return;
+            }
+
+            if (SceneManager.GetActiveScene().name != "Lobby_NetCode" && SceneManager.GetActiveScene().name != "Gameplay_3D")
+            {
+                SceneManager.LoadScene("Lobby_NetCode");
+            }
+            else if (MultiplayerLobbyUI.Instance != null)
+            {
+                MultiplayerLobbyUI.Instance.ShowRoomInfoPanelAfterExternalJoin();
+            }
+        }
+
+        private void HandleSteamClientConnectedToHost()
+        {
+            if (_isSessionActive && !_isHost && _isUsingSteamRelayClient)
+            {
+                SendHandshakeRequestToHost();
+            }
+        }
+
+        private void HandleSteamClientDisconnectedFromHost()
+        {
+            if (_isSessionActive && !_isHost && _isUsingSteamRelayClient)
+            {
+                DisconnectSession();
+                OnKickedFromRoom?.Invoke();
+            }
+        }
+
+        private void HandleSteamPeerDisconnectedOnHost(uint connId, Steamworks.SteamId steamId)
+        {
+            if (!_isSessionActive || !_isHost) return;
+            if (!_steamConnToClientId.TryGetValue(connId, out ulong clientId)) return;
+
+            _steamConnToClientId.Remove(connId);
+            _clientIdToSteamConn.Remove(clientId);
+
+            int idx = _lobbyMembers.FindIndex(m => m.clientId == clientId);
+            if (idx >= 0)
+            {
+                _lobbyMembers.RemoveAt(idx);
+                for (int i = 0; i < _lobbyMembers.Count; i++)
+                {
+                    var m = _lobbyMembers[i];
+                    m.slotIndex = i;
+                    _lobbyMembers[i] = m;
+                }
+            }
+
+            PlayerController avatar = PlayerRegistry.GetPlayerByClientId(clientId);
+            if (avatar != null && avatar.IsRemotePlayer)
+            {
+                PlayerRegistry.Unregister(avatar);
+                Destroy(avatar.gameObject);
+            }
+
+            BroadcastLobbyRosterFromHost();
+            OnLobbyRosterChanged?.Invoke();
+            OnPeerDisconnected?.Invoke(clientId);
+        }
+
         public void DisconnectSession()
         {
             ClearSimulatedTeammates();
@@ -573,15 +864,19 @@ namespace TheLastEmpire.Network
             NetworkLootManager.Instance?.ClearMatchLootCache();
             DayNightManager.ClearPendingNetworkTimeSync();
             CloseUdpSocket();
+            _steamTransport?.CloseSocketsAndLobby();
 
             _clientEndpoints.Clear();
             _endpointToClientId.Clear();
+            _steamConnToClientId.Clear();
+            _clientIdToSteamConn.Clear();
             _lobbyMembers.Clear();
             _nextAssignedClientId = 1;
 
             bool wasActive = _isSessionActive;
             _isSessionActive = false;
             _isHost = true;
+            _isUsingSteamRelayClient = false;
             _localClientId = 0;
             _activeJoinCode = "";
 
@@ -684,6 +979,13 @@ namespace TheLastEmpire.Network
                 _clientEndpoints.Remove(targetClientId);
             }
 
+            if (_clientIdToSteamConn.TryGetValue(targetClientId, out uint steamConnId))
+            {
+                _steamConnToClientId.Remove(steamConnId);
+                _clientIdToSteamConn.Remove(targetClientId);
+                _steamTransport?.DisconnectPeer(steamConnId);
+            }
+
             PlayerController avatar = PlayerRegistry.GetPlayerByClientId(targetClientId);
             if (avatar != null && avatar.IsRemotePlayer)
             {
@@ -702,7 +1004,7 @@ namespace TheLastEmpire.Network
 
             SendPacket(NetPacketType.LobbyRosterSync, w =>
             {
-                w.Write(_activeRoomName ?? "THE LAST EMPIRE");
+                w.Write(_activeRoomName ?? "JUNK CYCLONE CRISIS");
                 w.Write(_activeJoinCode ?? "");
                 w.Write(_lobbyMembers.Count);
                 for (int i = 0; i < _lobbyMembers.Count; i++)
@@ -769,9 +1071,13 @@ namespace TheLastEmpire.Network
             string activeSceneName = SceneManager.GetActiveScene().name;
 
             int slotCounter = 1;
-            foreach (var kvp in _clientEndpoints)
+            var allClientIds = new List<ulong>();
+            foreach (var kvp in _clientEndpoints) allClientIds.Add(kvp.Key);
+            foreach (var kvp in _clientIdToSteamConn) allClientIds.Add(kvp.Key);
+
+            for (int i = 0; i < allClientIds.Count; i++)
             {
-                ulong clientId = kvp.Key;
+                ulong clientId = allClientIds[i];
                 int slotIdx = Mathf.Clamp(slotCounter++, 1, MaxPlayers - 1);
                 SendPacket(NetPacketType.HandshakeAccept, w =>
                 {
@@ -904,7 +1210,10 @@ namespace TheLastEmpire.Network
 
         public void SendPacket(NetPacketType type, Action<BinaryWriter> writeAction, ulong targetClientId = ulong.MaxValue)
         {
-            if (!_isSessionActive || _udpSocket == null) return;
+            if (!_isSessionActive) return;
+            bool hasUdp = _udpSocket != null;
+            bool hasSteam = _steamTransport != null && (_isHost ? _steamTransport.IsHostRelayActive : _isUsingSteamRelayClient);
+            if (!hasUdp && !hasSteam) return;
 
             using (MemoryStream ms = new MemoryStream(256))
             using (BinaryWriter writer = new BinaryWriter(ms))
@@ -916,28 +1225,71 @@ namespace TheLastEmpire.Network
                 writeAction?.Invoke(writer);
 
                 byte[] bytes = ms.ToArray();
+                bool reliable = SteamP2PTransport.IsReliablePacket(type);
+
                 try
                 {
                     if (_isHost)
                     {
-                        if (targetClientId != ulong.MaxValue && _clientEndpoints.TryGetValue(targetClientId, out IPEndPoint singleEp))
+                        if (targetClientId != ulong.MaxValue)
                         {
-                            _udpSocket.Send(bytes, bytes.Length, singleEp);
+                            if (hasUdp && _clientEndpoints.TryGetValue(targetClientId, out IPEndPoint singleEp))
+                            {
+                                _udpSocket.Send(bytes, bytes.Length, singleEp);
+                            }
+                            else if (hasSteam && _clientIdToSteamConn.TryGetValue(targetClientId, out uint singleSteamConn))
+                            {
+                                _steamTransport.SendToPeer(singleSteamConn, bytes, reliable);
+                            }
                         }
                         else
                         {
-                            foreach (var kvp in _clientEndpoints)
+                            if (hasUdp)
                             {
-                                _udpSocket.Send(bytes, bytes.Length, kvp.Value);
+                                foreach (var kvp in _clientEndpoints)
+                                {
+                                    _udpSocket.Send(bytes, bytes.Length, kvp.Value);
+                                }
+                            }
+                            if (hasSteam)
+                            {
+                                _steamTransport.BroadcastToPeers(bytes, reliable);
                             }
                         }
                     }
-                    else if (_serverEndPoint != null)
+                    else if (_isUsingSteamRelayClient && hasSteam)
+                    {
+                        _steamTransport.SendToServer(bytes, reliable);
+                    }
+                    else if (hasUdp && _serverEndPoint != null)
                     {
                         _udpSocket.Send(bytes, bytes.Length, _serverEndPoint);
                     }
                 }
                 catch { }
+            }
+        }
+
+        private void HandleIncomingSteamPacket(uint steamConnId, byte[] data)
+        {
+            if (!_isSessionActive || data == null || data.Length < 11) return;
+            if (data[0] != 0x54 || data[1] != 0x4C) return;
+
+            try
+            {
+                using (MemoryStream ms = new MemoryStream(data))
+                using (BinaryReader reader = new BinaryReader(ms))
+                {
+                    reader.ReadByte();
+                    reader.ReadByte();
+                    NetPacketType packetType = (NetPacketType)reader.ReadByte();
+                    ulong senderId = reader.ReadUInt64();
+                    HandleIncomingPacket(packetType, senderId, null, reader, steamConnId);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[EmpireNetworkManager] Steam packet parse error: {ex.Message}");
             }
         }
 
@@ -986,22 +1338,40 @@ namespace TheLastEmpire.Network
             }
         }
 
-        private void HandleIncomingPacket(NetPacketType type, ulong senderId, IPEndPoint remoteEp, BinaryReader reader)
+        private void HandleIncomingPacket(NetPacketType type, ulong senderId, IPEndPoint remoteEp, BinaryReader reader, uint steamConnId = 0)
         {
-            if (_isHost && remoteEp != null)
+            if (_isHost)
             {
-                string epKey = remoteEp.ToString();
-                if (_endpointToClientId.TryGetValue(epKey, out ulong registeredId))
+                if (remoteEp != null)
                 {
-                    senderId = registeredId;
+                    string epKey = remoteEp.ToString();
+                    if (_endpointToClientId.TryGetValue(epKey, out ulong registeredId))
+                    {
+                        senderId = registeredId;
+                    }
+                    else if (type == NetPacketType.HandshakeRequest)
+                    {
+                        if (_clientEndpoints.Count + _clientIdToSteamConn.Count + 1 >= MaxPlayers) return; // ห้องเต็ม 6 คนแล้ว
+                        ulong assignedId = _nextAssignedClientId++;
+                        _endpointToClientId[epKey] = assignedId;
+                        _clientEndpoints[assignedId] = remoteEp;
+                        senderId = assignedId;
+                    }
                 }
-                else if (type == NetPacketType.HandshakeRequest)
+                else if (steamConnId != 0)
                 {
-                    if (_clientEndpoints.Count + 1 >= MaxPlayers) return; // ห้องเต็ม 6 คนแล้ว
-                    ulong assignedId = _nextAssignedClientId++;
-                    _endpointToClientId[epKey] = assignedId;
-                    _clientEndpoints[assignedId] = remoteEp;
-                    senderId = assignedId;
+                    if (_steamConnToClientId.TryGetValue(steamConnId, out ulong registeredSteamId))
+                    {
+                        senderId = registeredSteamId;
+                    }
+                    else if (type == NetPacketType.HandshakeRequest)
+                    {
+                        if (_clientEndpoints.Count + _clientIdToSteamConn.Count + 1 >= MaxPlayers) return; // ห้องเต็ม 6 คนแล้ว
+                        ulong assignedId = _nextAssignedClientId++;
+                        _steamConnToClientId[steamConnId] = assignedId;
+                        _clientIdToSteamConn[assignedId] = steamConnId;
+                        senderId = assignedId;
+                    }
                 }
             }
 
@@ -1015,7 +1385,7 @@ namespace TheLastEmpire.Network
                     {
                         string clientName = reader.ReadString();
                         string clientCharId = reader.ReadString();
-                        int slotIdx = Mathf.Clamp(_clientEndpoints.Count, 1, MaxPlayers - 1);
+                        int slotIdx = Mathf.Clamp(_clientEndpoints.Count + _clientIdToSteamConn.Count, 1, MaxPlayers - 1);
 
                         // บันทึกสมาชิกเข้า Lobby Roster (ป้องกันซ้ำหากส่ง Handshake ซ้ำ; ถ้ายังไม่เลือกตัวละครให้เก็บ "" เพื่อโชว์รูป Default)
                         int existingIdx = _lobbyMembers.FindIndex(m => m.clientId == senderId);

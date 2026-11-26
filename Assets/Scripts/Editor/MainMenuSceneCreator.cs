@@ -256,7 +256,7 @@ namespace TheLastEmpire.Editor
             // Top Flourish
             GameObject topFlourishObj = CreateUIObject("TopFlourishText", logoContainer.transform);
             TextMeshProUGUI topFlourish = topFlourishObj.AddComponent<TextMeshProUGUI>();
-            topFlourish.text = "THE LAST";
+            topFlourish.text = "JUNK CYCLONE";
             topFlourish.fontSize = 20;
             topFlourish.fontStyle = FontStyles.Bold;
             topFlourish.color = HighlightAccent;
@@ -269,10 +269,10 @@ namespace TheLastEmpire.Editor
             tfRect.anchoredPosition = new Vector2(0f, -10f);
             tfRect.sizeDelta = new Vector2(410f, 32f);
 
-            // Main Title "EMPIRE"
+            // Main Title "CRISIS"
             GameObject mainTitleObj = CreateUIObject("MainTitleText", logoContainer.transform);
             TextMeshProUGUI titleText = mainTitleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "EMPIRE";
+            titleText.text = "CRISIS";
             titleText.fontSize = 78;
             titleText.fontStyle = FontStyles.Bold;
             titleText.color = Color.white;
@@ -369,7 +369,7 @@ namespace TheLastEmpire.Editor
             // Version text beneath social bar
             GameObject verObj = CreateUIObject("VersionText", sidebarObj.transform);
             TextMeshProUGUI vText = verObj.AddComponent<TextMeshProUGUI>();
-            vText.text = "THE LAST EMPIRE // v1.0.4 PROTOCOL";
+            vText.text = "JUNK CYCLONE CRISIS // v1.0.4 PROTOCOL";
             vText.fontSize = 11;
             vText.color = new Color(0.45f, 0.48f, 0.55f, 0.75f);
             vText.alignment = TextAlignmentOptions.Center;
