@@ -240,14 +240,32 @@ namespace TheLastEmpire
         private Renderer[] _invisRenderers;
         private float _invisCurrentAlpha = 1f;
         private bool _invisTransparentMode;
+        private float _forceRevealTimer = 0f;
+
+        /// <summary>
+        /// Forces AlienInvisible out of stealth (triggered by Tactical Flashlight, Red Signal Flare, Thermal Visor, or UV Flashbang).
+        /// </summary>
+        public void ForceRevealFromStealth(float duration)
+        {
+            _forceRevealTimer = Mathf.Max(_forceRevealTimer, duration);
+        }
 
         private void HandleInvisibilityFade()
         {
             if (alienType != AlienType.Invisible || playerTransform == null) return;
 
+            if (_forceRevealTimer > 0f)
+            {
+                _forceRevealTimer = Mathf.Max(0f, _forceRevealTimer - Time.fixedDeltaTime);
+            }
+
+            bool forcedVisible = _forceRevealTimer > 0f ||
+                                 (NightCombatItemManager.Instance != null &&
+                                  NightCombatItemManager.Instance.ShouldForceRevealInvisibleAlien(transform.position));
+
             float dist = Vector3.Distance(transform.position, playerTransform.position);
-            float targetAlpha = dist <= fadeDistance ? 1f : 0.10f; // nearly invisible ghost shadow when far
-            _invisCurrentAlpha = Mathf.MoveTowards(_invisCurrentAlpha, targetAlpha, Time.fixedDeltaTime * 2.2f);
+            float targetAlpha = (forcedVisible || dist <= fadeDistance) ? 1f : 0.10f; // nearly invisible ghost shadow when far
+            _invisCurrentAlpha = Mathf.MoveTowards(_invisCurrentAlpha, targetAlpha, Time.fixedDeltaTime * (forcedVisible ? 8.0f : 2.2f));
 
             if (_spriteRenderer != null)
             {

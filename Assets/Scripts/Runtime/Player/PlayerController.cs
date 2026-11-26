@@ -4593,7 +4593,10 @@ namespace TheLastEmpire
                     // ถ้ากำลังต่อสู้ (Combat) ตอนกลางคืน ลดเร็วขึ้นตามตัวคูณ
                     rate *= combatNightSanityMultiplier;
                 }
-                float delta = rate * sanityDepletionMultiplier * Time.deltaTime;
+                float nightLightMult = NightCombatItemManager.Instance != null
+                    ? NightCombatItemManager.Instance.GetNightSanityDrainMultiplier()
+                    : 1f;
+                float delta = rate * sanityDepletionMultiplier * nightLightMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }

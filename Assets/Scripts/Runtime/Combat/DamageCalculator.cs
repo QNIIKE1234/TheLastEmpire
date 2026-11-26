@@ -118,6 +118,11 @@ namespace TheLastEmpire
                 if (artMods.bonusCritMultiplier != 0f) critMultiplier += artMods.bonusCritMultiplier;
             }
 
+            if (attacker != null && attacker.GetComponent<PlayerController>() != null && NightCombatItemManager.Instance != null)
+            {
+                critChance += NightCombatItemManager.Instance.GetBonusCritChance();
+            }
+
             bool isCrit = guaranteedCrit || (Random.value < critChance);
             result.IsCritical = isCrit;
             result.CritMultiplier = isCrit ? critMultiplier : 1.0f;
@@ -187,6 +192,10 @@ namespace TheLastEmpire
                         guaranteedCrit = true;
                         critMultiplier = 2.0f;
                         shadow.ConsumeCritBonus();
+                    }
+                    if (NightCombatItemManager.Instance != null)
+                    {
+                        critChance += NightCombatItemManager.Instance.GetBonusCritChance();
                     }
                 }
             }

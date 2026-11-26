@@ -152,7 +152,7 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6255307521596345969}
-  - {fileID: 4046323020467737995}
+  - {fileID: 5944506107000119369}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -232,6 +232,8 @@ MonoBehaviour:
   nameText: {fileID: 4572456304987767458}
   healthText: {fileID: 3286285345512584820}
   healthSlider: {fileID: 0}
+  fastEnemyMoveSpeedThreshold: 3.5
+  fastEnemyAnimSpeedMultiplier: 1.3
   alienType: 3
   hookCooldown: 4
   hookRange: 8
@@ -239,6 +241,7 @@ MonoBehaviour:
   fadeDistance: 4
   spitCooldown: 3.5
   spitRange: 8
+  spitProjectileSpeed: 50
   childAlienPrefab: {fileID: 0}
   spawnCooldown: 7
   maxChildSpawns: 2
@@ -429,8 +432,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -566,8 +569,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -636,7 +639,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1001 &4588556847380329056
+--- !u!1001 &6194025854018553762
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -713,8 +716,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2ec70e724a34d5f4995666185dcb6054, type: 3}
---- !u!4 &4046323020467737995 stripped
+--- !u!4 &5944506107000119369 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2ec70e724a34d5f4995666185dcb6054, type: 3}
-  m_PrefabInstance: {fileID: 4588556847380329056}
+  m_PrefabInstance: {fileID: 6194025854018553762}
   m_PrefabAsset: {fileID: 0}

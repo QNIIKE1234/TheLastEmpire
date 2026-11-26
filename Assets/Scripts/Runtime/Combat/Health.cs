@@ -158,6 +158,15 @@ namespace TheLastEmpire
                 }
             }
 
+            else if (NightCombatItemManager.Instance != null && GetComponent<BaseEnemyAI>() != null)
+            {
+                float nightDmgMult = NightCombatItemManager.Instance.GetEnemyDamageTakenMultiplier(gameObject);
+                if (nightDmgMult > 1.001f)
+                {
+                    damageAmount = Mathf.Round(damageAmount * nightDmgMult);
+                }
+            }
+
             CurrentHealth -= damageAmount;
             onDamageTaken?.Invoke(damageAmount);
 

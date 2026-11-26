@@ -43,7 +43,8 @@ namespace TheLastEmpire.Network
         BuildingDestroyBroadcast = 52,
         CrateTransactionRequest = 53,
         CrateTransactionBroadcast = 54,
-        FurnitureStateSync = 55
+        FurnitureStateSync = 55,
+        NightCombatEffect = 56
     }
 
     [Serializable]
@@ -1832,6 +1833,18 @@ namespace TheLastEmpire.Network
                             fStageX, fStageY, fInteriorId, fPos,
                             (FurnitureStateSyncType)stateType, intVal, floatVal,
                             relayIfHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.NightCombatEffect:
+                    {
+                        int nStageX = reader.ReadInt32();
+                        int nStageY = reader.ReadInt32();
+                        int nInteriorId = reader.ReadInt32();
+                        byte effectType = reader.ReadByte();
+                        Vector3 nPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        NightCombatItemManager.Instance?.HandleRemoteNightCombatEffect(
+                            nStageX, nStageY, nInteriorId, effectType, nPos, relayIfHost: _isHost);
                     }
                     break;
             }

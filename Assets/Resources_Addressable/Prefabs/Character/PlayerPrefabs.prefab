@@ -440,8 +440,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1689,7 +1689,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8286417266164319003, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 601001001001001001, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: m_Name
@@ -1741,11 +1741,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: playOnAwake
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: EmissionModule.enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: InitialModule.startSizeY.minMaxState

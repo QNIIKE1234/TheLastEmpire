@@ -544,6 +544,80 @@ namespace TheLastEmpire
         /// <summary>
         /// ดึงรายการสูตรคราฟต์ตามหมวดหมู่ (เช่น Building, Utility, Defense, Weapons, Consumables, Tools, Special, Artifact)
         /// </summary>
+        // =========================================================================
+        //  Runtime Night Combat Active Item Recipes (Tools & Consumables tabs)
+        // =========================================================================
+        private List<CraftingRecipe> _runtimeNightCombatRecipes;
+
+        private List<CraftingRecipe> GetRuntimeNightCombatRecipes()
+        {
+            if (_runtimeNightCombatRecipes == null)
+            {
+                _runtimeNightCombatRecipes = new List<CraftingRecipe>();
+                void AddNightRecipe(string id, string itemName, CraftingCategory cat, string desc, params (string mat, int amt)[] ings)
+                {
+                    if (recipes != null && recipes.Exists(r => r != null && (string.Equals(r.recipeId, id, StringComparison.OrdinalIgnoreCase) || string.Equals(r.recipeName, itemName, StringComparison.OrdinalIgnoreCase))))
+                        return;
+
+                    ItemData itemData = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(itemName) : null;
+                    var list = new List<CraftingIngredient>();
+                    foreach (var (mat, amt) in ings)
+                    {
+                        list.Add(new CraftingIngredient { itemName = mat, amount = amt });
+                    }
+                    _runtimeNightCombatRecipes.Add(new CraftingRecipe
+                    {
+                        recipeId = id,
+                        recipeName = itemName,
+                        category = cat,
+                        resultItem = itemData,
+                        resultItemName = itemName,
+                        resultAmount = 1,
+                        icon = itemData != null ? itemData.icon : null,
+                        description = desc,
+                        ingredients = list
+                    });
+                }
+
+                AddNightRecipe("CRAFT_NIGHT_01", NightCombatItemManager.ItemTacticalFlashlight, CraftingCategory.Tools,
+                    "Active (75s): Projects an aim-following tactical light cone through night darkness, reveals cloaked Aliens, dazzles enemies & cuts night Sanity drain by 50%.",
+                    ("Scrap Metal Plate", 2), ("Torn Copper Wiring", 1), ("Clean Glass Bottle", 1));
+
+                AddNightRecipe("CRAFT_NIGHT_02", NightCombatItemManager.ItemNightVisionGoggles, CraftingCategory.Tools,
+                    "Active (60s): Full-screen phosphor-green Night Vision clearing all darkness, grants Night Sanity immunity & +15% Crit Chance.",
+                    ("Basic Logic Chip", 1), ("High-Capacity Capacitor", 1), ("Clean Glass Bottle", 2), ("Torn Copper Wiring", 2));
+
+                AddNightRecipe("CRAFT_NIGHT_03", NightCombatItemManager.ItemSignalFlare, CraftingCategory.Consumables,
+                    "Active (30s): Fires a glowing rocket flare high into the sky, illuminating the entire stage in crimson-red light (+15% dmg to enemies, reveals cloaked Aliens, Co-op synced).",
+                    ("Scrap Steel Pipe", 1), ("Gunpowder Mix", 2), ("Sulfur Powder", 1));
+
+                AddNightRecipe("CRAFT_NIGHT_04", NightCombatItemManager.ItemThermalBioVisor, CraftingCategory.Tools,
+                    "Active (45s): Highlights all enemies through darkness & obstacles with thermal heat trackers, exposes cloaked Aliens 100%, and boosts damage vs Aliens by +20%.",
+                    ("Basic Logic Chip", 1), ("Psionic Resonator Gland", 1), ("Phosphorescent Acid Blood", 2));
+
+                AddNightRecipe("CRAFT_NIGHT_05", NightCombatItemManager.ItemUVFlashbang, CraftingCategory.Consumables,
+                    "Active (Instant): Blinding UV flash lighting up the night, stuns nearby enemies (8.5m) for 3.5s, reveals cloaked Aliens, and deals heavy UV solar burn damage to Aliens.",
+                    ("Scrap Metal Plate", 1), ("Gunpowder Mix", 1), ("Bio-Plasma Sac", 1));
+            }
+            else if (ItemDatabase.Instance != null)
+            {
+                for (int i = 0; i < _runtimeNightCombatRecipes.Count; i++)
+                {
+                    var r = _runtimeNightCombatRecipes[i];
+                    if (r != null && (r.resultItem == null || r.icon == null))
+                    {
+                        ItemData d = ItemDatabase.Instance.GetItemByName(r.resultItemName);
+                        if (d != null)
+                        {
+                            r.resultItem = d;
+                            r.icon = d.icon;
+                        }
+                    }
+                }
+            }
+            return _runtimeNightCombatRecipes;
+        }
+
         public List<CraftingRecipe> GetRecipesByCategory(CraftingCategory category)
         {
             List<CraftingRecipe> result = new List<CraftingRecipe>();
@@ -561,6 +635,14 @@ namespace TheLastEmpire
             if (category == CraftingCategory.Utility)
             {
                 result.AddRange(GetRuntimeFurnitureRecipes());
+            }
+
+            if (category == CraftingCategory.Tools || category == CraftingCategory.Consumables)
+            {
+                foreach (var nr in GetRuntimeNightCombatRecipes())
+                {
+                    if (nr != null && nr.category == category) result.Add(nr);
+                }
             }
 
             if (category == CraftingCategory.Artifact)
@@ -602,6 +684,10 @@ namespace TheLastEmpire
             if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Utility)
             {
                 AppendMatching(GetRuntimeFurnitureRecipes());
+            }
+            if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Tools || categoryFilter.Value == CraftingCategory.Consumables)
+            {
+                AppendMatching(GetRuntimeNightCombatRecipes());
             }
             if (!categoryFilter.HasValue || categoryFilter.Value == CraftingCategory.Artifact)
             {

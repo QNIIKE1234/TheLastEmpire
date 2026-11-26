@@ -583,6 +583,7 @@ namespace TheLastEmpire
                                    itemData.type == ItemType.ThrowingWeapon;
                         
                         isUsable = isWeapon ||
+                                   NightCombatItemManager.IsNightCombatItem(itemData.itemName) ||
                                    itemData.type == ItemType.Potion ||
                                    itemData.type == ItemType.Bread ||
                                    itemData.type == ItemType.Water ||

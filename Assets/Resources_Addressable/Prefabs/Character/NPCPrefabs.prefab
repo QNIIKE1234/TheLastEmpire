@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Run and safe your life!!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -445,9 +445,16 @@ MonoBehaviour:
   dialogPanel: {fileID: 6015402088454883438}
   dialogText: {fileID: 8417120529262380401}
   dialogIcon: {fileID: 6773049181197965315}
+  useCoolStandPose: 1
+  coolStandPoseState: 
+  playTalkAnimWhenPlayerNear: 1
   canSit: 1
   standDetectionRadius: 3.5
   sitCooldownDuration: 5
+  speakOnPlayerApproach: 1
+  approachSpeechLines: []
+  speechDuration: 3.2
+  speechCooldown: 12
 --- !u!1 &2858857186146224998
 GameObject:
   m_ObjectHideFlags: 0
@@ -552,8 +559,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

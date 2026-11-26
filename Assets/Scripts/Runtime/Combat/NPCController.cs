@@ -419,8 +419,13 @@ namespace TheLastEmpire
                 AddDefaultShopItem("Stun Baton");
                 AddDefaultShopItem("Chainsaw");
 
-                // Explosives & Tactical
+                // Explosives & Tactical Night Combat Gear
                 AddDefaultShopItem("Grenade");
+                AddDefaultShopItem("Tactical Flashlight", 120);
+                AddDefaultShopItem("Night Vision Goggles", 380);
+                AddDefaultShopItem("Signal Flare", 95);
+                AddDefaultShopItem("Thermal Bio-Visor", 420);
+                AddDefaultShopItem("UV Flashbang", 140);
 
                 // Medicine (4 Types)
                 AddDefaultShopItem("Bandage");
