@@ -762,7 +762,7 @@ namespace TheLastEmpire.Network
             if (!_isWindowOpen) return;
 
             GUI.backgroundColor = new Color(0.08f, 0.10f, 0.15f, 0.97f);
-            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "THE LAST EMPIRE — 1-6 PLAYER LAN CO-OP [F2]", _windowStyle);
+            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "JUNK CYCLONE CRISIS - 1-6 PLAYER CO-OP [F2]", _windowStyle);
             GUI.backgroundColor = prevBg;
         }
 

@@ -156,7 +156,7 @@ namespace TheLastEmpire.Network
 
         public static byte[] BuildLanBeaconPacket(string joinCode, string hostIp, int hostPort, int currentPlayers, int maxPlayers, string sceneName, string roomName = "")
         {
-            string safeRoomName = string.IsNullOrWhiteSpace(roomName) ? $"EMPIRE ROOM [{joinCode}]" : roomName.Replace("|", " ").Trim();
+            string safeRoomName = string.IsNullOrWhiteSpace(roomName) ? $"JUNK CYCLONE ROOM [{joinCode}]" : roomName.Replace("|", " ").Trim();
             string msg = $"{BeaconPrefix}{joinCode}|{hostIp}|{hostPort}|{currentPlayers}|{maxPlayers}|{sceneName}|{safeRoomName}";
             return Encoding.UTF8.GetBytes(msg);
         }
@@ -182,7 +182,7 @@ namespace TheLastEmpire.Network
                 if (!int.TryParse(parts[3], out int curP)) curP = 1;
                 if (!int.TryParse(parts[4], out int maxP)) maxP = 6;
                 string scene = parts[5];
-                string rName = parts.Length >= 7 ? parts[6] : $"EMPIRE ROOM [{code}]";
+                string rName = parts.Length >= 7 ? parts[6] : $"JUNK CYCLONE ROOM [{code}]";
 
                 RegisterDiscoveredRoom(code, ip, port, curP, maxP, scene, rName);
                 _discoveredRooms.TryGetValue($"{ip}:{port}", out room);

@@ -173,7 +173,7 @@ namespace TheLastEmpire.Network
         private float _handshakeRetryTimer = 0f;
         private ulong _localClientId = 0;
         private string _activeJoinCode = "";
-        private string _activeRoomName = "THE LAST EMPIRE";
+        private string _activeRoomName = "JUNK CYCLONE CRISIS";
         private string _activeHostIp = "127.0.0.1";
         private int _activePort = LobbyRelayService.DefaultUdpPort;
         private string _localLobbyCharacterId = ""; // ว่าง = ยังไม่ได้กดปุ่มประแจเลือกตัวละคร (แสดงรูป Default เข็มทิศ)
@@ -1001,7 +1001,7 @@ namespace TheLastEmpire.Network
 
             SendPacket(NetPacketType.LobbyRosterSync, w =>
             {
-                w.Write(_activeRoomName ?? "THE LAST EMPIRE");
+                w.Write(_activeRoomName ?? "JUNK CYCLONE CRISIS");
                 w.Write(_activeJoinCode ?? "");
                 w.Write(_lobbyMembers.Count);
                 for (int i = 0; i < _lobbyMembers.Count; i++)

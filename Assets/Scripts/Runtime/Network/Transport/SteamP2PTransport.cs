@@ -21,7 +21,7 @@ namespace TheLastEmpire.Network
     {
         public const uint DefaultTestAppId = 480;
         public const string LobbyGameKey = "tle_game";
-        public const string LobbyGameValue = "TheLastEmpire_Coop_v1";
+        public const string LobbyGameValue = "JunkCycloneCrisis_Coop_v1";
         public const string LobbyRoomNameKey = "tle_room";
         public const string LobbyCodeKey = "tle_code";
         public const string LobbyHostSteamIdKey = "tle_host_steamid";
