@@ -508,92 +508,7 @@ namespace TheLastEmpire
             // Visual Model Replacement
             if (data.customModelPrefab != null)
             {
-                // Deactivate all old/baked-in models on the NPC prefab (e.g. MegaphoneGirl, Chibi_Base)
-                for (int i = 0; i < transform.childCount; i++)
-                {
-                    Transform child = transform.GetChild(i);
-                    if (child.GetComponent<Canvas>() != null || child.GetComponent<Collider>() != null) continue;
-                    if (child.name.Contains("Megaphone") || child.name.Contains("Chibi") || child.name.Contains("Rigged"))
-                    {
-                        child.gameObject.SetActive(false);
-                    }
-                }
-
-                if (modelRoot != null && (modelRoot.name.Contains("Megaphone") || modelRoot.name.Contains("Rigged") || modelRoot.name.Contains("Chibi")))
-                {
-                    modelRoot.gameObject.SetActive(false);
-                }
-
-                Transform targetRoot = transform.Find("ModelRoot");
-                if (targetRoot == null)
-                {
-                    GameObject newRoot = new GameObject("ModelRoot");
-                    newRoot.transform.SetParent(transform, false);
-                    targetRoot = newRoot.transform;
-                }
-                else
-                {
-                    for (int i = targetRoot.childCount - 1; i >= 0; i--)
-                    {
-                        Destroy(targetRoot.GetChild(i).gameObject);
-                    }
-                }
-
-                if (targetRoot != null)
-                {
-                    // ตั้งค่า Transform ของ ModelRoot ตามค่ามาตรฐาน: Pos (0, -0.9, 0), Rot (0, 180, 0), Scale (0.7, 0.7, 0.7)
-                    targetRoot.localPosition = new Vector3(0f, -0.9f, 0f);
-                    targetRoot.localRotation = Quaternion.Euler(0f, 180f, 0f);
-                    targetRoot.localScale = new Vector3(0.7f, 0.7f, 0.7f);
-
-                    GameObject model = Instantiate(data.customModelPrefab, targetRoot);
-                    model.name = data.customModelPrefab.name;
-                    model.transform.localPosition = Vector3.zero;
-                    model.transform.localRotation = Quaternion.identity;
-                    model.transform.localScale = Vector3.one;
-
-                    // Ensure Animator inherits or loads the Controller so character does NOT stand in a T-pose
-                    Animator anim = model.GetComponentInChildren<Animator>();
-                    if (anim != null)
-                    {
-                        anim.applyRootMotion = false;
-                        if (anim.runtimeAnimatorController == null)
-                        {
-                            RuntimeAnimatorController ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
-                            if (ctrl == null) ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Animation/Chibi_Player_Controller");
-                            if (ctrl == null) ctrl = Resources.Load<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
-                            if (ctrl == null && PlayerController.Instance != null)
-                            {
-                                Animator pAnim = PlayerController.Instance.GetComponentInChildren<Animator>();
-                                if (pAnim != null) ctrl = pAnim.runtimeAnimatorController;
-                            }
-                            if (ctrl == null)
-                            {
-                                Animator existingAnim = GetComponentInChildren<Animator>();
-                                if (existingAnim != null && existingAnim != anim) ctrl = existingAnim.runtimeAnimatorController;
-                            }
-                            if (ctrl != null) anim.runtimeAnimatorController = ctrl;
-                        }
-
-                        if (anim.runtimeAnimatorController != null)
-                        {
-                            _animator = anim;
-                            _resolvedCoolPoseState = ResolveCoolPoseStateName();
-                            if (useCoolStandPose)
-                            {
-                                PlayStandingPose(false, instant: true);
-                            }
-                            else if (canSit)
-                            {
-                                SetSittingState(true);
-                            }
-                            else
-                            {
-                                anim.Play("Idle", 0, 0f);
-                            }
-                        }
-                    }
-                }
+                ApplyCustomModelPrefab(data.customModelPrefab);
             }
 
             // Visual Tint
@@ -607,6 +522,190 @@ namespace TheLastEmpire
                         if (rend.material != null)
                         {
                             rend.material.color = data.tintColor;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies per-spawn overrides from a JSON StageTemplateData NPC entry (name, role, model prefab, pose, speech lines).
+        /// </summary>
+        public void ApplyTemplateOverride(StageNPCSpawnPoint cfg)
+        {
+            if (cfg == null) return;
+
+            npcType = cfg.npcType;
+            if (npcType != NPCType.Shop)
+            {
+                shopItems = new System.Collections.Generic.List<ShopItemConfig>();
+            }
+
+            if (!string.IsNullOrWhiteSpace(cfg.npcName))
+            {
+                npcName = cfg.npcName.Trim();
+                gameObject.name = $"NPC_{npcName.Replace(" ", "_")}";
+                TMPro.TMP_Text textToUpdate = nameTextHUD != null ? nameTextHUD : GetComponentInChildren<TMPro.TMP_Text>();
+                if (textToUpdate != null)
+                {
+                    textToUpdate.text = npcName;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(cfg.dialogueId))
+            {
+                dialogueId = cfg.dialogueId.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(cfg.coolPoseState))
+            {
+                coolStandPoseState = cfg.coolPoseState.Trim();
+            }
+
+            if (cfg.approachLines != null && cfg.approachLines.Length > 0)
+            {
+                approachSpeechLines = cfg.approachLines;
+            }
+
+            _initialRotation = transform.rotation;
+
+            if (!string.IsNullOrWhiteSpace(cfg.modelPrefab))
+            {
+                GameObject modelPrefab = LoadCharacterModelPrefab(cfg.modelPrefab.Trim());
+                if (modelPrefab != null)
+                {
+                    ApplyCustomModelPrefab(modelPrefab);
+                    CharacterToonOutline.AttachOrRefresh(gameObject);
+                }
+                else
+                {
+                    Debug.LogWarning($"[NPCController] Could not resolve modelPrefab '{cfg.modelPrefab}' for NPC '{npcName}'.");
+                }
+            }
+            else if (_animator != null && useCoolStandPose)
+            {
+                _resolvedCoolPoseState = ResolveCoolPoseStateName();
+                PlayStandingPose(false, instant: true);
+            }
+        }
+
+        private static GameObject LoadCharacterModelPrefab(string modelPathOrName)
+        {
+            if (string.IsNullOrWhiteSpace(modelPathOrName)) return null;
+
+            GameObject prefab = AddressableManager.LoadAsset<GameObject>(modelPathOrName);
+            if (prefab != null) return prefab;
+
+            if (!modelPathOrName.Contains("/"))
+            {
+                prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/Model/{modelPathOrName}");
+                if (prefab != null) return prefab;
+
+                prefab = AddressableManager.LoadAsset<GameObject>($"Prefabs/Character/{modelPathOrName}");
+                if (prefab != null) return prefab;
+            }
+
+            prefab = Resources.Load<GameObject>(modelPathOrName);
+            if (prefab != null) return prefab;
+
+            if (!modelPathOrName.Contains("/"))
+            {
+                prefab = Resources.Load<GameObject>($"Prefabs/Character/Model/{modelPathOrName}");
+                if (prefab != null) return prefab;
+
+                prefab = Resources.Load<GameObject>($"Prefabs/Character/{modelPathOrName}");
+                if (prefab != null) return prefab;
+            }
+
+            return null;
+        }
+
+        public void ApplyCustomModelPrefab(GameObject customModelPrefab)
+        {
+            if (customModelPrefab == null) return;
+
+            // Deactivate all old/baked-in models on the NPC prefab (e.g. MegaphoneGirl, Chibi_Base)
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                Transform child = transform.GetChild(i);
+                if (child.GetComponent<Canvas>() != null || child.GetComponent<Collider>() != null) continue;
+                if (child.name.Contains("Megaphone") || child.name.Contains("Chibi") || child.name.Contains("Rigged"))
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+
+            if (modelRoot != null && (modelRoot.name.Contains("Megaphone") || modelRoot.name.Contains("Rigged") || modelRoot.name.Contains("Chibi")))
+            {
+                modelRoot.gameObject.SetActive(false);
+            }
+
+            Transform targetRoot = transform.Find("ModelRoot");
+            if (targetRoot == null)
+            {
+                GameObject newRoot = new GameObject("ModelRoot");
+                newRoot.transform.SetParent(transform, false);
+                targetRoot = newRoot.transform;
+            }
+            else
+            {
+                for (int i = targetRoot.childCount - 1; i >= 0; i--)
+                {
+                    Destroy(targetRoot.GetChild(i).gameObject);
+                }
+            }
+
+            if (targetRoot != null)
+            {
+                // ตั้งค่า Transform ของ ModelRoot ตามค่ามาตรฐาน: Pos (0, -0.9, 0), Rot (0, 180, 0), Scale (0.7, 0.7, 0.7)
+                targetRoot.localPosition = new Vector3(0f, -0.9f, 0f);
+                targetRoot.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                targetRoot.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+
+                GameObject model = Instantiate(customModelPrefab, targetRoot);
+                model.name = customModelPrefab.name;
+                model.transform.localPosition = Vector3.zero;
+                model.transform.localRotation = Quaternion.identity;
+                model.transform.localScale = Vector3.one;
+
+                // Ensure Animator inherits or loads the Controller so character does NOT stand in a T-pose
+                Animator anim = model.GetComponentInChildren<Animator>();
+                if (anim != null)
+                {
+                    anim.applyRootMotion = false;
+                    if (anim.runtimeAnimatorController == null)
+                    {
+                        RuntimeAnimatorController ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+                        if (ctrl == null) ctrl = AddressableManager.LoadAsset<RuntimeAnimatorController>("Animation/Chibi_Player_Controller");
+                        if (ctrl == null) ctrl = Resources.Load<RuntimeAnimatorController>("Image/Animation/Chibi_Player_Controller");
+                        if (ctrl == null && PlayerController.Instance != null)
+                        {
+                            Animator pAnim = PlayerController.Instance.GetComponentInChildren<Animator>();
+                            if (pAnim != null) ctrl = pAnim.runtimeAnimatorController;
+                        }
+                        if (ctrl == null)
+                        {
+                            Animator existingAnim = GetComponentInChildren<Animator>();
+                            if (existingAnim != null && existingAnim != anim) ctrl = existingAnim.runtimeAnimatorController;
+                        }
+                        if (ctrl != null) anim.runtimeAnimatorController = ctrl;
+                    }
+
+                    if (anim.runtimeAnimatorController != null)
+                    {
+                        _animator = anim;
+                        _resolvedCoolPoseState = ResolveCoolPoseStateName();
+                        if (useCoolStandPose)
+                        {
+                            PlayStandingPose(false, instant: true);
+                        }
+                        else if (canSit)
+                        {
+                            SetSittingState(true);
+                        }
+                        else
+                        {
+                            anim.Play("Idle", 0, 0f);
                         }
                     }
                 }
@@ -714,7 +813,7 @@ namespace TheLastEmpire
             }
             else
             {
-                Debug.Log($"[NPCController] NPC {npcName} has no interactable shop or dialogue.");
+                Speak(GetRandomApproachLine(), 3.6f);
             }
         }
 
@@ -734,7 +833,7 @@ namespace TheLastEmpire
             }
             else
             {
-                Debug.Log($"[NPCController] NPC {npcName} has no dialogue tree assigned or found in DialogueDatabase.");
+                Speak(GetRandomApproachLine(), 3.6f);
             }
         }
     }

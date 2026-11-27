@@ -16,7 +16,11 @@ namespace TheLastEmpire
         }
 
         [Header("Base AI Settings")]
+        public const float GlobalEnemySpeedMultiplier = 0.75f; // -25% global enemy movement speed
+        public const float GlobalEnemySpeedBonus = 2.0f;       // +2.0 flat speed boost for all enemies
         [SerializeField] protected float moveSpeed = 3f;
+
+        protected float GetEffectiveBaseMoveSpeed() => (moveSpeed * GlobalEnemySpeedMultiplier) + GlobalEnemySpeedBonus;
         [SerializeField] protected float detectionRange = 5f;
         [SerializeField] protected string poolKey = "";
 
@@ -312,7 +316,14 @@ namespace TheLastEmpire
         {
             DisableChaserPhasing();
             ResetSmartNavigationState();
+            _knockbackFreezeYTimer = 0f;
+            if (rb != null)
+            {
+                rb.constraints = RigidbodyConstraints.FreezeRotation;
+            }
         }
+
+        private float _knockbackFreezeYTimer = 0f;
 
         protected virtual void Start()
         {
@@ -359,6 +370,24 @@ namespace TheLastEmpire
             }
 
             UpdateMultiplayerTargetAggro();
+
+            // Temporary FreezePositionY ONLY while being rammed/knocked back (e.g. Juggernaut charge)
+            if (_knockbackFreezeYTimer > 0f)
+            {
+                _knockbackFreezeYTimer -= Time.fixedDeltaTime;
+                if (rb != null)
+                {
+                    if (_knockbackFreezeYTimer <= 0f)
+                    {
+                        _knockbackFreezeYTimer = 0f;
+                        rb.constraints = RigidbodyConstraints.FreezeRotation;
+                    }
+                    else
+                    {
+                        rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+                    }
+                }
+            }
 
             // Chaser Phasing: ensure the enemy stays on ground level and does not drift vertically
             if (_isChaserPhasing)
@@ -576,7 +605,7 @@ namespace TheLastEmpire
                     }
                 }
 
-                float spd = moveSpeed * speedMultiplier * 0.5f;
+                float spd = GetEffectiveBaseMoveSpeed() * speedMultiplier * 0.5f;
                 rb.linearVelocity = new Vector3(wanderDirection.x * spd, rb.linearVelocity.y, wanderDirection.z * spd);
                 // Rotate visual to wander direction
                 if (wanderDirection.sqrMagnitude > 0.01f)
@@ -640,7 +669,7 @@ namespace TheLastEmpire
                 direction.Normalize();
             }
 
-            float finalSpeed = moveSpeed * speedMultiplier;
+            float finalSpeed = GetEffectiveBaseMoveSpeed() * speedMultiplier;
             rb.linearVelocity = new Vector3(direction.x * finalSpeed, rb.linearVelocity.y, direction.z * finalSpeed);
 
             if (direction.sqrMagnitude > 0.01f)
@@ -666,7 +695,7 @@ namespace TheLastEmpire
                 ? ApplyWallSlideFilter(ComputeLocalSteeredDirection(desiredDirection, GetAgentRadius()))
                 : desiredDirection;
 
-            float finalSpeed = moveSpeed * speedMultiplier;
+            float finalSpeed = GetEffectiveBaseMoveSpeed() * speedMultiplier;
             rb.linearVelocity = new Vector3(moveDir.x * finalSpeed, rb.linearVelocity.y, moveDir.z * finalSpeed);
 
             Vector3 lookDir = lookDirectionOverride ?? moveDir;
@@ -762,7 +791,23 @@ namespace TheLastEmpire
 
             if (rb != null)
             {
-                rb.linearVelocity = direction * force;
+                // Temporarily freeze Y ONLY during impact/knockback so Juggernaut ram never launches enemies into the sky,
+                // while keeping normal gravity working on spawn and regular movement!
+                _knockbackFreezeYTimer = Mathf.Max(_knockbackFreezeYTimer, Mathf.Max(0.45f, duration));
+                rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+
+                Vector3 flatDir = new Vector3(direction.x, 0f, direction.z);
+                if (flatDir.sqrMagnitude > 0.0001f)
+                {
+                    flatDir.Normalize();
+                }
+                else
+                {
+                    flatDir = transform.forward;
+                    flatDir.y = 0f;
+                    if (flatDir.sqrMagnitude > 0.0001f) flatDir.Normalize();
+                }
+                rb.linearVelocity = new Vector3(flatDir.x * force, 0f, flatDir.z * force);
             }
             Debug.Log($"[BaseEnemyAI] Melee Knockback applied: {direction * force}");
         }

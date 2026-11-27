@@ -1,0 +1,966 @@
+{
+    "templateId":  "SurvivorCamp_Haven_C",
+    "templateName":  "Haven Camp: Main Town Plaza",
+    "biome":  6,
+    "selectionWeight":  1,
+    "roomSize":  {
+                     "x":  50,
+                     "y":  25
+                 },
+    "districtId":  "District_EVT_SurvivorCamp_Haven",
+    "districtOffsetX":  0,
+    "districtOffsetY":  0,
+    "obstacles":  [
+                      {
+                          "prefabName":  "Landmark_MarketStall_Blue",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Blue",
+                          "position":  {
+                                           "x":  -17.8,
+                                           "y":  0,
+                                           "z":  8.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  180,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_MarketStall_Red",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_MarketStall_Red",
+                          "position":  {
+                                           "x":  -11.5,
+                                           "y":  0,
+                                           "z":  9
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  180,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Building_CottageHouse",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CottageHouse",
+                          "position":  {
+                                           "x":  17.5,
+                                           "y":  0,
+                                           "z":  8.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  200,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "12_Water_Purifier_Station",
+                          "resourcePath":  "Prefabs/Environment/Craft/12_Water_Purifier_Station",
+                          "position":  {
+                                           "x":  9,
+                                           "y":  0,
+                                           "z":  8.6
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  180,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Building_CornerShop",
+                          "resourcePath":  "Prefabs/Environment/Building/Building_CornerShop",
+                          "position":  {
+                                           "x":  -18.5,
+                                           "y":  0,
+                                           "z":  -8.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  20,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "10_Survivor_Workbench",
+                          "resourcePath":  "Prefabs/Environment/Craft/10_Survivor_Workbench",
+                          "position":  {
+                                           "x":  -11.8,
+                                           "y":  0,
+                                           "z":  -8.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_CafePatio",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CafePatio",
+                          "position":  {
+                                           "x":  17.8,
+                                           "y":  0,
+                                           "z":  -8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  340,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_ParkGazebo",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_ParkGazebo",
+                          "position":  {
+                                           "x":  12.2,
+                                           "y":  0,
+                                           "z":  -8.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Small_03_AutumnMini",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+                          "position":  {
+                                           "x":  -21.6,
+                                           "y":  0,
+                                           "z":  9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  45,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Small_01_RoundSapling",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Small_01_RoundSapling",
+                          "position":  {
+                                           "x":  21.6,
+                                           "y":  0,
+                                           "z":  9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  140,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Small_02_BabyPine",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Small_02_BabyPine",
+                          "position":  {
+                                           "x":  -21.6,
+                                           "y":  0,
+                                           "z":  -9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  220,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Small_03_AutumnMini",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Small_03_AutumnMini",
+                          "position":  {
+                                           "x":  21.6,
+                                           "y":  0,
+                                           "z":  -9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  310,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      }
+                  ],
+    "decorations":  [
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -21,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -16.1,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -11.2,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -6.3,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -1.4,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  3.5,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  8.4,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  13.3,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  18.2,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -10.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -5.9
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -1.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  2.7
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  7
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "09_Survivor_Campfire",
+                            "resourcePath":  "Prefabs/Environment/Craft/09_Survivor_Campfire",
+                            "position":  {
+                                             "x":  -4.2,
+                                             "y":  0,
+                                             "z":  4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "14_Sanity_Beacon_Lantern",
+                            "resourcePath":  "Prefabs/Environment/Craft/14_Sanity_Beacon_Lantern",
+                            "position":  {
+                                             "x":  4.2,
+                                             "y":  0,
+                                             "z":  4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "23_Wooden_Lantern_Post",
+                            "resourcePath":  "Prefabs/Environment/Craft/23_Wooden_Lantern_Post",
+                            "position":  {
+                                             "x":  -4.2,
+                                             "y":  0,
+                                             "z":  -4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "23_Wooden_Lantern_Post",
+                            "resourcePath":  "Prefabs/Environment/Craft/23_Wooden_Lantern_Post",
+                            "position":  {
+                                             "x":  4.2,
+                                             "y":  0,
+                                             "z":  -4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  -6.2,
+                                             "y":  0,
+                                             "z":  4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  90,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  6.2,
+                                             "y":  0,
+                                             "z":  4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  270,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  -6.2,
+                                             "y":  0,
+                                             "z":  -4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  90,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  6.2,
+                                             "y":  0,
+                                             "z":  -4.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  270,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushFlowering_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "position":  {
+                                             "x":  -20,
+                                             "y":  0,
+                                             "z":  4.8
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  30,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushFlowering_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "position":  {
+                                             "x":  20,
+                                             "y":  0,
+                                             "z":  4.8
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  150,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushRound_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
+                            "position":  {
+                                             "x":  -20,
+                                             "y":  0,
+                                             "z":  -4.8
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  60,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushRound_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushRound_New",
+                            "position":  {
+                                             "x":  20,
+                                             "y":  0,
+                                             "z":  -4.8
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  240,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        }
+                    ],
+    "enemySpawns":  [
+
+                    ],
+    "lootSpawns":  [
+                       {
+                           "itemName":  "Water Bottle",
+                           "quantity":  1,
+                           "isMoney":  false,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "x":  -5.2,
+                                            "y":  0.25,
+                                            "z":  2.8
+                                        }
+                       },
+                       {
+                           "itemName":  "Bread",
+                           "quantity":  1,
+                           "isMoney":  false,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "x":  5.2,
+                                            "y":  0.25,
+                                            "z":  -2.8
+                                        }
+                       }
+                   ],
+    "npcSpawns":  [
+                      {
+                          "npcType":  0,
+                          "npcId":  "merchant_zack",
+                          "npcName":  "Zack",
+                          "modelPrefab":  "Prefabs/Character/NPC_Zack_Merchant_Rigged",
+                          "coolPoseState":  "Pose_03_TacticalReach",
+                          "dialogueId":  "Merchant_Intro",
+                          "approachLines":  [
+                                                "Zack: Welcome to Haven Main Town! Best gear in the wasteland.",
+                                                "Zack: Stock up on rations, ammo, and backpack upgrades right here."
+                                            ],
+                          "position":  {
+                                           "x":  -14.2,
+                                           "y":  1,
+                                           "z":  5.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  150,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Quartermaster Nora",
+                          "modelPrefab":  "Prefabs/Character/Model/Chibi_CurlyGirl_Rigged",
+                          "coolPoseState":  "Pose_07_CurlyHips",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Nora: All four gates are manned around the clock. You can rest easy.",
+                                                "Nora: Check in with Dr. Elena across the square if you took any hits."
+                                            ],
+                          "position":  {
+                                           "x":  -9.2,
+                                           "y":  1,
+                                           "z":  5.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  175,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Runner Rina",
+                          "modelPrefab":  "Prefabs/Character/Model/Chibi_PunkGirl_Rigged",
+                          "coolPoseState":  "Pose_02_BatShoulder",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Rina: Just got back from a supply run! Watch out for Spitters at dusk.",
+                                                "Rina: Three Haven camps are still standing across the whole map."
+                                            ],
+                          "position":  {
+                                           "x":  -11.6,
+                                           "y":  1,
+                                           "z":  3
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  160,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  0,
+                          "npcId":  "doctor_elena",
+                          "npcName":  "Dr. Elena",
+                          "modelPrefab":  "Prefabs/Character/NPC_Elena_Medic_Rigged",
+                          "coolPoseState":  "Pose_07_CurlyHips",
+                          "dialogueId":  "Merchant_Intro",
+                          "approachLines":  [
+                                                "Dr. Elena: Step inside the clinic if you need bandages or medkits.",
+                                                "Dr. Elena: Stay near our Sanity Lanterns when blizzards roll in."
+                                            ],
+                          "position":  {
+                                           "x":  11.6,
+                                           "y":  1,
+                                           "z":  5.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  210,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  0,
+                          "npcId":  "mechanic_otto",
+                          "npcName":  "Otto",
+                          "modelPrefab":  "Prefabs/Character/NPC_Otto_Gunsmith_Rigged",
+                          "coolPoseState":  "Pose_08_StrikerScan",
+                          "dialogueId":  "Merchant_Intro",
+                          "approachLines":  [
+                                                "Otto: Heavy weapons, clean barrels, plenty of shells. What do you need?",
+                                                "Otto: Aliens hit hard after sunset. Bring enough ammo."
+                                            ],
+                          "position":  {
+                                           "x":  -14.6,
+                                           "y":  1,
+                                           "z":  -5.6
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  35,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  0,
+                          "npcId":  "survivor_roy",
+                          "npcName":  "Old Roy",
+                          "modelPrefab":  "Prefabs/Character/NPC_Roy_Veteran_Rigged",
+                          "coolPoseState":  "Pose_09_RoninCrossed",
+                          "dialogueId":  "Merchant_Rumor",
+                          "approachLines":  [
+                                                "Old Roy: Been scavenging these roads since Day One. Take a look.",
+                                                "Old Roy: Keep a flashlight handy when night falls outside the walls."
+                                            ],
+                          "position":  {
+                                           "x":  -11.6,
+                                           "y":  1,
+                                           "z":  -3.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  20,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Tech Tessa",
+                          "modelPrefab":  "Prefabs/Character/Model/Chibi_TacticalGirl_Rigged",
+                          "coolPoseState":  "Pose_03_TacticalReach",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Tessa: Helping Otto tune the perimeter turrets for the night shift.",
+                                                "Tessa: Our walls cover all eight outer sectors around this plaza."
+                                            ],
+                          "position":  {
+                                           "x":  -8.8,
+                                           "y":  1,
+                                           "z":  -6.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  350,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "watcher_maya",
+                          "npcName":  "Maya",
+                          "modelPrefab":  "Prefabs/Character/NPC_Maya_Scout_Rigged",
+                          "coolPoseState":  "Pose_02_BatShoulder",
+                          "dialogueId":  "Merchant_Rumor",
+                          "approachLines":  [
+                                                "Maya: My scouts mapped the outer roads. Aliens roam heavy at night.",
+                                                "Maya: If you spot a red boss signal, regroup here before engaging."
+                                            ],
+                          "position":  {
+                                           "x":  9.6,
+                                           "y":  1,
+                                           "z":  -5.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  335,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Captain Kenji",
+                          "modelPrefab":  "Prefabs/Character/Model/Chibi_WhiteRonin_Rigged",
+                          "coolPoseState":  "Pose_09_RoninCrossed",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Captain Kenji: Welcome to Haven Citadel, traveler. Our guards hold the gates.",
+                                                "Captain Kenji: Trade, craft, and recover before heading back out."
+                                            ],
+                          "position":  {
+                                           "x":  13.4,
+                                           "y":  1,
+                                           "z":  -3.6
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  305,
+                                           "z":  0
+                                       }
+                      }
+                  ]
+}

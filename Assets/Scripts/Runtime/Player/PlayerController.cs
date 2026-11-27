@@ -43,6 +43,8 @@ namespace TheLastEmpire
         public bool HasGuaranteedCrit { get; set; } = false;
 
         [Header("Movement")]
+        public const float GlobalPlayerSpeedMultiplier = 0.75f; // -25% global player movement speed
+        public const float ShiftCooldownSprintMultiplier = 1.20f; // +20% run speed when holding Shift while Shift ability is on CD
         [SerializeField] private float moveSpeed = 5f;
 
         [Header("Input")]
@@ -1238,7 +1240,8 @@ namespace TheLastEmpire
             _activeShiftAbility?.UpdateAbility();
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
-            bool canSprint = !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather;
+            // Allow running with Shift even while Shift ability is on cooldown (fallback +20% sprint speed)
+            bool canSprint = !isDehydrated && !isShiftBlockedByWeather;
             _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             UpdateWater();
@@ -1849,26 +1852,31 @@ namespace TheLastEmpire
             }
             else
             {
-                float baseSpeed = moveSpeed;
+                float baseSpeed = moveSpeed * GlobalPlayerSpeedMultiplier;
                 float currentSpeed = baseSpeed;
                 bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
+                bool isAbilityActive = _activeShiftAbility != null && _activeShiftAbility.IsActive;
                 bool isShiftBlockedByWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather;
-                bool isShiftHeld = !isShiftOnCooldown && !isShiftBlockedByWeather && currentWater > 0f && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+                bool isShiftInputHeld = !isShiftBlockedByWeather && currentWater > 0f && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+                bool isShiftHeld = !isShiftOnCooldown && isShiftInputHeld;
+                bool isCooldownFallbackSprint = isShiftOnCooldown && !isAbilityActive && isShiftInputHeld;
 
                 if (_shootSprintLockTimer > 0f)
                 {
                     // เงื่อนไข: ถ้าวิ่งแล้วกดยิง (หรือยิงปืนภายใน 1.0 วินาที) ความเร็วจะเป็นเท่าเดิน * 0.75 จนกว่าจะพ้น 1.0 วินาที
                     currentSpeed = baseSpeed * 0.75f;
                 }
-                else if (isShiftHeld)
+                else if (isShiftHeld || isAbilityActive)
                 {
                     // ถ้าวิ่งแล้วไม่ได้ยิง (หรือหมดช่วง 1.0 วินาทีแล้ว) ความเร็วจะกลายเป็นวิ่งเร็ว
-                    float sprintMult = (activeCharacterData != null && activeCharacterData.sprintSpeedMultiplier > 1f)
-                        ? activeCharacterData.sprintSpeedMultiplier
-                        : 1.5f;
+                    float sprintMult = isShiftHeld
+                        ? ((activeCharacterData != null && activeCharacterData.sprintSpeedMultiplier > 1f)
+                            ? activeCharacterData.sprintSpeedMultiplier
+                            : 1.5f)
+                        : 1.0f;
 
                     // ตรวจสอบโบนัสความเร็วจาก Shift Ability เพิ่มเติม (เช่น Adrenaline Rush 1.75x)
-                    if (_activeShiftAbility != null && _activeShiftAbility.IsActive)
+                    if (isAbilityActive)
                     {
                         if (_activeShiftAbility is AdrenalineRushAbility)
                         {
@@ -1889,6 +1897,11 @@ namespace TheLastEmpire
                     }
 
                     currentSpeed = baseSpeed * sprintMult;
+                }
+                else if (isCooldownFallbackSprint)
+                {
+                    // ถ้าสกิล Shift ยังติด Cooldown อยู่แล้วผู้เล่นกดค้าง Shift: วิ่งเร็วขึ้น +20% แทนสำหรับทุกตัวละคร
+                    currentSpeed = baseSpeed * ShiftCooldownSprintMultiplier;
                 }
                 else
                 {

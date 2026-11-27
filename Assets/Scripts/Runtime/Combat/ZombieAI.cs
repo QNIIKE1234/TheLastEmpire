@@ -332,12 +332,8 @@ namespace TheLastEmpire
                 if (rb != null)
                 {
                     rb.linearVelocity = Vector3.zero;
-                    rb.MovePosition(nextPos);
                 }
-                else
-                {
-                    transform.position = nextPos;
-                }
+                transform.position = nextPos;
 
                 // Show 1st hitbox sprite (UI_Hitbox_Sprites_0) at Boss Leap landing zone!
                 UpdateBossTelegraphVisualAt(_bossLeapTargetPos, bossLeapLandRadius);
@@ -1833,29 +1829,26 @@ namespace TheLastEmpire
 
                 // Boss spits a 3-way toxic spread when enraged, or single heavy acid blast normally!
                 float[] spreadAngles = (IsBossUnit && IsRageMode) ? new[] { -14f, 0f, 14f } : new[] { 0f };
-                float projScale = IsBossUnit ? 0.34f : 0.22f;
+                float projScale = IsBossUnit ? 1.35f : 1.0f;
 
                 foreach (float angleDeg in spreadAngles)
                 {
                     Vector3 dir = Quaternion.Euler(0f, angleDeg, 0f) * baseDir;
-                    Vector3 spawnPos = transform.position + dir * 0.8f + Vector3.up * (IsBossUnit ? 0.8f : 0.3f);
-                    GameObject acid = new GameObject("ZombieAcidSpit");
-                    acid.transform.position = spawnPos;
-                    acid.transform.localScale = Vector3.one * projScale;
-
-                    SpriteRenderer sr = acid.AddComponent<SpriteRenderer>();
-                    sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                    sr.color = new Color(0.35f, 0.95f, 0.15f);
-
-                    SphereCollider col = acid.AddComponent<SphereCollider>();
-                    col.isTrigger = true;
-
-                    Projectile proj = acid.AddComponent<Projectile>();
-                    float pistolSpeed = Projectile.ResolvePistolProjectileSpeed(acidProjectileSpeed);
-                    proj.SetSpeed(pistolSpeed);
-                    Rigidbody acidRb = acid.GetComponent<Rigidbody>();
-                    if (acidRb != null) acidRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                    proj.Setup(dir, spawnPos + dir * 12f, gameObject);
+                    Vector3 spawnPos = transform.position + dir * 0.85f + Vector3.up * (IsBossUnit ? 1.05f : 0.80f);
+                    SpitterProjectileVisual.CreateSpitProjectile(
+                        SpitProjectileStyle.ZombieAcid,
+                        spawnPos,
+                        dir,
+                        acidProjectileSpeed,
+                        gameObject,
+                        projScale);
+                    TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                        this,
+                        TheLastEmpire.Network.NetworkEnemyBridge.TelegraphZombieSpit,
+                        spawnPos,
+                        dir,
+                        projScale,
+                        acidProjectileSpeed);
                 }
             }
 

@@ -21,11 +21,17 @@ namespace TheLastEmpire
         [Tooltip("Probability (0.0 to 1.0) of selecting an authored template when available for the current Biome. (e.g., 0.65 = 65% template, 35% procedural).")]
         [SerializeField] private float templateSelectionChance = 0.65f;
 
+        public const string PrimarySurvivorCampDistrictId = "District_EVT_SurvivorCamp_Haven";
+        public const int MaxSurvivorCampsOnWorldMap = 3;
+
         private readonly Dictionary<BiomeType, List<StageTemplateData>> _templatesByBiome = new Dictionary<BiomeType, List<StageTemplateData>>();
         private readonly Dictionary<string, StageTemplateData> _templatesById = new Dictionary<string, StageTemplateData>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, List<StageTemplateData>> _districts = new Dictionary<string, List<StageTemplateData>>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<Vector2Int> _stampedSurvivorCampCenters = new List<Vector2Int>();
         private int _lastStampedSeed = int.MinValue;
         private bool _isInitialized = false;
+
+        public IReadOnlyList<Vector2Int> StampedSurvivorCampCenters => _stampedSurvivorCampCenters;
 
         public bool EnableTemplates
         {
@@ -149,18 +155,27 @@ namespace TheLastEmpire
             if (!force && _lastStampedSeed == mapGen.seed) return;
 
             _lastStampedSeed = mapGen.seed;
+            _stampedSurvivorCampCenters.Clear();
             System.Random rand = new System.Random(mapGen.seed + 31337);
             HashSet<long> reservedCoords = new HashSet<long>();
 
-            // Separate City 3x3 Districts from Event-only 3x3 Camp Districts
+            // Separate City 3x3 Districts from Survivor Camp 3x3 Districts
             List<string> cityDistrictKeys = new List<string>();
-            List<string> eventDistrictKeys = new List<string>();
+            List<string> survivorCampDistrictKeys = new List<string>();
             foreach (string key in _districts.Keys)
             {
                 if (key.StartsWith("District_EVT", StringComparison.OrdinalIgnoreCase))
-                    eventDistrictKeys.Add(key);
+                {
+                    if (key.IndexOf("SurvivorCamp", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                        key.IndexOf("EmptyCamp", StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        survivorCampDistrictKeys.Add(key);
+                    }
+                }
                 else
+                {
                     cityDistrictKeys.Add(key);
+                }
             }
 
             cityDistrictKeys.Sort((a, b) =>
@@ -174,18 +189,43 @@ namespace TheLastEmpire
                 return string.Compare(a, b, StringComparison.Ordinal);
             });
 
-            eventDistrictKeys.Sort((a, b) =>
+            // Always prioritize our dedicated locked 3x3 Survivor Camp ("District_EVT_SurvivorCamp_Haven") first
+            survivorCampDistrictKeys.Sort((a, b) =>
             {
-                bool aSurv = a.Contains("SurvivorCamp");
-                bool bSurv = b.Contains("SurvivorCamp");
-                if (aSurv != bSurv) return aSurv ? -1 : 1;
+                bool aPrimary = string.Equals(a, PrimarySurvivorCampDistrictId, StringComparison.OrdinalIgnoreCase);
+                bool bPrimary = string.Equals(b, PrimarySurvivorCampDistrictId, StringComparison.OrdinalIgnoreCase);
+                if (aPrimary != bPrimary) return aPrimary ? -1 : 1;
                 return string.Compare(a, b, StringComparison.Ordinal);
             });
 
-            bool IsFootprintValid(int centerX, int centerY)
+            bool HasComplete3x3Grid(List<StageTemplateData> tiles)
             {
-                if (centerX < 2 || centerX >= WorldMapGenerator.GridSize - 2 ||
-                    centerY < 2 || centerY >= WorldMapGenerator.GridSize - 2)
+                if (tiles == null || tiles.Count < 9) return false;
+                bool[,] covered = new bool[3, 3];
+                foreach (StageTemplateData tpl in tiles)
+                {
+                    int ix = tpl.districtOffsetX + 1;
+                    int iy = tpl.districtOffsetY + 1;
+                    if (ix >= 0 && ix < 3 && iy >= 0 && iy < 3)
+                    {
+                        covered[ix, iy] = true;
+                    }
+                }
+                for (int y = 0; y < 3; y++)
+                {
+                    for (int x = 0; x < 3; x++)
+                    {
+                        if (!covered[x, y]) return false;
+                    }
+                }
+                return true;
+            }
+
+            bool IsFootprintValid(int centerX, int centerY, bool isSurvivorCamp, bool strictGateApproaches = true)
+            {
+                int edgeMargin = isSurvivorCamp ? 3 : 2;
+                if (centerX < edgeMargin || centerX >= WorldMapGenerator.GridSize - edgeMargin ||
+                    centerY < edgeMargin || centerY >= WorldMapGenerator.GridSize - edgeMargin)
                 {
                     return false;
                 }
@@ -207,11 +247,41 @@ namespace TheLastEmpire
                         if (st.biome == BiomeType.Waterways) waterCount++;
                     }
                 }
-                return waterCount <= 3;
+
+                int maxWater = isSurvivorCamp ? (strictGateApproaches ? 2 : 4) : 3;
+                if (waterCount > maxWater) return false;
+
+                if (isSurvivorCamp)
+                {
+                    // Ensure players can enter the 3x3 Survivor Camp from outside gates (not trapped in an ocean)
+                    StageData northApproach = mapGen.GetStage(centerX, centerY + 2);
+                    StageData southApproach = mapGen.GetStage(centerX, centerY - 2);
+                    StageData eastApproach = mapGen.GetStage(centerX + 2, centerY);
+                    StageData westApproach = mapGen.GetStage(centerX - 2, centerY);
+
+                    int dryGates = 0;
+                    if (northApproach != null && northApproach.biome != BiomeType.Waterways) dryGates++;
+                    if (southApproach != null && southApproach.biome != BiomeType.Waterways) dryGates++;
+                    if (eastApproach != null && eastApproach.biome != BiomeType.Waterways) dryGates++;
+                    if (westApproach != null && westApproach.biome != BiomeType.Waterways) dryGates++;
+
+                    if (strictGateApproaches)
+                    {
+                        if (southApproach == null || southApproach.biome == BiomeType.Waterways) return false;
+                        if (dryGates < 3) return false;
+                    }
+                    else if (dryGates < 1)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
-            void ApplyDistrictStamp(int centerX, int centerY, List<StageTemplateData> tiles)
+            void ApplyDistrictStamp(int centerX, int centerY, List<StageTemplateData> tiles, bool isSurvivorCamp)
             {
+                // Stamp all 9 tiles atomically in their exact 3x3 relative offsets (-1..+1, -1..+1)
                 foreach (StageTemplateData tpl in tiles)
                 {
                     int tx = centerX + tpl.districtOffsetX;
@@ -225,10 +295,18 @@ namespace TheLastEmpire
                         reservedCoords.Add(key);
                     }
                 }
+
+                if (isSurvivorCamp)
+                {
+                    _stampedSurvivorCampCenters.Add(new Vector2Int(centerX, centerY));
+                }
             }
 
-            bool TryPlaceDistrictInRing(string districtKey, int minDist, int maxDist)
+            bool TryPlaceDistrictInRing(string districtKey, int minDist, int maxDist, bool isSurvivorCamp, bool strictGateApproaches = true)
             {
+                List<StageTemplateData> tiles = _districts[districtKey];
+                if (isSurvivorCamp && !HasComplete3x3Grid(tiles)) return false;
+
                 for (int dist = minDist; dist <= maxDist; dist++)
                 {
                     List<Vector2Int> candidates = new List<Vector2Int>();
@@ -251,9 +329,9 @@ namespace TheLastEmpire
 
                     foreach (Vector2Int c in candidates)
                     {
-                        if (IsFootprintValid(c.x, c.y))
+                        if (IsFootprintValid(c.x, c.y, isSurvivorCamp, strictGateApproaches))
                         {
-                            ApplyDistrictStamp(c.x, c.y, _districts[districtKey]);
+                            ApplyDistrictStamp(c.x, c.y, tiles, isSurvivorCamp);
                             Debug.Log($"[StageTemplateManager] Placed 3x3 district '{districtKey}' at ({c.x}, {c.y}) near spawn ({mapGen.spawnX}, {mapGen.spawnY}).");
                             return true;
                         }
@@ -262,67 +340,121 @@ namespace TheLastEmpire
                 return false;
             }
 
+            bool TryPlaceSpreadSurvivorCamp(string districtKey, int minDistFromCamps, int minDistFromSpawn, bool strictGateApproaches)
+            {
+                List<StageTemplateData> tiles = _districts[districtKey];
+                if (!HasComplete3x3Grid(tiles)) return false;
+
+                for (int attempt = 0; attempt < 260; attempt++)
+                {
+                    int cx = rand.Next(4, WorldMapGenerator.GridSize - 4);
+                    int cy = rand.Next(4, WorldMapGenerator.GridSize - 4);
+
+                    int distSpawn = Mathf.Max(Mathf.Abs(cx - mapGen.spawnX), Mathf.Abs(cy - mapGen.spawnY));
+                    if (distSpawn < minDistFromSpawn) continue;
+
+                    bool tooCloseToOtherCamp = false;
+                    for (int i = 0; i < _stampedSurvivorCampCenters.Count; i++)
+                    {
+                        Vector2Int other = _stampedSurvivorCampCenters[i];
+                        int distOther = Mathf.Max(Mathf.Abs(cx - other.x), Mathf.Abs(cy - other.y));
+                        if (distOther < minDistFromCamps)
+                        {
+                            tooCloseToOtherCamp = true;
+                            break;
+                        }
+                    }
+                    if (tooCloseToOtherCamp) continue;
+
+                    if (IsFootprintValid(cx, cy, isSurvivorCamp: true, strictGateApproaches: strictGateApproaches))
+                    {
+                        ApplyDistrictStamp(cx, cy, tiles, isSurvivorCamp: true);
+                        Debug.Log($"[StageTemplateManager] Placed 3x3 Survivor Camp #{_stampedSurvivorCampCenters.Count}/{MaxSurvivorCampsOnWorldMap} '{districtKey}' at ({cx}, {cy}).");
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             int stampedCount = 0;
 
-            // 1a. Place flagship US 3x3 City District (Statue of Liberty / NYC) 3..12 tiles from spawn
-            if (cityDistrictKeys.Count > 0 && TryPlaceDistrictInRing(cityDistrictKeys[0], 3, 12))
+            // 0. Place EXACTLY 3 locked 3x3 Survivor Camps across the entire 128x128 World Map FIRST
+            //    so they are always complete, contiguous 3x3 blocks and never overwritten by city districts.
+            string primaryCampKey = survivorCampDistrictKeys.Find(k => HasComplete3x3Grid(_districts[k]));
+            if (!string.IsNullOrEmpty(primaryCampKey))
             {
-                stampedCount++;
-            }
-
-            // 1b. Place 1 Event-only 3x3 Survivor Camp District 6..18 tiles from spawn
-            if (eventDistrictKeys.Count > 0 && TryPlaceDistrictInRing(eventDistrictKeys[0], 6, 18))
-            {
-                stampedCount++;
-            }
-
-            // 1c. Place 1 flagship Europe 3x3 City District (London/Paris/etc.) 10..22 tiles from spawn
-            string flagshipEU = cityDistrictKeys.Find(k => k.StartsWith("District_EU_", StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(flagshipEU) && TryPlaceDistrictInRing(flagshipEU, 10, 22))
-            {
-                stampedCount++;
-            }
-
-            // 2. Stamp 3x3 City & Event Camp Districts across 16x16 macro-sectors over the entire 128x128 World Map
-            const int sectorSize = 16;
-            int sectorCount = WorldMapGenerator.GridSize / sectorSize;
-            int cityRoundRobin = 1;
-            int eventRoundRobin = 0;
-
-            for (int sy = 0; sy < sectorCount; sy++)
-            {
-                for (int sx = 0; sx < sectorCount; sx++)
+                // Camp #1: Guaranteed within easy exploration range of player spawn (4..14 tiles, fallback up to 36)
+                if (TryPlaceDistrictInRing(primaryCampKey, 4, 14, isSurvivorCamp: true, strictGateApproaches: true) ||
+                    TryPlaceDistrictInRing(primaryCampKey, 4, 36, isSurvivorCamp: true, strictGateApproaches: false))
                 {
-                    if (rand.NextDouble() > 0.82) continue;
+                    stampedCount++;
+                }
 
-                    // ~25% of stamped districts are Event 3x3 Camp Districts, ~75% are City 3x3 Districts
-                    string chosenKey;
-                    if (eventDistrictKeys.Count > 0 && (cityDistrictKeys.Count == 0 || rand.NextDouble() < 0.28))
+                // Camps #2 and #3: Well spread across distant regions of the 128x128 world map
+                while (_stampedSurvivorCampCenters.Count < MaxSurvivorCampsOnWorldMap)
+                {
+                    bool placed =
+                        TryPlaceSpreadSurvivorCamp(primaryCampKey, minDistFromCamps: 38, minDistFromSpawn: 22, strictGateApproaches: true) ||
+                        TryPlaceSpreadSurvivorCamp(primaryCampKey, minDistFromCamps: 24, minDistFromSpawn: 12, strictGateApproaches: true) ||
+                        TryPlaceSpreadSurvivorCamp(primaryCampKey, minDistFromCamps: 14, minDistFromSpawn: 6, strictGateApproaches: false);
+
+                    if (placed)
                     {
-                        chosenKey = eventDistrictKeys[eventRoundRobin % eventDistrictKeys.Count];
-                        eventRoundRobin++;
+                        stampedCount++;
                     }
                     else
                     {
-                        chosenKey = cityDistrictKeys[cityRoundRobin % cityDistrictKeys.Count];
-                        cityRoundRobin++;
+                        break;
                     }
+                }
+            }
 
-                    for (int attempt = 0; attempt < 8; attempt++)
+            // 1a. Place flagship US 3x3 City District (Statue of Liberty / NYC) 3..12 tiles from spawn
+            if (cityDistrictKeys.Count > 0 && TryPlaceDistrictInRing(cityDistrictKeys[0], 3, 12, isSurvivorCamp: false))
+            {
+                stampedCount++;
+            }
+
+            // 1b. Place 1 flagship Europe 3x3 City District (London/Paris/etc.) 10..22 tiles from spawn
+            string flagshipEU = cityDistrictKeys.Find(k => k.StartsWith("District_EU_", StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(flagshipEU) && TryPlaceDistrictInRing(flagshipEU, 10, 22, isSurvivorCamp: false))
+            {
+                stampedCount++;
+            }
+
+            // 2. Stamp City 3x3 Districts across 16x16 macro-sectors over the entire 128x128 World Map
+            //    (Do NOT stamp extra Survivor Camps here — strictly capped at 3 Survivor Camps across the whole map!)
+            const int sectorSize = 16;
+            int sectorCount = WorldMapGenerator.GridSize / sectorSize;
+            int cityRoundRobin = 1;
+
+            if (cityDistrictKeys.Count > 0)
+            {
+                for (int sy = 0; sy < sectorCount; sy++)
+                {
+                    for (int sx = 0; sx < sectorCount; sx++)
                     {
-                        int cx = sx * sectorSize + rand.Next(3, sectorSize - 3);
-                        int cy = sy * sectorSize + rand.Next(3, sectorSize - 3);
-                        if (IsFootprintValid(cx, cy))
+                        if (rand.NextDouble() > 0.72) continue;
+
+                        string chosenKey = cityDistrictKeys[cityRoundRobin % cityDistrictKeys.Count];
+                        cityRoundRobin++;
+
+                        for (int attempt = 0; attempt < 8; attempt++)
                         {
-                            ApplyDistrictStamp(cx, cy, _districts[chosenKey]);
-                            stampedCount++;
-                            break;
+                            int cx = sx * sectorSize + rand.Next(3, sectorSize - 3);
+                            int cy = sy * sectorSize + rand.Next(3, sectorSize - 3);
+                            if (IsFootprintValid(cx, cy, isSurvivorCamp: false))
+                            {
+                                ApplyDistrictStamp(cx, cy, _districts[chosenKey], isSurvivorCamp: false);
+                                stampedCount++;
+                                break;
+                            }
                         }
                     }
                 }
             }
 
-            Debug.Log($"[StageTemplateManager] Stamped {stampedCount} connected 3x3 city & event camp districts across the 128x128 world map.");
+            Debug.Log($"[StageTemplateManager] Stamped {stampedCount} connected 3x3 districts ({_stampedSurvivorCampCenters.Count}/{MaxSurvivorCampsOnWorldMap} locked 3x3 Survivor Camps) across the 128x128 world map.");
         }
 
         /// <summary>
@@ -371,6 +503,27 @@ namespace TheLastEmpire
                 return false;
             }
 
+            // Keep inhabited Survivor Camps strictly limited to the 3 stamped 3x3 Survivor Camp districts
+            List<StageTemplateData> candidateList = biomeList;
+            if (stage.biome == BiomeType.SpecialEvent)
+            {
+                candidateList = new List<StageTemplateData>();
+                foreach (var t in biomeList)
+                {
+                    bool hasCampNpc = t.npcSpawns != null && t.npcSpawns.Count > 0;
+                    bool isHavenTemplate = t.templateId.IndexOf("Haven", StringComparison.OrdinalIgnoreCase) >= 0;
+                    if (!hasCampNpc && !isHavenTemplate)
+                    {
+                        candidateList.Add(t);
+                    }
+                }
+                if (candidateList.Count == 0)
+                {
+                    stage.assignedTemplateId = "__NONE__";
+                    return false;
+                }
+            }
+
             // 3. Deterministic roll using stage.stageSeed + 7192
             System.Random rand = new System.Random(stage.stageSeed + 7192);
             double roll = rand.NextDouble();
@@ -384,7 +537,7 @@ namespace TheLastEmpire
 
             // 4. Weighted selection among available templates for this biome
             float totalWeight = 0f;
-            foreach (var t in biomeList)
+            foreach (var t in candidateList)
             {
                 totalWeight += Mathf.Max(0.01f, t.selectionWeight);
             }
@@ -392,7 +545,7 @@ namespace TheLastEmpire
             double randomWeight = rand.NextDouble() * totalWeight;
             float currentSum = 0f;
 
-            foreach (var t in biomeList)
+            foreach (var t in candidateList)
             {
                 currentSum += Mathf.Max(0.01f, t.selectionWeight);
                 if (randomWeight <= currentSum)
@@ -404,7 +557,7 @@ namespace TheLastEmpire
 
             if (template == null)
             {
-                template = biomeList[0];
+                template = candidateList[0];
             }
 
             stage.assignedTemplateId = template.templateId;

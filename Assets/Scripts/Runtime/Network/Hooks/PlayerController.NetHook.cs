@@ -579,7 +579,7 @@ namespace TheLastEmpire
                 }
                 if (_rb != null)
                 {
-                    float spd = _isSprinting ? moveSpeed * 1.35f : moveSpeed;
+                    float spd = (_isSprinting ? moveSpeed * 1.35f : moveSpeed) * GlobalPlayerSpeedMultiplier;
                     _rb.linearVelocity = new Vector3(_moveInput.x * spd, _rb.linearVelocity.y, _moveInput.y * spd);
                 }
                 return;

@@ -96,6 +96,7 @@ namespace TheLastEmpire
         private float _chargeTimer = 0f;
         private float _cooldownTimer = 0f;
         private Vector3 _chargeDir;
+        private readonly HashSet<int> _hitEnemyIds = new HashSet<int>();
 
         private float GetChargeSpeed() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeSpeed : 18f;
         private float GetChargeDuration() => (_player != null && _player.ActiveCharacterData != null) ? _player.ActiveCharacterData.chargeDuration : 0.35f;
@@ -115,14 +116,21 @@ namespace TheLastEmpire
             Vector2 moveInput = _player.MoveInput;
             _chargeDir = moveInput.sqrMagnitude > 0.05f 
                 ? new Vector3(moveInput.x, 0f, moveInput.y).normalized 
-                : _player.AimDirection.normalized;
+                : new Vector3(_player.AimDirection.x, 0f, _player.AimDirection.z).normalized;
 
             if (_chargeDir.sqrMagnitude < 0.01f) _chargeDir = Vector3.right;
 
+            _hitEnemyIds.Clear();
             _isCharging = true;
             _chargeTimer = GetChargeDuration();
             _cooldownTimer = CooldownDuration;
             _player.DrainHunger(GetChargeHungerCost()); // Configured hunger cost for burst
+
+            Rigidbody playerRb = _player.GetComponent<Rigidbody>();
+            if (playerRb != null)
+            {
+                playerRb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+            }
         }
 
         public void OnShiftHeld() { }
@@ -144,19 +152,23 @@ namespace TheLastEmpire
                 float damage = GetChargeDamage();
                 float stun = GetChargeStunDuration();
 
-                // Move with high speed
+                // Move with high speed strictly on XZ plane (no vertical launch!)
                 Rigidbody rb = _player.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    rb.linearVelocity = _chargeDir * speed;
+                    rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+                    rb.linearVelocity = new Vector3(_chargeDir.x * speed, 0f, _chargeDir.z * speed);
                 }
 
-                // Check collisions with enemies in frontal cone
+                // Check collisions with enemies in frontal cone (hit each enemy cleanly once per charge)
                 Collider[] hits = Physics.OverlapSphere(_player.transform.position, 1.8f);
                 foreach (var h in hits)
                 {
                     if (h != null && (h.CompareTag("Enemy") || h.GetComponent<BaseEnemyAI>() != null))
                     {
+                        int enemyKey = h.gameObject.GetInstanceID();
+                        if (!_hitEnemyIds.Add(enemyKey)) continue;
+
                         Health enemyHealth = h.GetComponent<Health>();
                         if (enemyHealth != null && !enemyHealth.IsDead)
                         {
@@ -166,8 +178,10 @@ namespace TheLastEmpire
                         BaseEnemyAI ai = h.GetComponent<BaseEnemyAI>();
                         if (ai != null)
                         {
-                            Vector3 pushDir = (h.transform.position - _player.transform.position).normalized;
-                            ai.ApplyMeleeKnockback(pushDir, speed, stun); // Impact knockback + configured stun
+                            Vector3 pushDir = h.transform.position - _player.transform.position;
+                            pushDir.y = 0f;
+                            pushDir = pushDir.sqrMagnitude > 0.001f ? pushDir.normalized : _chargeDir;
+                            ai.ApplyMeleeKnockback(pushDir, speed, stun); // Horizontal-only impact knockback + temp Y freeze
                         }
                     }
                 }
@@ -175,11 +189,24 @@ namespace TheLastEmpire
                 if (_chargeTimer <= 0f)
                 {
                     _isCharging = false;
+                    _hitEnemyIds.Clear();
+                    if (rb != null)
+                    {
+                        rb.constraints = RigidbodyConstraints.FreezeRotation;
+                    }
                 }
             }
         }
 
-        public void OnDestroy() { _isCharging = false; }
+        public void OnDestroy()
+        {
+            if (_isCharging && _player != null)
+            {
+                Rigidbody rb = _player.GetComponent<Rigidbody>();
+                if (rb != null) rb.constraints = RigidbodyConstraints.FreezeRotation;
+            }
+            _isCharging = false;
+        }
     }
 
     // =========================================================================

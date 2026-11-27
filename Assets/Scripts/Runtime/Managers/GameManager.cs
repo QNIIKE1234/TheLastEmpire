@@ -373,15 +373,19 @@ namespace TheLastEmpire
 
             if (stage.biome == BiomeType.SpecialEvent)
             {
-                if (hasPreResolvedTemplate && preResolvedTemplate.npcSpawns != null && preResolvedTemplate.npcSpawns.Count > 0)
+                bool isEmptyCamp = hasPreResolvedTemplate &&
+                                   preResolvedTemplate.templateId.IndexOf("EmptyCamp", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                bool isInhabitedCamp = hasPreResolvedTemplate && !isEmptyCamp &&
+                                       ((preResolvedTemplate.npcSpawns != null && preResolvedTemplate.npcSpawns.Count > 0) ||
+                                        (!string.IsNullOrEmpty(preResolvedTemplate.districtId) &&
+                                         preResolvedTemplate.districtId.IndexOf("SurvivorCamp", System.StringComparison.OrdinalIgnoreCase) >= 0));
+                if (isInhabitedCamp)
                 {
                     SpawnStageTemplateEnemiesAndLoot(preResolvedTemplate, stage);
-                    stage.isCleared = true; // Inhabited Survivor Camps are safe havens
+                    stage.isCleared = true; // Inhabited Survivor Camps are safe havens across all 9 tiles
                     return;
                 }
 
-                bool isEmptyCamp = hasPreResolvedTemplate &&
-                                   preResolvedTemplate.templateId.IndexOf("EmptyCamp", System.StringComparison.OrdinalIgnoreCase) >= 0;
                 if (stage.isShopStage && !isEmptyCamp)
                 {
                     if (hasPreResolvedTemplate)
@@ -728,7 +732,7 @@ namespace TheLastEmpire
             {
                 foreach (var npc in template.npcSpawns)
                 {
-                    SpawnNPCInstance(npc.npcType, npc.position, npc.npcId);
+                    SpawnNPCInstance(npc);
                 }
             }
 
@@ -1070,6 +1074,17 @@ namespace TheLastEmpire
             }
         }
 
+        public void SpawnNPCInstance(StageNPCSpawnPoint spawnPoint)
+        {
+            if (spawnPoint == null) return;
+            Quaternion rot = Quaternion.Euler(spawnPoint.rotation);
+            NPCController npc = SpawnNPCInstanceInternal(spawnPoint.npcType, spawnPoint.position, rot, spawnPoint.npcId, allowDatabaseFallback: string.IsNullOrWhiteSpace(spawnPoint.modelPrefab));
+            if (npc != null)
+            {
+                npc.ApplyTemplateOverride(spawnPoint);
+            }
+        }
+
         public void SpawnNPCInstance(NPCType type, Vector3 spawnPos)
         {
             SpawnNPCInstance(type, spawnPos, null);
@@ -1077,12 +1092,17 @@ namespace TheLastEmpire
 
         public void SpawnNPCInstance(NPCType type, Vector3 spawnPos, string npcId)
         {
+            SpawnNPCInstanceInternal(type, spawnPos, Quaternion.identity, npcId, allowDatabaseFallback: true);
+        }
+
+        private NPCController SpawnNPCInstanceInternal(NPCType type, Vector3 spawnPos, Quaternion spawnRot, string npcId, bool allowDatabaseFallback)
+        {
             NPCDataSO dataToUse = null;
             if (!string.IsNullOrEmpty(npcId) && NPCDatabase.Instance != null)
             {
                 dataToUse = NPCDatabase.Instance.GetNPCById(npcId);
             }
-            if (dataToUse == null && NPCDatabase.Instance != null)
+            if (dataToUse == null && allowDatabaseFallback && NPCDatabase.Instance != null)
             {
                 if (type == NPCType.Shop)
                 {
@@ -1095,9 +1115,10 @@ namespace TheLastEmpire
                 }
             }
 
+            NPCController spawnedController;
             if (npcPrefab != null)
             {
-                _activeNPC = Instantiate(npcPrefab, spawnPos, Quaternion.identity);
+                _activeNPC = Instantiate(npcPrefab, spawnPos, spawnRot);
                 _activeNPCs.Add(_activeNPC);
                 NPCController npc = _activeNPC.GetComponent<NPCController>();
                 if (npc == null)
@@ -1120,15 +1141,16 @@ namespace TheLastEmpire
 
                 if (type == NPCType.Shop && _currentStage != null)
                 {
-                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0 && dataToUse == null)
                     {
                         npc.SetShopItems(_currentStage.savedShopItems);
                     }
-                    else
+                    else if (dataToUse == null)
                     {
                         _currentStage.savedShopItems = npc.ShopItems;
                     }
                 }
+                spawnedController = npc;
             }
             else
             {
@@ -1137,6 +1159,7 @@ namespace TheLastEmpire
                 _activeNPCs.Add(_activeNPC);
                 _activeNPC.name = $"{type}NPC_Fallback";
                 _activeNPC.transform.position = spawnPos;
+                _activeNPC.transform.rotation = spawnRot;
                 _activeNPC.transform.localScale = new Vector3(1f, 1f, 1f);
 
                 NPCController npc = _activeNPC.AddComponent<NPCController>();
@@ -1155,11 +1178,11 @@ namespace TheLastEmpire
 
                 if (type == NPCType.Shop && _currentStage != null)
                 {
-                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0)
+                    if (_currentStage.savedShopItems != null && _currentStage.savedShopItems.Count > 0 && dataToUse == null)
                     {
                         npc.SetShopItems(_currentStage.savedShopItems);
                     }
-                    else
+                    else if (dataToUse == null)
                     {
                         _currentStage.savedShopItems = npc.ShopItems;
                     }
@@ -1173,7 +1196,10 @@ namespace TheLastEmpire
                         ? dataToUse.tintColor 
                         : new Color(0f, 0.9f, 1f);
                 }
+                spawnedController = npc;
             }
+
+            return spawnedController;
         }
 
         private void PlayBiomeBackgroundMusic(BiomeType biome)

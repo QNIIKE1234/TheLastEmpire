@@ -664,6 +664,8 @@ namespace TheLastEmpire.Network
         public const byte TelegraphRobotKamikaze = 4;
         public const byte TelegraphZombieBoomer = 5;
         public const byte TelegraphBossLeap = 6;
+        public const byte TelegraphZombieSpit = 7;
+        public const byte TelegraphAlienSpit = 8;
 
         public void BroadcastEnemyTelegraph(
             BaseEnemyAI enemy,
@@ -721,6 +723,17 @@ namespace TheLastEmpire.Network
             if (enemyNetId > 0 && _clientPuppetEnemies.TryGetValue(enemyNetId, out BaseEnemyAI puppet) && puppet != null)
             {
                 followTarget = puppet.transform;
+            }
+
+            // Replicate glowing 3D Zombie (Green) / Alien (Purple) Spitter projectiles on Co-op Clients!
+            if (telegraphType == TelegraphZombieSpit || telegraphType == TelegraphAlienSpit)
+            {
+                SpitProjectileStyle style = telegraphType == TelegraphZombieSpit
+                    ? SpitProjectileStyle.ZombieAcid
+                    : SpitProjectileStyle.AlienPlasma;
+                GameObject ownerObj = followTarget != null ? followTarget.gameObject : null;
+                SpitterProjectileVisual.CreateSpitProjectile(style, origin, dir, duration, ownerObj, Mathf.Max(0.75f, sizeParam));
+                return;
             }
 
             StartCoroutine(ShowClientEnemyTelegraphRoutine(followTarget, telegraphType, origin, dir, sizeParam, Mathf.Clamp(duration, 0.1f, 5f)));

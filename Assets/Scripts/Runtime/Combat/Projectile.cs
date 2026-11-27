@@ -90,6 +90,7 @@ namespace TheLastEmpire
         private string _activeExplosionVfxPoolKey;
         private bool _canPierce = false;
         private bool _isVisualOnly = false;
+        private bool _isEnemyProjectile = false;
         private string _weaponName = "";
         private float _maxFalloffDistance = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
         private float _bonusKnockback = 0f;
@@ -307,6 +308,7 @@ namespace TheLastEmpire
             _bonusStagger = 0f;
             _lifestealOnHit = 0f;
             _isVisualOnly = false;
+            _isEnemyProjectile = false;
             if (_trail != null)
             {
                 _trail.enabled = useTrailRenderer;
@@ -428,6 +430,7 @@ namespace TheLastEmpire
             _currentFlightTime = 0f;
             _owner = null;
             _isVisualOnly = false;
+            _isEnemyProjectile = false;
             if (_hitTargets == null)
             {
                 _hitTargets = new System.Collections.Generic.List<IDamageable>();
@@ -740,6 +743,11 @@ namespace TheLastEmpire
             _isVisualOnly = visualOnly;
         }
 
+        public void SetEnemyProjectile(bool isEnemy)
+        {
+            _isEnemyProjectile = isEnemy;
+        }
+
         public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f, string visualId = "")
         {
             ResetDynamicOverrides();
@@ -761,10 +769,13 @@ namespace TheLastEmpire
         {
             if (collision == null) return;
 
+            bool isEnemyShot = _isEnemyProjectile || (_owner != null && _owner.CompareTag("Enemy"));
+
             // Ignore owner, any child transforms of the owner, or same root hierarchy
             if (_owner != null)
             {
                 if (collision.gameObject == _owner || collision.transform.IsChildOf(_owner.transform) || collision.transform.root == _owner.transform.root) return;
+                if (isEnemyShot && collision.CompareTag("Enemy")) return;
                 if (_owner.CompareTag("Player") && collision.CompareTag("Player"))
                 {
                     // Allow bullets to hit co-op teammates for 20% friendly fire damage (skip if solo/disabled/downed)
@@ -778,6 +789,10 @@ namespace TheLastEmpire
                         return;
                     }
                 }
+            }
+            else if (isEnemyShot)
+            {
+                if (collision.CompareTag("Enemy")) return;
             }
             else if (collision.CompareTag("Player"))
             {
@@ -824,6 +839,18 @@ namespace TheLastEmpire
                         DeactivateProjectile();
                     }
                     return;
+                }
+
+                // Co-op authority: Enemy projectiles only apply HP damage on the player who owns that avatar.
+                // Hitting a remote teammate plays the splash/impact visually without double-damaging them locally.
+                if (isEnemyShot)
+                {
+                    PlayerController hitPlayer = collision.GetComponent<PlayerController>() ?? collision.GetComponentInParent<PlayerController>();
+                    if (hitPlayer != null && (hitPlayer.IsRemotePlayer || hitPlayer.IsDowned))
+                    {
+                        DeactivateProjectile();
+                        return;
+                    }
                 }
 
                 if (!_hitTargets.Contains(damageable))

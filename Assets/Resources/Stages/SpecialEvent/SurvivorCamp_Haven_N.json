@@ -1,0 +1,926 @@
+{
+    "templateId":  "SurvivorCamp_Haven_N",
+    "templateName":  "Haven Camp: North Gate Checkpoint",
+    "biome":  6,
+    "selectionWeight":  1,
+    "roomSize":  {
+                     "x":  50,
+                     "y":  25
+                 },
+    "districtId":  "District_EVT_SurvivorCamp_Haven",
+    "districtOffsetX":  0,
+    "districtOffsetY":  1,
+    "obstacles":  [
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  -20,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  -16.5,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  -13,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  -9.5,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  9.5,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  13,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  16.5,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "06_Scrap_Metal_Wall",
+                          "resourcePath":  "Prefabs/Environment/Craft/06_Scrap_Metal_Wall",
+                          "position":  {
+                                           "x":  20,
+                                           "y":  0,
+                                           "z":  10.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Apoc_Prop_Concrete_Barricade",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Concrete_Barricade",
+                          "position":  {
+                                           "x":  -9.2,
+                                           "y":  0,
+                                           "z":  8.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Apoc_Prop_Concrete_Barricade",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Concrete_Barricade",
+                          "position":  {
+                                           "x":  9.2,
+                                           "y":  0,
+                                           "z":  8.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "17_Razor_Wire_Barricade",
+                          "resourcePath":  "Prefabs/Environment/Craft/17_Razor_Wire_Barricade",
+                          "position":  {
+                                           "x":  -15,
+                                           "y":  0,
+                                           "z":  9.1
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "17_Razor_Wire_Barricade",
+                          "resourcePath":  "Prefabs/Environment/Craft/17_Razor_Wire_Barricade",
+                          "position":  {
+                                           "x":  15,
+                                           "y":  0,
+                                           "z":  9.1
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_GuardWatchtower",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_GuardWatchtower",
+                          "position":  {
+                                           "x":  -11.5,
+                                           "y":  0,
+                                           "z":  9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  180,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_GuardWatchtower",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_GuardWatchtower",
+                          "position":  {
+                                           "x":  11.5,
+                                           "y":  0,
+                                           "z":  9.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  180,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_CampTentGreen",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CampTentGreen",
+                          "position":  {
+                                           "x":  -14.5,
+                                           "y":  0,
+                                           "z":  -6.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Landmark_CampTentTan",
+                          "resourcePath":  "Prefabs/Environment/Building/Landmark_CampTentTan",
+                          "position":  {
+                                           "x":  14.5,
+                                           "y":  0,
+                                           "z":  -6.4
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  0,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Apoc_Prop_Sandbag_Pile",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Sandbag_Pile",
+                          "position":  {
+                                           "x":  -8.8,
+                                           "y":  0,
+                                           "z":  6.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  15,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Apoc_Prop_Sandbag_Pile",
+                          "resourcePath":  "Prefabs/Environment/Building/Apoc_Prop_Sandbag_Pile",
+                          "position":  {
+                                           "x":  8.8,
+                                           "y":  0,
+                                           "z":  6.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  345,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "11_Wooden_Storage_Crate",
+                          "resourcePath":  "Prefabs/Environment/Craft/11_Wooden_Storage_Crate",
+                          "position":  {
+                                           "x":  -14,
+                                           "y":  0,
+                                           "z":  5.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  10,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "11_Wooden_Storage_Crate",
+                          "resourcePath":  "Prefabs/Environment/Craft/11_Wooden_Storage_Crate",
+                          "position":  {
+                                           "x":  14,
+                                           "y":  0,
+                                           "z":  5.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  350,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Large_01_GiantOak",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Large_01_GiantOak",
+                          "position":  {
+                                           "x":  -19,
+                                           "y":  0,
+                                           "z":  -7.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  60,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      },
+                      {
+                          "prefabName":  "Cozy_Tree_Medium_03_GoldenBirch",
+                          "resourcePath":  "Prefabs/Environment/Building/Cozy_Tree_Medium_03_GoldenBirch",
+                          "position":  {
+                                           "x":  19,
+                                           "y":  0,
+                                           "z":  -7.8
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  140,
+                                           "z":  0
+                                       },
+                          "scale":  {
+                                        "x":  1,
+                                        "y":  1,
+                                        "z":  1
+                                    }
+                      }
+                  ],
+    "decorations":  [
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -21,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -16.1,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -11.2,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -6.3,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  -1.4,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  3.5,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  8.4,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  13.3,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  18.2,
+                                             "y":  0.01,
+                                             "z":  0
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  5,
+                                          "y":  0.05,
+                                          "z":  4.5
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -10.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -5.9
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  -1.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  2.7
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "Street",
+                            "resourcePath":  "Prefabs/Environment/Building/Street",
+                            "position":  {
+                                             "x":  0,
+                                             "y":  0.01,
+                                             "z":  7
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  4.8,
+                                          "y":  0.05,
+                                          "z":  4.4
+                                      }
+                        },
+                        {
+                            "prefabName":  "23_Wooden_Lantern_Post",
+                            "resourcePath":  "Prefabs/Environment/Craft/23_Wooden_Lantern_Post",
+                            "position":  {
+                                             "x":  -8.2,
+                                             "y":  0,
+                                             "z":  8.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  180,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "23_Wooden_Lantern_Post",
+                            "resourcePath":  "Prefabs/Environment/Craft/23_Wooden_Lantern_Post",
+                            "position":  {
+                                             "x":  8.2,
+                                             "y":  0,
+                                             "z":  8.2
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  180,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "09_Survivor_Campfire",
+                            "resourcePath":  "Prefabs/Environment/Craft/09_Survivor_Campfire",
+                            "position":  {
+                                             "x":  -8.2,
+                                             "y":  0,
+                                             "z":  -5.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "14_Sanity_Beacon_Lantern",
+                            "resourcePath":  "Prefabs/Environment/Craft/14_Sanity_Beacon_Lantern",
+                            "position":  {
+                                             "x":  8.2,
+                                             "y":  0,
+                                             "z":  -5.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  0,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  -6,
+                                             "y":  0,
+                                             "z":  -5.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  90,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_Bench",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_Bench",
+                            "position":  {
+                                             "x":  6,
+                                             "y":  0,
+                                             "z":  -5.6
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  270,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushFlowering_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "position":  {
+                                             "x":  -17.5,
+                                             "y":  0,
+                                             "z":  -6.5
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  30,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        },
+                        {
+                            "prefabName":  "Prop_BushFlowering_New",
+                            "resourcePath":  "Prefabs/Environment/Building/Prop_BushFlowering_New",
+                            "position":  {
+                                             "x":  17.5,
+                                             "y":  0,
+                                             "z":  -6.5
+                                         },
+                            "rotation":  {
+                                             "x":  0,
+                                             "y":  200,
+                                             "z":  0
+                                         },
+                            "scale":  {
+                                          "x":  1,
+                                          "y":  1,
+                                          "z":  1
+                                      }
+                        }
+                    ],
+    "enemySpawns":  [
+
+                    ],
+    "lootSpawns":  [
+                       {
+                           "itemName":  "Bread",
+                           "quantity":  1,
+                           "isMoney":  false,
+                           "moneyAmount":  0,
+                           "position":  {
+                                            "x":  -12.6,
+                                            "y":  0.25,
+                                            "z":  -4.5
+                                        }
+                       },
+                       {
+                           "itemName":  "Money",
+                           "quantity":  1,
+                           "isMoney":  true,
+                           "moneyAmount":  50,
+                           "position":  {
+                                            "x":  12.6,
+                                            "y":  0.25,
+                                            "z":  -4.5
+                                        }
+                       }
+                   ],
+    "npcSpawns":  [
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Gate Guard Kael",
+                          "modelPrefab":  "Prefabs/Character/Model/ChibiGhostOperator",
+                          "coolPoseState":  "Pose_01_AssassinKnife",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Guard Kael: North Gate checkpoint. Weapons down inside town.",
+                                                "Guard Kael: Walk straight south to reach the Main Town Plaza."
+                                            ],
+                          "position":  {
+                                           "x":  -11.5,
+                                           "y":  1,
+                                           "z":  7.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  165,
+                                           "z":  0
+                                       }
+                      },
+                      {
+                          "npcType":  2,
+                          "npcId":  "",
+                          "npcName":  "Gate Guard Cole",
+                          "modelPrefab":  "Prefabs/Character/Model/Chibi_HeavyStriker_Rigged",
+                          "coolPoseState":  "Pose_08_StrikerScan",
+                          "dialogueId":  "",
+                          "approachLines":  [
+                                                "Guard Cole: No infected gets past the North Gate on my watch.",
+                                                "Guard Cole: Traders and medics are waiting in the center plaza."
+                                            ],
+                          "position":  {
+                                           "x":  11.5,
+                                           "y":  1,
+                                           "z":  7.2
+                                       },
+                          "rotation":  {
+                                           "x":  0,
+                                           "y":  195,
+                                           "z":  0
+                                       }
+                      }
+                  ]
+}

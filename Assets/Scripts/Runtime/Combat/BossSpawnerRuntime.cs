@@ -493,6 +493,59 @@ namespace TheLastEmpire
             {
                 GUILayout.Label("WeatherManager not initialized.", EditorStylesMini());
             }
+
+            GUILayout.Space(10);
+            GUIStyle campTitle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            campTitle.normal.textColor = new Color(0.45f, 0.96f, 0.62f);
+            GUILayout.Label("SURVIVOR CAMPS (3x3 HAVEN)", campTitle);
+
+            var stm = StageTemplateManager.Instance;
+            var mapMgr = WorldMapManager.Instance;
+            if (stm != null && mapMgr != null && mapMgr.MapGenerator != null)
+            {
+                stm.StampDistrictsOntoWorldMap(mapMgr.MapGenerator);
+                var camps = stm.StampedSurvivorCampCenters;
+                GUILayout.Label($"Active 3x3 Camps on Map: {camps.Count}/{StageTemplateManager.MaxSurvivorCampsOnWorldMap}", EditorStylesBold());
+
+                if (camps.Count > 0)
+                {
+                    GUILayout.BeginHorizontal();
+                    for (int i = 0; i < camps.Count; i++)
+                    {
+                        Vector2Int c = camps[i];
+                        GUI.backgroundColor = new Color(0.24f, 0.72f, 0.44f);
+                        if (GUILayout.Button($"Camp {i + 1}\n({c.x},{c.y})", GUILayout.Height(36)))
+                        {
+                            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost &&
+                                TheLastEmpire.Network.NetworkStageSyncManager.Instance != null)
+                            {
+                                TheLastEmpire.Network.NetworkStageSyncManager.Instance.HostForceWarpPartyToStage(c.x, c.y);
+                            }
+                            else
+                            {
+                                mapMgr.MovePlayer(c.x, c.y);
+                                PlayerController lp = TheLastEmpire.Network.PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                                if (lp != null)
+                                {
+                                    lp.transform.position = new Vector3(0f, 0.5f, 0f);
+                                }
+                            }
+                            ShowToast($"Warped to Survivor Camp #{i + 1} Center ({c.x}, {c.y})!");
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+                    GUI.backgroundColor = Color.white;
+                }
+            }
+            else
+            {
+                GUILayout.Label("WorldMap / StageTemplateManager not ready.", EditorStylesMini());
+            }
         }
 
         private void DrawBossSpawnerTab()

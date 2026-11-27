@@ -101,9 +101,14 @@ namespace TheLastEmpire.Network
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
                 _hasPendingHostWorld = false;
-                if (WorldMapManager.Instance.MapGenerator.seed != _pendingHostSeed)
+                if (WorldMapManager.Instance.MapGenerator.seed != _pendingHostSeed ||
+                    WorldMapManager.Instance.MapGenerator.gridData == null)
                 {
                     WorldMapManager.Instance.StartNewGame(_pendingHostSeed);
+                }
+                else if (StageTemplateManager.Instance != null)
+                {
+                    StageTemplateManager.Instance.StampDistrictsOntoWorldMap(WorldMapManager.Instance.MapGenerator, force: true);
                 }
 
                 if (WorldMapManager.Instance.CurrentPlayerX != _pendingHostStageX || WorldMapManager.Instance.CurrentPlayerY != _pendingHostStageY)
@@ -111,6 +116,27 @@ namespace TheLastEmpire.Network
                     WorldMapManager.Instance.MovePlayer(_pendingHostStageX, _pendingHostStageY);
                 }
             }
+        }
+
+        /// <summary>
+        /// Immediately warps the entire Co-op party (Host + all Clients) to a target stage coordinate (e.g. [F1] Camp Warp).
+        /// </summary>
+        public void HostForceWarpPartyToStage(int targetX, int targetY)
+        {
+            if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
+
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null)
+            {
+                WorldMapManager.Instance.MovePlayer(targetX, targetY);
+                return;
+            }
+
+            _pendingPortalDirection = TransitionPortal.TransitionDirection.South;
+            _pendingTargetX = targetX;
+            _pendingTargetY = targetY;
+            _isCountdownActive = false;
+            _isWaitingForBarrierReady = false;
+            ExecuteHostBeginStageTransition();
         }
 
         // =====================================================

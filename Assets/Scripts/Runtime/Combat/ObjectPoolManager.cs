@@ -126,6 +126,15 @@ namespace TheLastEmpire
                     CreatePool("FlamethrowerFireball", fireballPrefab, 10);
                 }
             }
+
+            // Auto pre-populate Spitter 3D projectile & impact splash pools (ZombieAcidSpit, AlienBioPlasma, ZombieAcidSplash, AlienPlasmaBurst)
+            SpitterProjectileVisual.EnsurePoolsRegistered(this);
+        }
+
+        public bool HasPool(string key)
+        {
+            if (string.IsNullOrEmpty(key) || _poolDictionary == null) return false;
+            return _poolDictionary.ContainsKey(key.Trim());
         }
 
         public void CreatePool(string key, GameObject prefab, int size = 15)

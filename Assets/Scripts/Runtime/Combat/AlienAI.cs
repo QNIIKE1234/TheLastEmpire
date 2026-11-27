@@ -440,30 +440,29 @@ namespace TheLastEmpire
 
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            if (playerTransform != null)
+            if (playerTransform != null && (health == null || !health.IsDead))
             {
                 Vector3 dir = (playerTransform.position - transform.position);
                 dir.y = 0f;
+                if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
                 dir.Normalize();
+                transform.forward = dir;
 
-                Vector3 spawnPos = transform.position + dir * 0.6f + Vector3.up * 0.3f;
-                GameObject spit = new GameObject("AlienBioPlasma");
-                spit.transform.position = spawnPos;
-                spit.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-
-                SpriteRenderer sr = spit.AddComponent<SpriteRenderer>();
-                sr.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-                sr.color = new Color(0.85f, 0.1f, 0.95f); // magenta / violet plasma
-
-                SphereCollider col = spit.AddComponent<SphereCollider>();
-                col.isTrigger = true;
-
-                Projectile proj = spit.AddComponent<Projectile>();
-                float pistolSpeed = Projectile.ResolvePistolProjectileSpeed(spitProjectileSpeed);
-                proj.SetSpeed(pistolSpeed);
-                Rigidbody spitRb = spit.GetComponent<Rigidbody>();
-                if (spitRb != null) spitRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                proj.Setup(dir, playerTransform.position, gameObject);
+                Vector3 spawnPos = transform.position + dir * 0.85f + Vector3.up * 0.80f;
+                SpitterProjectileVisual.CreateSpitProjectile(
+                    SpitProjectileStyle.AlienPlasma,
+                    spawnPos,
+                    dir,
+                    spitProjectileSpeed,
+                    gameObject,
+                    1.0f);
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                    this,
+                    TheLastEmpire.Network.NetworkEnemyBridge.TelegraphAlienSpit,
+                    spawnPos,
+                    dir,
+                    1.0f,
+                    spitProjectileSpeed);
             }
 
             currentState = AIState.Chase;

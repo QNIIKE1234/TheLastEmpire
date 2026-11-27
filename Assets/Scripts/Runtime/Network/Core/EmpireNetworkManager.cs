@@ -925,6 +925,7 @@ namespace TheLastEmpire.Network
 
             RemovePeerFromHost(clientId, sendKickNotice: false);
         }
+#endif
 
         /// <summary>
         /// ลบลูกห้อง (clientId) ออกจากห้อง Lobby และในฉากเกมอย่างสมบูรณ์ทั้งฝั่ง LAN UDP และ Steam Relay
@@ -952,7 +953,9 @@ namespace TheLastEmpire.Network
             {
                 _steamConnToClientId.Remove(steamConnId);
                 _clientIdToSteamConn.Remove(clientId);
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
                 _steamTransport?.DisconnectPeer(steamConnId);
+#endif
             }
 
             _clientIdToSteamId.Remove(clientId);
@@ -981,7 +984,6 @@ namespace TheLastEmpire.Network
             OnLobbyRosterChanged?.Invoke();
             OnPeerDisconnected?.Invoke(clientId);
         }
-#endif
 
         public void DisconnectSession()
         {
@@ -1603,6 +1605,7 @@ namespace TheLastEmpire.Network
                     {
                         // กันไอดี Steam เดิมเข้าออกซ้ำจนเต็มห้อง: ถ้า SteamId นี้เคยค้างอยู่ในห้อง ให้เคลียร์สล็อตเก่าก่อนเสมอ!
                         ulong incomingSteamId = 0;
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
                         if (_steamTransport != null && _steamTransport.TryGetPeerSteamId(steamConnId, out Steamworks.SteamId sId))
                         {
                             incomingSteamId = sId.Value;
@@ -1623,6 +1626,7 @@ namespace TheLastEmpire.Network
                                 }
                             }
                         }
+#endif
 
                         if (_clientEndpoints.Count + _clientIdToSteamConn.Count + 1 >= MaxPlayers) return; // ห้องเต็ม 6 คนแล้ว
                         ulong assignedId = _nextAssignedClientId++;

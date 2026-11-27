@@ -37,6 +37,11 @@ namespace TheLastEmpire
     {
         public NPCType npcType = NPCType.Shop;
         public string npcId = "merchant_zack";
+        public string npcName = "";          // Optional display name override (e.g. "Gate Guard Vance")
+        public string modelPrefab = "";      // Optional prefab path/name under Prefabs/Character/Model/ or Prefabs/Character/
+        public string coolPoseState = "";    // Optional Animator standing pose override (e.g. "Pose_10_BlueOperative")
+        public string dialogueId = "";       // Optional DialogueDatabase ID override
+        public string[] approachLines;       // Optional English speech lines on approach or interaction
         public Vector3 position;
         public Vector3 rotation;
     }
