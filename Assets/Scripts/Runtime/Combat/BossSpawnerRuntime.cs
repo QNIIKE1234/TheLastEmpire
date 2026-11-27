@@ -415,7 +415,7 @@ namespace TheLastEmpire
             {
                 string weatherStateStr = wm.CurrentWeather == WeatherType.Clear
                     ? $"CLEAR (Next {wm.RainChance * 100f:F0}% roll: {wm.NextRollRemainingSeconds:F0}s)"
-                    : $"{wm.CurrentWeather.ToString().ToUpper()} ({wm.WeatherRemainingSeconds:F0}s left)";
+                    : $"{wm.CurrentWeather.ToString().ToUpper()} ({WeatherManager.FormatWeatherDuration(wm.WeatherRemainingSeconds)} left)";
                 GUILayout.Label($"Season: {wm.CurrentSeason.ToString().ToUpper()} (Day {wm.DayInCurrentSeason}/{wm.DaysPerSeason})", EditorStylesBold());
                 GUILayout.Label($"Weather: {weatherStateStr}", EditorStylesBold());
                 GUILayout.Label($"Ground Wet: {wm.GroundWetness * 100f:F0}% | Snow Cover: {wm.GroundSnowAmount * 100f:F0}%", EditorStylesMini());
@@ -441,27 +441,27 @@ namespace TheLastEmpire
 
                 GUILayout.Space(6);
                 GUI.backgroundColor = Color.white;
-                GUILayout.Label("Trigger Weather (30s, Co-op Synced):", EditorStylesBold());
+                GUILayout.Label("Trigger Weather (1-6 min, Co-op Synced):", EditorStylesBold());
                 GUILayout.BeginHorizontal();
                 {
                     GUI.backgroundColor = new Color(0.30f, 0.72f, 0.36f);
                     if (GUILayout.Button("CLEAR", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Clear); ShowToast("Weather -> CLEAR (Synced)"); }
 
                     GUI.backgroundColor = new Color(0.24f, 0.60f, 1f);
-                    if (GUILayout.Button("RAIN", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Rain); ShowToast("Weather -> RAIN 30s (Synced)"); }
+                    if (GUILayout.Button("RAIN", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Rain); ShowToast("Weather -> RAIN 1-6m (Synced)"); }
 
                     GUI.backgroundColor = new Color(0.38f, 0.42f, 0.95f);
-                    if (GUILayout.Button("STORM", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Thunderstorm); ShowToast("Weather -> THUNDERSTORM 30s (Synced)"); }
+                    if (GUILayout.Button("STORM", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Thunderstorm); ShowToast("Weather -> THUNDERSTORM 1-6m (Synced)"); }
                 }
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
                 {
                     GUI.backgroundColor = new Color(0.70f, 0.88f, 1f);
-                    if (GUILayout.Button("SNOW", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Snow); ShowToast("Weather -> SNOW 30s (Synced)"); }
+                    if (GUILayout.Button("SNOW", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Snow); ShowToast("Weather -> SNOW 1-6m (Synced)"); }
 
                     GUI.backgroundColor = new Color(0.50f, 0.78f, 0.96f);
-                    if (GUILayout.Button("BLIZZARD", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Blizzard); ShowToast("Weather -> BLIZZARD 30s (Synced)"); }
+                    if (GUILayout.Button("BLIZZARD", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Blizzard); ShowToast("Weather -> BLIZZARD 1-6m (Synced)"); }
                 }
                 GUILayout.EndHorizontal();
 
@@ -485,7 +485,7 @@ namespace TheLastEmpire
                 GUILayout.EndHorizontal();
 
                 GUI.backgroundColor = Color.white;
-                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% every {wm.RollIntervalSeconds:F0}s -> lasts {wm.RainDurationSeconds:F0}s (5 days/season).", EditorStylesMini());
+                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% every {wm.RollIntervalSeconds:F0}s -> lasts {wm.MinWeatherDurationSeconds / 60f:F0}-{wm.MaxWeatherDurationSeconds / 60f:F0} min (5d/season).", EditorStylesMini());
                 GUILayout.Label("Outdoors: Rain/Storm/Blizzard = x2 Drain; Storm & Blizzard lock [Shift].", EditorStylesMini());
                 GUILayout.Label("Blizzard outdoors: -3 HP/s & -18% Speed (safe inside house or by Campfire).", EditorStylesMini());
             }

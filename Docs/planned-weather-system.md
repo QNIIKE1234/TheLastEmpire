@@ -21,7 +21,7 @@
 ## 2. สภาพอากาศ 4 รูปแบบ (`WeatherType`)
 
 ### 2.1 ฝนตกธรรมดา (`Rain`) — ✅ Implemented (`WeatherManager.cs`)
-- **ตารางสุ่ม (Host Authoritative + Co-op Synced)**: สุ่มทุก **60 วินาที** โอกาสเกิด **10%** ตกนาน **30 วินาที** (`NetPacketType.WeatherSync`, รองรับ Late-Join + ปุ่มเสกในเมนู `[F1]` แท็บ `Weather / Events`)
+- **ตารางสุ่ม (Host Authoritative + Co-op Synced)**: สุ่มทุก **60 วินาที** โอกาสเกิด **10%** ตกนานสุ่ม **1–6 นาที (`60–360 วิ`)** (`NetPacketType.WeatherSync`, รองรับ Late-Join + ปุ่มเสกในเมนู `[F1]` แท็บ `Weather / Events`)
 - **Visual / Particle**: เม็ดฝนตกโปรยปรายรอบกล้องผู้เล่น + วงน้ำกระเซ็นบนพื้น (`RainSplashes`), ซ่อนอัตโนมัติเวลาเข้าในบ้าน (`BuildingInteriorManager`)
 - **พื้นเปียก (`WorldSpaceGroundShader.shader`)**: ใช้ `_GlobalWetness` ทำให้พื้นนอกบ้านสีเข้มชื้นเนียนๆ และแห้งกลับเมื่อฝนหยุด (พื้นในบ้านเป็น `0` เสมอ)
 - **เข้าบ้าน (`BuildingInteriorManager`)**: ปิดภาพฝน, น้ำกระเซ็น, แถบสถานะฝน, เสียงฝน, พื้นเปียก และยกเลิกผลลดเร็ว x2 ทันทีเมื่ออยู่ในอาคาร

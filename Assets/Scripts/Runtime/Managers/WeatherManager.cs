@@ -48,8 +48,10 @@ namespace TheLastEmpire
         [Tooltip("Chance to trigger weather on each roll (0.10 = 10%)")]
         [Range(0f, 1f)]
         [SerializeField] private float weatherChance = 0.10f;
-        [Tooltip("Duration of each weather event in seconds (default: 30s)")]
-        [SerializeField] private float weatherDurationSeconds = 30f;
+        [Tooltip("Minimum duration of each weather event in seconds (60s = 1 minute)")]
+        [SerializeField] private float minWeatherDurationSeconds = 60f;
+        [Tooltip("Maximum duration of each weather event in seconds (360s = 6 minutes)")]
+        [SerializeField] private float maxWeatherDurationSeconds = 360f;
 
         [Header("Visual & Audio Tuning")]
         [SerializeField] private float fadeInSpeed = 0.45f;
@@ -91,10 +93,27 @@ namespace TheLastEmpire
         public int DaysPerSeason => Mathf.Max(1, daysPerSeason);
         public float RollIntervalSeconds => rollIntervalSeconds;
         public float RainChance => weatherChance;
-        public float RainDurationSeconds => weatherDurationSeconds;
+        public float MinWeatherDurationSeconds => Mathf.Max(5f, minWeatherDurationSeconds);
+        public float MaxWeatherDurationSeconds => Mathf.Max(MinWeatherDurationSeconds, maxWeatherDurationSeconds);
+        public float RainDurationSeconds => MaxWeatherDurationSeconds;
         public float WeatherRemainingSeconds => CurrentWeather != WeatherType.Clear ? Mathf.Max(0f, _weatherRemainingTimer) : 0f;
         public float RainRemainingSeconds => WeatherRemainingSeconds;
         public float NextRollRemainingSeconds => CurrentWeather != WeatherType.Clear ? 0f : Mathf.Max(0f, _rollTimer);
+
+        public static string FormatWeatherDuration(float seconds)
+        {
+            int total = Mathf.Max(0, Mathf.CeilToInt(seconds));
+            if (total >= 60)
+            {
+                return $"{total / 60}:{total % 60:D2}";
+            }
+            return $"{total}s";
+        }
+
+        private float RollRandomWeatherDuration()
+        {
+            return Random.Range(MinWeatherDurationSeconds, MaxWeatherDurationSeconds);
+        }
 
         public SeasonType CurrentSeason
         {
@@ -303,7 +322,7 @@ namespace TheLastEmpire
         {
             float dur = weather == WeatherType.Clear
                 ? 0f
-                : (durationSeconds > 0.1f ? durationSeconds : weatherDurationSeconds);
+                : (durationSeconds > 0.1f ? durationSeconds : RollRandomWeatherDuration());
 
             if (EmpireNetworkManager.IsOnlineClient && EmpireNetworkManager.Instance != null)
             {
@@ -373,7 +392,7 @@ namespace TheLastEmpire
             WeatherType rolled = RollSeasonWeather();
             if (Random.value < weatherChance)
             {
-                SetWeather(rolled, weatherDurationSeconds);
+                SetWeather(rolled, RollRandomWeatherDuration());
             }
             else
             {
@@ -673,7 +692,7 @@ namespace TheLastEmpire
                         if (Random.value < weatherChance)
                         {
                             CurrentWeather = RollSeasonWeather();
-                            _weatherRemainingTimer = weatherDurationSeconds;
+                            _weatherRemainingTimer = RollRandomWeatherDuration();
                             _lightningStrikeTimer = Random.Range(2.2f, 4.2f);
                             BroadcastWeatherFromHost(snapInstant: false);
                         }
@@ -1500,30 +1519,31 @@ namespace TheLastEmpire
                 Color borderCol;
                 Color bgCol;
 
+                string remainStr = FormatWeatherDuration(WeatherRemainingSeconds);
                 switch (CurrentWeather)
                 {
                     case WeatherType.Thunderstorm:
-                        labelText = $"THUNDERSTORM ({WeatherRemainingSeconds:F0}s)  |  DRAIN x2  |  SHIFT LOCKED";
+                        labelText = $"THUNDERSTORM ({remainStr})  |  DRAIN x2  |  SHIFT LOCKED";
                         borderCol = new Color(0.55f, 0.78f, 1f, 0.90f * pillAlpha);
                         bgCol = new Color(0.06f, 0.10f, 0.22f, 0.84f * pillAlpha);
                         break;
                     case WeatherType.Blizzard:
                         labelText = IsNearCampfireWarmth
-                            ? $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  WARMED BY CAMPFIRE  |  SHIFT LOCKED"
-                            : $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  -{blizzardDamagePerSecond:F0} HP/s  |  DRAIN x2  |  SHIFT LOCKED";
+                            ? $"BLIZZARD ({remainStr})  |  WARMED BY CAMPFIRE  |  SHIFT LOCKED"
+                            : $"BLIZZARD ({remainStr})  |  -{blizzardDamagePerSecond:F0} HP/s  |  DRAIN x2  |  SHIFT LOCKED";
                         borderCol = new Color(0.72f, 0.92f, 1f, 0.92f * pillAlpha);
                         bgCol = new Color(0.08f, 0.18f, 0.28f, 0.84f * pillAlpha);
                         break;
                     case WeatherType.Snow:
                         labelText = IsNearCampfireWarmth
-                            ? $"SNOWING ({WeatherRemainingSeconds:F0}s)  |  WARMED BY CAMPFIRE"
-                            : $"SNOWING ({WeatherRemainingSeconds:F0}s)  |  COLD DRAIN x1.4";
+                            ? $"SNOWING ({remainStr})  |  WARMED BY CAMPFIRE"
+                            : $"SNOWING ({remainStr})  |  COLD DRAIN x1.4";
                         borderCol = new Color(0.78f, 0.92f, 1f, 0.85f * pillAlpha);
                         bgCol = new Color(0.08f, 0.16f, 0.26f, 0.78f * pillAlpha);
                         break;
                     case WeatherType.Rain:
                     default:
-                        labelText = $"RAINING ({WeatherRemainingSeconds:F0}s)  |  SANITY / HUNGER / THIRST x2";
+                        labelText = $"RAINING ({remainStr})  |  SANITY / HUNGER / THIRST x2";
                         borderCol = new Color(0.38f, 0.74f, 1f, 0.88f * pillAlpha);
                         bgCol = new Color(0.06f, 0.14f, 0.24f, 0.82f * pillAlpha);
                         break;
