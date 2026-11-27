@@ -43,7 +43,7 @@ namespace TheLastEmpire
         public bool HasGuaranteedCrit { get; set; } = false;
 
         [Header("Movement")]
-        public const float GlobalPlayerSpeedMultiplier = 0.75f; // -25% global player movement speed
+        public const float GlobalPlayerSpeedMultiplier = 1.0f; // Restored original 100% player movement speed
         public const float ShiftCooldownSprintMultiplier = 1.20f; // +20% run speed when holding Shift while Shift ability is on CD
         [SerializeField] private float moveSpeed = 5f;
 
@@ -3714,15 +3714,16 @@ namespace TheLastEmpire
                     // Override stats dynamically from ScriptableObject if configured
                     if (item.attackRadius > 0.01f) activeRadius = item.attackRadius;
                     if (item.attackRate > 0.01f) activeRate = item.attackRate;
-                    if (item.knockbackForce > 0.01f) activeKnockback = item.knockbackForce;
+                    activeKnockback = Mathf.Max(0f, item.knockbackForce);
                     if (item.staggerDuration > 0.01f) activeStagger = item.staggerDuration;
                 }
             }
+            bool isBladedWeapon = IsBladedMeleeWeapon(wName);
             WeaponArtifactModifiers meleeArtMods = !string.IsNullOrEmpty(wName)
                 ? WeaponArtifactManager.GetAggregatedModifiers(wName)
                 : default;
             activeRadius += meleeArtMods.bonusRange;
-            activeKnockback += meleeArtMods.bonusKnockback;
+            activeKnockback = isBladedWeapon ? 0f : (activeKnockback + meleeArtMods.bonusKnockback);
             activeStagger += meleeArtMods.bonusStagger;
             if (meleeArtMods.fireRateMultiplier > 0f)
             {
@@ -3872,21 +3873,27 @@ namespace TheLastEmpire
                     }
                 }
 
-                // 2. Apply high-impact melee knockback to enemies
+                // 2. Apply melee knockback ONLY for blunt/impact weapons (bladed weapons like Knife, Katana, Machete, Axe, Spear, Chainsaw do NOT knock enemies back)
                 BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>();
                 if (enemy != null)
                 {
-                    Vector3 pushDir = (enemy.transform.position - transform.position);
-                    pushDir.y = 0f;
-                    pushDir.Normalize();
-                    if (pushDir.sqrMagnitude < 0.01f)
+                    if (!isBladedWeapon)
                     {
-                        pushDir = _aimDirection;
-                    }
+                        Vector3 pushDir = (enemy.transform.position - transform.position);
+                        pushDir.y = 0f;
+                        pushDir.Normalize();
+                        if (pushDir.sqrMagnitude < 0.01f)
+                        {
+                            pushDir = _aimDirection;
+                        }
 
-                    float finalStagger = (isSledgehammer ? 0.8f + meleeArtMods.bonusStagger : (isStunBaton ? 0.6f + meleeArtMods.bonusStagger : activeStagger));
-                    float finalKnockback = isSledgehammer ? (20f + meleeArtMods.bonusKnockback) : activeKnockback;
-                    enemy.ApplyMeleeKnockback(pushDir, finalKnockback, finalStagger);
+                        float finalStagger = (isSledgehammer ? 0.8f + meleeArtMods.bonusStagger : (isStunBaton ? 0.6f + meleeArtMods.bonusStagger : activeStagger));
+                        float finalKnockback = isSledgehammer ? (20f + meleeArtMods.bonusKnockback) : activeKnockback;
+                        if (finalKnockback > 0.01f || finalStagger > 0.01f)
+                        {
+                            enemy.ApplyMeleeKnockback(pushDir, finalKnockback, finalStagger);
+                        }
+                    }
 
                     // Stun Baton: 30% chance to chain shock surrounding enemies
                     if (isStunBaton && Random.value < 0.30f)
@@ -3908,6 +3915,19 @@ namespace TheLastEmpire
                     }
                 }
             }
+        }
+
+        private static bool IsBladedMeleeWeapon(string weaponName)
+        {
+            if (string.IsNullOrEmpty(weaponName)) return false;
+            return weaponName.IndexOf("Knife", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Machete", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Axe", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Katana", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Sword", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Blade", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Spear", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   weaponName.IndexOf("Chainsaw", System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private enum VehicleVaultKind
@@ -5241,8 +5261,8 @@ namespace TheLastEmpire
                     damage = 25f,
                     attackRate = 0.25f,
                     attackRadius = 1.0f,
-                    knockbackForce = 5f,
-                    staggerDuration = 0.2f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
 
@@ -5265,8 +5285,8 @@ namespace TheLastEmpire
                     damage = 55f,
                     attackRate = 0.6f,
                     attackRadius = 1.3f,
-                    knockbackForce = 10f,
-                    staggerDuration = 0.3f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
 
@@ -5277,8 +5297,8 @@ namespace TheLastEmpire
                     damage = 65f,
                     attackRate = 0.7f,
                     attackRadius = 1.35f,
-                    knockbackForce = 12f,
-                    staggerDuration = 0.4f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
 
@@ -5289,8 +5309,8 @@ namespace TheLastEmpire
                     damage = 50f,
                     attackRate = 0.4f,
                     attackRadius = 1.6f,
-                    knockbackForce = 8f,
-                    staggerDuration = 0.3f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
 
@@ -5313,8 +5333,8 @@ namespace TheLastEmpire
                     damage = 45f,
                     attackRate = 0.45f,
                     attackRadius = 2.2f,
-                    knockbackForce = 10f,
-                    staggerDuration = 0.3f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
 
@@ -5337,8 +5357,8 @@ namespace TheLastEmpire
                     damage = 20f,
                     attackRate = 0.1f,
                     attackRadius = 1.2f,
-                    knockbackForce = 3f,
-                    staggerDuration = 0.1f,
+                    knockbackForce = 0f,
+                    staggerDuration = 0f,
                     vfxPoolKey = "SwordSlash"
                 });
             }

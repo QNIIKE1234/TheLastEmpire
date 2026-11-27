@@ -16,8 +16,8 @@ namespace TheLastEmpire
         }
 
         [Header("Base AI Settings")]
-        public const float GlobalEnemySpeedMultiplier = 0.75f; // -25% global enemy movement speed
-        public const float GlobalEnemySpeedBonus = 2.0f;       // +2.0 flat speed boost for all enemies
+        public const float GlobalEnemySpeedMultiplier = 1.0f; // Restored original 100% enemy movement speed
+        public const float GlobalEnemySpeedBonus = 0.0f;      // Restored original flat speed (no bonus)
         [SerializeField] protected float moveSpeed = 3f;
 
         protected float GetEffectiveBaseMoveSpeed() => (moveSpeed * GlobalEnemySpeedMultiplier) + GlobalEnemySpeedBonus;

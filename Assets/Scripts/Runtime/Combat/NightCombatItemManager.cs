@@ -123,11 +123,52 @@ namespace TheLastEmpire
             }
         }
 
+        private static bool IsGameplaySceneActive()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (string.IsNullOrEmpty(sceneName)) return false;
+            return sceneName.IndexOf("Gameplay", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        public void ResetAllNightCombatEffects()
+        {
+            FlashlightTimer = 0f;
+            NvgTimer = 0f;
+            RedFlareTimer = 0f;
+            ThermalVisorTimer = 0f;
+            FlashbangTimer = 0f;
+            _toastTimer = 0f;
+            _toastText = "";
+
+            _flashlightAlpha = 0f;
+            _nvgAlpha = 0f;
+            _redFlareAlpha = 0f;
+            _flashbangAlpha = 0f;
+
+            _hostActiveStageFlares.Clear();
+            _lastLocalStageX = int.MinValue;
+            _lastLocalStageY = int.MinValue;
+            _lastLocalInteriorId = 0;
+
+            CleanupSkyFlare();
+            CleanupFlashlight();
+            ResetShaderGlobals();
+        }
+
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            // Clear stage-bound sky flare & flashbang on scene switch; keep personal buffs cleanly
+            if (!IsGameplaySceneActive())
+            {
+                // Returning to MainMenu or any non-gameplay scene: wipe NVG green overlay, Thermal, Flashlight, Flare & Flashbang!
+                ResetAllNightCombatEffects();
+                return;
+            }
+
+            // Clear stage-bound sky flare & flashbang on gameplay scene reload
             RedFlareTimer = 0f;
             FlashbangTimer = 0f;
+            _redFlareAlpha = 0f;
+            _flashbangAlpha = 0f;
             CleanupSkyFlare();
             CleanupFlashlight();
             ResetShaderGlobals();
@@ -731,6 +772,20 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (!IsGameplaySceneActive())
+            {
+                if (IsFlashlightActive || IsNvgActive || IsRedFlareActive || IsThermalVisorActive || FlashbangTimer > 0f || _nvgAlpha > 0f || _redFlareAlpha > 0f || _flashbangAlpha > 0f || _flashlightAlpha > 0f)
+                {
+                    ResetAllNightCombatEffects();
+                }
+                else
+                {
+                    ResetShaderGlobals();
+                    if (_flashlightObj != null && _flashlightObj.activeSelf) _flashlightObj.SetActive(false);
+                }
+                return;
+            }
+
             float dt = Time.deltaTime;
 
             if (FlashlightTimer > 0f) FlashlightTimer = Mathf.Max(0f, FlashlightTimer - dt);
@@ -956,6 +1011,8 @@ namespace TheLastEmpire
 
         private void OnGUI()
         {
+            if (!IsGameplaySceneActive()) return;
+
             bool anyBuff = IsFlashlightActive || IsNvgActive || IsRedFlareActive || IsThermalVisorActive;
             if (!anyBuff && _toastTimer <= 0f) return;
 

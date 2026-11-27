@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 namespace TheLastEmpire
 {
@@ -92,6 +93,7 @@ namespace TheLastEmpire
                 {
                     Instance = this;
                     DontDestroyOnLoad(gameObject);
+                    SceneManager.sceneLoaded += HandleSceneLoaded;
                 }
                 else if (Instance != this)
                 {
@@ -101,12 +103,74 @@ namespace TheLastEmpire
             }
 
             DestroyLegacyGodRayContainers();
+            if (!Application.isPlaying || IsGameplaySceneActive())
+            {
+                FindOrCreateReferences();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Application.isPlaying && Instance == this)
+            {
+                SceneManager.sceneLoaded -= HandleSceneLoaded;
+            }
+        }
+
+        private static bool IsGameplaySceneActive()
+        {
+            if (!Application.isPlaying) return true;
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (string.IsNullOrEmpty(sceneName)) return false;
+            return sceneName.IndexOf("Gameplay", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void SetAtmosphereVisualsVisible(bool visible)
+        {
+            if (_groundMistObject != null && _groundMistObject.activeSelf != visible)
+            {
+                _groundMistObject.SetActive(visible);
+            }
+            if (_dustParticleSystem != null)
+            {
+                if (visible)
+                {
+                    if (!_dustParticleSystem.gameObject.activeSelf) _dustParticleSystem.gameObject.SetActive(true);
+                    if (!_dustParticleSystem.isPlaying) _dustParticleSystem.Play();
+                }
+                else
+                {
+                    _dustParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                    if (_dustParticleSystem.gameObject.activeSelf) _dustParticleSystem.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (!IsGameplaySceneActive())
+            {
+                SetAtmosphereVisualsVisible(false);
+                return;
+            }
+
+            DestroyLegacyGodRayContainers();
             FindOrCreateReferences();
+            ApplyAtmosphere();
+            SetupCameraAndVolume();
+            SetupGroundMist();
+            SetupDustMotes();
+            SetAtmosphereVisualsVisible(true);
         }
 
         private void Start()
         {
             DestroyLegacyGodRayContainers();
+            if (Application.isPlaying && !IsGameplaySceneActive())
+            {
+                SetAtmosphereVisualsVisible(false);
+                return;
+            }
             ApplyAtmosphere();
             SetupCameraAndVolume();
             SetupGroundMist();
@@ -116,6 +180,11 @@ namespace TheLastEmpire
         private void OnEnable()
         {
             DestroyLegacyGodRayContainers();
+            if (Application.isPlaying && !IsGameplaySceneActive())
+            {
+                SetAtmosphereVisualsVisible(false);
+                return;
+            }
             ApplyAtmosphere();
             SetupGroundMist();
             SetupDustMotes();
@@ -123,6 +192,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (Application.isPlaying && !IsGameplaySceneActive())
+            {
+                SetAtmosphereVisualsVisible(false);
+                return;
+            }
+
             Transform followTarget = Camera.main != null ? Camera.main.transform : transform;
             if (followTarget != null)
             {

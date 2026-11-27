@@ -301,9 +301,29 @@ namespace TheLastEmpire
             _snowTargetRefreshTimer = 0f;
             if (!IsGameplaySceneActive())
             {
+                // Returning to MainMenu or any non-gameplay scene: wipe all active weather, flashes, particles, audio & shaders!
+                StopAllCoroutines();
+                CurrentWeather = WeatherType.Clear;
+                _weatherRemainingTimer = 0f;
+                _rollTimer = rollIntervalSeconds;
+                _hasSeasonOverride = false;
+                RainIntensity = 0f;
+                StormIntensity = 0f;
+                SnowParticleIntensity = 0f;
+                BlizzardIntensity = 0f;
+                GroundWetness = 0f;
+                GroundSnowAmount = 0f;
+                _lightningFlashAlpha = 0f;
+                _blizzardDamageTimer = 0f;
+
                 SetAllWeatherParticlesActive(false);
+                if (_weatherRigRoot != null) _weatherRigRoot.SetActive(false);
                 ResetGlobalWeatherShaders();
                 MuteAllAudio();
+            }
+            else if (_weatherRigRoot != null && !_weatherRigRoot.activeSelf)
+            {
+                _weatherRigRoot.SetActive(true);
             }
         }
 

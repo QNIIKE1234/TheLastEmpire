@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace TheLastEmpire
 {
@@ -57,11 +58,55 @@ namespace TheLastEmpire
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
                 InitializeDarknessCanvas();
+                SceneManager.sceneLoaded += HandleSceneLoaded;
+                if (!IsGameplaySceneActive())
+                {
+                    HideForNonGameplayScene();
+                }
             }
             else if (Instance != this)
             {
                 Destroy(gameObject);
             }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                SceneManager.sceneLoaded -= HandleSceneLoaded;
+            }
+        }
+
+        private static bool IsGameplaySceneActive()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (string.IsNullOrEmpty(sceneName)) return false;
+            return sceneName.IndexOf("Gameplay", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            _cachedPlayer = null;
+            InteriorOverrideActive = false;
+            if (!IsGameplaySceneActive())
+            {
+                HideForNonGameplayScene();
+            }
+        }
+
+        private void HideForNonGameplayScene()
+        {
+            if (_overlayCanvasObj != null && _overlayCanvasObj.activeSelf)
+            {
+                _overlayCanvasObj.SetActive(false);
+            }
+            Shader.SetGlobalVector(PropCampfireScreenPos, Vector4.zero);
+            Shader.SetGlobalFloat("_GlobalDarknessAlpha", 0f);
+            Shader.SetGlobalFloat("_GlobalNightDarkness", 0f);
+            Shader.SetGlobalFloat("_GlobalNvgStrength", 0f);
+            Shader.SetGlobalFloat("_GlobalRedFlareStrength", 0f);
+            Shader.SetGlobalFloat("_GlobalFlashbangStrength", 0f);
         }
 
         private void OnEnable()
@@ -131,6 +176,12 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (!IsGameplaySceneActive())
+            {
+                HideForNonGameplayScene();
+                return;
+            }
+
             HandleInput();
             UpdatePlayerScreenPosition();
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 namespace TheLastEmpire
@@ -266,6 +267,7 @@ namespace TheLastEmpire
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                SceneManager.sceneLoaded += HandleSceneLoaded;
             }
             else
             {
@@ -277,6 +279,40 @@ namespace TheLastEmpire
             if (Mathf.Abs((dayDuration + duskDuration + nightDuration) - 360f) > 0.5f)
             {
                 ApplyUniformCycle(360f);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                SceneManager.sceneLoaded -= HandleSceneLoaded;
+            }
+        }
+
+        private static bool IsGameplaySceneActive()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (string.IsNullOrEmpty(sceneName)) return false;
+            return sceneName.IndexOf("Gameplay", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (!IsGameplaySceneActive())
+            {
+                // Returning to MainMenu: clear night darkness, dusk tint & global shaders so MainMenu lighting is untouched
+                _currentPhase = TimePhase.Day;
+                _phaseTimer = 0f;
+                _isNight = false;
+                _currentDarknessAlpha = 0f;
+                _currentDuskAlpha = 0f;
+                _currentAmbientTint = Color.white;
+                PushShaderValues();
+            }
+            else
+            {
+                EnsureTimeHUDController();
             }
         }
 
@@ -373,6 +409,18 @@ namespace TheLastEmpire
 
         private void Update()
         {
+            if (!IsGameplaySceneActive())
+            {
+                if (_currentDarknessAlpha > 0f || _currentDuskAlpha > 0f)
+                {
+                    _currentDarknessAlpha = 0f;
+                    _currentDuskAlpha = 0f;
+                    _currentAmbientTint = Color.white;
+                    PushShaderValues();
+                }
+                return;
+            }
+
             _phaseTimer += Time.deltaTime * cycleSpeedMultiplier;
             float currentDuration = GetCurrentPhaseDuration();
 
