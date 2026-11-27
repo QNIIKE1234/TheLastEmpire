@@ -222,6 +222,12 @@ namespace TheLastEmpire
 
         private void LocateCustomFont()
         {
+            if (TMP_Settings.defaultFontAsset != null)
+            {
+                _customFont = TMP_Settings.defaultFontAsset;
+                return;
+            }
+
             TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             foreach (var f in fonts)
             {

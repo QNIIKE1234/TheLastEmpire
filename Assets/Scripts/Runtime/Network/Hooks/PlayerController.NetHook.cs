@@ -26,6 +26,17 @@ namespace TheLastEmpire
         public int NetworkStageX { get; set; } = 64;
         public int NetworkStageY { get; set; } = 64;
         public int NetworkInteriorId { get; set; } = 0;
+        public bool IsRemoteFlashlightOn { get; private set; } = false;
+
+        private bool _isRemoteShiftActive = false;
+        private byte _remoteShiftType = 0;
+        private GameObject _remoteFlashlightObj;
+        private Light _remoteFlashlightSpot;
+        private SpriteRenderer _remoteCycloneRing;
+
+        public const byte AbilityVisualGrapple = 1;
+        public const byte AbilityVisualToxicCloud = 2;
+        public const byte AbilityVisualSatchelMine = 3;
 
         public bool HasOverheadNameLabel => ResolveOverheadNameText() != null;
 
@@ -228,10 +239,16 @@ namespace TheLastEmpire
 
             NetworkPlayerName = string.IsNullOrEmpty(state.playerName) ? NetworkPlayerName : state.playerName;
             PartySlotIndex = state.slotIndex;
+            bool stageChanged = NetworkStageX != state.stageX || NetworkStageY != state.stageY || NetworkInteriorId != state.interiorId;
             NetworkStageX = state.stageX;
             NetworkStageY = state.stageY;
             NetworkInteriorId = state.interiorId;
             RefreshStageVisibility();
+
+            if (stageChanged && EmpireNetworkManager.IsOnlineHost && NetworkClientId > 0)
+            {
+                NightCombatItemManager.Instance?.SendActiveStageFlaresToClient(NetworkClientId, state.stageX, state.stageY, state.interiorId);
+            }
 
             _networkTargetPosition = state.position;
             _networkTargetVelocity = state.velocity;
@@ -246,6 +263,9 @@ namespace TheLastEmpire
 
             _isSprinting = state.isSprinting;
             _isDashing = state.isDashing;
+            _isRemoteShiftActive = state.isShiftActive;
+            _remoteShiftType = state.shiftType;
+            IsRemoteFlashlightOn = state.isFlashlightOn;
             IsDowned = state.isDowned;
             DownedBleedoutTimer = state.downedRemainingSeconds;
             ReviveProgress01 = state.reviveProgress01;
@@ -289,6 +309,7 @@ namespace TheLastEmpire
         {
             UpdateMuzzleFlashLight();
             UpdateFlamethrowerConeVfx();
+            UpdateRemoteFlashlightAndShiftVisuals();
 
             if (IsSimulatedCoopBot)
             {
@@ -309,6 +330,242 @@ namespace TheLastEmpire
             }
 
             UpdateAnimation();
+        }
+
+        private void UpdateRemoteFlashlightAndShiftVisuals()
+        {
+            bool visible = gameObject.activeInHierarchy && IsInSameStageAsLocalPlayer && !IsDowned;
+
+            // 1. Remote teammate 3D Tactical Flashlight SpotLight
+            bool showFlashlight = visible && IsRemoteFlashlightOn;
+            if (showFlashlight)
+            {
+                if (_remoteFlashlightObj == null)
+                {
+                    _remoteFlashlightObj = new GameObject("RemoteTacticalFlashlight");
+                    _remoteFlashlightObj.transform.SetParent(transform, false);
+                    _remoteFlashlightSpot = _remoteFlashlightObj.AddComponent<Light>();
+                    _remoteFlashlightSpot.type = LightType.Spot;
+                    _remoteFlashlightSpot.color = new Color(1f, 0.96f, 0.85f);
+                    _remoteFlashlightSpot.spotAngle = 54f;
+                    _remoteFlashlightSpot.range = 16f;
+                    _remoteFlashlightSpot.intensity = 5.5f;
+                    _remoteFlashlightSpot.shadows = LightShadows.None;
+                }
+                if (!_remoteFlashlightObj.activeSelf) _remoteFlashlightObj.SetActive(true);
+                Vector3 aimDir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection : transform.forward;
+                aimDir.y = 0f;
+                if (aimDir.sqrMagnitude < 0.01f) aimDir = Vector3.forward;
+                aimDir.Normalize();
+                _remoteFlashlightObj.transform.position = transform.position + Vector3.up * 1.25f + aimDir * 0.35f;
+                _remoteFlashlightObj.transform.rotation = Quaternion.LookRotation((aimDir + Vector3.down * 0.14f).normalized);
+            }
+            else if (_remoteFlashlightObj != null && _remoteFlashlightObj.activeSelf)
+            {
+                _remoteFlashlightObj.SetActive(false);
+            }
+
+            // 2. Remote teammate CycloneSwing AOE hitbox ring (UI_Hitbox_Sprites_0, 25% alpha, no spin)
+            bool showCyclone = visible && _isRemoteShiftActive && _remoteShiftType == (byte)ShiftAbilityType.CycloneSwing;
+            if (showCyclone)
+            {
+                if (_remoteCycloneRing == null)
+                {
+                    Sprite hazardSp = HitboxSpriteLibrary.HazardCircle;
+                    if (hazardSp != null)
+                    {
+                        _remoteCycloneRing = HitboxSpriteLibrary.CreateGroundSpriteIndicator("RemoteCycloneHitbox", transform, hazardSp, HitboxSpriteLibrary.DefaultOriginalColor, 5);
+                        if (_remoteCycloneRing != null)
+                        {
+                            _remoteCycloneRing.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+                            float cycloneRadius = activeCharacterData != null ? activeCharacterData.cycloneRadius : 2.6f;
+                            HitboxSpriteLibrary.SetWorldDiameter(_remoteCycloneRing, cycloneRadius * 2f);
+                        }
+                    }
+                }
+                if (_remoteCycloneRing != null)
+                {
+                    if (!_remoteCycloneRing.gameObject.activeSelf) _remoteCycloneRing.gameObject.SetActive(true);
+                    _remoteCycloneRing.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    _remoteCycloneRing.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                }
+            }
+            else if (_remoteCycloneRing != null && _remoteCycloneRing.gameObject.activeSelf)
+            {
+                _remoteCycloneRing.gameObject.SetActive(false);
+            }
+        }
+
+        // =====================================================
+        //  Co-op Shift Ability Visual Sync (Grapple / Toxic / Satchel)
+        // =====================================================
+
+        public static void BroadcastAbilityVisual(byte visualType, Vector3 startPos, Vector3 endPos, float radius, float duration)
+        {
+            if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
+
+            int sx = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int sy = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int interiorId = BuildingInteriorManager.CurrentInteriorId;
+            ulong myClientId = EmpireNetworkManager.Instance.LocalClientId;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.AbilityVisualSync, w =>
+            {
+                w.Write(myClientId);
+                w.Write(sx);
+                w.Write(sy);
+                w.Write(interiorId);
+                w.Write(visualType);
+                w.Write(startPos.x);
+                w.Write(startPos.y);
+                w.Write(startPos.z);
+                w.Write(endPos.x);
+                w.Write(endPos.y);
+                w.Write(endPos.z);
+                w.Write(radius);
+                w.Write(duration);
+            });
+        }
+
+        public static void HandleRemoteAbilityVisual(
+            ulong senderClientId,
+            int stageX,
+            int stageY,
+            int interiorId,
+            byte visualType,
+            Vector3 startPos,
+            Vector3 endPos,
+            float radius,
+            float duration,
+            bool relayIfHost)
+        {
+            if (relayIfHost && EmpireNetworkManager.Instance != null)
+            {
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.AbilityVisualSync, w =>
+                {
+                    w.Write(senderClientId);
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(interiorId);
+                    w.Write(visualType);
+                    w.Write(startPos.x);
+                    w.Write(startPos.y);
+                    w.Write(startPos.z);
+                    w.Write(endPos.x);
+                    w.Write(endPos.y);
+                    w.Write(endPos.z);
+                    w.Write(radius);
+                    w.Write(duration);
+                });
+            }
+
+            if (EmpireNetworkManager.Instance != null && senderClientId == EmpireNetworkManager.Instance.LocalClientId)
+            {
+                return;
+            }
+
+            int myX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int myInt = BuildingInteriorManager.CurrentInteriorId;
+            if (myX != stageX || myY != stageY || myInt != interiorId) return;
+
+            MonoBehaviour runner = (MonoBehaviour)(PlayerRegistry.LocalPlayer ?? PlayerController.Instance ?? (object)EmpireNetworkManager.Instance);
+            if (runner == null) return;
+
+            PlayerController caster = PlayerRegistry.GetPlayerByClientId(senderClientId);
+            runner.StartCoroutine(PlayRemoteAbilityVisualRoutine(caster, visualType, startPos, endPos, radius, Mathf.Clamp(duration, 0.1f, 8f)));
+        }
+
+        private static System.Collections.IEnumerator PlayRemoteAbilityVisualRoutine(
+            PlayerController caster,
+            byte visualType,
+            Vector3 startPos,
+            Vector3 endPos,
+            float radius,
+            float duration)
+        {
+            if (visualType == AbilityVisualGrapple)
+            {
+                GameObject root = new GameObject("NetRemoteGrappleVisual");
+                LineRenderer lr = root.AddComponent<LineRenderer>();
+                lr.positionCount = 2;
+                lr.startWidth = 0.08f;
+                lr.endWidth = 0.06f;
+                lr.useWorldSpace = true;
+                Shader sh = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
+                if (sh != null) lr.material = new Material(sh);
+                lr.startColor = new Color(1f, 0.88f, 0.15f, 0.9f);
+                lr.endColor = new Color(1f, 0.72f, 0.05f, 0.9f);
+
+                SpriteRenderer anchorSr = null;
+                if (radius > 0.1f)
+                {
+                    Sprite sp = HitboxSpriteLibrary.CornerLockBrackets;
+                    if (sp != null)
+                    {
+                        anchorSr = HitboxSpriteLibrary.CreateGroundSpriteIndicator("NetGrappleAnchor", root.transform, sp, HitboxSpriteLibrary.DefaultOriginalColor, 7);
+                        anchorSr.transform.position = new Vector3(endPos.x, 0.09f, endPos.z);
+                        anchorSr.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                        HitboxSpriteLibrary.SetWorldDiameter(anchorSr, radius);
+                    }
+                }
+
+                float elapsed = 0f;
+                while (elapsed < duration)
+                {
+                    elapsed += Time.deltaTime;
+                    Vector3 curOrigin = caster != null ? (caster.transform.position + Vector3.up * 0.7f) : startPos;
+                    lr.SetPosition(0, curOrigin);
+                    lr.SetPosition(1, endPos);
+                    if (caster != null && radius > 0.1f && Vector3.Distance(caster.transform.position, endPos) < 1.2f)
+                    {
+                        break;
+                    }
+                    yield return null;
+                }
+                Destroy(root);
+            }
+            else if (visualType == AbilityVisualToxicCloud || visualType == AbilityVisualSatchelMine)
+            {
+                Sprite hazardSp = HitboxSpriteLibrary.HazardCircle;
+                GameObject root = new GameObject(visualType == AbilityVisualToxicCloud ? "NetRemoteToxicCloud" : "NetRemoteSatchelMine");
+                root.transform.position = new Vector3(startPos.x, 0.06f, startPos.z);
+
+                if (hazardSp != null)
+                {
+                    SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator("NetHazardCircle", root.transform, hazardSp, HitboxSpriteLibrary.DefaultOriginalColor, 5);
+                    if (sr != null)
+                    {
+                        sr.transform.localPosition = Vector3.zero;
+                        sr.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                        HitboxSpriteLibrary.SetWorldDiameter(sr, Mathf.Max(0.8f, radius * 2f));
+                    }
+                }
+
+                if (visualType == AbilityVisualSatchelMine)
+                {
+                    GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Collider col = box.GetComponent<Collider>();
+                    if (col != null) Destroy(col);
+                    box.transform.SetParent(root.transform, false);
+                    box.transform.localPosition = new Vector3(0f, 0.12f, 0f);
+                    box.transform.localScale = new Vector3(0.32f, 0.16f, 0.24f);
+                    Renderer r = box.GetComponent<Renderer>();
+                    if (r != null)
+                    {
+                        Shader unlit = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
+                        if (unlit != null)
+                        {
+                            Material m = new Material(unlit);
+                            m.color = new Color(0.95f, 0.25f, 0.15f, 1f);
+                            r.sharedMaterial = m;
+                        }
+                    }
+                }
+
+                yield return new WaitForSeconds(duration);
+                if (root != null) Destroy(root);
+            }
         }
 
         private void FixedUpdateRemotePlayer()

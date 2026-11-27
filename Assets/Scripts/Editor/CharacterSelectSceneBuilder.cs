@@ -84,8 +84,9 @@ namespace TheLastEmpire.Editor
                 Undo.DestroyObjectImmediate(existing.gameObject);
             }
 
-            // Load Teko Font if present
-            TMP_FontAsset tekoFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Teko-VariableFont_wght SDF.asset");
+            // Load project default TMP Font (fallback to Teko if unset)
+            TMP_FontAsset tekoFont = TMP_Settings.defaultFontAsset
+                ?? AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Font/Teko-VariableFont_wght SDF.asset");
 
             Color primaryAccent = new Color(0.66f, 0.33f, 0.97f, 1f);   // Arcane Purple
             Color secondaryAccent = new Color(0.75f, 0.52f, 0.99f, 1f); // Lilac

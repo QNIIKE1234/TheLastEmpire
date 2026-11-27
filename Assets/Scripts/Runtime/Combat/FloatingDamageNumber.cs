@@ -1,13 +1,12 @@
+using TMPro;
 using UnityEngine;
 
 namespace TheLastEmpire
 {
     public class FloatingDamageNumber : MonoBehaviour
     {
-        private TextMesh _mainText;
-        private TextMesh _shadowText;
-        private MeshRenderer _mainRenderer;
-        private MeshRenderer _shadowRenderer;
+        private TextMeshPro _mainText;
+        private TextMeshPro _shadowText;
 
         private float _lifetime = 0.85f;
         private float _age = 0f;
@@ -19,49 +18,70 @@ namespace TheLastEmpire
         private Color _shadowColor = new Color(0f, 0f, 0f, 0.85f);
         private System.Action<FloatingDamageNumber> _onCompleteCallback;
 
+        private static TMP_FontAsset _cachedFontAsset;
+
         private void Awake()
         {
             SetupComponents();
+        }
+
+        private static TMP_FontAsset ResolveDamageFont()
+        {
+            if (TMP_Settings.defaultFontAsset != null)
+            {
+                return TMP_Settings.defaultFontAsset;
+            }
+            if (_cachedFontAsset != null) return _cachedFontAsset;
+
+            TMP_FontAsset[] loaded = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            for (int i = 0; i < loaded.Length; i++)
+            {
+                if (loaded[i] != null && loaded[i].name.IndexOf("Bungee", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    _cachedFontAsset = loaded[i];
+                    return _cachedFontAsset;
+                }
+            }
+            if (loaded.Length > 0)
+            {
+                _cachedFontAsset = loaded[0];
+            }
+            return _cachedFontAsset;
         }
 
         private void SetupComponents()
         {
             if (_mainText != null) return;
 
-            Font font = GetBuiltinFont();
+            TMP_FontAsset fontAsset = ResolveDamageFont();
 
-            // Shadow text object (rendered behind main text)
+            // Drop shadow TMP object (rendered directly behind main text for crisp readability)
             GameObject shadowObj = new GameObject("ShadowText");
             shadowObj.transform.SetParent(transform, false);
-            shadowObj.transform.localPosition = new Vector3(0.035f, -0.035f, 0.02f);
+            shadowObj.transform.localPosition = new Vector3(0.032f, -0.032f, 0.02f);
 
-            _shadowText = shadowObj.AddComponent<TextMesh>();
-            _shadowText.font = font;
-            _shadowText.alignment = TextAlignment.Center;
-            _shadowText.anchor = TextAnchor.MiddleCenter;
-            _shadowRenderer = shadowObj.GetComponent<MeshRenderer>();
-            if (_shadowRenderer != null && font != null)
-            {
-                _shadowRenderer.material = font.material;
-                _shadowRenderer.sortingOrder = 550;
-            }
+            _shadowText = shadowObj.AddComponent<TextMeshPro>();
+            if (fontAsset != null) _shadowText.font = fontAsset;
+            _shadowText.alignment = TextAlignmentOptions.Center;
+            _shadowText.textWrappingMode = TextWrappingModes.NoWrap;
+            _shadowText.extraPadding = true;
+            _shadowText.sortingOrder = 550;
+            _shadowText.rectTransform.sizeDelta = new Vector2(8f, 2f);
 
-            // Main text component
-            _mainText = gameObject.GetComponent<TextMesh>();
+            // Main 3D TMP text component (matches the project's default Bungee-Regular SDF font!)
+            _mainText = gameObject.GetComponent<TextMeshPro>();
             if (_mainText == null)
             {
-                _mainText = gameObject.AddComponent<TextMesh>();
+                _mainText = gameObject.AddComponent<TextMeshPro>();
             }
-            _mainText.font = font;
-            _mainText.alignment = TextAlignment.Center;
-            _mainText.anchor = TextAnchor.MiddleCenter;
-
-            _mainRenderer = gameObject.GetComponent<MeshRenderer>();
-            if (_mainRenderer != null && font != null)
-            {
-                _mainRenderer.material = font.material;
-                _mainRenderer.sortingOrder = 551;
-            }
+            if (fontAsset != null) _mainText.font = fontAsset;
+            _mainText.alignment = TextAlignmentOptions.Center;
+            _mainText.textWrappingMode = TextWrappingModes.NoWrap;
+            _mainText.extraPadding = true;
+            _mainText.sortingOrder = 551;
+            _mainText.rectTransform.sizeDelta = new Vector2(8f, 2f);
+            _mainText.outlineWidth = 0.22f;
+            _mainText.outlineColor = new Color32(10, 10, 14, 240);
         }
 
         public void Initialize(
@@ -74,6 +94,14 @@ namespace TheLastEmpire
             SetupComponents();
             _onCompleteCallback = onComplete;
             _age = 0f;
+
+            // Keep font synced with current TMP default font asset (e.g. if switched via Global Font Switcher)
+            TMP_FontAsset activeFont = ResolveDamageFont();
+            if (activeFont != null)
+            {
+                if (_mainText.font != activeFont) _mainText.font = activeFont;
+                if (_shadowText != null && _shadowText.font != activeFont) _shadowText.font = activeFont;
+            }
 
             // Add subtle random jitter to spawn position so consecutive hits don't overlap directly
             Vector3 jitter = new Vector3(Random.Range(-0.35f, 0.35f), Random.Range(0.1f, 0.35f), Random.Range(-0.2f, 0.2f));
@@ -90,8 +118,7 @@ namespace TheLastEmpire
             {
                 displayText = overrideText;
                 _baseColor = new Color(0.65f, 0.85f, 1.0f); // Cool silver-cyan for Blocked
-                _mainText.fontSize = 28;
-                _mainText.characterSize = 0.050f;
+                _mainText.fontSize = 1.8f;
                 _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.75f;
             }
@@ -99,30 +126,27 @@ namespace TheLastEmpire
             {
                 displayText = $"HEADSHOT! {Mathf.RoundToInt(damageAmount)}";
                 _baseColor = new Color(1.0f, 0.28f, 0.10f); // Fiery blazing orange-red
-                _mainText.fontSize = 35;
-                _mainText.characterSize = 0.060f;
-                _initialScaleMultiplier = 1.4f * GlobalScaleMultiplier;
+                _mainText.fontSize = 1.8f;
+                _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 1.0f;
             }
             else
             {
                 displayText = Mathf.RoundToInt(damageAmount).ToString();
-                _baseColor = new Color(1.0f, 0.94f, 0.45f); // Vibrant gold-yellow
-                _mainText.fontSize = 30;
-                _mainText.characterSize = 0.055f;
+                _baseColor = Color.white; // Crisp pure white for normal damage
+                _mainText.fontSize = 1.8f;
                 _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.85f;
             }
 
             _mainText.text = displayText;
-            _mainText.fontStyle = isCrit ? FontStyle.Bold : FontStyle.Bold;
+            _mainText.fontStyle = FontStyles.Bold;
             _mainText.color = _baseColor;
 
             if (_shadowText != null)
             {
                 _shadowText.text = displayText;
                 _shadowText.fontSize = _mainText.fontSize;
-                _shadowText.characterSize = _mainText.characterSize;
                 _shadowText.fontStyle = _mainText.fontStyle;
                 _shadowText.color = _shadowColor;
             }
@@ -195,28 +219,17 @@ namespace TheLastEmpire
             }
         }
 
-        private static Font _cachedFont;
+        private static Font _cachedLegacyFont;
 
         public static Font GetBuiltinFont()
         {
-            if (_cachedFont != null) return _cachedFont;
-
-            try
+            if (_cachedLegacyFont != null) return _cachedLegacyFont;
+            try { _cachedLegacyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); } catch { }
+            if (_cachedLegacyFont == null)
             {
-                _cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                try { _cachedLegacyFont = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch { }
             }
-            catch { }
-
-            if (_cachedFont == null)
-            {
-                try
-                {
-                    _cachedFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                }
-                catch { }
-            }
-
-            return _cachedFont;
+            return _cachedLegacyFont;
         }
     }
 }

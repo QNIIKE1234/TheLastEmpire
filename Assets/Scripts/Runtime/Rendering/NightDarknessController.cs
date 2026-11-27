@@ -135,13 +135,17 @@ namespace TheLastEmpire
             UpdatePlayerScreenPosition();
 
             // Keep Daytime and Building Interiors 100% clean of 2D darkness overdraw
+            // (Except when a Night Combat visual overlay like NVG, Red Sky Flare, or UV Flashbang is active!)
             if (_overlayCanvasObj != null)
             {
-                if (!disableDarknessOverlay && !InteriorOverrideActive)
+                bool hasNightCombatOverlay = NightCombatItemManager.Instance != null &&
+                                             NightCombatItemManager.Instance.HasScreenOverlayVisual;
+                if (!disableDarknessOverlay && (!InteriorOverrideActive || hasNightCombatOverlay))
                 {
-                    bool shouldBeActive = (DayNightManager.Instance != null)
+                    bool isNightOrDusk = (DayNightManager.Instance != null)
                         ? (DayNightManager.Instance.IsNight || DayNightManager.Instance.CurrentDarknessAlpha > 0.005f)
                         : true;
+                    bool shouldBeActive = isNightOrDusk || hasNightCombatOverlay;
                     if (_overlayCanvasObj.activeSelf != shouldBeActive)
                     {
                         _overlayCanvasObj.SetActive(shouldBeActive);

@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -92,12 +92,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 36
+  m_fontSizeMax: 24
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -369,6 +369,8 @@ MonoBehaviour:
   nameText: {fileID: 4586768248885707945}
   healthText: {fileID: 7081255540414544703}
   healthSlider: {fileID: 0}
+  fastEnemyMoveSpeedThreshold: 3.5
+  fastEnemyAnimSpeedMultiplier: 1.3
   robotType: 0
   telegraphDuration: 0.8
   obstacleLayer:
@@ -377,6 +379,11 @@ MonoBehaviour:
   enemyBulletPrefab: {fileID: 0}
   fireRate: 1.2
   shootingDistance: 5
+  gunnerBurstCount: 5
+  gunnerBurstShotInterval: 0.12
+  gunnerPauseMin: 1
+  gunnerPauseMax: 3
+  enemyProjectileSpeed: 50
   bladeDashSpeed: 15
   bladeDashDuration: 0.25
   bladeDashCooldown: 3
@@ -571,8 +578,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -596,12 +603,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 36
+  m_fontSizeMax: 24
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512

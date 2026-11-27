@@ -367,10 +367,10 @@ MonoBehaviour:
   flamethrowerConeVfx: {fileID: 6596756207386477304}
   fireballPoolKey: FlamethrowerFireball
   fireballSpeed: 25
-  aoeIndicatorSprite: {fileID: 554067202, guid: c5f526e60cffa994588506483b595174, type: 3}
-  aoeIndicatorColor: {r: 0.3735848, g: 0, b: 0, a: 0.7}
-  throwRangeSprite: {fileID: 0}
-  throwRangeColor: {r: 1, g: 1, b: 1, a: 0.35}
+  aoeIndicatorSprite: {fileID: 639102282, guid: a51a26c28e4eee3468f92911c8224e03, type: 3}
+  aoeIndicatorColor: {r: 1, g: 1, b: 1, a: 0.25}
+  throwRangeSprite: {fileID: -1168197357, guid: a51a26c28e4eee3468f92911c8224e03, type: 3}
+  throwRangeColor: {r: 1, g: 1, b: 1, a: 0.25}
   sanityOnKillNormal: 4
   sanityOnKillElite: 20
 --- !u!1 &4234281916798538622
@@ -440,8 +440,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
-  m_sharedMaterial: {fileID: 5069884470719341313, guid: fe27d3a6648b05140b9e628b4f548004, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -465,12 +465,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 24
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 18
-  m_fontSizeMax: 36
+  m_fontSizeMin: 16
+  m_fontSizeMax: 24
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1689,7 +1689,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8286417266164319003, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 601001001001001001, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: m_Name
@@ -1741,11 +1741,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: playOnAwake
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: EmissionModule.enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2832054860232403955, guid: b2c3d4e5f60718293a4b5c6d7e8f0002, type: 3}
       propertyPath: InitialModule.startSizeY.minMaxState

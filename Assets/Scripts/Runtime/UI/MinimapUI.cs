@@ -12,6 +12,7 @@ namespace TheLastEmpire
         [Header("Settings")]
         [SerializeField] private Color fogColor = new Color(0.08f, 0.08f, 0.08f, 1f); // Dark gray fog
         [SerializeField] private Color playerIndicatorColor = Color.red;
+        [SerializeField] private Color alienBossIndicatorColor = new Color(0.92f, 0.20f, 1.0f, 1f); // Bright violet bio-signal
 
         // Zoom size presets: 8x8 (very close), 16x16 (medium), 32x32 (far), 64x64 (world overview)
         private readonly int[] _zoomPresets = { 8, 16, 32, 64 };
@@ -36,6 +37,11 @@ namespace TheLastEmpire
             else
             {
                 Debug.LogWarning("MinimapUI: WorldMapManager.Instance is null at startup!");
+            }
+
+            if (RoamingAlienBossManager.Instance != null)
+            {
+                RoamingAlienBossManager.Instance.OnBossLocationChanged += HandleAlienBossMoved;
             }
         }
 
@@ -64,9 +70,22 @@ namespace TheLastEmpire
                 WorldMapManager.Instance.OnStageChanged -= UpdateMinimap;
             }
 
+            if (RoamingAlienBossManager.Instance != null)
+            {
+                RoamingAlienBossManager.Instance.OnBossLocationChanged -= HandleAlienBossMoved;
+            }
+
             if (_minimapTexture != null)
             {
                 Destroy(_minimapTexture);
+            }
+        }
+
+        private void HandleAlienBossMoved(int bossX, int bossY)
+        {
+            if (WorldMapManager.Instance != null)
+            {
+                UpdateMinimap(WorldMapManager.Instance.CurrentPlayerX, WorldMapManager.Instance.CurrentPlayerY);
             }
         }
 
@@ -139,6 +158,14 @@ namespace TheLastEmpire
                         if (worldX == playerX && worldY == playerY)
                         {
                             _pixelColors[index] = playerIndicatorColor;
+                        }
+                        // Show Roaming Alien World Boss bio-signal on minimap when within viewport
+                        else if (RoamingAlienBossManager.Instance != null &&
+                                 RoamingAlienBossManager.Instance.HasValidLocation &&
+                                 worldX == RoamingAlienBossManager.Instance.BossStageX &&
+                                 worldY == RoamingAlienBossManager.Instance.BossStageY)
+                        {
+                            _pixelColors[index] = alienBossIndicatorColor;
                         }
                         // Show biome color if stage has been explored
                         else if (stage.isExplored)

@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 22332323
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
+  m_sharedMaterial: {fileID: -4063749451624236244, guid: 010c94a4b440da248b78fe92c839ae39, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -203,6 +203,14 @@ MonoBehaviour:
   moneyAmount: 10
   isMoney: 0
   interactRange: 1.5
+  enableMagnet: 1
+  magnetRange: 3.5
+  initialMagnetSpeed: 6
+  maxMagnetSpeed: 24
+  magnetAcceleration: 32
+  collectRadius: 0.45
+  spinSpeed: 360
+  minScaleRatio: 0.05
   promptText: {fileID: 4043456235989421353}
   itemMeshRenderer: {fileID: 7925460998555288179}
 --- !u!65 &2825451872833348162

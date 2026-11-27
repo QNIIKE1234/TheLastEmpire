@@ -896,7 +896,8 @@ namespace TheLastEmpire
 
         public void DrainHunger(float amount)
         {
-            currentHunger = Mathf.Max(0f, currentHunger - amount * hungerDepletionMultiplier);
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1f;
+            currentHunger = Mathf.Max(0f, currentHunger - amount * hungerDepletionMultiplier * weatherMult);
             OnHungerChanged?.Invoke();
         }
 
@@ -1067,6 +1068,16 @@ namespace TheLastEmpire
                 _health.onDeath.RemoveListener(HandlePlayerDeath);
                 _health.onDamageTaken.RemoveListener(HandleDamageTaken);
             }
+
+            _activeShiftAbility?.OnDestroy();
+            if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.gameObject != null)
+                Destroy(_throwRangeSpriteRenderer.gameObject);
+            if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject != null)
+                Destroy(_aoeSpriteRenderer.gameObject);
+            if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject != null)
+                Destroy(_sniperReticleSprite.gameObject);
+            if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject != null)
+                Destroy(_sniperChevronSprite.gameObject);
         }
 
         private void HandlePlayerDeath()
@@ -1132,6 +1143,8 @@ namespace TheLastEmpire
             if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             if (_laserSightIndicator != null && _laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(false);
             if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
+            if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject.activeSelf) _sniperReticleSprite.gameObject.SetActive(false);
+            if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf) _sniperChevronSprite.gameObject.SetActive(false);
         }
 
         public bool IsControlLocked { get; private set; } = false;
@@ -1200,18 +1213,24 @@ namespace TheLastEmpire
 
             bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
             bool isDehydrated = currentWater <= 0f;
+            bool isShiftBlockedByWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather;
+
+            if (isShiftBlockedByWeather)
+            {
+                _activeShiftAbility?.OnShiftReleased();
+            }
 
             if (Keyboard.current != null)
             {
-                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.isPressed)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
-                if (Keyboard.current.shiftKey.wasReleasedThisFrame || isDehydrated)
+                if (Keyboard.current.shiftKey.wasReleasedThisFrame || isDehydrated || isShiftBlockedByWeather)
                 {
                     _activeShiftAbility?.OnShiftReleased();
                 }
@@ -1219,7 +1238,7 @@ namespace TheLastEmpire
             _activeShiftAbility?.UpdateAbility();
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
-            bool canSprint = !isShiftOnCooldown && !isDehydrated;
+            bool canSprint = !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather;
             _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             UpdateWater();
@@ -1558,26 +1577,39 @@ namespace TheLastEmpire
 
         private void UpdateIndicators()
         {
-            bool isThrowing = CurrentWeapon != null && CurrentWeapon.projectilePrefab != null && CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced;
+            if (IsRemotePlayer) return;
+
+            bool isThrowing = _heldItemType == HeldItemType.Ranged &&
+                              CurrentWeapon != null && CurrentWeapon.projectilePrefab != null &&
+                              CurrentWeapon.projectilePrefab.Trajectory == TrajectoryMode.Arced;
 
             if (isThrowing)
             {
                 float throwRadius = CurrentWeapon.range;
                 float aoeRadius = CurrentWeapon.projectilePrefab.ExplosionRadius;
 
-                // 1. Throw Range Indicator (Around Player)
-                if (throwRangeSprite != null && _throwRangeSpriteRenderer != null)
+                // Ensure new UI_Hitbox_Sprites are bound even on runtime-spawned or older prefabs
+                if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.sprite == null)
+                {
+                    Sprite rangeSp = throwRangeSprite != null ? throwRangeSprite : HitboxSpriteLibrary.DashedCrosshair;
+                    if (rangeSp != null) _throwRangeSpriteRenderer.sprite = rangeSp;
+                }
+                if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.sprite == null)
+                {
+                    Sprite aoeSp = aoeIndicatorSprite != null ? aoeIndicatorSprite : HitboxSpriteLibrary.HazardCircle;
+                    if (aoeSp != null) _aoeSpriteRenderer.sprite = aoeSp;
+                }
+
+                // 1. Throw Range Indicator (Around Player — original sprite color, no spin)
+                if (_throwRangeSpriteRenderer != null && _throwRangeSpriteRenderer.sprite != null)
                 {
                     if (!_throwRangeSpriteRenderer.gameObject.activeSelf) _throwRangeSpriteRenderer.gameObject.SetActive(true);
                     if (_throwRangeIndicator != null && _throwRangeIndicator.gameObject.activeSelf) _throwRangeIndicator.gameObject.SetActive(false);
 
                     _throwRangeSpriteRenderer.transform.position = new Vector3(transform.position.x, 0.04f, transform.position.z);
-                    float baseWidth = _throwRangeSpriteRenderer.sprite != null ? _throwRangeSpriteRenderer.sprite.bounds.size.x : 1f;
-                    if (baseWidth > 0f)
-                    {
-                        float scale = (throwRadius * 2f) / baseWidth;
-                        _throwRangeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                    }
+                    _throwRangeSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    _throwRangeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+                    HitboxSpriteLibrary.SetWorldDiameter(_throwRangeSpriteRenderer, throwRadius * 2f);
                 }
                 else if (_throwRangeIndicator != null)
                 {
@@ -1586,19 +1618,16 @@ namespace TheLastEmpire
                     DrawCircle(_throwRangeIndicator, transform.position, throwRadius);
                 }
 
-                // 2. AOE Radius Indicator (At Aim Target Point)
-                if (aoeIndicatorSprite != null && _aoeSpriteRenderer != null)
+                // 2. AOE Radius Indicator (At Aim Target Point — UI_Hitbox_Sprites_0 original color, no spin)
+                if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.sprite != null)
                 {
                     if (!_aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(true);
                     if (_aoeIndicator != null && _aoeIndicator.gameObject.activeSelf) _aoeIndicator.gameObject.SetActive(false);
 
-                    _aoeSpriteRenderer.transform.position = new Vector3(_aimTargetPoint.x, 0.05f, _aimTargetPoint.z);
-                    float baseWidth = _aoeSpriteRenderer.sprite != null ? _aoeSpriteRenderer.sprite.bounds.size.x : 1f;
-                    if (baseWidth > 0f)
-                    {
-                        float scale = (aoeRadius * 2f) / baseWidth;
-                        _aoeSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-                    }
+                    _aoeSpriteRenderer.transform.position = new Vector3(_aimTargetPoint.x, 0.06f, _aimTargetPoint.z);
+                    _aoeSpriteRenderer.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    HitboxSpriteLibrary.SetWorldDiameter(_aoeSpriteRenderer, aoeRadius * 2f);
+                    _aoeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
                 }
                 else if (_aoeIndicator != null)
                 {
@@ -1615,23 +1644,47 @@ namespace TheLastEmpire
                 if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             }
 
-            // 3. Eagle Eye Sniper Laser Sight Indicator
+            // 3. Sniper Aiming & Eagle Eye RED Laser Sight + UI_Hitbox_Sprites_2 Red Crosshair Reticle
             bool isEagleEyeAiming = _activeShiftAbility is EagleEyeAbility eagle && eagle.IsActive;
-            if (isEagleEyeAiming)
+            bool isHoldingSniperRifle = _heldItemType == HeldItemType.Ranged &&
+                                        CurrentWeapon != null &&
+                                        !string.IsNullOrEmpty(CurrentWeapon.weaponName) &&
+                                        CurrentWeapon.weaponName.IndexOf("sniper", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bool showSniperRedAim = isEagleEyeAiming || isHoldingSniperRifle;
+
+            if (showSniperRedAim && !_isSitting && !_isSleeping)
             {
+                Color sniperLaserRed = new Color(1f, 0.08f, 0.06f, isEagleEyeAiming ? 0.98f : 0.85f);
                 if (_laserSightIndicator == null)
                 {
-                    _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
+                    _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", sniperLaserRed, 0.05f);
                 }
-                if (_laserTargetDot == null)
+                if (_sniperReticleSprite == null)
                 {
-                    _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+                    _sniperReticleSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                        "SniperReticleSprite", null, HitboxSpriteLibrary.DashedCrosshair, HitboxSpriteLibrary.SniperRed, 8);
+                    _sniperReticleSprite.gameObject.SetActive(false);
+                }
+                else if (_sniperReticleSprite.sprite == null)
+                {
+                    _sniperReticleSprite.sprite = HitboxSpriteLibrary.DashedCrosshair;
+                }
+
+                if (_sniperChevronSprite == null)
+                {
+                    _sniperChevronSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                        "SniperChevronSprite", null, HitboxSpriteLibrary.DirectionalChevrons, HitboxSpriteLibrary.SniperRed, 7);
+                    _sniperChevronSprite.gameObject.SetActive(false);
+                }
+                else if (_sniperChevronSprite.sprite == null)
+                {
+                    _sniperChevronSprite.sprite = HitboxSpriteLibrary.DirectionalChevrons;
                 }
 
                 if (!_laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(true);
-                if (!_laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(true);
+                if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(false);
 
-                float targetRange = 25f;
+                float targetRange = 26f;
                 if (CurrentWeapon != null)
                 {
                     targetRange = CurrentWeapon.range;
@@ -1648,23 +1701,68 @@ namespace TheLastEmpire
                         targetRange = Mathf.Max(targetRange, CurrentWeapon.range * CurrentWeapon.projectilePrefab.Speed);
                     }
                 }
-                float rangeMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeRangeMultiplier : 2.0f;
-                targetRange *= rangeMult;
-                targetRange = Mathf.Clamp(targetRange, 12f, 45f);
+                if (isEagleEyeAiming)
+                {
+                    float rangeMult = (activeCharacterData != null) ? activeCharacterData.eagleEyeRangeMultiplier : 2.0f;
+                    targetRange *= rangeMult;
+                }
+                targetRange = Mathf.Clamp(targetRange, 14f, 45f);
 
-                Vector3 startPos = transform.position + Vector3.up * 0.15f + _aimDirection * 0.4f;
+                Vector3 startPos = transform.position + Vector3.up * 0.16f + _aimDirection * 0.45f;
                 Vector3 endPos = startPos + _aimDirection * targetRange;
+                bool lockedOnEnemy = false;
 
-                // Check obstacle collisions
                 int layerMask = ~LayerMask.GetMask("Player", "Ignore Raycast");
-                if (Physics.Raycast(startPos + Vector3.up * 0.35f, _aimDirection, out RaycastHit hit, targetRange, layerMask))
+                if (Physics.Raycast(startPos + Vector3.up * 0.35f, _aimDirection, out RaycastHit hit, targetRange, layerMask, QueryTriggerInteraction.Ignore))
                 {
                     endPos = new Vector3(hit.point.x, startPos.y, hit.point.z);
+                    lockedOnEnemy = hit.collider != null && (hit.collider.CompareTag("Enemy") || hit.collider.GetComponentInParent<BaseEnemyAI>() != null);
                 }
 
+                // Bright RED Sniper Laser Line
+                _laserSightIndicator.startWidth = isEagleEyeAiming ? 0.06f : 0.042f;
+                _laserSightIndicator.endWidth = isEagleEyeAiming ? 0.035f : 0.025f;
+                _laserSightIndicator.startColor = sniperLaserRed;
+                _laserSightIndicator.endColor = new Color(1f, 0.06f, 0.06f, lockedOnEnemy ? 0.95f : 0.50f);
+                if (_laserSightIndicator.material != null) _laserSightIndicator.material.color = sniperLaserRed;
                 _laserSightIndicator.SetPosition(0, startPos);
                 _laserSightIndicator.SetPosition(1, endPos);
-                DrawCircle(_laserTargetDot, endPos, 0.22f);
+
+                // Crisp RED Sniper Crosshair Reticle (UI_Hitbox_Sprites_2) at target point (no spin, 25% alpha)
+                if (_sniperReticleSprite.sprite != null)
+                {
+                    if (!_sniperReticleSprite.gameObject.activeSelf) _sniperReticleSprite.gameObject.SetActive(true);
+                    _sniperReticleSprite.transform.position = new Vector3(endPos.x, 0.09f, endPos.z);
+                    _sniperReticleSprite.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                    float reticleDiameter = lockedOnEnemy ? 1.35f : (isEagleEyeAiming ? 1.20f : 0.95f);
+                    HitboxSpriteLibrary.SetWorldDiameter(_sniperReticleSprite, reticleDiameter);
+                    _sniperReticleSprite.color = HitboxSpriteLibrary.SniperRed;
+                }
+                else if (_laserTargetDot != null)
+                {
+                    if (!_laserTargetDot.gameObject.activeSelf) _laserTargetDot.gameObject.SetActive(true);
+                    DrawCircle(_laserTargetDot, endPos, 0.25f);
+                }
+
+                // Red directional chevron indicator ahead of the sniper barrel (25% alpha)
+                if (_sniperChevronSprite.sprite != null && Vector3.Distance(startPos, endPos) > 1.8f)
+                {
+                    if (!_sniperChevronSprite.gameObject.activeSelf) _sniperChevronSprite.gameObject.SetActive(true);
+                    Vector3 chevPos = startPos + _aimDirection * 1.45f;
+                    _sniperChevronSprite.transform.position = new Vector3(chevPos.x, 0.08f, chevPos.z);
+                    _sniperChevronSprite.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(_aimDirection);
+                    float baseW = _sniperChevronSprite.sprite.bounds.size.x;
+                    float baseH = _sniperChevronSprite.sprite.bounds.size.y;
+                    if (baseW > 0.001f && baseH > 0.001f)
+                    {
+                        _sniperChevronSprite.transform.localScale = new Vector3(1.15f / baseW, 0.58f / baseH, 1f);
+                    }
+                    _sniperChevronSprite.color = HitboxSpriteLibrary.SniperRed;
+                }
+                else if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf)
+                {
+                    _sniperChevronSprite.gameObject.SetActive(false);
+                }
             }
             else
             {
@@ -1675,6 +1773,14 @@ namespace TheLastEmpire
                 if (_laserTargetDot != null && _laserTargetDot.gameObject.activeSelf)
                 {
                     _laserTargetDot.gameObject.SetActive(false);
+                }
+                if (_sniperReticleSprite != null && _sniperReticleSprite.gameObject.activeSelf)
+                {
+                    _sniperReticleSprite.gameObject.SetActive(false);
+                }
+                if (_sniperChevronSprite != null && _sniperChevronSprite.gameObject.activeSelf)
+                {
+                    _sniperChevronSprite.gameObject.SetActive(false);
                 }
             }
         }
@@ -1746,7 +1852,8 @@ namespace TheLastEmpire
                 float baseSpeed = moveSpeed;
                 float currentSpeed = baseSpeed;
                 bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
-                bool isShiftHeld = !isShiftOnCooldown && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+                bool isShiftBlockedByWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather;
+                bool isShiftHeld = !isShiftOnCooldown && !isShiftBlockedByWeather && currentWater > 0f && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
 
                 if (_shootSprintLockTimer > 0f)
                 {
@@ -1789,6 +1896,9 @@ namespace TheLastEmpire
                     currentSpeed = baseSpeed;
                 }
 
+                float weatherSpeedMult = WeatherManager.Instance != null ? WeatherManager.Instance.MoveSpeedMultiplier : 1.0f;
+                currentSpeed *= weatherSpeedMult;
+
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }
@@ -1801,9 +1911,11 @@ namespace TheLastEmpire
         private SpriteRenderer _throwRangeSpriteRenderer;
         private SpriteRenderer _aoeSpriteRenderer;
 
-        // Eagle Eye Laser Sight Aim Indicators
+        // Eagle Eye & Sniper RED Laser Sight Aim Indicators
         private LineRenderer _laserSightIndicator;
         private LineRenderer _laserTargetDot;
+        private SpriteRenderer _sniperReticleSprite;
+        private SpriteRenderer _sniperChevronSprite;
 
         private void UpdateAimDirection()
         {
@@ -4485,11 +4597,12 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // อาหารลดช้าลงอีกครึ่งหนึ่ง (0.5 -> 0.25)
+            // อาหารลดช้าลงอีกครึ่งหนึ่ง (0.5 -> 0.25); ฝนตกนอกบ้านลดเร็วขึ้นตาม WeatherManager.SurvivalDrainMultiplier
             float baseRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.25f;
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
-            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier * weatherMult;
             currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 
@@ -4518,12 +4631,13 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // น้ำลดช้าลงอีกครึ่งหนึ่งตามอัตราอาหารใหม่ (ยังคงสัดส่วนลดเร็วกว่าอาหาร 3 เท่า)
+            // น้ำลดช้าลงอีกครึ่งหนึ่งตามอัตราอาหารใหม่ (ยังคงสัดส่วนลดเร็วกว่าอาหาร 3 เท่า); ฝนตกนอกบ้านลดเร็วขึ้นตาม WeatherManager
             float baseHungerRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.25f;
             float baseWaterRate = baseHungerRate * 3.0f; // น้ำลดเร็วกว่าอาหาร 3 เท่า
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.waterConsumptionMultiplier : 1.0f;
-            float depletionRate = (_isSprinting ? (baseWaterRate * sprintMult) : baseWaterRate) * charMult * waterDepletionMultiplier;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseWaterRate * sprintMult) : baseWaterRate) * charMult * waterDepletionMultiplier * weatherMult;
             currentWater = Mathf.Max(0f, currentWater - Time.deltaTime * depletionRate);
             OnWaterChanged?.Invoke();
 
@@ -4583,24 +4697,37 @@ namespace TheLastEmpire
 
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             bool inCombat = _combatTimer > 0f;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            bool exposedToSevereWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsPlayerExposedToWeather && weatherMult > 1.01f;
 
             if (isNight)
             {
-                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา
+                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา (ตากฝน/พายุ/หิมะนอกบ้านลดเร็วขึ้นตามตัวคูณอากาศ)
                 float rate = nightSanityDepletionRate;
                 if (inCombat)
                 {
                     // ถ้ากำลังต่อสู้ (Combat) ตอนกลางคืน ลดเร็วขึ้นตามตัวคูณ
                     rate *= combatNightSanityMultiplier;
                 }
-                float delta = rate * sanityDepletionMultiplier * Time.deltaTime;
+                float nightLightMult = NightCombatItemManager.Instance != null
+                    ? NightCombatItemManager.Instance.GetNightSanityDrainMultiplier()
+                    : 1f;
+                float delta = rate * sanityDepletionMultiplier * nightLightMult * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }
             else if (inCombat)
             {
-                // กลางวันแต่ติด Combat
-                float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * Time.deltaTime;
+                // กลางวันแต่ติด Combat (ตากฝน/พายุ/หิมะนอกบ้านลดเร็วขึ้นตามตัวคูณอากาศ)
+                float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
+                currentSanity = Mathf.Max(0f, currentSanity - delta);
+                OnSanityChanged?.Invoke();
+            }
+            else if (exposedToSevereWeather)
+            {
+                // ตากฝน/พายุ/หิมะกลางแจ้งตอนกลางวัน: ค่าสติลดลง (หลบเข้าบ้านหรือยืนใกล้กองไฟเพื่อป้องกัน)
+                float weatherSanityRate = Mathf.Max(0.25f, nightSanityDepletionRate);
+                float delta = weatherSanityRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }
@@ -4663,7 +4790,8 @@ namespace TheLastEmpire
         public void DrainSanity(float amount)
         {
             if (amount <= 0f) return;
-            currentSanity = Mathf.Max(0f, currentSanity - (amount * sanityDepletionMultiplier));
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1f;
+            currentSanity = Mathf.Max(0f, currentSanity - (amount * sanityDepletionMultiplier * weatherMult));
             OnSanityChanged?.Invoke();
         }
 
@@ -5829,23 +5957,36 @@ namespace TheLastEmpire
             _throwRangeIndicator = CreateLineRenderer("ThrowRangeIndicator", Color.white, 0.05f);
             _aoeIndicator = CreateLineRenderer("AOEIndicator", Color.red, 0.05f);
 
-            // Sprite Indicators (flat on ground, facing top-down camera)
+            // Sprite Indicators (flat on ground, facing top-down camera) — defaults to UI_Hitbox_Sprites
+            Sprite resolvedRangeSprite = throwRangeSprite != null ? throwRangeSprite : HitboxSpriteLibrary.DashedCrosshair;
+            Sprite resolvedAoeSprite = aoeIndicatorSprite != null ? aoeIndicatorSprite : HitboxSpriteLibrary.HazardCircle;
+
             GameObject throwRangeObj = new GameObject("ThrowRangeSprite");
             throwRangeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             _throwRangeSpriteRenderer = throwRangeObj.AddComponent<SpriteRenderer>();
-            _throwRangeSpriteRenderer.sprite = throwRangeSprite;
-            _throwRangeSpriteRenderer.color = throwRangeColor;
+            _throwRangeSpriteRenderer.sprite = resolvedRangeSprite;
+            _throwRangeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+            _throwRangeSpriteRenderer.sortingOrder = 4;
             throwRangeObj.SetActive(false);
 
             GameObject aoeObj = new GameObject("AOESprite");
             aoeObj.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             _aoeSpriteRenderer = aoeObj.AddComponent<SpriteRenderer>();
-            _aoeSpriteRenderer.sprite = aoeIndicatorSprite;
-            _aoeSpriteRenderer.color = aoeIndicatorColor;
+            _aoeSpriteRenderer.sprite = resolvedAoeSprite;
+            _aoeSpriteRenderer.color = HitboxSpriteLibrary.DefaultOriginalColor;
+            _aoeSpriteRenderer.sortingOrder = 6;
             aoeObj.SetActive(false);
 
-            _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.15f, 0.15f, 0.95f), 0.045f);
-            _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.2f, 0.2f, 0.95f), 0.035f);
+            _laserSightIndicator = CreateLaserLineRenderer("LaserSightIndicator", new Color(1f, 0.08f, 0.06f, 0.95f), 0.05f);
+            _laserTargetDot = CreateLineRenderer("LaserTargetDot", new Color(1f, 0.1f, 0.08f, 0.95f), 0.035f);
+
+            _sniperReticleSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                "SniperReticleSprite", null, HitboxSpriteLibrary.DashedCrosshair, HitboxSpriteLibrary.SniperRed, 8);
+            _sniperReticleSprite.gameObject.SetActive(false);
+
+            _sniperChevronSprite = HitboxSpriteLibrary.CreateGroundSpriteIndicator(
+                "SniperChevronSprite", null, HitboxSpriteLibrary.DirectionalChevrons, HitboxSpriteLibrary.SniperRed, 7);
+            _sniperChevronSprite.gameObject.SetActive(false);
         }
 
         private LineRenderer CreateLaserLineRenderer(string objName, Color color, float width)

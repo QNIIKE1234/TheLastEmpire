@@ -51,6 +51,13 @@ namespace TheLastEmpire
         private bool _isPullingPlayer = false;
         private float _smartStrafeSign = 1f;
 
+        /// <summary>
+        /// True when controlled by RoamingAlienBossManager (50,000 persistent HP, 10s minion waves, 30s warp).
+        /// </summary>
+        public bool IsRoamingWorldBoss { get; set; } = false;
+        public bool IsWarpingOut { get; set; } = false;
+        public bool IsVomitingSummon { get; set; } = false;
+
         public override bool UseSmartObstacleAvoidance => true;
 
         protected override void Start()
@@ -89,8 +96,8 @@ namespace TheLastEmpire
                     detectionRange = 9f;
                     break;
                 case AlienType.Leader:
-                    moveSpeed = 2.5f;
-                    detectionRange = 7f;
+                    moveSpeed = IsRoamingWorldBoss ? 3.2f : 2.5f;
+                    detectionRange = IsRoamingWorldBoss ? 28f : 7f;
                     break;
                 case AlienType.Spitter:
                     moveSpeed = 3.0f;
@@ -136,6 +143,13 @@ namespace TheLastEmpire
 
         protected override void UpdateAIBehavior()
         {
+            if (IsWarpingOut || IsVomitingSummon)
+            {
+                if (IsVomitingSummon) currentState = AIState.Telegraph;
+                if (rb != null) rb.linearVelocity = Vector3.zero;
+                return;
+            }
+
             if (IsTargetDead())
             {
                 WanderMovement();
@@ -143,7 +157,7 @@ namespace TheLastEmpire
             }
 
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
-            bool detected = IsPlayerInDetectionRange();
+            bool detected = IsRoamingWorldBoss || IsPlayerInDetectionRange();
 
             // Force detect at night (Alien always charges player at night)
             if (isNight) detected = true;
@@ -167,8 +181,8 @@ namespace TheLastEmpire
                     return;
                 }
 
-                // ความเร็วเอเลี่ยน: กลางคืนเดินปกติ (1.0f), กลางวันไม่ตายแต่ช้าลงเหลือ 20% (0.20f)
-                float speedMult = isNight ? 1.0f : 0.20f;
+                // ความเร็วเอเลี่ยน: World Boss เดินเต็มสปีดตลอดวัน; เอเลี่ยนปกติกลางคืน 100%, กลางวัน 20%
+                float speedMult = (isNight || IsRoamingWorldBoss) ? 1.0f : 0.20f;
 
                 if (alienType == AlienType.Smart)
                 {
@@ -226,14 +240,32 @@ namespace TheLastEmpire
         private Renderer[] _invisRenderers;
         private float _invisCurrentAlpha = 1f;
         private bool _invisTransparentMode;
+        private float _forceRevealTimer = 0f;
+
+        /// <summary>
+        /// Forces AlienInvisible out of stealth (triggered by Tactical Flashlight, Red Signal Flare, Thermal Visor, or UV Flashbang).
+        /// </summary>
+        public void ForceRevealFromStealth(float duration)
+        {
+            _forceRevealTimer = Mathf.Max(_forceRevealTimer, duration);
+        }
 
         private void HandleInvisibilityFade()
         {
             if (alienType != AlienType.Invisible || playerTransform == null) return;
 
+            if (_forceRevealTimer > 0f)
+            {
+                _forceRevealTimer = Mathf.Max(0f, _forceRevealTimer - Time.fixedDeltaTime);
+            }
+
+            bool forcedVisible = _forceRevealTimer > 0f ||
+                                 (NightCombatItemManager.Instance != null &&
+                                  NightCombatItemManager.Instance.ShouldForceRevealInvisibleAlien(transform.position));
+
             float dist = Vector3.Distance(transform.position, playerTransform.position);
-            float targetAlpha = dist <= fadeDistance ? 1f : 0.10f; // nearly invisible ghost shadow when far
-            _invisCurrentAlpha = Mathf.MoveTowards(_invisCurrentAlpha, targetAlpha, Time.fixedDeltaTime * 2.2f);
+            float targetAlpha = (forcedVisible || dist <= fadeDistance) ? 1f : 0.10f; // nearly invisible ghost shadow when far
+            _invisCurrentAlpha = Mathf.MoveTowards(_invisCurrentAlpha, targetAlpha, Time.fixedDeltaTime * (forcedVisible ? 8.0f : 2.2f));
 
             if (_spriteRenderer != null)
             {
@@ -327,6 +359,8 @@ namespace TheLastEmpire
 
         private void HandleLeaderSpawns()
         {
+            // World Boss uses RoamingAlienBossManager's 10s 2-3 alien wave summon system instead
+            if (IsRoamingWorldBoss) return;
             if (alienType != AlienType.Leader || _spawnCooldownTimer > 0f) return;
             if (_currentChildSpawns >= maxChildSpawns) return;
 

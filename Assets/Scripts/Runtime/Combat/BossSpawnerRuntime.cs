@@ -321,8 +321,8 @@ namespace TheLastEmpire
             if (!_showDebugGui) return;
 
             // 3. Spawner / Cheat Panel
-            float panelWidth = 320f;
-            float panelHeight = 535f;
+            float panelWidth = 350f;
+            float panelHeight = 615f;
             float panelX = Screen.width - panelWidth - 10f;
             float panelY = 50f;
 
@@ -330,7 +330,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Free / Shop", "Events [F9]" };
+                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Free / Shop", "Weather / Events" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -399,6 +399,100 @@ namespace TheLastEmpire
             GUILayout.Label("• Instant Spawn: Maya spawns at opposite gate and sprints through at 5.0 m/s.", EditorStylesMini());
             GUILayout.Label("• Maya uses trigger colliders to pass smoothly through obstacles.", EditorStylesMini());
             GUILayout.Label("• Stage transitions clean up runners automatically.", EditorStylesMini());
+
+            GUILayout.Space(10);
+            GUIStyle weatherTitle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            weatherTitle.normal.textColor = new Color(0.42f, 0.85f, 1f);
+            GUILayout.Label("SEASON & WEATHER (CO-OP SYNC)", weatherTitle);
+
+            var wm = WeatherManager.Instance;
+            if (wm != null)
+            {
+                string weatherStateStr = wm.CurrentWeather == WeatherType.Clear
+                    ? $"CLEAR (Next {wm.RainChance * 100f:F0}% roll: {wm.NextRollRemainingSeconds:F0}s)"
+                    : $"{wm.CurrentWeather.ToString().ToUpper()} ({WeatherManager.FormatWeatherDuration(wm.WeatherRemainingSeconds)} left)";
+                GUILayout.Label($"Season: {wm.CurrentSeason.ToString().ToUpper()} (Day {wm.DayInCurrentSeason}/{wm.DaysPerSeason})", EditorStylesBold());
+                GUILayout.Label($"Weather: {weatherStateStr}", EditorStylesBold());
+                GUILayout.Label($"Ground Wet: {wm.GroundWetness * 100f:F0}% | Snow Cover: {wm.GroundSnowAmount * 100f:F0}%", EditorStylesMini());
+
+                GUILayout.Space(4);
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label("Set Season (Co-op Synced):", EditorStylesBold());
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Autumn ? new Color(0.95f, 0.62f, 0.20f) : new Color(0.48f, 0.36f, 0.22f);
+                    if (GUILayout.Button("AUTUMN", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Autumn); ShowToast("Season -> AUTUMN (Synced)"); }
+
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Rainy ? new Color(0.25f, 0.65f, 1f) : new Color(0.22f, 0.38f, 0.55f);
+                    if (GUILayout.Button("RAINY", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Rainy); ShowToast("Season -> RAINY (Synced)"); }
+
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Winter ? new Color(0.75f, 0.92f, 1f) : new Color(0.38f, 0.48f, 0.58f);
+                    if (GUILayout.Button("WINTER", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Winter); ShowToast("Season -> WINTER (Synced)"); }
+
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Summer ? new Color(1f, 0.82f, 0.22f) : new Color(0.55f, 0.46f, 0.20f);
+                    if (GUILayout.Button("SUMMER", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Summer); ShowToast("Season -> SUMMER (Synced)"); }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(6);
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label("Trigger Weather (1-6 min, Co-op Synced):", EditorStylesBold());
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.30f, 0.72f, 0.36f);
+                    if (GUILayout.Button("CLEAR", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Clear); ShowToast("Weather -> CLEAR (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.24f, 0.60f, 1f);
+                    if (GUILayout.Button("RAIN", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Rain); ShowToast("Weather -> RAIN 1-6m (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.38f, 0.42f, 0.95f);
+                    if (GUILayout.Button("STORM", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Thunderstorm); ShowToast("Weather -> THUNDERSTORM 1-6m (Synced)"); }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.70f, 0.88f, 1f);
+                    if (GUILayout.Button("SNOW", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Snow); ShowToast("Weather -> SNOW 1-6m (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.50f, 0.78f, 0.96f);
+                    if (GUILayout.Button("BLIZZARD", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Blizzard); ShowToast("Weather -> BLIZZARD 1-6m (Synced)"); }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(4);
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.95f, 0.82f, 0.22f);
+                    if (GUILayout.Button("Strike Lightning", GUILayout.Height(26)))
+                    {
+                        wm.TriggerDebugLightningStrikeNow();
+                        ShowToast("Lightning Strike incoming (Synced)!");
+                    }
+
+                    GUI.backgroundColor = new Color(0.25f, 0.78f, 0.72f);
+                    if (GUILayout.Button("10% Roll Now", GUILayout.Height(26)))
+                    {
+                        wm.ForceRollNow();
+                        ShowToast(wm.CurrentWeather != WeatherType.Clear ? $"Roll HIT -> {wm.CurrentWeather}!" : "Roll missed -> Clear.");
+                    }
+                }
+                GUILayout.EndHorizontal();
+
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% every {wm.RollIntervalSeconds:F0}s -> lasts {wm.MinWeatherDurationSeconds / 60f:F0}-{wm.MaxWeatherDurationSeconds / 60f:F0} min (5d/season).", EditorStylesMini());
+                GUILayout.Label("Outdoors: Rain/Storm/Blizzard = x2 Drain; Storm & Blizzard lock [Shift].", EditorStylesMini());
+                GUILayout.Label("Blizzard outdoors: -3 HP/s & -18% Speed (safe inside house or by Campfire).", EditorStylesMini());
+            }
+            else
+            {
+                GUILayout.Label("WeatherManager not initialized.", EditorStylesMini());
+            }
         }
 
         private void DrawBossSpawnerTab()
@@ -430,6 +524,32 @@ namespace TheLastEmpire
             if (GUILayout.Button("Spawn Boss Rush (x3)", GUILayout.Height(28)))
             {
                 SpawnBossRush(3);
+            }
+
+            // Roaming Alien World Boss controls
+            GUILayout.Space(6);
+            GUI.backgroundColor = Color.white;
+            if (RoamingAlienBossManager.Instance != null)
+            {
+                var ab = RoamingAlienBossManager.Instance;
+                string abStatus = ab.IsDefeated
+                    ? "Alien World Boss: DEFEATED"
+                    : $"Alien Boss @ ({ab.BossStageX},{ab.BossStageY}) | HP: {ab.RemainingHealth:N0}/50,000";
+                GUILayout.Label(abStatus, EditorStylesMini());
+
+                GUI.backgroundColor = new Color(0.72f, 0.25f, 0.95f);
+                if (GUILayout.Button("Warp Alien World Boss Here", GUILayout.Height(28)))
+                {
+                    ab.ForceWarpBossToCurrentStage();
+                    ShowToast($"Alien World Boss warped to current stage ({ab.RemainingHealth:N0} HP)!");
+                }
+
+                GUI.backgroundColor = new Color(0.48f, 0.22f, 0.72f);
+                if (GUILayout.Button("Reset Alien Boss (50k HP + Re-roll Map)", GUILayout.Height(24)))
+                {
+                    ab.ResetAlienBossFull();
+                    ShowToast($"Alien Boss reset @ ({ab.BossStageX},{ab.BossStageY})!");
+                }
             }
 
             GUILayout.Space(6);

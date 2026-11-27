@@ -612,7 +612,21 @@ namespace TheLastEmpire
                 return false;
             }
 
-            if (itemData.type == ItemType.RangedWeapon || itemData.type == ItemType.ThrowingWeapon)
+            if (NightCombatItemManager.IsNightCombatItem(itemData.itemName))
+            {
+                PlayerController player = GetComponent<PlayerController>();
+                if (player != null && !player.PlayerHealth.IsDead && NightCombatItemManager.Instance != null)
+                {
+                    if (RemoveItem(itemName))
+                    {
+                        NightCombatItemManager.Instance.TryActivateItem(itemData.itemName, player);
+                        OnInventoryChanged?.Invoke();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            else if (itemData.type == ItemType.RangedWeapon || itemData.type == ItemType.ThrowingWeapon)
             {
                 PlayerController player = GetComponent<PlayerController>();
                 if (player != null && !player.PlayerHealth.IsDead)

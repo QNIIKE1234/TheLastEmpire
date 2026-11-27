@@ -466,6 +466,11 @@ namespace TheLastEmpire
                     }
                     break;
             }
+
+            if (WeatherManager.Instance != null)
+            {
+                WeatherManager.Instance.ApplyWeatherLightingModifiers(ref targetAmbient, ref targetIntensity, ref targetColor, ref targetTint);
+            }
         }
 
         private void UpdateFades()

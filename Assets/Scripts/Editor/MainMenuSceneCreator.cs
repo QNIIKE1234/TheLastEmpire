@@ -166,15 +166,18 @@ namespace TheLastEmpire.Editor
                 eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
             }
 
-            // 6. Locate Teko Font if present
-            TMP_FontAsset tekoFont = null;
-            TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-            foreach (var f in allFonts)
+            // 6. Locate project default TMP Font (fallback to Teko if unset)
+            TMP_FontAsset tekoFont = TMP_Settings.defaultFontAsset;
+            if (tekoFont == null)
             {
-                if (f != null && f.name.Contains("Teko"))
+                TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+                foreach (var f in allFonts)
                 {
-                    tekoFont = f;
-                    break;
+                    if (f != null && f.name.Contains("Teko"))
+                    {
+                        tekoFont = f;
+                        break;
+                    }
                 }
             }
 

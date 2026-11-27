@@ -85,6 +85,7 @@ namespace TheLastEmpire.Network
         public bool isDowned;
         public float downedRemainingSeconds;
         public float reviveProgress01;
+        public bool isFlashlightOn;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -111,6 +112,7 @@ namespace TheLastEmpire.Network
             serializer.SerializeValue(ref isDowned);
             serializer.SerializeValue(ref downedRemainingSeconds);
             serializer.SerializeValue(ref reviveProgress01);
+            serializer.SerializeValue(ref isFlashlightOn);
         }
     }
 

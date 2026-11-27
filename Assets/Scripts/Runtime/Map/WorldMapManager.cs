@@ -84,6 +84,9 @@ namespace TheLastEmpire
                 StageTemplateManager.Instance.StampDistrictsOntoWorldMap(mapGenerator, force: true);
             }
 
+            // Pre-roll the Roaming Alien World Boss stage (50,000 persistent HP) before first stage entry
+            RoamingAlienBossManager.Instance?.InitializeForNewWorld(mapGenerator, seed);
+
             InitializePlayerCoordinates();
 
             if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost)
@@ -126,6 +129,14 @@ namespace TheLastEmpire
                 playerCoordX = CurrentPlayerX,
                 playerCoordY = CurrentPlayerY
             };
+
+            if (RoamingAlienBossManager.Instance != null)
+            {
+                data.alienBossStageX = RoamingAlienBossManager.Instance.BossStageX;
+                data.alienBossStageY = RoamingAlienBossManager.Instance.BossStageY;
+                data.alienBossRemainingHp = RoamingAlienBossManager.Instance.RemainingHealth;
+                data.alienBossDefeated = RoamingAlienBossManager.Instance.IsDefeated;
+            }
 
             for (int i = 0; i < mapGenerator.gridData.Length; i++)
             {
@@ -186,6 +197,13 @@ namespace TheLastEmpire
                     mapGenerator.gridData[index].isCleared = true;
                 }
             }
+
+            RoamingAlienBossManager.Instance?.RestoreFromSave(
+                mapGenerator,
+                data.alienBossStageX,
+                data.alienBossStageY,
+                data.alienBossRemainingHp,
+                data.alienBossDefeated);
 
             Debug.Log("WorldMapManager: Game state successfully loaded and restored.");
             OnStageChanged?.Invoke(CurrentPlayerX, CurrentPlayerY);

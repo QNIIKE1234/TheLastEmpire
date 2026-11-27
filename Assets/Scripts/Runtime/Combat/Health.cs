@@ -16,6 +16,7 @@ namespace TheLastEmpire
         public UnityEvent onDeath;
 
         private float _invulnerabilityTimer = 0f;
+        private bool _hasCustomInitialHealth = false;
 
         public float MaxHealth => maxHealth;
         
@@ -40,9 +41,31 @@ namespace TheLastEmpire
             }
         }
 
+        /// <summary>
+        /// Sets both maxHealth and a persistent non-full currentHealth (e.g. Roaming World Boss)
+        /// so Health.Start() will NOT reset CurrentHealth back to maxHealth.
+        /// </summary>
+        public void InitializePersistentHealth(float initialCurrentHealth, float newMaxHealth)
+        {
+            if (newMaxHealth > 0f)
+            {
+                maxHealth = newMaxHealth;
+            }
+            _hasCustomInitialHealth = true;
+            _invulnerabilityTimer = 0f;
+            CurrentHealth = Mathf.Clamp(initialCurrentHealth, 0f, maxHealth);
+        }
+
         private void Start()
         {
-            CurrentHealth = maxHealth;
+            if (!_hasCustomInitialHealth)
+            {
+                CurrentHealth = maxHealth;
+            }
+            else
+            {
+                onHealthChanged?.Invoke(currentHealth);
+            }
         }
 
         private void Update()
@@ -73,6 +96,11 @@ namespace TheLastEmpire
 
         public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint, bool isCrit, bool isExplosion)
         {
+            TakeDamage(damageAmount, hitPoint, isCrit, isExplosion, false);
+        }
+
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint, bool isCrit, bool isExplosion, bool skipLocalNightMultiplier)
+        {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
 
@@ -82,6 +110,17 @@ namespace TheLastEmpire
                 BaseEnemyAI enemyAi = GetComponent<BaseEnemyAI>();
                 if (enemyAi != null && enemyAi.IsNetworkPuppet && enemyAi.NetworkEnemyId > 0)
                 {
+                    // Apply attacker's own Night Combat buffs (Thermal Bio-Visor +20% vs Aliens, Signal Flare +15% DMG)
+                    // on the Client before sending authoritative damage to Host (Host applies via TakeNetworkClientDamage without re-applying its own visor buff).
+                    if (!skipLocalNightMultiplier && NightCombatItemManager.Instance != null)
+                    {
+                        float clientNightMult = NightCombatItemManager.Instance.GetEnemyDamageTakenMultiplier(gameObject);
+                        if (clientNightMult > 1.001f)
+                        {
+                            damageAmount = Mathf.Round(damageAmount * clientNightMult);
+                        }
+                    }
+
                     TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendClientDamageToHost(enemyAi.NetworkEnemyId, damageAmount, isCrit, isExplosion);
 
                     // แสดงตัวเลขดาเมจและเอฟเฟกต์เลือดทันทีบนเครื่อง Client (0ms Visual Feedback)
@@ -132,6 +171,15 @@ namespace TheLastEmpire
                 if (pc.ActiveCharacterData != null && pc.ActiveCharacterData.damageReductionPercent > 0f)
                 {
                     damageAmount *= (1f - pc.ActiveCharacterData.damageReductionPercent); // Passive armor (e.g. Juggernaut 15%)
+                }
+            }
+
+            else if (!skipLocalNightMultiplier && NightCombatItemManager.Instance != null && GetComponent<BaseEnemyAI>() != null)
+            {
+                float nightDmgMult = NightCombatItemManager.Instance.GetEnemyDamageTakenMultiplier(gameObject);
+                if (nightDmgMult > 1.001f)
+                {
+                    damageAmount = Mathf.Round(damageAmount * nightDmgMult);
                 }
             }
 
@@ -218,6 +266,7 @@ namespace TheLastEmpire
 
         public void ResetHealth()
         {
+            _hasCustomInitialHealth = false;
             CurrentHealth = maxHealth;
             _invulnerabilityTimer = 0f; // Clear any active I-frames on reset
         }

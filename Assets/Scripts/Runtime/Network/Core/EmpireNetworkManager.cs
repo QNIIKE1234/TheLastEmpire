@@ -47,7 +47,13 @@ namespace TheLastEmpire.Network
         BuildingDestroyBroadcast = 52,
         CrateTransactionRequest = 53,
         CrateTransactionBroadcast = 54,
-        FurnitureStateSync = 55
+        FurnitureStateSync = 55,
+        NightCombatEffect = 56,
+        RoamingBossSync = 57,
+        EnemyTelegraphSync = 58,
+        AbilityVisualSync = 59,
+        WeatherSync = 60,
+        LightningStrikeSync = 61
     }
 
     [Serializable]
@@ -312,8 +318,10 @@ namespace TheLastEmpire.Network
             _steamTransport.OnPacketReceived += HandleIncomingSteamPacket;
             _steamTransport.OnClientConnectedToHost += HandleSteamClientConnectedToHost;
             _steamTransport.OnClientDisconnectedFromHost += HandleSteamClientDisconnectedFromHost;
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
             _steamTransport.OnSteamPeerDisconnected += HandleSteamPeerDisconnectedOnHost;
             _steamTransport.OnInviteJoinRequested += HandleSteamInviteJoinRequested;
+#endif
 
             if (_steamTransport.TryInitializeSteam())
             {
@@ -454,8 +462,10 @@ namespace TheLastEmpire.Network
                 _steamTransport.OnPacketReceived -= HandleIncomingSteamPacket;
                 _steamTransport.OnClientConnectedToHost -= HandleSteamClientConnectedToHost;
                 _steamTransport.OnClientDisconnectedFromHost -= HandleSteamClientDisconnectedFromHost;
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
                 _steamTransport.OnSteamPeerDisconnected -= HandleSteamPeerDisconnectedOnHost;
                 _steamTransport.OnInviteJoinRequested -= HandleSteamInviteJoinRequested;
+#endif
                 _steamTransport.CloseSocketsAndLobby();
             }
             if (_lanDiscoverySocket != null)
@@ -865,6 +875,7 @@ namespace TheLastEmpire.Network
             }
         }
 
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
         private async void HandleSteamInviteJoinRequested(Steamworks.Data.Lobby lobby, Steamworks.SteamId friendId)
         {
             DisconnectSession();
@@ -887,6 +898,7 @@ namespace TheLastEmpire.Network
                 MultiplayerLobbyUI.Instance.ShowRoomInfoPanelAfterExternalJoin();
             }
         }
+#endif
 
         private void HandleSteamClientConnectedToHost()
         {
@@ -905,6 +917,7 @@ namespace TheLastEmpire.Network
             }
         }
 
+#if !UNITY_WEBGL && (UNITY_STANDALONE || UNITY_EDITOR)
         private void HandleSteamPeerDisconnectedOnHost(uint connId, Steamworks.SteamId steamId)
         {
             if (!_isSessionActive || !_isHost) return;
@@ -968,6 +981,7 @@ namespace TheLastEmpire.Network
             OnLobbyRosterChanged?.Invoke();
             OnPeerDisconnected?.Invoke(clientId);
         }
+#endif
 
         public void DisconnectSession()
         {
@@ -1684,6 +1698,9 @@ namespace TheLastEmpire.Network
                         OnLobbyRosterChanged?.Invoke();
                         NetworkBuildingSyncManager.Instance?.SendAllPlacedBuildingsToClient(senderId);
                         DayNightManager.Instance?.BroadcastTimeSyncFromHost(senderId, snapVisuals: true);
+                        NightCombatItemManager.Instance?.SendActiveStageFlaresToClient(senderId);
+                        RoamingAlienBossManager.Instance?.SendBossStateToClient(senderId);
+                        WeatherManager.Instance?.SendWeatherStateToClient(senderId);
                         OnPeerConnected?.Invoke(senderId);
                     }
                     break;
@@ -2122,6 +2139,91 @@ namespace TheLastEmpire.Network
                             fStageX, fStageY, fInteriorId, fPos,
                             (FurnitureStateSyncType)stateType, intVal, floatVal,
                             relayIfHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.NightCombatEffect:
+                    {
+                        ulong nSenderId = reader.ReadUInt64();
+                        int nStageX = reader.ReadInt32();
+                        int nStageY = reader.ReadInt32();
+                        int nInteriorId = reader.ReadInt32();
+                        byte effectType = reader.ReadByte();
+                        Vector3 nPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        float nDuration = reader.ReadSingle();
+                        NightCombatItemManager.Instance?.HandleRemoteNightCombatEffect(
+                            nSenderId, nStageX, nStageY, nInteriorId, effectType, nPos, nDuration, relayIfHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.RoamingBossSync:
+                    {
+                        int bStageX = reader.ReadInt32();
+                        int bStageY = reader.ReadInt32();
+                        float bRemainHp = reader.ReadSingle();
+                        bool bDefeated = reader.ReadBoolean();
+                        float bEncRemain = reader.ReadSingle();
+                        float bSumRemain = reader.ReadSingle();
+                        bool bWarpingOut = reader.ReadBoolean();
+                        byte bEventFlag = reader.ReadByte();
+                        Vector3 bEventPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        RoamingAlienBossManager.Instance?.HandleRemoteBossSync(
+                            bStageX, bStageY, bRemainHp, bDefeated, bEncRemain, bSumRemain, bWarpingOut, bEventFlag, bEventPos);
+                    }
+                    break;
+
+                case NetPacketType.EnemyTelegraphSync:
+                    {
+                        int tStageX = reader.ReadInt32();
+                        int tStageY = reader.ReadInt32();
+                        int tInteriorId = reader.ReadInt32();
+                        int tEnemyNetId = reader.ReadInt32();
+                        byte tType = reader.ReadByte();
+                        Vector3 tOrigin = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        Vector3 tDir = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        float tSize = reader.ReadSingle();
+                        float tDur = reader.ReadSingle();
+                        NetworkEnemyBridge.Instance?.HandleEnemyTelegraphFromHost(
+                            tStageX, tStageY, tInteriorId, tEnemyNetId, tType, tOrigin, tDir, tSize, tDur);
+                    }
+                    break;
+
+                case NetPacketType.AbilityVisualSync:
+                    {
+                        ulong aSenderId = reader.ReadUInt64();
+                        int aStageX = reader.ReadInt32();
+                        int aStageY = reader.ReadInt32();
+                        int aInteriorId = reader.ReadInt32();
+                        byte aType = reader.ReadByte();
+                        Vector3 aStart = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        Vector3 aEnd = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        float aRadius = reader.ReadSingle();
+                        float aDur = reader.ReadSingle();
+                        PlayerController.HandleRemoteAbilityVisual(
+                            aSenderId, aStageX, aStageY, aInteriorId, aType, aStart, aEnd, aRadius, aDur, relayIfHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.WeatherSync:
+                    {
+                        byte wType = reader.ReadByte();
+                        float wRemain = reader.ReadSingle();
+                        byte wSeasonOv = reader.ReadByte();
+                        bool wHasSeasonOv = reader.ReadBoolean();
+                        bool wSnap = reader.ReadBoolean();
+                        WeatherManager.Instance?.HandleRemoteWeatherSync(
+                            wType, wRemain, wSeasonOv, wHasSeasonOv, wSnap, receivedOnHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.LightningStrikeSync:
+                    {
+                        int lStageX = reader.ReadInt32();
+                        int lStageY = reader.ReadInt32();
+                        Vector3 lPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        float lTelegraphDur = reader.ReadSingle();
+                        WeatherManager.Instance?.HandleRemoteLightningStrike(
+                            lStageX, lStageY, lPos, lTelegraphDur, receivedOnHost: _isHost);
                     }
                     break;
             }
