@@ -14,7 +14,7 @@ namespace TheLastEmpire.Editor
     [InitializeOnLoad]
     public static class PlayerCharacterModelListSetup
     {
-        private const string PlayerPrefabPath = "Assets/Resources_Addressable/Prefabs/Character/PlayerPrefabs.prefab";
+        private const string PlayerPrefabPath = "Assets/Resources_Addressable/Prefabs/Character/Model/PlayerPrefabs.prefab";
         private const string CharacterDataDir = "Assets/Resources_Addressable/Database/Characters";
 
         static PlayerCharacterModelListSetup()

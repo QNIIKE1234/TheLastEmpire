@@ -36,7 +36,7 @@ namespace TheLastEmpire.Editor
             {
                 Name = "NPC_Elena_Medic_Rigged",
                 FbxPath = "Assets/GeneratedModels/NPCs/NPC_Elena_Medic_Rigged.fbx",
-                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/NPC_Elena_Medic_Rigged.prefab",
+                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/Model/NPC_Elena_Medic_Rigged.prefab",
                 FaceMatName = "Elena_Face_Tex",
                 FaceTexPath = "Assets/GeneratedModels/Textures/NPC_Elena_Face.png",
                 HairMatName = "Elena_Hair",
@@ -46,7 +46,7 @@ namespace TheLastEmpire.Editor
             {
                 Name = "NPC_Maya_Scout_Rigged",
                 FbxPath = "Assets/GeneratedModels/NPCs/NPC_Maya_Scout_Rigged.fbx",
-                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/NPC_Maya_Scout_Rigged.prefab",
+                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/Model/NPC_Maya_Scout_Rigged.prefab",
                 FaceMatName = "Maya_Face_Tex",
                 FaceTexPath = "Assets/GeneratedModels/Textures/NPC_Maya_Face.png",
                 HairMatName = "Maya_Hair",
@@ -56,7 +56,7 @@ namespace TheLastEmpire.Editor
             {
                 Name = "NPC_Roy_Veteran_Rigged",
                 FbxPath = "Assets/GeneratedModels/NPCs/NPC_Roy_Veteran_Rigged.fbx",
-                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/NPC_Roy_Veteran_Rigged.prefab",
+                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/Model/NPC_Roy_Veteran_Rigged.prefab",
                 FaceMatName = "Roy_Face_Tex",
                 FaceTexPath = "Assets/GeneratedModels/Textures/NPC_Roy_Face.png",
                 HairMatName = "Roy_Hair",

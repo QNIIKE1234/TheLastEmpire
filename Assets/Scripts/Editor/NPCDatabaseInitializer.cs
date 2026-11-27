@@ -98,7 +98,9 @@ namespace TheLastEmpire.Editor
 
         private static GameObject LoadDefaultModel(string prefabName, string fbxName)
         {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources_Addressable/Prefabs/Character/{prefabName}.prefab");
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources_Addressable/Prefabs/Character/Model/{prefabName}.prefab");
+            if (prefab != null) return prefab;
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources_Addressable/Prefabs/Character/{prefabName}.prefab");
             if (prefab != null) return prefab;
             return AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/GeneratedModels/NPCs/{fbxName}.fbx");
         }
