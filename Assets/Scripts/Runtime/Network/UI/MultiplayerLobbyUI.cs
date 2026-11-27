@@ -179,12 +179,19 @@ namespace TheLastEmpire.Network
 
             BindSerializedUIEvents();
 
-            // ตอนเริ่มซีน: เปิดหน้าเลือกห้อง (SelectRoomPanel) และปิดหน้าในห้อง (RoomInfoPanel) กับหน้าเลือกตัวละคร
-            if (selectRoomPanel != null && !EmpireNetworkManager.IsOnline)
+            // ตอนเริ่มซีน: หากเชื่อมห้องอยู่แล้ว (เช่น กดรับ Steam Invite) ให้เปิด RoomInfoPanel เลย
+            if (EmpireNetworkManager.IsOnline && roomInfoPanel != null)
+            {
+                if (selectRoomPanel != null) selectRoomPanel.SetActive(false);
+                roomInfoPanel.SetActive(true);
+                if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
+            }
+            else if (selectRoomPanel != null)
             {
                 selectRoomPanel.SetActive(true);
                 if (roomInfoPanel != null) roomInfoPanel.SetActive(false);
                 if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
+                EmpireNetworkManager.Instance?.RequestSteamLobbyRefresh(forceImmediate: true);
             }
 
             RefreshSceneLobbyUI();
@@ -230,6 +237,8 @@ namespace TheLastEmpire.Network
             {
                 searchInputField.onValueChanged.RemoveListener(OnSearchInputChanged);
                 searchInputField.onValueChanged.AddListener(OnSearchInputChanged);
+                searchInputField.onSubmit.RemoveListener(OnSearchInputSubmitted);
+                searchInputField.onSubmit.AddListener(OnSearchInputSubmitted);
             }
 
             if (sortButtonA != null)
@@ -391,6 +400,26 @@ namespace TheLastEmpire.Network
             }
         }
 
+        public void ShowRoomInfoPanelAfterExternalJoin()
+        {
+            if (selectRoomPanel != null) selectRoomPanel.SetActive(false);
+            if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
+            if (roomInfoPanel != null) roomInfoPanel.SetActive(true);
+            RefreshSceneLobbyUI();
+        }
+
+        private void OnSearchInputSubmitted(string submittedText)
+        {
+            string query = GetCleanSearchQuery();
+            if (string.IsNullOrEmpty(query) || EmpireNetworkManager.IsOnline) return;
+
+            // กด Enter หลังพิมพ์ Room Code 6 หลัก หรือ IP:Port เพื่อ Join ห้อง Steam Relay / LAN ได้ทันที
+            if (query.Length == 6 || query.Contains(":") || query.Contains(".") || query.StartsWith("steam", StringComparison.OrdinalIgnoreCase))
+            {
+                OnJoinRoomClicked(query, query);
+            }
+        }
+
         private void OnSearchInputChanged(string newText)
         {
             _currentPage = 0;
@@ -455,10 +484,16 @@ namespace TheLastEmpire.Network
 
             if (roomInfoSubtitleText != null)
             {
-                string roleTag = isHost ? "HOSTING LAN ROOM" : "JOINED LAN ROOM";
+                bool steamActive = EmpireNetworkManager.Instance.IsSteamRelayActive;
+                string roleTag = isHost
+                    ? (steamActive ? "HOSTING STEAM + LAN ROOM" : "HOSTING LAN ROOM")
+                    : (steamActive ? "JOINED STEAM RELAY ROOM" : "JOINED LAN ROOM");
+                string endpointInfo = steamActive
+                    ? "STEAM RELAY ONLINE"
+                    : $"{EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort}";
                 roomInfoSubtitleText.text =
-                    $"<color=#FACC15>{roleTag}: {EmpireNetworkManager.Instance.ActiveRoomName}</color>   •   " +
-                    $"CODE: <color=#38BDF8>{EmpireNetworkManager.Instance.ActiveJoinCode}</color> ({EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort})   •   " +
+                    $"<color=#FACC15>{roleTag}: {EmpireNetworkManager.Instance.ActiveRoomName}</color>  |  " +
+                    $"CODE: <color=#38BDF8>{EmpireNetworkManager.Instance.ActiveJoinCode}</color> ({endpointInfo})  |  " +
                     $"PLAYERS: <color=#4ADE80>{partyCount}/6</color>";
             }
 
@@ -565,6 +600,8 @@ namespace TheLastEmpire.Network
         {
             if (roomSlots == null || roomSlots.Count == 0) return;
 
+            EmpireNetworkManager.Instance?.RequestSteamLobbyRefresh();
+
             string query = GetCleanSearchQuery();
             List<DiscoveredLanRoom> discovered = LobbyRelayService.GetActiveLanRooms();
 
@@ -607,10 +644,11 @@ namespace TheLastEmpire.Network
                     if (dataIndex < discovered.Count)
                     {
                         DiscoveredLanRoom room = discovered[dataIndex];
-                        string displayTitle = room.roomName;
+                        string transportBadge = room.isSteamRelay ? "[STEAM] " : "[LAN] ";
+                        string displayTitle = $"{transportBadge}{room.roomName}";
                         string countStr = $"{room.currentPlayers}/{room.maxPlayers}";
                         bool canJoin = room.currentPlayers < room.maxPlayers;
-                        string endpoint = $"{room.hostIp}:{room.hostPort}";
+                        string endpoint = LobbyRelayService.GetJoinEndpoint(room);
                         string rName = room.roomName;
 
                         slot.SetRoomData(displayTitle, countStr, canJoin, "Join", () => OnJoinRoomClicked(endpoint, rName));
@@ -724,7 +762,7 @@ namespace TheLastEmpire.Network
             if (!_isWindowOpen) return;
 
             GUI.backgroundColor = new Color(0.08f, 0.10f, 0.15f, 0.97f);
-            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "THE LAST EMPIRE — 1-6 PLAYER LAN CO-OP [F2]", _windowStyle);
+            _windowRect = GUI.Window(94821, _windowRect, DrawLobbyWindowContents, "JUNK CYCLONE CRISIS - 1-6 PLAYER CO-OP [F2]", _windowStyle);
             GUI.backgroundColor = prevBg;
         }
 
@@ -742,21 +780,54 @@ namespace TheLastEmpire.Network
             if (EmpireNetworkManager.IsOnline && EmpireNetworkManager.Instance != null)
             {
                 GUILayout.BeginVertical(GUI.skin.box);
-                GUILayout.Label("LAN ROOM CODE & ENDPOINT:", _subHeaderStyle);
-                string codeDisplay = $"{EmpireNetworkManager.Instance.ActiveJoinCode}   ({EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort})";
+                string transportLabel = EmpireNetworkManager.Instance.IsSteamRelayActive
+                    ? "STEAM RELAY ONLINE + LAN ROOM CODE:"
+                    : "LAN ROOM CODE & ENDPOINT:";
+                GUILayout.Label(transportLabel, _subHeaderStyle);
+                string codeDisplay = EmpireNetworkManager.Instance.IsSteamRelayActive
+                    ? $"{EmpireNetworkManager.Instance.ActiveJoinCode}   (STEAM RELAY)"
+                    : $"{EmpireNetworkManager.Instance.ActiveJoinCode}   ({EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort})";
                 GUILayout.Box(codeDisplay, _codeBoxStyle, GUILayout.Height(38));
 
                 GUILayout.BeginHorizontal();
                 GUI.backgroundColor = new Color(0.25f, 0.65f, 0.95f);
-                if (GUILayout.Button("📋 Copy 6-Digit Code", _btnStyle, GUILayout.Height(28)))
+                if (GUILayout.Button("Copy 6-Digit Code", _btnStyle, GUILayout.Height(28)))
                 {
                     GUIUtility.systemCopyBuffer = EmpireNetworkManager.Instance.ActiveJoinCode;
                     _statusMessage = $"Copied Join Code '{EmpireNetworkManager.Instance.ActiveJoinCode}'!";
                 }
-                if (GUILayout.Button("📋 Copy IP:Port", _btnStyle, GUILayout.Height(28)))
+                if (EmpireNetworkManager.Instance.HasActiveSteamLobby)
+                {
+                    GUI.backgroundColor = new Color(0.14f, 0.45f, 0.72f);
+                    if (GUILayout.Button("Invite Steam Friend", _btnStyle, GUILayout.Height(28)))
+                    {
+                        EmpireNetworkManager.Instance.OpenSteamInviteOverlay();
+                        _statusMessage = "Opened Steam Friend Invite overlay!";
+                    }
+                }
+                else if (GUILayout.Button("Copy IP:Port", _btnStyle, GUILayout.Height(28)))
                 {
                     GUIUtility.systemCopyBuffer = $"{EmpireNetworkManager.Instance.ActiveHostIp}:{EmpireNetworkManager.Instance.ActivePort}";
                     _statusMessage = $"Copied '{GUIUtility.systemCopyBuffer}'!";
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
+                GUILayout.Space(6);
+            }
+            else
+            {
+                GUILayout.BeginVertical(GUI.skin.box);
+                string steamState = (EmpireNetworkManager.Instance != null && EmpireNetworkManager.Instance.IsSteamAvailable)
+                    ? $"STEAM ONLINE: {EmpireNetworkManager.Instance.SteamPlayerName} (AppID 480)"
+                    : "STEAM OFFLINE (Open Steam client for online Steam Relay)";
+                GUILayout.Label(steamState, _subHeaderStyle);
+                GUILayout.BeginHorizontal();
+                _joinCodeInput = GUILayout.TextField(_joinCodeInput ?? "", GUILayout.Height(26));
+                GUI.backgroundColor = new Color(0.16f, 0.72f, 0.45f);
+                if (GUILayout.Button("Join Code/IP", _btnStyle, GUILayout.Height(26), GUILayout.Width(115)))
+                {
+                    EmpireNetworkManager.Instance?.StartClientSession(_joinCodeInput);
+                    _statusMessage = $"Connecting to '{_joinCodeInput}'...";
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
@@ -777,16 +848,18 @@ namespace TheLastEmpire.Network
             var lanRooms = LobbyRelayService.GetActiveLanRooms();
             if (lanRooms.Count > 0)
             {
-                GUILayout.Label($"📡 DISCOVERED LAN ROOMS ({lanRooms.Count}):", _subHeaderStyle);
+                GUILayout.Label($"DISCOVERED ROOMS ({lanRooms.Count}):", _subHeaderStyle);
                 for (int i = 0; i < lanRooms.Count; i++)
                 {
                     var room = lanRooms[i];
-                    GUI.backgroundColor = new Color(0.16f, 0.78f, 0.55f);
-                    string roomBtnText = $"⚡ JOIN [{room.roomName}] ({room.hostIp}:{room.hostPort}) — {room.currentPlayers}/{room.maxPlayers}P";
+                    GUI.backgroundColor = room.isSteamRelay ? new Color(0.14f, 0.52f, 0.85f) : new Color(0.16f, 0.78f, 0.55f);
+                    string tag = room.isSteamRelay ? "[STEAM]" : "[LAN]";
+                    string roomBtnText = $"JOIN {tag} [{room.roomName}] ({room.joinCode}) - {room.currentPlayers}/{room.maxPlayers}P";
                     if (GUILayout.Button(roomBtnText, _btnStyle, GUILayout.Height(30)))
                     {
-                        _joinCodeInput = $"{room.hostIp}:{room.hostPort}";
-                        EmpireNetworkManager.Instance?.StartClientSession(_joinCodeInput);
+                        string ep = LobbyRelayService.GetJoinEndpoint(room);
+                        _joinCodeInput = room.joinCode;
+                        EmpireNetworkManager.Instance?.StartClientSession(ep);
                     }
                 }
             }

@@ -874,7 +874,7 @@ namespace TheLastEmpire
             topFlourishObj.layer = 5;
             topFlourishObj.transform.SetParent(logoContainer.transform, false);
             TMP_Text topFlourish = topFlourishObj.AddComponent<TextMeshProUGUI>();
-            topFlourish.text = "THE LAST";
+            topFlourish.text = "JUNK CYCLONE";
             topFlourish.fontSize = 20;
             topFlourish.fontStyle = FontStyles.Bold;
             topFlourish.color = secondaryAccent;
@@ -887,12 +887,12 @@ namespace TheLastEmpire
             tfRect.anchoredPosition = new Vector2(0f, -10f);
             tfRect.sizeDelta = new Vector2(410f, 32f);
 
-            // Main Title "EMPIRE"
+            // Main Title "CRISIS"
             GameObject mainTitleObj = new GameObject("MainTitleText");
             mainTitleObj.layer = 5;
             mainTitleObj.transform.SetParent(logoContainer.transform, false);
             titleLabel = mainTitleObj.AddComponent<TextMeshProUGUI>();
-            titleLabel.text = "EMPIRE";
+            titleLabel.text = "CRISIS";
             titleLabel.fontSize = 78;
             titleLabel.fontStyle = FontStyles.Bold;
             titleLabel.color = Color.white;
@@ -990,7 +990,7 @@ namespace TheLastEmpire
             verObj.layer = 5;
             verObj.transform.SetParent(sidebarObj.transform, false);
             TMP_Text vText = verObj.AddComponent<TextMeshProUGUI>();
-            vText.text = "THE LAST EMPIRE // v1.0.4 PROTOCOL";
+            vText.text = "JUNK CYCLONE CRISIS // v1.0.4 PROTOCOL";
             vText.fontSize = 11;
             vText.color = new Color(0.45f, 0.48f, 0.55f, 0.75f);
             vText.alignment = TextAlignmentOptions.Center;
@@ -2193,7 +2193,7 @@ namespace TheLastEmpire
             GameObject verObj = new GameObject("VersionTagText");
             verObj.transform.SetParent(canvasTransform, false);
             TMP_Text verText = verObj.AddComponent<TextMeshProUGUI>();
-            verText.text = "<b>THE LAST EMPIRE</b> // v1.0 - BUILD PROTOCOL ACTIVE";
+            verText.text = "<b>JUNK CYCLONE CRISIS</b> // v1.0 - BUILD PROTOCOL ACTIVE";
             verText.fontSize = 14;
             verText.color = new Color(secondaryAccent.r, secondaryAccent.g, secondaryAccent.b, 0.65f);
             verText.alignment = TextAlignmentOptions.Right;
