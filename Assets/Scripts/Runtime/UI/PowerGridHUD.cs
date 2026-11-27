@@ -483,7 +483,7 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && !HUDNavigationManager.IsTypingInInputField())
             {
                 if (Keyboard.current.escapeKey.wasPressedThisFrame && _isOpen)
                 {

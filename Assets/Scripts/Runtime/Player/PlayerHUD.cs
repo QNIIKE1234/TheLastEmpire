@@ -1082,7 +1082,7 @@ namespace TheLastEmpire
 
         public void ReturnToMainMenu()
         {
-            Time.timeScale = 1f;
+            GameManager.ResetAllGameplayStateForRetry();
 
             if (TheLastEmpire.Network.EmpireNetworkManager.IsOnline)
             {
@@ -1123,14 +1123,9 @@ namespace TheLastEmpire
 
             _isShowingGameOver = false;
             _deathScreenShown = false;
-            // Restore normal game speed
-            Time.timeScale = 1f;
 
-            // Reset day tracking status
-            if (DayNightManager.Instance != null)
-            {
-                DayNightManager.Instance.ResetDayCount();
-            }
+            // เคลียร์สถานะทั้งหมดของรอบก่อนหน้าให้สะอาดหมดจด (Artifact, Inventory, QuickSlots, Buildings, Weather, Boss, Cheats, UI)
+            GameManager.ResetAllGameplayStateForRetry();
 
             // Reset stage/exploration metrics
             if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)

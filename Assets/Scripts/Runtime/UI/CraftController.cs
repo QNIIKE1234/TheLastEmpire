@@ -113,6 +113,7 @@ namespace TheLastEmpire
         private PlayerInventory _playerInventory;
 
         public bool IsOpen => _isOpen;
+        public bool IsSearchFocused => searchInputField != null && searchInputField.isFocused;
         public CraftingCategory CurrentCategory => _currentCategory;
 
         public bool FreeCraftMode
@@ -215,8 +216,8 @@ namespace TheLastEmpire
 
             if (!enableShortcutKey) return;
 
-            // ไม่กดเปิดทับถ้าผู้เล่นกำลังพิมพ์ในช่อง Search อยู่
-            if (searchInputField != null && searchInputField.isFocused) return;
+            // ไม่กดเปิดทับถ้าผู้เล่นกำลังพิมพ์ในช่อง Search หรือช่องกรอกข้อความใดๆ อยู่
+            if (HUDNavigationManager.IsTypingInInputField()) return;
 
             if (Keyboard.current[toggleCraftKey].wasPressedThisFrame)
             {

@@ -130,3 +130,14 @@ This file documents critical patterns, design choices, and systems established i
 *   **1-Second Sprint Lock On Shoot (`_shootSprintLockTimer`)**:
     *   Firing a ranged weapon (`ShootWeapon()`) sets `_shootSprintLockTimer = 1.0f`, cancels `_isSprinting` and `_activeShiftAbility`, and locks movement velocity in `FixedUpdate()` to standard walking speed (`moveSpeed`) for 1.0 full second before sprinting is allowed again.
 
+---
+
+## 12. Mandatory Multiplayer / Network Co-op Sync Check (EVERY CHANGE)
+*   **Standing Order**: Whenever ANY new feature, weapon, artifact skill, enemy attack/telegraph, status effect, building, loot/drop, UI state reset, or gameplay mechanic is added or modified, ALWAYS audit and verify **Multiplayer / Co-op Network Sync** before finishing:
+    1. **Host ↔ Client Visual & Audio Replication**: Verify teammates in the same stage/interior see animations, projectiles, telegraphs, VFX, held/consumed weapons, sitting/downed poses, and weather/lighting changes (`NetworkPlayerBridge`, `NetworkEnemyBridge`, `EmpireNetworkManager`).
+    2. **Host-Authoritative Physics & State**: Any knockback, pull, stagger, enemy spawn/death, building placement/destruction, projectile parry/dismissal, or stage/match reset triggered by a Client MUST be relayed and applied authoritatively on the Host (without double-dealing damage when `EnemyDamageRequest` already handles damage).
+    3. **Remote Player Guards**: Ensure local-only input, HUD prompts, camera shakes, and local artifact/inventory queries are properly guarded against `IsRemotePlayer` so remote avatars never trigger local player logic or vice versa.
+    4. **Retry / Match Reset / Join Parity**: Verify `GameManager.ResetAllGameplayStateForRetry()` clears persistent/static state consistently on Solo, Host Retry, and Client Retry without clobbering buffered Host→Client sync packets when joining a live match.
+    5. **Dual-Target Compile Check**: Verify both **Win64** and **WebGL** compile with `0` errors after every C# change.
+
+

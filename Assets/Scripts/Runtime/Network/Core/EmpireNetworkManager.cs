@@ -1211,13 +1211,8 @@ namespace TheLastEmpire.Network
         {
             if (_isSessionActive && !_isHost) return;
 
-            Time.timeScale = 1f;
             _hasTriggeredPartyWipe = false;
-
-            if (DayNightManager.Instance != null)
-            {
-                DayNightManager.Instance.ResetDayCount();
-            }
+            GameManager.ResetAllGameplayStateForRetry();
 
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
             NetworkLootManager.Instance?.ClearMatchLootCache();
@@ -1258,13 +1253,8 @@ namespace TheLastEmpire.Network
 
         private void HandleHostRetryMatchOnClient(string targetScene, int retrySeed)
         {
-            Time.timeScale = 1f;
             _hasTriggeredPartyWipe = false;
-
-            if (DayNightManager.Instance != null)
-            {
-                DayNightManager.Instance.ResetDayCount();
-            }
+            GameManager.ResetAllGameplayStateForRetry();
 
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
             NetworkLootManager.Instance?.ClearMatchLootCache();

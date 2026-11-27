@@ -265,7 +265,7 @@ namespace TheLastEmpire
 
         private void Update()
         {
-            if (!_isOpen) return;
+            if (!_isOpen || HUDNavigationManager.IsTypingInInputField()) return;
 
             // ตรวจสอบ Hover + กดเลข 1 - 5 เพื่อ Assign ของลง Quick Slot ทันที (ดักเฉพาะไอเทมที่ใช้ได้ ไม่เอากระสุน/วัสดุ)
             if (InventoryItemSlot.HoveredSlot != null && !string.IsNullOrEmpty(InventoryItemSlot.HoveredSlot.CurrentItemName))

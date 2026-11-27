@@ -343,7 +343,9 @@ namespace TheLastEmpire
                 // ของที่ผู้เล่นโยนลงพื้นจะไม่ดูดเข้าตัวอัตโนมัติ ต้องกด [E] เพื่อเก็บ
                 if (RequireManualPickup && inRange && !_isPopping &&
                     Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame &&
-                    (InventoryUI.Instance == null || !InventoryUI.Instance.IsOpen))
+                    !HUDNavigationManager.IsTypingInInputField() &&
+                    (InventoryUI.Instance == null || !InventoryUI.Instance.IsOpen) &&
+                    (CraftController.Instance == null || !CraftController.Instance.IsOpen))
                 {
                     if (_playerController != null)
                     {

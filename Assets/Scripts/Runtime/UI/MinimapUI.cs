@@ -48,7 +48,7 @@ namespace TheLastEmpire
         private void Update()
         {
             // Keyboard shortcuts using the New Input System direct API
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && !HUDNavigationManager.IsTypingInInputField())
             {
                 // Plus key or Equals key to Zoom In
                 if (Keyboard.current.equalsKey.wasPressedThisFrame || Keyboard.current.numpadPlusKey.wasPressedThisFrame)

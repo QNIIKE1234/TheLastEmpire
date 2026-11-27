@@ -1239,7 +1239,8 @@ namespace TheLastEmpire
                 _activeShiftAbility?.OnShiftReleased();
             }
 
-            if (Keyboard.current != null)
+            bool isTypingInInput = HUDNavigationManager.IsTypingInInputField();
+            if (Keyboard.current != null && !isTypingInInput)
             {
                 if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
@@ -1258,13 +1259,13 @@ namespace TheLastEmpire
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
             // Allow running with Shift even while Shift ability is on cooldown (fallback +20% sprint speed)
-            bool canSprint = !isDehydrated && !isShiftBlockedByWeather;
+            bool canSprint = !isDehydrated && !isShiftBlockedByWeather && !isTypingInInput;
             _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             UpdateWater();
             UpdateSanity();
-            // Allow opening/closing the inventory with I or Escape even when game timescale is paused
-            if (Keyboard.current != null)
+            // Allow opening/closing the inventory with I or reloading with R (blocked while typing in any UI input field)
+            if (Keyboard.current != null && !isTypingInInput)
             {
                 if (Keyboard.current.iKey.wasPressedThisFrame)
                 {
@@ -1282,10 +1283,13 @@ namespace TheLastEmpire
                 }
             }
 
-            bool isMenuOpen = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
+            bool isMenuOpen = isTypingInInput ||
+                              (CraftController.Instance != null && CraftController.Instance.IsOpen) ||
+                              (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) || 
                               (LootUI.HasInstance && LootUI.Instance.IsOpen) ||
                               (StorageUI.HasInstance && StorageUI.Instance.IsOpen) ||
                               (WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen) ||
+                              (ShopUI.Instance != null && ShopUI.Instance.IsOpen) ||
                               (TheLastEmpire.UI.DialogueUI.Instance != null && TheLastEmpire.UI.DialogueUI.Instance.IsDialogueActive);
             if (isMenuOpen)
             {
@@ -1664,13 +1668,9 @@ namespace TheLastEmpire
                 if (_aoeSpriteRenderer != null && _aoeSpriteRenderer.gameObject.activeSelf) _aoeSpriteRenderer.gameObject.SetActive(false);
             }
 
-            // 3. Sniper Aiming & Eagle Eye RED Laser Sight + UI_Hitbox_Sprites_2 Red Crosshair Reticle
+            // 3. Eagle Eye RED Laser Sight + UI_Hitbox_Sprites_2 Red Crosshair Reticle (ONLY active while holding Shift / EagleEye)
             bool isEagleEyeAiming = _activeShiftAbility is EagleEyeAbility eagle && eagle.IsActive;
-            bool isHoldingSniperRifle = _heldItemType == HeldItemType.Ranged &&
-                                        CurrentWeapon != null &&
-                                        !string.IsNullOrEmpty(CurrentWeapon.weaponName) &&
-                                        CurrentWeapon.weaponName.IndexOf("sniper", System.StringComparison.OrdinalIgnoreCase) >= 0;
-            bool showSniperRedAim = isEagleEyeAiming || isHoldingSniperRifle;
+            bool showSniperRedAim = isEagleEyeAiming;
 
             if (showSniperRedAim && !_isSitting && !_isSleeping)
             {
@@ -2083,9 +2083,10 @@ namespace TheLastEmpire
 
             UpdateFlamethrowerConeVfx();
 
-            if (Keyboard.current != null)
+            if (Keyboard.current != null && !HUDNavigationManager.IsTypingInInputField())
             {
                 bool isUIBlocked = (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) ||
+                                   (CraftController.Instance != null && CraftController.Instance.IsOpen) ||
                                    (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) ||
                                    (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode);
 
@@ -2135,7 +2136,8 @@ namespace TheLastEmpire
         private void OnMove(InputValue value)
         {
             if (IsRemotePlayer || IsDowned) return;
-            if (IsControlLocked)
+            if (IsControlLocked || HUDNavigationManager.IsTypingInInputField() ||
+                (CraftController.Instance != null && CraftController.Instance.IsOpen))
             {
                 _moveInput = Vector2.zero;
                 return;

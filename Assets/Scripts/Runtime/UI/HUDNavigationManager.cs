@@ -127,12 +127,47 @@ namespace TheLastEmpire
             }
         }
 
-        private static bool IsTypingInInputField()
+        public static bool IsTypingInInputField()
         {
+            if (CraftController.Instance != null && CraftController.Instance.IsSearchFocused)
+                return true;
+
             if (EventSystem.current == null) return false;
             GameObject selected = EventSystem.current.currentSelectedGameObject;
             if (selected == null) return false;
-            return selected.GetComponent<TMP_InputField>() != null || selected.GetComponent<InputField>() != null;
+
+            TMP_InputField tmpInput = selected.GetComponentInParent<TMP_InputField>();
+            if (tmpInput != null && tmpInput.isFocused) return true;
+
+            InputField legacyInput = selected.GetComponentInParent<InputField>();
+            if (legacyInput != null && legacyInput.isFocused) return true;
+
+            return false;
+        }
+
+        public static bool TryUnfocusActiveInputField()
+        {
+            if (!IsTypingInInputField()) return false;
+
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)
+            {
+                GameObject selected = EventSystem.current.currentSelectedGameObject;
+                TMP_InputField tmpInput = selected.GetComponentInParent<TMP_InputField>();
+                if (tmpInput != null && tmpInput.isFocused)
+                {
+                    tmpInput.DeactivateInputField();
+                }
+                else
+                {
+                    InputField legacyInput = selected.GetComponentInParent<InputField>();
+                    if (legacyInput != null && legacyInput.isFocused)
+                    {
+                        legacyInput.DeactivateInputField();
+                    }
+                }
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+            return true;
         }
 
         private void AutoWireButtons()

@@ -274,7 +274,7 @@ namespace TheLastEmpire
 
         private void HandleInput()
         {
-            if (Keyboard.current == null) return;
+            if (Keyboard.current == null || HUDNavigationManager.IsTypingInInputField()) return;
 
             // L key (or F key) toggles torch / flashlight
             if (Keyboard.current.lKey.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame)

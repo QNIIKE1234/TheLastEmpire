@@ -295,6 +295,28 @@ namespace TheLastEmpire
             }
         }
 
+        /// <summary>
+        /// ทำลายและล้างสิ่งปลูกสร้างทั้งหมดที่วางไว้ในรอบก่อนหน้า (ใช้ตอน Retry / เริ่มเกมใหม่)
+        /// </summary>
+        public void ClearAllBuildings()
+        {
+            for (int i = _activeBuildings.Count - 1; i >= 0; i--)
+            {
+                BuildingObject b = _activeBuildings[i];
+                if (b != null && b.gameObject != null)
+                {
+                    Destroy(b.gameObject);
+                }
+            }
+            _activeBuildings.Clear();
+
+            if (_buildingsContainer != null)
+            {
+                Destroy(_buildingsContainer.gameObject);
+                _buildingsContainer = null;
+            }
+        }
+
         private void LoadDefaultBuildingDataIfEmpty()
         {
             if (allBuildings == null)

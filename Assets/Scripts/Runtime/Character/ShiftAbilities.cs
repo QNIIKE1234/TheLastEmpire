@@ -628,8 +628,8 @@ namespace TheLastEmpire
                 return;
             }
 
-            // Live YELLOW Grapple Target Hitbox Preview when ready to hook an obstacle!
-            UpdateGrappleYellowAimPreview();
+            // Keep grapple aim preview completely hidden until Shift is actually pressed
+            HidePreviewVisuals();
         }
 
         private void UpdateGrappleYellowAimPreview()

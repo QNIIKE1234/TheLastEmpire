@@ -631,6 +631,12 @@ namespace TheLastEmpire
                 _fadeOverlayGroup.alpha = 1.0f;
             }
 
+            if (!ShouldLoadSave)
+            {
+                bool preserveClientTimeSync = TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient;
+                GameManager.ResetAllGameplayStateForRetry(clearPendingNetworkTime: !preserveClientTimeSync);
+            }
+
             SceneManager.LoadScene(sceneName);
         }
 

@@ -338,6 +338,29 @@ namespace TheLastEmpire
         //  PUBLIC CONTROLS ([F1] Debug Menu & Gameplay API — Co-op Synced!)
         // =========================================================================
 
+        public void ResetWeatherForNewRun()
+        {
+            StopAllCoroutines();
+            CurrentWeather = WeatherType.Clear;
+            _weatherRemainingTimer = 0f;
+            _rollTimer = rollIntervalSeconds;
+            _hasSeasonOverride = false;
+            RainIntensity = 0f;
+            StormIntensity = 0f;
+            SnowParticleIntensity = 0f;
+            BlizzardIntensity = 0f;
+            GroundWetness = 0f;
+            GroundSnowAmount = 0f;
+            _lightningFlashAlpha = 0f;
+            _blizzardDamageTimer = 0f;
+            _snowTargets.Clear();
+            _snowTargetRefreshTimer = 0f;
+
+            SetAllWeatherParticlesActive(false);
+            ResetGlobalWeatherShaders();
+            MuteAllAudio();
+        }
+
         public void SetWeather(WeatherType weather, float durationSeconds = -1f)
         {
             float dur = weather == WeatherType.Clear

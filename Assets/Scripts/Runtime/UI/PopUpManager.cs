@@ -49,6 +49,12 @@ namespace TheLastEmpire
         {
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
+                // หากกำลังพิมพ์ในช่อง InputField (เช่น Search ในหน้า Craft) กด ESC เพื่อเลิกโฟกัสช่องพิมพ์ก่อน
+                if (HUDNavigationManager.TryUnfocusActiveInputField())
+                {
+                    return;
+                }
+
                 // ถ้ากำลังอยู่ในโหมดเล็งสร้างสิ่งปลูกสร้าง ให้ BuildingPlacer ทำหน้าที่กดยกเลิกการสร้าง ไม่เปิดหน้าต่าง Setting หรือ Pop
                 if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode)
                 {
@@ -91,6 +97,18 @@ namespace TheLastEmpire
                 {
                     popup.ClosePopUp();
                     break;
+                }
+            }
+        }
+
+        public void ClearAllPopUps()
+        {
+            while (_popUpStack.Count > 0)
+            {
+                IPopUp popup = _popUpStack.Pop();
+                if (popup != null)
+                {
+                    try { popup.ClosePopUp(); } catch { }
                 }
             }
         }

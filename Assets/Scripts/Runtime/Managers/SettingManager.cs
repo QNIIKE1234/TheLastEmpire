@@ -998,8 +998,16 @@ namespace TheLastEmpire
             else
             {
                 Debug.Log("[SettingManager] Exit clicked in Gameplay -> Returning to MainMenu.");
-                Time.timeScale = 1f;
                 CloseSettingsModal();
+                GameManager.ResetAllGameplayStateForRetry();
+                if (TheLastEmpire.Network.EmpireNetworkManager.IsOnline)
+                {
+                    TheLastEmpire.Network.EmpireNetworkManager.Instance?.DisconnectSession();
+                }
+                if (GameManager.Instance != null) Destroy(GameManager.Instance.gameObject);
+                if (WorldMapManager.Instance != null) Destroy(WorldMapManager.Instance.gameObject);
+                if (DayNightManager.Instance != null) Destroy(DayNightManager.Instance.gameObject);
+                if (InventoryUI.Instance != null) Destroy(InventoryUI.Instance.gameObject);
                 SceneManager.LoadScene("MainMenu");
             }
         }

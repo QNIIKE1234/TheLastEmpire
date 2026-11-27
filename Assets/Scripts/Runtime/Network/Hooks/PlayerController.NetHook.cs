@@ -177,6 +177,8 @@ namespace TheLastEmpire
             if (_aoeSpriteRenderer != null) _aoeSpriteRenderer.gameObject.SetActive(false);
             if (_laserSightIndicator != null) _laserSightIndicator.gameObject.SetActive(false);
             if (_laserTargetDot != null) _laserTargetDot.gameObject.SetActive(false);
+            if (_sniperReticleSprite != null) _sniperReticleSprite.gameObject.SetActive(false);
+            if (_sniperChevronSprite != null) _sniperChevronSprite.gameObject.SetActive(false);
 
             // อัปเดตชื่อเพื่อนร่วมทีมลงบนป้ายชื่อเหนือหัวของ PlayerPrefabs (แทนคำว่า "You")
             RefreshOverheadNameLabel();
@@ -291,9 +293,18 @@ namespace TheLastEmpire
                 _health.SetHealthFromNetwork(state.currentHealth, state.maxHealth);
             }
 
-            if (!string.IsNullOrEmpty(state.activeWeaponName))
+            HeldItemType remoteType = (HeldItemType)state.heldItemType;
+            if (remoteType == HeldItemType.None)
             {
-                HeldItemType remoteType = (HeldItemType)state.heldItemType;
+                if (_heldItemType != HeldItemType.None)
+                {
+                    _heldItemType = HeldItemType.None;
+                    if (rangeWeapon != null) rangeWeapon.SetActive(false);
+                    if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                }
+            }
+            else if (!string.IsNullOrEmpty(state.activeWeaponName))
+            {
                 if (remoteType == HeldItemType.Ranged && CurrentWeaponName != state.activeWeaponName)
                 {
                     SetHeldRangedWeapon(state.activeWeaponName);
@@ -393,6 +404,39 @@ namespace TheLastEmpire
             else if (_remoteCycloneRing != null && _remoteCycloneRing.gameObject.activeSelf)
             {
                 _remoteCycloneRing.gameObject.SetActive(false);
+            }
+
+            // 3. Remote teammate EagleEye RED Laser Sight (ONLY visible while teammate is holding Shift!)
+            bool showRemoteEagleLaser = visible && !_isSitting && !_isSleeping && _isRemoteShiftActive && _remoteShiftType == (byte)ShiftAbilityType.EagleEye;
+            if (showRemoteEagleLaser)
+            {
+                if (_laserSightIndicator == null)
+                {
+                    _laserSightIndicator = CreateLaserLineRenderer("RemoteEagleLaserSight", new Color(1f, 0.08f, 0.06f, 0.78f), 0.045f);
+                }
+                if (_laserSightIndicator != null)
+                {
+                    if (!_laserSightIndicator.gameObject.activeSelf) _laserSightIndicator.gameObject.SetActive(true);
+                    Vector3 aimDir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection : transform.forward;
+                    aimDir.y = 0f;
+                    if (aimDir.sqrMagnitude < 0.01f) aimDir = Vector3.forward;
+                    aimDir.Normalize();
+
+                    Vector3 startPos = transform.position + Vector3.up * 0.18f + aimDir * 0.45f;
+                    float laserLen = 28f;
+                    Vector3 endPos = startPos + aimDir * laserLen;
+                    int mask = ~LayerMask.GetMask("Player", "Ignore Raycast");
+                    if (Physics.Raycast(startPos + Vector3.up * 0.35f, aimDir, out RaycastHit hit, laserLen, mask, QueryTriggerInteraction.Ignore))
+                    {
+                        endPos = new Vector3(hit.point.x, startPos.y, hit.point.z);
+                    }
+                    _laserSightIndicator.SetPosition(0, startPos);
+                    _laserSightIndicator.SetPosition(1, endPos);
+                }
+            }
+            else if (_laserSightIndicator != null && _laserSightIndicator.gameObject.activeSelf)
+            {
+                _laserSightIndicator.gameObject.SetActive(false);
             }
         }
 

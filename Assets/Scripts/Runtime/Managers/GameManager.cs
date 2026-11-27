@@ -53,6 +53,92 @@ namespace TheLastEmpire
             TheLastEmpire.Network.NetworkEnemyBridge.Instance?.NotifyClientSoloEnemyKilled();
         }
 
+        public void ResetRunCounters()
+        {
+            _totalEnemiesDefeated = 0;
+            _currentStage = null;
+            _activeEnemies.Clear();
+            _usedSectorIndices.Clear();
+            _activeNPC = null;
+            _activeNPCs.Clear();
+        }
+
+        /// <summary>
+        /// ล้างสถานะทั้งหมดที่ค้างข้ามฉาก (DontDestroyOnLoad / Static) เมื่อกด Retry หรือกลับหน้าหลัก
+        /// ให้เริ่มเกมรอบใหม่สะอาดหมดจด 100% (Artifact, Inventory, QuickSlots, สิ่งปลูกสร้าง, อากาศ, อีเวนต์, บอส, ชีต, UI)
+        /// </summary>
+        public static void ResetAllGameplayStateForRetry(bool clearPendingNetworkTime = true)
+        {
+            Time.timeScale = 1f;
+            MainMenuManager.ShouldLoadSave = false;
+
+            // 1. ล้าง Artifact ที่ติดตั้งบนอาวุธทุกชิ้นทั้งหมด
+            WeaponArtifactManager.ClearAll();
+
+            // 2. ล้างค่า Cheat / Debug static flags ที่ค้างอยู่
+            CraftingDatabase.IsFreeCraft = false;
+            CraftingDatabase.UnlockLegendaryArtifactCraft = false;
+            ShopUI.SetGlobalFreeShop(false);
+            if (CraftController.Instance != null)
+            {
+                CraftController.Instance.FreeCraftMode = false;
+            }
+
+            // 3. ล้าง Inventory & QuickSlots ของผู้เล่นปัจจุบัน
+            if (PlayerController.Instance != null)
+            {
+                PlayerInventory inv = PlayerController.Instance.GetComponent<PlayerInventory>();
+                if (inv != null) inv.ClearInventory();
+            }
+            if (QuickSlotController.Instance != null)
+            {
+                QuickSlotController.Instance.ClearSavedSlotsOnGameStart();
+            }
+
+            // 4. ปิดหน้าต่าง Persistent UI / PopUps ทั้งหมดที่อาจเปิดค้างอยู่
+            PopUpManager.Instance?.ClearAllPopUps();
+            if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) InventoryUI.Instance.CloseInventory();
+            if (ShopUI.Instance != null && ShopUI.Instance.IsOpen) ShopUI.Instance.CloseShop();
+            if (LootUI.HasInstance)
+            {
+                LootUI.Instance.Close();
+                LootUI.Instance.HidePrompt();
+                LootUI.Instance.HideDialogHint();
+            }
+            if (WeaponUpgradeUI.HasInstance && WeaponUpgradeUI.Instance.IsOpen) WeaponUpgradeUI.Instance.Close();
+            if (TheLastEmpire.UI.DialogueUI.Instance != null && TheLastEmpire.UI.DialogueUI.Instance.IsDialogueActive)
+            {
+                TheLastEmpire.UI.DialogueUI.Instance.ClosePopUp();
+            }
+            if (BuildingPlacer.Instance != null && BuildingPlacer.Instance.IsInBuildMode)
+            {
+                BuildingPlacer.Instance.CancelPlacement();
+            }
+
+            // 5. ล้างเอฟเฟกต์กลางคืน (NVG, ไฟฉาย, ตะเกียง, พลุ) และสภาพอากาศ
+            NightCombatItemManager.Instance?.ResetAllNightCombatEffects();
+            if (NightDarknessController.Instance != null)
+            {
+                NightDarknessController.Instance.SetTorchLight(false);
+                NightDarknessController.Instance.InteriorOverrideActive = false;
+            }
+            WeatherManager.Instance?.ResetWeatherForNewRun();
+
+            // 6. ล้างสิ่งปลูกสร้างที่วางไว้, ความจำภายในตึก, อีเวนต์ด่าน, และบอสต่างดาว
+            BuildingManager.Instance?.ClearAllBuildings();
+            BuildingInteriorManager.Instance?.ClearMatchCache();
+            RandomStageEventManager.Instance?.CleanupActiveEvent();
+            RoamingAlienBossManager.Instance?.ResetAlienBossFull();
+
+            // 7. รีเซ็ตเวลากลางวัน/กลางคืนและตัวนับศัตรูของ GameManager
+            if (clearPendingNetworkTime)
+            {
+                DayNightManager.ClearPendingNetworkTimeSync();
+            }
+            DayNightManager.Instance?.ResetDayCount();
+            Instance?.ResetRunCounters();
+        }
+
         public GameObject DefaultEnemyPrefab => defaultEnemyPrefab;
         public string DefaultPoolKey => defaultPoolKey;
         public CollectibleItem ItemDropPrefab => itemDropPrefab;
