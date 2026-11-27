@@ -482,6 +482,7 @@ namespace TheLastEmpire
                 HidePreviewVisuals();
                 ShowCable(origin, latchPt);
                 CreateAnchorVisual(latchPt, hit.normal);
+                PlayerController.BroadcastAbilityVisual(PlayerController.AbilityVisualGrapple, origin, latchPt, 1.25f, MaxPullDuration);
             }
             else
             {
@@ -492,6 +493,7 @@ namespace TheLastEmpire
                 _cooldownTimer = 0.8f;
                 HidePreviewVisuals();
                 ShowCable(origin, missPt);
+                PlayerController.BroadcastAbilityVisual(PlayerController.AbilityVisualGrapple, origin, missPt, 0f, 0.22f);
             }
         }
 
@@ -944,6 +946,7 @@ namespace TheLastEmpire
             cloudObj.transform.position = pos + Vector3.up * 0.1f;
             ToxicCloudHazard hazard = cloudObj.AddComponent<ToxicCloudHazard>();
             hazard.Initialize(pos, duration, radius, dps, slow);
+            PlayerController.BroadcastAbilityVisual(PlayerController.AbilityVisualToxicCloud, pos, pos, radius, duration);
         }
 
         public void OnDestroy() { _isActive = false; }
@@ -1395,6 +1398,7 @@ namespace TheLastEmpire
             mineObj.transform.position = pos + Vector3.up * 0.1f;
             SatchelMineHazard hazard = mineObj.AddComponent<SatchelMineHazard>();
             hazard.Initialize(_player.gameObject, damage, blastRadius, stunDuration, armDelay, autoDetonate);
+            PlayerController.BroadcastAbilityVisual(PlayerController.AbilityVisualSatchelMine, pos, pos, blastRadius, autoDetonate);
         }
 
         public void OnDestroy()

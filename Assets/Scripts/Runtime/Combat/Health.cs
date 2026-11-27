@@ -96,6 +96,11 @@ namespace TheLastEmpire
 
         public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint, bool isCrit, bool isExplosion)
         {
+            TakeDamage(damageAmount, hitPoint, isCrit, isExplosion, false);
+        }
+
+        public void TakeDamage(float damageAmount, UnityEngine.Vector3? hitPoint, bool isCrit, bool isExplosion, bool skipLocalNightMultiplier)
+        {
             if (IsDead) return;
             if (_invulnerabilityTimer > 0f) return; // Immune to damage during I-frames!
 
@@ -105,6 +110,17 @@ namespace TheLastEmpire
                 BaseEnemyAI enemyAi = GetComponent<BaseEnemyAI>();
                 if (enemyAi != null && enemyAi.IsNetworkPuppet && enemyAi.NetworkEnemyId > 0)
                 {
+                    // Apply attacker's own Night Combat buffs (Thermal Bio-Visor +20% vs Aliens, Signal Flare +15% DMG)
+                    // on the Client before sending authoritative damage to Host (Host skips re-applying its own visor buff).
+                    if (!skipLocalNightMultiplier && NightCombatItemManager.Instance != null)
+                    {
+                        float clientNightMult = NightCombatItemManager.Instance.GetEnemyDamageTakenMultiplier(gameObject);
+                        if (clientNightMult > 1.001f)
+                        {
+                            damageAmount = Mathf.Round(damageAmount * clientNightMult);
+                        }
+                    }
+
                     TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendClientDamageToHost(enemyAi.NetworkEnemyId, damageAmount, isCrit);
 
                     // แสดงตัวเลขดาเมจและเอฟเฟกต์เลือดทันทีบนเครื่อง Client (0ms Visual Feedback)
@@ -158,7 +174,7 @@ namespace TheLastEmpire
                 }
             }
 
-            else if (NightCombatItemManager.Instance != null && GetComponent<BaseEnemyAI>() != null)
+            else if (!skipLocalNightMultiplier && NightCombatItemManager.Instance != null && GetComponent<BaseEnemyAI>() != null)
             {
                 float nightDmgMult = NightCombatItemManager.Instance.GetEnemyDamageTakenMultiplier(gameObject);
                 if (nightDmgMult > 1.001f)

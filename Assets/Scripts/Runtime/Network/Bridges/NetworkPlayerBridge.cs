@@ -79,7 +79,8 @@ namespace TheLastEmpire.Network
                 shiftType = (byte)(_player.ActiveCharacterData != null ? (int)_player.ActiveCharacterData.shiftAbilityType : 0),
                 isDowned = _player.IsDowned,
                 downedRemainingSeconds = _player.DownedBleedoutTimer,
-                reviveProgress01 = _player.ReviveProgress01
+                reviveProgress01 = _player.ReviveProgress01,
+                isFlashlightOn = NightCombatItemManager.Instance != null && NightCombatItemManager.Instance.IsFlashlightActive
             };
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.PlayerStateSync, w =>

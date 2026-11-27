@@ -42,8 +42,12 @@ namespace TheLastEmpire
         public bool IsDefeated { get; private set; } = false;
         public bool HasValidLocation => BossStageX >= 0 && BossStageY >= 0 && !IsDefeated;
         public bool IsBossCurrentlySpawned => _activeBossObj != null && _activeBossObj.activeInHierarchy;
-        public float EncounterTimeRemaining => IsBossCurrentlySpawned ? Mathf.Max(0f, EncounterWarpSeconds - _encounterTimer) : 0f;
-        public float NextSummonTimeRemaining => IsBossCurrentlySpawned ? Mathf.Max(0f, _summonTimer) : 0f;
+        public float EncounterTimeRemaining => EmpireNetworkManager.IsOnlineClient
+            ? Mathf.Max(0f, _remoteEncounterRemain)
+            : (IsBossCurrentlySpawned ? Mathf.Max(0f, EncounterWarpSeconds - _encounterTimer) : 0f);
+        public float NextSummonTimeRemaining => EmpireNetworkManager.IsOnlineClient
+            ? Mathf.Max(0f, _remoteSummonRemain)
+            : (IsBossCurrentlySpawned ? Mathf.Max(0f, _summonTimer) : 0f);
 
         public event Action<int, int> OnBossLocationChanged;
 
@@ -56,6 +60,12 @@ namespace TheLastEmpire
         private float _worldRoamTimer = WorldRoamIntervalSeconds;
         private bool _isWarpingOut = false;
         private bool _subscribedWorldMap = false;
+
+        // Co-op Multiplayer sync fields (Host broadcast throttle + Client replicated countdowns)
+        private float _hostSyncBroadcastTimer = 0f;
+        private float _remoteEncounterRemain = 0f;
+        private float _remoteSummonRemain = 0f;
+        private bool _remoteIsWarpingOut = false;
 
         // Top banner feedback
         private string _bannerText = "";
@@ -231,7 +241,18 @@ namespace TheLastEmpire
                 _bannerTimer -= Time.unscaledDeltaTime;
             }
 
-            if (EmpireNetworkManager.IsOnlineClient) return;
+            if (EmpireNetworkManager.IsOnlineClient)
+            {
+                if (_remoteEncounterRemain > 0f && !_remoteIsWarpingOut)
+                {
+                    _remoteEncounterRemain = Mathf.Max(0f, _remoteEncounterRemain - Time.deltaTime);
+                }
+                if (_remoteSummonRemain > 0f && !_remoteIsWarpingOut)
+                {
+                    _remoteSummonRemain = Mathf.Max(0f, _remoteSummonRemain - Time.deltaTime);
+                }
+                return;
+            }
             if (IsDefeated) return;
             if (WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
 
@@ -259,6 +280,16 @@ namespace TheLastEmpire
                         return;
                     }
                     RemainingHealth = _activeBossHealth.CurrentHealth;
+                }
+
+                if (EmpireNetworkManager.IsOnlineHost)
+                {
+                    _hostSyncBroadcastTimer -= Time.deltaTime;
+                    if (_hostSyncBroadcastTimer <= 0f)
+                    {
+                        _hostSyncBroadcastTimer = 1.0f;
+                        BroadcastBossStateToClients(eventFlag: 0, _activeBossObj.transform.position);
+                    }
                 }
 
                 if (_isWarpingOut) return;
@@ -409,6 +440,7 @@ namespace TheLastEmpire
 
             SpawnWarpPortalVfx(spawnPos, new Color(0.75f, 0.22f, 1f, 0.85f), 2.1f, 1.0f);
             ShowBanner($"ALIEN OVERLORD DETECTED!  ({RemainingHealth:N0} / {BossMaxHealth:N0} HP)", new Color(0.86f, 0.30f, 1f, 1f), 4.0f);
+            BroadcastBossStateToClients(eventFlag: 1, spawnPos);
             Debug.Log($"<color=#D946EF>[RoamingAlienBoss]</color> Spawned Alien Overlord on Stage ({BossStageX}, {BossStageY}) with {RemainingHealth:N0}/{BossMaxHealth:N0} HP!");
         }
 
@@ -426,6 +458,7 @@ namespace TheLastEmpire
 
             AlienAI bossAi = _activeBossAI;
             if (bossAi != null) bossAi.IsVomitingSummon = true;
+            BroadcastBossStateToClients(eventFlag: 2, _activeBossObj.transform.position);
 
             AlienBossVisualController visual = _activeBossObj.GetComponent<AlienBossVisualController>();
             if (visual == null) visual = _activeBossObj.AddComponent<AlienBossVisualController>();
@@ -533,6 +566,7 @@ namespace TheLastEmpire
             Vector3 warpPos = _activeBossObj.transform.position;
             SpawnWarpPortalVfx(warpPos, new Color(0.82f, 0.25f, 1f, 0.92f), 2.6f, 1.2f);
             ShowBanner("ALIEN OVERLORD IS WARPING AWAY...", new Color(0.92f, 0.40f, 1f, 1f), 2.0f);
+            BroadcastBossStateToClients(eventFlag: 3, warpPos);
 
             // Brief shrink/spin telegraph while preserving damage taken during warp-out
             Vector3 startScale = _activeBossObj.transform.localScale;
@@ -585,6 +619,7 @@ namespace TheLastEmpire
 
             _worldRoamTimer = WorldRoamIntervalSeconds;
             ShowBanner($"ALIEN OVERLORD WARPED TO ({BossStageX}, {BossStageY})  |  HP SAVED: {RemainingHealth:N0}", new Color(0.86f, 0.42f, 1f, 1f), 4.0f);
+            BroadcastBossStateToClients(eventFlag: 5, Vector3.zero);
             Debug.Log($"<color=#D946EF>[RoamingAlienBoss]</color> Warped away from ({prevX},{prevY}) -> ({BossStageX},{BossStageY}) with {RemainingHealth:N0}/{BossMaxHealth:N0} HP saved!");
         }
 
@@ -597,6 +632,7 @@ namespace TheLastEmpire
         private void HandleBossDefeated()
         {
             if (IsDefeated) return;
+            Vector3 deathPos = _activeBossObj != null ? _activeBossObj.transform.position : Vector3.zero;
             IsDefeated = true;
             RemainingHealth = 0f;
             BossStageX = -1;
@@ -607,6 +643,7 @@ namespace TheLastEmpire
             _isWarpingOut = false;
 
             OnBossLocationChanged?.Invoke(-1, -1);
+            BroadcastBossStateToClients(eventFlag: 4, deathPos);
             ShowBanner("ALIEN OVERLORD DEFEATED!", new Color(1f, 0.85f, 0.25f, 1f), 5.0f);
             Debug.Log("<color=#FFD700>[RoamingAlienBoss]</color> Alien Overlord has been DEFEATED!");
         }
@@ -696,6 +733,7 @@ namespace TheLastEmpire
                 BossStageX = chosen.x;
                 BossStageY = chosen.y;
                 OnBossLocationChanged?.Invoke(BossStageX, BossStageY);
+                BroadcastBossStateToClients(eventFlag: 0, Vector3.zero);
                 return;
             }
 
@@ -711,6 +749,7 @@ namespace TheLastEmpire
                     BossStageX = rx;
                     BossStageY = ry;
                     OnBossLocationChanged?.Invoke(BossStageX, BossStageY);
+                    BroadcastBossStateToClients(eventFlag: 0, Vector3.zero);
                     return;
                 }
             }
@@ -742,6 +781,7 @@ namespace TheLastEmpire
             BossStageX = next.x;
             BossStageY = next.y;
             OnBossLocationChanged?.Invoke(BossStageX, BossStageY);
+            BroadcastBossStateToClients(eventFlag: 0, Vector3.zero);
 
             // If it wandered straight into the player's current stage, trigger the encounter!
             if (BossStageX == WorldMapManager.Instance.CurrentPlayerX &&
@@ -952,13 +992,126 @@ namespace TheLastEmpire
                     {
                         currentHp = h.CurrentHealth;
                         maxHp = h.MaxHealth;
-                        showCountdown = false;
+                        showCountdown = _remoteEncounterRemain > 0f || _remoteIsWarpingOut;
                         return true;
                     }
                 }
             }
 
             return false;
+        }
+
+        // =========================================================================
+        //  CO-OP MULTIPLAYER SYNC (Minimap Marker, Timers, Vomit & Warp VFX)
+        // =========================================================================
+
+        public void SendBossStateToClient(ulong targetClientId)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost) return;
+            Vector3 pos = _activeBossObj != null ? _activeBossObj.transform.position : Vector3.zero;
+            BroadcastBossStateToClients(eventFlag: 0, pos, targetClientId);
+        }
+
+        public void BroadcastBossStateToClients(byte eventFlag, Vector3 eventPos, ulong targetClientId = ulong.MaxValue)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+
+            float encRemain = IsBossCurrentlySpawned ? Mathf.Max(0f, EncounterWarpSeconds - _encounterTimer) : 0f;
+            float sumRemain = IsBossCurrentlySpawned ? Mathf.Max(0f, _summonTimer) : 0f;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.RoamingBossSync, w =>
+            {
+                w.Write(BossStageX);
+                w.Write(BossStageY);
+                w.Write(RemainingHealth);
+                w.Write(IsDefeated);
+                w.Write(encRemain);
+                w.Write(sumRemain);
+                w.Write(_isWarpingOut);
+                w.Write(eventFlag);
+                w.Write(eventPos.x);
+                w.Write(eventPos.y);
+                w.Write(eventPos.z);
+            }, targetClientId);
+        }
+
+        public void HandleRemoteBossSync(
+            int stageX,
+            int stageY,
+            float remainingHp,
+            bool defeated,
+            float encRemain,
+            float sumRemain,
+            bool isWarpingOut,
+            byte eventFlag,
+            Vector3 eventPos)
+        {
+            if (EmpireNetworkManager.IsOnlineHost) return;
+
+            bool locChanged = BossStageX != stageX || BossStageY != stageY || IsDefeated != defeated;
+            BossStageX = stageX;
+            BossStageY = stageY;
+            RemainingHealth = remainingHp;
+            IsDefeated = defeated;
+            _remoteEncounterRemain = encRemain;
+            _remoteSummonRemain = sumRemain;
+            _remoteIsWarpingOut = isWarpingOut;
+
+            if (locChanged)
+            {
+                OnBossLocationChanged?.Invoke(BossStageX, BossStageY);
+            }
+
+            int myX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            bool sameStage = !BuildingInteriorManager.IsInsideInterior && myX == stageX && myY == stageY;
+
+            switch (eventFlag)
+            {
+                case 1: // Boss Spawned
+                    if (sameStage)
+                    {
+                        SpawnWarpPortalVfx(eventPos, new Color(0.75f, 0.22f, 1f, 0.85f), 2.1f, 1.0f);
+                        ShowBanner($"ALIEN OVERLORD DETECTED!  ({remainingHp:N0} / {BossMaxHealth:N0} HP)", new Color(0.86f, 0.30f, 1f, 1f), 4.0f);
+                    }
+                    break;
+                case 2: // Boss Vomit Summon VFX
+                    if (sameStage)
+                    {
+                        TriggerClientBossVomitVisual();
+                        ShowBanner("ALIEN OVERLORD VOMITED ALIENS!", new Color(0.65f, 1f, 0.42f, 1f), 2.5f);
+                    }
+                    break;
+                case 3: // Boss Warping Away VFX
+                    if (sameStage)
+                    {
+                        SpawnWarpPortalVfx(eventPos, new Color(0.82f, 0.25f, 1f, 0.92f), 2.6f, 1.2f);
+                        ShowBanner("ALIEN OVERLORD IS WARPING AWAY...", new Color(0.92f, 0.40f, 1f, 1f), 2.0f);
+                    }
+                    break;
+                case 4: // Boss Defeated
+                    ShowBanner("ALIEN OVERLORD DEFEATED!", new Color(1f, 0.85f, 0.25f, 1f), 5.0f);
+                    break;
+                case 5: // Boss Finished Warping to new stage
+                    ShowBanner($"ALIEN OVERLORD WARPED TO ({stageX}, {stageY})  |  HP SAVED: {remainingHp:N0}", new Color(0.86f, 0.42f, 1f, 1f), 4.0f);
+                    break;
+            }
+        }
+
+        private void TriggerClientBossVomitVisual()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.ActiveEnemies == null) return;
+            var enemies = GameManager.Instance.ActiveEnemies;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                GameObject e = enemies[i];
+                if (e == null || !e.activeInHierarchy) continue;
+                if (e.name.IndexOf("AlienLeader", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                AlienBossVisualController visual = e.GetComponent<AlienBossVisualController>();
+                if (visual == null) visual = e.AddComponent<AlienBossVisualController>();
+                visual.TriggerVomitSummonSequence(null);
+                return;
+            }
         }
 
         private void OnGUI()
@@ -989,9 +1142,10 @@ namespace TheLastEmpire
 
                 if (showCountdown)
                 {
+                    bool warpingNow = EmpireNetworkManager.IsOnlineClient ? _remoteIsWarpingOut : _isWarpingOut;
                     float remainWarp = EncounterTimeRemaining;
                     float remainSummon = NextSummonTimeRemaining;
-                    string rightInfo = _isWarpingOut
+                    string rightInfo = warpingNow
                         ? "WARPING OUT..."
                         : $"SUMMON: {remainSummon:F0}s  |  WARP: {remainWarp:F1}s";
                     GUI.Label(new Rect(x + barW * 0.45f, y, barW * 0.55f - 4f, 22f), rightInfo, _warpBadgeStyle);

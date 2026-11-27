@@ -896,7 +896,8 @@ namespace TheLastEmpire
 
         public void DrainHunger(float amount)
         {
-            currentHunger = Mathf.Max(0f, currentHunger - amount * hungerDepletionMultiplier);
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1f;
+            currentHunger = Mathf.Max(0f, currentHunger - amount * hungerDepletionMultiplier * weatherMult);
             OnHungerChanged?.Invoke();
         }
 
@@ -4586,11 +4587,12 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // อาหารลดช้าลงอีกเท่าตัว (2x slower)
+            // อาหารลดช้าลงอีกเท่าตัว (2x slower); ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า (2x faster)
             float baseRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
-            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier * weatherMult;
             currentHunger = Mathf.Max(0f, currentHunger - Time.deltaTime * depletionRate);
             OnHungerChanged?.Invoke();
 
@@ -4619,12 +4621,13 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // น้ำจะลดเร็วกว่าอาหาร 3 เท่า (โดยอิงจากอัตราอาหารใหม่ที่ลดช้าลงเท่าตัว)
+            // น้ำจะลดเร็วกว่าอาหาร 3 เท่า (โดยอิงจากอัตราอาหารใหม่ที่ลดช้าลงเท่าตัว); ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า
             float baseHungerRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
             float baseWaterRate = baseHungerRate * 3.0f; // น้ำลดเร็วกว่าอาหาร 3 เท่า
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.waterConsumptionMultiplier : 1.0f;
-            float depletionRate = (_isSprinting ? (baseWaterRate * sprintMult) : baseWaterRate) * charMult * waterDepletionMultiplier;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            float depletionRate = (_isSprinting ? (baseWaterRate * sprintMult) : baseWaterRate) * charMult * waterDepletionMultiplier * weatherMult;
             currentWater = Mathf.Max(0f, currentWater - Time.deltaTime * depletionRate);
             OnWaterChanged?.Invoke();
 
@@ -4684,10 +4687,12 @@ namespace TheLastEmpire
 
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             bool inCombat = _combatTimer > 0f;
+            bool exposedToRain = WeatherManager.Instance != null && WeatherManager.Instance.IsPlayerExposedToRain;
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
 
             if (isNight)
             {
-                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา
+                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา (ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า)
                 float rate = nightSanityDepletionRate;
                 if (inCombat)
                 {
@@ -4697,14 +4702,22 @@ namespace TheLastEmpire
                 float nightLightMult = NightCombatItemManager.Instance != null
                     ? NightCombatItemManager.Instance.GetNightSanityDrainMultiplier()
                     : 1f;
-                float delta = rate * sanityDepletionMultiplier * nightLightMult * Time.deltaTime;
+                float delta = rate * sanityDepletionMultiplier * nightLightMult * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }
             else if (inCombat)
             {
-                // กลางวันแต่ติด Combat
-                float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * Time.deltaTime;
+                // กลางวันแต่ติด Combat (ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า)
+                float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
+                currentSanity = Mathf.Max(0f, currentSanity - delta);
+                OnSanityChanged?.Invoke();
+            }
+            else if (exposedToRain)
+            {
+                // ตากฝนกลางแจ้งตอนกลางวัน: ค่าสติลดลง 2 เท่า (หลบเข้าบ้านเพื่อหยุดการลด)
+                float rainSanityRate = Mathf.Max(0.25f, nightSanityDepletionRate);
+                float delta = rainSanityRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }
@@ -4767,7 +4780,8 @@ namespace TheLastEmpire
         public void DrainSanity(float amount)
         {
             if (amount <= 0f) return;
-            currentSanity = Mathf.Max(0f, currentSanity - (amount * sanityDepletionMultiplier));
+            float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1f;
+            currentSanity = Mathf.Max(0f, currentSanity - (amount * sanityDepletionMultiplier * weatherMult));
             OnSanityChanged?.Invoke();
         }
 

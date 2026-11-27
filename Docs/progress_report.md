@@ -1,7 +1,7 @@
 # บันทึกความคืบหน้าการพัฒนาโครงการ (The Last Empire / Junk Cyclone Crisis)
 
 **วันที่บันทึกล่าสุด**: 27 พฤศจิกายน 2026  
-**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: ระบบ Hitbox Sprite ใหม่ `UI_Hitbox_Sprites` โปร่งแสง 25% ไม่หมุน-ไม่ย้อมสี, ชื่อสูตรคราฟต์ Artifact ต่อท้ายชื่ออาวุธ, แก้ `CS0433` Facepunch.Steamworks ให้ Build/Update Addressables ผ่านทั้ง Windows & WebGL, 5 ไอเทมต่อสู้กลางคืน, ฟอนต์ TMP SDF 4 ชุดใหม่, บอสเอเลี่ยนพเนจร 50k HP, Steam Relay Co-op และรีแบรนด์เป็น *Junk Cyclone Crisis*)  
+**สถานะ Git**: `multi-player-netcode` (Synced ล่าสุด: ระบบฝนตกธรรมดา Co-op Sync สุ่มทุก 60 วิ โอกาส 10% ตก 30 วิ + ตากฝนลดสติ/หิว/กระหาย x2 + ซ่อนเมื่อเข้าบ้าน + ปุ่มใน `[F1]`, แก้ Co-op Sync ครบทั้ง Night Combat Items / บอสเอเลี่ยนพเนจร / วงเตือนบอส / สกิล Shift, Hitbox Sprite 25%, ชื่ออาวุธบนสูตรคราฟต์ Artifact, แก้ Addressables `CS0433` Steamworks, 5 ไอเทมกลางคืน, ฟอนต์ TMP 4 ชุด และรีแบรนด์ *Junk Cyclone Crisis*)  
 
 ---
 
@@ -39,6 +39,10 @@
      - สร้างบอสเอเลี่ยนพเนจร `RoamingAlienBossManager.cs` เลือด 50,000 คงค้างข้ามด่านและบันทึกลงเซฟได้, มีสกิลอาเจียนเรียกลูกน้อง (`Vomit Summon`), วาร์ปย้ายช่องแผนที่ทุก 30 วินาที, แสดงพิกัดบน `MinimapUI`, พร้อมโมเดล 3D Rigged (`Alien_Leader_Rigged.fbx` + `AlienBossVisualController.cs`) และซิงค์ Co-op
   6. **ผสาน Steamworks Steam Relay Co-op & รีแบรนด์ชื่อเกมเป็น *Junk Cyclone Crisis* (`a8bfc764`, `3882dd53`)**:
      - เชื่อมต่อ `Facepunch.Steamworks` (`SteamP2PTransport.cs`, `EmpireNetworkManager.cs`, `LobbyRelayService.cs`, `MultiplayerLobbyUI.cs`) ให้สร้าง/ค้นหา/จอยห้อง Co-op ผ่าน Steam Relay ได้ และปรับชื่อเกมในหน้าเมนู/Lobby/ProjectSettings เป็น **Junk Cyclone Crisis**
+  7. **ระบบฝนตกธรรมดา (`WeatherManager.cs`) + แก้ Co-op Sync ครบทุกฟีเจอร์ใหม่**:
+     - สร้าง `WeatherManager.cs` สุ่มฝนตกทุก **60 วินาที** โอกาสเกิด **10%** ตกนาน **30 วินาที** พร้อมเม็ดฝน, น้ำกระเซ็น, พื้นเปียก (`_GlobalWetness` ใน `WorldSpaceGroundShader.shader`), เสียงฝน Procedural, ปุ่มเสกฝน/หยุดฝนในเมนู **`[F1]` แท็บ `Weather / Events`** และซิงค์ Multiplayer (`NetPacketType.WeatherSync = 60` + Late-Join)
+     - ตากฝนกลางแจ้งทำให้ **ค่าสติ, ความหิว, ความกระหายลดเร็วขึ้น 2 เท่า (`2.0x`)** และเมื่อเดิน **เข้าในบ้าน (`BuildingInteriorManager`)** จะซ่อนฝน/HUD/เสียง/พื้นเปียก และยกเลิกผลลดเร็ว x2 ทันที
+     - แก้ Co-op Sync ครบจุด: กัน Echo สะท้อนกลับของ Signal Flare/UV Flashbang + แคช Flare สำหรับคนเข้าด่านทีหลัง, แก้ UV Flashbang ดาเมจเบิ้ล 2 เท่าฝั่ง Client, แก้โบนัส `Thermal Bio-Visor (+20% vs Aliens)` / `Signal Flare (+15% DMG)` ให้คิดจากคนยิงฝั่ง Client จริง, ซิงค์ไฟฉาย 3D เพื่อน, ซิงค์จุดบอสเอเลี่ยนบน Minimap/เวลานับถอยหลัง/VFX (`RoamingBossSync`), ซิงค์วงเตือนบอส/ศัตรู (`EnemyTelegraphSync`), และซิงค์ภาพสกิล Shift ของเพื่อน (`AbilityVisualSync`) — ผ่าน Compile ทั้ง Windows 64-bit และ WebGL (`0 errors`)
 
 ---
 

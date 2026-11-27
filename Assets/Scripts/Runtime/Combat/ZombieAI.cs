@@ -692,6 +692,13 @@ namespace TheLastEmpire
             }
 
             PlayActionAnimationWithFallback(bossLeapDuration + 0.15f, 0.05f, "Leap", "GroundSlam", "Charge", "Slash1");
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphBossLeap,
+                _bossLeapTargetPos,
+                transform.forward,
+                bossLeapLandRadius,
+                bossLeapDuration);
             Debug.Log($"[ZombieAI] Boss {gameObject.name} leaped towards {_bossLeapTargetPos}!");
         }
 
@@ -766,6 +773,13 @@ namespace TheLastEmpire
             currentState = AIState.Telegraph;
             PlayActionAnimation("Explode", _fuseTimer + 0.35f, 0.05f);
             UpdateBoomerTelegraphVisual(explosionRadius);
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphZombieBoomer,
+                transform.position,
+                transform.forward,
+                explosionRadius,
+                _fuseTimer);
         }
 
         private void ExplodeAndDie()
@@ -916,6 +930,13 @@ namespace TheLastEmpire
 
             PlayActionAnimation("GroundSlam", _stompTelegraphTimer + 0.35f, 0.06f);
             UpdateBossTelegraphVisual(stompRadius);
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphBossStomp,
+                transform.position,
+                transform.forward,
+                stompRadius,
+                _stompTelegraphTimer);
         }
 
         private void PerformGroundStomp()
@@ -1005,6 +1026,13 @@ namespace TheLastEmpire
             PlayActionAnimation("Charge", _chargeWindupTimer + chargeDuration + 0.20f, 0.06f);
             float currentChargeDist = chargeSpeed * (IsRageMode ? rageChargeSpeedMultiplier : 1f) * chargeDuration;
             UpdateBossChargeTelegraphVisual(_chargeDirection, currentChargeDist, chargePathWidth);
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphBossCharge,
+                transform.position,
+                _chargeDirection,
+                currentChargeDist,
+                _chargeWindupTimer);
         }
 
         #region Boss Rage Mode System

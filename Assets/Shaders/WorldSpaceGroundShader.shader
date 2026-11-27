@@ -59,8 +59,9 @@ Shader "Custom/WorldSpaceGroundShader"
             TEXTURE2D(_WestBiomeMap);
             SAMPLER(sampler_WestBiomeMap);
 
-            // Global ambient tint driven by DayNightManager
+            // Global ambient tint driven by DayNightManager & wetness driven by WeatherManager
             half4 _GlobalAmbientTint;
+            half _GlobalWetness;
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
@@ -144,6 +145,13 @@ Shader "Custom/WorldSpaceGroundShader"
                 {
                     neighboringAlbedo /= neighborWeight;
                     albedo.rgb = lerp(albedo.rgb, neighboringAlbedo, edgeFade * 0.5);
+                }
+
+                // Subtle wet-ground darkening & cool damp tint during Rain (driven by WeatherManager)
+                half wetness = saturate(_GlobalWetness);
+                if (wetness > 0.001)
+                {
+                    albedo.rgb *= lerp(half3(1.0, 1.0, 1.0), half3(0.84, 0.88, 0.94), wetness * 0.65);
                 }
 
                 // Ultra-fast tint (1 instruction multiply, zero performance loss)

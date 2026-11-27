@@ -328,10 +328,10 @@ namespace TheLastEmpire
             previewDir.Normalize();
 
             Sprite chevSp = HitboxSpriteLibrary.DirectionalChevrons;
+            float dashDist = bladeDashSpeed * bladeDashDuration;
             if (chevSp != null)
             {
                 dashChevron = HitboxSpriteLibrary.CreateGroundSpriteIndicator("BladeDashChevron", transform, chevSp, HitboxSpriteLibrary.DefaultOriginalColor, 6);
-                float dashDist = bladeDashSpeed * bladeDashDuration;
                 dashChevron.transform.position = new Vector3(transform.position.x + previewDir.x * (dashDist * 0.5f), 0.06f, transform.position.z + previewDir.z * (dashDist * 0.5f));
                 dashChevron.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(previewDir);
                 float bw = chevSp.bounds.size.x;
@@ -339,6 +339,14 @@ namespace TheLastEmpire
                 if (bw > 0.001f && bh > 0.001f)
                     dashChevron.transform.localScale = new Vector3(dashDist / bw, 1.25f / bh, 1f);
             }
+
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphRobotBladeDash,
+                transform.position,
+                previewDir,
+                dashDist,
+                0.32f);
 
             if (_spriteRenderer != null) _spriteRenderer.color = Color.red;
             yield return new WaitForSeconds(0.3f);
@@ -518,6 +526,14 @@ namespace TheLastEmpire
                 blastHint.transform.localPosition = new Vector3(0f, 0.06f, 0f);
                 HitboxSpriteLibrary.SetWorldDiameter(blastHint, kamikazeExplosionRadius * 2f);
             }
+
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphRobotKamikaze,
+                transform.position,
+                transform.forward,
+                kamikazeExplosionRadius,
+                0.7f);
 
             float timer = 0.7f;
             while (timer > 0f)

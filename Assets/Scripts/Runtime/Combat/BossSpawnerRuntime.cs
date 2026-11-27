@@ -321,8 +321,8 @@ namespace TheLastEmpire
             if (!_showDebugGui) return;
 
             // 3. Spawner / Cheat Panel
-            float panelWidth = 320f;
-            float panelHeight = 535f;
+            float panelWidth = 340f;
+            float panelHeight = 565f;
             float panelX = Screen.width - panelWidth - 10f;
             float panelY = 50f;
 
@@ -330,7 +330,7 @@ namespace TheLastEmpire
             GUILayout.BeginArea(new Rect(panelX, panelY, panelWidth, panelHeight), GUI.skin.box);
             {
                 // Tab Selection Toolbar
-                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Free / Shop", "Events [F9]" };
+                string[] tabNames = new string[] { "Boss Spawner", "Time [T/N]", "Free / Shop", "Weather / Events" };
                 _selectedTab = GUILayout.Toolbar(_selectedTab, tabNames, GUILayout.Height(30));
 
                 GUILayout.Space(6);
@@ -399,6 +399,61 @@ namespace TheLastEmpire
             GUILayout.Label("• Instant Spawn: Maya spawns at opposite gate and sprints through at 5.0 m/s.", EditorStylesMini());
             GUILayout.Label("• Maya uses trigger colliders to pass smoothly through obstacles.", EditorStylesMini());
             GUILayout.Label("• Stage transitions clean up runners automatically.", EditorStylesMini());
+
+            GUILayout.Space(14);
+            GUIStyle weatherTitle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            weatherTitle.normal.textColor = new Color(0.42f, 0.82f, 1f);
+            GUILayout.Label("WEATHER CONTROLS (CO-OP SYNC)", weatherTitle);
+
+            var wm = WeatherManager.Instance;
+            if (wm != null)
+            {
+                string statusText = wm.IsRaining
+                    ? $"Status: RAINING ({wm.RainRemainingSeconds:F0}s left | Wet: {wm.GroundWetness * 100f:F0}%)"
+                    : $"Status: CLEAR (Next {wm.RainChance * 100f:F0}% roll in {wm.NextRollRemainingSeconds:F0}s)";
+                GUILayout.Label(statusText, EditorStylesBold());
+
+                GUILayout.Space(6);
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.22f, 0.62f, 1f);
+                    if (GUILayout.Button($"Start Rain ({wm.RainDurationSeconds:F0}s)", GUILayout.Height(36)))
+                    {
+                        wm.TriggerRain();
+                        ShowToast($"Rain triggered ({wm.RainDurationSeconds:F0}s, Co-op synced)!");
+                    }
+
+                    GUI.backgroundColor = new Color(0.92f, 0.62f, 0.18f);
+                    if (GUILayout.Button("Stop Rain (Clear)", GUILayout.Height(36)))
+                    {
+                        wm.StopRain();
+                        ShowToast("Weather cleared (Co-op synced)!");
+                    }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(4);
+                GUI.backgroundColor = new Color(0.25f, 0.78f, 0.72f);
+                if (GUILayout.Button("Force 10% Rain Roll Now", GUILayout.Height(28)))
+                {
+                    wm.ForceRollNow();
+                    ShowToast(wm.IsRaining ? "10% Roll HIT -> Rain started!" : "10% Roll missed -> Clear sky.");
+                }
+
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% chance every {wm.RollIntervalSeconds:F0}s -> lasts {wm.RainDurationSeconds:F0}s.", EditorStylesMini());
+                GUILayout.Label("Outdoors in rain: Sanity, Hunger & Thirst drain 2x faster.", EditorStylesMini());
+                GUILayout.Label("Co-op synced (hidden & sheltered automatically inside houses).", EditorStylesMini());
+            }
+            else
+            {
+                GUILayout.Label("WeatherManager not initialized.", EditorStylesMini());
+            }
         }
 
         private void DrawBossSpawnerTab()

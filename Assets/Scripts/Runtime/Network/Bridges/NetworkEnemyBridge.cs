@@ -349,10 +349,169 @@ namespace TheLastEmpire.Network
                     Health h = obj.GetComponent<Health>();
                     if (h != null && !h.IsDead)
                     {
-                        h.TakeDamage(damage, obj.transform.position + Vector3.up * 1.2f, isCrit, false);
+                        h.TakeDamage(damage, obj.transform.position + Vector3.up * 1.2f, isCrit, false, skipLocalNightMultiplier: true);
                     }
                     return;
                 }
+            }
+        }
+
+        // =====================================================
+        //  Boss / Enemy Attack Telegraph Sync (Host -> Clients)
+        // =====================================================
+
+        public const byte TelegraphBossStomp = 1;
+        public const byte TelegraphBossCharge = 2;
+        public const byte TelegraphRobotBladeDash = 3;
+        public const byte TelegraphRobotKamikaze = 4;
+        public const byte TelegraphZombieBoomer = 5;
+        public const byte TelegraphBossLeap = 6;
+
+        public void BroadcastEnemyTelegraph(
+            BaseEnemyAI enemy,
+            byte telegraphType,
+            Vector3 origin,
+            Vector3 dir,
+            float sizeParam,
+            float duration)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+            if (duration <= 0.02f) return;
+
+            int enemyNetId = enemy != null ? enemy.NetworkEnemyId : -1;
+            int hostStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int hostStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int hostInteriorId = BuildingInteriorManager.CurrentInteriorId;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.EnemyTelegraphSync, w =>
+            {
+                w.Write(hostStageX);
+                w.Write(hostStageY);
+                w.Write(hostInteriorId);
+                w.Write(enemyNetId);
+                w.Write(telegraphType);
+                w.Write(origin.x);
+                w.Write(origin.y);
+                w.Write(origin.z);
+                w.Write(dir.x);
+                w.Write(dir.y);
+                w.Write(dir.z);
+                w.Write(sizeParam);
+                w.Write(duration);
+            });
+        }
+
+        public void HandleEnemyTelegraphFromHost(
+            int hostStageX,
+            int hostStageY,
+            int hostInteriorId,
+            int enemyNetId,
+            byte telegraphType,
+            Vector3 origin,
+            Vector3 dir,
+            float sizeParam,
+            float duration)
+        {
+            if (EmpireNetworkManager.IsOnlineHost) return;
+
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (hostStageX != myStageX || hostStageY != myStageY || hostInteriorId != myInteriorId) return;
+
+            Transform followTarget = null;
+            if (enemyNetId > 0 && _clientPuppetEnemies.TryGetValue(enemyNetId, out BaseEnemyAI puppet) && puppet != null)
+            {
+                followTarget = puppet.transform;
+            }
+
+            StartCoroutine(ShowClientEnemyTelegraphRoutine(followTarget, telegraphType, origin, dir, sizeParam, Mathf.Clamp(duration, 0.1f, 5f)));
+        }
+
+        private System.Collections.IEnumerator ShowClientEnemyTelegraphRoutine(
+            Transform followTarget,
+            byte telegraphType,
+            Vector3 origin,
+            Vector3 dir,
+            float sizeParam,
+            float duration)
+        {
+            List<GameObject> spawned = new List<GameObject>();
+
+            bool isChevronDash = telegraphType == TelegraphBossCharge || telegraphType == TelegraphRobotBladeDash;
+            if (isChevronDash)
+            {
+                Sprite chevSp = HitboxSpriteLibrary.DirectionalChevrons;
+                if (chevSp != null)
+                {
+                    Vector3 flatDir = new Vector3(dir.x, 0f, dir.z);
+                    if (flatDir.sqrMagnitude < 0.001f) flatDir = Vector3.forward;
+                    flatDir.Normalize();
+
+                    float length = Mathf.Max(2f, sizeParam);
+                    int segCount = telegraphType == TelegraphBossCharge ? 3 : 1;
+                    float segLen = telegraphType == TelegraphBossCharge ? Mathf.Max(1.8f, length / segCount) : length;
+                    float segWidth = telegraphType == TelegraphBossCharge ? 2.4f : 1.15f;
+                    float bw = chevSp.bounds.size.x;
+                    float bh = chevSp.bounds.size.y;
+
+                    for (int i = 0; i < segCount; i++)
+                    {
+                        SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator($"NetTelegraphChevron_{i}", null, chevSp, HitboxSpriteLibrary.DefaultOriginalColor, 7);
+                        if (sr == null) continue;
+                        float distAlong = segCount == 1 ? (length * 0.5f) : (length * ((i + 0.5f) / segCount));
+                        sr.transform.position = new Vector3(origin.x + flatDir.x * distAlong, 0.06f, origin.z + flatDir.z * distAlong);
+                        sr.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(flatDir);
+                        if (bw > 0.001f && bh > 0.001f)
+                        {
+                            sr.transform.localScale = new Vector3(segLen / bw, segWidth / bh, 1f);
+                        }
+                        spawned.Add(sr.gameObject);
+                    }
+                }
+            }
+            else
+            {
+                Sprite hazardSp = HitboxSpriteLibrary.HazardCircle;
+                if (hazardSp != null)
+                {
+                    SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator("NetTelegraphCircle", null, hazardSp, HitboxSpriteLibrary.DefaultOriginalColor, 7);
+                    if (sr != null)
+                    {
+                        float diameter = Mathf.Max(1f, sizeParam * 2f);
+                        sr.transform.position = new Vector3(origin.x, 0.06f, origin.z);
+                        sr.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                        HitboxSpriteLibrary.SetWorldDiameter(sr, diameter);
+                        spawned.Add(sr.gameObject);
+                    }
+                }
+            }
+
+            bool shouldFollowEnemy = followTarget != null &&
+                (telegraphType == TelegraphBossStomp || telegraphType == TelegraphRobotKamikaze || telegraphType == TelegraphZombieBoomer);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                if (shouldFollowEnemy)
+                {
+                    if (followTarget == null || !followTarget.gameObject.activeInHierarchy) break;
+                    Vector3 p = followTarget.position;
+                    for (int i = 0; i < spawned.Count; i++)
+                    {
+                        if (spawned[i] != null)
+                        {
+                            spawned[i].transform.position = new Vector3(p.x, 0.06f, p.z);
+                        }
+                    }
+                }
+                yield return null;
+            }
+
+            for (int i = 0; i < spawned.Count; i++)
+            {
+                if (spawned[i] != null) Destroy(spawned[i]);
             }
         }
     }

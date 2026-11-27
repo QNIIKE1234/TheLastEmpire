@@ -63,6 +63,17 @@ namespace TheLastEmpire
         private float _redFlareAlpha;
         private float _flashbangAlpha;
 
+        // Active stage flare cache on Host for Late-Join & stage-entry sync
+        private struct ActiveStageFlareEntry
+        {
+            public Vector3 Position;
+            public float ExpireUnscaledTime;
+        }
+        private readonly Dictionary<(int, int, int), ActiveStageFlareEntry> _hostActiveStageFlares = new Dictionary<(int, int, int), ActiveStageFlareEntry>();
+        private int _lastLocalStageX = int.MinValue;
+        private int _lastLocalStageY = int.MinValue;
+        private int _lastLocalInteriorId = int.MinValue;
+
         // Status toast & cached GUI
         private string _toastText = "";
         private Color _toastColor = Color.white;
@@ -168,7 +179,14 @@ namespace TheLastEmpire
             {
                 Vector3 launchPos = user.transform.position + Vector3.up * 1.1f;
                 ActivateRedSkyFlareLocal(launchPos, SignalFlareDuration);
-                BroadcastNightCombatEffectToCoop(effectType: 1, launchPos);
+                int sx = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+                int sy = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+                int interiorId = BuildingInteriorManager.CurrentInteriorId;
+                if (EmpireNetworkManager.IsOnlineHost)
+                {
+                    RecordHostActiveStageFlare(sx, sy, interiorId, launchPos, SignalFlareDuration);
+                }
+                BroadcastNightCombatEffectToCoop(effectType: 1, launchPos, SignalFlareDuration);
                 ShowToast($"RED SIGNAL FLARE LAUNCHED! ({SignalFlareDuration:F0}s | +15% DMG)", new Color(1f, 0.30f, 0.28f));
                 return true;
             }
@@ -185,8 +203,10 @@ namespace TheLastEmpire
                 Vector3 aimDir = GetPlayerAimFlatDir(user);
                 Vector3 blastPos = user.transform.position + aimDir * 2.4f;
                 blastPos.y = 0.5f;
-                TriggerUvFlashbangLocal(blastPos, applyDamageAndStun: true);
-                BroadcastNightCombatEffectToCoop(effectType: 2, blastPos);
+                // On Co-op Clients: play 0ms visual feedback locally, and let Host authoritatively apply stun/reveal/damage ONCE (prevents double damage!)
+                bool applyCombatLocally = !EmpireNetworkManager.IsOnlineClient;
+                TriggerUvFlashbangLocal(blastPos, applyDamageAndStun: applyCombatLocally);
+                BroadcastNightCombatEffectToCoop(effectType: 2, blastPos, 0f);
                 ShowToast("UV SOLAR FLASHBANG!  (STUN 3.5s + ANTI-ALIEN BURN)", new Color(0.85f, 0.55f, 1f));
                 return true;
             }
@@ -232,19 +252,62 @@ namespace TheLastEmpire
 
         public bool IsPointIlluminatedByFlashlight(Vector3 worldPos)
         {
-            if (!IsFlashlightActive) return false;
-            PlayerController pc = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
-            if (pc == null) return false;
+            if (IsFlashlightActive)
+            {
+                PlayerController pc = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+                if (IsPointInPlayerFlashlightCone(pc, GetPlayerAimFlatDir(pc), worldPos))
+                {
+                    return true;
+                }
+            }
 
+            // Also check Co-op teammates in the same stage who have their Tactical Flashlight turned on!
+            var allPlayers = PlayerRegistry.AllPlayers;
+            if (allPlayers != null)
+            {
+                for (int i = 0; i < allPlayers.Count; i++)
+                {
+                    PlayerController p = allPlayers[i];
+                    if (p == null || !p.IsRemotePlayer || !p.IsRemoteFlashlightOn || !p.IsInSameStageAsLocalPlayer) continue;
+                    Vector3 aim = p.AimDirection.sqrMagnitude > 0.01f ? p.AimDirection : p.transform.forward;
+                    aim.y = 0f;
+                    if (aim.sqrMagnitude > 0.01f && IsPointInPlayerFlashlightCone(p, aim.normalized, worldPos))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static bool IsPointInPlayerFlashlightCone(PlayerController pc, Vector3 aimDir, Vector3 worldPos)
+        {
+            if (pc == null) return false;
             Vector3 toTarget = worldPos - pc.transform.position;
             toTarget.y = 0f;
             float dist = toTarget.magnitude;
             if (dist > 14f) return false;
             if (dist < 2.2f) return true;
-
-            Vector3 aimDir = GetPlayerAimFlatDir(pc);
             float dot = Vector3.Dot(toTarget.normalized, aimDir);
             return dot >= 0.85f; // ~31 degree half-cone
+        }
+
+        public bool HasAnyActiveFlashlightInStage()
+        {
+            if (IsFlashlightActive) return true;
+            var allPlayers = PlayerRegistry.AllPlayers;
+            if (allPlayers != null)
+            {
+                for (int i = 0; i < allPlayers.Count; i++)
+                {
+                    PlayerController p = allPlayers[i];
+                    if (p != null && p.IsRemotePlayer && p.IsRemoteFlashlightOn && p.IsInSameStageAsLocalPlayer)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public bool ShouldForceRevealInvisibleAlien(Vector3 alienPos)
@@ -255,18 +318,78 @@ namespace TheLastEmpire
         }
 
         // =========================================================================
-        //  CO-OP MULTIPLAYER SYNC (Signal Flare & UV Flashbang)
+        //  CO-OP MULTIPLAYER SYNC (Signal Flare & UV Flashbang + Late-Join Cache)
         // =========================================================================
 
-        private void BroadcastNightCombatEffectToCoop(byte effectType, Vector3 pos)
+        private void RecordHostActiveStageFlare(int stageX, int stageY, int interiorId, Vector3 pos, float duration)
+        {
+            if (duration <= 0.1f) return;
+            _hostActiveStageFlares[(stageX, stageY, interiorId)] = new ActiveStageFlareEntry
+            {
+                Position = pos,
+                ExpireUnscaledTime = Time.unscaledTime + duration
+            };
+        }
+
+        public void SendActiveStageFlaresToClient(ulong targetClientId, int filterStageX = int.MinValue, int filterStageY = int.MinValue, int filterInteriorId = int.MinValue)
+        {
+            if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
+            if (_hostActiveStageFlares.Count == 0) return;
+
+            float now = Time.unscaledTime;
+            List<(int, int, int)> expired = null;
+
+            foreach (var kvp in _hostActiveStageFlares)
+            {
+                float remain = kvp.Value.ExpireUnscaledTime - now;
+                if (remain <= 0.5f)
+                {
+                    if (expired == null) expired = new List<(int, int, int)>();
+                    expired.Add(kvp.Key);
+                    continue;
+                }
+
+                var key = kvp.Key;
+                if (filterStageX != int.MinValue && (key.Item1 != filterStageX || key.Item2 != filterStageY || key.Item3 != filterInteriorId))
+                {
+                    continue;
+                }
+
+                Vector3 pos = kvp.Value.Position;
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.NightCombatEffect, w =>
+                {
+                    w.Write(ulong.MaxValue); // Server-sync sentinel so target client always accepts
+                    w.Write(key.Item1);
+                    w.Write(key.Item2);
+                    w.Write(key.Item3);
+                    w.Write((byte)1);
+                    w.Write(pos.x);
+                    w.Write(pos.y);
+                    w.Write(pos.z);
+                    w.Write(remain);
+                }, targetClientId);
+            }
+
+            if (expired != null)
+            {
+                for (int i = 0; i < expired.Count; i++)
+                {
+                    _hostActiveStageFlares.Remove(expired[i]);
+                }
+            }
+        }
+
+        private void BroadcastNightCombatEffectToCoop(byte effectType, Vector3 pos, float duration)
         {
             if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
             int sx = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
             int sy = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
             int interiorId = BuildingInteriorManager.CurrentInteriorId;
+            ulong myClientId = EmpireNetworkManager.Instance.LocalClientId;
 
             EmpireNetworkManager.Instance.SendPacket(NetPacketType.NightCombatEffect, w =>
             {
+                w.Write(myClientId);
                 w.Write(sx);
                 w.Write(sy);
                 w.Write(interiorId);
@@ -274,15 +397,25 @@ namespace TheLastEmpire
                 w.Write(pos.x);
                 w.Write(pos.y);
                 w.Write(pos.z);
+                w.Write(duration);
             });
         }
 
-        public void HandleRemoteNightCombatEffect(int stageX, int stageY, int interiorId, byte effectType, Vector3 pos, bool relayIfHost)
+        public void HandleRemoteNightCombatEffect(ulong senderClientId, int stageX, int stageY, int interiorId, byte effectType, Vector3 pos, float duration, bool relayIfHost)
         {
+            float effectiveDuration = duration > 0.1f ? duration : SignalFlareDuration;
+
             if (relayIfHost && EmpireNetworkManager.Instance != null)
             {
+                if (effectType == 1)
+                {
+                    RecordHostActiveStageFlare(stageX, stageY, interiorId, pos, effectiveDuration);
+                }
+
+                // Relay preserving original senderClientId so originating client ignores the echo!
                 EmpireNetworkManager.Instance.SendPacket(NetPacketType.NightCombatEffect, w =>
                 {
+                    w.Write(senderClientId);
                     w.Write(stageX);
                     w.Write(stageY);
                     w.Write(interiorId);
@@ -290,7 +423,14 @@ namespace TheLastEmpire
                     w.Write(pos.x);
                     w.Write(pos.y);
                     w.Write(pos.z);
+                    w.Write(effectiveDuration);
                 });
+            }
+
+            // Skip echo back to the player who triggered this item (prevents double VFX & toast!)
+            if (EmpireNetworkManager.Instance != null && senderClientId == EmpireNetworkManager.Instance.LocalClientId)
+            {
+                return;
             }
 
             int myX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
@@ -300,12 +440,16 @@ namespace TheLastEmpire
 
             if (effectType == 1)
             {
-                ActivateRedSkyFlareLocal(pos, SignalFlareDuration);
-                ShowToast("TEAMMATE LAUNCHED RED SIGNAL FLARE!", new Color(1f, 0.35f, 0.30f));
+                bool alreadyActive = RedFlareTimer > 0.5f;
+                ActivateRedSkyFlareLocal(pos, effectiveDuration);
+                if (!alreadyActive && senderClientId != ulong.MaxValue)
+                {
+                    ShowToast("TEAMMATE LAUNCHED RED SIGNAL FLARE!", new Color(1f, 0.35f, 0.30f));
+                }
             }
             else if (effectType == 2)
             {
-                // Host applies authoritative stun/damage if triggered by a client; clients play visuals
+                // Host applies authoritative stun/reveal/damage ONCE for client-thrown flashbang; other clients play VFX only
                 bool applyCombat = EmpireNetworkManager.IsOnlineHost;
                 TriggerUvFlashbangLocal(pos, applyDamageAndStun: applyCombat);
             }
@@ -609,8 +753,34 @@ namespace TheLastEmpire
             Shader.SetGlobalFloat(PropRedFlareStrength, _redFlareAlpha);
             Shader.SetGlobalFloat(PropFlashbangStrength, _flashbangAlpha);
 
+            // Clear stage-bound Red Sky Flare when local player leaves the flared stage or enters/exits an interior
+            int curStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int curStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int curInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (_lastLocalStageX != int.MinValue &&
+                (_lastLocalStageX != curStageX || _lastLocalStageY != curStageY || _lastLocalInteriorId != curInteriorId))
+            {
+                RedFlareTimer = 0f;
+                CleanupSkyFlare();
+
+                // If Host re-entered a stage that still has an active flare in cache, restore it locally
+                if (EmpireNetworkManager.IsOnlineHost &&
+                    _hostActiveStageFlares.TryGetValue((curStageX, curStageY, curInteriorId), out ActiveStageFlareEntry cachedFlare))
+                {
+                    float rem = cachedFlare.ExpireUnscaledTime - Time.unscaledTime;
+                    if (rem > 0.5f)
+                    {
+                        ActivateRedSkyFlareLocal(cachedFlare.Position, rem);
+                    }
+                }
+            }
+            _lastLocalStageX = curStageX;
+            _lastLocalStageY = curStageY;
+            _lastLocalInteriorId = curInteriorId;
+
             // Apply Tactical Flashlight dazzle slow & AlienInvisible reveal every 0.25s
-            if (IsFlashlightActive && pc != null)
+            // (Authoritative on Host/Offline for both local & remote teammates' flashlights; Client runs stealth reveal locally)
+            if (HasAnyActiveFlashlightInStage())
             {
                 _dazzleTickTimer -= dt;
                 if (_dazzleTickTimer <= 0f)
