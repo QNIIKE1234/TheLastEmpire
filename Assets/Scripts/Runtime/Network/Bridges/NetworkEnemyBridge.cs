@@ -53,9 +53,29 @@ namespace TheLastEmpire.Network
         }
     }
 
+    public struct SyncedStageEnemyRecord
+    {
+        public string prefabName;
+        public string poolKey;
+        public float posX;
+        public float posZ;
+        public float rotY;
+        public float currentHealth;
+        public float maxHealth;
+    }
+
+    public class StageEnemyProgressSnapshot
+    {
+        public int stageX;
+        public int stageY;
+        public bool isCleared;
+        public List<SyncedStageEnemyRecord> enemies = new List<SyncedStageEnemyRecord>();
+    }
+
     /// <summary>
     /// NetworkEnemyBridge — ซิงค์ตำแหน่ง เลือด อนิเมชัน และโหมดทะลุสิ่งกีดขวาง (FleeingSurvivor Chaser Phasing)
     /// ของฝูงศัตรูจากเครื่อง Host ไปยังเครื่อง Client แบบประหยัดแบนด์วิดท์
+    /// พร้อมซิงค์ความคืบหน้ามอนสเตอร์ราย Node (128x128) เพื่อไม่ให้มอนสเตอร์ Respawn เต็มจำนวนเมื่อ Host วาร์ปตามเข้า Node ของเพื่อน
     /// </summary>
     public class NetworkEnemyBridge : NetworkBehaviour
     {
@@ -64,7 +84,13 @@ namespace TheLastEmpire.Network
         private float _broadcastTimer = 0f;
         private const float EnemyBroadcastInterval = 0.065f; // ~15 Hz batch sync
 
+        private float _clientSoloSyncTimer = 0f;
+        private const float ClientSoloSyncInterval = 0.40f;
+
         private readonly Dictionary<int, BaseEnemyAI> _clientPuppetEnemies = new Dictionary<int, BaseEnemyAI>();
+        private readonly Dictionary<long, StageEnemyProgressSnapshot> _stageProgressCache = new Dictionary<long, StageEnemyProgressSnapshot>();
+
+        private static long MakeStageKey(int x, int y) => ((long)x << 16) | (uint)(y & 0xFFFF);
 
         private void Awake()
         {
@@ -76,13 +102,28 @@ namespace TheLastEmpire.Network
 
         private void Update()
         {
-            if (!EmpireNetworkManager.IsOnlineHost) return;
-
-            _broadcastTimer -= Time.unscaledDeltaTime;
-            if (_broadcastTimer <= 0f)
+            if (EmpireNetworkManager.IsOnlineHost)
             {
-                _broadcastTimer = EnemyBroadcastInterval;
-                BroadcastActiveEnemiesFromHost();
+                _broadcastTimer -= Time.unscaledDeltaTime;
+                if (_broadcastTimer <= 0f)
+                {
+                    _broadcastTimer = EnemyBroadcastInterval;
+                    BroadcastActiveEnemiesFromHost();
+                }
+                return;
+            }
+
+            // หาก Client กำลังลุยมอนสเตอร์อยู่ใน Node แยกคนเดียว (ไม่ได้อยู่ Node เดียวกับ Host)
+            // ให้ส่งจำนวน/ตำแหน่ง/เลือดมอนสเตอร์ที่เหลือไปอัปเดตให้ Host ทราบทุก 0.4 วิ
+            // เพื่อว่าตอน Host วาร์ปเข้ามาใน Node นี้ จะเกิดเฉพาะมอนที่เหลืออยู่จริง (ไม่ Respawn กลับเป็น 5 ตัวใหม่!)
+            if (EmpireNetworkManager.IsOnlineClient)
+            {
+                _clientSoloSyncTimer -= Time.unscaledDeltaTime;
+                if (_clientSoloSyncTimer <= 0f)
+                {
+                    _clientSoloSyncTimer = ClientSoloSyncInterval;
+                    TrySendClientSoloStageProgress();
+                }
             }
         }
 
@@ -169,6 +210,10 @@ namespace TheLastEmpire.Network
                     EnemyStateNetPayload dummy = default;
                     dummy.NetworkSerialize(serializer);
                 }
+
+                // หาก Host เพิ่งวาร์ปออกจาก Node นี้ไปโดยที่ Client ยังอยู่สู้ต่อ:
+                // ปลดโหมด Puppet ให้มอนสเตอร์ที่เหลือกลับมาเดิน AI บนเครื่อง Client ต่อทันที ณ ตำแหน่งและเลือดเดิม
+                PromoteClientPuppetsToLocalEnemies();
                 return;
             }
 
@@ -256,23 +301,43 @@ namespace TheLastEmpire.Network
             return ai;
         }
 
-        public void ClearClientPuppets()
+        public void ClearClientPuppets(bool returnToPool = true)
         {
             foreach (var kvp in _clientPuppetEnemies)
             {
                 BaseEnemyAI oldPuppet = kvp.Value;
                 if (oldPuppet == null) continue;
                 oldPuppet.IsNetworkPuppet = false;
-                if (!string.IsNullOrEmpty(oldPuppet.PoolKey) && ObjectPoolManager.Instance != null)
+                oldPuppet.NetworkEnemyId = -1;
+                if (returnToPool)
                 {
-                    ObjectPoolManager.Instance.ReturnToPool(oldPuppet.PoolKey, oldPuppet.gameObject);
-                }
-                else
-                {
-                    Destroy(oldPuppet.gameObject);
+                    if (!string.IsNullOrEmpty(oldPuppet.PoolKey) && ObjectPoolManager.Instance != null)
+                    {
+                        ObjectPoolManager.Instance.ReturnToPool(oldPuppet.PoolKey, oldPuppet.gameObject);
+                    }
+                    else
+                    {
+                        Destroy(oldPuppet.gameObject);
+                    }
                 }
             }
             _clientPuppetEnemies.Clear();
+        }
+
+        private void PromoteClientPuppetsToLocalEnemies()
+        {
+            if (_clientPuppetEnemies.Count == 0) return;
+
+            foreach (var kvp in _clientPuppetEnemies)
+            {
+                BaseEnemyAI puppet = kvp.Value;
+                if (puppet == null) continue;
+                puppet.IsNetworkPuppet = false;
+                puppet.NetworkEnemyId = -1;
+            }
+            _clientPuppetEnemies.Clear();
+            _clientSoloSyncTimer = 0f;
+            TrySendClientSoloStageProgress();
         }
 
         private void DespawnLocalNonPuppetEnemiesOnClient()
@@ -303,7 +368,7 @@ namespace TheLastEmpire.Network
             }
         }
 
-        public void SendClientDamageToHost(int enemyNetId, float damage, bool isCrit)
+        public void SendClientDamageToHost(int enemyNetId, float damage, bool isCrit, bool isExplosion = false)
         {
             if (!EmpireNetworkManager.IsOnlineClient || EmpireNetworkManager.Instance == null || enemyNetId <= 0) return;
 
@@ -312,10 +377,11 @@ namespace TheLastEmpire.Network
                 w.Write(enemyNetId);
                 w.Write(damage);
                 w.Write(isCrit);
+                w.Write(isExplosion);
             });
         }
 
-        public void HandleClientEnemyDamageOnHost(int enemyNetId, float damage, bool isCrit)
+        public void HandleClientEnemyDamageOnHost(int enemyNetId, float damage, bool isCrit, bool isExplosion = false, ulong sourceClientId = ulong.MaxValue)
         {
             if (!EmpireNetworkManager.IsOnlineHost || GameManager.Instance == null || GameManager.Instance.ActiveEnemies == null) return;
 
@@ -331,11 +397,243 @@ namespace TheLastEmpire.Network
                     Health h = obj.GetComponent<Health>();
                     if (h != null && !h.IsDead)
                     {
-                        h.TakeDamage(damage, obj.transform.position + Vector3.up * 1.2f, isCrit, false);
+                        h.TakeNetworkClientDamage(damage, obj.transform.position + Vector3.up * 1.2f, isCrit, isExplosion, sourceClientId);
                     }
                     return;
                 }
             }
+        }
+
+        // =====================================================
+        //  Per-Node Enemy Progress Sync (Prevents Respawn When Joining Friend's Node)
+        // =====================================================
+
+        public void ClearStageProgressCache()
+        {
+            _stageProgressCache.Clear();
+        }
+
+        public void NotifyClientSoloEnemyKilled()
+        {
+            if (!EmpireNetworkManager.IsOnlineClient) return;
+            _clientSoloSyncTimer = 0f;
+            TrySendClientSoloStageProgress();
+        }
+
+        private bool IsClientInSameStageAsHost()
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || WorldMapManager.Instance == null) return false;
+            PlayerController hostAvatar = PlayerRegistry.GetPlayerByClientId(0);
+            if (hostAvatar == null) return false;
+            return hostAvatar.NetworkStageX == WorldMapManager.Instance.CurrentPlayerX &&
+                   hostAvatar.NetworkStageY == WorldMapManager.Instance.CurrentPlayerY;
+        }
+
+        private void TrySendClientSoloStageProgress()
+        {
+            if (!EmpireNetworkManager.IsOnlineClient || WorldMapManager.Instance == null || WorldMapManager.Instance.MapGenerator == null) return;
+            if (IsClientInSameStageAsHost()) return;
+
+            int x = WorldMapManager.Instance.CurrentPlayerX;
+            int y = WorldMapManager.Instance.CurrentPlayerY;
+            StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(x, y);
+            if (stage == null) return;
+
+            // ส่งเฉพาะเมื่อ Node นี้มีมอนสเตอร์ Local ที่ถูกเสกแล้ว หรือถูกเคลียร์แล้ว (ไม่ส่งทับตอนกำลังโหลดห้องเปล่า)
+            bool hasAnyNonPuppet = HasAnyLocalNonPuppetEnemy();
+            if (!hasAnyNonPuppet && !stage.isCleared && stage.remainingEnemyPrefabNames == null) return;
+
+            SendStageProgressSnapshot(stage);
+        }
+
+        private bool HasAnyLocalNonPuppetEnemy()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.ActiveEnemies == null) return false;
+            var list = GameManager.Instance.ActiveEnemies;
+            for (int i = 0; i < list.Count; i++)
+            {
+                GameObject go = list[i];
+                if (go == null) continue;
+                BaseEnemyAI ai = go.GetComponent<BaseEnemyAI>();
+                if (ai != null && !ai.IsNetworkPuppet) return true;
+            }
+            return false;
+        }
+
+        public void SendStageProgressSnapshot(StageData stage)
+        {
+            if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null || stage == null) return;
+            if (EmpireNetworkManager.IsOnlineClient && IsClientInSameStageAsHost()) return;
+
+            List<SyncedStageEnemyRecord> aliveRecords = new List<SyncedStageEnemyRecord>();
+            if (!stage.isCleared && GameManager.Instance != null && GameManager.Instance.ActiveEnemies != null)
+            {
+                var list = GameManager.Instance.ActiveEnemies;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    GameObject enemy = list[i];
+                    if (enemy == null || !enemy.activeInHierarchy) continue;
+
+                    BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
+                    if (ai != null && ai.IsNetworkPuppet) continue;
+
+                    Health h = enemy.GetComponent<Health>();
+                    if (h != null && h.IsDead) continue;
+
+                    aliveRecords.Add(new SyncedStageEnemyRecord
+                    {
+                        prefabName = enemy.name.Replace("(Clone)", "").Trim(),
+                        poolKey = ai != null ? (ai.PoolKey ?? "") : "",
+                        posX = enemy.transform.position.x,
+                        posZ = enemy.transform.position.z,
+                        rotY = enemy.transform.eulerAngles.y,
+                        currentHealth = h != null ? h.CurrentHealth : 100f,
+                        maxHealth = h != null ? h.MaxHealth : 100f
+                    });
+                }
+            }
+
+            bool cleared = stage.isCleared || (aliveRecords.Count == 0 && HasAnyLocalNonPuppetEnemy());
+            if (cleared)
+            {
+                stage.isCleared = true;
+            }
+            SendStageEnemyProgressPacket(stage.x, stage.y, cleared, aliveRecords);
+        }
+
+        private void SendStageEnemyProgressPacket(int stageX, int stageY, bool isCleared, List<SyncedStageEnemyRecord> records)
+        {
+            if (EmpireNetworkManager.Instance == null) return;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.StageEnemyProgressSync, w =>
+            {
+                w.Write(stageX);
+                w.Write(stageY);
+                w.Write(isCleared);
+                int count = records != null ? records.Count : 0;
+                w.Write(count);
+                for (int i = 0; i < count; i++)
+                {
+                    SyncedStageEnemyRecord r = records[i];
+                    w.Write(r.prefabName ?? "");
+                    w.Write(r.poolKey ?? "");
+                    w.Write(r.posX);
+                    w.Write(r.posZ);
+                    w.Write(r.rotY);
+                    w.Write(r.currentHealth);
+                    w.Write(r.maxHealth);
+                }
+            });
+        }
+
+        public void ReceiveStageEnemyProgress(BinaryReader reader, bool isHost, ulong senderClientId)
+        {
+            int stageX = reader.ReadInt32();
+            int stageY = reader.ReadInt32();
+            bool isCleared = reader.ReadBoolean();
+            int count = reader.ReadInt32();
+
+            StageEnemyProgressSnapshot snapshot = new StageEnemyProgressSnapshot
+            {
+                stageX = stageX,
+                stageY = stageY,
+                isCleared = isCleared,
+                enemies = new List<SyncedStageEnemyRecord>(Mathf.Max(0, count))
+            };
+
+            List<string> prefabNames = new List<string>(Mathf.Max(0, count));
+            for (int i = 0; i < count; i++)
+            {
+                SyncedStageEnemyRecord rec = new SyncedStageEnemyRecord
+                {
+                    prefabName = reader.ReadString(),
+                    poolKey = reader.ReadString(),
+                    posX = reader.ReadSingle(),
+                    posZ = reader.ReadSingle(),
+                    rotY = reader.ReadSingle(),
+                    currentHealth = reader.ReadSingle(),
+                    maxHealth = reader.ReadSingle()
+                };
+                snapshot.enemies.Add(rec);
+                if (!string.IsNullOrEmpty(rec.prefabName))
+                {
+                    prefabNames.Add(rec.prefabName);
+                }
+            }
+
+            // หากเครื่องเราเองกำลังอยู่ใน Node เดียวกันนี้อยู่แล้ว (Host เป็นเจ้าของห้องนี้อยู่) ไม่ต้องทับ
+            bool weAreCurrentlyInThisStage = WorldMapManager.Instance != null &&
+                                             WorldMapManager.Instance.CurrentPlayerX == stageX &&
+                                             WorldMapManager.Instance.CurrentPlayerY == stageY;
+            if (!weAreCurrentlyInThisStage)
+            {
+                _stageProgressCache[MakeStageKey(stageX, stageY)] = snapshot;
+
+                if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+                {
+                    StageData stage = WorldMapManager.Instance.MapGenerator.GetStage(stageX, stageY);
+                    if (stage != null)
+                    {
+                        stage.isCleared = isCleared;
+                        stage.remainingEnemyPrefabNames = isCleared ? new List<string>() : prefabNames;
+                    }
+                }
+            }
+
+            // Host กระจายความคืบหน้า Node นี้ให้ลูกห้องคนอื่นด้วย (ยกเว้นคนส่ง)
+            if (isHost && EmpireNetworkManager.Instance != null && senderClientId != 0)
+            {
+                SendStageEnemyProgressPacket(stageX, stageY, isCleared, snapshot.enemies);
+            }
+        }
+
+        /// <summary>
+        /// เรียกใน GameManager.SpawnLocalStageContent(stage) เมื่อ Host หรือ Client เดินเข้า Node
+        /// หากมีข้อมูลความคืบหน้ามอนสเตอร์ที่เพื่อนกำลังตีค้างไว้อยู่ใน Node นี้ -> เสกเฉพาะมอนสเตอร์ที่เหลืออยู่จริงพร้อมตำแหน่งและเลือดเดิมเป๊ะ!
+        /// </summary>
+        public bool TrySpawnFromSyncedProgress(StageData stage)
+        {
+            if (stage == null || GameManager.Instance == null) return false;
+            long key = MakeStageKey(stage.x, stage.y);
+            if (!_stageProgressCache.TryGetValue(key, out StageEnemyProgressSnapshot snapshot) || snapshot == null)
+            {
+                return false;
+            }
+
+            _stageProgressCache.Remove(key);
+
+            if (snapshot.isCleared || snapshot.enemies == null || snapshot.enemies.Count == 0)
+            {
+                stage.isCleared = true;
+                stage.remainingEnemyPrefabNames = new List<string>();
+                Debug.Log($"<color=#38BDF8>[NetworkEnemyBridge]</color> Restored synced CLEARED state for Stage ({stage.x}, {stage.y}) (0 enemies).");
+                return true;
+            }
+
+            for (int i = 0; i < snapshot.enemies.Count; i++)
+            {
+                SyncedStageEnemyRecord rec = snapshot.enemies[i];
+                GameObject prefab = GameManager.Instance.GetPrefabByName(rec.prefabName);
+                if (prefab == null) prefab = GameManager.Instance.DefaultEnemyPrefab;
+                if (prefab == null) continue;
+
+                string pKey = !string.IsNullOrEmpty(rec.poolKey) ? rec.poolKey : GameManager.Instance.GetPoolKeyForPrefab(prefab);
+                Vector3 pos = new Vector3(rec.posX, 0.25f, rec.posZ);
+                Quaternion rot = Quaternion.Euler(0f, rec.rotY, 0f);
+
+                GameObject enemyObj = GameManager.Instance.SpawnEnemyInstanceAt(prefab, pKey, pos, rot);
+                if (enemyObj != null)
+                {
+                    Health h = enemyObj.GetComponent<Health>();
+                    if (h != null && rec.maxHealth > 0f && rec.currentHealth > 0f)
+                    {
+                        h.SetHealthFromNetwork(rec.currentHealth, rec.maxHealth);
+                    }
+                }
+            }
+
+            Debug.Log($"<color=#38BDF8>[NetworkEnemyBridge]</color> Adopted {snapshot.enemies.Count} remaining synced enemies for Stage ({stage.x}, {stage.y}) without respawning full wave!");
+            return true;
         }
     }
 }

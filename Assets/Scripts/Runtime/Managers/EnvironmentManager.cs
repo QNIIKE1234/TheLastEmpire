@@ -353,26 +353,34 @@ namespace TheLastEmpire
             _currentEnvContainer = new GameObject("GeneratedEnvironment");
             _currentEnvContainer.transform.position = Vector3.zero;
 
-            // Fetch player position early to avoid spawning obstacles directly on top of them or their warp-in point
-            Vector3 playerPos = TransitionPortal.HasValidWarpHistory ? TransitionPortal.LastPlayerWarpInPos : Vector3.zero;
-            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
-            if (player != null)
-            {
-                playerPos = player.transform.position;
-            }
+            // Deterministic stage-only safe anchor so Co-op players (Host & Clients) ALWAYS generate
+            // bit-for-bit identical ENV layouts regardless of each player's live position or entry portal!
+            // - On the starting Safe Zone stage: protect fixed center (0, 0, 0).
+            // - On all other stages: all 4 active TransitionPortal gates & inward corridors are already
+            //   protected deterministically by IsNearTransitionGates() / DoesRectOverlapPortalOrPlayer().
+            bool isStartingStage = WorldMapManager.Instance != null &&
+                                   WorldMapManager.Instance.MapGenerator != null &&
+                                   stage.x == WorldMapManager.Instance.MapGenerator.spawnX &&
+                                   stage.y == WorldMapManager.Instance.MapGenerator.spawnY;
+            Vector3 playerPos = isStartingStage ? Vector3.zero : new Vector3(99999f, 0f, 99999f);
 
-            // 3a. Handcrafted JSON Stage Template Override
-            if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
+            Random.State previousRandomState = Random.state;
+            try
             {
-                GenerateEnvironmentFromTemplate(template, stage);
-                EnsurePortalsClear(playerPos);
-                AttachEnterableBuildingDoors(stage);
-                if (generateBackgroundScenery)
+                Random.InitState(stage.stageSeed + 12345);
+
+                // 3a. Handcrafted JSON Stage Template Override
+                if (StageTemplateManager.Instance != null && StageTemplateManager.Instance.TryGetTemplateForStage(stage, out StageTemplateData template))
                 {
-                    GenerateSurroundingBackgroundScenery(stage, config);
+                    GenerateEnvironmentFromTemplate(template, stage);
+                    EnsurePortalsClear(playerPos);
+                    AttachEnterableBuildingDoors(stage);
+                    if (generateBackgroundScenery)
+                    {
+                        GenerateSurroundingBackgroundScenery(stage, config);
+                    }
+                    return;
                 }
-                return;
-            }
 
             // 3b. Custom grid spawner override
             if (useInspectorGrid)
@@ -783,6 +791,11 @@ namespace TheLastEmpire
             }
 
             Debug.Log($"[EnvironmentManager] Grid generated {buildingSpawnCount + pathSpawnCount} obstacles and {spawnDecorations} decorations (out of safe cells: {decorationSafeCells.Count}) for Biome {stage.biome} using seed {stage.stageSeed}");
+            }
+            finally
+            {
+                Random.state = previousRandomState;
+            }
         }
 
         private BiomeEnvConfig GetConfigForBiome(BiomeType biome)
@@ -839,6 +852,7 @@ namespace TheLastEmpire
                             config.obstaclePrefabs.Add(go);
                         }
                     }
+                    config.obstaclePrefabs.Sort((a, b) => string.Compare(a != null ? a.name : "", b != null ? b.name : "", System.StringComparison.Ordinal));
                 }
             }
 
@@ -855,6 +869,7 @@ namespace TheLastEmpire
                             config.decorationPrefabs.Add(go);
                         }
                     }
+                    config.decorationPrefabs.Sort((a, b) => string.Compare(a != null ? a.name : "", b != null ? b.name : "", System.StringComparison.Ordinal));
                 }
             }
 
@@ -2462,6 +2477,9 @@ namespace TheLastEmpire
                     activePortals.Add(portal);
                 }
             }
+
+            // Sort portals deterministically by Direction so FindObjectsByType order never varies across machines
+            activePortals.Sort((a, b) => ((int)a.Direction).CompareTo((int)b.Direction));
 
             // 2. Connect each portal's grid cell to the central junction via orthogonal segments
             bool hasHorizontalRoad = false;

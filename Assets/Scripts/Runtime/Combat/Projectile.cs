@@ -89,6 +89,7 @@ namespace TheLastEmpire
         private float _activeExplosionRadius;
         private string _activeExplosionVfxPoolKey;
         private bool _canPierce = false;
+        private bool _isVisualOnly = false;
         private string _weaponName = "";
         private float _maxFalloffDistance = DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE;
         private float _bonusKnockback = 0f;
@@ -305,6 +306,7 @@ namespace TheLastEmpire
             _bonusKnockback = 0f;
             _bonusStagger = 0f;
             _lifestealOnHit = 0f;
+            _isVisualOnly = false;
             if (_trail != null)
             {
                 _trail.enabled = useTrailRenderer;
@@ -425,6 +427,7 @@ namespace TheLastEmpire
             _lifeTimer = _activeLifetime;
             _currentFlightTime = 0f;
             _owner = null;
+            _isVisualOnly = false;
             if (_hitTargets == null)
             {
                 _hitTargets = new System.Collections.Generic.List<IDamageable>();
@@ -732,6 +735,11 @@ namespace TheLastEmpire
             }
         }
 
+        public void SetVisualOnly(bool visualOnly)
+        {
+            _isVisualOnly = visualOnly;
+        }
+
         public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f, string visualId = "")
         {
             ResetDynamicOverrides();
@@ -805,6 +813,16 @@ namespace TheLastEmpire
                 {
                     Explode();
                     DeactivateProjectile();
+                    return;
+                }
+
+                // Remote Co-op visual replay projectile: never deal fake damage or trigger enemy I-frames!
+                if (_isVisualOnly)
+                {
+                    if (!_canPierce)
+                    {
+                        DeactivateProjectile();
+                    }
                     return;
                 }
 
@@ -910,6 +928,9 @@ namespace TheLastEmpire
                     }
                 }
             }
+
+            // Remote Co-op visual replay explosion: VFX only, skip AOE damage (damage is sent authoritatively via EnemyDamageRequest)
+            if (_isVisualOnly) return;
 
             // AOE Damage
             Collider[] targets = Physics.OverlapSphere(transform.position, activeRadius);

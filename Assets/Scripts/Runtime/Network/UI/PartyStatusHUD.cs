@@ -148,7 +148,9 @@ namespace TheLastEmpire.Network
 
                 if (p.IsDowned)
                 {
-                    float bleedRatio = Mathf.Clamp01(p.DownedBleedoutTimer / PlayerController.MaxDownedBleedoutSeconds);
+                    float bleedRatio = PlayerController.UnlimitedDownedDuration
+                        ? 1f
+                        : Mathf.Clamp01(p.DownedBleedoutTimer / PlayerController.MaxDownedBleedoutSeconds);
                     GUI.color = new Color(0.95f, 0.25f, 0.20f, 1f);
                     GUI.DrawTexture(new Rect(barBg.x, barBg.y, barBg.width * bleedRatio, barBg.height), _whiteTex);
 
@@ -160,8 +162,13 @@ namespace TheLastEmpire.Network
 
                     GUI.color = Color.white;
                     _statusStyle.normal.textColor = new Color(1f, 0.55f, 0.20f);
+                    string downedText = PlayerController.UnlimitedDownedDuration
+                        ? (p.ReviveProgress01 > 0.01f
+                            ? $"DOWNED - REVIVING {(p.ReviveProgress01 * 100f):F0}%"
+                            : "DOWNED - Hold [E] to Revive")
+                        : $"DOWNED ({p.DownedBleedoutTimer:F0}s) - Hold [E] Revive";
                     GUI.Label(new Rect(cardRect.x + 12f, cardRect.y + 35f, cardRect.width - 16f, 16f),
-                        $"⚠️ DOWNED ({p.DownedBleedoutTimer:F0}s) — Hold [E] Revive", _statusStyle);
+                        downedText, _statusStyle);
                 }
                 else
                 {

@@ -17,6 +17,9 @@ namespace TheLastEmpire.Network
         LobbyRosterSync = 4,
         HostStartGameplay = 5,
         LobbyCharacterChange = 6,
+        PartyWipeBroadcast = 7,
+        HostRetryMatch = 8,
+        ClientHeartbeat = 9,
         PlayerStateSync = 10,
         ProjectileFire = 11,
         MeleeAttack = 12,
@@ -33,6 +36,7 @@ namespace TheLastEmpire.Network
         EnemyChaserPhasing = 31,
         DamageNumberBroadcast = 32,
         EnemyDamageRequest = 33,
+        StageEnemyProgressSync = 34,
         LootSpawnBroadcast = 40,
         LootClaimRequest = 41,
         LootClaimResult = 42,
@@ -192,8 +196,19 @@ namespace TheLastEmpire.Network
         private SteamP2PTransport _steamTransport;
         private readonly Dictionary<uint, ulong> _steamConnToClientId = new Dictionary<uint, ulong>();
         private readonly Dictionary<ulong, uint> _clientIdToSteamConn = new Dictionary<ulong, uint>();
+        private readonly Dictionary<ulong, ulong> _clientIdToSteamId = new Dictionary<ulong, ulong>();
+        private readonly Dictionary<ulong, float> _clientLastHeardRealtime = new Dictionary<ulong, float>();
+        private float _clientHeartbeatTimer = 0f;
+        private float _hostStalePeerCheckTimer = 0f;
+        private const float ClientHeartbeatIntervalSeconds = 1.5f;
+        private const float HostPeerTimeoutSeconds = 7.0f;
         private bool _isUsingSteamRelayClient = false;
         private float _steamDiscoveryTimer = 0f;
+        private bool _hasTriggeredPartyWipe = false;
+        private float _partyWipeMonitorDelay = 0f;
+        private float _partyWipeCheckTimer = 0f;
+
+        public bool HasTriggeredPartyWipe => _hasTriggeredPartyWipe;
 
         public bool IsSteamAvailable => _steamTransport != null && _steamTransport.IsSteamAvailable;
         public bool IsSteamRelayActive => _steamTransport != null && (_isHost ? _steamTransport.IsHostRelayActive : _isUsingSteamRelayClient);
@@ -456,11 +471,17 @@ namespace TheLastEmpire.Network
 
         private void OnApplicationQuit()
         {
+            if (_isSessionActive && !_isHost)
+            {
+                SendPacket(NetPacketType.DisconnectNotice, w => { w.Write("Client Quit"); });
+            }
             _steamTransport?.ShutdownSteamOnQuit();
         }
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            _hasTriggeredPartyWipe = false;
+            _partyWipeMonitorDelay = 3.0f;
             EnsureLocalPlayerBridgeAttached();
             if (_isSessionActive && _isHost)
             {
@@ -502,6 +523,66 @@ namespace TheLastEmpire.Network
                     if (!_isUsingSteamRelayClient || (_steamTransport != null && _steamTransport.IsClientRelayConnected))
                     {
                         SendHandshakeRequestToHost();
+                    }
+                }
+            }
+
+            // หากเป็นเครื่อง Client ที่เชื่อมติดแล้ว ให้ส่ง Heartbeat เบาๆ ทุก 1.5 วิ (กันหลุดค้างในห้อง Lobby ถ้าเน็ตตัด/Alt+F4)
+            if (_isSessionActive && !_isHost && _isClientHandshakeAccepted)
+            {
+                _clientHeartbeatTimer -= Time.unscaledDeltaTime;
+                if (_clientHeartbeatTimer <= 0f)
+                {
+                    _clientHeartbeatTimer = ClientHeartbeatIntervalSeconds;
+                    SendPacket(NetPacketType.ClientHeartbeat, w => { w.Write((byte)1); });
+                }
+            }
+
+            // Host คอยเคลียร์ลูกห้องที่เงียบหายเกิน 7 วินาที (เช่น เกมค้าง / ปิดโปรแกรม / เน็ตหลุด) ออกจาก Lobby และแมปอัตโนมัติ
+            if (_isSessionActive && _isHost && _clientLastHeardRealtime.Count > 0)
+            {
+                _hostStalePeerCheckTimer -= Time.unscaledDeltaTime;
+                if (_hostStalePeerCheckTimer <= 0f)
+                {
+                    _hostStalePeerCheckTimer = 1.5f;
+                    float now = Time.realtimeSinceStartup;
+                    List<ulong> staleIds = null;
+                    foreach (var kvp in _clientLastHeardRealtime)
+                    {
+                        if (now - kvp.Value > HostPeerTimeoutSeconds)
+                        {
+                            if (staleIds == null) staleIds = new List<ulong>();
+                            staleIds.Add(kvp.Key);
+                        }
+                    }
+                    if (staleIds != null)
+                    {
+                        for (int i = 0; i < staleIds.Count; i++)
+                        {
+                            Debug.Log($"<color=#F59E0B>[EmpireNetworkManager]</color> Pruning timed-out peer clientId={staleIds[i]} from room.");
+                            RemovePeerFromHost(staleIds[i], sendKickNotice: false);
+                        }
+                    }
+                }
+            }
+
+            // Host คอยตรวจสอบ Party Wipe (ตาย/ล้มครบทั้งห้อง) ในฉาก Gameplay_3D เพื่อขึ้น Game Over พร้อมกันทุกเครื่อง
+            if (_isSessionActive && _isHost && !_hasTriggeredPartyWipe && SceneManager.GetActiveScene().name == "Gameplay_3D")
+            {
+                if (_partyWipeMonitorDelay > 0f)
+                {
+                    _partyWipeMonitorDelay -= Time.unscaledDeltaTime;
+                }
+                else
+                {
+                    _partyWipeCheckTimer -= Time.unscaledDeltaTime;
+                    if (_partyWipeCheckTimer <= 0f)
+                    {
+                        _partyWipeCheckTimer = 0.25f;
+                        if (PlayerRegistry.GetTotalPlayerCount() > 0 && PlayerRegistry.AreAllPlayersDeadOrDowned())
+                        {
+                            NotifyPartyWipe();
+                        }
                     }
                 }
             }
@@ -829,8 +910,40 @@ namespace TheLastEmpire.Network
             if (!_isSessionActive || !_isHost) return;
             if (!_steamConnToClientId.TryGetValue(connId, out ulong clientId)) return;
 
-            _steamConnToClientId.Remove(connId);
-            _clientIdToSteamConn.Remove(clientId);
+            RemovePeerFromHost(clientId, sendKickNotice: false);
+        }
+
+        /// <summary>
+        /// ลบลูกห้อง (clientId) ออกจากห้อง Lobby และในฉากเกมอย่างสมบูรณ์ทั้งฝั่ง LAN UDP และ Steam Relay
+        /// พร้อมจัดเรียง slotIndex ใหม่ (0..N-1) และกระจาย Roster ล่าสุดให้ทุกคนในห้องทันที
+        /// </summary>
+        private void RemovePeerFromHost(ulong clientId, bool sendKickNotice, string kickReason = "Kicked by Host")
+        {
+            if (!_isSessionActive || !_isHost || clientId == 0) return;
+
+            if (sendKickNotice)
+            {
+                SendPacket(NetPacketType.DisconnectNotice, w =>
+                {
+                    w.Write(kickReason ?? "Disconnected");
+                }, clientId);
+            }
+
+            if (_clientEndpoints.TryGetValue(clientId, out IPEndPoint ep) && ep != null)
+            {
+                _endpointToClientId.Remove(ep.ToString());
+                _clientEndpoints.Remove(clientId);
+            }
+
+            if (_clientIdToSteamConn.TryGetValue(clientId, out uint steamConnId))
+            {
+                _steamConnToClientId.Remove(steamConnId);
+                _clientIdToSteamConn.Remove(clientId);
+                _steamTransport?.DisconnectPeer(steamConnId);
+            }
+
+            _clientIdToSteamId.Remove(clientId);
+            _clientLastHeardRealtime.Remove(clientId);
 
             int idx = _lobbyMembers.FindIndex(m => m.clientId == clientId);
             if (idx >= 0)
@@ -858,11 +971,18 @@ namespace TheLastEmpire.Network
 
         public void DisconnectSession()
         {
+            // แจ้ง Host ทันทีก่อนปิด Socket เพื่อให้ Host เคลียร์สล็อตของเราออกจากห้อง Lobby ทันทีไม่ค้างซ้ำ
+            if (_isSessionActive && !_isHost)
+            {
+                SendPacket(NetPacketType.DisconnectNotice, w => { w.Write("Client Left"); });
+            }
+
             ClearSimulatedTeammates();
             RemoveAllRemotePlayers();
             NetworkBuildingSyncManager.Instance?.ClearRegistry();
             NetworkLootManager.Instance?.ClearMatchLootCache();
             DayNightManager.ClearPendingNetworkTimeSync();
+            NetworkEnemyBridge.Instance?.ClearStageProgressCache();
             CloseUdpSocket();
             _steamTransport?.CloseSocketsAndLobby();
 
@@ -870,6 +990,8 @@ namespace TheLastEmpire.Network
             _endpointToClientId.Clear();
             _steamConnToClientId.Clear();
             _clientIdToSteamConn.Clear();
+            _clientIdToSteamId.Clear();
+            _clientLastHeardRealtime.Clear();
             _lobbyMembers.Clear();
             _nextAssignedClientId = 1;
 
@@ -958,44 +1080,7 @@ namespace TheLastEmpire.Network
             if (memberIdx < 0) return;
 
             ulong targetClientId = _lobbyMembers[memberIdx].clientId;
-            _lobbyMembers.RemoveAt(memberIdx);
-
-            // จัดเรียง slotIndex ใหม่ให้ต่อเนื่อง (0..N-1)
-            for (int i = 0; i < _lobbyMembers.Count; i++)
-            {
-                var m = _lobbyMembers[i];
-                m.slotIndex = i;
-                _lobbyMembers[i] = m;
-            }
-
-            SendPacket(NetPacketType.DisconnectNotice, w =>
-            {
-                w.Write("Kicked by Host");
-            }, targetClientId);
-
-            if (_clientEndpoints.TryGetValue(targetClientId, out IPEndPoint ep) && ep != null)
-            {
-                _endpointToClientId.Remove(ep.ToString());
-                _clientEndpoints.Remove(targetClientId);
-            }
-
-            if (_clientIdToSteamConn.TryGetValue(targetClientId, out uint steamConnId))
-            {
-                _steamConnToClientId.Remove(steamConnId);
-                _clientIdToSteamConn.Remove(targetClientId);
-                _steamTransport?.DisconnectPeer(steamConnId);
-            }
-
-            PlayerController avatar = PlayerRegistry.GetPlayerByClientId(targetClientId);
-            if (avatar != null && avatar.IsRemotePlayer)
-            {
-                PlayerRegistry.Unregister(avatar);
-                Destroy(avatar.gameObject);
-            }
-
-            BroadcastLobbyRosterFromHost();
-            OnLobbyRosterChanged?.Invoke();
-            OnPeerDisconnected?.Invoke(targetClientId);
+            RemovePeerFromHost(targetClientId, sendKickNotice: true, "Kicked by Host");
         }
 
         public void BroadcastLobbyRosterFromHost()
@@ -1052,7 +1137,140 @@ namespace TheLastEmpire.Network
             }
 
             MainMenuManager.ShouldLoadSave = false;
+            _hasTriggeredPartyWipe = false;
             SceneManager.LoadScene(string.IsNullOrEmpty(gameplaySceneName) ? "Gameplay_3D" : gameplaySceneName);
+        }
+
+        /// <summary>
+        /// แจ้งเหตุการณ์ Party Wipe (ผู้เล่นทุกคนในห้องตาย/ล้มหมดแล้ว) -> Host กระจายให้ทุกเครื่องแสดงหน้า Game Over พร้อมกัน
+        /// </summary>
+        public void NotifyPartyWipe()
+        {
+            if (!_isSessionActive)
+            {
+                ApplyPartyWipeLocally();
+                return;
+            }
+
+            if (_isHost)
+            {
+                if (_hasTriggeredPartyWipe) return;
+                _hasTriggeredPartyWipe = true;
+                SendPacket(NetPacketType.PartyWipeBroadcast, w => { w.Write((byte)1); });
+                ApplyPartyWipeLocally();
+            }
+            else
+            {
+                // Client แจ้ง Host ว่าตัวเองเป็นคนสุดท้ายที่ตาย เพื่อให้ Host ยืนยันและกระจาย Party Wipe ทั้งห้อง
+                SendPacket(NetPacketType.PartyWipeBroadcast, w => { w.Write((byte)1); });
+                if (!_hasTriggeredPartyWipe)
+                {
+                    ApplyPartyWipeLocally();
+                }
+            }
+        }
+
+        private void ApplyPartyWipeLocally()
+        {
+            _hasTriggeredPartyWipe = true;
+
+            var all = PlayerRegistry.AllPlayers;
+            for (int i = 0; i < all.Count; i++)
+            {
+                PlayerController p = all[i];
+                if (p != null)
+                {
+                    p.ForcePartyWipeDeathFromNetwork();
+                }
+            }
+
+            PlayerHUD.Instance?.ShowCoopPartyWipeGameOver();
+        }
+
+        /// <summary>
+        /// เรียกเมื่อหัวห้อง (Host) กดปุ่ม Retry บนหน้า Game Over เพื่อเริ่มเกมใหม่พร้อมกันทั้งห้อง
+        /// </summary>
+        public void HostRetryMatch(bool randomizeSeed)
+        {
+            if (_isSessionActive && !_isHost) return;
+
+            Time.timeScale = 1f;
+            _hasTriggeredPartyWipe = false;
+
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.ResetDayCount();
+            }
+
+            NetworkBuildingSyncManager.Instance?.ClearRegistry();
+            NetworkLootManager.Instance?.ClearMatchLootCache();
+            NetworkEnemyBridge.Instance?.ClearClientPuppets();
+            NetworkEnemyBridge.Instance?.ClearStageProgressCache();
+            RemoveAllRemotePlayers();
+            ClearSimulatedTeammates();
+
+            int seedToUse = UnityEngine.Random.Range(1000, 99999);
+            if (!randomizeSeed && WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null && WorldMapManager.Instance.MapGenerator.seed > 0)
+            {
+                seedToUse = WorldMapManager.Instance.MapGenerator.seed;
+            }
+
+            PendingMatchWorldSeed = seedToUse;
+
+            if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+            {
+                WorldMapManager.Instance.ResetMapProgression();
+                WorldMapManager.Instance.StartNewGame(seedToUse);
+            }
+
+            string targetScene = SceneManager.GetActiveScene().name;
+            if (string.IsNullOrEmpty(targetScene)) targetScene = "Gameplay_3D";
+
+            if (_isSessionActive && _isHost)
+            {
+                SendPacket(NetPacketType.HostRetryMatch, w =>
+                {
+                    w.Write(targetScene);
+                    w.Write(seedToUse);
+                });
+            }
+
+            MainMenuManager.ShouldLoadSave = false;
+            SceneManager.LoadScene(targetScene);
+        }
+
+        private void HandleHostRetryMatchOnClient(string targetScene, int retrySeed)
+        {
+            Time.timeScale = 1f;
+            _hasTriggeredPartyWipe = false;
+
+            if (DayNightManager.Instance != null)
+            {
+                DayNightManager.Instance.ResetDayCount();
+            }
+
+            NetworkBuildingSyncManager.Instance?.ClearRegistry();
+            NetworkLootManager.Instance?.ClearMatchLootCache();
+            NetworkEnemyBridge.Instance?.ClearClientPuppets();
+            NetworkEnemyBridge.Instance?.ClearStageProgressCache();
+            RemoveAllRemotePlayers();
+
+            if (retrySeed > 0)
+            {
+                PendingMatchWorldSeed = retrySeed;
+            }
+
+            if (WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
+            {
+                WorldMapManager.Instance.ResetMapProgression();
+                if (retrySeed > 0)
+                {
+                    WorldMapManager.Instance.StartNewGame(retrySeed);
+                }
+            }
+
+            if (string.IsNullOrEmpty(targetScene)) targetScene = "Gameplay_3D";
+            SceneManager.LoadScene(targetScene);
         }
 
         /// <summary>
@@ -1348,6 +1566,7 @@ namespace TheLastEmpire.Network
                     if (_endpointToClientId.TryGetValue(epKey, out ulong registeredId))
                     {
                         senderId = registeredId;
+                        _clientLastHeardRealtime[senderId] = Time.realtimeSinceStartup;
                     }
                     else if (type == NetPacketType.HandshakeRequest)
                     {
@@ -1355,6 +1574,7 @@ namespace TheLastEmpire.Network
                         ulong assignedId = _nextAssignedClientId++;
                         _endpointToClientId[epKey] = assignedId;
                         _clientEndpoints[assignedId] = remoteEp;
+                        _clientLastHeardRealtime[assignedId] = Time.realtimeSinceStartup;
                         senderId = assignedId;
                     }
                 }
@@ -1363,13 +1583,39 @@ namespace TheLastEmpire.Network
                     if (_steamConnToClientId.TryGetValue(steamConnId, out ulong registeredSteamId))
                     {
                         senderId = registeredSteamId;
+                        _clientLastHeardRealtime[senderId] = Time.realtimeSinceStartup;
                     }
                     else if (type == NetPacketType.HandshakeRequest)
                     {
+                        // กันไอดี Steam เดิมเข้าออกซ้ำจนเต็มห้อง: ถ้า SteamId นี้เคยค้างอยู่ในห้อง ให้เคลียร์สล็อตเก่าก่อนเสมอ!
+                        ulong incomingSteamId = 0;
+                        if (_steamTransport != null && _steamTransport.TryGetPeerSteamId(steamConnId, out Steamworks.SteamId sId))
+                        {
+                            incomingSteamId = sId.Value;
+                            if (incomingSteamId != 0)
+                            {
+                                ulong duplicateClientId = 0;
+                                foreach (var kvp in _clientIdToSteamId)
+                                {
+                                    if (kvp.Value == incomingSteamId)
+                                    {
+                                        duplicateClientId = kvp.Key;
+                                        break;
+                                    }
+                                }
+                                if (duplicateClientId != 0)
+                                {
+                                    RemovePeerFromHost(duplicateClientId, sendKickNotice: false);
+                                }
+                            }
+                        }
+
                         if (_clientEndpoints.Count + _clientIdToSteamConn.Count + 1 >= MaxPlayers) return; // ห้องเต็ม 6 คนแล้ว
                         ulong assignedId = _nextAssignedClientId++;
                         _steamConnToClientId[steamConnId] = assignedId;
                         _clientIdToSteamConn[assignedId] = steamConnId;
+                        if (incomingSteamId != 0) _clientIdToSteamId[assignedId] = incomingSteamId;
+                        _clientLastHeardRealtime[assignedId] = Time.realtimeSinceStartup;
                         senderId = assignedId;
                     }
                 }
@@ -1443,11 +1689,20 @@ namespace TheLastEmpire.Network
                     break;
 
                 case NetPacketType.DisconnectNotice:
-                    if (!_isHost)
+                    if (_isHost)
+                    {
+                        // ลูกห้องกด LEAVE หรือปิดเกม -> เคลียร์สล็อตออกจากห้องและกระจาย Roster ล่าสุดทันที!
+                        RemovePeerFromHost(senderId, sendKickNotice: false);
+                    }
+                    else
                     {
                         DisconnectSession();
                         OnKickedFromRoom?.Invoke();
                     }
+                    break;
+
+                case NetPacketType.ClientHeartbeat:
+                    // _clientLastHeardRealtime ถูกอัปเดตด้านบนแล้ว
                     break;
 
                 case NetPacketType.LobbyRosterSync:
@@ -1491,6 +1746,31 @@ namespace TheLastEmpire.Network
                         {
                             SceneManager.LoadScene(targetScene);
                         }
+                    }
+                    break;
+
+                case NetPacketType.PartyWipeBroadcast:
+                    if (_isHost)
+                    {
+                        if (!_hasTriggeredPartyWipe)
+                        {
+                            _hasTriggeredPartyWipe = true;
+                            SendPacket(NetPacketType.PartyWipeBroadcast, w => { w.Write((byte)1); });
+                            ApplyPartyWipeLocally();
+                        }
+                    }
+                    else
+                    {
+                        ApplyPartyWipeLocally();
+                    }
+                    break;
+
+                case NetPacketType.HostRetryMatch:
+                    if (!_isHost)
+                    {
+                        string retryScene = reader.ReadString();
+                        int retrySeed = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;
+                        HandleHostRetryMatchOnClient(retryScene, retrySeed);
                     }
                     break;
 
@@ -1702,7 +1982,12 @@ namespace TheLastEmpire.Network
                         Vector3 pos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                         float dmg = reader.ReadSingle();
                         bool isCrit = reader.ReadBoolean();
-                        DamageNumberManager.Instance?.SpawnDamageNumber(pos, dmg, isCrit);
+                        ulong sourceClientId = reader.BaseStream.Position + 8 <= reader.BaseStream.Length ? reader.ReadUInt64() : ulong.MaxValue;
+                        // ไม่ต้องโชว์ตัวเลขดาเมจซ้ำบนเครื่อง Client ที่เป็นคนยิงเอง (เพราะเครื่องคนยิงแสดงไปตอน 0ms แล้ว)
+                        if (sourceClientId != _localClientId)
+                        {
+                            DamageNumberManager.Instance?.SpawnDamageNumber(pos, dmg, isCrit);
+                        }
                     }
                     break;
 
@@ -1712,8 +1997,13 @@ namespace TheLastEmpire.Network
                         int enemyNetId = reader.ReadInt32();
                         float dmg = reader.ReadSingle();
                         bool isCrit = reader.ReadBoolean();
-                        NetworkEnemyBridge.Instance?.HandleClientEnemyDamageOnHost(enemyNetId, dmg, isCrit);
+                        bool isExplosion = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
+                        NetworkEnemyBridge.Instance?.HandleClientEnemyDamageOnHost(enemyNetId, dmg, isCrit, isExplosion, senderId);
                     }
+                    break;
+
+                case NetPacketType.StageEnemyProgressSync:
+                    NetworkEnemyBridge.Instance?.ReceiveStageEnemyProgress(reader, isHost: _isHost, senderClientId: senderId);
                     break;
 
                 case NetPacketType.LootSpawnBroadcast:

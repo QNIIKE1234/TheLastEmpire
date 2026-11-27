@@ -41,55 +41,144 @@ namespace TheLastEmpire
         public void GenerateMap()
         {
             gridData = new StageData[GridSize * GridSize];
-            System.Random rand = new System.Random(seed);
 
-            float offsetX = noiseOffset.x + (float)(rand.NextDouble() * 200000 - 100000);
-            float offsetY = noiseOffset.y + (float)(rand.NextDouble() * 200000 - 100000);
+            // Pure 32-bit integer hash offsets (bit-exact across Intel, AMD, ARM, Mono & IL2CPP — zero float/FMA drift)
+            int offsetX = Mathf.RoundToInt(noiseOffset.x) + (int)(Hash32((uint)seed, 101u, 202u) % 200000u) - 100000;
+            int offsetY = Mathf.RoundToInt(noiseOffset.y) + (int)(Hash32((uint)seed, 303u, 404u) % 200000u) - 100000;
 
-            // Generate separate offsets for winding highways
-            float roadOffsetX = noiseOffset.x + (float)(rand.NextDouble() * 200000 - 100000);
-            float roadOffsetY = noiseOffset.y + (float)(rand.NextDouble() * 200000 - 100000);
+            int roadOffsetX = Mathf.RoundToInt(noiseOffset.x) + (int)(Hash32((uint)seed, 505u, 606u) % 200000u) - 100000;
+            int roadOffsetY = Mathf.RoundToInt(noiseOffset.y) + (int)(Hash32((uint)seed, 707u, 808u) % 200000u) - 100000;
+
+            uint floodedThreshold = (uint)Mathf.Clamp(Mathf.RoundToInt(floodedCityChance * 1000000f), 0, 1000000);
+            uint eventRollThreshold = (uint)Mathf.Clamp(Mathf.RoundToInt(eventProbability * 1000000f), 0, 1000000);
+            int highwayHalfWidthFp = Mathf.RoundToInt(highwayWidth * 65536f);
+
+            int waterThresholdFp = Mathf.RoundToInt(waterThreshold * 65536f);
+            int forestThresholdFp = Mathf.RoundToInt(forestThreshold * 65536f);
+            int suburbanThresholdFp = Mathf.RoundToInt(suburbanThreshold * 65536f);
+            int urbanThresholdFp = Mathf.RoundToInt(urbanThreshold * 65536f);
 
             for (int y = 0; y < GridSize; y++)
             {
                 for (int x = 0; x < GridSize; x++)
                 {
-                    float noiseValue = GetOctaveNoise(x, y, offsetX, offsetY);
-                    BiomeType biome = GetBiomeFromNoise(noiseValue);
+                    int noiseFp = GetDeterministicOctaveNoiseFp(x, y, offsetX, offsetY, noiseScale, noiseOctaves, persistence, lacunarity);
+                    BiomeType biome = noiseFp < waterThresholdFp ? BiomeType.Waterways
+                                    : noiseFp < forestThresholdFp ? BiomeType.OvergrownForests
+                                    : noiseFp < suburbanThresholdFp ? BiomeType.SuburbanVillages
+                                    : noiseFp < urbanThresholdFp ? BiomeType.UrbanRuins
+                                    : BiomeType.Highlands;
 
-                    // Roll for Flooded City (Urban Ruins in the middle of Waterways)
-                    if (biome == BiomeType.Waterways && rand.NextDouble() < floodedCityChance)
+                    // Independent per-tile integer hash rolls (never shift neighbor tiles' RNG state!)
+                    uint floodedRoll = Hash32((uint)seed ^ 0x1A2B3C4Du, (uint)x, (uint)y) % 1000000u;
+                    if (biome == BiomeType.Waterways && floodedRoll < floodedThreshold)
                     {
                         biome = BiomeType.UrbanRuins;
                     }
 
-                    // Overlay winding highways if the base biome is not Waterways
                     if (biome != BiomeType.Waterways)
                     {
-                        float roadNoise = GetOctaveNoise(x, y, roadOffsetX, roadOffsetY, highwayScale, noiseOctaves, persistence, lacunarity);
-                        if (Mathf.Abs(roadNoise - 0.5f) < highwayWidth)
+                        int roadNoiseFp = GetDeterministicOctaveNoiseFp(x, y, roadOffsetX, roadOffsetY, highwayScale, noiseOctaves, persistence, lacunarity);
+                        if (System.Math.Abs(roadNoiseFp - 32768) < highwayHalfWidthFp)
                         {
                             biome = BiomeType.Highways;
                         }
                     }
 
-                    // Sprinkle special events randomly on walkable ground
-                    if (biome != BiomeType.Waterways && rand.NextDouble() < eventProbability)
+                    uint eventRoll = Hash32((uint)seed ^ 0x5E6F7A8Bu, (uint)x, (uint)y) % 1000000u;
+                    if (biome != BiomeType.Waterways && eventRoll < eventRollThreshold)
                     {
                         biome = BiomeType.SpecialEvent;
                     }
 
-                    int stageSeed = rand.Next();
+                    // Independent per-tile bit-exact stageSeed (masked to positive 31-bit int)
+                    int stageSeed = (int)(Hash32((uint)seed ^ 0x9E3779B9u, (uint)x, (uint)y) & 0x7FFFFFFFu);
                     StageData stage = new StageData(x, y, biome, stageSeed);
                     if (biome == BiomeType.SpecialEvent)
                     {
-                        stage.isShopStage = (rand.Next(0, 2) == 0);
+                        stage.isShopStage = (Hash32((uint)seed ^ 0xC2B2AE35u, (uint)x, (uint)y) & 1u) == 0u;
                     }
                     gridData[x + y * GridSize] = stage;
                 }
             }
 
             CalculateSpawnLocation(seed);
+        }
+
+        /// <summary>
+        /// Bit-exact 32-bit integer hash (Murmur3/SplitMix finalizer) — identical on Intel, AMD, and ARM CPUs.
+        /// </summary>
+        public static uint Hash32(uint a, uint b, uint c)
+        {
+            uint h = a ^ 0x9E3779B9u;
+            h = (h ^ b) * 0x85EBCA6Bu;
+            h = (h ^ (h >> 13)) ^ c;
+            h *= 0xC2B2AE35u;
+            h ^= h >> 16;
+            return h;
+        }
+
+        /// <summary>
+        /// Pure 64-bit integer Q16.16 fixed-point fractal value noise (returns [0..65536]).
+        /// Eliminates cross-CPU float/FMA rounding drift from Mathf.PerlinNoise.
+        /// </summary>
+        private static int GetDeterministicOctaveNoiseFp(int x, int y, int offsetX, int offsetY, float scale, int octaves, float pers, float lacun)
+        {
+            const long ONE = 65536L; // Q16.16 fixed-point 1.0
+            long scaleFp = System.Math.Max(655L, (long)Mathf.RoundToInt(scale * 65536f));
+            long persFp = (long)Mathf.Clamp(Mathf.RoundToInt(pers * 65536f), 0, 65536);
+            long lacunFp = System.Math.Max(ONE, (long)Mathf.RoundToInt(lacun * 65536f));
+
+            long amplitude = ONE;
+            long frequency = ONE;
+            long total = 0;
+            long maxTotal = 0;
+
+            long baseX = ((long)(x + offsetX) << 16);
+            long baseY = ((long)(y + offsetY) << 16);
+
+            for (int i = 0; i < octaves; i++)
+            {
+                long sx = (baseX * frequency) / scaleFp;
+                long sy = (baseY * frequency) / scaleFp;
+
+                long sample = DeterministicValueNoise2DFp(sx, sy, (uint)(i * 7919 + 17));
+                total += (sample * amplitude) >> 16;
+                maxTotal += amplitude;
+
+                amplitude = (amplitude * persFp) >> 16;
+                frequency = (frequency * lacunFp) >> 16;
+            }
+
+            if (maxTotal <= 0) return 32768;
+            long normalized = (total << 16) / maxTotal;
+            if (normalized < 0) normalized = 0;
+            if (normalized > ONE) normalized = ONE;
+            return (int)normalized;
+        }
+
+        private static long DeterministicValueNoise2DFp(long xFp, long yFp, uint octaveSalt)
+        {
+            const long ONE = 65536L;
+            int ix = (int)(xFp >> 16);
+            int iy = (int)(yFp >> 16);
+            long fx = xFp & 0xFFFFL;
+            long fy = yFp & 0xFFFFL;
+
+            // Fixed-point cubic smoothstep: f*f*(3 - 2*f) in Q16.16
+            long fx2 = (fx * fx) >> 16;
+            long ux = (fx2 * ((3L * ONE) - (2L * fx))) >> 16;
+            long fy2 = (fy * fy) >> 16;
+            long uy = (fy2 * ((3L * ONE) - (2L * fy))) >> 16;
+
+            long n00 = Hash32(octaveSalt, (uint)ix, (uint)iy) & 0xFFFFu;
+            long n10 = Hash32(octaveSalt, (uint)(ix + 1), (uint)iy) & 0xFFFFu;
+            long n01 = Hash32(octaveSalt, (uint)ix, (uint)(iy + 1)) & 0xFFFFu;
+            long n11 = Hash32(octaveSalt, (uint)(ix + 1), (uint)(iy + 1)) & 0xFFFFu;
+
+            long nx0 = n00 + (((n10 - n00) * ux) >> 16);
+            long nx1 = n01 + (((n11 - n01) * ux) >> 16);
+            return nx0 + (((nx1 - nx0) * uy) >> 16);
         }
 
         private void CalculateSpawnLocation(int seed)

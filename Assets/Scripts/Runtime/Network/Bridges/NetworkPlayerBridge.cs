@@ -238,8 +238,10 @@ namespace TheLastEmpire.Network
                     Projectile proj = bulletObj.GetComponent<Projectile>();
                     if (proj != null)
                     {
-                        // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual (ดาเมจที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest เพื่อไม่ให้คิดดาเมจเบิ้ล)
+                        // กระสุนที่รีเพลย์จากเพื่อนเป็น Visual Only 100% (ห้ามคำนวณดาเมจหลอกและห้ามเปิด I-frame 0.25s บนศัตรู
+                        // เพราะดาเมจจริงที่ Client ยิงโดนศัตรู Puppet ส่งตรงผ่าน EnemyDamageRequest มายัง Host)
                         proj.SetStats(0f, payload.weaponRange, payload.canPierce, payload.weaponName, DamageCalculator.DEFAULT_MAX_FALLOFF_RANGE, isFireballSkill ? "" : visualId);
+                        proj.SetVisualOnly(true);
                         if (isFireballSkill)
                         {
                             proj.PoolKey = "FlamethrowerFireball";

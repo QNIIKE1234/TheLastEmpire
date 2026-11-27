@@ -4,6 +4,8 @@ namespace TheLastEmpire
 {
     public class PlayerHUD : MonoBehaviour
     {
+        public static PlayerHUD Instance { get; private set; }
+
         [Header("UI References (Optional)")]
         [SerializeField] private UnityEngine.UI.Slider hpBarSliderHUD;
         [SerializeField] private UnityEngine.UI.Image hpBarFillHUD;
@@ -67,6 +69,13 @@ namespace TheLastEmpire
         private UnityEngine.UI.Image _ammoImage;
         private TMPro.TMP_Text _charBadgeText;
         private TMPro.TMP_Text _shiftSkillText;
+        private bool _deathScreenShown = false;
+        private GameObject _coopSpectateBanner;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         public void SetPlayer(PlayerController p)
         {
@@ -148,6 +157,8 @@ namespace TheLastEmpire
 
         private void OnDestroy()
         {
+            if (Instance == this) Instance = null;
+
             if (player != null)
             {
                 player.OnAmmoChanged -= UpdateHUD;
@@ -707,14 +718,16 @@ namespace TheLastEmpire
 
         private void ShowDeathResultScreen()
         {
-            // โหมด Online / Co-op: ถ้ายังมีเพื่อนร่วมทีมรอดชีวิตอยู่ ห้ามขึ้นหน้าจอ GameOver เด็ดขาด (ให้ล้มรอเพื่อนมาช่วยแทน!)
-            if (ShouldSuppressGameOverForOnlineCoop())
+            if (_deathScreenShown || _isShowingGameOver) return;
+
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsMultiplayer)
             {
-                Debug.Log("[PlayerHUD] Suppressed GameOver because at least one Co-op teammate is still alive. Waiting for revive.");
+                // รอ 1 เฟรมให้ PlayerController.HandlePlayerDeath() ตัดสินใจเข้าโหมด Downed หรือ Party Wipe เสร็จก่อนเสมอ
+                StartCoroutine(CoopDeathCheckNextFrameCoroutine());
                 return;
             }
 
-            if (_isShowingGameOver) return;
+            _deathScreenShown = true;
             _isShowingGameOver = true;
             StartCoroutine(DeathSequenceCoroutine());
         }
@@ -724,9 +737,137 @@ namespace TheLastEmpire
         /// </summary>
         public void TriggerCoopPartyWipeGameOver()
         {
-            if (_isShowingGameOver) return;
-            _isShowingGameOver = true;
+            ShowCoopPartyWipeGameOver();
+        }
+
+        private System.Collections.IEnumerator CoopDeathCheckNextFrameCoroutine()
+        {
+            yield return null;
+            if (_deathScreenShown) yield break;
+
+            if (player != null && player.IsDowned)
+            {
+                yield break;
+            }
+
+            int otherAlive = TheLastEmpire.Network.PlayerRegistry.GetOtherAliveAndUpPlayerCount(player);
+            bool partyWiped = TheLastEmpire.Network.EmpireNetworkManager.Instance != null &&
+                              TheLastEmpire.Network.EmpireNetworkManager.Instance.HasTriggeredPartyWipe;
+
+            if (otherAlive > 0 && !partyWiped)
+            {
+                ShowCoopWaitingForSquadBanner();
+                PlayerController aliveAlly = TheLastEmpire.Network.PlayerRegistry.GetFirstAliveAndUpPlayer(player);
+                if (aliveAlly != null && CameraFollow.Instance != null)
+                {
+                    CameraFollow.Instance.SetTemporaryTarget(aliveAlly.transform, 0.35f);
+                }
+                yield break;
+            }
+
+            TheLastEmpire.Network.EmpireNetworkManager.Instance?.NotifyPartyWipe();
+            ShowCoopPartyWipeGameOver();
+        }
+
+        public void HideCoopWaitingBanner()
+        {
+            if (_coopSpectateBanner != null)
+            {
+                _coopSpectateBanner.SetActive(false);
+            }
+            CameraFollow.Instance?.ResetTarget(0.25f);
+        }
+
+        public void ShowCoopPartyWipeGameOver()
+        {
+            if (_deathScreenShown) return;
+            _deathScreenShown = true;
+
+            if (_coopSpectateBanner != null)
+            {
+                _coopSpectateBanner.SetActive(false);
+            }
+            CameraFollow.Instance?.ResetTarget(0.25f);
+
             StartCoroutine(DeathSequenceCoroutine());
+        }
+
+        public void ShowCoopWaitingForSquadBanner(string customMessage = null)
+        {
+            string message = string.IsNullOrEmpty(customMessage)
+                ? "<color=#FF5555>YOU ARE DOWN</color>  |  SPECTATING SQUAD - WAITING FOR SURVIVORS..."
+                : customMessage;
+
+            if (_coopSpectateBanner != null)
+            {
+                _coopSpectateBanner.SetActive(true);
+                TMPro.TextMeshProUGUI existingTxt = _coopSpectateBanner.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+                if (existingTxt != null) existingTxt.text = message;
+                return;
+            }
+
+            Canvas hudCanvas = Object.FindFirstObjectByType<Canvas>();
+            if (hudCanvas == null) return;
+
+            _coopSpectateBanner = new GameObject("CoopWaitingForSquadBanner");
+            _coopSpectateBanner.layer = 5;
+            _coopSpectateBanner.transform.SetParent(hudCanvas.transform, false);
+
+            UnityEngine.UI.Image bg = _coopSpectateBanner.AddComponent<UnityEngine.UI.Image>();
+            bg.color = new Color(0.08f, 0.04f, 0.04f, 0.85f);
+
+            RectTransform rt = _coopSpectateBanner.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -24f);
+            rt.sizeDelta = new Vector2(680f, 56f);
+
+            GameObject txtObj = new GameObject("BannerText");
+            txtObj.layer = 5;
+            txtObj.transform.SetParent(_coopSpectateBanner.transform, false);
+            TMPro.TextMeshProUGUI txt = txtObj.AddComponent<TMPro.TextMeshProUGUI>();
+            txt.text = message;
+            txt.fontSize = 20f;
+            txt.fontStyle = TMPro.FontStyles.Bold;
+            txt.color = Color.white;
+            txt.alignment = TMPro.TextAlignmentOptions.Center;
+
+            RectTransform txtRt = txtObj.GetComponent<RectTransform>();
+            txtRt.anchorMin = Vector2.zero;
+            txtRt.anchorMax = Vector2.one;
+            txtRt.offsetMin = new Vector2(12f, 4f);
+            txtRt.offsetMax = new Vector2(-12f, -4f);
+        }
+
+        private void ConfigureCoopRetryButtonState(UnityEngine.UI.Button targetRetryBtn)
+        {
+            if (targetRetryBtn == null) return;
+
+            bool isClientOnly = TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient;
+            bool isHostOnline = TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost;
+
+            targetRetryBtn.interactable = !isClientOnly;
+
+            TMPro.TMP_Text label = targetRetryBtn.GetComponentInChildren<TMPro.TMP_Text>(true);
+            if (label != null)
+            {
+                if (isClientOnly)
+                {
+                    label.text = "Waiting for Host...";
+                    label.color = new Color(0.75f, 0.78f, 0.82f, 0.85f);
+                }
+                else if (isHostOnline)
+                {
+                    label.text = "Retry (All)";
+                    label.color = Color.white;
+                }
+                else
+                {
+                    label.text = "Retry";
+                    label.color = Color.white;
+                }
+            }
         }
 
         private System.Collections.IEnumerator DeathSequenceCoroutine()
@@ -752,6 +893,7 @@ namespace TheLastEmpire
 
             // 2. จัดเตรียม CanvasGroup สำหรับ Fade In
             CanvasGroup canvasGroup = null;
+            UnityEngine.UI.Button activeRetryBtn = retryButton;
 
             if (gameOverPanel != null)
             {
@@ -769,8 +911,15 @@ namespace TheLastEmpire
                 if (daysSurvivedText != null)
                 {
                     int survivedDays = DayNightManager.Instance != null ? DayNightManager.Instance.DayCount : 1;
-                    daysSurvivedText.text = $"You survived: <color=yellow>{survivedDays}</color> Days";
+                    string coopNote = TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient
+                        ? "\n<size=75%><color=#FACC15>Waiting for Room Host to Retry...</color></size>"
+                        : (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost
+                            ? "\n<size=75%><color=#4ADE80>Squad Wiped - Press Retry to restart everyone</color></size>"
+                            : "");
+                    daysSurvivedText.text = $"You survived: <color=yellow>{survivedDays}</color> Days{coopNote}";
                 }
+
+                ConfigureCoopRetryButtonState(activeRetryBtn);
             }
             else
             {
@@ -888,6 +1037,8 @@ namespace TheLastEmpire
             btnTextRect.offsetMin = Vector2.zero;
             btnTextRect.offsetMax = Vector2.zero;
 
+            ConfigureCoopRetryButtonState(btn);
+
             // Main Menu Button container
             GameObject menuButtonObj = new GameObject("MainMenuButton");
             menuButtonObj.transform.SetParent(resultPanel.transform, false);
@@ -933,6 +1084,11 @@ namespace TheLastEmpire
         {
             Time.timeScale = 1f;
 
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnline)
+            {
+                TheLastEmpire.Network.EmpireNetworkManager.Instance?.DisconnectSession();
+            }
+
             if (GameManager.Instance != null) Destroy(GameManager.Instance.gameObject);
             if (WorldMapManager.Instance != null) Destroy(WorldMapManager.Instance.gameObject);
             if (DayNightManager.Instance != null) Destroy(DayNightManager.Instance.gameObject);
@@ -943,21 +1099,30 @@ namespace TheLastEmpire
 
         public void RetryGame()
         {
-            // กันการกด Retry ในโหมด Online ขณะที่ยังมีเพื่อนรอดชีวิตอยู่ (ไม่งั้นโหลดซีนแล้วห้องพัง)
+            // กันการกด Retry ในโหมด Online ขณะที่ยังมีเพื่อนรอดชีวิตอยู่
             if (ShouldSuppressGameOverForOnlineCoop())
             {
                 Debug.LogWarning("[PlayerHUD] Retry blocked in Online Co-op while teammates are still alive!");
                 return;
             }
 
-            // หากเป็นโหมด Online ที่ทั้งทีมตายหมดแล้ว (Party Wipe) ให้ตัดการเชื่อมต่อห้องอย่างสะอาดก่อนโหลดซีนใหม่
-            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnline && TheLastEmpire.Network.EmpireNetworkManager.Instance != null)
+            // ในโหมด Co-op ออนไลน์: เฉพาะหัวห้อง (Host) เท่านั้นที่กด Retry เพื่อรีสตาร์ททั้งห้องพร้อมกันได้
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineClient)
             {
-                TheLastEmpire.Network.EmpireNetworkManager.Instance.DisconnectSession();
+                return;
+            }
+
+            if (TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost &&
+                TheLastEmpire.Network.EmpireNetworkManager.Instance != null)
+            {
+                _isShowingGameOver = false;
+                _deathScreenShown = false;
+                TheLastEmpire.Network.EmpireNetworkManager.Instance.HostRetryMatch(randomizeSeedOnRetry);
+                return;
             }
 
             _isShowingGameOver = false;
-
+            _deathScreenShown = false;
             // Restore normal game speed
             Time.timeScale = 1f;
 

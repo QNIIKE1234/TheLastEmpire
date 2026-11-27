@@ -30,7 +30,7 @@ namespace TheLastEmpire
         private float _spitCooldownTimer = 0f;
 
         [Header("Boomer / Explosion Settings")]
-        [SerializeField] private float explosionRadius = 3f;
+        [SerializeField] private float explosionRadius = 2.25f;
         [SerializeField] private int explosionDamage = 45;
         [SerializeField] private float fuseDuration = 1.0f;
         [SerializeField] private string explosionVfxPoolKey = "EnemyExplosion";

@@ -124,7 +124,16 @@ namespace TheLastEmpire.Network
         /// </summary>
         public static bool HasAnyOtherAlivePlayer(PlayerController excludePlayer)
         {
+            return GetOtherAliveAndUpPlayerCount(excludePlayer) > 0;
+        }
+
+        /// <summary>
+        /// คืนค่าจำนวนผู้เล่น "คนอื่น" (ไม่รวม excludePlayer) ที่ยังยืนสู้ได้ (ยังไม่ตาย และไม่ได้ล้ม Downed)
+        /// </summary>
+        public static int GetOtherAliveAndUpPlayerCount(PlayerController excludePlayer)
+        {
             CleanupNullEntries();
+            int count = 0;
             for (int i = 0; i < _allPlayers.Count; i++)
             {
                 PlayerController p = _allPlayers[i];
@@ -133,10 +142,30 @@ namespace TheLastEmpire.Network
                 bool isDead = h != null && h.IsDead;
                 if (!isDead && !p.IsDowned)
                 {
-                    return true;
+                    count++;
                 }
             }
-            return false;
+            return count;
+        }
+
+        /// <summary>
+        /// คืนค่าผู้เล่นคนแรกที่ยังยืนสู้ได้ (ใช้สำหรับกล้อง Spectate ตอนเราตายก่อนเพื่อน)
+        /// </summary>
+        public static PlayerController GetFirstAliveAndUpPlayer(PlayerController excludePlayer = null)
+        {
+            CleanupNullEntries();
+            for (int i = 0; i < _allPlayers.Count; i++)
+            {
+                PlayerController p = _allPlayers[i];
+                if (p == null || p == excludePlayer || !p.gameObject.activeInHierarchy) continue;
+                Health h = p.PlayerHealth ?? p.GetComponent<Health>();
+                bool isDead = h != null && h.IsDead;
+                if (!isDead && !p.IsDowned)
+                {
+                    return p;
+                }
+            }
+            return null;
         }
 
         /// <summary>

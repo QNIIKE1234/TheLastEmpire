@@ -47,7 +47,11 @@ namespace TheLastEmpire
         private int _totalEnemiesDefeated = 0;
 
         public int TotalEnemiesDefeated => _totalEnemiesDefeated;
-        public void RegisterEnemyKilled() => _totalEnemiesDefeated++;
+        public void RegisterEnemyKilled()
+        {
+            _totalEnemiesDefeated++;
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.NotifyClientSoloEnemyKilled();
+        }
 
         public GameObject DefaultEnemyPrefab => defaultEnemyPrefab;
         public string DefaultPoolKey => defaultPoolKey;
@@ -255,15 +259,24 @@ namespace TheLastEmpire
                     }
                     Debug.Log($"[GameManager] Saved {_currentStage.remainingEnemyPrefabNames.Count} remaining enemies for previous Stage ({_currentStage.x}, {_currentStage.y})");
                 }
+
+                // ซิงค์สถานะมอนสเตอร์ที่เหลือของ Node เก่าให้เครื่องอื่นทราบก่อนออกจาก Node
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendStageProgressSnapshot(_currentStage);
             }
 
             // 2. Clear any active enemies from the previous stage dynamically
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.ClearClientPuppets(false);
             foreach (GameObject enemy in _activeEnemies)
             {
                 if (enemy == null) continue;
 
                 BaseEnemyAI ai = enemy.GetComponent<BaseEnemyAI>();
                 string activePoolKey = ai != null ? ai.PoolKey : "";
+                if (ai != null)
+                {
+                    ai.IsNetworkPuppet = false;
+                    ai.NetworkEnemyId = -1;
+                }
 
                 if (!string.IsNullOrEmpty(activePoolKey) && ObjectPoolManager.Instance != null)
                 {
@@ -384,6 +397,15 @@ namespace TheLastEmpire
             if (stage.isCleared)
             {
                 Debug.Log($"[GameManager] Stage ({stage.x}, {stage.y}) is already cleared today. Skipping standard spawn.");
+                RandomStageEventManager.Instance?.OnStageEntered(stage);
+                return;
+            }
+
+            // 3b. Co-op Per-Node Progress Adoption: หากเพื่อนกำลังตีมอนค้างอยู่ใน Node นี้แล้วเราวาร์ปตามเข้ามา
+            // ให้เสกเฉพาะมอนสเตอร์ที่เหลืออยู่จริงพร้อมตำแหน่งและเลือดเดิมเป๊ะ (ห้าม Respawn เต็ม 5 ตัวใหม่!)
+            if (TheLastEmpire.Network.NetworkEnemyBridge.Instance != null &&
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance.TrySpawnFromSyncedProgress(stage))
+            {
                 RandomStageEventManager.Instance?.OnStageEntered(stage);
                 return;
             }
@@ -1007,6 +1029,7 @@ namespace TheLastEmpire
                 {
                     stage.remainingEnemyPrefabNames.Clear();
                 }
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendStageProgressSnapshot(stage);
                 Debug.Log($"[GameManager] Stage ({x}, {y}) has been successfully CLEARED! Enemies will not respawn until a new Day begins.");
             }
         }
@@ -1017,6 +1040,7 @@ namespace TheLastEmpire
             if (!isNight && WorldMapManager.Instance != null && WorldMapManager.Instance.MapGenerator != null)
             {
                 Debug.Log("[GameManager] A new Day has started! Resetting all cleared stages, remaining enemy counts, and dropped items.");
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance?.ClearStageProgressCache();
                 
                 // Reset isCleared status, clear saved enemy lists, and clear persistent dropped items of all map stages to allow fresh respawning
                 foreach (StageData stage in WorldMapManager.Instance.MapGenerator.gridData)

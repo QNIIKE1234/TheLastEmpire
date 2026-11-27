@@ -4485,8 +4485,8 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // อาหารลดช้าลงอีกเท่าตัว (2x slower)
-            float baseRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
+            // อาหารลดช้าลงอีกครึ่งหนึ่ง (0.5 -> 0.25)
+            float baseRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.25f;
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.hungerConsumptionMultiplier : 1.0f;
             float depletionRate = (_isSprinting ? (baseRate * sprintMult) : baseRate) * charMult * hungerDepletionMultiplier;
@@ -4518,8 +4518,8 @@ namespace TheLastEmpire
         {
             if (_health != null && _health.IsDead) return;
 
-            // น้ำจะลดเร็วกว่าอาหาร 3 เท่า (โดยอิงจากอัตราอาหารใหม่ที่ลดช้าลงเท่าตัว)
-            float baseHungerRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.5f;
+            // น้ำลดช้าลงอีกครึ่งหนึ่งตามอัตราอาหารใหม่ (ยังคงสัดส่วนลดเร็วกว่าอาหาร 3 เท่า)
+            float baseHungerRate = (activeCharacterData != null ? activeCharacterData.baseHungerDepletionRate : 0.5f) * 0.25f;
             float baseWaterRate = baseHungerRate * 3.0f; // น้ำลดเร็วกว่าอาหาร 3 เท่า
             float sprintMult = activeCharacterData != null ? activeCharacterData.sprintHungerMultiplier : 4.0f;
             float charMult = activeCharacterData != null ? activeCharacterData.waterConsumptionMultiplier : 1.0f;

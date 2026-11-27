@@ -122,6 +122,17 @@ namespace TheLastEmpire
                 }
             }
 
+            // Sort template lists deterministically by templateId so every machine (regardless of
+            // filesystem / Addressables load order) rolls the exact same template for every stageSeed!
+            foreach (var kvp in _templatesByBiome)
+            {
+                kvp.Value.Sort((a, b) => string.Compare(a.templateId, b.templateId, StringComparison.Ordinal));
+            }
+            foreach (var kvp in _districts)
+            {
+                kvp.Value.Sort((a, b) => string.Compare(a.templateId, b.templateId, StringComparison.Ordinal));
+            }
+
             Debug.Log($"[StageTemplateManager] Successfully loaded {count} stage templates ({_districts.Count} multi-stage 3x3 districts, {_templatesByBiome.Count} biomes).");
             _isInitialized = true;
         }

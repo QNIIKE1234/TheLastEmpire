@@ -685,7 +685,7 @@ namespace TheLastEmpire.Network
             return null;
         }
 
-        public static void BroadcastFloatingDamageNumber(Vector3 worldPos, float damageAmount, bool isCritical)
+        public static void BroadcastFloatingDamageNumber(Vector3 worldPos, float damageAmount, bool isCritical, ulong sourceClientId = ulong.MaxValue)
         {
             if (!EmpireNetworkManager.IsOnlineHost || EmpireNetworkManager.Instance == null) return;
 
@@ -696,6 +696,7 @@ namespace TheLastEmpire.Network
                 w.Write(worldPos.z);
                 w.Write(damageAmount);
                 w.Write(isCritical);
+                w.Write(sourceClientId);
             });
         }
     }

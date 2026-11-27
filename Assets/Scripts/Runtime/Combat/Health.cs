@@ -82,7 +82,7 @@ namespace TheLastEmpire
                 BaseEnemyAI enemyAi = GetComponent<BaseEnemyAI>();
                 if (enemyAi != null && enemyAi.IsNetworkPuppet && enemyAi.NetworkEnemyId > 0)
                 {
-                    TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendClientDamageToHost(enemyAi.NetworkEnemyId, damageAmount, isCrit);
+                    TheLastEmpire.Network.NetworkEnemyBridge.Instance?.SendClientDamageToHost(enemyAi.NetworkEnemyId, damageAmount, isCrit, isExplosion);
 
                     // แสดงตัวเลขดาเมจและเอฟเฟกต์เลือดทันทีบนเครื่อง Client (0ms Visual Feedback)
                     Vector3 clientDmgPos = hitPoint ?? (transform.position + Vector3.up * 1.3f);
@@ -165,6 +165,44 @@ namespace TheLastEmpire
 
             // Grant brief temporary immunity to prevent rapid multi-hits
             TriggerInvulnerability(defaultInvulnerabilityDuration);
+
+            if (IsDead)
+            {
+                onDeath?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// รับดาเมจที่ส่งมาจากเครื่อง Client บนฝั่ง Host โดยไม่โดนบล็อกจาก I-frame 0.25s ของ Host
+        /// (ป้องกันกระสุนลูกซองหลายเม็ด ปืนกลรัว หรือการช่วยกันยิงศัตรูตัวเดียวกันถูกตัดดาเมจทิ้ง)
+        /// </summary>
+        public void TakeNetworkClientDamage(float damageAmount, Vector3? hitPoint, bool isCrit, bool isExplosion = false, ulong sourceClientId = ulong.MaxValue)
+        {
+            if (IsDead || damageAmount <= 0f) return;
+
+            CurrentHealth -= damageAmount;
+            onDamageTaken?.Invoke(damageAmount);
+
+            Vector3 dmgNumberPos = hitPoint ?? (transform.position + Vector3.up * 1.3f);
+            if (DamageNumberManager.Instance != null)
+            {
+                DamageNumberManager.Instance.SpawnDamageNumber(dmgNumberPos, damageAmount, isCrit);
+            }
+            TheLastEmpire.Network.NetworkLootManager.BroadcastFloatingDamageNumber(dmgNumberPos, damageAmount, isCrit, sourceClientId);
+
+            if (!string.IsNullOrEmpty(hitEffectPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                Vector3 spawnPos = hitPoint ?? (transform.position + (Vector3.up * 1.5f));
+                GameObject hitEffect = ObjectPoolManager.Instance.SpawnFromPool(hitEffectPoolKey, spawnPos, Quaternion.identity);
+                if (hitEffect != null)
+                {
+                    PooledParticle pooledParticle = hitEffect.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        pooledParticle.SetPoolKey(hitEffectPoolKey);
+                    }
+                }
+            }
 
             if (IsDead)
             {

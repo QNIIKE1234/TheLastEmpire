@@ -427,6 +427,17 @@ namespace TheLastEmpire.Network
             }
         }
 
+        public bool TryGetPeerSteamId(uint connectionId, out SteamId steamId)
+        {
+            if (_peers.TryGetValue(connectionId, out SteamPeerConnection peer))
+            {
+                steamId = peer.SteamId;
+                return true;
+            }
+            steamId = default;
+            return false;
+        }
+
         public void DisconnectPeer(uint connectionId)
         {
             if (_peers.TryGetValue(connectionId, out SteamPeerConnection peer))
