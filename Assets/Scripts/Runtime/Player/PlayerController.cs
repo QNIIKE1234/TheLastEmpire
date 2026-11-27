@@ -1889,6 +1889,9 @@ namespace TheLastEmpire
                     currentSpeed = baseSpeed;
                 }
 
+                float weatherSpeedMult = WeatherManager.Instance != null ? WeatherManager.Instance.MoveSpeedMultiplier : 1.0f;
+                currentSpeed *= weatherSpeedMult;
+
                 _rb.linearVelocity = new Vector3(_moveInput.x * currentSpeed, _rb.linearVelocity.y, _moveInput.y * currentSpeed);
             }
         }
@@ -4687,12 +4690,12 @@ namespace TheLastEmpire
 
             bool isNight = DayNightManager.Instance != null && DayNightManager.Instance.IsNight;
             bool inCombat = _combatTimer > 0f;
-            bool exposedToRain = WeatherManager.Instance != null && WeatherManager.Instance.IsPlayerExposedToRain;
             float weatherMult = WeatherManager.Instance != null ? WeatherManager.Instance.SurvivalDrainMultiplier : 1.0f;
+            bool exposedToSevereWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsPlayerExposedToWeather && weatherMult > 1.01f;
 
             if (isNight)
             {
-                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา (ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า)
+                // กลางคืน: ค่าสติค่อยๆ ลดลงตามเวลา (ตากฝน/พายุ/หิมะนอกบ้านลดเร็วขึ้นตามตัวคูณอากาศ)
                 float rate = nightSanityDepletionRate;
                 if (inCombat)
                 {
@@ -4708,16 +4711,16 @@ namespace TheLastEmpire
             }
             else if (inCombat)
             {
-                // กลางวันแต่ติด Combat (ฝนตกนอกบ้านลดเร็วขึ้น 2 เท่า)
+                // กลางวันแต่ติด Combat (ตากฝน/พายุ/หิมะนอกบ้านลดเร็วขึ้นตามตัวคูณอากาศ)
                 float delta = combatDaySanityDepletionRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }
-            else if (exposedToRain)
+            else if (exposedToSevereWeather)
             {
-                // ตากฝนกลางแจ้งตอนกลางวัน: ค่าสติลดลง 2 เท่า (หลบเข้าบ้านเพื่อหยุดการลด)
-                float rainSanityRate = Mathf.Max(0.25f, nightSanityDepletionRate);
-                float delta = rainSanityRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
+                // ตากฝน/พายุ/หิมะกลางแจ้งตอนกลางวัน: ค่าสติลดลง (หลบเข้าบ้านหรือยืนใกล้กองไฟเพื่อป้องกัน)
+                float weatherSanityRate = Mathf.Max(0.25f, nightSanityDepletionRate);
+                float delta = weatherSanityRate * sanityDepletionMultiplier * weatherMult * Time.deltaTime;
                 currentSanity = Mathf.Max(0f, currentSanity - delta);
                 OnSanityChanged?.Invoke();
             }

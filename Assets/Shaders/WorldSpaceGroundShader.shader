@@ -59,9 +59,29 @@ Shader "Custom/WorldSpaceGroundShader"
             TEXTURE2D(_WestBiomeMap);
             SAMPLER(sampler_WestBiomeMap);
 
-            // Global ambient tint driven by DayNightManager & wetness driven by WeatherManager
+            // Global ambient tint driven by DayNightManager & weather globals driven by WeatherManager
             half4 _GlobalAmbientTint;
             half _GlobalWetness;
+            half _GlobalSnowAmount;
+            int _GlobalCampfireCount;
+            float4 _GlobalCampfireData[4]; // xyz = campfire world position, w = melt radius
+
+            float GroundSnowHash(float2 p)
+            {
+                return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
+            }
+
+            float GroundSnowNoise(float2 p)
+            {
+                float2 i = floor(p);
+                float2 f = frac(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float a = GroundSnowHash(i);
+                float b = GroundSnowHash(i + float2(1.0, 0.0));
+                float c = GroundSnowHash(i + float2(0.0, 1.0));
+                float d = GroundSnowHash(i + float2(1.0, 1.0));
+                return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+            }
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
@@ -147,11 +167,32 @@ Shader "Custom/WorldSpaceGroundShader"
                     albedo.rgb = lerp(albedo.rgb, neighboringAlbedo, edgeFade * 0.5);
                 }
 
-                // Subtle wet-ground darkening & cool damp tint during Rain (driven by WeatherManager)
+                // Subtle wet-ground darkening & cool damp tint during Rain/Thunderstorm (driven by WeatherManager)
                 half wetness = saturate(_GlobalWetness);
                 if (wetness > 0.001)
                 {
-                    albedo.rgb *= lerp(half3(1.0, 1.0, 1.0), half3(0.84, 0.88, 0.94), wetness * 0.65);
+                    albedo.rgb *= lerp(half3(1.0, 1.0, 1.0), half3(0.80, 0.85, 0.93), wetness * 0.72);
+                }
+
+                // World-Space Snow blanket accumulation during Snow/Blizzard/Winter (melts around active Campfires!)
+                half snowAmt = saturate(_GlobalSnowAmount);
+                if (snowAmt > 0.001)
+                {
+                    float sn1 = GroundSnowNoise(input.positionWS.xz * 0.28);
+                    float sn2 = GroundSnowNoise(input.positionWS.xz * 1.15 + 13.7);
+                    float snowPatch = sn1 * 0.65 + sn2 * 0.35;
+                    half snowBlend = smoothstep(1.0 - snowAmt * 1.32, 1.0 - snowAmt * 0.25 + 0.16, snowPatch) * smoothstep(0.0, 0.20, snowAmt);
+
+                    for (int c = 0; c < 4; c++)
+                    {
+                        if (c >= _GlobalCampfireCount) break;
+                        float4 cf = _GlobalCampfireData[c];
+                        float dist = length(input.positionWS.xz - cf.xz);
+                        snowBlend *= smoothstep(cf.w * 0.40, cf.w, dist);
+                    }
+
+                    half3 snowTint = lerp(half3(0.82, 0.88, 0.96), half3(0.95, 0.97, 1.0), snowPatch);
+                    albedo.rgb = lerp(albedo.rgb, snowTint, snowBlend * 0.92);
                 }
 
                 // Ultra-fast tint (1 instruction multiply, zero performance loss)

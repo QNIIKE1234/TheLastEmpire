@@ -321,8 +321,8 @@ namespace TheLastEmpire
             if (!_showDebugGui) return;
 
             // 3. Spawner / Cheat Panel
-            float panelWidth = 340f;
-            float panelHeight = 565f;
+            float panelWidth = 350f;
+            float panelHeight = 615f;
             float panelX = Screen.width - panelWidth - 10f;
             float panelY = 50f;
 
@@ -400,55 +400,94 @@ namespace TheLastEmpire
             GUILayout.Label("• Maya uses trigger colliders to pass smoothly through obstacles.", EditorStylesMini());
             GUILayout.Label("• Stage transitions clean up runners automatically.", EditorStylesMini());
 
-            GUILayout.Space(14);
+            GUILayout.Space(10);
             GUIStyle weatherTitle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 15,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
-            weatherTitle.normal.textColor = new Color(0.42f, 0.82f, 1f);
-            GUILayout.Label("WEATHER CONTROLS (CO-OP SYNC)", weatherTitle);
+            weatherTitle.normal.textColor = new Color(0.42f, 0.85f, 1f);
+            GUILayout.Label("SEASON & WEATHER (CO-OP SYNC)", weatherTitle);
 
             var wm = WeatherManager.Instance;
             if (wm != null)
             {
-                string statusText = wm.IsRaining
-                    ? $"Status: RAINING ({wm.RainRemainingSeconds:F0}s left | Wet: {wm.GroundWetness * 100f:F0}%)"
-                    : $"Status: CLEAR (Next {wm.RainChance * 100f:F0}% roll in {wm.NextRollRemainingSeconds:F0}s)";
-                GUILayout.Label(statusText, EditorStylesBold());
+                string weatherStateStr = wm.CurrentWeather == WeatherType.Clear
+                    ? $"CLEAR (Next {wm.RainChance * 100f:F0}% roll: {wm.NextRollRemainingSeconds:F0}s)"
+                    : $"{wm.CurrentWeather.ToString().ToUpper()} ({wm.WeatherRemainingSeconds:F0}s left)";
+                GUILayout.Label($"Season: {wm.CurrentSeason.ToString().ToUpper()} (Day {wm.DayInCurrentSeason}/{wm.DaysPerSeason})", EditorStylesBold());
+                GUILayout.Label($"Weather: {weatherStateStr}", EditorStylesBold());
+                GUILayout.Label($"Ground Wet: {wm.GroundWetness * 100f:F0}% | Snow Cover: {wm.GroundSnowAmount * 100f:F0}%", EditorStylesMini());
 
-                GUILayout.Space(6);
+                GUILayout.Space(4);
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label("Set Season (Co-op Synced):", EditorStylesBold());
                 GUILayout.BeginHorizontal();
                 {
-                    GUI.backgroundColor = new Color(0.22f, 0.62f, 1f);
-                    if (GUILayout.Button($"Start Rain ({wm.RainDurationSeconds:F0}s)", GUILayout.Height(36)))
-                    {
-                        wm.TriggerRain();
-                        ShowToast($"Rain triggered ({wm.RainDurationSeconds:F0}s, Co-op synced)!");
-                    }
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Autumn ? new Color(0.95f, 0.62f, 0.20f) : new Color(0.48f, 0.36f, 0.22f);
+                    if (GUILayout.Button("AUTUMN", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Autumn); ShowToast("Season -> AUTUMN (Synced)"); }
 
-                    GUI.backgroundColor = new Color(0.92f, 0.62f, 0.18f);
-                    if (GUILayout.Button("Stop Rain (Clear)", GUILayout.Height(36)))
-                    {
-                        wm.StopRain();
-                        ShowToast("Weather cleared (Co-op synced)!");
-                    }
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Rainy ? new Color(0.25f, 0.65f, 1f) : new Color(0.22f, 0.38f, 0.55f);
+                    if (GUILayout.Button("RAINY", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Rainy); ShowToast("Season -> RAINY (Synced)"); }
+
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Winter ? new Color(0.75f, 0.92f, 1f) : new Color(0.38f, 0.48f, 0.58f);
+                    if (GUILayout.Button("WINTER", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Winter); ShowToast("Season -> WINTER (Synced)"); }
+
+                    GUI.backgroundColor = wm.CurrentSeason == SeasonType.Summer ? new Color(1f, 0.82f, 0.22f) : new Color(0.55f, 0.46f, 0.20f);
+                    if (GUILayout.Button("SUMMER", GUILayout.Height(26))) { wm.SetSeasonOverride(SeasonType.Summer); ShowToast("Season -> SUMMER (Synced)"); }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(6);
+                GUI.backgroundColor = Color.white;
+                GUILayout.Label("Trigger Weather (30s, Co-op Synced):", EditorStylesBold());
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.30f, 0.72f, 0.36f);
+                    if (GUILayout.Button("CLEAR", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Clear); ShowToast("Weather -> CLEAR (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.24f, 0.60f, 1f);
+                    if (GUILayout.Button("RAIN", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Rain); ShowToast("Weather -> RAIN 30s (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.38f, 0.42f, 0.95f);
+                    if (GUILayout.Button("STORM", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Thunderstorm); ShowToast("Weather -> THUNDERSTORM 30s (Synced)"); }
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUI.backgroundColor = new Color(0.70f, 0.88f, 1f);
+                    if (GUILayout.Button("SNOW", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Snow); ShowToast("Weather -> SNOW 30s (Synced)"); }
+
+                    GUI.backgroundColor = new Color(0.50f, 0.78f, 0.96f);
+                    if (GUILayout.Button("BLIZZARD", GUILayout.Height(30))) { wm.SetWeather(WeatherType.Blizzard); ShowToast("Weather -> BLIZZARD 30s (Synced)"); }
                 }
                 GUILayout.EndHorizontal();
 
                 GUILayout.Space(4);
-                GUI.backgroundColor = new Color(0.25f, 0.78f, 0.72f);
-                if (GUILayout.Button("Force 10% Rain Roll Now", GUILayout.Height(28)))
+                GUILayout.BeginHorizontal();
                 {
-                    wm.ForceRollNow();
-                    ShowToast(wm.IsRaining ? "10% Roll HIT -> Rain started!" : "10% Roll missed -> Clear sky.");
+                    GUI.backgroundColor = new Color(0.95f, 0.82f, 0.22f);
+                    if (GUILayout.Button("Strike Lightning", GUILayout.Height(26)))
+                    {
+                        wm.TriggerDebugLightningStrikeNow();
+                        ShowToast("Lightning Strike incoming (Synced)!");
+                    }
+
+                    GUI.backgroundColor = new Color(0.25f, 0.78f, 0.72f);
+                    if (GUILayout.Button("10% Roll Now", GUILayout.Height(26)))
+                    {
+                        wm.ForceRollNow();
+                        ShowToast(wm.CurrentWeather != WeatherType.Clear ? $"Roll HIT -> {wm.CurrentWeather}!" : "Roll missed -> Clear.");
+                    }
                 }
+                GUILayout.EndHorizontal();
 
                 GUI.backgroundColor = Color.white;
-                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% chance every {wm.RollIntervalSeconds:F0}s -> lasts {wm.RainDurationSeconds:F0}s.", EditorStylesMini());
-                GUILayout.Label("Outdoors in rain: Sanity, Hunger & Thirst drain 2x faster.", EditorStylesMini());
-                GUILayout.Label("Co-op synced (hidden & sheltered automatically inside houses).", EditorStylesMini());
+                GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% every {wm.RollIntervalSeconds:F0}s -> lasts {wm.RainDurationSeconds:F0}s (5 days/season).", EditorStylesMini());
+                GUILayout.Label("Outdoors: Rain/Storm/Blizzard = x2 Drain; Blizzard = -18% Speed.", EditorStylesMini());
+                GUILayout.Label("Inside houses: Weather hidden & sheltered (Campfire melts snow).", EditorStylesMini());
             }
             else
             {

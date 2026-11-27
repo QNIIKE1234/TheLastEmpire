@@ -48,7 +48,8 @@ namespace TheLastEmpire.Network
         RoamingBossSync = 57,
         EnemyTelegraphSync = 58,
         AbilityVisualSync = 59,
-        WeatherSync = 60
+        WeatherSync = 60,
+        LightningStrikeSync = 61
     }
 
     [Serializable]
@@ -1915,11 +1916,24 @@ namespace TheLastEmpire.Network
 
                 case NetPacketType.WeatherSync:
                     {
-                        bool wIsRaining = reader.ReadBoolean();
+                        byte wType = reader.ReadByte();
                         float wRemain = reader.ReadSingle();
+                        byte wSeasonOv = reader.ReadByte();
+                        bool wHasSeasonOv = reader.ReadBoolean();
                         bool wSnap = reader.ReadBoolean();
                         WeatherManager.Instance?.HandleRemoteWeatherSync(
-                            wIsRaining, wRemain, wSnap, receivedOnHost: _isHost);
+                            wType, wRemain, wSeasonOv, wHasSeasonOv, wSnap, receivedOnHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.LightningStrikeSync:
+                    {
+                        int lStageX = reader.ReadInt32();
+                        int lStageY = reader.ReadInt32();
+                        Vector3 lPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        float lTelegraphDur = reader.ReadSingle();
+                        WeatherManager.Instance?.HandleRemoteLightningStrike(
+                            lStageX, lStageY, lPos, lTelegraphDur, receivedOnHost: _isHost);
                     }
                     break;
             }
