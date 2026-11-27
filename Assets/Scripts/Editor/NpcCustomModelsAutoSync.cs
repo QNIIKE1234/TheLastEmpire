@@ -7,15 +7,15 @@ using UnityEngine;
 namespace TheLastEmpire.Editor
 {
     /// <summary>
-    /// Automatically creates/updates URP Lit materials for the 3 custom Chibi Anime NPCs
-    /// (NPC_Elena_Medic_Rigged, NPC_Maya_Scout_Rigged, NPC_Roy_Veteran_Rigged), remaps their
-    /// Face & Hair textures on the FBX importers, and rebuilds their Addressable prefabs in-place
-    /// while preserving existing Prefab GUIDs, transform offsets, and AnimatorController.
+    /// Automatically creates/updates URP Lit materials for the 4 custom Chibi Anime NPCs
+    /// (NPC_Elena_Medic_Rigged, NPC_Maya_Scout_Rigged, NPC_Roy_Veteran_Rigged, NPC_Otto_Gunsmith_Rigged),
+    /// remaps their Face & Hair textures on the FBX importers, and rebuilds their Addressable prefabs
+    /// in-place while preserving existing Prefab GUIDs, transform offsets, and AnimatorController.
     /// </summary>
     [InitializeOnLoad]
     public static class NpcCustomModelsAutoSync
     {
-        private const string SyncVersionKey = "TLE_Custom3NpcChibiSync_v3";
+        private const string SyncVersionKey = "TLE_Custom4NpcChibiSync_v4";
         private const string MatDir = "Assets/GeneratedModels/Materials";
         private const string AnimatorControllerGuid = "2e7b3de4c1c44d742b1795abbffe89b4"; // Chibi_Player_Controller
 
@@ -61,6 +61,16 @@ namespace TheLastEmpire.Editor
                 FaceTexPath = "Assets/GeneratedModels/Textures/NPC_Roy_Face.png",
                 HairMatName = "Roy_Hair",
                 HairTexPath = "Assets/GeneratedModels/Textures/NPC_Roy_Hair.png"
+            },
+            new NpcSpec
+            {
+                Name = "NPC_Otto_Gunsmith_Rigged",
+                FbxPath = "Assets/GeneratedModels/NPCs/NPC_Otto_Gunsmith_Rigged.fbx",
+                PrefabPath = "Assets/Resources_Addressable/Prefabs/Character/Model/NPC_Otto_Gunsmith_Rigged.prefab",
+                FaceMatName = "Otto_Face_Tex",
+                FaceTexPath = "Assets/GeneratedModels/Textures/NPC_Otto_Face.png",
+                HairMatName = "Otto_Hair",
+                HairTexPath = "Assets/GeneratedModels/Textures/NPC_Otto_Hair.png"
             }
         };
 
@@ -81,7 +91,7 @@ namespace TheLastEmpire.Editor
             }
         }
 
-        [MenuItem("Tools/The Last Empire/Rebuild 3 Custom Chibi NPC Prefabs (Elena, Maya, Roy)")]
+        [MenuItem("Tools/The Last Empire/Rebuild Custom Chibi NPC Prefabs (Elena, Maya, Roy, Otto)")]
         public static void SyncFromMenu()
         {
             EditorPrefs.DeleteKey(SyncVersionKey);
@@ -227,7 +237,7 @@ namespace TheLastEmpire.Editor
             {
                 EditorUtility.DisplayDialog(
                     "Custom Chibi NPCs Updated",
-                    $"อัปเดตโมเดล + Texture Material + Prefab ของ NPC ครบ {updatedCount}/3 ตัวแล้ว!\n\n- NPC_Elena_Medic_Rigged\n- NPC_Maya_Scout_Rigged\n- NPC_Roy_Veteran_Rigged",
+                    $"อัปเดตโมเดล + Texture Material + Prefab ของ NPC ครบ {updatedCount}/{Specs.Length} ตัวแล้ว!\n\n- NPC_Elena_Medic_Rigged\n- NPC_Maya_Scout_Rigged\n- NPC_Roy_Veteran_Rigged\n- NPC_Otto_Gunsmith_Rigged",
                     "OK");
             }
 
