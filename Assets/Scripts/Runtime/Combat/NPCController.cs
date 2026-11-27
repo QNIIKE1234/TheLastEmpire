@@ -697,7 +697,10 @@ namespace TheLastEmpire
                 EnsureWaterBottleInShop();
                 if (ShopUI.Instance != null)
                 {
-                    ShopUI.Instance.OpenShopMenu(shopItems, isFree);
+                    Sprite shopNpcSprite = CharacterImage != null
+                        ? CharacterImage
+                        : (npcPortrait != null ? npcPortrait : NpcIcon);
+                    ShopUI.Instance.OpenShopMenu(shopItems, isFree, shopNpcSprite, npcName);
                 }
                 else
                 {

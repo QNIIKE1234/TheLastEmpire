@@ -42,6 +42,8 @@ namespace TheLastEmpire
         [SerializeField] private Button closeButton;
         [SerializeField] private TMP_Text walletText;
         [SerializeField] private TMP_Text shopTitleText;
+        [Tooltip("Image แสดงรูป NPC เจ้าของร้าน (หากไม่ลากใส่ ระบบจะหา Child ชื่อ 'NPC' ใน shopPanel ให้อัตโนมัติ)")]
+        [SerializeField] private Image npcPortraitImage;
         [Tooltip("Content GO ที่มี InventoryItemSlot ลูก (Optional: หากไม่ลาก itemSlots ระบบจะดึงลูกจาก Container นี้ให้อัตโนมัติ)")]
         [SerializeField] private GameObject itemSlotsContainer;
 
@@ -191,6 +193,7 @@ namespace TheLastEmpire
 
         private PlayerInventory _playerInventory;
         private bool _isOpen = false;
+        private Sprite _defaultNpcPortraitSprite;
 
         public bool IsOpen => _isOpen;
 
@@ -206,6 +209,7 @@ namespace TheLastEmpire
                 DontDestroyOnLoad(gameObject);
 
                 ScanExistingSlots();
+                ResolveNpcPortraitImage();
 
                 if (pageIndicatorText != null) pageIndicatorText.raycastTarget = false;
                 if (prevPageButton != null) { prevPageButton.onClick.AddListener(PrevPage); prevPageButton.transform.SetAsLastSibling(); }
@@ -278,6 +282,60 @@ namespace TheLastEmpire
             }
         }
 
+        private void ResolveNpcPortraitImage()
+        {
+            if (npcPortraitImage == null && shopPanel != null)
+            {
+                Transform npcTr = shopPanel.transform.Find("NPC");
+                if (npcTr == null)
+                {
+                    Image[] imgs = shopPanel.GetComponentsInChildren<Image>(true);
+                    for (int i = 0; i < imgs.Length; i++)
+                    {
+                        if (imgs[i] != null && string.Equals(imgs[i].name, "NPC", StringComparison.OrdinalIgnoreCase))
+                        {
+                            npcTr = imgs[i].transform;
+                            break;
+                        }
+                    }
+                }
+                if (npcTr != null)
+                {
+                    npcPortraitImage = npcTr.GetComponent<Image>();
+                }
+            }
+
+            if (npcPortraitImage != null && _defaultNpcPortraitSprite == null)
+            {
+                _defaultNpcPortraitSprite = npcPortraitImage.sprite;
+            }
+        }
+
+        private void ApplyShopNpcVisual(Sprite npcSprite, string npcDisplayName)
+        {
+            ResolveNpcPortraitImage();
+            if (npcPortraitImage != null)
+            {
+                Sprite targetSprite = npcSprite != null ? npcSprite : _defaultNpcPortraitSprite;
+                if (targetSprite != null)
+                {
+                    npcPortraitImage.sprite = targetSprite;
+                    npcPortraitImage.preserveAspect = true;
+                    npcPortraitImage.color = Color.white;
+                    npcPortraitImage.gameObject.SetActive(true);
+                }
+                else
+                {
+                    npcPortraitImage.gameObject.SetActive(false);
+                }
+            }
+
+            if (shopTitleText != null && !string.IsNullOrWhiteSpace(npcDisplayName))
+            {
+                shopTitleText.text = npcDisplayName;
+            }
+        }
+
         // =====================================================
         //  Public API
         // =====================================================
@@ -285,7 +343,11 @@ namespace TheLastEmpire
         /// <summary>
         /// เปิดร้านค้า — เรียกจาก NPCController
         /// </summary>
-        public void OpenShopMenu(System.Collections.Generic.List<ShopItemConfig> items = null, bool isFree = false)
+        public void OpenShopMenu(
+            System.Collections.Generic.List<ShopItemConfig> items = null,
+            bool isFree = false,
+            Sprite npcSprite = null,
+            string npcDisplayName = null)
         {
             if (_playerInventory == null) FindInventory();
 
@@ -295,6 +357,7 @@ namespace TheLastEmpire
                 _isFree = isFree;
             }
 
+            ApplyShopNpcVisual(npcSprite, npcDisplayName);
             ScanExistingSlots();
 
             _isOpen = true;
