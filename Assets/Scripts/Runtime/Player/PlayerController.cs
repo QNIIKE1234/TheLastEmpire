@@ -1472,7 +1472,7 @@ namespace TheLastEmpire
                 bool showUpperShoot = _shootAnimLayerTimer > 0f && _meleeAnimTimer <= 0f && !_isDashing && !_isVaulting && !isSatchelRolling && !_isSitting && !isFullBodyShift;
                 _animator.SetLayerWeight(1, showUpperShoot ? 1f : 0f);
             }
-            _animator.SetBool("IsDashing", _isDashing || _isVaulting || isSatchelRolling);
+            _animator.SetBool("IsDashing", _isDashing || isSatchelRolling);
         }
 
         private static bool HasAnimatorParameter(Animator anim, string paramName)
@@ -3811,9 +3811,90 @@ namespace TheLastEmpire
             _akimboBonesCached = _akimboLeftUpperArm != null || _akimboRightUpperArm != null;
         }
 
+        // Cached Chibi_Base_Rig bones for procedural Jump + Reclined Gun-Slide Vault pose
+        private Transform _slideRigRootCached;
+        private Transform _slideHips;
+        private Transform _slideSpine;
+        private Transform _slideChest;
+        private Transform _slideHead;
+        private Transform _slideLeftUpperLeg;
+        private Transform _slideLeftLowerLeg;
+        private Transform _slideRightUpperLeg;
+        private Transform _slideRightLowerLeg;
+        private float _vaultSlidePoseWeight = 0f;
+
+        private void CacheVaultSlideBones()
+        {
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            Transform rigRoot = _animator != null ? _animator.transform : transform;
+            if (_slideRigRootCached == rigRoot && _slideHips != null) return;
+
+            _slideRigRootCached = rigRoot;
+            _slideHips = FindDeepChild(rigRoot, "Hips") ?? FindDeepChild(rigRoot, "mixamorig:Hips");
+            _slideSpine = FindDeepChild(rigRoot, "Spine") ?? FindDeepChild(rigRoot, "mixamorig:Spine");
+            _slideChest = FindDeepChild(rigRoot, "Chest") ?? FindDeepChild(rigRoot, "Spine1") ?? FindDeepChild(rigRoot, "mixamorig:Spine1");
+            _slideHead = FindDeepChild(rigRoot, "Head") ?? FindDeepChild(rigRoot, "mixamorig:Head");
+            _slideLeftUpperLeg = FindDeepChild(rigRoot, "LeftUpperLeg") ?? FindDeepChild(rigRoot, "LeftUpLeg") ?? FindDeepChild(rigRoot, "mixamorig:LeftUpLeg");
+            _slideLeftLowerLeg = FindDeepChild(rigRoot, "LeftLowerLeg") ?? FindDeepChild(rigRoot, "LeftLeg") ?? FindDeepChild(rigRoot, "mixamorig:LeftLeg");
+            _slideRightUpperLeg = FindDeepChild(rigRoot, "RightUpperLeg") ?? FindDeepChild(rigRoot, "RightUpLeg") ?? FindDeepChild(rigRoot, "mixamorig:RightUpLeg");
+            _slideRightLowerLeg = FindDeepChild(rigRoot, "RightLowerLeg") ?? FindDeepChild(rigRoot, "RightLeg") ?? FindDeepChild(rigRoot, "mixamorig:RightLeg");
+        }
+
+        private void ApplyVaultSlideBonePose(float weight)
+        {
+            if (weight <= 0.001f) return;
+            CacheVaultSlideBones();
+
+            // Reclined action-movie Hood/Obstacle Slide pose:
+            // - Hips leaned back ~66° (butt sliding across top of obstacle, feet forward, head back)
+            // - Spine/Chest/Head pitched forward so character looks ahead aiming gun level forward
+            // - Left leg extended straight forward along obstacle top
+            // - Right knee tucked/bent ~90° up with foot braced on obstacle
+            if (_slideHips != null)
+            {
+                _slideHips.localRotation = Quaternion.Slerp(_slideHips.localRotation, Quaternion.Euler(-66f, 0f, 0f), weight);
+            }
+            if (_slideSpine != null)
+            {
+                _slideSpine.localRotation = Quaternion.Slerp(_slideSpine.localRotation, Quaternion.Euler(22f, 0f, 0f), weight);
+            }
+            if (_slideChest != null)
+            {
+                _slideChest.localRotation = Quaternion.Slerp(_slideChest.localRotation, Quaternion.Euler(18f, 0f, 0f), weight);
+            }
+            if (_slideHead != null)
+            {
+                _slideHead.localRotation = Quaternion.Slerp(_slideHead.localRotation, Quaternion.Euler(20f, 0f, 0f), weight);
+            }
+            if (_slideLeftUpperLeg != null)
+            {
+                _slideLeftUpperLeg.localRotation = Quaternion.Slerp(_slideLeftUpperLeg.localRotation, Quaternion.Euler(154f, 0f, -4f), weight);
+            }
+            if (_slideLeftLowerLeg != null)
+            {
+                _slideLeftLowerLeg.localRotation = Quaternion.Slerp(_slideLeftLowerLeg.localRotation, Quaternion.Euler(10f, 0f, 0f), weight);
+            }
+            if (_slideRightUpperLeg != null)
+            {
+                _slideRightUpperLeg.localRotation = Quaternion.Slerp(_slideRightUpperLeg.localRotation, Quaternion.Euler(112f, 0f, 6f), weight);
+            }
+            if (_slideRightLowerLeg != null)
+            {
+                _slideRightLowerLeg.localRotation = Quaternion.Slerp(_slideRightLowerLeg.localRotation, Quaternion.Euler(92f, 0f, 0f), weight);
+            }
+        }
+
         private void LateUpdate()
         {
             if (_health != null && _health.IsDead) return;
+
+            // Procedural Jump + Reclined Gun-Slide pose across obstacles/vehicles (works on both Local & Remote Co-op players!)
+            if ((_isVaulting || _isRemoteVaultSliding) && _vaultSlidePoseWeight > 0.001f)
+            {
+                ApplyVaultSlideBonePose(_vaultSlidePoseWeight);
+                return;
+            }
+
             if (_isSitting || _isSleeping || _isVaulting || _isDashing || IsDowned) return;
 
             bool akimboPose = _isAkimboSpinning || IsAkimboDualPistolActive();
@@ -4916,13 +4997,14 @@ namespace TheLastEmpire
         {
             None,
             Motorcycle,
-            Car
+            Car,
+            LowObstacle
         }
 
         private bool _isVaulting = false;
         private VehicleVaultKind _vaultKind = VehicleVaultKind.None;
         private float _vaultElapsed = 0f;
-        private float _vaultDuration = 0.45f;
+        private float _vaultDuration = 0.52f;
         private Vector3 _vaultStartPos;
         private Vector3 _vaultEndPos;
         private float _vaultSurfaceY;
@@ -5037,7 +5119,7 @@ namespace TheLastEmpire
                 if (c.GetComponent<BaseEnemyAI>() != null || c.GetComponent<CollectibleItem>() != null) continue;
                 if (hits[i].normal.y > 0.72f) continue;
 
-                VehicleVaultKind detected = ClassifyVehicleVaultKind(c.transform);
+                VehicleVaultKind detected = ClassifyVaultObstacle(c, transform.position.y);
                 if (detected != VehicleVaultKind.None)
                 {
                     targetCol = c;
@@ -5065,7 +5147,7 @@ namespace TheLastEmpire
 
             Vector3 landingPos = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 0.78f;
             float span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
-            if (span < 0.85f || span > 7.4f) return false;
+            if (span < 0.75f || span > 7.4f) return false;
 
             Transform vehicleRoot = FindVehicleRoot(targetCol.transform);
             if (IsVaultLandingBlocked(landingPos, vehicleRoot))
@@ -5103,7 +5185,7 @@ namespace TheLastEmpire
                 if (c.GetComponent<BaseEnemyAI>() != null || c.GetComponent<CollectibleItem>() != null) continue;
                 if (hits[i].normal.y > 0.72f) continue; // Ignore flat ground
 
-                VehicleVaultKind detected = ClassifyVehicleVaultKind(c.transform);
+                VehicleVaultKind detected = ClassifyVaultObstacle(c, transform.position.y);
                 if (detected != VehicleVaultKind.None)
                 {
                     targetCol = c;
@@ -5115,7 +5197,7 @@ namespace TheLastEmpire
 
             if (targetCol == null || kind == VehicleVaultKind.None) return false;
 
-            // Find exact exit edge on the opposite side of the vehicle along dir
+            // Find exact exit edge on the opposite side of the obstacle/vehicle along dir
             Vector3 startPos = transform.position;
             Vector3 probeOrigin = new Vector3(targetHit.point.x, targetCol.bounds.center.y, targetHit.point.z) + dir * 6.5f;
             Vector3 exitPoint;
@@ -5133,10 +5215,10 @@ namespace TheLastEmpire
 
             Vector3 landingPos = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 0.78f;
             float span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
-            if (span < 0.85f || span > 7.4f) return false;
+            if (span < 0.75f || span > 7.4f) return false;
 
             // Ensure landing spot isn't buried inside a solid building wall
-            Transform vehicleRoot = FindVehicleRoot(targetCol.transform);
+            Transform vehicleRoot = kind == VehicleVaultKind.LowObstacle ? targetCol.transform : FindVehicleRoot(targetCol.transform);
             if (IsVaultLandingBlocked(landingPos, vehicleRoot))
             {
                 Vector3 altLanding = new Vector3(exitPoint.x, startPos.y, exitPoint.z) + dir * 1.25f;
@@ -5148,34 +5230,27 @@ namespace TheLastEmpire
                 span = Vector3.Distance(new Vector3(startPos.x, 0f, startPos.z), new Vector3(landingPos.x, 0f, landingPos.z));
             }
 
-            // Compute exact top surface Y relative to the player's foot-to-root offset
+            // Compute exact top surface Y so reclined hips/leg glide cleanly ON TOP of the obstacle/car
             float footToRoot = _playerCollider != null ? Mathf.Max(0.1f, startPos.y - _playerCollider.bounds.min.y) : 0.65f;
-            float vehicleTopY = targetCol.bounds.max.y;
+            float obstacleTopY = targetCol.bounds.max.y;
 
             _isVaulting = true;
             _vaultKind = kind;
             _vaultElapsed = 0f;
+            _vaultSlidePoseWeight = 0f;
             _vaultStartPos = startPos;
             _vaultEndPos = landingPos;
             _dashDirection = dir;
             _dashCooldownTimer = dashCooldown;
 
-            if (kind == VehicleVaultKind.Motorcycle)
-            {
-                _vaultDuration = Mathf.Clamp(0.36f + span * 0.04f, 0.38f, 0.50f);
-                _vaultSurfaceY = Mathf.Clamp(vehicleTopY + footToRoot + 0.18f, startPos.y + 0.90f, startPos.y + 2.35f);
-            }
-            else
-            {
-                _vaultDuration = Mathf.Clamp(0.42f + span * 0.055f, 0.48f, 0.72f);
-                // Vault_CarSlide lowers Hips onto the car roof, so position player root cleanly on top of roof surface
-                _vaultSurfaceY = Mathf.Clamp(vehicleTopY + footToRoot - 0.08f, startPos.y + 0.85f, startPos.y + 2.75f);
-            }
+            _vaultDuration = Mathf.Clamp(0.46f + span * 0.055f, 0.50f, 0.74f);
+            // Lowered hips while reclined in slide pose sit cleanly on obstacle top surface
+            _vaultSurfaceY = Mathf.Clamp(obstacleTopY + footToRoot * 0.42f, startPos.y + 0.52f, startPos.y + 2.55f);
 
             if (_health != null) _health.TriggerInvulnerability(_vaultDuration + 0.08f);
             IgnoreCollisionWithBoundaries(true);
 
-            // Temporarily ignore collisions with all colliders on this vehicle while vaulting/sliding over it
+            // Temporarily ignore collisions with all colliders on this obstacle/vehicle while jumping & sliding over it
             _vaultIgnoredColliders.Clear();
             if (_playerCollider != null && vehicleRoot != null)
             {
@@ -5189,6 +5264,11 @@ namespace TheLastEmpire
                     }
                 }
             }
+            if (_playerCollider != null && targetCol != null && !_vaultIgnoredColliders.Contains(targetCol))
+            {
+                Physics.IgnoreCollision(_playerCollider, targetCol, true);
+                _vaultIgnoredColliders.Add(targetCol);
+            }
 
             if (_rb != null)
             {
@@ -5199,14 +5279,11 @@ namespace TheLastEmpire
 
             transform.forward = dir;
 
+            // Play GunHold (or Idle if unarmed/melee) as base pose so arms hold the weapon forward cleanly while LateUpdate reclines torso & poses legs for the slide!
             if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
             if (_animator != null)
             {
-                string stateName = kind == VehicleVaultKind.Motorcycle ? "Vault_MotoJump" : "Vault_CarSlide";
-                if (!_animator.HasState(0, Animator.StringToHash(stateName)))
-                {
-                    stateName = "DashRoll";
-                }
+                string baseState = (IsHoldingRanged && _animator.HasState(0, Animator.StringToHash("GunHold"))) ? "GunHold" : "Idle";
                 _shootAnimLayerTimer = 0f;
                 _meleeAnimTimer = 0f;
                 if (_animator.layerCount > 1)
@@ -5214,12 +5291,56 @@ namespace TheLastEmpire
                     _animator.SetLayerWeight(1, 0f);
                     _animator.Play("UpperBody_Empty", 1, 0f);
                 }
-                _animator.SetBool("IsDashing", true);
-                _animator.Play(stateName, 0, 0f);
+                _animator.SetBool("IsDashing", false);
+                if (_animator.HasState(0, Animator.StringToHash(baseState)))
+                {
+                    _animator.Play(baseState, 0, 0f);
+                }
             }
 
-            Debug.Log($"[PlayerController] Vehicle Parkour: {(kind == VehicleVaultKind.Motorcycle ? "Motorcycle Hurdle Jump" : "Car Roof Slide")} over '{vehicleRoot?.name}' (span={span:F2}m, topY={vehicleTopY:F2}m)");
+            // Broadcast Jump + Slide Vault across Co-op Network so teammates see the exact same arc & reclined slide pose!
+            BroadcastAbilityVisual(AbilityVisualVaultSlide, _vaultStartPos, _vaultEndPos, _vaultSurfaceY, _vaultDuration);
+
+            Debug.Log($"[PlayerController] Obstacle Jump-Slide Vault ({kind}) over '{vehicleRoot?.name}' (span={span:F2}m, topY={obstacleTopY:F2}m)");
             return true;
+        }
+
+        private static float EvaluateVaultSlideCurve(float u, float startY, float surfaceY, out float poseWeight)
+        {
+            // 3-Phase Jump-Up -> Reclined Slide -> Crisp Drop Landing:
+            // 0.00..0.24: Spring jump UP onto obstacle top (peaks slightly above surfaceY then settles onto it)
+            // 0.24..0.78: Smooth reclined gun-ready Slide across top of obstacle
+            // 0.78..1.00: Drop off far edge & snap upright on landing
+            float y;
+            if (u < 0.24f)
+            {
+                float t = u / 0.24f;
+                float hopOver = Mathf.Sin(t * Mathf.PI) * 0.22f;
+                y = Mathf.Lerp(startY, surfaceY, Mathf.Sin(t * Mathf.PI * 0.5f)) + hopOver;
+            }
+            else if (u <= 0.78f)
+            {
+                y = surfaceY;
+            }
+            else
+            {
+                float t = (u - 0.78f) / 0.22f;
+                y = Mathf.Lerp(surfaceY, startY, t * t);
+            }
+
+            // Smooth pose blend: upright during initial jump lift -> full reclined slide on top -> stand back up on drop
+            if (u < 0.10f)
+                poseWeight = 0f;
+            else if (u < 0.26f)
+                poseWeight = Mathf.SmoothStep(0f, 1f, (u - 0.10f) / 0.16f);
+            else if (u <= 0.76f)
+                poseWeight = 1f;
+            else if (u < 0.96f)
+                poseWeight = Mathf.SmoothStep(1f, 0f, (u - 0.76f) / 0.20f);
+            else
+                poseWeight = 0f;
+
+            return y;
         }
 
         private void UpdateVehicleVault()
@@ -5227,35 +5348,10 @@ namespace TheLastEmpire
             _vaultElapsed += Time.deltaTime;
             float u = Mathf.Clamp01(_vaultElapsed / Mathf.Max(0.05f, _vaultDuration));
 
-            // Smooth ease-in-out horizontal progress across vehicle
+            // Smooth ease-in-out horizontal progress across obstacle
             float horizT = u * u * (3f - 2f * u);
             Vector3 pos = Vector3.Lerp(_vaultStartPos, _vaultEndPos, horizT);
-
-            if (_vaultKind == VehicleVaultKind.Motorcycle)
-            {
-                // Parabolic hurdle jump arc cleanly clearing the motorcycle
-                float arc = 4f * u * (1f - u);
-                pos.y = Mathf.Lerp(_vaultStartPos.y, _vaultSurfaceY, arc);
-            }
-            else
-            {
-                // 3-phase Hollywood Car Roof/Hood Slide:
-                // 0.00..0.20: spring up onto car roof | 0.20..0.78: flat glide across roof | 0.78..1.00: crisp drop-off landing
-                if (u < 0.20f)
-                {
-                    float t = u / 0.20f;
-                    pos.y = Mathf.Lerp(_vaultStartPos.y, _vaultSurfaceY, Mathf.Sin(t * Mathf.PI * 0.5f));
-                }
-                else if (u <= 0.78f)
-                {
-                    pos.y = _vaultSurfaceY;
-                }
-                else
-                {
-                    float t = (u - 0.78f) / 0.22f;
-                    pos.y = Mathf.Lerp(_vaultSurfaceY, _vaultStartPos.y, t * t);
-                }
-            }
+            pos.y = EvaluateVaultSlideCurve(u, _vaultStartPos.y, _vaultSurfaceY, out _vaultSlidePoseWeight);
 
             transform.position = pos;
             if (_dashDirection.sqrMagnitude > 0.001f)
@@ -5274,6 +5370,7 @@ namespace TheLastEmpire
             if (!_isVaulting) return;
             _isVaulting = false;
             _vaultKind = VehicleVaultKind.None;
+            _vaultSlidePoseWeight = 0f;
 
             transform.position = _vaultEndPos;
 
@@ -5319,6 +5416,53 @@ namespace TheLastEmpire
                 cur = cur.parent;
             }
             return best;
+        }
+
+        private static VehicleVaultKind ClassifyVaultObstacle(Collider col, float playerBaseY)
+        {
+            if (col == null || col.isTrigger) return VehicleVaultKind.None;
+
+            // 1. Check vehicles first (Cars, SUVs, Vans, Motorcycles, etc.)
+            VehicleVaultKind vehicleKind = ClassifyVehicleVaultKind(col.transform);
+            if (vehicleKind != VehicleVaultKind.None) return vehicleKind;
+
+            // 2. General low/medium vaultable obstacles (barricades, crates, fences, sandbags, benches, barriers, tables, rocks, etc.)
+            // Exclude ground/roads, map boundaries, portals, NPCs, tall buildings/houses, and trees
+            Bounds b = col.bounds;
+            float heightAbovePlayer = b.max.y - playerBaseY;
+            if (heightAbovePlayer < 0.28f || heightAbovePlayer > 2.35f) return VehicleVaultKind.None;
+
+            Transform cur = col.transform;
+            int depth = 0;
+            while (cur != null && depth < 5)
+            {
+                string n = cur.name.ToLowerInvariant();
+                if (n.Contains("ground") || n.Contains("floor") || n.Contains("road") ||
+                    n.Contains("terrain") || n.Contains("boundary") || n.Contains("screenbound") ||
+                    n.Contains("portal") || n.Contains("transition") || n.Contains("building") ||
+                    n.Contains("house") || n.Contains("interior") || n.Contains("tree") ||
+                    n.Contains("npc") || n.Contains("survivor") || n.Contains("shop") ||
+                    n.Contains("campfire") || n.Contains("turret") || n.Contains("generator"))
+                {
+                    // Allow explicit low fences/barricades/sandbags/crates/tables/benches even if nested under a prop group
+                    if (!(n.Contains("fence") || n.Contains("barricade") || n.Contains("sandbag") ||
+                          n.Contains("barrier") || n.Contains("crate") || n.Contains("table") ||
+                          n.Contains("bench") || n.Contains("low_wall") || n.Contains("lowwall")))
+                    {
+                        return VehicleVaultKind.None;
+                    }
+                }
+                if (cur.parent != null && cur.parent.name.IndexOf("GeneratedEnvironment", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    break;
+                }
+                cur = cur.parent;
+                depth++;
+            }
+
+            if (col.GetComponentInParent<NPCController>() != null) return VehicleVaultKind.None;
+
+            return VehicleVaultKind.LowObstacle;
         }
 
         private static VehicleVaultKind ClassifyVehicleVaultKind(Transform t)

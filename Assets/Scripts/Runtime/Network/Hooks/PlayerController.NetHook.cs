@@ -37,6 +37,44 @@ namespace TheLastEmpire
         public const byte AbilityVisualGrapple = 1;
         public const byte AbilityVisualToxicCloud = 2;
         public const byte AbilityVisualSatchelMine = 3;
+        public const byte AbilityVisualVaultSlide = 4;
+
+        private bool _isRemoteVaultSliding = false;
+        private float _remoteVaultElapsed = 0f;
+        private float _remoteVaultDuration = 0.55f;
+        private Vector3 _remoteVaultStartPos;
+        private Vector3 _remoteVaultEndPos;
+        private float _remoteVaultSurfaceY;
+
+        public void StartRemoteVaultSlideVisual(Vector3 startPos, Vector3 endPos, float surfaceY, float duration)
+        {
+            if (!IsRemotePlayer) return;
+            _isRemoteVaultSliding = true;
+            _remoteVaultElapsed = 0f;
+            _remoteVaultDuration = Mathf.Clamp(duration, 0.25f, 1.2f);
+            _remoteVaultStartPos = startPos;
+            _remoteVaultEndPos = endPos;
+            _remoteVaultSurfaceY = surfaceY;
+            _vaultSlidePoseWeight = 0f;
+
+            Vector3 dir = endPos - startPos;
+            dir.y = 0f;
+            if (dir.sqrMagnitude > 0.001f)
+            {
+                transform.forward = dir.normalized;
+                _networkTargetAimDir = dir.normalized;
+            }
+
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+            if (_animator != null)
+            {
+                string baseState = (IsHoldingRanged && _animator.HasState(0, Animator.StringToHash("GunHold"))) ? "GunHold" : "Idle";
+                if (_animator.HasState(0, Animator.StringToHash(baseState)))
+                {
+                    _animator.Play(baseState, 0, 0f);
+                }
+            }
+        }
 
         public bool HasOverheadNameLabel => ResolveOverheadNameText() != null;
 
@@ -330,6 +368,32 @@ namespace TheLastEmpire
                 return;
             }
 
+            if (_isRemoteVaultSliding)
+            {
+                _remoteVaultElapsed += Time.deltaTime;
+                float u = Mathf.Clamp01(_remoteVaultElapsed / Mathf.Max(0.05f, _remoteVaultDuration));
+                float horizT = u * u * (3f - 2f * u);
+                Vector3 pos = Vector3.Lerp(_remoteVaultStartPos, _remoteVaultEndPos, horizT);
+                pos.y = EvaluateVaultSlideCurve(u, _remoteVaultStartPos.y, _remoteVaultSurfaceY, out _vaultSlidePoseWeight);
+                transform.position = pos;
+
+                Vector3 slideDir = _remoteVaultEndPos - _remoteVaultStartPos;
+                slideDir.y = 0f;
+                if (slideDir.sqrMagnitude > 0.001f)
+                {
+                    transform.forward = slideDir.normalized;
+                    _aimDirection = transform.forward;
+                }
+
+                if (u >= 1f)
+                {
+                    _isRemoteVaultSliding = false;
+                    _vaultSlidePoseWeight = 0f;
+                    transform.position = _remoteVaultEndPos;
+                }
+                return;
+            }
+
             if (_hasNetworkPose)
             {
                 transform.position = Vector3.Lerp(transform.position, _networkTargetPosition, Time.deltaTime * 16f);
@@ -528,6 +592,15 @@ namespace TheLastEmpire
             float radius,
             float duration)
         {
+            if (visualType == AbilityVisualVaultSlide)
+            {
+                if (caster != null)
+                {
+                    caster.StartRemoteVaultSlideVisual(startPos, endPos, radius, duration);
+                }
+                yield break;
+            }
+
             if (visualType == AbilityVisualGrapple)
             {
                 GameObject root = new GameObject("NetRemoteGrappleVisual");
