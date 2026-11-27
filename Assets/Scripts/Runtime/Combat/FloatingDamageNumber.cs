@@ -118,7 +118,7 @@ namespace TheLastEmpire
             {
                 displayText = overrideText;
                 _baseColor = new Color(0.65f, 0.85f, 1.0f); // Cool silver-cyan for Blocked
-                _mainText.fontSize = 2.6f;
+                _mainText.fontSize = 1.8f;
                 _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.75f;
             }
@@ -126,15 +126,15 @@ namespace TheLastEmpire
             {
                 displayText = $"HEADSHOT! {Mathf.RoundToInt(damageAmount)}";
                 _baseColor = new Color(1.0f, 0.28f, 0.10f); // Fiery blazing orange-red
-                _mainText.fontSize = 3.2f;
-                _initialScaleMultiplier = 1.35f * GlobalScaleMultiplier;
+                _mainText.fontSize = 1.8f;
+                _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 1.0f;
             }
             else
             {
                 displayText = Mathf.RoundToInt(damageAmount).ToString();
-                _baseColor = new Color(1.0f, 0.94f, 0.45f); // Vibrant gold-yellow
-                _mainText.fontSize = 2.8f;
+                _baseColor = Color.white; // Crisp pure white for normal damage
+                _mainText.fontSize = 1.8f;
                 _initialScaleMultiplier = 1.0f * GlobalScaleMultiplier;
                 _lifetime = 0.85f;
             }

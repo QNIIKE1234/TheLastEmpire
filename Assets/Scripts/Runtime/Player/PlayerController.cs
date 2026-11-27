@@ -1213,18 +1213,24 @@ namespace TheLastEmpire
 
             bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
             bool isDehydrated = currentWater <= 0f;
+            bool isShiftBlockedByWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather;
+
+            if (isShiftBlockedByWeather)
+            {
+                _activeShiftAbility?.OnShiftReleased();
+            }
 
             if (Keyboard.current != null)
             {
-                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.wasPressedThisFrame)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather && Keyboard.current.shiftKey.wasPressedThisFrame)
                 {
                     _activeShiftAbility?.OnShiftPressed();
                 }
-                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && Keyboard.current.shiftKey.isPressed)
+                if (!isShootingNow && !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather && Keyboard.current.shiftKey.isPressed)
                 {
                     _activeShiftAbility?.OnShiftHeld();
                 }
-                if (Keyboard.current.shiftKey.wasReleasedThisFrame || isDehydrated)
+                if (Keyboard.current.shiftKey.wasReleasedThisFrame || isDehydrated || isShiftBlockedByWeather)
                 {
                     _activeShiftAbility?.OnShiftReleased();
                 }
@@ -1232,7 +1238,7 @@ namespace TheLastEmpire
             _activeShiftAbility?.UpdateAbility();
 
             bool isAimingSlow = _activeShiftAbility is EagleEyeAbility && _activeShiftAbility.IsActive;
-            bool canSprint = !isShiftOnCooldown && !isDehydrated;
+            bool canSprint = !isShiftOnCooldown && !isDehydrated && !isShiftBlockedByWeather;
             _isSprinting = canSprint && !isShootingNow && !isAimingSlow && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
             UpdateHunger();
             UpdateWater();
@@ -1846,7 +1852,8 @@ namespace TheLastEmpire
                 float baseSpeed = moveSpeed;
                 float currentSpeed = baseSpeed;
                 bool isShiftOnCooldown = _activeShiftAbility != null && _activeShiftAbility.CooldownRemaining > 0f;
-                bool isShiftHeld = !isShiftOnCooldown && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
+                bool isShiftBlockedByWeather = WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather;
+                bool isShiftHeld = !isShiftOnCooldown && !isShiftBlockedByWeather && currentWater > 0f && Keyboard.current != null && Keyboard.current.shiftKey.isPressed && _moveInput.sqrMagnitude > 0.01f;
 
                 if (_shootSprintLockTimer > 0f)
                 {

@@ -610,6 +610,7 @@ namespace TheLastEmpire
             if (_player == null || _player.IsRemotePlayer || _player.IsDowned ||
                 (_player.PlayerHealth != null && _player.PlayerHealth.IsDead) ||
                 _cooldownTimer > 0f || _player.CurrentHunger <= 0f ||
+                (WeatherManager.Instance != null && WeatherManager.Instance.IsShiftBlockedByWeather) ||
                 (PopUpManager.Instance != null && PopUpManager.Instance.HasActivePopUps) ||
                 (BuildingPlacer.Instance != null && BuildingPlacer.Instance.ShouldBlockCombat))
             {

@@ -66,6 +66,8 @@ namespace TheLastEmpire
         [SerializeField] private float snowSurvivalDrainMultiplier = 1.4f;
         [Tooltip("Movement speed multiplier during Blizzard outdoors when away from a campfire (0.82 = -18% slow)")]
         [SerializeField] private float blizzardMoveSpeedMultiplier = 0.82f;
+        [Tooltip("HP damage per second while exposed to Blizzard outdoors away from a campfire (default: 3 HP/s)")]
+        [SerializeField] private float blizzardDamagePerSecond = 3.0f;
 
         [Header("Thunderstorm Lightning Strikes")]
         [SerializeField] private float minLightningInterval = 4.8f;
@@ -83,6 +85,8 @@ namespace TheLastEmpire
         public bool IsPlayerExposedToWeather => CurrentWeather != WeatherType.Clear && !IsPlayerSheltered && IsGameplaySceneActive();
         public bool IsPlayerExposedToRain => IsRaining && !IsPlayerSheltered && IsGameplaySceneActive();
         public bool IsPlayerExposedToBlizzard => CurrentWeather == WeatherType.Blizzard && !IsPlayerSheltered && IsGameplaySceneActive();
+        public bool IsShiftBlockedByWeather => IsPlayerExposedToWeather &&
+            (CurrentWeather == WeatherType.Thunderstorm || CurrentWeather == WeatherType.Blizzard);
 
         public int DaysPerSeason => Mathf.Max(1, daysPerSeason);
         public float RollIntervalSeconds => rollIntervalSeconds;
@@ -192,6 +196,7 @@ namespace TheLastEmpire
         private float _lightningStrikeTimer = 5f;
         private float _ambientFlashTimer = 7f;
         private float _lightningFlashAlpha = 0f;
+        private float _blizzardDamageTimer = 0f;
 
         // Particle Rigs
         private GameObject _weatherRigRoot;
@@ -731,7 +736,10 @@ namespace TheLastEmpire
             // 5. Update Procedural Weather Audio (completely silent indoors!)
             UpdateWeatherAudio(sheltered);
 
-            // 6. Refresh cached outdoor building/prop meshes for Roof Snow Cap overlay when snow is present
+            // 6. Blizzard Freezing HP Drain (-3 HP/s outdoors on Local Player unless sheltered indoors or warmed by Campfire!)
+            UpdateLocalBlizzardFreezeDamage(dt, sheltered);
+
+            // 7. Refresh cached outdoor building/prop meshes for Roof Snow Cap overlay when snow is present
             if (!sheltered && GroundSnowAmount > 0.01f)
             {
                 _snowTargetRefreshTimer -= dt;
@@ -740,6 +748,37 @@ namespace TheLastEmpire
                     _snowTargetRefreshTimer = 0.85f;
                     RefreshOutdoorSnowMeshTargets();
                 }
+            }
+        }
+
+        private void UpdateLocalBlizzardFreezeDamage(float dt, bool sheltered)
+        {
+            if (CurrentWeather != WeatherType.Blizzard || sheltered || blizzardDamagePerSecond <= 0f || IsNearCampfireWarmth)
+            {
+                _blizzardDamageTimer = 0f;
+                return;
+            }
+
+            PlayerController localPc = PlayerRegistry.LocalPlayer ?? PlayerController.Instance;
+            if (localPc == null || localPc.IsRemotePlayer || localPc.IsDowned)
+            {
+                _blizzardDamageTimer = 0f;
+                return;
+            }
+
+            Health ph = localPc.PlayerHealth ?? localPc.GetComponent<Health>();
+            if (ph == null || ph.IsDead)
+            {
+                _blizzardDamageTimer = 0f;
+                return;
+            }
+
+            _blizzardDamageTimer += dt;
+            if (_blizzardDamageTimer >= 1.0f)
+            {
+                _blizzardDamageTimer -= 1.0f;
+                // Owner-authoritative HP deduction automatically syncs to all Co-op teammates via NetworkPlayerBridge
+                ph.TakeDamage(blizzardDamagePerSecond, localPc.transform.position + Vector3.up * 1.25f);
             }
         }
 
@@ -1464,14 +1503,14 @@ namespace TheLastEmpire
                 switch (CurrentWeather)
                 {
                     case WeatherType.Thunderstorm:
-                        labelText = $"THUNDERSTORM ({WeatherRemainingSeconds:F0}s)  |  DRAIN x2  |  WATCH FOR LIGHTNING";
+                        labelText = $"THUNDERSTORM ({WeatherRemainingSeconds:F0}s)  |  DRAIN x2  |  SHIFT LOCKED";
                         borderCol = new Color(0.55f, 0.78f, 1f, 0.90f * pillAlpha);
                         bgCol = new Color(0.06f, 0.10f, 0.22f, 0.84f * pillAlpha);
                         break;
                     case WeatherType.Blizzard:
                         labelText = IsNearCampfireWarmth
-                            ? $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  WARMED BY CAMPFIRE"
-                            : $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  DRAIN x2  |  CHILL -18% SPEED";
+                            ? $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  WARMED BY CAMPFIRE  |  SHIFT LOCKED"
+                            : $"BLIZZARD ({WeatherRemainingSeconds:F0}s)  |  -{blizzardDamagePerSecond:F0} HP/s  |  DRAIN x2  |  SHIFT LOCKED";
                         borderCol = new Color(0.72f, 0.92f, 1f, 0.92f * pillAlpha);
                         bgCol = new Color(0.08f, 0.18f, 0.28f, 0.84f * pillAlpha);
                         break;
@@ -1490,7 +1529,7 @@ namespace TheLastEmpire
                         break;
                 }
 
-                float w = 420f;
+                float w = 470f;
                 float h = 26f;
                 float x = (Screen.width - w) * 0.5f;
                 float y = 78f;

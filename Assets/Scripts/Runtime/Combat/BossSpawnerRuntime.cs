@@ -486,8 +486,8 @@ namespace TheLastEmpire
 
                 GUI.backgroundColor = Color.white;
                 GUILayout.Label($"Auto-roll: {wm.RainChance * 100f:F0}% every {wm.RollIntervalSeconds:F0}s -> lasts {wm.RainDurationSeconds:F0}s (5 days/season).", EditorStylesMini());
-                GUILayout.Label("Outdoors: Rain/Storm/Blizzard = x2 Drain; Blizzard = -18% Speed.", EditorStylesMini());
-                GUILayout.Label("Inside houses: Weather hidden & sheltered (Campfire melts snow).", EditorStylesMini());
+                GUILayout.Label("Outdoors: Rain/Storm/Blizzard = x2 Drain; Storm & Blizzard lock [Shift].", EditorStylesMini());
+                GUILayout.Label("Blizzard outdoors: -3 HP/s & -18% Speed (safe inside house or by Campfire).", EditorStylesMini());
             }
             else
             {
