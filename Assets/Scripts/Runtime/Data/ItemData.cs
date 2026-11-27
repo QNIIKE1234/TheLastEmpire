@@ -44,6 +44,10 @@ namespace TheLastEmpire
         [Tooltip("ความเร็วการยิง/ฟันเพิ่ม เช่น 0.20 = ไวขึ้น 20%")]
         public float fireRateMultiplier = 0f;
         public int bonusMagazineSize = 0;
+        [Tooltip("ตัวคูณความจุแม็กกาซีน เช่น 2.0 = แม็ก x2 (เช่น ถือปืนพก 2 กระบอก Akimbo)")]
+        public float magazineMultiplier = 1f;
+        [Tooltip("เปิดโหมดถือปืนพก 2 กระบอก (Dual Pistols / Akimbo Animation & Left-Hand Pistol)")]
+        public bool dualWieldPistol = false;
         [Tooltip("ความเร็วรีโหลดเพิ่ม เช่น 0.25 = รีโหลดไวขึ้น 25%")]
         public float reloadSpeedMultiplier = 0f;
         public float bonusRange = 0f;

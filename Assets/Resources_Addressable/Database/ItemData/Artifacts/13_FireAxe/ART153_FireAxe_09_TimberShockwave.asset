@@ -46,7 +46,7 @@ MonoBehaviour:
     compatibleWeaponNames:
     - "Fire Axe"
     bonusDamage: 0
-    damageMultiplier: 0
+    damageMultiplier: -0.1
     bonusPelletsPerShot: 0
     extraSpreadAngle: 0
     fireRateMultiplier: 0
@@ -70,4 +70,4 @@ MonoBehaviour:
     rightClickDamage: 0
     rightClickRange: 0
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "RNG +1.6m, KB +8, STAG +0.8s"
+    shortEffectSummary: "RNG +1.6m, KB +8, STAG +0.8s, DMG -10%"

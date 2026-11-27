@@ -16,6 +16,8 @@ namespace TheLastEmpire
         public float extraSpreadAngle;
         public float fireRateMultiplier;
         public int bonusMagazineSize;
+        public float magazineMultiplier;
+        public bool dualWieldPistol;
         public float reloadSpeedMultiplier;
         public float bonusRange;
         public bool grantPierce;
@@ -49,6 +51,8 @@ namespace TheLastEmpire
             HasRightClickSkill ||
             Mathf.Abs(fireRateMultiplier) > 0.001f ||
             bonusMagazineSize != 0 ||
+            magazineMultiplier > 1.01f ||
+            dualWieldPistol ||
             Mathf.Abs(reloadSpeedMultiplier) > 0.001f ||
             Mathf.Abs(bonusRange) > 0.001f ||
             Mathf.Abs(bonusCritChance) > 0.001f ||
@@ -392,12 +396,35 @@ namespace TheLastEmpire
             return true;
         }
 
+        public static int ComputeEffectiveMagazineSize(int baseMagazineSize, WeaponArtifactModifiers mods)
+        {
+            int combined = Mathf.Max(1, baseMagazineSize + Mathf.Max(0, mods.bonusMagazineSize));
+            float mult = mods.magazineMultiplier > 0.01f ? mods.magazineMultiplier : 1f;
+            return Mathf.Max(1, Mathf.RoundToInt(combined * mult));
+        }
+
+        public static bool HasEquippedArtifact(string weaponName, string artifactNameOrIdFragment)
+        {
+            if (string.IsNullOrWhiteSpace(weaponName) || string.IsNullOrWhiteSpace(artifactNameOrIdFragment)) return false;
+            string[] slots = GetEquippedSlots(weaponName);
+            if (slots == null) return false;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                string s = slots[i];
+                if (string.IsNullOrEmpty(s)) continue;
+                if (s.IndexOf(artifactNameOrIdFragment, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+                ItemData data = ItemDatabase.Instance != null ? ItemDatabase.Instance.GetItemByName(s) : null;
+                if (data != null && data.name.IndexOf(artifactNameOrIdFragment, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// รวมค่าโบนัสจาก Artifact ทั้งหมดที่ติดอยู่บนอาวุธนี้
         /// </summary>
         public static WeaponArtifactModifiers GetAggregatedModifiers(string weaponName)
         {
-            WeaponArtifactModifiers mods = default;
+            WeaponArtifactModifiers mods = new WeaponArtifactModifiers { magazineMultiplier = 1f };
             string key = NormalizeWeaponKey(weaponName);
             if (string.IsNullOrEmpty(key)) return mods;
 
@@ -422,6 +449,8 @@ namespace TheLastEmpire
                 mods.extraSpreadAngle += cfg.extraSpreadAngle;
                 mods.fireRateMultiplier += cfg.fireRateMultiplier;
                 mods.bonusMagazineSize += cfg.bonusMagazineSize;
+                if (cfg.magazineMultiplier > 1.01f) mods.magazineMultiplier *= cfg.magazineMultiplier;
+                if (cfg.dualWieldPistol) mods.dualWieldPistol = true;
                 mods.reloadSpeedMultiplier += cfg.reloadSpeedMultiplier;
                 mods.bonusRange += cfg.bonusRange;
                 mods.bonusCritChance += cfg.bonusCritChance;
@@ -463,11 +492,16 @@ namespace TheLastEmpire
             if (weaponData != null)
             {
                 float baseDmg = weaponData.damage;
-                float finalDmg = (baseDmg + mods.bonusDamage) * (1f + mods.damageMultiplier);
+                float finalDmg = (baseDmg + mods.bonusDamage) * Mathf.Max(0.1f, 1f + mods.damageMultiplier);
                 sb.Append($"Attack {finalDmg:F0}");
-                if (mods.bonusDamage > 0f || mods.damageMultiplier > 0f)
+                float dmgDelta = finalDmg - baseDmg;
+                if (dmgDelta > 0.49f)
                 {
-                    sb.Append($" (+{finalDmg - baseDmg:F0})");
+                    sb.Append($" (+{dmgDelta:F0})");
+                }
+                else if (dmgDelta < -0.49f)
+                {
+                    sb.Append($" ({dmgDelta:F0})");
                 }
 
                 if (weaponData.type == ItemType.RangedWeapon || weaponData.type == ItemType.ThrowingWeapon)
@@ -476,7 +510,7 @@ namespace TheLastEmpire
                     int pellets = (wc != null && wc.pelletsPerShot > 0 ? wc.pelletsPerShot : 1) + mods.bonusPellets;
                     bool isAuto = (wc != null && wc.isAutomatic) || mods.grantAutomatic;
                     bool canPierce = (wc != null && wc.canPierce) || mods.grantPierce;
-                    int mag = (wc != null ? wc.magazineSize : 12) + mods.bonusMagazineSize;
+                    int mag = ComputeEffectiveMagazineSize(wc != null ? wc.magazineSize : 12, mods);
 
                     sb.Append(isAuto ? " | Full Auto" : " | Semi Auto");
                     if (pellets > 1) sb.Append($" | Shots x{pellets}");
@@ -546,6 +580,8 @@ namespace TheLastEmpire
                 if (cfg.bonusPelletsPerShot != 0) parts.Add($"Shot +{cfg.bonusPelletsPerShot}");
                 if (cfg.fireRateMultiplier != 0f) parts.Add($"SPD +{(cfg.fireRateMultiplier * 100f):F0}%");
                 if (cfg.bonusMagazineSize != 0) parts.Add($"MAG +{cfg.bonusMagazineSize}");
+                if (cfg.magazineMultiplier > 1.01f) parts.Add($"MAG x{cfg.magazineMultiplier:0.#}");
+                if (cfg.dualWieldPistol) parts.Add("Dual Pistols");
                 if (cfg.reloadSpeedMultiplier != 0f) parts.Add($"RLD +{(cfg.reloadSpeedMultiplier * 100f):F0}%");
                 if (cfg.bonusRange != 0f) parts.Add($"RNG +{cfg.bonusRange:F1}");
                 if (cfg.bonusCritChance != 0f) parts.Add($"CRIT +{(cfg.bonusCritChance * 100f):F0}%");

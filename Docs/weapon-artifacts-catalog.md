@@ -49,7 +49,7 @@
 | 8 | `ART008_Pistol_08_LaserSightCore` | Laser Sight Core | Rare | เลเซอร์เล็งจุดตาย เพิ่มระยะและคริติคอล +20% (`CRIT +20%, RNG +1.0`) |
 | 9 | `ART009_Pistol_09_HeavyMagnumSlide` | Heavy Magnum Slide | Rare | เสริมสไลด์หนัก เพิ่มดาเมจ +45% และแรงกระแทก (`DMG +45%, KB +1.0`) |
 | 10 | `ART010_Pistol_10_TacticalRecycler` | Tactical Recycler | Rare | โอกาส 30% ไม่เสียกระสุนเมื่อยิง + รีโหลดไว +25% (`Save 30%, RLD +25%`) |
-| 11 | `ART011_Pistol_11_AkimboPhantom` | Akimbo Phantom | Legendary | ยิงออกทีละ 2 นัด + ยิงไว +30% + แม็ก +12 (`Shot +1, SPD +30%, MAG +12`) |
+| 11 | `ART011_Pistol_11_AkimboPhantom` | Akimbo Phantom | Legendary | ถือปืนพก 2 กระบอก + แม็ก ×2 + ยิงออกทีละ 2 นัด + ยิงไว +30% + คลิกขวาหมุนตัว 360° ยิงรอบตัว (2 รอบติดเมื่อใส่คู่ `ART005`) (`Dual Pistols, MAG x2, Shot +1, SPD +30%, RMB: 360 Spin`) |
 | 12 | `ART012_Pistol_12_DeadshotAce` | Deadshot Ace | Legendary | คริติคอล +35% แรงคริ +80% และเจาะทะลุศัตรู (`CRIT +35%, CDMG +80%, Pierce`) |
 
 ### 2. Revolver (Ranged) — 12 Artifacts
@@ -97,7 +97,7 @@
 | 8 | `ART044_Shotgun_08_AutoShotgunReceiver` | Auto-Shotgun Receiver | Rare | เปลี่ยนลูกซองเป็น Full-Auto + ยิงไว +20% (`Full-Auto, SPD +20%`) |
 | 9 | `ART045_Shotgun_09_RiotBreacher` | Riot Breacher | Rare | แรงกระแทกและชะงักสูง + ดาเมจ +35% (`DMG +35%, KB +2.5, STAG +0.5`) |
 | 10 | `ART046_Shotgun_10_ShellRecycler` | Shell Recycler | Rare | โอกาส 35% ไม่เสียลูกซองเมื่อยิง + แม็ก +3 (`Save 35%, MAG +3`) |
-| 11 | `ART047_Shotgun_11_DoubleBarrelSalvo` | Double-Barrel Salvo | Legendary | ม่านกระสุนยักษ์เพิ่มลูกปราย +5 เม็ด + ดาเมจ +25% (`Pellets +5, DMG +25%`) |
+| 11 | `ART047_Shotgun_11_DoubleBarrelSalvo` | Double-Barrel Salvo | Legendary | ม่านกระสุนยักษ์เพิ่มลูกปราย +5 เม็ด + ดาเมจ +25% + คลิกขวาผลักศัตรูถอยหลัง (`Pellets +5, DMG +25%, RMB: Pushback Blast`) |
 | 12 | `ART048_Shotgun_12_DoomsweeperCore` | Doomsweeper Core | Legendary | Full-Auto + Pierce + ลูกปราย +3 + ยิงไว +35% (`Auto, Pierce, +3P, SPD +35%`) |
 
 ### 5. Rifle (Ranged) — 12 Artifacts
@@ -177,7 +177,7 @@
 | 8 | `ART104_RocketLauncher_08_WarheadOptimizer` | Warhead Optimizer | Rare | โอกาสคริติคอล +30% และแรงคริ +50% (`CRIT +30%, CDMG +50%`) |
 | 9 | `ART105_RocketLauncher_09_MunitionsRecycler` | Munitions Recycler | Rare | โอกาส 35% ยิงจรวดไม่เสียกระสุน + แม็ก +2 (`Save 35%, MAG +2`) |
 | 10 | `ART106_RocketLauncher_10_TripleSalvoRack` | Triple Salvo Rack | Rare | ยิงจรวดออกทีละ 3 ลูกพร้อมกัน (มุม 12°) (`Shot +2 (x3)`) |
-| 11 | `ART107_RocketLauncher_11_BarrageLauncher` | Barrage Launcher | Legendary | Full-Auto + แม็ก +4 + ยิงไว +40% + รีโหลด +35% (`Auto, MAG +4, SPD +40%`) |
+| 11 | `ART107_RocketLauncher_11_BarrageLauncher` | Barrage Launcher | Legendary | Full-Auto + แม็ก +4 + ยิงไว +40% + รีโหลด +35% + คลิกขวาล็อกเป้าอัตโนมัติยิงมิสไซล์พุ่งขึ้นฟ้าดิ่งถล่มเป้า (`Auto, MAG +4, SPD +40%, RMB: Sky Homing Missile`) |
 | 12 | `ART108_RocketLauncher_12_TacticalNukeCore` | Tactical Nuke Core | Legendary | ดาเมจ +120% + ยิงจรวดออกทีละ 2 ลูก! (`DMG +120%, Shot +1 (x2)`) |
 
 ### 10. Knife (Melee) — 12 Artifacts
@@ -194,7 +194,7 @@
 | 9 | `ART117_Knife_09_ShadowBladeCore` | Shadow Blade Core | Rare | ดาเมจ +45% + ฟันไวขึ้น +30% (`DMG +45%, SPD +30%`) |
 | 10 | `ART118_Knife_10_BloodthirstHilt` | Bloodthirst Hilt | Rare | ดูดเลือด +7 HP ต่อครั้ง + คริ +20% (`Leech +7 HP, CRIT +20%`) |
 | 11 | `ART119_Knife_11_PhantomFlurry` | Phantom Flurry | Legendary | ฟันไว +65% + ระยะ +0.9m + ดาเมจ +30% (`SPD +65%, RNG +0.9m, +30%`) |
-| 12 | `ART120_Knife_12_CoupDeGrace` | Coup De Grace | Legendary | ดาเมจ +80% + คริ +45% + แรงคริ +90% (`DMG +80%, CRIT +45%, +90%`) |
+| 12 | `ART120_Knife_12_CoupDeGrace` | Coup De Grace | Legendary | ดาเมจ +80% + คริ +45% + แรงคริ +90% + คลิกขวาขว้างมีดใส่ศัตรูดาเมจ ×3 (มีดหายถาวร) (`DMG +80%, CRIT +45%, +90%, RMB: Throw 3x (Lost)`) |
 
 ### 11. Baseball Bat (Melee) — 12 Artifacts
 | # | Asset ID | ชื่อ Artifact | ระดับ | ความสามารถจริงในเกม |

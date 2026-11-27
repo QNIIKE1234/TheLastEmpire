@@ -1807,33 +1807,59 @@ namespace TheLastEmpire
             currentState = AIState.Telegraph;
             if (_spriteRenderer != null) _spriteRenderer.color = new Color(0.2f, 0.9f, 0.2f);
 
+            // Lock firing direction at start of telegraph so players can read & dodge the ground hitbox lane!
+            Vector3 lockedBaseDir = transform.forward;
             if (playerTransform != null)
             {
                 Vector3 faceDir = playerTransform.position - transform.position;
                 faceDir.y = 0f;
-                if (faceDir.sqrMagnitude > 0.001f) transform.forward = faceDir.normalized;
+                if (faceDir.sqrMagnitude > 0.001f) lockedBaseDir = faceDir.normalized;
+            }
+            lockedBaseDir.y = 0f;
+            if (lockedBaseDir.sqrMagnitude < 0.001f) lockedBaseDir = Vector3.forward;
+            lockedBaseDir.Normalize();
+            transform.forward = lockedBaseDir;
+
+            // Boss spits a 3-way toxic spread when enraged, or single heavy acid blast normally
+            float[] spreadAngles = (IsBossUnit && IsRageMode) ? new[] { -14f, 0f, 14f } : new[] { 0f };
+            float projScale = IsBossUnit ? 1.35f : 1.0f;
+            const float windupDuration = 0.48f;
+            float laneLength = IsBossUnit ? 13.5f : 11.5f;
+            float laneWidth = 1.05f * projScale;
+
+            Vector3 telegraphOrigin = transform.position;
+            foreach (float angleDeg in spreadAngles)
+            {
+                Vector3 dir = Quaternion.Euler(0f, angleDeg, 0f) * lockedBaseDir;
+                SpitterProjectileVisual.SpawnSpitAimTelegraph(
+                    SpitProjectileStyle.ZombieAcid,
+                    telegraphOrigin + dir * 0.65f,
+                    dir,
+                    laneLength,
+                    laneWidth,
+                    windupDuration,
+                    transform);
+                TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                    this,
+                    TheLastEmpire.Network.NetworkEnemyBridge.TelegraphZombieSpitAim,
+                    telegraphOrigin + dir * 0.65f,
+                    dir,
+                    laneLength,
+                    windupDuration);
             }
 
             PlayActionAnimationWithFallback(0.70f, 0.05f, IsBossUnit ? "Spit" : "Slash1", "RageRoar", "Throw", "Slash1");
-            yield return new WaitForSeconds(0.35f);
+            yield return new WaitForSeconds(windupDuration);
 
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            if (playerTransform != null && (health == null || !health.IsDead))
+            if (health == null || !health.IsDead)
             {
-                Vector3 baseDir = (playerTransform.position - transform.position);
-                baseDir.y = 0f;
-                if (baseDir.sqrMagnitude < 0.001f) baseDir = transform.forward;
-                baseDir.Normalize();
-                transform.forward = baseDir;
-
-                // Boss spits a 3-way toxic spread when enraged, or single heavy acid blast normally!
-                float[] spreadAngles = (IsBossUnit && IsRageMode) ? new[] { -14f, 0f, 14f } : new[] { 0f };
-                float projScale = IsBossUnit ? 1.35f : 1.0f;
+                transform.forward = lockedBaseDir;
 
                 foreach (float angleDeg in spreadAngles)
                 {
-                    Vector3 dir = Quaternion.Euler(0f, angleDeg, 0f) * baseDir;
+                    Vector3 dir = Quaternion.Euler(0f, angleDeg, 0f) * lockedBaseDir;
                     Vector3 spawnPos = transform.position + dir * 0.85f + Vector3.up * (IsBossUnit ? 1.05f : 0.80f);
                     SpitterProjectileVisual.CreateSpitProjectile(
                         SpitProjectileStyle.ZombieAcid,

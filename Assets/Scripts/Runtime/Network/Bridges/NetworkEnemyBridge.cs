@@ -666,6 +666,8 @@ namespace TheLastEmpire.Network
         public const byte TelegraphBossLeap = 6;
         public const byte TelegraphZombieSpit = 7;
         public const byte TelegraphAlienSpit = 8;
+        public const byte TelegraphZombieSpitAim = 9;
+        public const byte TelegraphAlienSpitAim = 10;
 
         public void BroadcastEnemyTelegraph(
             BaseEnemyAI enemy,
@@ -723,6 +725,25 @@ namespace TheLastEmpire.Network
             if (enemyNetId > 0 && _clientPuppetEnemies.TryGetValue(enemyNetId, out BaseEnemyAI puppet) && puppet != null)
             {
                 followTarget = puppet.transform;
+            }
+
+            // Replicate Spitter directional ground hitbox telegraph before spit launch on Co-op Clients!
+            if (telegraphType == TelegraphZombieSpitAim || telegraphType == TelegraphAlienSpitAim)
+            {
+                SpitProjectileStyle style = telegraphType == TelegraphZombieSpitAim
+                    ? SpitProjectileStyle.ZombieAcid
+                    : SpitProjectileStyle.AlienPlasma;
+                float laneLen = Mathf.Max(3f, sizeParam);
+                float laneWidth = laneLen >= 13.0f ? 1.42f : 1.05f;
+                SpitterProjectileVisual.SpawnSpitAimTelegraph(
+                    style,
+                    origin,
+                    dir,
+                    laneLen,
+                    laneWidth,
+                    Mathf.Clamp(duration, 0.1f, 2.0f),
+                    followTarget);
+                return;
             }
 
             // Replicate glowing 3D Zombie (Green) / Alien (Purple) Spitter projectiles on Co-op Clients!

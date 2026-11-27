@@ -58,6 +58,61 @@ namespace TheLastEmpire
         }
 
         /// <summary>
+        /// Spawns a flat ground directional hitbox telegraph (using HitboxSpriteLibrary.DirectionalChevrons)
+        /// along the Spitter's exact firing lane before the acid/plasma projectile launches.
+        /// Auto-cleans up when duration ends or if the owner dies/disables early.
+        /// </summary>
+        public static GameObject SpawnSpitAimTelegraph(
+            SpitProjectileStyle style,
+            Vector3 origin,
+            Vector3 direction,
+            float length = 11.5f,
+            float width = 1.05f,
+            float duration = 0.48f,
+            Transform ownerToWatch = null)
+        {
+            Sprite chevSp = HitboxSpriteLibrary.DirectionalChevrons;
+            if (chevSp == null) return null;
+
+            Vector3 flatDir = new Vector3(direction.x, 0f, direction.z);
+            if (flatDir.sqrMagnitude < 0.0001f) flatDir = Vector3.forward;
+            flatDir.Normalize();
+
+            bool isZombie = style == SpitProjectileStyle.ZombieAcid;
+            Color tint = isZombie
+                ? new Color(0.35f, 1.0f, 0.25f, HitboxSpriteLibrary.DefaultHitboxAlpha)
+                : new Color(0.84f, 0.28f, 1.0f, HitboxSpriteLibrary.DefaultHitboxAlpha);
+
+            GameObject root = new GameObject(isZombie ? "ZombieSpitHitboxTelegraph" : "AlienSpitHitboxTelegraph");
+            root.transform.position = new Vector3(origin.x, 0.06f, origin.z);
+
+            const int segCount = 3;
+            float segLen = Mathf.Max(1.6f, length / segCount);
+            float bw = chevSp.bounds.size.x;
+            float bh = chevSp.bounds.size.y;
+            Quaternion rot = HitboxSpriteLibrary.GetGroundChevronRotation(flatDir);
+
+            SpriteRenderer[] renderers = new SpriteRenderer[segCount];
+            for (int i = 0; i < segCount; i++)
+            {
+                SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator($"SpitLane_{i}", root.transform, chevSp, tint, 7);
+                if (sr == null) continue;
+                float distAlong = length * ((i + 0.5f) / segCount);
+                sr.transform.position = new Vector3(origin.x + flatDir.x * distAlong, 0.06f, origin.z + flatDir.z * distAlong);
+                sr.transform.rotation = rot;
+                if (bw > 0.001f && bh > 0.001f)
+                {
+                    sr.transform.localScale = new Vector3(segLen / bw, width / bh, 1f);
+                }
+                renderers[i] = sr;
+            }
+
+            SpitterAimTelegraphRunner runner = root.AddComponent<SpitterAimTelegraphRunner>();
+            runner.Init(renderers, tint, Mathf.Max(0.1f, duration), ownerToWatch);
+            return root;
+        }
+
+        /// <summary>
         /// Pre-populates both Spitter projectile pools and both impact splash pools inside ObjectPoolManager.
         /// Safe to call repeatedly (idempotent) and automatically called on scene load / pool rebuild.
         /// </summary>
@@ -615,6 +670,53 @@ namespace TheLastEmpire
                 else
                 {
                     Destroy(gameObject);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles smooth pulse + automatic cleanup for Spitter ground hitbox telegraph lanes.
+    /// </summary>
+    public class SpitterAimTelegraphRunner : MonoBehaviour
+    {
+        private SpriteRenderer[] _renderers;
+        private Color _baseColor;
+        private float _duration;
+        private float _elapsed;
+        private Transform _ownerToWatch;
+        private Health _ownerHealth;
+
+        public void Init(SpriteRenderer[] renderers, Color baseColor, float duration, Transform ownerToWatch)
+        {
+            _renderers = renderers;
+            _baseColor = baseColor;
+            _duration = duration;
+            _elapsed = 0f;
+            _ownerToWatch = ownerToWatch;
+            _ownerHealth = ownerToWatch != null ? ownerToWatch.GetComponent<Health>() : null;
+        }
+
+        private void Update()
+        {
+            _elapsed += Time.deltaTime;
+            bool ownerInvalid = (_ownerToWatch != null && !_ownerToWatch.gameObject.activeInHierarchy) ||
+                                (_ownerHealth != null && _ownerHealth.IsDead);
+            if (ownerInvalid || _elapsed >= _duration)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            if (_renderers != null)
+            {
+                float progress = Mathf.Clamp01(_elapsed / Mathf.Max(0.01f, _duration));
+                float pulse = 0.85f + 0.35f * Mathf.Sin(progress * Mathf.PI * 3f);
+                Color c = _baseColor;
+                c.a = Mathf.Clamp01(_baseColor.a * pulse);
+                for (int i = 0; i < _renderers.Length; i++)
+                {
+                    if (_renderers[i] != null) _renderers[i].color = c;
                 }
             }
         }

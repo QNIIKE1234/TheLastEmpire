@@ -46,7 +46,7 @@ MonoBehaviour:
     compatibleWeaponNames:
     - "Survival Spear"
     bonusDamage: 0
-    damageMultiplier: 0
+    damageMultiplier: -0.1
     bonusPelletsPerShot: 0
     extraSpreadAngle: 0
     fireRateMultiplier: 0
@@ -70,4 +70,4 @@ MonoBehaviour:
     rightClickDamage: 0
     rightClickRange: 0
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "KB +8, RNG +0.8m"
+    shortEffectSummary: "KB +8, RNG +0.8m, DMG -10%"

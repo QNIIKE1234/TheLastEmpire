@@ -436,23 +436,53 @@ namespace TheLastEmpire
 
             if (_spriteRenderer != null) _spriteRenderer.color = new Color(0.8f, 0.2f, 1f); // Neon purple
 
-            yield return new WaitForSeconds(0.35f);
+            // Lock firing direction at start of telegraph so players can read & dodge the ground hitbox lane!
+            Vector3 lockedDir = transform.forward;
+            if (playerTransform != null)
+            {
+                Vector3 toPlayer = playerTransform.position - transform.position;
+                toPlayer.y = 0f;
+                if (toPlayer.sqrMagnitude > 0.001f) lockedDir = toPlayer.normalized;
+            }
+            lockedDir.y = 0f;
+            if (lockedDir.sqrMagnitude < 0.001f) lockedDir = Vector3.forward;
+            lockedDir.Normalize();
+            transform.forward = lockedDir;
+
+            const float windupDuration = 0.48f;
+            const float laneLength = 12.0f;
+            const float laneWidth = 1.05f;
+            Vector3 telegraphOrigin = transform.position + lockedDir * 0.65f;
+
+            SpitterProjectileVisual.SpawnSpitAimTelegraph(
+                SpitProjectileStyle.AlienPlasma,
+                telegraphOrigin,
+                lockedDir,
+                laneLength,
+                laneWidth,
+                windupDuration,
+                transform);
+            TheLastEmpire.Network.NetworkEnemyBridge.Instance?.BroadcastEnemyTelegraph(
+                this,
+                TheLastEmpire.Network.NetworkEnemyBridge.TelegraphAlienSpitAim,
+                telegraphOrigin,
+                lockedDir,
+                laneLength,
+                windupDuration);
+
+            yield return new WaitForSeconds(windupDuration);
 
             if (_spriteRenderer != null) _spriteRenderer.color = _originalColor;
 
-            if (playerTransform != null && (health == null || !health.IsDead))
+            if (health == null || !health.IsDead)
             {
-                Vector3 dir = (playerTransform.position - transform.position);
-                dir.y = 0f;
-                if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
-                dir.Normalize();
-                transform.forward = dir;
+                transform.forward = lockedDir;
 
-                Vector3 spawnPos = transform.position + dir * 0.85f + Vector3.up * 0.80f;
+                Vector3 spawnPos = transform.position + lockedDir * 0.85f + Vector3.up * 0.80f;
                 SpitterProjectileVisual.CreateSpitProjectile(
                     SpitProjectileStyle.AlienPlasma,
                     spawnPos,
-                    dir,
+                    lockedDir,
                     spitProjectileSpeed,
                     gameObject,
                     1.0f);
@@ -460,7 +490,7 @@ namespace TheLastEmpire
                     this,
                     TheLastEmpire.Network.NetworkEnemyBridge.TelegraphAlienSpit,
                     spawnPos,
-                    dir,
+                    lockedDir,
                     1.0f,
                     spitProjectileSpeed);
             }

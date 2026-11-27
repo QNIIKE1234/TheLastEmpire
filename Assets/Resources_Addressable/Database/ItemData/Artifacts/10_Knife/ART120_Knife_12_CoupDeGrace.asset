@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ART120_Knife_12_CoupDeGrace
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "Coup De Grace"
-  description: "Damage +80%, Crit Chance +45%, Crit Damage +90%."
+  description: "Damage +80%, Crit Chance +45%, Crit Damage +90%. Right-Click: Throw Knife for 3x Damage (Knife is permanently consumed)."
   icon: {fileID: 1892112072, guid: f9f6f0b4f4f14ce4b8a7b1c60f305a9f, type: 3}
   type: 10
   restorationValue: 0
@@ -63,11 +63,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 0
     projectileScaleBonus: 0
-    rightClickSkillId: ""
-    rightClickCooldown: 5
+    rightClickSkillId: "Knife_ThrowConsume"
+    rightClickCooldown: 1.5
     rightClickChargeDuration: 0
     rightClickAmmoCost: 0
-    rightClickDamage: 0
-    rightClickRange: 0
+    rightClickDamage: 3
+    rightClickRange: 16
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "DMG +80%, CRIT +45%, +90%"
+    shortEffectSummary: "DMG +80%, CRIT +45%, +90%, RMB: Throw 3x (Lost)"

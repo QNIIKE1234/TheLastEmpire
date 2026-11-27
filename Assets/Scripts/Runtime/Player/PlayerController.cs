@@ -1054,11 +1054,28 @@ namespace TheLastEmpire
                 QuickSlot.EnsureInitialized();
             }
 
+            if (!IsRemotePlayer)
+            {
+                WeaponArtifactManager.OnWeaponArtifactsChanged -= HandleWeaponArtifactsChanged;
+                WeaponArtifactManager.OnWeaponArtifactsChanged += HandleWeaponArtifactsChanged;
+            }
+
             // SetupScreenBoundaries(); // Disabled: Using manual scene boundaries/walls instead
+        }
+
+        private void HandleWeaponArtifactsChanged(string changedWeaponName)
+        {
+            if (IsRemotePlayer) return;
+            if (IsHoldingRanged && CurrentWeapon != null)
+            {
+                ShowRangedWeaponVisual();
+                OnAmmoChanged?.Invoke();
+            }
         }
 
         private void OnDestroy()
         {
+            WeaponArtifactManager.OnWeaponArtifactsChanged -= HandleWeaponArtifactsChanged;
             TheLastEmpire.Network.PlayerRegistry.Unregister(this);
             if (Instance == this)
             {
@@ -2108,14 +2125,8 @@ namespace TheLastEmpire
                 }
                 if (Keyboard.current.zKey.wasPressedThisFrame && !_isDashing)
                 {
-                    if (_bestInteractableType == TargetInteractableType.Building && _closestBuilding != null)
-                    {
-                        _closestBuilding.OnSecondaryInteract();
-                    }
-                    else
-                    {
-                        ToggleSit();
-                    }
+                    // Always allow pressing Z to sit/stand even when an [E] interaction hint is visible!
+                    ToggleSit();
                 }
             }
         }
@@ -2950,6 +2961,142 @@ namespace TheLastEmpire
             {
                 StartCoroutine(ExecuteKatanaRipperComboRoutine(weaponName, mods, dir));
             }
+            else if (skillId.Equals("Knife_ThrowConsume", System.StringComparison.OrdinalIgnoreCase))
+            {
+                StartCoroutine(ExecuteKnifeThrowConsumeRoutine(weaponName, mods, dir));
+            }
+        }
+
+        /// <summary>
+        /// ART120 Coup De Grace (Right-Click): Throws the Knife forward for 3x Damage; the Knife is permanently lost from inventory!
+        /// </summary>
+        private System.Collections.IEnumerator ExecuteKnifeThrowConsumeRoutine(string weaponName, WeaponArtifactModifiers mods, Vector3 dir)
+        {
+            float baseDmg = ComputeCurrentMeleeSkillBaseDamage(weaponName, mods, out _, out _, out _);
+            float mult = mods.rightClickDamage > 0.1f ? mods.rightClickDamage : 3.0f;
+            float rawThrowDmg = mods.rightClickUseFlatDamage ? Mathf.Max(1f, mods.rightClickDamage) : (baseDmg * mult);
+            float maxRange = mods.rightClickRange > 1f ? mods.rightClickRange : 16f;
+
+            PlayMeleeSlashAnim("Slash3", 0.30f);
+
+            // Permanently consume the thrown Knife from inventory & hand!
+            if (_inventory != null && !string.IsNullOrEmpty(weaponName))
+            {
+                _inventory.RemoveItem(weaponName);
+            }
+            if (CurrentMeleeWeaponName != null && IsWeaponNameMatch(CurrentMeleeWeaponName, weaponName))
+            {
+                if (_inventory == null || _inventory.GetItemCount(weaponName) <= 0)
+                {
+                    if (meleeWeapon != null) meleeWeapon.SetActive(false);
+                    _heldItemType = HeldItemType.None;
+                    _heldConsumableName = "";
+                }
+            }
+            QuickSlot?.RefreshUI();
+            OnAmmoChanged?.Invoke();
+
+            Vector3 startPos = transform.position + Vector3.up * 0.65f + dir * 0.65f;
+            NotifyNetworkMelee(startPos, dir, weaponName, 107, rawThrowDmg, maxRange);
+
+            yield return StartCoroutine(ThrownCoupDeGraceKnifeRoutine(startPos, dir, maxRange, rawThrowDmg, weaponName, mods, applyDamage: true));
+        }
+
+        public void SpawnRemoteVisualCoupDeGraceKnife(Vector3 startPos, Vector3 dir, float maxRange)
+        {
+            StartCoroutine(ThrownCoupDeGraceKnifeRoutine(startPos, dir, maxRange > 1f ? maxRange : 16f, 0f, "Knife", default, applyDamage: false));
+        }
+
+        private System.Collections.IEnumerator ThrownCoupDeGraceKnifeRoutine(
+            Vector3 startPos,
+            Vector3 dir,
+            float maxRange,
+            float rawDamage,
+            string weaponName,
+            WeaponArtifactModifiers mods,
+            bool applyDamage)
+        {
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+            dir.Normalize();
+
+            GameObject knifeVis = CreateHookKnifeVisual(startPos, dir);
+            TrailRenderer tr = knifeVis.AddComponent<TrailRenderer>();
+            tr.time = 0.22f;
+            tr.startWidth = 0.24f;
+            tr.endWidth = 0.02f;
+            tr.minVertexDistance = 0.06f;
+            Shader unlit = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
+            Material trailMat = new Material(unlit);
+            trailMat.color = new Color(1f, 0.25f, 0.15f, 0.9f);
+            if (trailMat.HasProperty("_BaseColor")) trailMat.SetColor("_BaseColor", trailMat.color);
+            tr.sharedMaterial = trailMat;
+
+            const float speed = 32f;
+            float traveled = 0f;
+            Vector3 curPos = startPos;
+            bool impacted = false;
+
+            while (traveled < maxRange && !impacted)
+            {
+                float step = speed * Time.deltaTime;
+                curPos += dir * step;
+                traveled += step;
+
+                if (knifeVis != null)
+                {
+                    knifeVis.transform.position = curPos;
+                    knifeVis.transform.Rotate(0f, 1080f * Time.deltaTime, 0f, Space.Self);
+                }
+
+                Collider[] cols = Physics.OverlapSphere(curPos, 0.72f);
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    Collider col = cols[i];
+                    if (col == null || col.transform.root == transform.root || col.isTrigger) continue;
+                    if (col.CompareTag("Ground") || col.gameObject.name.ToLower().Contains("ground") || col.gameObject.name.ToLower().Contains("floor")) continue;
+
+                    BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                    if (enemy != null)
+                    {
+                        if (applyDamage)
+                        {
+                            IDamageable dTarget = enemy.GetComponent<IDamageable>();
+                            if (dTarget != null && !dTarget.IsDead)
+                            {
+                                DamageResult dr = DamageCalculator.CalculateMeleeDamage(rawDamage, gameObject, weaponName);
+                                dTarget.TakeDamage(dr.FinalDamage, curPos, dr.IsCritical);
+                                if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                                {
+                                    _health.Heal(mods.lifestealOnHit);
+                                }
+                            }
+                            CameraFollow.TriggerShake(0.16f, 0.30f);
+                        }
+                        if (ObjectPoolManager.Instance != null)
+                        {
+                            ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", curPos, Quaternion.LookRotation(dir));
+                        }
+                        impacted = true;
+                        break;
+                    }
+
+                    // Solid wall/obstacle impact
+                    if (col.GetComponent<PlayerController>() == null && col.GetComponentInParent<PlayerController>() == null && col.GetComponent<CollectibleItem>() == null)
+                    {
+                        if (ObjectPoolManager.Instance != null)
+                        {
+                            ObjectPoolManager.Instance.SpawnFromPool("PistolFlash", curPos, Quaternion.identity);
+                        }
+                        impacted = true;
+                        break;
+                    }
+                }
+                yield return null;
+            }
+
+            if (trailMat != null) Destroy(trailMat);
+            if (knifeVis != null) Destroy(knifeVis);
         }
 
         /// <summary>
@@ -3455,6 +3602,36 @@ namespace TheLastEmpire
         {
             if (activeWeapon == null) return;
 
+            string skillId = mods.rightClickSkillId ?? string.Empty;
+            if (skillId.Equals("Pistol_AkimboSpin", System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (_isSitting) SetSitting(false);
+                if (_isSleeping) SetSleeping(false);
+                ShowRangedWeaponVisual();
+                TriggerCombatState();
+                StartCoroutine(ExecutePistolAkimboSpinRoutine(activeWeapon, mods));
+                return;
+            }
+            if (skillId.Equals("Shotgun_KnockbackBlast", System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (_isSitting) SetSitting(false);
+                if (_isSleeping) SetSleeping(false);
+                ShowRangedWeaponVisual();
+                TriggerCombatState();
+                ExecuteShotgunKnockbackBlast(activeWeapon, mods);
+                return;
+            }
+            if (skillId.Equals("Rocket_JavelinHoming", System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (_isSitting) SetSitting(false);
+                if (_isSleeping) SetSleeping(false);
+                ShowRangedWeaponVisual();
+                TriggerCombatState();
+                StartCoroutine(ExecuteRocketJavelinHomingRoutine(activeWeapon, mods));
+                return;
+            }
+
+            // Default Ranged RMB skill: Flamethrower Fireball
             // หักกระสุน 10 นัด (หักจากแม็กก่อน ถ้าไม่พอค่อยดึงจากกระสุนสำรองในกระเป๋า)
             int fromMag = Mathf.Min(Mathf.Max(0, activeWeapon.currentMagazine), ammoCost);
             activeWeapon.currentMagazine -= fromMag;
@@ -3528,6 +3705,733 @@ namespace TheLastEmpire
             AlertEnemiesToGunshot();
             NotifyNetworkShoot(spawnPos, dir, spawnPos + dir * skillRange, activeWeapon.weaponName, fireballDamage, lifetime, false, 1, 0f, true, "FlamethrowerFireball");
             Debug.Log($"[LegendarySkill] Fired {mods.rightClickSkillId}! Damage={fireballDamage:F1}, Range={skillRange:F0}m, Cost={ammoCost} {ammoType}");
+        }
+
+        // =========================================================================
+        //  LEGENDARY ARTIFACT RMB SKILLS:
+        //   1. ART011 Pistol_AkimboSpin (Dual Pistols 360° Radial Spin — 2x Volleys with ART005 Twin Chamber)
+        //   2. ART047 Shotgun_KnockbackBlast (Frontal Cone Concussive Pushback Blast)
+        //   3. ART107 Rocket_JavelinHoming (Auto-Lock Sky-Launch Homing Missile)
+        // =========================================================================
+
+        private GameObject _offhandPistolObj;
+        private Transform _akimboLeftUpperArm;
+        private Transform _akimboLeftForeArm;
+        private Transform _akimboRightUpperArm;
+        private Transform _akimboRightForeArm;
+        private Transform _akimboVisualRoot;
+        private bool _akimboBonesCached;
+        private bool _isAkimboSpinning;
+        private float _akimboSpinAngle;
+
+        private bool IsAkimboDualPistolActive()
+        {
+            if (!IsHoldingRanged || CurrentWeapon == null) return false;
+            if (CurrentWeapon.weaponName.IndexOf("Pistol", System.StringComparison.OrdinalIgnoreCase) < 0) return false;
+            if (IsRemotePlayer) return false;
+            WeaponArtifactModifiers mods = WeaponArtifactManager.GetAggregatedModifiers(CurrentWeapon.weaponName);
+            return mods.dualWieldPistol;
+        }
+
+        private void EnsureOffhandPistolVisual()
+        {
+            if (_offhandPistolObj != null) return;
+            EnsureWeaponVisualReferences();
+            if (rangeWeapon == null) return;
+
+            Transform leftHand = FindDeepChild(transform, "LeftHand")
+                              ?? FindDeepChild(transform, "Hand_L")
+                              ?? FindDeepChild(transform, "mixamorig:LeftHand");
+            if (leftHand == null) return;
+
+            Transform sourcePistol = null;
+            for (int i = 0; i < rangeWeapon.transform.childCount; i++)
+            {
+                Transform ch = rangeWeapon.transform.GetChild(i);
+                if (ch.name.IndexOf("Pistol", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    sourcePistol = ch;
+                    break;
+                }
+            }
+            if (sourcePistol == null && rangeWeapon.transform.childCount > 0)
+            {
+                sourcePistol = rangeWeapon.transform.GetChild(0);
+            }
+            if (sourcePistol == null) return;
+
+            _offhandPistolObj = Instantiate(sourcePistol.gameObject, leftHand, false);
+            _offhandPistolObj.name = "Offhand_Akimbo_Pistol";
+            Vector3 srcPos = sourcePistol.localPosition;
+            _offhandPistolObj.transform.localPosition = new Vector3(-srcPos.x, srcPos.y, srcPos.z);
+            _offhandPistolObj.transform.localRotation = sourcePistol.localRotation;
+            Vector3 srcScale = sourcePistol.localScale;
+            _offhandPistolObj.transform.localScale = new Vector3(-Mathf.Abs(srcScale.x), srcScale.y, srcScale.z);
+            _offhandPistolObj.SetActive(false);
+        }
+
+        private void UpdateOffhandPistolVisibility()
+        {
+            bool showDual = IsAkimboDualPistolActive() || _isAkimboSpinning;
+            if (showDual)
+            {
+                EnsureOffhandPistolVisual();
+            }
+            if (_offhandPistolObj != null && _offhandPistolObj.activeSelf != showDual)
+            {
+                _offhandPistolObj.SetActive(showDual);
+            }
+        }
+
+        private void CacheAkimboArmBones()
+        {
+            if (_akimboBonesCached && _akimboLeftUpperArm != null && _akimboRightUpperArm != null) return;
+            if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
+
+            if (_animator != null && _animator.isHuman)
+            {
+                _akimboLeftUpperArm = _animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
+                _akimboLeftForeArm = _animator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+                _akimboRightUpperArm = _animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
+                _akimboRightForeArm = _animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
+            }
+
+            if (_akimboLeftUpperArm == null)
+                _akimboLeftUpperArm = FindDeepChild(transform, "LeftArm") ?? FindDeepChild(transform, "UpperArm_L") ?? FindDeepChild(transform, "mixamorig:LeftArm");
+            if (_akimboLeftForeArm == null)
+                _akimboLeftForeArm = FindDeepChild(transform, "LeftForeArm") ?? FindDeepChild(transform, "LowerArm_L") ?? FindDeepChild(transform, "mixamorig:LeftForeArm");
+            if (_akimboRightUpperArm == null)
+                _akimboRightUpperArm = FindDeepChild(transform, "RightArm") ?? FindDeepChild(transform, "UpperArm_R") ?? FindDeepChild(transform, "mixamorig:RightArm");
+            if (_akimboRightForeArm == null)
+                _akimboRightForeArm = FindDeepChild(transform, "RightForeArm") ?? FindDeepChild(transform, "LowerArm_R") ?? FindDeepChild(transform, "mixamorig:RightForeArm");
+
+            if (_animator != null) _akimboVisualRoot = _animator.transform;
+            _akimboBonesCached = _akimboLeftUpperArm != null || _akimboRightUpperArm != null;
+        }
+
+        private void LateUpdate()
+        {
+            if (_health != null && _health.IsDead) return;
+            if (_isSitting || _isSleeping || _isVaulting || _isDashing || IsDowned) return;
+
+            bool akimboPose = _isAkimboSpinning || IsAkimboDualPistolActive();
+            if (!akimboPose) return;
+
+            CacheAkimboArmBones();
+
+            if (_isAkimboSpinning)
+            {
+                // Gunslinger 360° spin: rotate character visual and extend BOTH arms wide!
+                if (_akimboVisualRoot != null && _akimboVisualRoot != transform)
+                {
+                    _akimboVisualRoot.localRotation = Quaternion.Euler(0f, _akimboSpinAngle, 0f);
+                }
+                if (_akimboLeftUpperArm != null)
+                {
+                    _akimboLeftUpperArm.localRotation = Quaternion.Euler(0f, 0f, 15f);
+                }
+                if (_akimboRightUpperArm != null)
+                {
+                    _akimboRightUpperArm.localRotation = Quaternion.Euler(0f, 0f, -15f);
+                }
+                return;
+            }
+
+            // Dual-Pistol stance: mirror Right Arm's raised gun-aim pose onto Left Arm so both pistols aim forward!
+            if (_akimboLeftUpperArm != null && _akimboRightUpperArm != null)
+            {
+                Quaternion rRot = _akimboRightUpperArm.localRotation;
+                _akimboLeftUpperArm.localRotation = new Quaternion(rRot.x, -rRot.y, -rRot.z, rRot.w);
+            }
+            if (_akimboLeftForeArm != null && _akimboRightForeArm != null)
+            {
+                Quaternion rfRot = _akimboRightForeArm.localRotation;
+                _akimboLeftForeArm.localRotation = new Quaternion(rfRot.x, -rfRot.y, -rfRot.z, rfRot.w);
+            }
+        }
+
+        private System.Collections.IEnumerator ExecutePistolAkimboSpinRoutine(Weapon activeWeapon, WeaponArtifactModifiers mods)
+        {
+            bool hasTwinChamber = WeaponArtifactManager.HasEquippedArtifact(activeWeapon.weaponName, "Twin Chamber") ||
+                                  WeaponArtifactManager.HasEquippedArtifact(activeWeapon.weaponName, "ART005");
+            int volleys = hasTwinChamber ? 2 : 1;
+
+            // Notify Co-op teammates to play 360° (104) or 720° double spin (105) visual
+            NotifyNetworkMelee(transform.position, _aimDirection, activeWeapon.weaponName, hasTwinChamber ? 105 : 104, 0f, 1f);
+
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0) ? activeCharacterData.baseRangedDamage : 10f;
+            float itemDamage = 0f;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData wItem = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                if (wItem != null) itemDamage = wItem.damage;
+            }
+            float bulletDmg = Mathf.Max(1f, (basePlayerDamage + itemDamage + mods.bonusDamage) * Mathf.Max(0.1f, 1f + mods.damageMultiplier) * Mathf.Max(0.2f, mods.rightClickDamage));
+            float bulletSpeed = Projectile.ResolvePistolProjectileSpeed(50f);
+            float bulletRange = (mods.rightClickRange > 1f ? mods.rightClickRange : 11f) + mods.bonusRange;
+            float bulletLifetime = Mathf.Clamp(bulletRange / Mathf.Max(10f, bulletSpeed), 0.25f, 1.8f);
+            bool canPierce = activeWeapon.canPierce || mods.grantPierce;
+
+            _isAkimboSpinning = true;
+            UpdateOffhandPistolVisibility();
+            CacheAkimboArmBones();
+            Quaternion savedVisualRot = (_akimboVisualRoot != null && _akimboVisualRoot != transform) ? _akimboVisualRoot.localRotation : Quaternion.identity;
+
+            const int shotsPerRing = 12; // 12 bullets evenly around 360° (every 30°)
+            const float spinDurationPerVolley = 0.34f;
+            float baseAngle = Mathf.Atan2(_aimDirection.x, _aimDirection.z) * Mathf.Rad2Deg;
+
+            for (int v = 0; v < volleys; v++)
+            {
+                if (_health != null && _health.IsDead) break;
+                float ringOffset = v * 15f;
+                int firedInVolley = 0;
+                float elapsed = 0f;
+
+                CameraFollow.TriggerShake(0.12f, 0.20f);
+                AlertEnemiesToGunshot();
+
+                while (elapsed < spinDurationPerVolley)
+                {
+                    if (_health != null && _health.IsDead) break;
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / spinDurationPerVolley);
+                    _akimboSpinAngle = (v * 360f) + (t * 360f);
+
+                    int targetFired = Mathf.Clamp(Mathf.CeilToInt(t * shotsPerRing), 0, shotsPerRing);
+                    while (firedInVolley < targetFired)
+                    {
+                        float deg = baseAngle + ringOffset + (firedInVolley * (360f / shotsPerRing));
+                        Vector3 dir = Quaternion.Euler(0f, deg, 0f) * Vector3.forward;
+                        Vector3 spawnPos = transform.position + dir * 0.75f + Vector3.up * 0.55f;
+
+                        FireSingleAkimboSpinBullet(activeWeapon, mods, spawnPos, dir, bulletDmg, bulletLifetime, bulletRange, canPierce);
+                        firedInVolley++;
+                    }
+                    yield return null;
+                }
+
+                // Ensure any final bullets in this 360° ring fire cleanly
+                while (firedInVolley < shotsPerRing && (_health == null || !_health.IsDead))
+                {
+                    float deg = baseAngle + ringOffset + (firedInVolley * (360f / shotsPerRing));
+                    Vector3 dir = Quaternion.Euler(0f, deg, 0f) * Vector3.forward;
+                    Vector3 spawnPos = transform.position + dir * 0.75f + Vector3.up * 0.55f;
+                    FireSingleAkimboSpinBullet(activeWeapon, mods, spawnPos, dir, bulletDmg, bulletLifetime, bulletRange, canPierce);
+                    firedInVolley++;
+                }
+
+                if (v + 1 < volleys)
+                {
+                    yield return new WaitForSeconds(0.06f);
+                }
+            }
+
+            _isAkimboSpinning = false;
+            _akimboSpinAngle = 0f;
+            if (_akimboVisualRoot != null && _akimboVisualRoot != transform)
+            {
+                _akimboVisualRoot.localRotation = savedVisualRot;
+            }
+            UpdateOffhandPistolVisibility();
+        }
+
+        private void FireSingleAkimboSpinBullet(
+            Weapon activeWeapon,
+            WeaponArtifactModifiers mods,
+            Vector3 spawnPos,
+            Vector3 dir,
+            float dmg,
+            float lifetime,
+            float maxRange,
+            bool canPierce)
+        {
+            GameObject bulletObj = null;
+            string pKey = (activeWeapon.projectilePrefab != null && !string.IsNullOrEmpty(activeWeapon.projectilePrefab.PoolKey))
+                ? activeWeapon.projectilePrefab.PoolKey
+                : "Bullet001";
+            if (ObjectPoolManager.Instance != null)
+            {
+                bulletObj = ObjectPoolManager.Instance.SpawnFromPool(pKey, spawnPos, Quaternion.LookRotation(dir));
+            }
+            if (bulletObj == null && activeWeapon.projectilePrefab != null)
+            {
+                bulletObj = Instantiate(activeWeapon.projectilePrefab.gameObject, spawnPos, Quaternion.LookRotation(dir));
+            }
+
+            if (bulletObj != null)
+            {
+                if (_playerCollider == null) _playerCollider = GetComponent<Collider>();
+                Collider bCol = bulletObj.GetComponent<Collider>();
+                if (bCol != null && _playerCollider != null)
+                {
+                    Physics.IgnoreCollision(bCol, _playerCollider, true);
+                }
+
+                Projectile proj = bulletObj.GetComponent<Projectile>();
+                if (proj != null)
+                {
+                    proj.PoolKey = ObjectPoolManager.Instance != null ? pKey : "";
+                    proj.SetStats(dmg, lifetime, canPierce, activeWeapon.weaponName, maxRange, activeWeapon.projectileVisualId);
+                    proj.SetArtifactImpactModifiers(mods.bonusKnockback, mods.bonusStagger, mods.lifestealOnHit, mods.projectileScaleBonus);
+                    proj.Setup(dir, spawnPos + dir * maxRange, gameObject, activeWeapon.projectileVisualId);
+                }
+            }
+
+            TriggerMuzzleFlashLight();
+            NotifyNetworkShoot(spawnPos, dir, spawnPos + dir * maxRange, activeWeapon.weaponName, dmg, lifetime, false, 1, 0f, canPierce, activeWeapon.projectileVisualId);
+        }
+
+        public void SpawnRemoteVisualAkimboSpin(int volleys)
+        {
+            StartCoroutine(RemoteVisualAkimboSpinRoutine(Mathf.Clamp(volleys, 1, 2)));
+        }
+
+        private System.Collections.IEnumerator RemoteVisualAkimboSpinRoutine(int volleys)
+        {
+            _isAkimboSpinning = true;
+            UpdateOffhandPistolVisibility();
+            CacheAkimboArmBones();
+            Quaternion savedRot = (_akimboVisualRoot != null && _akimboVisualRoot != transform) ? _akimboVisualRoot.localRotation : Quaternion.identity;
+
+            float totalDur = volleys * 0.34f;
+            float elapsed = 0f;
+            while (elapsed < totalDur)
+            {
+                elapsed += Time.deltaTime;
+                _akimboSpinAngle = (elapsed / totalDur) * (volleys * 360f);
+                yield return null;
+            }
+
+            _isAkimboSpinning = false;
+            _akimboSpinAngle = 0f;
+            if (_akimboVisualRoot != null && _akimboVisualRoot != transform)
+            {
+                _akimboVisualRoot.localRotation = savedRot;
+            }
+            UpdateOffhandPistolVisibility();
+        }
+
+        private void ExecuteShotgunKnockbackBlast(Weapon activeWeapon, WeaponArtifactModifiers mods)
+        {
+            Vector3 dir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection.normalized : transform.forward;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+            dir.Normalize();
+
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0) ? activeCharacterData.baseRangedDamage : 10f;
+            float itemDamage = 0f;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData wItem = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                if (wItem != null) itemDamage = wItem.damage;
+            }
+            float blastDmg = Mathf.Max(1f, (basePlayerDamage + itemDamage + mods.bonusDamage) * Mathf.Max(0.1f, 1f + mods.damageMultiplier) * Mathf.Max(0.5f, mods.rightClickDamage));
+            float blastRange = mods.rightClickRange > 1f ? mods.rightClickRange : 8.0f;
+            Vector3 origin = transform.position + dir * 0.8f;
+
+            // Push & damage all enemies inside frontal 96° cone
+            Collider[] cols = Physics.OverlapSphere(origin, blastRange);
+            var hitSet = new System.Collections.Generic.HashSet<GameObject>();
+            const float minCos = 0.64f; // ~50° half-angle frontal blast cone
+
+            for (int i = 0; i < cols.Length; i++)
+            {
+                Collider col = cols[i];
+                if (col == null || col.transform.root == transform.root) continue;
+
+                BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                if (enemy == null || !hitSet.Add(enemy.gameObject)) continue;
+
+                Vector3 toEnemy = enemy.transform.position - transform.position;
+                toEnemy.y = 0f;
+                float dist = toEnemy.magnitude;
+                if (dist > blastRange + 0.5f) continue;
+
+                Vector3 pushDir = dist > 0.05f ? (toEnemy / dist) : dir;
+                if (dist > 1.8f && Vector3.Dot(dir, pushDir) < minCos) continue;
+
+                IDamageable dmgTarget = enemy.GetComponent<IDamageable>();
+                if (dmgTarget != null && !dmgTarget.IsDead)
+                {
+                    DamageResult dr = DamageCalculator.CalculateRangedDamage(blastDmg, dist, gameObject, activeWeapon.weaponName, blastRange);
+                    dmgTarget.TakeDamage(dr.FinalDamage, enemy.transform.position, dr.IsCritical);
+                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(mods.lifestealOnHit);
+                    }
+                }
+
+                float pushForce = 19f + mods.bonusKnockback;
+                float pushStagger = 0.70f + mods.bonusStagger;
+                enemy.ApplyMeleeKnockback(pushDir, pushForce, pushStagger);
+            }
+
+            StartCoroutine(SpawnShotgunBlastWaveVfx(origin, dir, blastRange));
+            CameraFollow.TriggerShake(0.18f, 0.34f);
+            TriggerMuzzleFlashLight();
+            AlertEnemiesToGunshot();
+            NotifyNetworkMelee(origin, dir, activeWeapon.weaponName, 103, blastDmg, blastRange);
+        }
+
+        public static void ExecuteHostAuthoritativeShotgunKnockbackPush(Vector3 origin, Vector3 dir, float range)
+        {
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
+            dir.Normalize();
+
+            float blastRange = range > 1f ? range : 8.0f;
+            Collider[] cols = Physics.OverlapSphere(origin, blastRange);
+            var hitSet = new System.Collections.Generic.HashSet<GameObject>();
+            const float minCos = 0.64f;
+
+            for (int i = 0; i < cols.Length; i++)
+            {
+                Collider col = cols[i];
+                if (col == null) continue;
+                BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                if (enemy == null || !hitSet.Add(enemy.gameObject)) continue;
+
+                Vector3 toEnemy = enemy.transform.position - (origin - dir * 0.8f);
+                toEnemy.y = 0f;
+                float dist = toEnemy.magnitude;
+                if (dist > blastRange + 0.5f) continue;
+
+                Vector3 pushDir = dist > 0.05f ? (toEnemy / dist) : dir;
+                if (dist > 1.8f && Vector3.Dot(dir, pushDir) < minCos) continue;
+
+                enemy.ApplyMeleeKnockback(pushDir, 19f, 0.70f);
+            }
+        }
+
+        public void SpawnRemoteVisualShotgunKnockbackBlast(Vector3 origin, Vector3 dir, float range)
+        {
+            StartCoroutine(SpawnShotgunBlastWaveVfx(origin, dir, range > 1f ? range : 8.0f));
+        }
+
+        private System.Collections.IEnumerator SpawnShotgunBlastWaveVfx(Vector3 origin, Vector3 dir, float range)
+        {
+            if (ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool("PistolFlash", origin + Vector3.up * 0.55f, Quaternion.LookRotation(dir));
+            }
+
+            Sprite chevSp = HitboxSpriteLibrary.DirectionalChevrons;
+            if (chevSp == null) yield break;
+
+            Color waveCol = new Color(1f, 0.78f, 0.22f, 0.75f);
+            SpriteRenderer sr = HitboxSpriteLibrary.CreateGroundSpriteIndicator("ShotgunPushWave", null, chevSp, waveCol, 8);
+            if (sr == null) yield break;
+
+            sr.transform.rotation = HitboxSpriteLibrary.GetGroundChevronRotation(dir);
+            float bw = Mathf.Max(0.01f, chevSp.bounds.size.x);
+            float bh = Mathf.Max(0.01f, chevSp.bounds.size.y);
+
+            float elapsed = 0f;
+            const float dur = 0.24f;
+            while (elapsed < dur)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / dur);
+                float ease = 1f - Mathf.Pow(1f - t, 3f);
+                float dist = Mathf.Lerp(0.8f, range * 0.82f, ease);
+                float width = Mathf.Lerp(1.6f, range * 0.88f, ease);
+                float len = Mathf.Lerp(1.2f, 2.6f, ease);
+
+                sr.transform.position = new Vector3(origin.x + dir.x * dist, 0.14f, origin.z + dir.z * dist);
+                sr.transform.localScale = new Vector3(len / bw, width / bh, 1f);
+                Color c = waveCol;
+                c.a = waveCol.a * (1f - t);
+                sr.color = c;
+                yield return null;
+            }
+
+            if (sr != null) Destroy(sr.gameObject);
+        }
+
+        private System.Collections.IEnumerator ExecuteRocketJavelinHomingRoutine(Weapon activeWeapon, WeaponArtifactModifiers mods)
+        {
+            float maxLockRange = mods.rightClickRange > 1f ? mods.rightClickRange : 24f;
+            Vector3 aimDir = _aimDirection.sqrMagnitude > 0.01f ? _aimDirection.normalized : transform.forward;
+            aimDir.y = 0f;
+            if (aimDir.sqrMagnitude < 0.001f) aimDir = Vector3.forward;
+            aimDir.Normalize();
+
+            // Auto-lock onto the best alive enemy (preferring enemies near aim direction, else nearest enemy in range)
+            Transform lockedTarget = FindAutoLockEnemyTarget(aimDir, maxLockRange);
+            Vector3 fallbackPos = transform.position + aimDir * 12f;
+            fallbackPos.y = 0f;
+            Vector3 initialTargetPos = lockedTarget != null ? lockedTarget.position : fallbackPos;
+
+            float basePlayerDamage = (activeCharacterData != null && activeCharacterData.baseRangedDamage > 0) ? activeCharacterData.baseRangedDamage : 10f;
+            float itemDamage = 0f;
+            if (ItemDatabase.Instance != null)
+            {
+                ItemData wItem = ItemDatabase.Instance.GetItemByName(activeWeapon.weaponName);
+                if (wItem != null) itemDamage = wItem.damage;
+            }
+            float missileDmg = Mathf.Max(1f, (basePlayerDamage + itemDamage + mods.bonusDamage) * Mathf.Max(0.1f, 1f + mods.damageMultiplier) * Mathf.Max(0.5f, mods.rightClickDamage));
+
+            Vector3 launchPos = transform.position + Vector3.up * 1.15f + aimDir * 0.45f;
+            CameraFollow.TriggerShake(0.14f, 0.25f);
+            TriggerMuzzleFlashLight();
+            AlertEnemiesToGunshot();
+
+            // Notify Co-op teammates to replicate the exact sky-launch homing missile visual
+            NotifyNetworkMelee(launchPos, initialTargetPos, activeWeapon.weaponName, 106, missileDmg, maxLockRange);
+
+            yield return StartCoroutine(JavelinMissileFlightRoutine(
+                launchPos,
+                lockedTarget,
+                initialTargetPos,
+                missileDmg,
+                activeWeapon.weaponName,
+                mods,
+                applyDamage: true));
+        }
+
+        private Transform FindAutoLockEnemyTarget(Vector3 aimDir, float maxRange)
+        {
+            BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
+            Transform best = null;
+            float bestScore = float.MaxValue;
+
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                BaseEnemyAI ai = enemies[i];
+                if (ai == null || !ai.gameObject.activeInHierarchy) continue;
+                Health h = ai.GetComponent<Health>();
+                if (h != null && h.IsDead) continue;
+
+                Vector3 toEnemy = ai.transform.position - transform.position;
+                toEnemy.y = 0f;
+                float dist = toEnemy.magnitude;
+                if (dist > maxRange) continue;
+
+                float dot = dist > 0.05f ? Vector3.Dot(aimDir, toEnemy / dist) : 1f;
+                // Prefer targets in front of aim direction while still locking any nearby enemy automatically
+                float anglePenalty = (1f - dot) * 6.5f;
+                float score = dist + anglePenalty;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = ai.transform;
+                }
+            }
+            return best;
+        }
+
+        public void SpawnRemoteVisualJavelinMissile(Vector3 launchPos, Vector3 targetPos)
+        {
+            // Find nearest enemy to targetPos on remote client/host for live tracking visual
+            Transform tracked = null;
+            BaseEnemyAI[] enemies = Object.FindObjectsByType<BaseEnemyAI>(FindObjectsSortMode.None);
+            float bestDist = 4.5f;
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (enemies[i] == null || !enemies[i].gameObject.activeInHierarchy) continue;
+                float d = Vector3.Distance(enemies[i].transform.position, targetPos);
+                if (d < bestDist)
+                {
+                    bestDist = d;
+                    tracked = enemies[i].transform;
+                }
+            }
+            bool applyHostKnockback = TheLastEmpire.Network.EmpireNetworkManager.IsOnlineHost;
+            StartCoroutine(JavelinMissileFlightRoutine(launchPos, tracked, targetPos, 0f, "Rocket Launcher", default, applyDamage: false, applyHostKnockback: applyHostKnockback));
+        }
+
+        private System.Collections.IEnumerator JavelinMissileFlightRoutine(
+            Vector3 launchPos,
+            Transform lockedTarget,
+            Vector3 lastKnownTargetPos,
+            float explosionDamage,
+            string weaponName,
+            WeaponArtifactModifiers mods,
+            bool applyDamage,
+            bool applyHostKnockback = false)
+        {
+            // 1. Target-Lock Ground Reticle under the locked enemy
+            Sprite lockSp = HitboxSpriteLibrary.CornerLockBrackets ?? HitboxSpriteLibrary.TargetBullseye;
+            SpriteRenderer lockSr = lockSp != null
+                ? HitboxSpriteLibrary.CreateGroundSpriteIndicator("JavelinLockReticle", null, lockSp, new Color(1f, 0.16f, 0.12f, 0.82f), 8)
+                : null;
+            if (lockSr != null)
+            {
+                HitboxSpriteLibrary.SetWorldDiameter(lockSr, 2.4f);
+            }
+
+            // 2. Procedural 3D Homing Missile + Glowing Fiery Exhaust Trail
+            GameObject missile = new GameObject("JavelinHomingMissile");
+            missile.transform.position = launchPos;
+
+            Shader unlit = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
+            Material bodyMat = new Material(unlit);
+            bodyMat.color = new Color(0.92f, 0.94f, 0.98f, 1f);
+            if (bodyMat.HasProperty("_BaseColor")) bodyMat.SetColor("_BaseColor", bodyMat.color);
+
+            Material tipMat = new Material(unlit);
+            tipMat.color = new Color(1f, 0.24f, 0.12f, 1f);
+            if (tipMat.HasProperty("_BaseColor")) tipMat.SetColor("_BaseColor", tipMat.color);
+
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            Destroy(body.GetComponent<Collider>());
+            body.transform.SetParent(missile.transform, false);
+            body.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            body.transform.localScale = new Vector3(0.24f, 0.42f, 0.24f);
+            body.GetComponent<Renderer>().sharedMaterial = bodyMat;
+
+            GameObject nose = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(nose.GetComponent<Collider>());
+            nose.transform.SetParent(missile.transform, false);
+            nose.transform.localPosition = new Vector3(0f, 0f, 0.42f);
+            nose.transform.localScale = new Vector3(0.25f, 0.25f, 0.34f);
+            nose.GetComponent<Renderer>().sharedMaterial = tipMat;
+
+            Light thrustLight = missile.AddComponent<Light>();
+            thrustLight.type = LightType.Point;
+            thrustLight.color = new Color(1f, 0.55f, 0.15f);
+            thrustLight.range = 6.5f;
+            thrustLight.intensity = 4.2f;
+            thrustLight.shadows = LightShadows.None;
+
+            TrailRenderer tr = missile.AddComponent<TrailRenderer>();
+            tr.time = 0.42f;
+            tr.startWidth = 0.34f;
+            tr.endWidth = 0.04f;
+            tr.minVertexDistance = 0.08f;
+            tr.sharedMaterial = tipMat;
+            Gradient grad = new Gradient();
+            grad.SetKeys(
+                new[] { new GradientColorKey(new Color(1f, 0.92f, 0.45f), 0f), new GradientColorKey(new Color(1f, 0.32f, 0.08f), 0.5f), new GradientColorKey(new Color(0.4f, 0.4f, 0.4f), 1f) },
+                new[] { new GradientAlphaKey(0.95f, 0f), new GradientAlphaKey(0.65f, 0.55f), new GradientAlphaKey(0f, 1f) });
+            tr.colorGradient = grad;
+
+            // 3. Phase 1 (0.36s): Blast straight UP into the sky!
+            //    Phase 2 (0.54s): Homing top-attack dive straight down onto the moving locked target!
+            const float launchUpDur = 0.36f;
+            const float diveDur = 0.54f;
+            float totalDur = launchUpDur + diveDur;
+            float elapsed = 0f;
+            Vector3 skyApex = launchPos + Vector3.up * 10.5f;
+            Vector3 prevPos = launchPos;
+
+            while (elapsed < totalDur)
+            {
+                elapsed += Time.deltaTime;
+                if (lockedTarget != null && lockedTarget.gameObject.activeInHierarchy)
+                {
+                    Health th = lockedTarget.GetComponent<Health>();
+                    if (th == null || !th.IsDead)
+                    {
+                        lastKnownTargetPos = lockedTarget.position;
+                    }
+                }
+
+                if (lockSr != null)
+                {
+                    lockSr.transform.position = new Vector3(lastKnownTargetPos.x, 0.09f, lastKnownTargetPos.z);
+                    lockSr.transform.Rotate(0f, 0f, 160f * Time.deltaTime, Space.Self);
+                }
+
+                Vector3 pos;
+                if (elapsed <= launchUpDur)
+                {
+                    float u = Mathf.Clamp01(elapsed / launchUpDur);
+                    float easeOut = 1f - Mathf.Pow(1f - u, 2f);
+                    Vector3 horizLead = (lastKnownTargetPos - launchPos);
+                    horizLead.y = 0f;
+                    pos = Vector3.Lerp(launchPos, skyApex + horizLead * 0.22f, easeOut);
+                }
+                else
+                {
+                    float d = Mathf.Clamp01((elapsed - launchUpDur) / diveDur);
+                    float easeIn = d * d; // accelerates sharply into top-attack impact!
+                    Vector3 horizLead = (lastKnownTargetPos - launchPos);
+                    horizLead.y = 0f;
+                    Vector3 p0 = skyApex + horizLead * 0.22f;
+                    Vector3 p2 = lastKnownTargetPos + Vector3.up * 0.35f;
+                    Vector3 p1 = new Vector3(Mathf.Lerp(p0.x, p2.x, 0.65f), p0.y + 1.8f, Mathf.Lerp(p0.z, p2.z, 0.65f));
+                    float inv = 1f - easeIn;
+                    pos = (inv * inv * p0) + (2f * inv * easeIn * p1) + (easeIn * easeIn * p2);
+                }
+
+                Vector3 velDir = pos - prevPos;
+                if (velDir.sqrMagnitude > 0.0001f)
+                {
+                    missile.transform.rotation = Quaternion.LookRotation(velDir.normalized, Vector3.up);
+                }
+                missile.transform.position = pos;
+                prevPos = pos;
+                yield return null;
+            }
+
+            // 4. Detonate on impact!
+            Vector3 impactPos = lastKnownTargetPos + Vector3.up * 0.35f;
+            if (ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool("Explosion", impactPos, Quaternion.identity);
+            }
+            CameraFollow.TriggerShake(0.24f, applyDamage ? 0.42f : 0.14f);
+
+            const float explosionRadius = 4.6f;
+            if (applyDamage)
+            {
+                Collider[] hitCols = Physics.OverlapSphere(impactPos, explosionRadius);
+                var damagedSet = new System.Collections.Generic.HashSet<IDamageable>();
+                for (int i = 0; i < hitCols.Length; i++)
+                {
+                    Collider c = hitCols[i];
+                    if (c == null || c.transform.root == transform.root) continue;
+                    IDamageable dTarget = c.GetComponent<IDamageable>() ?? c.GetComponentInParent<IDamageable>();
+                    if (dTarget == null || dTarget.IsDead || !damagedSet.Add(dTarget)) continue;
+
+                    BuildingObject bld = c.GetComponentInParent<BuildingObject>();
+                    if (bld != null && !bld.CanBeDamagedByPlayer) continue;
+
+                    PlayerController ally = c.GetComponent<PlayerController>() ?? c.GetComponentInParent<PlayerController>();
+                    if (ally != null) continue;
+
+                    float dist = Vector3.Distance(impactPos, c.transform.position);
+                    DamageResult dr = DamageCalculator.CalculateExplosionDamage(explosionDamage, dist, explosionRadius, gameObject, weaponName);
+                    dTarget.TakeDamage(dr.FinalDamage, c.transform.position, dr.IsCritical);
+
+                    BaseEnemyAI hitAi = c.GetComponent<BaseEnemyAI>() ?? c.GetComponentInParent<BaseEnemyAI>();
+                    if (hitAi != null)
+                    {
+                        Vector3 push = hitAi.transform.position - impactPos;
+                        push.y = 0f;
+                        if (push.sqrMagnitude < 0.01f) push = Vector3.forward;
+                        hitAi.ApplyMeleeKnockback(push.normalized, 11f + mods.bonusKnockback, 0.55f + mods.bonusStagger);
+                    }
+                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                    {
+                        _health.Heal(mods.lifestealOnHit);
+                    }
+                }
+            }
+            else if (applyHostKnockback)
+            {
+                // Host-authoritative knockback when a Co-op Client detonates ART107 Javelin (damage is already sent via EnemyDamageRequest)
+                Collider[] hitCols = Physics.OverlapSphere(impactPos, explosionRadius);
+                var pushedSet = new System.Collections.Generic.HashSet<BaseEnemyAI>();
+                for (int i = 0; i < hitCols.Length; i++)
+                {
+                    Collider c = hitCols[i];
+                    if (c == null) continue;
+                    BaseEnemyAI hitAi = c.GetComponent<BaseEnemyAI>() ?? c.GetComponentInParent<BaseEnemyAI>();
+                    if (hitAi == null || !pushedSet.Add(hitAi)) continue;
+                    Vector3 push = hitAi.transform.position - impactPos;
+                    push.y = 0f;
+                    if (push.sqrMagnitude < 0.01f) push = Vector3.forward;
+                    hitAi.ApplyMeleeKnockback(push.normalized, 11f, 0.55f);
+                }
+            }
+
+            if (lockSr != null) Destroy(lockSr.gameObject);
+            if (bodyMat != null) Destroy(bodyMat);
+            if (tipMat != null) Destroy(tipMat);
+            Destroy(missile);
         }
 
         private void OnGUI()
@@ -3729,7 +4633,7 @@ namespace TheLastEmpire
             {
                 activeRate /= (1f + meleeArtMods.fireRateMultiplier);
             }
-            float activeDamage = (basePlayerDamage + itemDamage + meleeArtMods.bonusDamage) * (1f + meleeArtMods.damageMultiplier);
+            float activeDamage = (basePlayerDamage + itemDamage + meleeArtMods.bonusDamage) * Mathf.Max(0.1f, 1f + meleeArtMods.damageMultiplier);
 
             // --- Weapon Special Effects (from Weapon GDD) ---
             bool isKatana = wName.IndexOf("Katana", System.StringComparison.OrdinalIgnoreCase) >= 0;
@@ -3818,6 +4722,9 @@ namespace TheLastEmpire
             }
 
             NotifyNetworkMelee(attackPoint, _aimDirection, wName, _meleeComboStep, meleeDmgResult.FinalDamage, activeRadius);
+
+            // 0. Melee Projectile Swat / Parry: swat away any incoming enemy projectiles caught in the swing arc!
+            SwatEnemyProjectilesInRadius(attackPoint, Mathf.Max(activeRadius + 0.55f, 1.85f), gameObject);
 
             Collider[] hitColliders = Physics.OverlapSphere(attackPoint, activeRadius);
             int targetsHit = 0;
@@ -3914,6 +4821,79 @@ namespace TheLastEmpire
                         }
                     }
                 }
+            }
+        }
+
+        public static void SwatEnemyProjectilesInRadius(Vector3 swingCenter, float parryRadius, GameObject parrier, bool broadcastNetwork = true)
+        {
+            Collider[] projCols = Physics.OverlapSphere(swingCenter, parryRadius, ~0, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < projCols.Length; i++)
+            {
+                Collider c = projCols[i];
+                if (c == null) continue;
+                Projectile incoming = c.GetComponent<Projectile>() ?? c.GetComponentInParent<Projectile>();
+                if (incoming != null && incoming.IsEnemyShot)
+                {
+                    Vector3 projPos = incoming.transform.position;
+                    Vector3 projDir = incoming.transform.forward;
+                    projDir.y = 0f;
+                    if (projDir.sqrMagnitude > 0.0001f) projDir.Normalize();
+                    else projDir = Vector3.forward;
+
+                    incoming.DismissByMeleeParry(parrier);
+
+                    if (broadcastNetwork)
+                    {
+                        TheLastEmpire.Network.NetworkPlayerBridge.BroadcastLocalProjectileParry(projPos, projDir);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Latency-compensated remote Co-op parry match: finds and dismisses the corresponding incoming enemy projectile
+        /// along its forward flight corridor even if it traveled slightly further during network transit.
+        /// </summary>
+        public static void SwatEnemyProjectileFromNetwork(Vector3 parryPos, Vector3 projDir, GameObject parrier)
+        {
+            Vector3 flatDir = new Vector3(projDir.x, 0f, projDir.z);
+            if (flatDir.sqrMagnitude > 0.0001f) flatDir.Normalize();
+            else flatDir = Vector3.forward;
+
+            // Search a corridor covering up to ~150ms of flight latency past parryPos
+            Vector3 corridorCenter = parryPos + flatDir * 2.5f;
+            Collider[] projCols = Physics.OverlapSphere(corridorCenter, 5.5f, ~0, QueryTriggerInteraction.Collide);
+
+            Projectile bestMatch = null;
+            float bestScore = float.MaxValue;
+
+            for (int i = 0; i < projCols.Length; i++)
+            {
+                Collider c = projCols[i];
+                if (c == null) continue;
+                Projectile p = c.GetComponent<Projectile>() ?? c.GetComponentInParent<Projectile>();
+                if (p == null || !p.IsEnemyShot || !p.gameObject.activeInHierarchy) continue;
+
+                Vector3 delta = p.transform.position - parryPos;
+                delta.y = 0f;
+                float along = Vector3.Dot(delta, flatDir);
+                if (along < -2.0f || along > 7.5f) continue;
+
+                Vector3 perp = delta - flatDir * along;
+                float lateralDist = perp.magnitude;
+                if (lateralDist > 2.4f) continue;
+
+                float score = lateralDist * 2.0f + Mathf.Abs(along) * 0.35f;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestMatch = p;
+                }
+            }
+
+            if (bestMatch != null)
+            {
+                bestMatch.DismissByMeleeParry(parrier);
             }
         }
 
@@ -4562,7 +5542,7 @@ namespace TheLastEmpire
             
             WeaponArtifactModifiers reloadMods = WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName);
             int mag = activeWeapon != null ? activeWeapon.currentMagazine : _currentMagazine;
-            int magSize = (activeWeapon != null ? activeWeapon.magazineSize : magazineSize) + Mathf.Max(0, reloadMods.bonusMagazineSize);
+            int magSize = WeaponArtifactManager.ComputeEffectiveMagazineSize(activeWeapon != null ? activeWeapon.magazineSize : magazineSize, reloadMods);
             
             string ammoType = "Pistol Ammo";
             if (activeWeapon != null && !string.IsNullOrEmpty(activeWeapon.ammoType))
@@ -4606,7 +5586,7 @@ namespace TheLastEmpire
             if (activeWeapon != null)
             {
                 WeaponArtifactModifiers postMods = WeaponArtifactManager.GetAggregatedModifiers(activeWeapon.weaponName);
-                int effectiveMagSize = activeWeapon.magazineSize + Mathf.Max(0, postMods.bonusMagazineSize);
+                int effectiveMagSize = WeaponArtifactManager.ComputeEffectiveMagazineSize(activeWeapon.magazineSize, postMods);
                 int needed = Mathf.Max(0, effectiveMagSize - activeWeapon.currentMagazine);
                 int reserve = GetAmmoReserveCount(ammoType);
                 int toLoad = Mathf.Min(needed, reserve);
@@ -5619,6 +6599,10 @@ namespace TheLastEmpire
             {
                 rangeWeapon.SetActive(false);
             }
+            if (_offhandPistolObj != null)
+            {
+                _offhandPistolObj.SetActive(false);
+            }
         }
 
         public void ShowRangedWeaponVisual()
@@ -5633,6 +6617,7 @@ namespace TheLastEmpire
             {
                 meleeWeapon.SetActive(false);
             }
+            UpdateOffhandPistolVisibility();
         }
 
         private void EnsureWeaponVisualReferences()
@@ -5894,9 +6879,6 @@ namespace TheLastEmpire
                 }
             }
 
-            // Check if player can vault/jump over a vehicle ahead ("SPACE")
-            bool canVault = CanVehicleVaultAhead(out Transform vaultVehicle);
-
             // Check if a manual-pickup dropped item is in range ("E")
             CollectibleItem closestManualItem = null;
             if (_bestInteractableType == TargetInteractableType.None)
@@ -5916,43 +6898,31 @@ namespace TheLastEmpire
                 }
             }
 
+            // Show ONLY "E" key hint (no Q or SPACE hints)
             switch (_bestInteractableType)
             {
                 case TargetInteractableType.Building:
                 {
-                    string keyLabel = LootUI.ExtractKeyOnlyLabel(_closestBuilding.GetInteractionPrompt());
-                    if (canVault && !keyLabel.Contains("SPACE")) keyLabel += ",SPACE";
-                    LootUI.Instance.ShowKeyHint(keyLabel, _closestBuilding.InteractionTransform, _closestBuilding.PromptWorldOffset);
+                    LootUI.Instance.ShowKeyHint("E", _closestBuilding.InteractionTransform, _closestBuilding.PromptWorldOffset);
                     break;
                 }
 
                 case TargetInteractableType.Container:
                 {
-                    string keyLabel = canVault ? "E,SPACE" : "E";
-                    LootUI.Instance.ShowKeyHint(keyLabel, _closestContainer.transform);
+                    LootUI.Instance.ShowKeyHint("E", _closestContainer.transform);
                     break;
                 }
 
                 case TargetInteractableType.NPC:
                 {
-                    string keyLabel;
-                    if (_closestNpc.HasShop && _closestNpc.HasDialogue) keyLabel = "E,Q";
-                    else if (_closestNpc.HasShop) keyLabel = "E";
-                    else if (_closestNpc.HasDialogue) keyLabel = "Q";
-                    else keyLabel = "E";
-                    LootUI.Instance.ShowKeyHint(keyLabel, _closestNpc.transform);
+                    LootUI.Instance.ShowKeyHint("E", _closestNpc.transform);
                     break;
                 }
 
                 default:
                     if (closestManualItem != null)
                     {
-                        string keyLabel = canVault ? "E,SPACE" : "E";
-                        LootUI.Instance.ShowKeyHint(keyLabel, closestManualItem.transform, Vector3.up * 1.1f);
-                    }
-                    else if (canVault)
-                    {
-                        LootUI.Instance.ShowKeyHint("SPACE", transform, Vector3.up * 2.1f);
+                        LootUI.Instance.ShowKeyHint("E", closestManualItem.transform, Vector3.up * 1.1f);
                     }
                     else
                     {

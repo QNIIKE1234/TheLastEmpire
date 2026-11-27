@@ -458,8 +458,9 @@ namespace TheLastEmpire
                 {
                     string k = m.Groups[1].Value.Trim().ToUpperInvariant();
                     if (string.IsNullOrEmpty(k)) continue;
-                    // Ignore status percentages/progress brackets like [45%]
+                    // Ignore status percentages/progress brackets like [45%] and suppressed Q/SPACE hints
                     if (k.Contains("%") || char.IsDigit(k[0])) continue;
+                    if (k == "Q" || k == "SPACE") continue;
                     if (!keys.Contains(k)) keys.Add(k);
                 }
                 if (keys.Count > 0)

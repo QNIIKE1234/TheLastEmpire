@@ -310,6 +310,11 @@ namespace TheLastEmpire.Network
                 {
                     PlayerController.ExecuteHostAuthoritativeKnifeHookPull(payload.attackOrigin, payload.aimDirection, payload.radius);
                 }
+                // หาก Client ใช้สกิล Shotgun Knockback Blast (comboStep == 103) ให้ Host ผลักมอนถอยหลังให้ตรงกันทุกเครื่อง
+                else if (payload.comboStep == 103 && isSameStage)
+                {
+                    PlayerController.ExecuteHostAuthoritativeShotgunKnockbackPush(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
 
                 EmpireNetworkManager.Instance.SendPacket(NetPacketType.MeleeAttack, w =>
                 {
@@ -334,10 +339,29 @@ namespace TheLastEmpire.Network
                     if (anim != null) anim.Play("Slash2", 0, 0f);
                     attacker.SpawnRemoteVisualBatBoomerang(payload.attackOrigin, payload.aimDirection, payload.radius);
                 }
+                else if (payload.comboStep == 103)
+                {
+                    attacker.SpawnRemoteVisualShotgunKnockbackBlast(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
+                else if (payload.comboStep == 104 || payload.comboStep == 105)
+                {
+                    attacker.SpawnRemoteVisualAkimboSpin(payload.comboStep == 105 ? 2 : 1);
+                }
+                else if (payload.comboStep == 106)
+                {
+                    attacker.SpawnRemoteVisualJavelinMissile(payload.attackOrigin, payload.aimDirection);
+                }
+                else if (payload.comboStep == 107)
+                {
+                    if (anim != null) anim.Play("Slash3", 0, 0f);
+                    attacker.SpawnRemoteVisualCoupDeGraceKnife(payload.attackOrigin, payload.aimDirection, payload.radius);
+                }
                 else
                 {
                     int step = Mathf.Clamp(payload.comboStep, 1, 3);
                     if (anim != null) anim.Play("Slash" + step, 0, 0f);
+                    // Sync melee projectile swat/parry visually across Co-op teammates in the same stage
+                    PlayerController.SwatEnemyProjectilesInRadius(payload.attackOrigin, Mathf.Max(payload.radius + 0.55f, 1.85f), attacker.gameObject, broadcastNetwork: false);
                     if (ObjectPoolManager.Instance != null)
                     {
                         Vector3 dir = payload.aimDirection.sqrMagnitude > 0.001f ? payload.aimDirection.normalized : attacker.transform.forward;
@@ -352,6 +376,70 @@ namespace TheLastEmpire.Network
                     }
                 }
             }
+        }
+
+        public static void BroadcastLocalProjectileParry(Vector3 parryPos, Vector3 projectileDir)
+        {
+            if (!EmpireNetworkManager.IsOnline || EmpireNetworkManager.Instance == null) return;
+
+            ulong senderId = EmpireNetworkManager.Instance.LocalClientId;
+            int stageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int stageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int interiorId = BuildingInteriorManager.CurrentInteriorId;
+
+            EmpireNetworkManager.Instance.SendPacket(NetPacketType.ProjectileParrySync, w =>
+            {
+                w.Write(senderId);
+                w.Write(stageX);
+                w.Write(stageY);
+                w.Write(interiorId);
+                w.Write(parryPos.x);
+                w.Write(parryPos.y);
+                w.Write(parryPos.z);
+                w.Write(projectileDir.x);
+                w.Write(projectileDir.y);
+                w.Write(projectileDir.z);
+            });
+        }
+
+        public static void HandleIncomingProjectileParry(
+            ulong senderId,
+            int stageX,
+            int stageY,
+            int interiorId,
+            Vector3 parryPos,
+            Vector3 projectileDir,
+            bool isHost)
+        {
+            if (EmpireNetworkManager.Instance == null) return;
+
+            // Relay Client's parry to all other Clients if we are the Host
+            if (isHost && senderId != EmpireNetworkManager.Instance.LocalClientId)
+            {
+                EmpireNetworkManager.Instance.SendPacket(NetPacketType.ProjectileParrySync, w =>
+                {
+                    w.Write(senderId);
+                    w.Write(stageX);
+                    w.Write(stageY);
+                    w.Write(interiorId);
+                    w.Write(parryPos.x);
+                    w.Write(parryPos.y);
+                    w.Write(parryPos.z);
+                    w.Write(projectileDir.x);
+                    w.Write(projectileDir.y);
+                    w.Write(projectileDir.z);
+                });
+            }
+
+            if (senderId == EmpireNetworkManager.Instance.LocalClientId) return;
+
+            int myStageX = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerX : 64;
+            int myStageY = WorldMapManager.Instance != null ? WorldMapManager.Instance.CurrentPlayerY : 64;
+            int myInteriorId = BuildingInteriorManager.CurrentInteriorId;
+            if (stageX != myStageX || stageY != myStageY || interiorId != myInteriorId) return;
+
+            PlayerController parrier = PlayerRegistry.GetPlayerByClientId(senderId);
+            PlayerController.SwatEnemyProjectileFromNetwork(parryPos, projectileDir, parrier != null ? parrier.gameObject : null);
         }
 
         // =====================================================

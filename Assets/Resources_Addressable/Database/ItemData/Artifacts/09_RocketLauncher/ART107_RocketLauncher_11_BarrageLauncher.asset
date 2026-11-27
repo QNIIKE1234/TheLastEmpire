@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ART107_RocketLauncher_11_BarrageLauncher
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "Barrage Launcher"
-  description: "Attack Speed +40%, Magazine +4, Reload Speed +35%, Enables Full-Auto fire."
+  description: "Attack Speed +40%, Magazine +4, Reload Speed +35%, Full-Auto. Right-Click: Auto-Lock Sky-Arc Homing Missile."
   icon: {fileID: -1645225228, guid: f9f6f0b4f4f14ce4b8a7b1c60f305a9f, type: 3}
   type: 10
   restorationValue: 0
@@ -63,11 +63,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 0
     projectileScaleBonus: 0
-    rightClickSkillId: ""
+    rightClickSkillId: "Rocket_JavelinHoming"
     rightClickCooldown: 5
     rightClickChargeDuration: 0
     rightClickAmmoCost: 0
-    rightClickDamage: 0
-    rightClickRange: 0
+    rightClickDamage: 1.5
+    rightClickRange: 24
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "Auto, MAG +4, SPD +40%"
+    shortEffectSummary: "Auto, MAG +4, SPD +40%, RMB: Sky Homing Missile"

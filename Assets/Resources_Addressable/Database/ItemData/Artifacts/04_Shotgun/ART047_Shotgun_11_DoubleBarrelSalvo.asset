@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ART047_Shotgun_11_DoubleBarrelSalvo
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "Double-Barrel Salvo"
-  description: "Damage +25%, Extra Shots +5."
+  description: "Damage +25%, Extra Shots +5. Right-Click: Concussive Pushback Blast that knocks enemies backward."
   icon: {fileID: -1068515769, guid: fe343ae1546f15444b3a2233a7e77d00, type: 3}
   type: 10
   restorationValue: 0
@@ -63,11 +63,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 0
     projectileScaleBonus: 0
-    rightClickSkillId: ""
+    rightClickSkillId: "Shotgun_KnockbackBlast"
     rightClickCooldown: 5
     rightClickChargeDuration: 0
     rightClickAmmoCost: 0
-    rightClickDamage: 0
-    rightClickRange: 0
+    rightClickDamage: 1.15
+    rightClickRange: 8
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "Pellets +5, DMG +25%"
+    shortEffectSummary: "Pellets +5, DMG +25%, RMB: Pushback Blast"

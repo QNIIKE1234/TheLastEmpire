@@ -53,7 +53,8 @@ namespace TheLastEmpire.Network
         EnemyTelegraphSync = 58,
         AbilityVisualSync = 59,
         WeatherSync = 60,
-        LightningStrikeSync = 61
+        LightningStrikeSync = 61,
+        ProjectileParrySync = 62
     }
 
     [Serializable]
@@ -2228,6 +2229,19 @@ namespace TheLastEmpire.Network
                         float lTelegraphDur = reader.ReadSingle();
                         WeatherManager.Instance?.HandleRemoteLightningStrike(
                             lStageX, lStageY, lPos, lTelegraphDur, receivedOnHost: _isHost);
+                    }
+                    break;
+
+                case NetPacketType.ProjectileParrySync:
+                    {
+                        ulong pSenderId = reader.ReadUInt64();
+                        int pStageX = reader.ReadInt32();
+                        int pStageY = reader.ReadInt32();
+                        int pInteriorId = reader.ReadInt32();
+                        Vector3 pPos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        Vector3 pDir = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                        NetworkPlayerBridge.HandleIncomingProjectileParry(
+                            pSenderId, pStageX, pStageY, pInteriorId, pPos, pDir, _isHost);
                     }
                     break;
             }

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ART011_Pistol_11_AkimboPhantom
   m_EditorClassIdentifier: TheLastEmpire.Runtime::TheLastEmpire.ItemData
   itemName: "Akimbo Phantom"
-  description: "Extra Shots +1, Attack Speed +30%, Magazine +12."
+  description: "Dual Pistols stance, Max Magazine x2, Extra Shots +1, Attack Speed +30%. Right-Click: 360 Spin Barrage (2 consecutive volleys with Twin Chamber)."
   icon: {fileID: -31581213, guid: 9bffef55cac9c6b489cbeceda2d786f8, type: 3}
   type: 10
   restorationValue: 0
@@ -50,7 +50,9 @@ MonoBehaviour:
     bonusPelletsPerShot: 1
     extraSpreadAngle: 4.5
     fireRateMultiplier: 0.3
-    bonusMagazineSize: 12
+    bonusMagazineSize: 0
+    magazineMultiplier: 2
+    dualWieldPistol: 1
     reloadSpeedMultiplier: 0
     bonusRange: 0
     grantPierce: 0
@@ -63,11 +65,11 @@ MonoBehaviour:
     ammoSaveChance: 0
     bonusBurstShots: 0
     projectileScaleBonus: 0
-    rightClickSkillId: ""
+    rightClickSkillId: "Pistol_AkimboSpin"
     rightClickCooldown: 5
     rightClickChargeDuration: 0
     rightClickAmmoCost: 0
-    rightClickDamage: 0
-    rightClickRange: 0
+    rightClickDamage: 1
+    rightClickRange: 11
     rightClickUseFlatDamage: 0
-    shortEffectSummary: "Shot +1, SPD +30%, MAG +12"
+    shortEffectSummary: "Dual Pistols, MAG x2, Shot +1, SPD +30%, RMB: 360 Spin"

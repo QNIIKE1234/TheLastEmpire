@@ -748,6 +748,30 @@ namespace TheLastEmpire
             _isEnemyProjectile = isEnemy;
         }
 
+        public bool IsEnemyShot => _isEnemyProjectile || (_owner != null && _owner.CompareTag("Enemy"));
+
+        /// <summary>
+        /// Immediately swats/dismisses an incoming enemy projectile when struck by a player's melee swing.
+        /// Plays hit spark/splash VFX and returns the projectile cleanly to ObjectPoolManager.
+        /// </summary>
+        public void DismissByMeleeParry(GameObject parrier)
+        {
+            if (!gameObject.activeInHierarchy) return;
+            if (!IsEnemyShot) return;
+
+            if (!string.IsNullOrEmpty(obstacleHitVfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                ObjectPoolManager.Instance.SpawnFromPool(obstacleHitVfxPoolKey, transform.position, Quaternion.identity);
+            }
+
+            if (DamageNumberManager.Instance != null)
+            {
+                DamageNumberManager.Instance.SpawnDamageNumber(transform.position + Vector3.up * 0.6f, 0f, false, "PARRY!");
+            }
+
+            DeactivateProjectile();
+        }
+
         public void SetStats(float damageVal, float lifetimeVal, bool pierceVal, string weaponName = "", float maxFalloffRange = 0f, string visualId = "")
         {
             ResetDynamicOverrides();
