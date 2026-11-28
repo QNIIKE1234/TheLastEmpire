@@ -10,23 +10,65 @@ namespace TheLastEmpire
         [SerializeField] private List<CharacterData> characters = new List<CharacterData>();
 
         private static CharacterDatabase _cachedInstance;
+        private static bool _isFallbackInstance;
+        private static bool _preloadHooked;
 
         public List<CharacterData> Characters => characters;
+
+        public static void InvalidateFallbackCache()
+        {
+            if (_isFallbackInstance)
+            {
+                _cachedInstance = null;
+                _isFallbackInstance = false;
+            }
+        }
+
+        private static void EnsurePreloadRefreshHook()
+        {
+            if (_preloadHooked) return;
+            _preloadHooked = true;
+            AddressableManager.OnPreloadCompleted += () =>
+            {
+                InvalidateFallbackCache();
+                var refreshed = Instance;
+                if (refreshed != null && !_isFallbackInstance)
+                {
+                    var players = TheLastEmpire.Network.PlayerRegistry.AllPlayers;
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        if (players[i] != null)
+                        {
+                            players[i].EnsureCharacterModelLoaded();
+                        }
+                    }
+                }
+            };
+        }
 
         public static CharacterDatabase Instance
         {
             get
             {
-                if (_cachedInstance == null)
+                EnsurePreloadRefreshHook();
+
+                if (_cachedInstance == null || _isFallbackInstance)
                 {
-                    _cachedInstance = AddressableManager.LoadAsset<CharacterDatabase>("Database/CharacterDatabase");
-                    if (_cachedInstance == null)
+                    CharacterDatabase loaded = AddressableManager.LoadAsset<CharacterDatabase>("Database/CharacterDatabase");
+                    if (loaded == null)
                     {
                         var all = Resources.LoadAll<CharacterDatabase>("");
                         if (all != null && all.Length > 0)
                         {
-                            _cachedInstance = all[0];
+                            loaded = all[0];
                         }
+                    }
+
+                    if (loaded != null && loaded.characters != null && loaded.characters.Count > 0)
+                    {
+                        _cachedInstance = loaded;
+                        _isFallbackInstance = false;
+                        return _cachedInstance;
                     }
                 }
 
@@ -34,6 +76,7 @@ namespace TheLastEmpire
                 {
                     _cachedInstance = ScriptableObject.CreateInstance<CharacterDatabase>();
                     _cachedInstance.characters = CreateDefaultRoster();
+                    _isFallbackInstance = true;
                 }
 
                 return _cachedInstance;

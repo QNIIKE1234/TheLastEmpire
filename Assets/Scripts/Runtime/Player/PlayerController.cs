@@ -568,20 +568,29 @@ namespace TheLastEmpire
                 Destroy(oldInstance.gameObject);
             }
 
-            // Priority 1: Always spawn directly from CharacterData ScriptableObject (characterModelPrefab) into PlayerPrefabs/Model
+            // Priority 1..5: Resolve real character model prefab across SO, CharacterDatabase, PlayerPrefabs serialized characterModels, and Addressables
             GameObject activeModel = null;
-            if (data != null && data.characterModelPrefab != null)
+            GameObject resolvedPrefab = ResolveCharacterModelPrefab(data);
+            if (resolvedPrefab != null)
             {
-                activeModel = Instantiate(data.characterModelPrefab, modelRoot);
-                activeModel.name = "CharacterModelInstance";
-                activeModel.transform.localPosition = SpawnedModelLocalPosition;
-                activeModel.transform.localRotation = Quaternion.identity;
-                activeModel.transform.localScale = SpawnedModelLocalScale;
-                activeModel.SetActive(true);
+                if (resolvedPrefab.transform.IsChildOf(transform))
+                {
+                    activeModel = resolvedPrefab;
+                    activeModel.SetActive(true);
+                }
+                else
+                {
+                    activeModel = Instantiate(resolvedPrefab, modelRoot);
+                    activeModel.name = "CharacterModelInstance";
+                    activeModel.transform.localPosition = SpawnedModelLocalPosition;
+                    activeModel.transform.localRotation = Quaternion.identity;
+                    activeModel.transform.localScale = SpawnedModelLocalScale;
+                    activeModel.SetActive(true);
+                }
             }
             else
             {
-                // Fallback if CharacterData SO has no characterModelPrefab assigned
+                // Fallback: legacy child under Model root
                 GameObject targetSource = FindModelForCharacter(data, modelRoot);
                 if (targetSource != null)
                 {
@@ -615,6 +624,123 @@ namespace TheLastEmpire
                 if (existingCapsule != null) existingCapsule.gameObject.SetActive(false);
 
                 RebindModelAnimatorAndWeapons(activeModel, fallbackController);
+            }
+            else
+            {
+                // Emergency safety: never leave the player completely invisible if every model source failed!
+                Transform existingCapsule = transform.Find("Capsule");
+                if (existingCapsule != null) existingCapsule.gameObject.SetActive(true);
+                Debug.LogWarning($"[PlayerController] Could not resolve characterModelPrefab for '{data?.characterId ?? "null"}' — kept fallback Capsule visible.");
+            }
+        }
+
+        public void EnsureCharacterModelLoaded()
+        {
+            if (_activeCharacterModel != null && _activeCharacterModel.activeInHierarchy) return;
+            CharacterData target = activeCharacterData;
+            if (!IsRemotePlayer)
+            {
+                CharacterData dbSelected = CharacterManager.GetSelectedCharacter();
+                if (dbSelected != null)
+                {
+                    target = dbSelected;
+                    activeCharacterData = dbSelected;
+                }
+            }
+            else if (target != null && !string.IsNullOrEmpty(target.characterId) && CharacterDatabase.Instance != null)
+            {
+                CharacterData dbChar = CharacterDatabase.Instance.GetCharacter(target.characterId);
+                if (dbChar != null)
+                {
+                    target = dbChar;
+                    activeCharacterData = dbChar;
+                }
+            }
+            if (target != null)
+            {
+                ApplySelectedCharacterModel(target);
+            }
+        }
+
+        private GameObject ResolveCharacterModelPrefab(CharacterData data)
+        {
+            // 1. Direct reference on CharacterData ScriptableObject
+            if (data != null && data.characterModelPrefab != null)
+            {
+                return data.characterModelPrefab;
+            }
+
+            string targetId = data != null && !string.IsNullOrEmpty(data.characterId)
+                ? data.characterId
+                : (!IsRemotePlayer ? CharacterManager.SelectedCharacterId : "VANGUARD");
+
+            // 2. Refresh from live CharacterDatabase (in case `data` came from pre-preload fallback roster!)
+            if (CharacterDatabase.Instance != null)
+            {
+                CharacterData dbChar = CharacterDatabase.Instance.GetCharacter(targetId);
+                if (dbChar != null && dbChar.characterModelPrefab != null)
+                {
+                    return dbChar.characterModelPrefab;
+                }
+            }
+
+            // 3. Direct serialized CharacterData references on PlayerPrefabs.characterModels (100% immune to Addressables preload race!)
+            if (characterModels != null && characterModels.Count > 0)
+            {
+                for (int i = 0; i < characterModels.Count; i++)
+                {
+                    CharacterModelEntry entry = characterModels[i];
+                    if (entry == null) continue;
+                    string entryId = (entry.characterData != null && !string.IsNullOrEmpty(entry.characterData.characterId))
+                        ? entry.characterData.characterId
+                        : entry.characterId;
+                    if (!string.IsNullOrEmpty(entryId) && entryId.Equals(targetId, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (entry.characterData != null && entry.characterData.characterModelPrefab != null)
+                            return entry.characterData.characterModelPrefab;
+                        if (entry.modelObject != null)
+                            return entry.modelObject;
+                    }
+                }
+            }
+
+            // 4. Addressables / Resources lookup by canonical prefab path for this characterId
+            string knownAddr = GetCanonicalModelAddressForCharacterId(targetId);
+            if (!string.IsNullOrEmpty(knownAddr))
+            {
+                GameObject loaded = AddressableManager.LoadAsset<GameObject>(knownAddr);
+                if (loaded != null) return loaded;
+            }
+
+            // 5. Last-resort valid prefab from PlayerPrefabs.characterModels so the character is NEVER invisible
+            if (characterModels != null)
+            {
+                for (int i = 0; i < characterModels.Count; i++)
+                {
+                    CharacterModelEntry entry = characterModels[i];
+                    if (entry?.characterData?.characterModelPrefab != null)
+                        return entry.characterData.characterModelPrefab;
+                    if (entry?.modelObject != null)
+                        return entry.modelObject;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetCanonicalModelAddressForCharacterId(string characterId)
+        {
+            if (string.IsNullOrEmpty(characterId)) return "Prefabs/Character/Model/Chibi_HeavyStriker_Rigged";
+            switch (characterId.Trim().ToUpperInvariant())
+            {
+                case "VANGUARD":      return "Prefabs/Character/Model/Chibi_HeavyStriker_Rigged";
+                case "JUGGERNAUT":    return "Prefabs/Character/Model/Chibi_DreadBrawler_Rigged";
+                case "PHANTOM":       return "Prefabs/Character/Model/Chibi_BlueOperative_Rigged";
+                case "MARKSMAN":      return "Prefabs/Character/Model/NPC_Elena_Medic_Rigged";
+                case "SCAVENGER":     return "Prefabs/Character/Model/Chibi_WhiteRonin_Rigged";
+                case "REBEL":         return "Prefabs/Character/Model/Chibi_PunkGirl_Rigged";
+                case "DEMOLITIONIST": return "Prefabs/Character/Model/Chibi_CurlyGirl_Rigged";
+                default:              return "Prefabs/Character/Model/Chibi_HeavyStriker_Rigged";
             }
         }
 
