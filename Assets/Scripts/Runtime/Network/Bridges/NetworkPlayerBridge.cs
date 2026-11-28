@@ -359,21 +359,26 @@ namespace TheLastEmpire.Network
                 else
                 {
                     int step = Mathf.Clamp(payload.comboStep, 1, 3);
-                    if (anim != null) anim.Play("Slash" + step, 0, 0f);
+                    string slashState = PlayerController.ResolveMeleeAttackState(payload.weaponName, step, out _);
+                    if (anim != null)
+                    {
+                        if (!anim.HasState(0, Animator.StringToHash(slashState)))
+                        {
+                            slashState = "Slash" + step;
+                        }
+                        if (anim.layerCount > 1)
+                        {
+                            anim.SetLayerWeight(1, 0f);
+                            anim.Play("UpperBody_Empty", 1, 0f);
+                        }
+                        anim.Play(slashState, 0, 0f);
+                    }
                     // Sync melee projectile swat/parry visually across Co-op teammates in the same stage
                     PlayerController.SwatEnemyProjectilesInRadius(payload.attackOrigin, Mathf.Max(payload.radius + 0.55f, 1.85f), attacker.gameObject, broadcastNetwork: false);
-                    if (ObjectPoolManager.Instance != null)
-                    {
-                        Vector3 dir = payload.aimDirection.sqrMagnitude > 0.001f ? payload.aimDirection.normalized : attacker.transform.forward;
-                        GameObject vfx = ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", payload.attackOrigin, Quaternion.LookRotation(dir));
-                        if (vfx != null)
-                        {
-                            PooledParticle pp = vfx.GetComponent<PooledParticle>();
-                            float sc = Mathf.Max(0.8f, payload.radius);
-                            if (pp != null) { pp.SetPoolKey("SwordSlash"); pp.ApplyScaleMultiplier(sc); }
-                            else vfx.transform.localScale = Vector3.one * sc;
-                        }
-                    }
+                    Vector3 dir = payload.aimDirection.sqrMagnitude > 0.001f ? payload.aimDirection.normalized : attacker.transform.forward;
+                    bool isSledgehammer = !string.IsNullOrEmpty(payload.weaponName) &&
+                        payload.weaponName.IndexOf("Hammer", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                    attacker.SpawnMeleeVfxSynced(slashState, "SwordSlash", dir, Mathf.Max(0.8f, payload.radius), 1.0f, isSledgehammer);
                 }
             }
         }

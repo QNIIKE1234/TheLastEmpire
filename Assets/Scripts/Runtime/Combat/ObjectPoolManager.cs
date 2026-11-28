@@ -221,9 +221,8 @@ namespace TheLastEmpire
                 objectToSpawn = poolQueue.Dequeue();
             }
 
+            objectToSpawn.transform.SetPositionAndRotation(position, rotation);
             objectToSpawn.SetActive(true);
-            objectToSpawn.transform.position = position;
-            objectToSpawn.transform.rotation = rotation;
 
             return objectToSpawn;
         }

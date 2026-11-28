@@ -270,7 +270,7 @@ namespace TheLastEmpire
 
         [Header("--- Ability Tuning: Satchel Vault (Demolitionist) ---")]
         [Range(10f, 150f)] public float satchelDamage = 65f;
-        [Range(1f, 10f)] public float satchelBlastRadius = 4.5f;
+        [Range(1f, 10f)] public float satchelBlastRadius = 2.25f;
         [Range(0.2f, 3.0f)] public float satchelStunDuration = 1.2f;
         [Range(0.1f, 2.0f)] public float satchelArmDelay = 0.3f;
         [Range(1.0f, 6.0f)] public float satchelAutoDetonateTime = 2.5f;

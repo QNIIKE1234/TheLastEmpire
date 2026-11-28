@@ -3373,69 +3373,79 @@ namespace TheLastEmpire
             Vector3 rightDir = Vector3.Cross(Vector3.up, dir).normalized;
             Vector3 circleCenter = origin + dir * orbitRadius;
 
-            GameObject batVis = CreateBoomerangBatVisual(origin, dir);
+            GameObject batVis = CreateBoomerangBatVisual(origin, dir, out Transform hiddenHandBat);
             var hitSet = new System.Collections.Generic.HashSet<IDamageable>();
 
             float duration = 0.72f;
             float elapsed = 0f;
 
-            while (elapsed < duration)
+            try
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-
-                // มุมเริ่มจากฝั่งผู้เล่น (PI) หมุนกวาดเต็มวงกลม 360° ด้านหน้าผู้เล่นแล้ววนกลับเข้ามือ
-                float angle = Mathf.PI + (t * Mathf.PI * 2f);
-                Vector3 curOrigin = transform.position + Vector3.up * 0.65f;
-                Vector3 dynamicCenter = Vector3.Lerp(circleCenter, curOrigin + dir * orbitRadius, 0.35f);
-                Vector3 pos = dynamicCenter + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
-                pos.y = origin.y;
-
-                if (batVis != null)
+                while (elapsed < duration)
                 {
-                    batVis.transform.position = pos;
-                    batVis.transform.Rotate(Vector3.up * 1600f * Time.deltaTime, Space.World);
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / duration);
+
+                    // มุมเริ่มจากฝั่งผู้เล่น (PI) หมุนกวาดเต็มวงกลม 360° ด้านหน้าผู้เล่นแล้ววนกลับเข้ามือ
+                    float angle = Mathf.PI + (t * Mathf.PI * 2f);
+                    Vector3 curOrigin = transform.position + Vector3.up * 0.65f;
+                    Vector3 dynamicCenter = Vector3.Lerp(circleCenter, curOrigin + dir * orbitRadius, 0.35f);
+                    Vector3 pos = dynamicCenter + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
+                    pos.y = origin.y;
+
+                    if (batVis != null)
+                    {
+                        batVis.transform.position = pos;
+                        batVis.transform.Rotate(Vector3.up * 4100f * Time.deltaTime, Space.World);
+                    }
+
+                    Collider[] cols = Physics.OverlapSphere(pos, 1.15f);
+                    for (int i = 0; i < cols.Length; i++)
+                    {
+                        Collider col = cols[i];
+                        if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
+
+                        IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
+                        if (dmgTarget == null || dmgTarget.IsDead || hitSet.Contains(dmgTarget)) continue;
+
+                        BuildingObject building = col.GetComponentInParent<BuildingObject>();
+                        if (building != null && !building.CanBeDamagedByPlayer) continue;
+
+                        hitSet.Add(dmgTarget);
+                        DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
+                        if (col.CompareTag("Player"))
+                        {
+                            TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(gameObject, col.gameObject, res.FinalDamage, col.transform.position, res.IsCritical);
+                            continue;
+                        }
+                        dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
+                        if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
+                        {
+                            _health.Heal(mods.lifestealOnHit);
+                        }
+
+                        BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
+                        if (enemy != null)
+                        {
+                            Vector3 pushDir = (enemy.transform.position - pos);
+                            pushDir.y = 0f;
+                            if (pushDir.sqrMagnitude < 0.01f) pushDir = dir;
+                            enemy.ApplyMeleeKnockback(pushDir.normalized, Mathf.Max(10f, activeKnockback * 0.6f), Mathf.Max(0.55f, activeStagger));
+                        }
+                    }
+
+                    yield return null;
                 }
-
-                Collider[] cols = Physics.OverlapSphere(pos, 1.15f);
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    Collider col = cols[i];
-                    if (col == null || col.gameObject == gameObject || col.transform.root == transform.root) continue;
-
-                    IDamageable dmgTarget = col.GetComponent<IDamageable>() ?? col.GetComponentInParent<IDamageable>();
-                    if (dmgTarget == null || dmgTarget.IsDead || hitSet.Contains(dmgTarget)) continue;
-
-                    BuildingObject building = col.GetComponentInParent<BuildingObject>();
-                    if (building != null && !building.CanBeDamagedByPlayer) continue;
-
-                    hitSet.Add(dmgTarget);
-                    DamageResult res = DamageCalculator.CalculateMeleeDamage(skillDmg, gameObject, weaponName);
-                    if (col.CompareTag("Player"))
-                    {
-                        TheLastEmpire.Network.NetworkPlayerBridge.TryApplyFriendlyFireDamage(gameObject, col.gameObject, res.FinalDamage, col.transform.position, res.IsCritical);
-                        continue;
-                    }
-                    dmgTarget.TakeDamage(res.FinalDamage, col.transform.position, res.IsCritical);
-                    if (mods.lifestealOnHit > 0.01f && _health != null && !_health.IsDead)
-                    {
-                        _health.Heal(mods.lifestealOnHit);
-                    }
-
-                    BaseEnemyAI enemy = col.GetComponent<BaseEnemyAI>() ?? col.GetComponentInParent<BaseEnemyAI>();
-                    if (enemy != null)
-                    {
-                        Vector3 pushDir = (enemy.transform.position - pos);
-                        pushDir.y = 0f;
-                        if (pushDir.sqrMagnitude < 0.01f) pushDir = dir;
-                        enemy.ApplyMeleeKnockback(pushDir.normalized, Mathf.Max(10f, activeKnockback * 0.6f), Mathf.Max(0.55f, activeStagger));
-                    }
-                }
-
-                yield return null;
             }
-
-            if (batVis != null) Destroy(batVis);
+            finally
+            {
+                if (batVis != null) Destroy(batVis);
+                if (hiddenHandBat != null && meleeWeapon != null && meleeWeapon.activeSelf &&
+                    IsWeaponNameMatch(CurrentMeleeWeaponName, "Baseball Bat"))
+                {
+                    hiddenHandBat.gameObject.SetActive(true);
+                }
+            }
         }
 
         /// <summary>
@@ -3462,24 +3472,7 @@ namespace TheLastEmpire
 
                 PlayMeleeSlashAnim("Slash" + step, 0.20f);
                 NotifyNetworkMelee(attackPoint, curDir, weaponName, step, hitDmgBase, hitRadius);
-
-                if (ObjectPoolManager.Instance != null)
-                {
-                    GameObject slashVfx = ObjectPoolManager.Instance.SpawnFromPool("SwordSlash", attackPoint, Quaternion.LookRotation(curDir));
-                    if (slashVfx != null)
-                    {
-                        PooledParticle pp = slashVfx.GetComponent<PooledParticle>();
-                        if (pp != null)
-                        {
-                            pp.SetPoolKey("SwordSlash");
-                            pp.ApplyScaleMultiplier(hitRadius * (isFinisher ? 1.25f : 0.95f));
-                        }
-                        else
-                        {
-                            slashVfx.transform.localScale = Vector3.one * (hitRadius * (isFinisher ? 1.25f : 0.95f));
-                        }
-                    }
-                }
+                SpawnMeleeVfxSynced("Slash" + step, "SwordSlash", curDir, hitRadius, isFinisher ? 1.25f : 0.95f, false, 0.18f);
 
                 Collider[] hitCols = Physics.OverlapSphere(attackPoint, hitRadius);
                 for (int i = 0; i < hitCols.Length; i++)
@@ -3588,36 +3581,166 @@ namespace TheLastEmpire
             lr.SetPosition(1, p1);
         }
 
-        private static GameObject CreateBoomerangBatVisual(Vector3 pos, Vector3 dir)
+        private Transform FindMeleeWeaponVisualChild(string targetWeaponName)
         {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.name = "BatBoomerang_Visual";
-            go.transform.position = pos;
-            go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.22f, 0.65f, 0.22f);
-            Collider c = go.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            Renderer r = go.GetComponent<Renderer>();
-            if (r != null)
+            EnsureWeaponVisualReferences();
+            if (meleeWeapon == null || string.IsNullOrEmpty(targetWeaponName)) return null;
+
+            string cleanTarget = targetWeaponName.Replace(" ", "").Replace("_", "").ToLowerInvariant();
+            Transform bestMatch = null;
+            int bestLen = -1;
+
+            int childCount = meleeWeapon.transform.childCount;
+            for (int i = 0; i < childCount; i++)
             {
-                Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-                if (s != null)
+                Transform child = meleeWeapon.transform.GetChild(i);
+                string childClean = child.name.Replace("Weapon_", "").Replace("Weapon", "").Replace("_", "").Replace(" ", "").ToLowerInvariant();
+                if (childClean == cleanTarget) return child;
+                if (!string.IsNullOrEmpty(childClean) &&
+                    (childClean.Contains(cleanTarget) || cleanTarget.Contains(childClean)) &&
+                    childClean.Length > bestLen)
                 {
-                    Material m = new Material(s);
-                    m.color = new Color(0.92f, 0.68f, 0.25f, 1f);
-                    if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", new Color(0.92f, 0.68f, 0.25f, 1f));
-                    r.sharedMaterial = m;
+                    bestLen = childClean.Length;
+                    bestMatch = child;
                 }
             }
-            TrailRenderer tr = go.AddComponent<TrailRenderer>();
-            tr.time = 0.22f;
-            tr.startWidth = 0.32f;
-            tr.endWidth = 0f;
+            return bestMatch;
+        }
+
+        private GameObject CreateBoomerangBatVisual(Vector3 pos, Vector3 dir, out Transform hiddenHandBat)
+        {
+            hiddenHandBat = null;
+            GameObject pivot = new GameObject("BatBoomerang_Visual");
+            pivot.transform.position = pos;
+            pivot.transform.rotation = Quaternion.LookRotation(dir.sqrMagnitude > 0.001f ? dir : Vector3.forward, Vector3.up);
+
+            float tipHalfLen = 0.55f;
+            bool longestAlongX = false;
+            Transform sourceBat = FindMeleeWeaponVisualChild("Baseball Bat");
+
+            if (sourceBat != null)
+            {
+                // Temporarily hide the bat in hand while it flies out as a spinning boomerang
+                if (sourceBat.gameObject.activeSelf)
+                {
+                    hiddenHandBat = sourceBat;
+                    sourceBat.gameObject.SetActive(false);
+                }
+
+                GameObject batClone = Instantiate(sourceBat.gameObject);
+                batClone.name = "SpinningBaseballBatModel";
+                batClone.SetActive(true);
+
+                // Strip colliders/physics/behaviours so the flying clone is pure visual
+                foreach (Collider c in batClone.GetComponentsInChildren<Collider>(true)) Destroy(c);
+                foreach (Rigidbody rb in batClone.GetComponentsInChildren<Rigidbody>(true)) Destroy(rb);
+
+                // Preserve actual world scale of the bat (boosted slightly for crisp visibility while spinning)
+                Vector3 worldScale = sourceBat.lossyScale;
+                if (worldScale.sqrMagnitude < 0.0001f) worldScale = Vector3.one;
+                batClone.transform.SetParent(null, false);
+                batClone.transform.position = Vector3.zero;
+                batClone.transform.rotation = Quaternion.identity;
+                batClone.transform.localScale = worldScale * 1.25f;
+
+                // Measure renderer bounds to lay the bat flat horizontally (spinning-top / rotor plane) and center it on the pivot
+                Renderer[] rends = batClone.GetComponentsInChildren<Renderer>(true);
+                if (rends.Length > 0)
+                {
+                    Bounds b = rends[0].bounds;
+                    for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+
+                    // Lay longest axis flat on the XZ horizontal plane so it spins like a helicopter blade / spinning top
+                    if (b.size.y >= b.size.x && b.size.y >= b.size.z)
+                    {
+                        batClone.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                        b = rends[0].bounds;
+                        for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                    }
+
+                    // Shift so the bat's visual center sits right on the spinning pivot (0, 0, 0)
+                    batClone.transform.position -= b.center;
+                    longestAlongX = b.size.x > b.size.z;
+                    tipHalfLen = Mathf.Max(0.45f, Mathf.Max(b.extents.x, b.extents.z));
+                }
+
+                batClone.transform.SetParent(pivot.transform, false);
+            }
+            else
+            {
+                // Fallback procedural bat if model child is unavailable
+                GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                fallback.name = "FallbackBatMesh";
+                fallback.transform.SetParent(pivot.transform, false);
+                fallback.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                fallback.transform.localScale = new Vector3(0.18f, 0.58f, 0.18f);
+                Collider c = fallback.GetComponent<Collider>();
+                if (c != null) Destroy(c);
+                Renderer r = fallback.GetComponent<Renderer>();
+                if (r != null)
+                {
+                    Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                    if (s != null)
+                    {
+                        Material m = new Material(s);
+                        m.color = new Color(0.86f, 0.62f, 0.28f, 1f);
+                        if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", new Color(0.86f, 0.62f, 0.28f, 1f));
+                        r.sharedMaterial = m;
+                    }
+                }
+            }
+
+            // Dual high-speed fan-blade spin ribbons (both barrel & handle tips) + subtle circular motion-blur disc
             Shader ts = Shader.Find("Sprites/Default");
-            if (ts != null) tr.material = new Material(ts);
-            tr.startColor = new Color(1f, 0.85f, 0.3f, 0.85f);
-            tr.endColor = new Color(1f, 0.5f, 0.1f, 0f);
-            return go;
+            Material trailMat = ts != null ? new Material(ts) : null;
+            for (int side = -1; side <= 1; side += 2)
+            {
+                GameObject tipTrailGo = new GameObject(side > 0 ? "SpinTipTrail_A" : "SpinTipTrail_B");
+                tipTrailGo.transform.SetParent(pivot.transform, false);
+                tipTrailGo.transform.localPosition = longestAlongX
+                    ? new Vector3(side * tipHalfLen * 0.90f, 0f, 0f)
+                    : new Vector3(0f, 0f, side * tipHalfLen * 0.90f);
+                TrailRenderer tr = tipTrailGo.AddComponent<TrailRenderer>();
+                tr.time = 0.14f;
+                tr.startWidth = side > 0 ? 0.24f : 0.15f;
+                tr.endWidth = 0f;
+                tr.minVertexDistance = 0.04f;
+                if (trailMat != null) tr.sharedMaterial = trailMat;
+                tr.startColor = side > 0 ? new Color(1f, 0.94f, 0.62f, 0.78f) : new Color(1f, 0.85f, 0.45f, 0.48f);
+                tr.endColor = new Color(1f, 0.68f, 0.18f, 0f);
+            }
+
+            // Translucent flat fan-blur disc to sell rapid propeller-like spin readability
+            GameObject blurDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            blurDisc.name = "FanSpinBlurDisc";
+            blurDisc.transform.SetParent(pivot.transform, false);
+            blurDisc.transform.localPosition = Vector3.zero;
+            float discDiam = Mathf.Max(1.05f, tipHalfLen * 1.95f);
+            blurDisc.transform.localScale = new Vector3(discDiam, 0.012f, discDiam);
+            Collider discCol = blurDisc.GetComponent<Collider>();
+            if (discCol != null) Destroy(discCol);
+            Renderer discRend = blurDisc.GetComponent<Renderer>();
+            if (discRend != null)
+            {
+                Shader blurShader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
+                if (blurShader != null)
+                {
+                    Material bm = new Material(blurShader);
+                    if (bm.HasProperty("_Surface")) bm.SetFloat("_Surface", 1f); // Transparent
+                    if (bm.HasProperty("_Blend")) bm.SetFloat("_Blend", 0f);
+                    if (bm.HasProperty("_SrcBlend")) bm.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    if (bm.HasProperty("_DstBlend")) bm.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    if (bm.HasProperty("_ZWrite")) bm.SetInt("_ZWrite", 0);
+                    bm.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    bm.renderQueue = 3000;
+                    Color blurCol = new Color(1f, 0.92f, 0.65f, 0.18f);
+                    bm.color = blurCol;
+                    if (bm.HasProperty("_BaseColor")) bm.SetColor("_BaseColor", blurCol);
+                    discRend.sharedMaterial = bm;
+                }
+            }
+
+            return pivot;
         }
 
         // --- Network Visual Replay & Host Authoritative Pull Helpers ---
@@ -3675,26 +3798,35 @@ namespace TheLastEmpire
             float orbitRadius = circleDiameter * 0.5f;
             Vector3 rightDir = Vector3.Cross(Vector3.up, dir).normalized;
             Vector3 center = origin + dir * orbitRadius;
-            GameObject batVis = CreateBoomerangBatVisual(origin, dir);
+            GameObject batVis = CreateBoomerangBatVisual(origin, dir, out Transform hiddenHandBat);
 
             float duration = 0.72f;
             float elapsed = 0f;
-            while (elapsed < duration)
+            try
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-                float angle = Mathf.PI + (t * Mathf.PI * 2f);
-                Vector3 pos = center + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
-                pos.y = origin.y;
-                if (batVis != null)
+                while (elapsed < duration)
                 {
-                    batVis.transform.position = pos;
-                    batVis.transform.Rotate(Vector3.up * 1600f * Time.deltaTime, Space.World);
+                    elapsed += Time.deltaTime;
+                    float t = Mathf.Clamp01(elapsed / duration);
+                    float angle = Mathf.PI + (t * Mathf.PI * 2f);
+                    Vector3 pos = center + (dir * Mathf.Cos(angle) + rightDir * Mathf.Sin(angle)) * orbitRadius;
+                    pos.y = origin.y;
+                    if (batVis != null)
+                    {
+                        batVis.transform.position = pos;
+                        batVis.transform.Rotate(Vector3.up * 4100f * Time.deltaTime, Space.World);
+                    }
+                    yield return null;
                 }
-                yield return null;
             }
-
-            if (batVis != null) Destroy(batVis);
+            finally
+            {
+                if (batVis != null) Destroy(batVis);
+                if (hiddenHandBat != null && meleeWeapon != null && meleeWeapon.activeSelf)
+                {
+                    hiddenHandBat.gameObject.SetActive(true);
+                }
+            }
         }
 
         public static void ExecuteHostAuthoritativeKnifeHookPull(Vector3 attackerOrigin, Vector3 dir, float maxRange)
@@ -4747,7 +4879,7 @@ namespace TheLastEmpire
             return "Bullet";
         }
 
-        private static string ResolveMeleeAttackState(string weaponName, int comboStep, out float animLockDuration)
+        public static string ResolveMeleeAttackState(string weaponName, int comboStep, out float animLockDuration)
         {
             string clean = (weaponName ?? "").Replace(" ", "").Replace("_", "").ToLowerInvariant();
 
@@ -4799,6 +4931,161 @@ namespace TheLastEmpire
 
             animLockDuration = 0.40f;
             return "Slash" + comboStep;
+        }
+
+        private readonly struct MeleeVfxProfile
+        {
+            public readonly float DelaySec;
+            public readonly float RollZDeg;
+            public readonly float ForwardOffset;
+            public readonly float VerticalOffset;
+            public readonly float GroundSlamDelaySec;
+
+            public MeleeVfxProfile(float delaySec, float rollZDeg, float forwardOffset, float verticalOffset, float groundSlamDelaySec = 0f)
+            {
+                DelaySec = delaySec;
+                RollZDeg = rollZDeg;
+                ForwardOffset = forwardOffset;
+                VerticalOffset = verticalOffset;
+                GroundSlamDelaySec = groundSlamDelaySec;
+            }
+        }
+
+        /// <summary>
+        /// Maps each melee Animator state to its exact impact-frame delay and local Z roll angle.
+        /// Note on Normal slash ("SwordSlash"): at RollZ=0° it sweeps horizontally Right(+X) -> Front(+Z) -> Left(-X).
+        ///  - RollZ = 180° flips horizontally to Left(-X) -> Front(+Z) -> Right(+X) (Fire Axe, Baseball Bat, Slash1).
+        ///  - RollZ = -90° (-85° slight cant for top-down readability) rotates vertically to Top(+Y, overhead) -> Front(+Z) -> Bottom(-Y, ground) (Sledgehammer, Slash3, Spear, Chainsaw).
+        ///  - RollZ = -120°..-155° aligns diagonal High-Left -> Low-Right chops (Machete, Stun Baton, Knife).
+        ///  - RollZ = +25° aligns reverse Low-Right -> High-Left slash (Slash2).
+        /// </summary>
+        private static MeleeVfxProfile ResolveMeleeVfxProfile(string animStateName)
+        {
+            switch (animStateName)
+            {
+                case "Melee_Knife":
+                    return new MeleeVfxProfile(delaySec: 0.08f, rollZDeg: -155f, forwardOffset: 0.85f, verticalOffset: 0.12f);
+                case "Melee_BaseballBat":
+                    return new MeleeVfxProfile(delaySec: 0.18f, rollZDeg: 180f, forwardOffset: 0.85f, verticalOffset: 0.15f);
+                case "Melee_Machete":
+                    return new MeleeVfxProfile(delaySec: 0.18f, rollZDeg: -135f, forwardOffset: 0.85f, verticalOffset: 0.25f);
+                case "Melee_FireAxe":
+                    return new MeleeVfxProfile(delaySec: 0.22f, rollZDeg: 180f, forwardOffset: 0.90f, verticalOffset: 0.15f);
+                case "Melee_Katana":
+                    return new MeleeVfxProfile(delaySec: 0.12f, rollZDeg: 0f, forwardOffset: 0.90f, verticalOffset: 0.15f);
+                case "Melee_Sledgehammer":
+                    return new MeleeVfxProfile(delaySec: 0.30f, rollZDeg: -85f, forwardOffset: 0.95f, verticalOffset: 0.85f, groundSlamDelaySec: 0.43f);
+                case "Melee_SurvivalSpear":
+                    return new MeleeVfxProfile(delaySec: 0.13f, rollZDeg: -85f, forwardOffset: 1.05f, verticalOffset: 0.50f);
+                case "Melee_StunBaton":
+                    return new MeleeVfxProfile(delaySec: 0.11f, rollZDeg: -120f, forwardOffset: 0.85f, verticalOffset: 0.30f);
+                case "Melee_Chainsaw":
+                    return new MeleeVfxProfile(delaySec: 0.03f, rollZDeg: -85f, forwardOffset: 0.95f, verticalOffset: 0.45f);
+                case "Slash2":
+                    return new MeleeVfxProfile(delaySec: 0.15f, rollZDeg: 25f, forwardOffset: 0.85f, verticalOffset: 0.20f);
+                case "Slash3":
+                    return new MeleeVfxProfile(delaySec: 0.22f, rollZDeg: -85f, forwardOffset: 0.90f, verticalOffset: 0.85f);
+                case "Slash1":
+                default:
+                    return new MeleeVfxProfile(delaySec: 0.15f, rollZDeg: 180f, forwardOffset: 0.85f, verticalOffset: 0.15f);
+            }
+        }
+
+        /// <summary>
+        /// Spawns melee slash VFX (and Sledgehammer ground shockwave) delayed to match the weapon's actual swing/impact frame,
+        /// oriented with the exact horizontal flip or vertical/diagonal roll axis. Shared by Local Player & Co-op Remote Players.
+        /// </summary>
+        public void SpawnMeleeVfxSynced(
+            string animStateName,
+            string vfxPoolKey,
+            Vector3 aimDir,
+            float activeRadius,
+            float vfxScaleMultiplier,
+            bool spawnGroundSlamShockwave,
+            float maxAttackInterval = 1.0f)
+        {
+            if (ObjectPoolManager.Instance == null || !gameObject.activeInHierarchy) return;
+
+            Vector3 flatDir = aimDir;
+            flatDir.y = 0f;
+            if (flatDir.sqrMagnitude < 0.001f) flatDir = transform.forward;
+            flatDir.y = 0f;
+            if (flatDir.sqrMagnitude < 0.001f) flatDir = Vector3.forward;
+            flatDir.Normalize();
+
+            MeleeVfxProfile profile = ResolveMeleeVfxProfile(animStateName);
+            float scaleMult = vfxScaleMultiplier > 0f ? vfxScaleMultiplier : 1.0f;
+            float delay = Mathf.Min(profile.DelaySec, Mathf.Max(0.02f, maxAttackInterval * 0.48f));
+            float groundSlamDelay = spawnGroundSlamShockwave
+                ? Mathf.Min(profile.GroundSlamDelaySec > 0f ? profile.GroundSlamDelaySec : delay + 0.08f, Mathf.Max(delay, maxAttackInterval * 0.62f))
+                : 0f;
+
+            StartCoroutine(SpawnDelayedMeleeVfxRoutine(
+                vfxPoolKey,
+                flatDir,
+                activeRadius * scaleMult,
+                profile,
+                delay,
+                spawnGroundSlamShockwave,
+                groundSlamDelay));
+        }
+
+        private System.Collections.IEnumerator SpawnDelayedMeleeVfxRoutine(
+            string vfxPoolKey,
+            Vector3 lockedDir,
+            float finalScale,
+            MeleeVfxProfile profile,
+            float delaySec,
+            bool spawnGroundSlamShockwave,
+            float groundSlamDelaySec)
+        {
+            if (delaySec > 0.005f)
+            {
+                yield return new WaitForSeconds(delaySec);
+            }
+
+            if (this == null || !gameObject.activeInHierarchy) yield break;
+            if (_health != null && _health.IsDead) yield break;
+
+            if (!string.IsNullOrEmpty(vfxPoolKey) && ObjectPoolManager.Instance != null)
+            {
+                Vector3 spawnPos = transform.position + lockedDir * profile.ForwardOffset + Vector3.up * profile.VerticalOffset;
+                Quaternion spawnRot = Quaternion.LookRotation(lockedDir, Vector3.up) * Quaternion.Euler(0f, 0f, profile.RollZDeg);
+
+                GameObject slashVFX = ObjectPoolManager.Instance.SpawnFromPool(vfxPoolKey, spawnPos, spawnRot);
+                if (slashVFX != null)
+                {
+                    PooledParticle pooledParticle = slashVFX.GetComponent<PooledParticle>();
+                    if (pooledParticle != null)
+                    {
+                        pooledParticle.SetPoolKey(vfxPoolKey);
+                        pooledParticle.ApplyScaleMultiplier(finalScale);
+                        pooledParticle.RestartParticles();
+                    }
+                    else
+                    {
+                        slashVFX.transform.localScale = Vector3.one * finalScale;
+                    }
+                }
+            }
+
+            if (spawnGroundSlamShockwave)
+            {
+                float extraWait = groundSlamDelaySec - delaySec;
+                if (extraWait > 0.005f)
+                {
+                    yield return new WaitForSeconds(extraWait);
+                }
+
+                if (this == null || !gameObject.activeInHierarchy) yield break;
+                if (_health != null && _health.IsDead) yield break;
+
+                if (ObjectPoolManager.Instance != null)
+                {
+                    Vector3 slamGroundPos = transform.position + lockedDir * profile.ForwardOffset;
+                    ObjectPoolManager.Instance.SpawnFromPool("EnemyExplosion", slamGroundPos, Quaternion.identity);
+                }
+            }
         }
 
         private void MeleeAttack()
@@ -4860,37 +5147,6 @@ namespace TheLastEmpire
             _meleeCooldownTimer = activeRate;
             Vector3 attackPoint = transform.position + _aimDirection * 0.8f;
 
-            // ⚔️ เล่นเอฟเฟกต์ฟัน ถ้าระบุไว้ในอาวุธ
-            if (activeMelee != null && !string.IsNullOrEmpty(activeMelee.vfxPoolKey) && ObjectPoolManager.Instance != null)
-            {
-                GameObject slashVFX = ObjectPoolManager.Instance.SpawnFromPool(activeMelee.vfxPoolKey, attackPoint, Quaternion.LookRotation(_aimDirection));
-                if (slashVFX != null)
-                {
-                    PooledParticle pooledParticle = slashVFX.GetComponent<PooledParticle>();
-                    if (pooledParticle != null)
-                    {
-                        // อัปเดต Pool Key ให้ตรงกัน
-                        pooledParticle.SetPoolKey(activeMelee.vfxPoolKey);
-
-                        // ขยายขนาด VFX โดยอิงจาก Scale ต้นฉบับของ Prefab
-                        float multiplier = activeMelee.vfxScaleMultiplier > 0 ? activeMelee.vfxScaleMultiplier : 1.0f;
-                        pooledParticle.ApplyScaleMultiplier(activeRadius * multiplier);
-                    }
-                    else
-                    {
-                        // Fallback กรณีไม่ได้ใส่สคริปต์ PooledParticle
-                        float multiplier = activeMelee.vfxScaleMultiplier > 0 ? activeMelee.vfxScaleMultiplier : 1.0f;
-                        slashVFX.transform.localScale = Vector3.one * (activeRadius * multiplier);
-                    }
-                }
-            }
-
-            // Sledgehammer: Ground Slam shockwave visual
-            if (isSledgehammer && ObjectPoolManager.Instance != null)
-            {
-                ObjectPoolManager.Instance.SpawnFromPool("EnemyExplosion", attackPoint, Quaternion.identity);
-            }
-
             // Visual swing debug
             Debug.Log($"[PlayerController] Melee Swing Swung using {CurrentMeleeWeaponName}!");
 
@@ -4902,10 +5158,10 @@ namespace TheLastEmpire
             _meleeComboStep = (_meleeComboStep % 3) + 1;
             _lastMeleeSwingTime = Time.time;
 
+            string slashState = ResolveMeleeAttackState(wName, _meleeComboStep, out float lockDuration);
             if (_animator == null) _animator = animator != null ? animator : GetComponentInChildren<Animator>();
             if (_animator != null)
             {
-                string slashState = ResolveMeleeAttackState(wName, _meleeComboStep, out float lockDuration);
                 int stateHash = Animator.StringToHash(slashState);
                 if (!_animator.HasState(0, stateHash))
                 {
@@ -4929,6 +5185,11 @@ namespace TheLastEmpire
                 }
                 _animator.Play(slashState, 0, 0f);
             }
+
+            // ⚔️ เล่นเอฟเฟกต์ฟันแบบ Sync เวลา, ทิศทาง (ซ้าย->ขวา / ขวา->ซ้าย) และแกน (แนวตั้ง/เฉียง/แนวนอน) ให้ตรงกับท่า Animation จริง
+            string meleeVfxKey = activeMelee != null ? activeMelee.vfxPoolKey : null;
+            float meleeVfxScaleMult = (activeMelee != null && activeMelee.vfxScaleMultiplier > 0f) ? activeMelee.vfxScaleMultiplier : 1.0f;
+            SpawnMeleeVfxSynced(slashState, meleeVfxKey, _aimDirection, activeRadius, meleeVfxScaleMult, isSledgehammer, activeRate);
 
             NotifyNetworkMelee(attackPoint, _aimDirection, wName, _meleeComboStep, meleeDmgResult.FinalDamage, activeRadius);
 

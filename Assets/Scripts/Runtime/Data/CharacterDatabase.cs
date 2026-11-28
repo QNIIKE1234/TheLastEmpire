@@ -350,7 +350,7 @@ namespace TheLastEmpire
             demolitionist.shiftAbilityDescription = "Press [Shift] to plant a C4 satchel charge and launch yourself backward 4.5m with evasion I-frames. The mine arms in 0.3s and detonates on enemy proximity or 2.5s timer dealing 65 AOE damage and 1.2s stun. (Passive: Blast Shield reduces explosive damage taken by 60%, +30% blast radius)";
             demolitionist.shiftCooldown = 5.0f;
             demolitionist.satchelDamage = 65f;
-            demolitionist.satchelBlastRadius = 4.5f;
+            demolitionist.satchelBlastRadius = 2.25f;
             demolitionist.satchelStunDuration = 1.2f;
             demolitionist.satchelArmDelay = 0.3f;
             demolitionist.satchelAutoDetonateTime = 2.5f;

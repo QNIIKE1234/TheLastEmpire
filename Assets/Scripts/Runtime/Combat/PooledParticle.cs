@@ -62,5 +62,18 @@ namespace TheLastEmpire
                 main.scalingMode = ParticleSystemScalingMode.Hierarchy;
             }
         }
+
+        /// <summary>
+        /// Clears any particles emitted before transform rotation/scale were finalized and replays cleanly from t=0.
+        /// </summary>
+        public void RestartParticles()
+        {
+            if (_particleSystem == null) _particleSystem = GetComponent<ParticleSystem>();
+            if (_particleSystem != null)
+            {
+                _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                _particleSystem.Play(true);
+            }
+        }
     }
 }

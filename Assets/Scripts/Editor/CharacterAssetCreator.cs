@@ -606,7 +606,7 @@ namespace TheLastEmpire.Editor
                 data.shiftAbilityDescription = "Press [Shift] to plant a C4 satchel charge and launch yourself backward 4.5m with evasion I-frames. The mine arms in 0.3s and detonates on enemy proximity or 2.5s timer dealing 65 AOE damage and 1.2s stun. (Passive: Blast Shield reduces explosive damage taken by 60%, +30% blast radius)";
                 data.shiftCooldown = 5.0f;
                 data.satchelDamage = 65f;
-                data.satchelBlastRadius = 4.5f;
+                data.satchelBlastRadius = 2.25f;
                 data.satchelStunDuration = 1.2f;
                 data.satchelArmDelay = 0.3f;
                 data.satchelAutoDetonateTime = 2.5f;

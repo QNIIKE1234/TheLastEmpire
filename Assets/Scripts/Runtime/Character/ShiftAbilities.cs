@@ -1412,7 +1412,7 @@ namespace TheLastEmpire
         private void SpawnSatchelMine(Vector3 pos)
         {
             float damage = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelDamage : 65f;
-            float blastRadius = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelBlastRadius : 4.5f;
+            float blastRadius = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelBlastRadius : 2.25f;
             float stunDuration = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelStunDuration : 1.2f;
             float armDelay = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelArmDelay : 0.3f;
             float autoDetonate = (_player.ActiveCharacterData != null) ? _player.ActiveCharacterData.satchelAutoDetonateTime : 2.5f;
